@@ -1,0 +1,56 @@
+!! Copyright 2009, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+!% Contains a module which defines and keeps track of the current task in {\sc Galacticus}.
+
+module Galacticus_Tasks
+  !% Defines and keeps track of the current task in {\sc Galacticus}.
+  private
+  public :: Galacticus_Task_Do
+
+  integer, parameter :: taskBegin   = 0 ! Initial value to indicate the start.
+  integer, parameter :: taskFinished=-1 ! Task that indicates all tasks are done.
+
+  integer            :: currentTask =taskBegin ! Variable that tracks the current task.
+
+contains
+
+  subroutine Galacticus_Task_Do()
+    !% Performs {\sc Galacticus} tasks.
+    use Galacticus_Evolve_To_Module
+    !# <include directive="galacticusTask" type="moduleUse">
+    include 'galacticus.tasks.task_rules.modules.inc'
+    !# </include>
+    implicit none
+    logical                     :: tasksRemaining=.true.
+    procedure(logical), pointer :: taskFunction => null()
+
+    do while (tasksRemaining)
+       tasksRemaining=.false.
+       !# <include directive="galacticusTask" type="code" action="procPointer">
+       !#  <pointerName>taskFunction</pointerName>
+       !#  <pointerAction>tasksRemaining=tasksRemaining.or.taskFunction()</pointerAction>
+       include 'galacticus.tasks.task_rules.inc'
+       !# </include>
+    end do
+    return
+  end subroutine Galacticus_Task_Do
+
+end module Galacticus_Tasks
