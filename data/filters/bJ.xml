@@ -1,0 +1,220 @@
+<filter>
+  <description>Couch and Newell (80) BJ (photographic) filter</description>
+  <name>bJ</name>
+  <origin>Bruzual and Charlot code</origin>
+  <response>
+    <datum>   3600.000      0.0000000E+00</datum>
+    <datum>   3610.000      1.1200004E-03</datum>
+    <datum>   3620.000      2.8800005E-03</datum>
+    <datum>   3630.000      5.2800006E-03</datum>
+    <datum>   3640.000      8.3200000E-03</datum>
+    <datum>   3650.000      1.2000000E-02</datum>
+    <datum>   3660.000      1.5680000E-02</datum>
+    <datum>   3670.000      2.0320000E-02</datum>
+    <datum>   3680.000      2.5920000E-02</datum>
+    <datum>   3690.000      3.2479998E-02</datum>
+    <datum>   3700.000      3.9999999E-02</datum>
+    <datum>   3710.000      4.7519997E-02</datum>
+    <datum>   3720.000      5.7279997E-02</datum>
+    <datum>   3730.000      6.9279999E-02</datum>
+    <datum>   3740.000      8.3519995E-02</datum>
+    <datum>   3750.000      0.1000000    </datum>
+    <datum>   3760.000      0.1200000    </datum>
+    <datum>   3770.000      0.1440000    </datum>
+    <datum>   3780.000      0.1720000    </datum>
+    <datum>   3790.000      0.2040000    </datum>
+    <datum>   3800.000      0.2400000    </datum>
+    <datum>   3810.000      0.2888000    </datum>
+    <datum>   3820.000      0.3392000    </datum>
+    <datum>   3830.000      0.3912000    </datum>
+    <datum>   3840.000      0.4448000    </datum>
+    <datum>   3850.000      0.5000000    </datum>
+    <datum>   3860.000      0.5491999    </datum>
+    <datum>   3870.000      0.5958000    </datum>
+    <datum>   3880.000      0.6398000    </datum>
+    <datum>   3890.000      0.6812000    </datum>
+    <datum>   3900.000      0.7200000    </datum>
+    <datum>   3910.000      0.7520000    </datum>
+    <datum>   3920.000      0.7810000    </datum>
+    <datum>   3930.000      0.8070000    </datum>
+    <datum>   3940.000      0.8300000    </datum>
+    <datum>   3950.000      0.8500000    </datum>
+    <datum>   3960.000      0.8674400    </datum>
+    <datum>   3970.000      0.8831600    </datum>
+    <datum>   3980.000      0.8971600    </datum>
+    <datum>   3990.000      0.9094400    </datum>
+    <datum>   4000.000      0.9200000    </datum>
+    <datum>   4010.000      0.9305600    </datum>
+    <datum>   4020.000      0.9402400    </datum>
+    <datum>   4030.000      0.9490399    </datum>
+    <datum>   4040.000      0.9569600    </datum>
+    <datum>   4050.000      0.9640000    </datum>
+    <datum>   4060.000      0.9705600    </datum>
+    <datum>   4070.000      0.9764400    </datum>
+    <datum>   4080.000      0.9816400    </datum>
+    <datum>   4090.000      0.9861600    </datum>
+    <datum>   4100.000      0.9900000    </datum>
+    <datum>   4110.000      0.9934400    </datum>
+    <datum>   4120.000      0.9961600    </datum>
+    <datum>   4130.000      0.9981600    </datum>
+    <datum>   4140.000      0.9994400    </datum>
+    <datum>   4150.000       1.000000    </datum>
+    <datum>   4160.000      0.9994000    </datum>
+    <datum>   4170.000      0.9981000    </datum>
+    <datum>   4180.000      0.9961000    </datum>
+    <datum>   4190.000      0.9934000    </datum>
+    <datum>   4200.000      0.9900000    </datum>
+    <datum>   4210.000      0.9856000    </datum>
+    <datum>   4220.000      0.9809000    </datum>
+    <datum>   4230.000      0.9759001    </datum>
+    <datum>   4240.000      0.9706000    </datum>
+    <datum>   4250.000      0.9650000    </datum>
+    <datum>   4260.000      0.9597200    </datum>
+    <datum>   4270.000      0.9545801    </datum>
+    <datum>   4280.000      0.9495801    </datum>
+    <datum>   4290.000      0.9447200    </datum>
+    <datum>   4300.000      0.9400000    </datum>
+    <datum>   4310.000      0.9362800    </datum>
+    <datum>   4320.000      0.9326200    </datum>
+    <datum>   4330.000      0.9290200    </datum>
+    <datum>   4340.000      0.9254800    </datum>
+    <datum>   4350.000      0.9220000    </datum>
+    <datum>   4360.000      0.9175999    </datum>
+    <datum>   4370.000      0.9131999    </datum>
+    <datum>   4380.000      0.9087999    </datum>
+    <datum>   4390.000      0.9044000    </datum>
+    <datum>   4400.000      0.9000000    </datum>
+    <datum>   4410.000      0.8964000    </datum>
+    <datum>   4420.000      0.8928000    </datum>
+    <datum>   4430.000      0.8892000    </datum>
+    <datum>   4440.000      0.8856000    </datum>
+    <datum>   4450.000      0.8820000    </datum>
+    <datum>   4460.000      0.8773201    </datum>
+    <datum>   4470.000      0.8727800    </datum>
+    <datum>   4480.000      0.8683800    </datum>
+    <datum>   4490.000      0.8641200    </datum>
+    <datum>   4500.000      0.8600000    </datum>
+    <datum>   4510.000      0.8572800    </datum>
+    <datum>   4520.000      0.8548200    </datum>
+    <datum>   4530.000      0.8526200    </datum>
+    <datum>   4540.000      0.8506800    </datum>
+    <datum>   4550.000      0.8490000    </datum>
+    <datum>   4560.000      0.8471600    </datum>
+    <datum>   4570.000      0.8453400    </datum>
+    <datum>   4580.000      0.8435400    </datum>
+    <datum>   4590.000      0.8417600    </datum>
+    <datum>   4600.000      0.8400000    </datum>
+    <datum>   4610.000      0.8380400    </datum>
+    <datum>   4620.000      0.8360600    </datum>
+    <datum>   4630.000      0.8340600    </datum>
+    <datum>   4640.000      0.8320400    </datum>
+    <datum>   4650.000      0.8300000    </datum>
+    <datum>   4660.000      0.8284000    </datum>
+    <datum>   4670.000      0.8266000    </datum>
+    <datum>   4680.000      0.8246000    </datum>
+    <datum>   4690.000      0.8224000    </datum>
+    <datum>   4700.000      0.8200000    </datum>
+    <datum>   4710.000      0.8164000    </datum>
+    <datum>   4720.000      0.8126000    </datum>
+    <datum>   4730.000      0.8086000    </datum>
+    <datum>   4740.000      0.8044000    </datum>
+    <datum>   4750.000      0.8000000    </datum>
+    <datum>   4760.000      0.7954000    </datum>
+    <datum>   4770.000      0.7911000    </datum>
+    <datum>   4780.000      0.7871000    </datum>
+    <datum>   4790.000      0.7833999    </datum>
+    <datum>   4800.000      0.7800000    </datum>
+    <datum>   4810.000      0.7780000    </datum>
+    <datum>   4820.000      0.7765000    </datum>
+    <datum>   4830.000      0.7755001    </datum>
+    <datum>   4840.000      0.7750000    </datum>
+    <datum>   4850.000      0.7750000    </datum>
+    <datum>   4860.000      0.7761200    </datum>
+    <datum>   4870.000      0.7771800    </datum>
+    <datum>   4880.000      0.7781800    </datum>
+    <datum>   4890.000      0.7791200    </datum>
+    <datum>   4900.000      0.7800000    </datum>
+    <datum>   4910.000      0.7790800    </datum>
+    <datum>   4920.000      0.7778200    </datum>
+    <datum>   4930.000      0.7762200    </datum>
+    <datum>   4940.000      0.7742800    </datum>
+    <datum>   4950.000      0.7720000    </datum>
+    <datum>   4960.000      0.7696800    </datum>
+    <datum>   4970.000      0.7673200    </datum>
+    <datum>   4980.000      0.7649200    </datum>
+    <datum>   4990.000      0.7624800    </datum>
+    <datum>   5000.000      0.7600000    </datum>
+    <datum>   5010.000      0.7579199    </datum>
+    <datum>   5020.000      0.7558800    </datum>
+    <datum>   5030.000      0.7538800    </datum>
+    <datum>   5040.000      0.7519200    </datum>
+    <datum>   5050.000      0.7500000    </datum>
+    <datum>   5060.000      0.7486000    </datum>
+    <datum>   5070.000      0.7469001    </datum>
+    <datum>   5080.000      0.7449001    </datum>
+    <datum>   5090.000      0.7426000    </datum>
+    <datum>   5100.000      0.7400000    </datum>
+    <datum>   5110.000      0.7360000    </datum>
+    <datum>   5120.000      0.7315000    </datum>
+    <datum>   5130.000      0.7265000    </datum>
+    <datum>   5140.000      0.7210000    </datum>
+    <datum>   5150.000      0.7150000    </datum>
+    <datum>   5160.000      0.7088001    </datum>
+    <datum>   5170.000      0.7022000    </datum>
+    <datum>   5180.000      0.6952000    </datum>
+    <datum>   5190.000      0.6878000    </datum>
+    <datum>   5200.000      0.6800000    </datum>
+    <datum>   5210.000      0.6726000    </datum>
+    <datum>   5220.000      0.6644000    </datum>
+    <datum>   5230.000      0.6553999    </datum>
+    <datum>   5240.000      0.6456000    </datum>
+    <datum>   5250.000      0.6350000    </datum>
+    <datum>   5260.000      0.6229999    </datum>
+    <datum>   5270.000      0.6094999    </datum>
+    <datum>   5280.000      0.5944999    </datum>
+    <datum>   5290.000      0.5779999    </datum>
+    <datum>   5300.000      0.5600000    </datum>
+    <datum>   5310.000      0.5394000    </datum>
+    <datum>   5320.000      0.5171000    </datum>
+    <datum>   5330.000      0.4931000    </datum>
+    <datum>   5340.000      0.4674000    </datum>
+    <datum>   5350.000      0.4400000    </datum>
+    <datum>   5360.000      0.4066800    </datum>
+    <datum>   5370.000      0.3740200    </datum>
+    <datum>   5380.000      0.3420200    </datum>
+    <datum>   5390.000      0.3106800    </datum>
+    <datum>   5400.000      0.2800000    </datum>
+    <datum>   5410.000      0.2591200    </datum>
+    <datum>   5420.000      0.2399800    </datum>
+    <datum>   5430.000      0.2225800    </datum>
+    <datum>   5440.000      0.2069200    </datum>
+    <datum>   5450.000      0.1930000    </datum>
+    <datum>   5460.000      0.1766400    </datum>
+    <datum>   5470.000      0.1611600    </datum>
+    <datum>   5480.000      0.1465600    </datum>
+    <datum>   5490.000      0.1328400    </datum>
+    <datum>   5500.000      0.1200000    </datum>
+    <datum>   5510.000      0.1099600    </datum>
+    <datum>   5520.000      0.1006400    </datum>
+    <datum>   5530.000      9.2040002E-02</datum>
+    <datum>   5540.000      8.4159993E-02</datum>
+    <datum>   5550.000      7.7000000E-02</datum>
+    <datum>   5560.000      6.8800002E-02</datum>
+    <datum>   5570.000      6.0999997E-02</datum>
+    <datum>   5580.000      5.3599998E-02</datum>
+    <datum>   5590.000      4.6599999E-02</datum>
+    <datum>   5600.000      3.9999999E-02</datum>
+    <datum>   5610.000      3.4599997E-02</datum>
+    <datum>   5620.000      2.9600000E-02</datum>
+    <datum>   5630.000      2.5000000E-02</datum>
+    <datum>   5640.000      2.0800002E-02</datum>
+    <datum>   5650.000      1.7000001E-02</datum>
+    <datum>   5660.000      1.3120001E-02</datum>
+    <datum>   5670.000      9.4800014E-03</datum>
+    <datum>   5680.000      6.0800011E-03</datum>
+    <datum>   5690.000      2.9200006E-03</datum>
+    <datum>   5700.000      0.0000000E+00</datum>
+  </response>
+  <effectiveWavelength>4569.39673066858</effectiveWavelength>
+  <vegaOffset>0.0976568972885198</vegaOffset>
+</filter>

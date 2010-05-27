@@ -1,0 +1,84 @@
+!% Contains a module which implements a power-law outflow rate due to star formation feedback in galactic spheroids.
+
+module Star_Formation_Feedback_Spheroids_Power_Law
+  !% Implements a power-law outflow rate due to star formation feedback in galactic spheroids.
+  use Tree_Nodes
+  private
+  public :: Star_Formation_Feedback_Spheroids_Power_Law_Initialize
+
+  ! Parameters of the feedback model.
+  double precision :: spheroidOutflowVelocity,spheroidOutflowExponent
+  
+contains
+
+  !# <starFormationFeedbackSpheroidsMethod>
+  !#  <unitName>Star_Formation_Feedback_Spheroids_Power_Law_Initialize</unitName>
+  !# </starFormationFeedbackSpheroidsMethod>
+  subroutine Star_Formation_Feedback_Spheroids_Power_Law_Initialize(starFormationFeedbackSpheroidsMethod&
+       &,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get)
+    !% Initializes the ``power law'' spheroid star formation feedback module.
+    use ISO_Varying_String
+    use Input_Parameters
+    implicit none
+    type(varying_string),          intent(in)    :: starFormationFeedbackSpheroidsMethod
+    procedure(),          pointer, intent(inout) :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get
+    
+    if (starFormationFeedbackSpheroidsMethod == 'power law') then
+       Star_Formation_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law
+       ! Get parameters of for the feedback calculation.
+       !@ <inputParameter>
+       !@   <name>spheroidOutflowVelocity</name>
+       !@   <defaultValue>200</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The velocity scale at which the \SNe-driven outflow rate equals the star formation rate in spheroids.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidOutflowVelocity',spheroidOutflowVelocity,defaultValue=200.0d0)
+       !@ <inputParameter>
+       !@   <name>spheroidOutflowExponent</name>
+       !@   <defaultValue>2</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The velocity scaling of the \SNe-driven outflow rate in spheroids.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidOutflowExponent',spheroidOutflowExponent,defaultValue=  2.0d0)
+    end if
+    return
+  end subroutine Star_Formation_Feedback_Spheroids_Power_Law_Initialize
+
+  double precision function Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law(thisNode,starFormationRate,energyInputRate)
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\tt thisNode}. The outflow
+    !% rate is given by
+    !% \begin{equation}
+    !% \dot{M}_{\rm outflow} = \left({V_{\rm spheroid,outflow} \over V_{\rm spheroid}}\right)^{\alpha_{\rm spheroid,outflow}},
+    !% \end{equation}
+    !% where $V_{\rm spheroid,outflow}$(={\tt spheroidOutflowVelocity}) is the velocity scale at which outflow rate equals star formation
+    !% rate and $\alpha_{\rm spheroid,outflow}$(={\tt spheroidOutflowExponent}) controls the scaling with velocity. Note that the velocity
+    !% $V_{\rm spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to that
+    !% adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
+    use Tree_Nodes
+    use Numerical_Constants_Units
+    use Tree_Node_Methods
+    use Stellar_Feedback
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: starFormationRate,energyInputRate
+    double precision                         :: spheroidVelocity,outflowRateToStarFormationRate
+
+    ! Get spheroid circular velocity.
+    spheroidVelocity=Tree_Node_Spheroid_Velocity(thisNode)
+
+    ! Check for zero velocity spheroid.
+    if (spheroidVelocity <= 0.0d0) then
+       Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law=0.0d0 ! No well defined answer in this case.
+    else
+       outflowRateToStarFormationRate=(spheroidOutflowVelocity/spheroidVelocity)**spheroidOutflowExponent
+       Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law=outflowRateToStarFormationRate*energyInputRate &
+            &/feedbackEnergyInputAtInfinityCanonical
+   end if
+    return
+  end function Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law
+  
+end module Star_Formation_Feedback_Spheroids_Power_Law

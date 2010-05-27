@@ -1,0 +1,744 @@
+!% Contains a module defining the merger tree object type.
+
+module Merger_Trees
+  !% Defines the merger tree object type.
+  use, intrinsic :: ISO_C_Binding
+  use               Tree_Nodes
+  use               Components
+  use               FGSL
+  use               Events_Interrupts
+  use               HDF5
+  use               ISO_Varying_String
+  !# <include directive="treeNodeCreateInitialize" type="moduleUse">
+  include 'objects.tree_node.create.modules.inc'
+  !# </include>
+  private
+  public :: mergerTree
+
+  type mergerTree
+     !% The merger tree object type.
+     integer                   :: index
+     integer(kind=HID_T)       :: hdf5GroupID=-1
+     double precision          :: volumeWeight
+     logical                   :: initialized
+     type(treeNode),   pointer :: baseNode => null()
+     type(mergerTree), pointer :: nextTree => null()
+   contains
+     ! Tree creation/destruction.
+     !@ <objectMethods>
+     !@   <object>mergerTree</object>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroys the merger tree, including all nodes and their components.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroyBranch</method>
+     !@     <description>
+     !@       Destroys a branch of a merger tree starting from the supplied node. All nodes and their components are destroyed.
+     !@     </description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure                 :: destroy       => Merger_Tree_Destroy
+     procedure                 :: destroyBranch => Merger_Tree_Destroy_Branch
+     ! Node creation.
+     !@ <objectMethod>
+     !@   <object>mergerTree</object>
+     !@   <method>createNode(thisNode)</method>
+     !@   <description>Creates {\tt thisNode}.</description>
+     !@ </objectMethod>
+     procedure                 :: createNode    => Tree_Node_Create
+     ! Node promotion.
+     !@ <objectMethod>
+     !@   <object>mergerTree</object>
+     !@   <method>promoteNode(thisNode)</method>
+     !@   <description>Promotes {\tt thisNode} to take the place of its parent node.</description>
+     !@ </objectMethod>
+     procedure                 :: promoteNode   => Tree_Node_Promote
+     ! Node evolution.
+     !@ <objectMethod>
+     !@   <object>mergerTree</object>
+     !@   <method>evolveNode(thisNode)</method>
+     !@   <description>Evolves {\tt thisNode} over a suitable timestep.</description>
+     !@ </objectMethod>
+     procedure                 :: evolveNode    => Tree_Node_Evolve
+     ! Node merging.
+     !@ <objectMethod>
+     !@   <object>mergerTree</object>
+     !@   <method>mergeNode(thisNode)</method>
+     !@   <description>Causes {\tt thisNode} to undergo a node merger event with its parent node.</description>
+     !@ </objectMethod>
+     procedure                 :: mergeNode     => Events_Node_Merger
+     ! Node locating.
+     !@ <objectMethod>
+     !@   <object>mergerTree</object>
+     !@   <method>getNode(thisNode)</method>
+     !@   <description>Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists.</description>
+     !@ </objectMethod>
+     procedure                 :: getNode       => Tree_Node_Get
+  end type mergerTree
+
+  ! Flag to indicate if the tree node create routines have been initialized.
+  logical :: treeNodeCreateInitialized=.false.
+
+  ! Count of number of different possible component types.
+  integer :: componentTypesCount=0
+  
+  ! Flag to indicate if the node evolver method has been initialized.
+  logical :: evolverInitialized=.false.
+
+  ! Parameters controlling the accuracy of ODE solving.
+  double precision :: odeToleranceAbsolute, odeToleranceRelative
+
+  ! Arrays that point to node properties and their derivatives.
+  integer                                     :: nPropertiesMax=0, nProperties
+  double precision, allocatable, dimension(:) :: propertyValues
+  !$omp threadprivate(nPropertiesMax,nProperties,propertyValues)
+
+  ! Module global pointer to the node being processed.
+  type(treeNode),   pointer                   :: activeNode
+  !$omp threadprivate(activeNode)
+
+  ! Variables to track interrupt events.
+  logical                                          :: firstInterruptFound
+  double precision                                 :: firstInterruptTime
+  procedure(Interrupt_Procedure_Template), pointer :: firstInterruptProcedure
+  !$omp threadprivate(firstInterruptFound,firstInterruptTime,firstInterruptProcedure)
+
+  ! Flag to indicate if node merging event method has been initialized.  
+  logical              :: nodeMergersInitialized=.false.
+
+  ! Name of node mergers method used.
+  type(varying_string) :: nodeMergersMethod
+
+  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
+  procedure(Node_Mergers_Template), pointer :: Events_Node_Merger_Do => null()
+  abstract interface
+     subroutine Node_Mergers_Template(thisNode)
+       import treeNode
+       type(treeNode), intent(inout), pointer :: thisNode
+     end subroutine Node_Mergers_Template
+  end interface
+  
+contains
+
+  !! Tree creation/destruction methods.
+
+  subroutine Merger_Tree_Destroy(thisTree)
+    !% Destroys the entire merger tree.
+    implicit none
+    type(mergerTree), pointer, intent(inout) :: thisTree
+
+    if (associated(thisTree)) then
+       ! Destroy all nodes.
+       if (associated(thisTree%baseNode)) call thisTree%destroyBranch(thisTree%baseNode)
+       ! Deallocate the tree.
+       deallocate(thisTree)
+    end if
+    return
+  end subroutine Merger_Tree_Destroy
+
+  subroutine Merger_Tree_Destroy_Branch(thisTree,thisNode)
+    !% Destroy a branch of a tree which begins at {\tt thisNode}.
+    use Tree_Nodes
+    implicit none
+    type(mergerTree), pointer, intent(inout) :: thisTree
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),   pointer                :: destroyNode,nextNode
+
+    nextNode => thisNode
+    do while (associated(nextNode))
+       destroyNode => nextNode
+       call destroyNode%walkBranch(thisNode,nextNode)
+       call destroyNode%destroy
+    end do
+    return
+  end subroutine Merger_Tree_Destroy_Branch
+
+  !! Node creation.
+
+  subroutine Tree_Node_Create(thisTree,thisNode,index)
+    !% Return a pointer to a newly created and initialize a tree node.
+    use Galacticus_Error
+    use Memory_Management
+    implicit none
+    type(mergerTree),          intent(inout)        :: thisTree
+    type(treeNode),   pointer, intent(inout)        :: thisNode
+    integer,                   intent(in), optional :: index
+    integer                                         :: allocErr
+
+    ! Initialize tree node methods if necessary.
+    !$omp critical (Tree_Node_Create_Initialize)
+    if (.not.treeNodeCreateInitialized) call Tree_Node_Create_Initialize
+    !$omp end critical (Tree_Node_Create_Initialize)
+
+    ! Allocate the object.
+    allocate(thisNode,stat=allocErr)
+    if (allocErr/=0) call Galacticus_Error_Report('Tree_Node_Create','unable to allocate node')
+
+    ! Initialize list of component indices.
+    allocate(thisNode%componentIndex(componentTypesCount))
+    call Memory_Usage_Record(size(thisNode%componentIndex),addRemove=+4)
+    thisNode%componentIndex=-1
+
+    ! Ensure pointers are nullified.
+    nullify(thisNode%parentNode,thisNode%childNode,thisNode%siblingNode,thisNode%satelliteNode)
+
+    ! Assign index if supplied.
+    if (present(index)) call thisNode%indexSet(index)
+
+    return
+  end subroutine Tree_Node_Create
+
+  subroutine Tree_Node_Create_Initialize
+    !% Initializes tree node create by calling all relevant initialization routines.
+    use ISO_Varying_String
+    use Input_Parameters
+    use Tree_Node_Methods
+    implicit none
+    ! Read all parameters needed by methods.
+    !# <include directive="treeNodeCreateInitialize" type="optionNames">
+    include 'objects.tree_node.create.parameters.inc'
+    !# </include>
+
+    ! Initialize rate adjust and compute pointers to dummy implementations.
+    !# <include directive="treeNodeMethodsPointer" type="initializeMethods">
+    include 'objects.tree_node.initializeMethods.inc'
+    !# </include>
+
+    ! Call all routines to initialize tree node create.
+    !# <include directive="treeNodeCreateInitialize" type="code" action="subroutine">
+    !#  <subroutineArgs>componentTypesCount</subroutineArgs>
+    include 'objects.tree_node.create.initialize.inc'
+    !# </include>
+    
+    ! Flag that tree node methods are now initialized.
+    treeNodeCreateInitialized=.true.
+    return
+  end subroutine Tree_Node_Create_Initialize
+
+  !! Node promotion method.
+
+  subroutine Tree_Node_Promote(thisTree,thisNode)
+    !% Transfer the properties of {\tt thisNode} to its parent node, then destroy it.
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
+    use Tree_Node_Methods
+    !# <include directive="nodePromotionTask" type="moduleUse">
+    include 'objects.tree_node.promote.modules.inc'
+    !# </include>
+    implicit none
+    type(mergerTree),             intent(inout) :: thisTree
+    type(treeNode),      pointer, intent(inout) :: thisNode
+    type(treeNode),      pointer                :: parentNode,satelliteNode
+    type(varying_string)                        :: message
+
+    ! Perform any processing necessary before this halo is promoted.
+    !# <include directive="nodePromotionTask" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode</subroutineArgs>
+    include 'objects.tree_node.promote.inc'
+    !# </include>
+
+    ! Get pointer to parent node.
+    parentNode => thisNode%parentNode
+
+    ! Display a message.
+    message='Promoting node '
+    message=message//thisNode%index()//' to '//parentNode%index()
+    call Galacticus_Display_Message(message,verbosityInfo)
+
+    ! Move the components of thisNode to the parent.
+    call parentNode%destroyAllComponents
+    call Move_Alloc(thisNode%componentIndex,parentNode%componentIndex)
+    call Move_Alloc(thisNode%components    ,parentNode%components    )
+    
+    ! Transfer any satellite nodes to the parent.
+    if (associated(thisNode%satelliteNode)) then
+       ! Attach the satellite nodes to the parent.
+       if (associated(parentNode%satelliteNode)) then
+          ! Find the last satellite of the parent node.
+          call parentNode%lastSatellite(satelliteNode)
+          satelliteNode%siblingNode => thisNode%satelliteNode
+       else
+          parentNode%satelliteNode  => thisNode%satelliteNode
+       end if
+       ! Get the first satellite of thisNode.
+       satelliteNode => thisNode%satelliteNode
+       do while (associated(satelliteNode))
+          ! Set the parent node for this satellite to the parent.
+          satelliteNode%parentNode => parentNode
+          satelliteNode => satelliteNode%siblingNode
+       end do
+    end if
+
+    ! Nullify the child pointer for the parent.
+    parentNode%childNode => null()
+
+    ! Destroy the node.
+    call thisNode%destroy
+
+    return
+  end subroutine Tree_Node_Promote
+
+  !! Node evolution method.
+
+  subroutine Tree_Node_Evolve(thisTree,thisNode,endTime,interrupted,interruptProcedure)
+    !% Evolves {\tt thisNode} to time {\tt endTime}, or until evolution is interrupted.
+    use Tree_Node_Methods
+    use ODE_Solver
+    use Input_Parameters
+    !# <include directive="postEvolveTask" type="moduleUse">
+    include 'objects.tree_node.post_evolve.modules.inc'
+    !# </include>
+    implicit none
+    type(mergerTree),                        intent(inout)          :: thisTree
+    type(treeNode),                          intent(inout), pointer :: thisNode
+    double precision,                        intent(in)             :: endTime
+    logical,                                 intent(out)            :: interrupted
+    procedure(Interrupt_Procedure_Template),                pointer :: interruptProcedure
+    double precision                                                :: startTimeThisNode
+    ! Variables used in the ODE solver.
+    type(fgsl_odeiv_step)                                           :: odeStepper
+    type(fgsl_odeiv_control)                                        :: odeController
+    type(fgsl_odeiv_evolve)                                         :: odeEvolver
+    type(fgsl_odeiv_system)                                         :: odeSystem
+    logical                                                         :: odeReset
+    type(c_ptr)                                                     :: parameterPointer
+
+    ! Initialize if necessary.
+    !$omp critical (Tree_Node_Evolve_Initialize)
+    if (.not.evolverInitialized) then
+       ! Get tolerance values for the ODE solver.
+       !@ <inputParameter>
+       !@   <name>odeToleranceAbsolute</name>
+       !@   <defaultValue>$10^{-30}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The absolute tolerance used in solving differential equations for node evolution.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=1.0d-30)
+       !@ <inputParameter>
+       !@   <name>odeToleranceRelative</name>
+       !@   <defaultValue>0.01</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The relative tolerance used in solving differential equations for node evolution.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('odeToleranceRelative',odeToleranceRelative,defaultValue=1.0d-2)
+       ! Flag that the module is now initialized.
+       evolverInitialized=.true.
+    end if
+    !$omp end critical (Tree_Node_Evolve_Initialize)
+
+    ! Determine the end time for this node - either the specified end time, or the time associated with the parent node, whichever
+    ! occurs first.
+    startTimeThisNode=Tree_Node_Time(thisNode)
+
+    ! Find number of variables to evolve for this node.
+    nProperties=Count_Properties(thisNode)
+
+    ! Allocate pointer arrays if necessary.
+    if (nProperties > nPropertiesMax) then
+       if (allocated(propertyValues)) deallocate(propertyValues)
+       allocate(propertyValues(nProperties))
+       nPropertiesMax=nProperties
+    end if
+
+    ! Assign pointers to node variables.
+    call Map_Properties_To_ODE_Array(thisNode,propertyValues,propertyValue)
+
+    ! Assign module global pointer to this node.
+    activeNode => thisNode
+
+    ! Reset interrupt variables.
+    firstInterruptFound     =  .false.
+    firstInterruptTime      =  0.0d0
+    firstInterruptProcedure => null()
+
+    ! Call ODE solver routines.
+    startTimeThisNode=Tree_Node_Time(thisNode)
+    odeReset=.true.
+    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,startTimeThisNode,endTime,nProperties,propertyValues,Tree_Node_ODEs&
+         & ,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,odeReset)
+    call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
+
+    ! Extract values.
+    call Map_Properties_From_ODE_Array(thisNode,propertyValues)
+
+    ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
+    if (Tree_Node_Time(thisNode) > endTime) call Tree_Node_Time_Set(thisNode,endTime)
+
+    ! Flag interruption if one occurred.
+    if (firstInterruptTime /= 0.0d0) then
+       interrupted=.true.
+       interruptProcedure => firstInterruptProcedure
+    else
+       interrupted=.false.
+    end if
+
+    ! Call routines to perform any post-evolution tasks.
+    !# <include directive="postEvolveTask" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode</subroutineArgs>
+    include 'objects.tree_node.post_evolve.inc'
+    !# </include>
+ 
+    return
+  end subroutine Tree_Node_Evolve
+  
+  function Tree_Node_ODEs(time,y,dydt,parameterPointer) bind(c)
+    !% Function which evaluates the set of ODEs for the evolution of a specific node.
+    use ODE_Solver_Error_Codes
+    implicit none
+    integer(c_int)                                       :: Tree_Node_ODEs
+    real(c_double),                          value       :: time
+    real(c_double),                          intent(in)  :: y(nProperties)
+    real(c_double),                          intent(out) :: dydt(nProperties)
+    type(c_ptr),                             value       :: parameterPointer
+    logical                                              :: interrupt
+    procedure(Interrupt_Procedure_Template), pointer     :: interruptProcedure
+
+    ! Extract values.
+    call Map_Properties_From_ODE_Array(activeNode,y)
+
+    ! Set derivatives to zero initially.
+    call Initialize_Derivatives_to_Zero(activeNode)
+
+    if (firstInterruptFound .and. time >= firstInterruptTime) then
+       ! Already beyond the location of the first interrupt, simply return zero derivatives.
+       dydt=0.0d0
+    else
+       ! Compute derivatives.
+       call Tree_Node_Compute_Derivatives(activeNode,interrupt,interruptProcedure)
+       
+       ! Check whether an interrupt has been requested.
+       select case (interrupt)
+       case (.false.)
+          ! No interrupt - place derivatives into ODE arrays.
+          call Map_Properties_To_ODE_Array(activeNode,dydt,propertyDerivative)
+       case (.true.)
+          ! Interrupt requested - freeze evolution and store the interrupt if it is the earliest one to occur.
+          dydt=0.0d0
+          if (time < firstInterruptTime .or. .not.firstInterruptFound) then
+             firstInterruptFound     =  .true.
+             firstInterruptTime      =  time
+             firstInterruptProcedure => interruptProcedure
+             ! Let the ODE solver know that an interrupt occured, and when it happened.
+             Tree_Node_ODEs=odeSolverInterrupt
+             interruptedAtX=time
+             return
+          end if
+       end select
+    end if
+    ! Return success.
+    Tree_Node_ODEs=FGSL_Success
+    return
+  end function Tree_Node_ODEs
+
+  subroutine Initialize_Derivatives_to_Zero(thisNode)
+    !% Initialize the derivatives of all properties of {\tt thisNode} to zero.
+    implicit none
+    type(treeNode),  intent(inout) :: thisNode
+    type(component), pointer       :: thisComponent
+    integer                        :: iComponent,iHistory
+
+    do iComponent=1,size(thisNode%components)
+       if (allocated(thisNode%components(iComponent)%properties)) thisNode%components(iComponent)%properties(:&
+            &,propertyDerivative)=0.0d0
+       if (allocated(thisNode%components(iComponent)%histories )) then
+          do iHistory=1,size(thisNode%components(iComponent)%histories)
+             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time))&
+                  & thisNode%components(iComponent)%histories(iHistory)%rates(:,:)=0.0d0
+          end do
+       end if
+       thisComponent => thisNode%components(iComponent)%nextComponentOfType
+       do while (associated(thisComponent))
+          if (allocated(thisComponent%properties)) thisComponent%properties(:,propertyDerivative)=0.0d0
+          if (allocated(thisComponent%histories )) then
+             do iHistory=1,size(thisComponent%histories)
+                if (allocated(thisComponent%histories(iHistory)%time)) thisComponent%histories(iHistory)%rates(:,:)=0.0d0
+             end do
+          end if
+          thisComponent => thisComponent%nextComponentOfType
+       end do
+    end do
+    return
+  end subroutine Initialize_Derivatives_to_Zero
+
+  integer function Count_Properties(thisNode)
+    !% Determine the number of active properties for {\tt thisNode}.
+    implicit none
+    type(treeNode),  intent(in) :: thisNode
+    type(component), pointer    :: thisComponent
+    integer                     :: iComponent,iHistory
+
+    Count_Properties=0
+    do iComponent=1,size(thisNode%components)
+       if (allocated(thisNode%components(iComponent)%properties)) Count_Properties=Count_Properties&
+            &+size(thisNode%components(iComponent)%properties,dim=1)
+       if (allocated(thisNode%components(iComponent)%histories)) then
+          do iHistory=1,size(thisNode%components(iComponent)%histories)
+             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time)) Count_Properties=Count_Properties&
+                  &+size(thisNode%components(iComponent)%histories(iHistory)%data,dim=1) &
+                  &*size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
+          end do
+       end if
+       thisComponent => thisNode%components(iComponent)%nextComponentOfType
+       do while (associated(thisComponent))
+          if (allocated(thisComponent%properties)) Count_Properties=Count_Properties+size(thisComponent%properties,dim=1)
+          if (allocated(thisComponent%histories)) then
+             do iHistory=1,size(thisComponent%histories)
+                if (allocated(thisComponent%histories(iHistory)%time)) Count_Properties=Count_Properties&
+                     &+size(thisComponent%histories(iHistory)%data,dim=1) *size(thisComponent%histories(iHistory)%data,dim=2)
+             end do
+          end if
+          thisComponent => thisComponent%nextComponentOfType
+       end do
+    end do
+    return
+  end function Count_Properties
+
+  subroutine Map_Properties_To_ODE_Array(thisNode,propertyValuesODE,propertyType)
+    !% Copies values of properties from {\tt thisNode} to a single array for use in the ODE solver routines.
+    implicit none
+    double precision, intent(out)          :: propertyValuesODE(:)
+    type(treeNode),   intent(in)           :: thisNode
+    integer,          intent(in), optional :: propertyType
+    type(component),  pointer              :: thisComponent
+    integer                                :: propertyCounter,iComponent,iProperty,propertyTypeActual,iHistory,iTime,iValue
+    
+    ! Find which type of property (value or derivative) is required.
+    if (present(propertyType)) then
+       propertyTypeActual=propertyType
+    else
+       propertyTypeActual=propertyValue
+    end if
+
+    propertyCounter=0
+    do iComponent=1,size(thisNode%components)
+       if (allocated(thisNode%components(iComponent)%properties)) then
+          do iProperty=1,size(thisNode%components(iComponent)%properties,dim=1)
+             propertyCounter=propertyCounter+1
+             propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%properties(iProperty,propertyTypeActual)
+          end do
+       end if
+       if (allocated(thisNode%components(iComponent)%histories)) then
+          do iHistory=1,size(thisNode%components(iComponent)%histories)
+             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time)) then
+                do iValue=1,size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
+                   do iTime=1,size(thisNode%components(iComponent)%histories(iHistory)%time)
+                      propertyCounter=propertyCounter+1
+                      select case (propertyTypeActual)
+                      case (propertyValue)
+                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%data (iTime,iValue)
+                      case (propertyDerivative)
+                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%rates(iTime,iValue)
+                      end select
+                   end do
+                end do
+             end if
+          end do
+       end if
+       thisComponent => thisNode%components(iComponent)%nextComponentOfType
+       do while (associated(thisComponent))
+          if (allocated(thisComponent%properties)) then
+             do iProperty=1,size(thisComponent%properties,dim=1)
+                propertyCounter=propertyCounter+1
+                propertyValuesODE(propertyCounter)=thisComponent%properties(iProperty,propertyTypeActual)
+             end do
+          end if
+          if (allocated(thisComponent%histories)) then
+             do iHistory=1,size(thisComponent%histories)
+                if (allocated(thisComponent%histories(iHistory)%time)) then
+                   do iValue=1,size(thisComponent%histories(iHistory)%data,dim=2)
+                      do iTime=1,size(thisComponent%histories(iHistory)%time)
+                         propertyCounter=propertyCounter+1
+                         select case (propertyTypeActual)
+                         case (propertyValue)
+                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%data (iTime,iValue)
+                         case (propertyDerivative)
+                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%rates(iTime,iValue)
+                         end select
+                      end do
+                   end do
+                end if
+             end do
+          end if
+          thisComponent => thisComponent%nextComponentOfType
+       end do
+    end do
+    return
+  end subroutine Map_Properties_To_ODE_Array
+
+  subroutine Map_Properties_From_ODE_Array(thisNode,propertyValuesODE)
+    !% Copies values of properties from {\tt thisNode} to a single array for use in the ODE solver routines.
+    implicit none
+    double precision, intent(in)           :: propertyValuesODE(:)
+    type(treeNode),   intent(inout)        :: thisNode
+    type(component),  pointer              :: thisComponent
+    integer                                :: propertyCounter,iComponent,iProperty,iHistory,iTime,iValue
+    
+    propertyCounter=0
+    do iComponent=1,size(thisNode%components)
+       if (allocated(thisNode%components(iComponent)%properties)) then
+          do iProperty=1,size(thisNode%components(iComponent)%properties,dim=1)
+             propertyCounter=propertyCounter+1
+             thisNode%components(iComponent)%properties(iProperty,propertyValue)=propertyValuesODE(propertyCounter)
+          end do
+       end if
+       if (allocated(thisNode%components(iComponent)%histories)) then
+          do iHistory=1,size(thisNode%components(iComponent)%histories)
+             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time)) then
+                do iValue=1,size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
+                   do iTime=1,size(thisNode%components(iComponent)%histories(iHistory)%time)
+                      propertyCounter=propertyCounter+1
+                      thisNode%components(iComponent)%histories(iHistory)%data(iTime,iValue)=propertyValuesODE(propertyCounter)
+                   end do
+                end do
+             end if
+          end do
+       end if
+       thisComponent => thisNode%components(iComponent)%nextComponentOfType
+       do while (associated(thisComponent))
+          if (allocated(thisComponent%properties)) then
+             do iProperty=1,size(thisComponent%properties,dim=1)
+                propertyCounter=propertyCounter+1
+                thisComponent%properties(iProperty,propertyValue)=propertyValuesODE(propertyCounter)
+             end do
+          end if
+          if (allocated(thisComponent%histories)) then
+             do iHistory=1,size(thisComponent%histories)
+                if (allocated(thisComponent%histories(iHistory)%time)) then
+                   do iValue=1,size(thisComponent%histories(iHistory)%data,dim=2)
+                      do iTime=1,size(thisComponent%histories(iHistory)%time)
+                         propertyCounter=propertyCounter+1
+                         thisComponent%histories(iHistory)%data(iTime,iValue)=propertyValuesODE(propertyCounter)
+                      end do
+                   end do
+                end if
+             end do
+          end if
+          thisComponent => thisComponent%nextComponentOfType
+       end do
+    end do
+    return
+  end subroutine Map_Properties_From_ODE_Array
+
+  subroutine Tree_Node_Compute_Derivatives(thisNode,interrupt,interruptProcedureReturn)
+    !% Call routines to set alls derivatives for {\tt thisNode}.
+    use Tree_Node_Methods
+    !# <include directive="preDerivativeComputeTask" type="moduleUse">
+    include 'objects.tree_node.prederivatives.modules.inc'
+    !# </include>
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    logical,                 intent(out)   :: interrupt
+    procedure(),    pointer, intent(out)   :: interruptProcedureReturn
+    procedure(),    pointer                :: interruptProcedure
+
+    ! Initialize interrupt status.
+    interrupt=.false.
+    interruptProcedure => null()
+
+    ! Call component routines to indicate that derivative calculation is commencing.
+    !# <include directive="preDerivativeComputeTask" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode</subroutineArgs>
+    include 'objects.tree_node.prederivatives.inc'
+    !# </include>
+    ! Call component routines to compute derivatives.
+    !# <include directive="treeNodeMethodsPointer" type="derivatives">
+    include 'objects.tree_node.derivatives.inc'
+    !# </include>
+
+    ! Return the procedure pointer.
+    !! AJB: Don't see why we should have to have the internal interruptProcedure pointer be passed to the subroutines and then set
+    !! interruptProcedureReturn to point to it, but if I use interruptProcedureReturn in the subroutine calls it doesn't get
+    !! passed back correctly. Maybe a gfortran bug? Should be fixed in <gfortran 4.5>.
+    interruptProcedureReturn => interruptProcedure
+
+    return
+  end subroutine Tree_Node_Compute_Derivatives
+
+  !! Node merging event method.
+
+  subroutine Events_Node_Merger(thisTree,thisNode)
+    !% Handles instances where {\tt thisNode} is about to merge with its parent node.
+    use Input_Parameters
+    use Galacticus_Error
+    use Galacticus_Display
+    use String_Handling
+    !# <include directive="nodeMergersMethod" type="moduleUse">
+    include 'events.node_mergers.moduleUse.inc'
+    !# </include>
+    !# <include directive="nodeMergerTask" type="moduleUse">
+    include 'events.node_mergers.process.modules.inc'
+    !# </include>
+    implicit none
+    type(mergerTree),    intent(inout)          :: thisTree
+    type(treeNode),      intent(inout), pointer :: thisNode
+    type(varying_string)                        :: message
+    
+    ! Display a message.
+    message='Making node '
+    message=message//thisNode%index()//' a satellite in '//thisNode%parentNode%index()
+    call Galacticus_Display_Message(message,verbosityInfo)
+
+    ! Call subroutines to perform any necessary processing prior to this node merger event.
+    !# <include directive="nodeMergerTask" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode</subroutineArgs>
+    include 'events.node_mergers.process.inc'
+    !# </include>
+ 
+    !$omp critical (Events_Node_Merger_Initialize)
+    if (.not.nodeMergersInitialized) then
+       ! Get the node mergers method parameter.
+       !@ <inputParameter>
+       !@   <name>nodeMergersMethod</name>
+       !@   <defaultValue>single level hierarchy</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Selects the method to be used for handling node merger events.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('nodeMergersMethod',nodeMergersMethod,defaultValue='single level hierarchy')
+       ! Include file that makes calls to all available method initialization routines.
+       !# <include directive="nodeMergersMethod" type="code" action="subroutine">
+       !#  <subroutineArgs>nodeMergersMethod,Events_Node_Merger_Do</subroutineArgs>
+       include 'events.node_mergers.inc'
+       !# </include>
+       if (.not.associated(Events_Node_Merger_Do)) call Galacticus_Error_Report('Events_Node_Merger','method '&
+            &//char(nodeMergersMethod)//' is unrecognized')
+       nodeMergersInitialized=.true.
+    end if
+    !$omp end critical (Events_Node_Merger_Initialize)
+
+    ! Call the routine to perform the merger.
+    call Events_Node_Merger_Do(thisNode)
+
+    return
+  end subroutine Events_Node_Merger
+
+  !! Node locating method.
+  
+  function Tree_Node_Get(thisTree,nodeIndex)
+    !% Return a pointer to a node in {\tt thisTree} given the index of the node.
+    use Tree_Nodes
+    implicit none
+    type(treeNode),   pointer       :: Tree_Node_Get,thisNode
+    type(mergerTree), intent(inout) :: thisTree
+    integer,          intent(in)    :: nodeIndex
+
+    Tree_Node_Get => null()
+    thisNode => thisTree%baseNode
+    do while (associated(thisNode))
+       if (thisNode%index() == nodeIndex) then
+          Tree_Node_Get => thisNode
+          return
+       end if
+       call thisNode%walkTreeWithSatellites()
+    end do
+    return
+  end function Tree_Node_Get
+
+end module Merger_Trees

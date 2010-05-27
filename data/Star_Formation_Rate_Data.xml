@@ -1,0 +1,1157 @@
+<dataSets>
+  <starFormationRate>
+    <description>Compilation of star formation rate density data from Hopkins (2004; Table 2).</description>
+    <note>Assumes a Salpeter IMF. For a Chabrier IMF the star formation rates should be reduced by a factor of approximately 0.6.</note>
+    <note>
+      Error value  0 indicates no error supplied.
+      Error value 99 indicates value is a lower limit.
+    </note>
+    <url>http://adsabs.harvard.edu/abs/2004ApJ...615..209H</url>
+    <label>Hopkins (2004)</label>
+    <source>Personal communication from Andrew Hopkins (28 Sep 2009).</source>
+    <columns>
+      <redshift>
+	<description>Redshift.</description>
+	<units>dimensionless</units>
+	<scaling>linear</scaling>
+	<!-- Giavalisco et al. (2004) 1500A -->
+	<data>3.780</data>
+	<data>4.920</data>
+	<data>5.740</data>
+	<!-- Wilson et al. (2002) 2500A -->
+	<data>0.350</data>
+	<data>0.800</data>
+	<data>1.350</data>
+	<!-- Massarotti et al. (2001) 1500A -->
+	<data>1.500</data>
+	<data>2.750</data>
+	<data>4.000</data>
+	<!-- Sullivan et al. (2000) 2000A -->
+	<data>0.150</data>
+	<!-- Steidel et al. (1999) 1700A -->
+	<data>3.040</data>
+	<data>4.130</data>
+	<!-- Cowie et al. (1999) 2000A -->
+	<data>0.700</data>
+	<data>1.250</data>
+	<!-- Treyer et al. (1998) 2000A -->
+	<data>0.150</data>
+	<!-- Connolly et al. (1997) 2800A -->
+	<data>0.750</data>
+	<data>1.250</data>
+	<data>1.750</data>
+	<!-- Lilly et al. (1996) 2800A -->
+	<data>0.350</data>
+	<data>0.625</data>
+	<data>0.875</data>
+	<!-- Teplitz et al. (2003) [O II] -->
+	<data>0.900</data>
+	<!-- Gallego et al. (2002) [O II] -->
+	<data>0.025</data>
+	<!-- Hogg et al. (1998) [O II] -->
+	<data>0.2</data>
+	<data>0.3</data>
+	<data>0.4</data>
+	<data>0.5</data>
+	<data>0.6</data>
+	<data>0.7</data>
+	<data>0.8</data>
+	<data>0.9</data>
+	<data>1.0</data>
+	<data>1.1</data>
+	<data>1.2</data>
+	<!-- Hammer et al. (1997) [O II] -->
+	<data>0.375</data>
+	<data>0.625</data>
+	<data>0.875</data>
+	<!-- Pettini et al. (1998) Hbeta -->
+	<data>2.750</data>
+	<!-- Perez-Gonzalez et al. (2003) Halpha -->
+	<data>0.025</data>
+	<!-- Tresse et al. (2002) Halpha -->
+	<data>0.700</data>
+	<!-- Moorwood et al. (2000) Halpha -->
+	<data>2.200</data>
+	<!-- Hopkins et al. (2000) Halpha -->
+	<data>1.250</data>
+	<!-- Sullivan et al. (2000) Halpha -->
+	<data>0.150</data>
+	<!-- Glazebrook et al. (1999) Halpha -->
+	<data>0.900</data>
+	<!-- Yan et al. (1999) Halpha -->
+	<data>1.300</data>
+	<!-- Tresse & Maddox (1998) Halpha -->
+	<data>0.200</data>
+	<!-- Gallego et al. (1995) Halpha -->
+	<data>0.022</data>
+	<!-- Flores et al. (1999) 15\mu m -->
+	<data>0.350</data>
+	<data>0.625</data>
+	<data>0.875</data>
+	<!-- Barger et al. (2000) 850\mu m -->
+	<data>2.000</data>
+	<data>4.500</data>
+	<!-- Condon et al. (2002) 1.4 GHz -->
+	<data>0.005</data>
+	<!-- Sadler et al. (2002) 1.4 GHz -->
+	<data>0.080</data>
+	<!-- Serjeant et al. (2002) 1.4 GHz -->
+	<data>0.010</data>
+	<!-- Machalski & Godlowski (2000) 1.4 GHz -->
+	<data>0.070</data>
+	<!-- Haarsma et al. (2000) 1.4 GHz -->
+	<data>0.280</data>
+	<data>0.460</data>
+	<data>0.600</data>
+	<data>0.810</data>
+	<data>1.600</data>
+	<!-- Condon (1989) 1.4 GHz -->
+	<data>0.005</data>
+	<!-- Georgakakis et al. (2003) X-ray (0.5-2~keV) -->
+	<data>0.240</data>
+	<!-- Schiminovich et al 2005 GALEX FUV data -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.055</data>
+	<data>0.300</data>
+	<data>0.500</data>
+	<data>0.700</data>
+	<data>1.000</data>
+	<data>2.000</data>
+	<data>2.900</data>
+	<!-- Wolf et al 2003 COMBO17 UV -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.250</data>
+	<data>0.350</data>
+	<data>0.450</data>
+	<data>0.550</data>
+	<data>0.650</data>
+	<data>0.750</data>
+	<data>0.850</data>
+	<data>0.950</data>
+	<data>1.050</data>
+	<data>1.150</data>
+	<!-- Baldry et al 2005 SDSS u-band -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.0125</data>
+	<data>0.030</data>
+	<data>0.050</data>
+	<data>0.070</data>
+	<data>0.090</data>
+	<data>0.110</data>
+	<data>0.130</data>
+	<data>0.150</data>
+	<data>0.170</data>
+	<data>0.190</data>
+	<data>0.210</data>
+	<data>0.230</data>
+	<data>0.250</data>
+	<data>0.270</data>
+	<data>0.290</data>
+	<!-- Bouwens et al 2003a UV (I-dropouts) -->
+	<!-- These values only include high-L end of LF - they are too low -->
+	<!-- compared to other SFH data in this regime. -->
+	<data>2.700</data>
+	<data>3.850</data>
+	<data>4.700</data>
+	<!-- Bouwens et al 2003b UV (I-dropouts) -->
+	<data>5.800</data>
+	<!-- Bouwens et al 2005 UV (I-dropouts) -->
+	<data>6.000</data>
+	<!-- Ouchi et al 2004 UV -->
+	<data>4.000</data>
+	<data>4.700</data>
+	<!-- Bunker et al (2004) UV (I-dropouts) -->
+	<data>5.900</data>
+	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
+	<data>0.100</data>
+	<data>0.300</data>
+	<data>0.500</data>
+	<data>0.700</data>
+	<data>0.900</data>
+	<data>1.200</data>
+	<data>1.600</data>
+	<data>2.000</data>
+	<data>2.400</data>
+	<!-- Mauch thesis 1.4 GHz (6dFGS-NVSS) -->
+	<data>0.050</data>
+	<!-- Hanish et al 2006 Halpha (SINGG) -->
+	<data>0.010</data>
+	<!-- Thompson et al (2006) HUDF -->
+	<data>1.000</data>
+	<data>2.000</data>
+	<data>3.000</data>
+	<data>4.000</data>
+	<data>5.000</data>
+	<data>6.000</data>
+      </redshift>
+      <sfr>
+	<description>Star formation rate.</description>
+	<units>MSolar year^{-1} Mpc^{-3}</units>
+	<scaling>logarithmic</scaling>
+	<hubble>70.0</hubble>
+	<omega>0.3</omega>
+	<lambda>0.7</lambda>
+	<!-- Giavalisco et al. (2004) 1500A -->
+	<data>-0.772</data>
+	<data>-0.963</data>
+	<data>-0.923</data>
+	<!-- Wilson et al. (2002) 2500A -->
+	<data>-1.449</data>
+	<data>-1.183</data>
+	<data>-1.034</data>
+	<!-- Massarotti et al. (2001) 1500A -->
+	<data>-0.709</data>
+	<data>-0.512</data>
+	<data>-0.886</data>
+	<!-- Sullivan et al. (2000) 2000A -->
+	<data>-1.403</data>
+	<!-- Steidel et al. (1999) 1700A -->
+	<data>-0.795</data>
+	<data>-0.905</data>
+	<!-- Cowie et al. (1999) 2000A -->
+	<data>-1.318</data>
+	<data>-1.186</data>
+	<!-- Treyer et al. (1998) 2000A -->
+	<data>-1.369</data>
+	<!-- Connolly et al. (1997) 2800A -->
+	<data>-0.992</data>
+	<data>-0.864</data>
+	<data>-0.974</data>
+	<!-- Lilly et al. (1996) 2800A -->
+	<data>-1.563</data>
+	<data>-1.290</data>
+	<data>-1.003</data>
+	<!-- Teplitz et al. (2003) [O II] -->
+	<data>-1.005</data>
+	<!-- Gallego et al. (2002) [O II] -->
+	<data>-1.913</data>
+	<!-- Hogg et al. (1998) [O II] -->
+	<data>-1.865</data>
+	<data>-1.925</data>
+	<data>-1.271</data>
+	<data>-1.020</data>
+	<data>-1.188</data>
+	<data>-1.272</data>
+	<data>-1.247</data>
+	<data>-1.146</data>
+	<data>-0.941</data>
+	<data>-1.046</data>
+	<data>-1.066</data>
+	<!-- Hammer et al. (1997) [O II] -->
+	<data>-1.705</data>
+	<data>-1.226</data>
+	<data>-0.855</data>
+	<!-- Pettini et al. (1998) Hbeta -->
+	<data>-0.557</data>
+	<!-- Perez-Gonzalez et al. (2003) Halpha -->
+	<data>-1.604</data>
+	<!-- Tresse et al. (2002) Halpha -->
+	<data>-0.931</data>
+	<!-- Moorwood et al. (2000) Halpha -->
+	<data>-0.576</data>
+	<!-- Hopkins et al. (2000) Halpha -->
+	<data>-0.629</data>
+	<!-- Sullivan et al. (2000) Halpha -->
+	<data>-1.820</data>
+	<!-- Glazebrook et al. (1999) Halpha -->
+	<data>-0.972</data>
+	<!-- Yan et al. (1999) Halpha -->
+	<data>-0.553</data>
+	<!-- Tresse & Maddox (1998) Halpha -->
+	<data>-1.489</data>
+	<!-- Gallego et al. (1995) Halpha -->
+	<data>-1.900</data>
+	<!-- Flores et al. (1999) 15\mu m -->
+	<data>-1.438</data>
+	<data>-1.169</data>
+	<data>-0.874</data>
+	<!-- Barger et al. (2000) 850\mu m -->
+	<data>-0.831</data>
+	<data>-0.721</data>
+	<!-- Condon et al. (2002) 1.4 GHz -->
+	<data>-1.964</data>
+	<!-- Sadler et al. (2002) 1.4 GHz -->
+	<data>-1.728</data>
+	<!-- Serjeant et al. (2002) 1.4 GHz -->
+	<data>-1.753</data>
+	<!-- Machalski & Godlowski (2000) 1.4 GHz -->
+	<data>-1.920</data>
+	<!-- Haarsma et al. (2000) 1.4 GHz -->
+	<data>-1.389</data>
+	<data>-1.176</data>
+	<data>-1.117</data>
+	<data>-0.881</data>
+	<data>-0.785</data>
+	<!-- Condon (1989) 1.4 GHz -->
+	<data>-1.679</data>
+	<!-- Georgakakis et al. (2003) X-ray (0.5-2~keV) -->
+	<data>-1.417</data>
+	<!-- Schiminovich et al 2005 GALEX FUV data -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>-1.737</data>
+	<data>-1.392</data>
+	<data>-1.178</data>
+	<data>-0.970</data>
+	<data>-0.740</data>
+	<data>-0.692</data>
+	<data>-0.677</data>
+	<!-- Wolf et al 2003 COMBO17 UV -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>-1.444</data>
+	<data>-1.279</data>
+	<data>-1.155</data>
+	<data>-1.029</data>
+	<data>-0.976</data>
+	<data>-0.903</data>
+	<data>-0.792</data>
+	<data>-0.729</data>
+	<data>-0.689</data>
+	<data>-0.708</data>
+	<!-- Baldry et al 2005 SDSS u-band -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>-1.678</data>
+	<data>-1.657</data>
+	<data>-1.592</data>
+	<data>-1.588</data>
+	<data>-1.589</data>
+	<data>-1.560</data>
+	<data>-1.482</data>
+	<data>-1.502</data>
+	<data>-1.472</data>
+	<data>-1.426</data>
+	<data>-1.424</data>
+	<data>-1.408</data>
+	<data>-1.389</data>
+	<data>-1.360</data>
+	<data>-1.323</data>
+	<!-- Bouwens et al 2003a UV (I-dropouts) -->
+	<!-- These values only include high-L end of LF - they are too low -->
+	<!-- compared to other SFH data in this regime. -->
+	<data>-1.139</data>
+	<data>-1.361</data>
+	<data>-1.421</data>
+	<!-- Bouwens et al 2003b UV (I-dropouts) -->
+	<data>-0.862</data>
+	<!-- Bouwens et al 2005 UV (I-dropouts) -->
+	<data>-1.121</data>
+	<!-- Ouchi et al 2004 UV -->
+	<data>-0.770</data>
+	<data>-0.941</data>
+	<!-- Bunker et al (2004) UV (I-dropouts) -->
+	<data>-1.763</data>
+	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
+	<data>-1.744</data>
+	<data>-1.416</data>
+	<data>-1.087</data>
+	<data>-0.978</data>
+	<data>-0.880</data>
+	<data>-0.759</data>
+	<data>-0.803</data>
+	<data>-0.880</data>
+	<data>-0.748</data>
+	<!-- Mauch thesis 1.4 GHz (6dFGS-NVSS) -->
+	<data>-1.902</data>
+	<!-- Hanish et al 2006 Halpha (SINGG) -->
+	<data>-1.800</data>
+	<!-- Thompson et al (2006) HUDF -->
+	<data>-0.682</data>
+	<data>-0.400</data>
+	<data>-0.492</data>
+	<data>-1.027</data>
+	<data>-1.387</data>
+	<data>-0.900</data>
+      </sfr>
+      <redshiftErrorUp>
+	<description>Redshift upper error.</description>
+	<units>dimensionless</units>
+	<scaling>linear</scaling>
+	<!-- Giavalisco et al. (2004) 1500A -->
+	<data>0.340</data>
+	<data>0.320</data>
+	<data>0.380</data>
+	<!-- Wilson et al. (2002) 2500A -->
+	<data>0.150</data>
+	<data>0.200</data>
+	<data>0.250</data>
+	<!-- Massarotti et al. (2001) 1500A -->
+	<data>0.500</data>
+	<data>0.750</data>
+	<data>0.500</data>
+	<!-- Sullivan et al. (2000) 2000A -->
+	<data>0.150</data>
+	<!-- Steidel et al. (1999) 1700A -->
+	<data>0.250</data>
+	<data>0.300</data>
+	<!-- Cowie et al. (1999) 2000A -->
+	<data>0.200</data>
+	<data>0.250</data>
+	<!-- Treyer et al. (1998) 2000A -->
+	<data>0.150</data>
+	<!-- Connolly et al. (1997) 2800A -->
+	<data>0.250</data>
+	<data>0.250</data>
+	<data>0.250</data>
+	<!-- Lilly et al. (1996) 2800A -->
+	<data>0.150</data>
+	<data>0.125</data>
+	<data>0.125</data>
+	<!-- Teplitz et al. (2003) [O II] -->
+	<data>0.500</data>
+	<!-- Gallego et al. (2002) [O II] -->
+	<data>0.025</data>
+	<!-- Hogg et al. (1998) [O II] -->
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<!-- Hammer et al. (1997) [O II] -->
+	<data>0.125</data>
+	<data>0.125</data>
+	<data>0.125</data>
+	<!-- Pettini et al. (1998) Hbeta -->
+	<data>0.750</data>
+	<!-- Perez-Gonzalez et al. (2003) Halpha -->
+	<data>0.025</data>
+	<!-- Tresse et al. (2002) Halpha -->
+	<data>0.200</data>
+	<!-- Moorwood et al. (2000) Halpha -->
+	<data>0.050</data>
+	<!-- Hopkins et al. (2000) Halpha -->
+	<data>0.550</data>
+	<!-- Sullivan et al. (2000) Halpha -->
+	<data>0.150</data>
+	<!-- Glazebrook et al. (1999) Halpha -->
+	<data>0.100</data>
+	<!-- Yan et al. (1999) Halpha -->
+	<data>0.600</data>
+	<!-- Tresse & Maddox (1998) Halpha -->
+	<data>0.100</data>
+	<!-- Gallego et al. (1995) Halpha -->
+	<data>0.022</data>
+	<!-- Flores et al. (1999) 15\mu m -->
+	<data>0.150</data>
+	<data>0.125</data>
+	<data>0.125</data>
+	<!-- Barger et al. (2000) 850\mu m -->
+	<data>1.000</data>
+	<data>1.500</data>
+	<!-- Condon et al. (2002) 1.4 GHz -->
+	<data>0.005</data>
+	<!-- Sadler et al. (2002) 1.4 GHz -->
+	<data>0.080</data>
+	<!-- Serjeant et al. (2002) 1.4 GHz -->
+	<data>0.010</data>
+	<!-- Machalski & Godlowski (2000) 1.4 GHz -->
+	<data>0.070</data>
+	<!-- Haarsma et al. (2000) 1.4 GHz -->
+	<data>0.270</data>
+	<data>0.050</data>
+	<data>0.052</data>
+	<data>0.086</data>
+	<data>0.640</data>
+	<!-- Condon (1989) 1.4 GHz -->
+	<data>0.005</data>
+	<!-- Georgakakis et al. (2003) X-ray (0.5-2~keV) -->
+	<data>0.240</data>
+	<!-- Schiminovich et al 2005 GALEX FUV data -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.055</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.200</data>
+	<data>0.250</data>
+	<data>0.500</data>
+	<!-- Wolf et al 2003 COMBO17 UV -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<!-- Baldry et al 2005 SDSS u-band -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.0075</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<!-- Bouwens et al 2003a UV (I-dropouts) -->
+	<!-- These values only include high-L end of LF - they are too low -->
+	<!-- compared to other SFH data in this regime. -->
+	<data>0.700</data>
+	<data>0.450</data>
+	<data>0.200</data>
+	<!-- Bouwens et al 2003b UV (I-dropouts) -->
+	<data>0.300</data>
+	<!-- Bouwens et al 2005 UV (I-dropouts) -->
+	<data>0.500</data>
+	<!-- Ouchi et al 2004 UV -->
+	<data>0.500</data>
+	<data>0.500</data>
+	<!-- Bunker et al (2004) UV (I-dropouts) -->
+	<data>0.500</data>
+	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.200</data>
+	<data>0.200</data>
+	<data>0.200</data>
+	<data>0.200</data>
+	<!-- Mauch thesis 1.4 GHz (6dFGS-NVSS) -->
+	<data>0.050</data>
+	<!-- Hanish et al 2006 Halpha (SINGG) -->
+	<data>0.010</data>
+	<!-- Thompson et al (2006) HUDF -->
+	<data>0.500</data>
+	<data>0.500</data>
+	<data>0.500</data>
+	<data>0.500</data>
+	<data>0.500</data>
+	<data>0.500</data>
+      </redshiftErrorUp>
+      <redshiftErrorDown>
+	<description>Redshift lower error.</description>
+	<units>dimensionless</units>
+	<scaling>linear</scaling>
+	<!-- Giavalisco et al. (2004) 1500A -->
+	<data>0.330</data>
+	<data>0.330</data>
+	<data>0.360</data>
+	<!-- Wilson et al. (2002) 2500A -->
+	<data>0.150</data>
+	<data>0.200</data>
+	<data>0.250</data>
+	<!-- Massarotti et al. (2001) 1500A -->
+	<data>0.500</data>
+	<data>0.750</data>
+	<data>0.500</data>
+	<!-- Sullivan et al. (2000) 2000A -->
+	<data>0.150</data>
+	<!-- Steidel et al. (1999) 1700A -->
+	<data>0.250</data>
+	<data>0.300</data>
+	<!-- Cowie et al. (1999) 2000A -->
+	<data>0.200</data>
+	<data>0.250</data>
+	<!-- Treyer et al. (1998) 2000A -->
+	<data>0.150</data>
+	<!-- Connolly et al. (1997) 2800A -->
+	<data>0.250</data>
+	<data>0.250</data>
+	<data>0.250</data>
+	<!-- Lilly et al. (1996) 2800A -->
+	<data>0.150</data>
+	<data>0.125</data>
+	<data>0.125</data>
+	<!-- Teplitz et al. (2003) [O II] -->
+	<data>0.500</data>
+	<!-- Gallego et al. (2002) [O II] -->
+	<data>0.025</data>
+	<!-- Hogg et al. (1998) [O II] -->
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<data>0.1</data>
+	<!-- Hammer et al. (1997) [O II] -->
+	<data>0.125</data>
+	<data>0.125</data>
+	<data>0.125</data>
+	<!-- Pettini et al. (1998) Hbeta -->
+	<data>0.750</data>
+	<!-- Perez-Gonzalez et al. (2003) Halpha -->
+	<data>0.025</data>
+	<!-- Tresse et al. (2002) Halpha -->
+	<data>0.400</data>
+	<!-- Moorwood et al. (2000) Halpha -->
+	<data>0.050</data>
+	<!-- Hopkins et al. (2000) Halpha -->
+	<data>0.550</data>
+	<!-- Sullivan et al. (2000) Halpha -->
+	<data>0.150</data>
+	<!-- Glazebrook et al. (1999) Halpha -->
+	<data>0.100</data>
+	<!-- Yan et al. (1999) Halpha -->
+	<data>0.600</data>
+	<!-- Tresse & Maddox (1998) Halpha -->
+	<data>0.100</data>
+	<!-- Gallego et al. (1995) Halpha -->
+	<data>0.022</data>
+	<!-- Flores et al. (1999) 15\mu m -->
+	<data>0.150</data>
+	<data>0.125</data>
+	<data>0.125</data>
+	<!-- Barger et al. (2000) 850\mu m -->
+	<data>1.000</data>
+	<data>1.500</data>
+	<!-- Condon et al. (2002) 1.4 GHz -->
+	<data>0.005</data>
+	<!-- Sadler et al. (2002) 1.4 GHz -->
+	<data>0.080</data>
+	<!-- Serjeant et al. (2002) 1.4 GHz -->
+	<data>0.010</data>
+	<!-- Machalski & Godlowski (2000) 1.4 GHz -->
+	<data>0.070</data>
+	<!-- Haarsma et al. (2000) 1.4 GHz -->
+	<data>0.121</data>
+	<data>0.058</data>
+	<data>0.098</data>
+	<data>0.074</data>
+	<data>2.820</data>
+	<!-- Condon (1989) 1.4 GHz -->
+	<data>0.005</data>
+	<!-- Georgakakis et al. (2003) X-ray (0.5-2~keV) -->
+	<data>0.060</data>
+	<!-- Schiminovich et al 2005 GALEX FUV data -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.045</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.200</data>
+	<data>0.250</data>
+	<data>0.500</data>
+	<!-- Wolf et al 2003 COMBO17 UV -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<!-- Baldry et al 2005 SDSS u-band -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.0075</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<data>0.010</data>
+	<!-- Bouwens et al 2003a UV (I-dropouts) -->
+	<!-- These values only include high-L end of LF - they are too low -->
+	<!-- compared to other SFH data in this regime. -->
+	<data>0.700</data>
+	<data>0.450</data>
+	<data>0.200</data>
+	<!-- Bouwens et al 2003b UV (I-dropouts) -->
+	<data>0.300</data>
+	<!-- Bouwens et al 2005 UV (I-dropouts) -->
+	<data>0.500</data>
+	<!-- Ouchi et al 2004 UV -->
+	<data>0.500</data>
+	<data>0.500</data>
+	<!-- Bunker et al (2004) UV (I-dropouts) -->
+	<data>0.500</data>
+	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.100</data>
+	<data>0.200</data>
+	<data>0.200</data>
+	<data>0.200</data>
+	<data>0.200</data>
+	<!-- Mauch thesis 1.4 GHz (6dFGS-NVSS) -->
+	<data>0.050</data>
+	<!-- Hanish et al 2006 Halpha (SINGG) -->
+	<data>0.010</data>
+	<!-- Thompson et al (2006) HUDF -->
+	<data>0.500</data>
+	<data>0.500</data>
+	<data>0.500</data>
+	<data>0.500</data>
+	<data>0.500</data>
+	<data>0.500</data>
+      </redshiftErrorDown>
+      <sfrErrorUp>
+	<description>Star formation rate upper error.</description>
+	<units>MSolar year^{-1} Mpc^{-3}</units>
+	<scaling>logarithmic</scaling>
+	<hubble>70.0</hubble>
+	<omega>0.3</omega>
+	<lambda>0.7</lambda>
+	<!-- Giavalisco et al. (2004) 1500A -->
+	<data>0.060</data>
+	<data>0.130</data>
+	<data>0.190</data>
+	<!-- Wilson et al. (2002) 2500A -->
+	<data>0.078</data>
+	<data>0.080</data>
+	<data>0.143</data>
+	<!-- Massarotti et al. (2001) 1500A -->
+	<data>0.200</data>
+	<data>0.200</data>
+	<data>0.250</data>
+	<!-- Sullivan et al. (2000) 2000A -->
+	<data>0.050</data>
+	<!-- Steidel et al. (1999) 1700A -->
+	<data>0.050</data>
+	<data>0.100</data>
+	<!-- Cowie et al. (1999) 2000A -->
+	<data>0.104</data>
+	<data>0.117</data>
+	<!-- Treyer et al. (1998) 2000A -->
+	<data>0.150</data>
+	<!-- Connolly et al. (1997) 2800A -->
+	<data>0.150</data>
+	<data>0.150</data>
+	<data>0.150</data>
+	<!-- Lilly et al. (1996) 2800A -->
+	<data>0.070</data>
+	<data>0.080</data>
+	<data>0.150</data>
+	<!-- Teplitz et al. (2003) [O II] -->
+	<data>0.110</data>
+	<!-- Gallego et al. (2002) [O II] -->
+	<data>0.150</data>
+	<!-- Hogg et al. (1998) [O II] -->
+	<data>0.118</data>
+	<data>0.094</data>
+	<data>0.085</data>
+	<data>0.067</data>
+	<data>0.062</data>
+	<data>0.073</data>
+	<data>0.071</data>
+	<data>0.074</data>
+	<data>0.087</data>
+	<data>0.136</data>
+	<data>0.176</data>
+	<!-- Hammer et al. (1997) [O II] -->
+	<data>0.080</data>
+	<data>0.150</data>
+	<data>0.380</data>
+	<!-- Pettini et al. (1998) Hbeta -->
+	<data>0.150</data>
+	<!-- Perez-Gonzalez et al. (2003) Halpha -->
+	<data>0.110</data>
+	<!-- Tresse et al. (2002) Halpha -->
+	<data>0.110</data>
+	<!-- Moorwood et al. (2000) Halpha -->
+	<data>0.120</data>
+	<!-- Hopkins et al. (2000) Halpha -->
+	<data>0.026</data>
+	<!-- Sullivan et al. (2000) Halpha -->
+	<data>0.060</data>
+	<!-- Glazebrook et al. (1999) Halpha -->
+	<data>0.140</data>
+	<!-- Yan et al. (1999) Halpha -->
+	<data>0.120</data>
+	<!-- Tresse & Maddox (1998) Halpha -->
+	<data>0.060</data>
+	<!-- Gallego et al. (1995) Halpha -->
+	<data>0.200</data>
+	<!-- Flores et al. (1999) 15\mu m -->
+	<data>0.270</data>
+	<data>0.250</data>
+	<data>0.260</data>
+	<!-- Barger et al. (2000) 850\mu m -->
+	<data>0.230</data>
+	<data>0.430</data>
+	<!-- Condon et al. (2002) 1.4 GHz -->
+	<data>0.030</data>
+	<!-- Sadler et al. (2002) 1.4 GHz -->
+	<data>0.090</data>
+	<!-- Serjeant et al. (2002) 1.4 GHz -->
+	<data>0.100</data>
+	<!-- Machalski & Godlowski (2000) 1.4 GHz -->
+	<data>0.100</data>
+	<!-- Haarsma et al. (2000) 1.4 GHz -->
+	<data>0.210</data>
+	<data>0.200</data>
+	<data>0.260</data>
+	<data>0.180</data>
+	<data>0.180</data>
+	<!-- Condon (1989) 1.4 GHz -->
+	<data>0.001</data>
+	<!-- Georgakakis et al. (2003) X-ray (0.5-2~keV) -->
+	<data>0.182</data>
+	<!-- Schiminovich et al 2005 GALEX FUV data -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.120</data>
+	<data>0.050</data>
+	<data>0.080</data>
+	<data>0.130</data>
+	<data>0.130</data>
+	<data>0.090</data>
+	<data>0.070</data>
+	<!-- Wolf et al 2003 COMBO17 UV -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.090</data>
+	<data>0.070</data>
+	<data>0.040</data>
+	<data>0.070</data>
+	<data>0.070</data>
+	<data>0.050</data>
+	<data>0.100</data>
+	<data>0.110</data>
+	<data>0.080</data>
+	<data>0.160</data>
+	<!-- Baldry et al 2005 SDSS u-band -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.110</data>
+	<data>0.060</data>
+	<data>0.040</data>
+	<data>0.040</data>
+	<data>0.040</data>
+	<data>0.030</data>
+	<data>0.040</data>
+	<data>0.040</data>
+	<data>0.060</data>
+	<data>0.070</data>
+	<data>0.070</data>
+	<data>0.110</data>
+	<data>0.090</data>
+	<data>0.080</data>
+	<data>0.110</data>
+	<!-- Bouwens et al 2003a UV (I-dropouts) -->
+	<!-- These values only include high-L end of LF - they are too low -->
+	<!-- compared to other SFH data in this regime. -->
+	<data>0.054</data>
+	<data>0.080</data>
+	<data>0.060</data>
+	<!-- Bouwens et al 2003b UV (I-dropouts) -->
+	<data>0.176</data>
+	<!-- Bouwens et al 2005 UV (I-dropouts) -->
+	<data>0.050</data>
+	<!-- Ouchi et al 2004 UV -->
+	<data>0.030</data>
+	<data>0.230</data>
+	<!-- Bunker et al (2004) UV (I-dropouts) -->
+	<data>0.097</data>
+	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
+	<data>0.060</data>
+	<data>0.020</data>
+	<data>0.030</data>
+	<data>0.020</data>
+	<data>0.230</data>
+	<data>0.030</data>
+	<data>0.040</data>
+	<data>0.120</data>
+	<data>0.110</data>
+	<!-- Mauch thesis 1.4 GHz (6dFGS-NVSS) -->
+	<data>0.020</data>
+	<!-- Hanish et al 2006 Halpha (SINGG) -->
+	<data>0.080</data>
+	<!-- Thompson et al (2006) HUDF -->
+	<data>0.281</data>
+	<data>0.261</data>
+	<data>0.298</data>
+	<data>0.233</data>
+	<data>0.215</data>
+	<data>0.384</data>
+      </sfrErrorUp>
+      <sfrErrorDown>
+	<description>Star formation rate lower error.</description>
+	<units>MSolar year^{-1} Mpc^{-3}</units>
+	<scaling>logarithmic</scaling>
+	<hubble>70.0</hubble>
+	<omega>0.3</omega>
+	<lambda>0.7</lambda>
+	<!-- Giavalisco et al. (2004) 1500A -->
+	<data>0.060</data>
+	<data>0.140</data>
+	<data>0.170</data>
+	<!-- Wilson et al. (2002) 2500A -->
+	<data>0.078</data>
+	<data>0.080</data>
+	<data>0.143</data>
+	<!-- Massarotti et al. (2001) 1500A -->
+	<data>0.200</data>
+	<data>0.200</data>
+	<data>0.250</data>
+	<!-- Sullivan et al. (2000) 2000A -->
+	<data>0.050</data>
+	<!-- Steidel et al. (1999) 1700A -->
+	<data>0.050</data>
+	<data>0.100</data>
+	<!-- Cowie et al. (1999) 2000A -->
+	<data>0.104</data>
+	<data>0.117</data>
+	<!-- Treyer et al. (1998) 2000A -->
+	<data>0.150</data>
+	<!-- Connolly et al. (1997) 2800A -->
+	<data>0.150</data>
+	<data>0.150</data>
+	<data>0.150</data>
+	<!-- Lilly et al. (1996) 2800A -->
+	<data>0.070</data>
+	<data>0.080</data>
+	<data>0.150</data>
+	<!-- Teplitz et al. (2003) [O II] -->
+	<data>0.110</data>
+	<!-- Gallego et al. (2002) [O II] -->
+	<data>0.150</data>
+	<!-- Hogg et al. (1998) [O II] -->
+	<data>0.163</data>
+	<data>0.101</data>
+	<data>0.105</data>
+	<data>0.075</data>
+	<data>0.072</data>
+	<data>0.088</data>
+	<data>0.081</data>
+	<data>0.090</data>
+	<data>0.107</data>
+	<data>0.199</data>
+	<data>0.301</data>
+	<!-- Hammer et al. (1997) [O II] -->
+	<data>0.070</data>
+	<data>0.110</data>
+	<data>0.200</data>
+	<!-- Pettini et al. (1998) Hbeta -->
+	<data>0.150</data>
+	<!-- Perez-Gonzalez et al. (2003) Halpha -->
+	<data>0.110</data>
+	<!-- Tresse et al. (2002) Halpha -->
+	<data>0.110</data>
+	<!-- Moorwood et al. (2000) Halpha -->
+	<data>0.120</data>
+	<!-- Hopkins et al. (2000) Halpha -->
+	<data>0.026</data>
+	<!-- Sullivan et al. (2000) Halpha -->
+	<data>0.060</data>
+	<!-- Glazebrook et al. (1999) Halpha -->
+	<data>0.150</data>
+	<!-- Yan et al. (1999) Halpha -->
+	<data>0.120</data>
+	<!-- Tresse & Maddox (1998) Halpha -->
+	<data>0.060</data>
+	<!-- Gallego et al. (1995) Halpha -->
+	<data>0.200</data>
+	<!-- Flores et al. (1999) 15\mu m -->
+	<data>0.270</data>
+	<data>0.250</data>
+	<data>0.260</data>
+	<!-- Barger et al. (2000) 850\mu m -->
+	<data>0.220</data>
+	<data>0.360</data>
+	<!-- Condon et al. (2002) 1.4 GHz -->
+	<data>0.030</data>
+	<!-- Sadler et al. (2002) 1.4 GHz -->
+	<data>0.080</data>
+	<!-- Serjeant et al. (2002) 1.4 GHz -->
+	<data>0.080</data>
+	<!-- Machalski & Godlowski (2000) 1.4 GHz -->
+	<data>0.100</data>
+	<!-- Haarsma et al. (2000) 1.4 GHz -->
+	<data>0.140</data>
+	<data>0.140</data>
+	<data>0.160</data>
+	<data>0.130</data>
+	<data>0.120</data>
+	<!-- Condon (1989) 1.4 GHz -->
+	<data>0.001</data>
+	<!-- Georgakakis et al. (2003) X-ray (0.5-2~keV) -->
+	<data>0.219</data>
+	<!-- Schiminovich et al 2005 GALEX FUV data -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.120</data>
+	<data>0.050</data>
+	<data>0.150</data>
+	<data>0.310</data>
+	<data>0.310</data>
+	<data>0.250</data>
+	<data>0.170</data>
+	<!-- Wolf et al 2003 COMBO17 UV -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.090</data>
+	<data>0.070</data>
+	<data>0.040</data>
+	<data>0.070</data>
+	<data>0.060</data>
+	<data>0.050</data>
+	<data>0.100</data>
+	<data>0.110</data>
+	<data>0.070</data>
+	<data>0.160</data>
+	<!-- Baldry et al 2005 SDSS u-band -->
+	<!-- values obscuration corrected by adding to Le Floc'h's FIR SFH. -->
+	<!-- (as used in Hopkins and Beacom 2006) -->
+	<data>0.110</data>
+	<data>0.060</data>
+	<data>0.050</data>
+	<data>0.040</data>
+	<data>0.040</data>
+	<data>0.030</data>
+	<data>0.040</data>
+	<data>0.040</data>
+	<data>0.060</data>
+	<data>0.060</data>
+	<data>0.080</data>
+	<data>0.120</data>
+	<data>0.090</data>
+	<data>0.090</data>
+	<data>0.110</data>
+	<!-- Bouwens et al 2003a UV (I-dropouts) -->
+	<!-- These values only include high-L end of LF - they are too low -->
+	<!-- compared to other SFH data in this regime. -->
+	<data>0.054</data>
+	<data>0.070</data>
+	<data>0.070</data>
+	<!-- Bouwens et al 2003b UV (I-dropouts) -->
+	<data>0.125</data>
+	<!-- Bouwens et al 2005 UV (I-dropouts) -->
+	<data>0.050</data>
+	<!-- Ouchi et al 2004 UV -->
+	<data>0.030</data>
+	<data>0.150</data>
+	<!-- Bunker et al (2004) UV (I-dropouts) -->
+	<data>0.079</data>
+	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
+	<data>0.060</data>
+	<data>0.020</data>
+	<data>0.030</data>
+	<data>0.020</data>
+	<data>0.230</data>
+	<data>0.030</data>
+	<data>0.040</data>
+	<data>0.120</data>
+	<data>0.110</data>
+	<!-- Mauch thesis 1.4 GHz (6dFGS-NVSS) -->
+	<data>0.020</data>
+	<!-- Hanish et al 2006 Halpha (SINGG) -->
+	<data>0.130</data>
+	<!-- Thompson et al (2006) HUDF -->
+	<data>0.169</data>
+	<data>0.162</data>
+	<data>0.175</data>
+	<data>0.151</data>
+	<data>0.143</data>
+	<data>0.201</data>
+      </sfrErrorDown>
+    </columns>
+  </starFormationRate>
+  <starFormationRate>
+    <description>Volume averaged star formation rate estimates from Kistler et al. (2009) based on GRB observations.</description>
+    <url>http://adsabs.harvard.edu/abs/2009ApJ...705L.104K</url>
+    <label>Kistler et al. (2009)</label>
+    <source>Publication.</source>
+    <columns>
+      <redshift>
+	<description>Redshift.</description>
+	<units>dimensionless</units>
+	<scaling>linear</scaling>
+	<data>4.49446</data>
+	<data>5.49077</data>
+	<data>6.49815</data>
+	<data>7.73801</data>
+      </redshift>
+      <sfr>
+	<description>Star formation rate.</description>
+	<units>MSolar year^{-1} Mpc^{-3}</units>
+	<scaling>logarithmic</scaling>
+	<hubble>70.0</hubble>
+	<omega>0.3</omega>
+	<lambda>0.7</lambda>
+	<data>-0.900344</data>
+	<data>-1.16151 </data>
+	<data>-0.989691</data>
+	<data>-1.21649 </data>
+      </sfr>
+      <redshiftErrorUp>
+	<description>Redshift upper error.</description>
+	<units>dimensionless</units>
+	<scaling>linear</scaling>
+	<data>0.498155</data>
+	<data>0.509225</data>
+	<data>0.487085</data>
+	<data>0.730627</data>
+      </redshiftErrorUp>
+      <redshiftErrorDown>
+	<description>Redshift lower error.</description>
+	<units>dimensionless</units>
+	<scaling>linear</scaling>
+	<data>0.498155</data>
+	<data>0.520295</data>
+	<data>0.509225</data>
+	<data>0.774908</data>
+      </redshiftErrorDown>
+      <sfrErrorUp>
+	<description>Star formation rate upper error.</description>
+	<units>MSolar year^{-1} Mpc^{-3}</units>
+	<scaling>logarithmic</scaling>
+	<hubble>70.0</hubble>
+	<omega>0.3</omega>
+	<lambda>0.7</lambda>
+	<data>0.185567</data>
+	<data>0.281787</data>
+	<data>0.371134</data>
+	<data>0.508591</data>
+      </sfrErrorUp>
+      <sfrErrorDown>
+	<description>Star formation rate lower error.</description>
+	<units>MSolar year^{-1} Mpc^{-3}</units>
+	<scaling>logarithmic</scaling>
+	<hubble>70.0</hubble>
+	<omega>0.3</omega>
+	<lambda>0.7</lambda>
+	<data>0.19244 </data>
+	<data>0.343643</data>
+	<data>0.453608</data>
+	<data>0.762887</data>
+      </sfrErrorDown>
+    </columns>
+  </starFormationRate>
+</dataSets>

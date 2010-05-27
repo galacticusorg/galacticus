@@ -1,0 +1,47 @@
+*** tmp/cmbfast4.5.1/recfast.f	2003-07-18 13:12:50.000000000 -0700
+--- cmbfast4.5.1/recfast.f	2010-04-26 20:02:14.000000000 -0700
+***************
+*** 497,503 ****
+  	double precision timeTh,timeH
+  	double precision CB1,CDB,CR,CK,CL,CT,fHe,CB1_He1,CB1_He2,CDB_He,fu
+  	double precision Bfact,CK_He,CL_He
+! 	double precision a_VF,b_VF,T_0,T_1,sq_0,sq_1,a_PPB,b_PPB,c_PPB,d_PPB
+  
+  	common/Cfund/C,k_B,h_P,m_e,m_H,sigma,a,Pi
+  	common/Cdata/Lambda,H_frac,CB1,CDB,CR,CK,CL,CT,
+--- 497,504 ----
+  	double precision timeTh,timeH
+  	double precision CB1,CDB,CR,CK,CL,CT,fHe,CB1_He1,CB1_He2,CDB_He,fu
+  	double precision Bfact,CK_He,CL_He
+! 	double precision a_VF,b_VF,T_0,T_1,sq_0,sq_1,a_PPB,b_PPB,c_PPB
+!         double precision d_PPB
+  
+  	common/Cfund/C,k_B,h_P,m_e,m_H,sigma,a,Pi
+  	common/Cdata/Lambda,H_frac,CB1,CDB,CR,CK,CL,CT,
+***************
+*** 525,536 ****
+  	n = Nnow * (1.d0+z)**3
+  	n_He = fHe * Nnow * (1.d0+z)**3
+  	Trad = Tnow * (1.d0+z)
+! 	Hz = HO * dsqrt((1.d0+z)**4/(1.d0+z_eq)*OmegaT + OmegaT*(1.d0+z)**3
+! 	1	+ OmegaK*(1.d0+z)**2 + OmegaL)
+  
+  c	Get the radiative rates using PPQ fit (identical to Hummer's table)
+  	Rdown=1.d-19*a_PPB*(Tmat/1.d4)**b_PPB
+! 	1	/(1.d0+c_PPB*(Tmat/1.d4)**d_PPB)
+  	Rup = Rdown * (CR*Tmat)**(1.5d0)*dexp(-CDB/Tmat)
+  
+  c	calculate He using a fit to a Verner & Ferland type formula
+--- 526,537 ----
+  	n = Nnow * (1.d0+z)**3
+  	n_He = fHe * Nnow * (1.d0+z)**3
+  	Trad = Tnow * (1.d0+z)
+! 	Hz = HO * dsqrt((1.0d0+z)**4/(1.0d0+z_eq)*OmegaT + OmegaT*(1.0d0
+!      $   +z)**3+ OmegaK*(1.0d0+z)**2 + OmegaL)
+  
+  c	Get the radiative rates using PPQ fit (identical to Hummer's table)
+  	Rdown=1.d-19*a_PPB*(Tmat/1.d4)**b_PPB
+!      $   /(1.d0+c_PPB*(Tmat/1.d4)**d_PPB)
+  	Rup = Rdown * (CR*Tmat)**(1.5d0)*dexp(-CDB/Tmat)
+  
+  c	calculate He using a fit to a Verner & Ferland type formula

@@ -1,0 +1,206 @@
+!% Contains a module which implements the Miller-Scalo stellar initial mass function \citep{miller_initial_1979}.
+
+module Star_Formation_IMF_MillerScalo
+  !% Implements the MillerScalo stellar initial mass function.
+  private
+  public :: Star_Formation_IMF_Register_MillerScalo, Star_Formation_IMF_Register_Name_MillerScalo,&
+       & Star_Formation_IMF_Recycled_Instantaneous_MillerScalo, Star_Formation_IMF_Yield_Instantaneous_MillerScalo,&
+       & Star_Formation_IMF_Tabulate_MillerScalo, Star_Formation_IMF_Minimum_Mass_MillerScalo, Star_Formation_IMF_Maximum_Mass_MillerScalo&
+       &, Star_Formation_IMF_Phi_MillerScalo
+
+  ! Index assigned to this IMF.
+  integer :: imfIndex=-1
+
+  ! Flag indicating if the module has been initialized.
+  logical :: imfMillerScaloInitialized=.false.
+
+  ! Parameters of the IMF.
+  double precision :: imfMillerScaloRecycledInstantaneous, imfMillerScaloYieldInstantaneous
+
+  ! Fixed parameters of the IMF.
+  integer,          parameter                :: imfPieceCount=4
+  double precision, dimension(imfPieceCount) :: massLower=[0.1d0,1.0d0,2.0d0,10.0d0],massUpper=[1.0d0,2.0d0,10.0d0,125.0d0],massExponent=[&
+       &-1.25d0,-2.00d0,-2.30d0,-3.30d0],imfNormalization
+
+contains
+
+  !# <imfRegister>
+  !#  <unitName>Star_Formation_IMF_Register_MillerScalo</unitName>
+  !# </imfRegister>
+  subroutine Star_Formation_IMF_Register_MillerScalo(imfAvailableCount)
+    !% Register this IMF by incrementing the count and keeping a record of the assigned index.
+    implicit none
+    integer, intent(inout) :: imfAvailableCount
+
+    imfAvailableCount=imfAvailableCount+1
+    imfIndex=imfAvailableCount
+    return
+  end subroutine Star_Formation_IMF_Register_MillerScalo
+
+  !# <imfRegisterName>
+  !#  <unitName>Star_Formation_IMF_Register_Name_MillerScalo</unitName>
+  !# </imfRegisterName>
+  subroutine Star_Formation_IMF_Register_Name_MillerScalo(imfNames)
+    !% Register the name of this IMF.
+    use ISO_Varying_String
+    implicit none
+    type(varying_string), intent(inout) :: imfNames(:)
+
+    imfNames(imfIndex)="MillerScalo"
+    return
+  end subroutine Star_Formation_IMF_Register_Name_MillerScalo
+
+  subroutine Star_Formation_IMF_Initialize_MillerScalo
+    !% Initialize the MillerScalo IMF module.
+    use Input_Parameters
+    use Star_Formation_IMF_PPL
+    implicit none
+
+    !$omp critical (IMF_MillerScalo_Initialize)
+    if (.not.imfMillerScaloInitialized) then
+       !@ <inputParameter>
+       !@   <name>imfMillerScaloRecycledInstantaneous</name>
+       !@   <defaultValue>0.52 (computed internally)</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The recycled fraction for the MillerScalo \IMF\ in the instantaneous recycling approximation.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('imfMillerScaloRecycledInstantaneous',imfMillerScaloRecycledInstantaneous,defaultValue=0.52d0)
+       !@ <inputParameter>
+       !@   <name>imfMillerScaloYieldInstantaneous</name>
+       !@   <defaultValue>0.026 (internally computed)</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The yield for the MillerScalo \IMF\ in the instantaneous recycling approximation.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('imfMillerScaloYieldInstantaneous'   ,imfMillerScaloYieldInstantaneous   ,defaultValue=0.026d0)
+
+       ! Get the normalization for this IMF.
+       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+
+       imfMillerScaloInitialized=.true.
+    end if
+    !$omp end critical (IMF_MillerScalo_Initialize)
+    return
+  end subroutine Star_Formation_IMF_Initialize_MillerScalo
+
+  !# <imfMinimumMass>
+  !#  <unitName>Star_Formation_IMF_Minimum_Mass_MillerScalo</unitName>
+  !# </imfMinimumMass>
+  subroutine Star_Formation_IMF_Minimum_Mass_MillerScalo(imfSelected,imfMatched,minimumMass)
+    !% Register the name of this IMF.
+    implicit none
+    integer,          intent(in)    :: imfSelected
+    logical,          intent(inout) :: imfMatched
+    double precision, intent(out)   :: minimumMass
+
+    if (imfSelected == imfIndex) then
+       call Star_Formation_IMF_Initialize_MillerScalo
+       minimumMass=massLower(1)
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Minimum_Mass_MillerScalo
+
+  !# <imfMaximumMass>
+  !#  <unitName>Star_Formation_IMF_Maximum_Mass_MillerScalo</unitName>
+  !# </imfMaximumMass>
+  subroutine Star_Formation_IMF_Maximum_Mass_MillerScalo(imfSelected,imfMatched,maximumMass)
+    !% Register the name of this IMF.
+    implicit none
+    integer,          intent(in)    :: imfSelected
+    logical,          intent(inout) :: imfMatched
+    double precision, intent(out)   :: maximumMass
+
+    if (imfSelected == imfIndex) then
+       call Star_Formation_IMF_Initialize_MillerScalo
+       maximumMass=massUpper(imfPieceCount)
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Maximum_Mass_MillerScalo
+
+  !# <imfPhi>
+  !#  <unitName>Star_Formation_IMF_Phi_MillerScalo</unitName>
+  !# </imfPhi>
+  subroutine Star_Formation_IMF_Phi_MillerScalo(imfSelected,imfMatched,initialMass,imfPhi)
+    !% Register the name of this IMF.
+    use Star_Formation_IMF_PPL
+    implicit none
+    integer,          intent(in)    :: imfSelected
+    logical,          intent(inout) :: imfMatched
+    double precision, intent(in)    :: initialMass
+    double precision, intent(out)   :: imfPhi
+
+    if (imfSelected == imfIndex) then
+       call Star_Formation_IMF_Initialize_MillerScalo
+       imfPhi=Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,initialMass)
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Phi_MillerScalo
+
+  !# <imfRecycledInstantaneous>
+  !#  <unitName>Star_Formation_IMF_Recycled_Instantaneous_MillerScalo</unitName>
+  !# </imfRecycledInstantaneous>
+  subroutine Star_Formation_IMF_Recycled_Instantaneous_MillerScalo(imfSelected,imfMatched,recycledFraction)
+    !% Register the name of this IMF.
+    implicit none
+    integer,          intent(in)    :: imfSelected
+    logical,          intent(inout) :: imfMatched
+    double precision, intent(out)   :: recycledFraction
+
+    if (imfSelected == imfIndex) then
+       call Star_Formation_IMF_Initialize_MillerScalo
+       recycledFraction=imfMillerScaloRecycledInstantaneous
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Recycled_Instantaneous_MillerScalo
+
+  !# <imfYieldInstantaneous>
+  !#  <unitName>Star_Formation_IMF_Yield_Instantaneous_MillerScalo</unitName>
+  !# </imfYieldInstantaneous>
+  subroutine Star_Formation_IMF_Yield_Instantaneous_MillerScalo(imfSelected,imfMatched,yield)
+    !% Register the name of this IMF.
+    implicit none
+    integer,          intent(in)    :: imfSelected
+    logical,          intent(inout) :: imfMatched
+    double precision, intent(out)   :: yield
+
+    if (imfSelected == imfIndex) then
+       call Star_Formation_IMF_Initialize_MillerScalo
+       yield=imfMillerScaloYieldInstantaneous
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Yield_Instantaneous_MillerScalo
+
+  !# <imfTabulate>
+  !#  <unitName>Star_Formation_IMF_Tabulate_MillerScalo</unitName>
+  !# </imfTabulate>
+  subroutine Star_Formation_IMF_Tabulate_MillerScalo(imfSelected,imfMatched,imfMass,imfPhi)
+    !% Register the name of this IMF.
+    use Memory_Management
+    use Numerical_Ranges
+    use Star_Formation_IMF_PPL
+    implicit none
+    integer,          intent(in)                               :: imfSelected
+    logical,          intent(inout)                            :: imfMatched
+    double precision, intent(inout), allocatable, dimension(:) :: imfMass,imfPhi
+    integer,          parameter                                :: nPoints=100
+
+    if (imfSelected == imfIndex) then
+       call Star_Formation_IMF_Initialize_MillerScalo
+       call Alloc_Array(imfMass,nPoints,'imfMass')
+       call Alloc_Array(imfPhi ,nPoints,'imfPhi' )
+       imfMass=Make_Range(massLower(1),massUpper(imfPieceCount),nPoints,rangeType=rangeTypeLogarithmic)
+       imfPhi =Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,imfMass)
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Tabulate_MillerScalo
+
+end module Star_Formation_IMF_MillerScalo

@@ -1,0 +1,43 @@
+<!-- Description of analysis scripts to be run to perform a Galacticus fitting analysis. -->
+<analyses>
+  <analysis>
+    <script>scripts/plotting/Plot_HI_Mass_Function.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_K_Luminosity_Function.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_bJ_Luminosity_Function.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_Star_Formation_History.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_Black_Hole_vs_Bulge_Mass.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_SDSS_Tully_Fisher.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_SDSS_Color_Distribution.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_Disk_Scalelengths.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_SDSS_Galaxy_Sizes.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_SDSS_Gas_Metallicity.pl</script>
+    <weight>0.0</weight>
+  </analysis>
+</analyses>

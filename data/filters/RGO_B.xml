@@ -1,0 +1,82 @@
+<filter>
+  <description>RGO B filter</description>
+  <name>RGO B</name>
+  <origin>unknown</origin>
+  <response>
+<datum>   3600.000      0.0000000E+00</datum>
+<datum>   3625.000      0.0000000E+00</datum>
+<datum>   3650.000      0.0000000E+00</datum>
+<datum>   3675.000      0.0000000E+00</datum>
+<datum>   3700.000      0.0000000E+00</datum>
+<datum>   3725.000      0.0000000E+00</datum>
+<datum>   3750.000      1.6875003E-02</datum>
+<datum>   3775.000      4.4843748E-02</datum>
+<datum>   3800.000      7.9999998E-02</datum>
+<datum>   3825.000      0.1464062    </datum>
+<datum>   3850.000      0.2131250    </datum>
+<datum>   3875.000      0.2801563    </datum>
+<datum>   3900.000      0.3475000    </datum>
+<datum>   3925.000      0.4151562    </datum>
+<datum>   3950.000      0.4831250    </datum>
+<datum>   3975.000      0.5514063    </datum>
+<datum>   4000.000      0.6200000    </datum>
+<datum>   4025.000      0.6481251    </datum>
+<datum>   4050.000      0.6725000    </datum>
+<datum>   4075.000      0.6931250    </datum>
+<datum>   4100.000      0.7100000    </datum>
+<datum>   4125.000      0.7231250    </datum>
+<datum>   4150.000      0.7325001    </datum>
+<datum>   4175.000      0.7381251    </datum>
+<datum>   4200.000      0.7400000    </datum>
+<datum>   4225.000      0.7524219    </datum>
+<datum>   4250.000      0.7634375    </datum>
+<datum>   4275.000      0.7730469    </datum>
+<datum>   4300.000      0.7812500    </datum>
+<datum>   4325.000      0.7880468    </datum>
+<datum>   4350.000      0.7934375    </datum>
+<datum>   4375.000      0.7974219    </datum>
+<datum>   4400.000      0.8000000    </datum>
+<datum>   4425.000      0.8023437    </datum>
+<datum>   4450.000      0.8018750    </datum>
+<datum>   4475.000      0.7985938    </datum>
+<datum>   4500.000      0.7925000    </datum>
+<datum>   4525.000      0.7835938    </datum>
+<datum>   4550.000      0.7718750    </datum>
+<datum>   4575.000      0.7573438    </datum>
+<datum>   4600.000      0.7400000    </datum>
+<datum>   4625.000      0.7066016    </datum>
+<datum>   4650.000      0.6720313    </datum>
+<datum>   4675.000      0.6362891    </datum>
+<datum>   4700.000      0.5993750    </datum>
+<datum>   4725.000      0.5612891    </datum>
+<datum>   4750.000      0.5220312    </datum>
+<datum>   4775.000      0.4816016    </datum>
+<datum>   4800.000      0.4400000    </datum>
+<datum>   4825.000      0.4107422    </datum>
+<datum>   4850.000      0.3823437    </datum>
+<datum>   4875.000      0.3548047    </datum>
+<datum>   4900.000      0.3281250    </datum>
+<datum>   4925.000      0.3023047    </datum>
+<datum>   4950.000      0.2773438    </datum>
+<datum>   4975.000      0.2532422    </datum>
+<datum>   5000.000      0.2300000    </datum>
+<datum>   5025.000      0.2016016    </datum>
+<datum>   5050.000      0.1745313    </datum>
+<datum>   5075.000      0.1487891    </datum>
+<datum>   5100.000      0.1243750    </datum>
+<datum>   5125.000      0.1012891    </datum>
+<datum>   5150.000      7.9531252E-02</datum>
+<datum>   5175.000      5.9101563E-02</datum>
+<datum>   5200.000      3.9999999E-02</datum>
+<datum>   5225.000      2.6796874E-02</datum>
+<datum>   5250.000      1.5937502E-02</datum>
+<datum>   5275.000      7.4218754E-03</datum>
+<datum>   5300.000      1.2499988E-03</datum>
+<datum>   5325.000      0.0000000E+00</datum>
+<datum>   5350.000      0.0000000E+00</datum>
+<datum>   5375.000      0.0000000E+00</datum>
+<datum>   5400.000      0.0000000E+00</datum>
+  </response>
+  <effectiveWavelength>4413.3482861996</effectiveWavelength>
+  <vegaOffset>0.126726393804904</vegaOffset>
+</filter>

@@ -1,0 +1,70 @@
+!% Contains a module which implements merger of nodes utilizing a single level substructure hierarchy.
+
+module Events_Node_Mergers_SLH
+  !% Implements merger of nodes utilizing a single level substructure hierarchy.
+  private
+  public :: Events_Node_Merger_Initialize_SLH
+  
+contains
+
+  !# <nodeMergersMethod>
+  !#  <unitName>Events_Node_Merger_Initialize_SLH</unitName>
+  !# </nodeMergersMethod>
+  subroutine Events_Node_Merger_Initialize_SLH(nodeMergersMethod,Events_Node_Merger_Do)
+    !% Determine if use of this method is requested and set procedure pointer appropriately if it is.
+    use ISO_Varying_String
+    implicit none
+    type(varying_string),          intent(in)    :: nodeMergersMethod
+    procedure(),          pointer, intent(inout) :: Events_Node_Merger_Do
+
+    if (nodeMergersMethod.eq.'single level hierarchy') Events_Node_Merger_Do => Events_Node_Merger_Do_SLH
+
+    return
+  end subroutine Events_Node_Merger_Initialize_SLH
+  
+  subroutine Events_Node_Merger_Do_SLH(thisNode)
+    !% Processes a node merging event, utilizing a single level substructure hierarchy.
+    use Tree_Nodes
+    use Satellite_Promotion
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode),                pointer :: parentNode,childNode,thisSatellite,nextSatellite
+
+    ! Get the parent node.
+    parentNode => thisNode%parentNode
+
+    ! Uncouple thisNode from the children of its parent.
+    childNode => parentNode%childNode
+    do while (.not.associated(childNode%siblingNode,thisNode))
+       childNode => childNode%siblingNode
+    end do
+    childNode%siblingNode => thisNode%siblingNode
+
+    ! Unset the sibling pointer for this node.
+    thisNode%siblingNode => null()
+
+    ! Add it to the list of satellite nodes associated with its parent.
+    if (associated(parentNode%satelliteNode)) then
+       call parentNode%lastSatellite(thisSatellite)
+       thisSatellite%siblingNode => thisNode
+    else
+       parentNode%satelliteNode => thisNode
+    end if
+
+    ! Move any of its own satellites to become satellites of the parent and set their parent node pointers appropriately.
+    if (associated(thisNode%satelliteNode)) then
+       thisSatellite => thisNode%satelliteNode
+       do while (associated(thisSatellite))
+          ! Find next sibling satellite.
+          nextSatellite => thisSatellite%siblingNode
+          ! Move the satellite to the new parent.
+          call Satellite_Move_To_New_Host(thisSatellite,parentNode)
+          ! Move to the next sibling satellite.
+          thisSatellite => nextSatellite
+       end do
+       thisNode%satelliteNode => null()
+    end if
+    return
+  end subroutine Events_Node_Merger_Do_SLH
+
+end module Events_Node_Mergers_SLH

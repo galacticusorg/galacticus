@@ -1,0 +1,193 @@
+!% Contains a module which implements a simple cooling radius calculation (finds the radius at which the time available for
+!% cooling equals the cooling time).
+
+module Cooling_Radii_Simple
+  !% Implements a simple cooling radius calculation (finds the radius at which the time available for cooling equals the cooling
+  !% time).
+  use, intrinsic :: ISO_C_Binding
+  use Radiation_Structure
+  use Tree_Nodes
+  private
+  public :: Cooling_Radius_Simple_Initialize
+
+  ! Module global variable that stores the time available for cooling.
+  double precision :: coolingTimeAvailable
+  !$omp threadprivate(coolingTimeAvailable)
+
+  ! Module global variable which stores a null radiation field.
+  type(radiationStructure) :: radiation
+
+  ! Module global pointer to the active node.
+  type(treeNode), pointer :: activeNode
+  !$omp threadprivate(activeNode)
+
+  ! Internal record of the number of abundance properties.
+  integer :: abundancesCount
+
+contains
+
+  !# <coolingRadiusMethod>
+  !#  <unitName>Cooling_Radius_Simple_Initialize</unitName>
+  !# </coolingRadiusMethod>
+  subroutine Cooling_Radius_Simple_Initialize(coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get)
+    !% Initializes the ``simple'' cooling radius module.
+    use ISO_Varying_String
+    use Abundances_Structure
+    implicit none
+    type(varying_string),          intent(in)    :: coolingRadiusMethod
+    procedure(),          pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
+    
+    if (coolingRadiusMethod == 'simple') then
+       Cooling_Radius_Get => Cooling_Radius_Simple
+       Cooling_Radius_Growth_Rate_Get => Cooling_Radius_Growth_Rate_Simple
+       ! Initialize the radiation field to zero.
+       call radiation%set(noRadiation)
+       ! Get a count of the number of abundances properties.
+       abundancesCount=Abundances_Property_Count()
+    end if
+    return
+  end subroutine Cooling_Radius_Simple_Initialize
+
+  double precision function Cooling_Radius_Growth_Rate_Simple(thisNode)
+    !% Return the growth rate of the cooling radius in the ``simple'' model in Mpc/Gyr.
+    use Tree_Nodes
+    use Tree_Node_Methods
+    use Dark_Matter_Halo_Scales
+    use Hot_Halo_Temperature_Profile
+    use Hot_Halo_Density_Profile
+    use Cooling_Times
+    use Abundances_Structure
+    use Cooling_Times_Available
+    implicit none
+    type(treeNode),           intent(inout), pointer     :: thisNode
+    double precision,         dimension(abundancesCount) :: abundancesMassFraction
+    double precision                                     :: virialRadius,coolingRadius,coolingTimeAvailable &
+         &,coolingTimeAvailableIncreaseRate,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope &
+         &,coolingTimeTemperatureLogSlope
+    type(abundancesStructure)                            :: abundances
+
+    ! Get the virial radius.
+    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+
+    ! Get the cooling radius.
+    coolingRadius=Cooling_Radius_Simple(thisNode)
+
+    ! Check if cooling radius has reached virial radius.
+    if (coolingRadius >= virialRadius) then
+       Cooling_Radius_Growth_Rate_Simple=0.0d0
+    else
+       ! Get the time available for cooling in thisNode.
+       coolingTimeAvailable=Cooling_Time_Available(thisNode)
+       
+       ! Get the rate of increase of the time available for cooling.
+       coolingTimeAvailableIncreaseRate=Cooling_Time_Available_Increase_Rate(thisNode)
+       
+       ! Logarithmic slope of density profile.
+       densityLogSlope=Hot_Halo_Density_Log_Slope(thisNode,coolingRadius)
+
+       ! Logarithmic slope of density profile.
+       temperatureLogSlope=Hot_Halo_Temperature_Logarithmic_Slope(thisNode,coolingRadius)
+
+       ! Get cooling density, temperature and metallicity.
+       density=Hot_Halo_Density(activeNode,coolingRadius)
+       temperature=Hot_Halo_Temperature(activeNode,coolingRadius)
+
+       ! Get the abundances for this node.
+       call Tree_Node_Hot_Halo_Abundances(thisNode,abundancesMassFraction)
+       abundancesMassFraction=abundancesMassFraction/Tree_Node_Hot_Halo_Mass(thisNode)
+       call abundances%pack(abundancesMassFraction)
+       
+       ! Logarithmic slope of the cooling time-density relation.
+       coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,abundances,radiation)
+       
+       ! Logarithmic slope of the cooling time-temperature relation.
+       coolingTimeTemperatureLogSlope=Cooling_Time_Temperature_Log_Slope(temperature,density,abundances,radiation)
+       
+       ! Compute rate at which cooling radius grows.
+       if (coolingRadius > 0.0d0) then
+          Cooling_Radius_Growth_Rate_Simple=(coolingRadius/coolingTimeAvailable)*coolingTimeAvailableIncreaseRate&
+               &/(densityLogSlope *coolingTimeDensityLogSlope+temperatureLogSlope*coolingTimeTemperatureLogSlope)
+       else
+          Cooling_Radius_Growth_Rate_Simple=0.0d0
+       end if
+    end if
+    return
+  end function Cooling_Radius_Growth_Rate_Simple
+
+  double precision function Cooling_Radius_Simple(thisNode)
+    !% Return the cooling radius in the simple model.
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Cooling_Times_Available
+    use Root_Finder
+    use FGSL
+    implicit none
+    type(treeNode),          intent(inout), pointer :: thisNode
+    double precision,        parameter              :: zeroRadius=0.0d0
+    type(fgsl_function),     save                   :: rootFunction
+    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    !$omp threadprivate(rootFunction,rootFunctionSolver)
+    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
+    type(c_ptr)                                     :: parameterPointer
+    double precision                                :: virialRadius 
+
+    ! Get the time available for cooling in thisNode.
+    coolingTimeAvailable=Cooling_Time_Available(thisNode)
+
+    ! Make the node available to the root finding routine.
+    activeNode => thisNode
+
+    ! Check if cooling time at halo center is reached.
+    if (Cooling_Radius_Root(zeroRadius,parameterPointer) > 0.0d0) then
+       ! Cooling time at halo center exceeds the time available, return zero radius.
+       Cooling_Radius_Simple=zeroRadius
+       return
+    end if
+
+    ! Check if cooling time at halo virial radius is reached.
+    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+    if (Cooling_Radius_Root(virialRadius,parameterPointer) < 0.0d0) then
+       ! Cooling time available exceeds cooling time at virial radius, return virial radius.
+       Cooling_Radius_Simple=virialRadius
+       return
+    end if
+
+    ! Cooling radius is between zero and virial radii. Search for the virial radius.
+    Cooling_Radius_Simple=Root_Find(zeroRadius,virialRadius,Cooling_Radius_Root,parameterPointer,rootFunction,rootFunctionSolver &
+         &,toleranceAbsolute,toleranceRelative)
+
+    return
+  end function Cooling_Radius_Simple
+  
+  function Cooling_Radius_Root(radius,parameterPointer) bind(c)
+    !% Root function which evaluates the difference between the cooling time at {\tt radius} and the time available for cooling.
+    use Cooling_Times
+    use Abundances_Structure
+    use Hot_Halo_Density_Profile
+    use Hot_Halo_Temperature_Profile
+    use Tree_Node_Methods
+    implicit none
+    real(c_double)                                       :: Cooling_Radius_Root
+    real(c_double),           value                      :: radius
+    type(c_ptr),              value                      :: parameterPointer
+    double precision,         dimension(abundancesCount) :: abundancesMassFraction
+    double precision                                     :: coolingTime,density,temperature
+    type(abundancesStructure)                            :: abundances
+
+    ! Compute density, temperature and abundances.
+    density    =Hot_Halo_Density    (activeNode,radius)
+    temperature=Hot_Halo_Temperature(activeNode,radius)
+ 
+    ! Get the abundances for this node.
+    call Tree_Node_Hot_Halo_Abundances(activeNode,abundancesMassFraction)
+    abundancesMassFraction=abundancesMassFraction/Tree_Node_Hot_Halo_Mass(activeNode)
+    call abundances%pack(abundancesMassFraction)
+    ! Compute the cooling time at the specified radius.
+    coolingTime=Cooling_Time(temperature,density,abundances,radiation)
+    ! Return the difference between cooling time and time available.
+    Cooling_Radius_Root=coolingTime-coolingTimeAvailable
+
+    return
+  end function Cooling_Radius_Root
+
+end module Cooling_Radii_Simple

@@ -1,0 +1,28 @@
+<haloConcentrations>
+  <description>Halo concentration fitting function parameters from Gao et al. (2008).</description>
+  <url>http://adsabs.harvard.edu/abs/2008MNRAS.387..536G</url>
+  <source>Publication</source>
+  <columns>
+    <redshift>
+      <data>0.0</data>
+      <data>0.5</data>
+      <data>1.0</data>
+      <data>2.0</data>
+      <data>3.0</data>
+    </redshift>
+    <parameterA>
+      <data>-0.138</data>
+      <data>-0.125</data>
+      <data>-0.092</data>
+      <data>-0.031</data>
+      <data>-0.004</data>
+    </parameterA>
+    <parameterB>
+      <data>2.646</data>
+      <data>2.372</data>
+      <data>1.891</data>
+      <data>0.985</data>
+      <data>0.577</data>
+    </parameterB>
+  </columns>
+</haloConcentrations>

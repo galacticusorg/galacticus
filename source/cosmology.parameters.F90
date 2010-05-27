@@ -1,0 +1,208 @@
+!% Contains a module which handles cosmological parameters.
+
+module Cosmological_Parameters
+  !% Implements cosmological parameters and related derived quantities. Default parameter values are taken from
+  !% \cite{komatsu_seven-year_2010}.
+  use Input_Parameters
+  private
+  public :: Omega_b, Omega_0, Omega_DE, Omega_Radiation, Omega_K, T_CMB, H_0, H_0_invGyr, Little_H_0, Critical_Density
+
+  ! Stored values of cosmological parameters.
+  logical          :: Omega_b_Is_Set=.false., Omega_0_Is_Set=.false., Omega_DE_Is_Set=.false., Omega_Radiation_Is_Set=.false.,&
+       & Omega_K_Is_Set=.false., T_CMB_Is_Set=.false., H_0_Is_Set =.false., H_0_invGyr_Is_Set=.false., Critical_Density_Is_Set&
+       &=.false.
+  double precision :: Omega_b_Value,Omega_0_Value,Omega_DE_Value,Omega_Radiation_Value,Omega_K_Value,T_CMB_Value,H_0_Value&
+       &,H_0_invGyr_Value,Critical_Density_Value
+
+contains
+
+  double precision function Omega_b()
+    !% Returns the value of $\Omega_{\rm b}$, reading it in first if necessary.
+    implicit none
+
+    !$omp critical (Omega_b_Initialization)
+    if (.not.Omega_b_Is_Set) then
+       !@ <inputParameter>
+       !@   <name>Omega_b</name>
+       !@   <defaultValue>0.0455 \citep{komatsu_seven-year_2010}</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The density of baryons in the Universe in units of the critical density.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('Omega_b',Omega_b_Value,defaultValue=0.0455d0)
+       Omega_b_Is_Set=.true.
+    end if
+    !$omp end critical (Omega_b_Initialization)
+
+    Omega_b=Omega_b_Value
+    return
+  end function Omega_b
+
+  double precision function Omega_0()
+    !% Returns the value of $\Omega_{\rm b}$, reading it in first if necessary.
+    implicit none
+
+    !$omp critical (Omega_0_Initialization)
+    if (.not.Omega_0_Is_Set) then
+       !@ <inputParameter>
+       !@   <name>Omega_0</name>
+       !@   <defaultValue>0.2725 \citep{komatsu_seven-year_2010}</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The density of matter in the Universe in units of the critical density.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('Omega_0',Omega_0_Value,defaultValue=0.2725d0)
+       Omega_0_Is_Set=.true.
+    end if
+    !$omp end critical (Omega_0_Initialization)
+
+    Omega_0=Omega_0_Value
+    return
+  end function Omega_0
+
+  double precision function Omega_DE()
+    !% Returns the value of $\Omega_{\rm b}$, reading it in first if necessary.
+    implicit none
+
+    !$omp critical (Omega_DE_Initialization)
+    if (.not.Omega_DE_Is_Set) then
+       !@ <inputParameter>
+       !@   <name>Omega_DE</name>
+       !@   <defaultValue>0.7275 \citep{komatsu_seven-year_2010}</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The density of dark energy in the Universe in units of the critical density.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('Omega_DE',Omega_DE_Value,defaultValue=0.7275d0)
+       Omega_DE_Is_Set=.true.
+    end if
+    !$omp end critical (Omega_DE_Initialization)
+
+    Omega_DE=Omega_DE_Value
+    return
+  end function Omega_DE
+
+  double precision function T_CMB()
+    !% Returns the value of $T_{\rm CMB}$, reading it in first if necessary.
+    implicit none
+
+    !$omp critical (T_CMB_Initialization)
+    if (.not.T_CMB_Is_Set) then
+       !@ <inputParameter>
+       !@   <name>T_CMB</name>
+       !@   <defaultValue>2.72548 \citep{fixsen_temperature_2009}</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The present day temperature of the \CMB\ in units of Kelvin.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('T_CMB',T_CMB_Value,defaultValue=2.72548d0)
+       T_CMB_Is_Set=.true.
+    end if
+    !$omp end critical (T_CMB_Initialization)
+
+    T_CMB=T_CMB_Value
+    return
+  end function T_CMB
+
+  double precision function Omega_Radiation()
+    !% Returns the value of $\Omega_{\rm r}$, computing it first if necessary.
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Astronomical
+    implicit none
+
+    !$omp critical (Omega_Radiation_Initialization)
+    if (.not.Omega_Radiation_Is_Set) then
+       Omega_Radiation_Value=radiationConstant*(T_CMB()**4)*megaParsec**3/massSolar/speedLight**2/Critical_Density()
+       Omega_Radiation_Is_Set=.true.
+    end if
+    !$omp end critical (Omega_Radiation_Initialization)
+
+    Omega_Radiation=Omega_Radiation_Value
+    return
+  end function Omega_Radiation
+
+  double precision function Omega_K()
+    !% Returns the value of $\Omega_{\rm K}$, computing it first if necessary.
+    implicit none
+
+    !$omp critical (Omega_K_Initialization)
+    if (.not.Omega_K_Is_Set) then
+       Omega_K_Value=1.0d0-Omega_0()-Omega_DE()
+       Omega_K_Is_Set=.true.
+    end if
+    !$omp end critical (Omega_K_Initialization)
+
+    Omega_K=Omega_K_Value
+    return
+  end function Omega_K
+
+  double precision function Little_H_0()
+    !% Returns $h_0=H_0/100$km/s/Mpc.
+    implicit none
+    double precision, parameter :: Big_H_0=100.0 ! km/s/Mpc.
+
+    Little_H_0=H_0()/Big_H_0
+    return
+  end function Little_H_0
+
+  double precision function H_0()
+    !% Returns the value of $H_0$, reading it in first if necessary.
+    implicit none
+
+    !$omp critical (H_0_Initialization)
+    if (.not.H_0_Is_Set) then
+       !@ <inputParameter>
+       !@   <name>H_0</name>
+       !@   <defaultValue>70.2 \citep{komatsu_seven-year_2010}</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The present day value of the Hubble parameter in units of km/s/Mpc.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('H_0',H_0_Value,defaultValue=70.2d0)
+       H_0_Is_Set=.true.
+    end if
+    !$omp end critical (H_0_Initialization)
+
+    H_0=H_0_Value
+    return
+  end function H_0
+
+  double precision function H_0_invGyr()
+    !% Returns the value of $H_0$, in units of inverse Gyr.
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
+    implicit none
+
+    !$omp critical (H_0_invGyr_Initialization)
+    if (.not.H_0_invGyr_Is_Set) then
+       H_0_invGyr_Value=H_0()*gigaYear*kilo/megaParsec
+       H_0_invGyr_Is_Set=.true.
+    end if
+    !$omp end critical (H_0_invGyr_Initialization)
+
+    H_0_invGyr=H_0_invGyr_Value
+    return
+  end function H_0_invGyr
+
+  double precision function Critical_Density()
+    !% Returns the critical density in units of $M_\odot/$Mpc$^3$.
+    use Numerical_Constants_Math
+    use Numerical_Constants_Physical
+    implicit none
+
+    !$omp critical (Critical_Density_Initialization)
+    if (.not.Critical_Density_Is_Set) then
+       Critical_Density_Value=3.0d0*(H_0()**2)/8.0d0/Pi/gravitationalConstantGalacticus
+    end if
+    !$omp end critical (Critical_Density_Initialization)
+
+    Critical_Density=Critical_Density_Value
+    return
+  end function Critical_Density
+
+end module Cosmological_Parameters

@@ -1,0 +1,35 @@
+*** tmp/cmbfast4.5.1/configure	2003-06-25 21:31:37.000000000 -0700
+--- cmbfast4.5.1/configure	2010-04-27 10:13:00.000000000 -0700
+***************
+*** 121,126 ****
+--- 121,127 ----
+      hacc=0
+      oldn=0
+      flib="/usr/lib /usr/local/lib"
++     iflagsgot=0
+  }
+  
+  readArgs () {
+***************
+*** 154,160 ****
+  	--f77=*)
+  	    FC=`echo $arg | cut -d= -f 2`;;
+  	--f77-flags=*)
+! 	    FFLAGS=`echo $arg | cut -d= -f 2`;;
+  	--help*)
+  	    help;;
+  	*)
+--- 155,167 ----
+  	--f77=*)
+  	    FC=`echo $arg | cut -d= -f 2`;;
+  	--f77-flags=*)
+!             if [ $iflagsgot -eq 1 ]; then
+! 		newarg=`echo $arg | cut -d= -f 2`
+! 		FFLAGS=`echo $FFLAGS $newarg`
+!             else
+! 		iflagsgot=1
+! 		FFLAGS=`echo $arg | cut -d= -f 2`
+!             fi;;
+  	--help*)
+  	    help;;
+  	*)
