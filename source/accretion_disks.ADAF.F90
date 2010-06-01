@@ -232,9 +232,19 @@ contains
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,jetPowerPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,jetPowerPrevious)
 
-    ADAF_Disk_Jet_Power_From_Black_Hole=ADAF_Disk_Jet_Power(radius,blackHoleSpin,adafViscosityAlpha)*(1.0d0-1.0d0&
-         &/ADAF_Field_Enhancement(radius,blackHoleSpin,adafViscosityAlpha)**2)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
+         & adafViscosityAlphaPrevious) then
+       jetPowerPrevious=ADAF_Disk_Jet_Power(radius,blackHoleSpin,adafViscosityAlpha)*(1.0d0-1.0d0&
+            &/ADAF_Field_Enhancement(radius,blackHoleSpin,adafViscosityAlpha)**2)
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_Disk_Jet_Power_From_Black_Hole=jetPowerPrevious
     return
   end function ADAF_Disk_Jet_Power_From_Black_Hole
 
@@ -316,14 +326,23 @@ contains
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,fieldEnhancementPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,fieldEnhancementPrevious)
     double precision             :: tauPhi,tauR,tau
 
-    tauPhi=1.0d0/ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)
-    tauR  =radius*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)/dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius))&
-         &/ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)
-    tau=min(tauPhi,tauR)
-    ADAF_Field_Enhancement=dexp(Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau)
-    return
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /= adafViscosityAlphaPrevious) then
+       tauPhi=1.0d0/ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)
+       tauR  =radius*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)/dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius))&
+            &/ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)
+       tau=min(tauPhi,tauR)
+       fieldEnhancementPrevious  =dexp(Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau)
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_Field_Enhancement=fieldEnhancementPrevious
+   return
   end function ADAF_Field_Enhancement
 
   double precision function ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)
@@ -331,14 +350,24 @@ contains
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,angularVelocityPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,angularVelocityPrevious)
 
-    ADAF_Fluid_Angular_Velocity=                                          &
-         & ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha) & 
-         & *dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)        &
-         & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)**3)          &
-         & /radius**2                                                     &
-         & /ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)       &
-         & /ADAF_gamma_r(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
+         & adafViscosityAlphaPrevious) then
+       angularVelocityPrevious=                                          &
+            & ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha) & 
+            & *dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)        &
+            & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)**3)          &
+            & /radius**2                                                     &
+            & /ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)       &
+            & /ADAF_gamma_r(radius,blackHoleSpin,adafViscosityAlpha)
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_Fluid_Angular_Velocity=angularVelocityPrevious
     return
   end function ADAF_Fluid_Angular_Velocity
 
@@ -346,13 +375,20 @@ contains
     !% Returns the effective value of $\alpha$ for an ADAF.
     implicit none
     double precision, intent(in) :: blackHoleSpin
+    double precision, save       :: blackHoleSpinPrevious=2.0d0,alphaPrevious
+    !$omp threadprivate(blackHoleSpinPrevious,alphaPrevious)
 
-    select case (adafEnergy)
-    case (adafEnergyISCO)
-       ADAF_alpha=0.025d0+0.4d0*blackHoleSpin**4
-    case (adafEnergy1)
-       ADAF_alpha=0.025d0+0.055d0*blackHoleSpin**2
-    end select
+    ! Check if we are being called with the same arguments as the previous call.
+    if (blackHoleSpin /= blackHoleSpinPrevious) then
+       select case (adafEnergy)
+       case (adafEnergyISCO)
+          alphaPrevious=0.025d0+0.400d0*blackHoleSpin**4
+       case (adafEnergy1)
+          alphaPrevious=0.025d0+0.055d0*blackHoleSpin**2
+       end select
+       blackHoleSpinPrevious     =blackHoleSpin
+    end if
+    ADAF_alpha=alphaPrevious
     return
   end function ADAF_alpha
 
@@ -362,8 +398,18 @@ contains
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,gammaPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
 
-    ADAF_gamma=ADAF_gamma_r(radius,blackHoleSpin,adafViscosityAlpha)*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
+         & adafViscosityAlphaPrevious) then
+       gammaPrevious=ADAF_gamma_r(radius,blackHoleSpin,adafViscosityAlpha)*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_gamma=gammaPrevious
     return
   end function ADAF_gamma
 
@@ -373,9 +419,19 @@ contains
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,gammaPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
 
-    ADAF_gamma_phi=dsqrt(1.0d0+((ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)/radius/ADAF_gamma_r(radius&
-         &,blackHoleSpin,adafViscosityAlpha))**2)/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
+         & adafViscosityAlphaPrevious) then
+       gammaPrevious=dsqrt(1.0d0+((ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)/radius/ADAF_gamma_r(radius&
+            &,blackHoleSpin,adafViscosityAlpha))**2)/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_gamma_phi=gammaPrevious
     return
   end function ADAF_gamma_phi
 
@@ -384,8 +440,18 @@ contains
     !% The input quantities are in natural units.
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,gammaPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
 
-    ADAF_gamma_r=dsqrt(1.0d0/(1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2))
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
+         & adafViscosityAlphaPrevious) then
+       gammaPrevious=dsqrt(1.0d0/(1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2))
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_gamma_r=gammaPrevious
     return
   end function ADAF_gamma_r
 
@@ -394,9 +460,19 @@ contains
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,angularMomentumPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,angularMomentumPrevious)
 
-    ADAF_Angular_Momentum=ADAF_Enthalpy_Angular_Momentum_Product(radius,blackHoleSpin,adafViscosityAlpha)/ADAF_Enthalpy(radius&
-         &,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
+         & adafViscosityAlphaPrevious) then
+       angularMomentumPrevious=ADAF_Enthalpy_Angular_Momentum_Product(radius,blackHoleSpin,adafViscosityAlpha)/ADAF_Enthalpy(radius&
+            &,blackHoleSpin,adafViscosityAlpha)
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_Angular_Momentum=angularMomentumPrevious
     return
   end function ADAF_Angular_Momentum
 
@@ -436,8 +512,18 @@ contains
     !% Returns the relativistic enthalpy of the ADAF.
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,enthalpyPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,enthalpyPrevious)
 
-    ADAF_Enthalpy=1.0d0+(adafAdiabaticIndex/(adafAdiabaticIndex-1.0d0))*ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
+         & adafViscosityAlphaPrevious) then
+       enthalpyPrevious=1.0d0+(adafAdiabaticIndex/(adafAdiabaticIndex-1.0d0))*ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_Enthalpy=enthalpyPrevious
     return
   end function ADAF_Enthalpy
 
@@ -472,44 +558,67 @@ contains
   end function ADAF_Temperature
 
   double precision function ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)
+    !% Return the (dimensionless) velocity in an ADAF at given {\tt radius}, for a black hole of given {\tt blackHoleSpin} and a
+    !% flow with viscosity parameter {\tt adafViscosityAlpha}.
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,adafVelocityPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,adafVelocityPrevious)
     double precision             :: rh,rISCO,z,zh,alpha_eff,v1,v2,v3,v4,v5,Phi,reff
 
-    rh=Black_Hole_Horizon_Radius(blackHoleSpin)
-    rISCO=Black_Hole_ISCO_Radius(blackHoleSpin)
-    z=radius/rISCO
-    zh=rh/rISCO
-    alpha_eff=adafViscosityAlpha*(1.0d0+6.450d0*(adafAdiabaticIndex-1.444d0)+1.355d0*(adafAdiabaticIndex-1.444d0)**2)
-    v1=9.0d0*dlog(9.0d0*z)
-    v2=dexp(-0.66d0*(1.0d0-2.0d0*alpha_eff)*dlog(alpha_eff/0.1d0)*dlog(z/zh))
-    v3=1.0d0-dexp(-z*(0.16d0*(blackHoleSpin-1.0d0)+0.76d0))
-    v4=1.4d0+0.29065d0*(blackHoleSpin-0.5d0)**4-0.8756d0*(blackHoleSpin-0.5d0)**2+(-0.33d0*blackHoleSpin+0.45035d0)*(1.0d0-dexp(-(z-zh)))
-    v5=2.3d0*dexp(40.0d0*(blackHoleSpin-1.0d0))*dexp(-15.0d0*rISCO*(z-zh))+1.0d0
-    Phi=v1*v2*v3*v4*v5
-    reff=rh+Phi*(radius-rh)
-    ADAF_V=dsqrt(1.0d0-(1.0d0-2.0d0/reff+(blackHoleSpin/reff)**2))
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /= adafViscosityAlphaPrevious) then
+       rh=Black_Hole_Horizon_Radius(blackHoleSpin)
+       rISCO=Black_Hole_ISCO_Radius(blackHoleSpin)
+       z=radius/rISCO
+       zh=rh/rISCO
+       alpha_eff=adafViscosityAlpha*(1.0d0+6.450d0*(adafAdiabaticIndex-1.444d0)+1.355d0*(adafAdiabaticIndex-1.444d0)**2)
+       v1=9.0d0*dlog(9.0d0*z)
+       v2=dexp(-0.66d0*(1.0d0-2.0d0*alpha_eff)*dlog(alpha_eff/0.1d0)*dlog(z/zh))
+       v3=1.0d0-dexp(-z*(0.16d0*(blackHoleSpin-1.0d0)+0.76d0))
+       v4=1.4d0+0.29065d0*(blackHoleSpin-0.5d0)**4-0.8756d0*(blackHoleSpin-0.5d0)**2+(-0.33d0*blackHoleSpin+0.45035d0)*(1.0d0-dexp(-(z-zh)))
+       v5=2.3d0*dexp(40.0d0*(blackHoleSpin-1.0d0))*dexp(-15.0d0*rISCO*(z-zh))+1.0d0
+       Phi=v1*v2*v3*v4*v5
+       reff=rh+Phi*(radius-rh)
+       adafVelocityPrevious      =dsqrt(1.0d0-(1.0d0-2.0d0/reff+(blackHoleSpin/reff)**2))
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_V=adafVelocityPrevious
     return
   end function ADAF_V
 
   double precision function ADAF_Height(radius,blackHoleSpin,adafViscosityAlpha)
+    !% Return the (dimensionless) height in an ADAF at given {\tt radius}, for a black hole of given {\tt blackHoleSpin} and a
+    !% flow with viscosity parameter {\tt adafViscosityAlpha}.
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
+    double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,adafHeightPrevious
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,adafHeightPrevious)
     double precision             :: nuz2
 
-    nuz2=blackHoleSpin**2+(1.0d0-(blackHoleSpin*Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius))**2)&
-         &*ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)**2-((blackHoleSpin*ADAF_gamma_phi(radius,blackHoleSpin&
-         &,adafViscosityAlpha))**2/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))*ADAF_gamma_r(radius,blackHoleSpin&
-         &,adafViscosityAlpha)**2*Black_Hole_Metric_D_Factor(blackHoleSpin,radius)-ADAF_gamma_r(radius,blackHoleSpin&
-         &,adafViscosityAlpha) *dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)/Black_Hole_Metric_A_Factor(blackHoleSpin&
-         &,radius))*2.0d0*ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)&
-         &*Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius) *ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)&
-         &*blackHoleSpin**2
-    nuz2=nuz2/radius**4
-    ADAF_Height=dsqrt(ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)/ADAF_Enthalpy(radius,blackHoleSpin&
-         &,adafViscosityAlpha)/radius**2/nuz2)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
+         & adafViscosityAlphaPrevious) then
+       nuz2=blackHoleSpin**2+(1.0d0-(blackHoleSpin*Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius))**2) &
+            &*ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)**2-((blackHoleSpin*ADAF_gamma_phi(radius&
+            &,blackHoleSpin,adafViscosityAlpha))**2/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))*ADAF_gamma_r(radius&
+            &,blackHoleSpin,adafViscosityAlpha)**2*Black_Hole_Metric_D_Factor(blackHoleSpin,radius)-ADAF_gamma_r(radius&
+            &,blackHoleSpin,adafViscosityAlpha)*dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)&
+            &/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))*2.0d0*ADAF_Angular_Momentum(radius,blackHoleSpin&
+            &,adafViscosityAlpha)*Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*ADAF_gamma_phi(radius,blackHoleSpin&
+            &,adafViscosityAlpha)*blackHoleSpin**2
+       nuz2=nuz2/radius**4
+       adafHeightPrevious=dsqrt(ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)/ADAF_Enthalpy(radius,blackHoleSpin &
+            &,adafViscosityAlpha)/radius**2/nuz2)
+       radiusPrevious            =radius
+       blackHoleSpinPrevious     =blackHoleSpin
+       adafViscosityAlphaPrevious=adafViscosityAlpha
+    end if
+    ADAF_Height=adafHeightPrevious
     return
   end function ADAF_Height
 

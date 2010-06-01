@@ -186,7 +186,7 @@ contains
        call Make_Parameters_Group
        datasetID=0
        datasetChar=parameterValue
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',trim(datasetChar))
+       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',datasetChar)
     end if
     return
   end subroutine Get_Input_Parameter_Char
@@ -254,7 +254,7 @@ contains
     if (writeOutputActual) then
        call Make_Parameters_Group
        datasetID=0
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',trim(parameterValue))
+       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',parameterValue)
     end if
     return
   end subroutine Get_Input_Parameter_Char_Array

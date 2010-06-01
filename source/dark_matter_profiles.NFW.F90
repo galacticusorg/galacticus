@@ -386,14 +386,28 @@ contains
     implicit none
     double precision, intent(in) :: radius,concentration
     double precision, parameter  :: minimumRadiusForExactSolution=1.0d-7
+    ! Precomputed NFW normalization factor for unit concentration.
+    double precision, parameter  :: nfwNormalizationFactorUnitConcentration=1.0d0/(dlog(2.0d0)-0.5d0)
+    double precision, save       :: concentrationPrevious=-1.0d0,nfwNormalizationFactorPrevious
+    !$omp threadprivate(concentrationPrevious,nfwNormalizationFactorPrevious)
 
     if (radius >= minimumRadiusForExactSolution) then
        Enclosed_Mass_NFW_Scale_Free=(dlog(1.0d0+radius)-radius/(1.0d0+radius))
     else
        Enclosed_Mass_NFW_Scale_Free=(radius**2)*(0.5d0+radius*(-2.0d0/3.0d0+radius*(0.75d0+radius*(-0.8d0))))
     end if
-    Enclosed_Mass_NFW_Scale_Free=Enclosed_Mass_NFW_Scale_Free/(dlog(1.0d0+concentration)-concentration/(1.0d0 &
-         &+concentration))
+    ! Check if we were called with a different concentration compared to the previous call.
+    if (concentration /= concentrationPrevious) then
+       ! We were, so recompute the normalization factor.
+       if (concentration == 1.0d0) then
+          nfwNormalizationFactorPrevious=nfwNormalizationFactorUnitConcentration
+       else
+          nfwNormalizationFactorPrevious=1.0d0/(dlog(1.0d0+concentration)-concentration/(1.0d0 &
+               &+concentration))
+       end if
+       concentrationPrevious=concentration
+    end if
+    Enclosed_Mass_NFW_Scale_Free=Enclosed_Mass_NFW_Scale_Free*nfwNormalizationFactorPrevious
     return
   end function Enclosed_Mass_NFW_Scale_Free
   

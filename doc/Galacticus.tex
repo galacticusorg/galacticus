@@ -928,10 +928,10 @@ Selected with {\tt accretionDisksMethod}$=${\tt ADAF}, this implementation assum
 
 Selected with {\tt accretionDisksMethod}$=${\tt switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (ADAF) modes. TWhich mode is used is determine by the accretion rate onto the disk:
 \begin{itemize}
- \item Radiatively inefficient accretion if $\dot{M}/\dot{M}_{\rm Eddington}>${\tt accretionRateAdafMinimum} and $\dot{M}/\dot{M}_{\rm Eddington}<${\tt accretionRateAdafMaximum};
- \item Radiatively efficient accretion otherwise.
+ \item Radiatively efficient accretion if $\dot{M}/\dot{M}_{\rm Eddington}>${\tt accretionRateThinDiskMinimum} and $\dot{M}/\dot{M}_{\rm Eddington}<${\tt accretionRateThinDiskMaximum};
+ \item Radiatively inefficient accretion otherwise.
 \end{itemize}
-Both {\tt accretionRateAdafMinimum} and {\tt accretionRateAdafMaximum} are adjustable input parameters.
+Both {\tt accretionRateThinDiskMinimum} and {\tt accretionRateThinDiskMaximum} are adjustable input parameters.
 
 \section{Cold Dark Matter Structure Formation}\index{structure formation}\index{cold dark matter}
 
@@ -1831,10 +1831,10 @@ Currently defined accretion disk methods are:
  \item [{\tt ADAF}] Computes the properties of an ADAF using the model of \cite{benson_maximum_2009}.
  \item [{\tt switched}] Select either {\tt Shakura-Sunyaev} or {\tt ADAF} accretion disks based on the accretion rate:
  \begin{eqnarray}
-  \dot{m}_{\rm minimum} < \dot{M}_{\bullet, 0}/\dot{M}_{\rm Eddington} < \dot{m}_{\rm maximum} &\rightarrow& \hbox{ ADAF} \nonumber \\
-  \hbox{otherwise } &\rightarrow& \hbox{ Shakura-Sunyaev},
+  \dot{m}_{\rm minimum} < \dot{M}_{\bullet, 0}/\dot{M}_{\rm Eddington} < \dot{m}_{\rm maximum} &\rightarrow& \hbox{ Shakura-Sunyaev} \nonumber \\
+  \hbox{otherwise } &\rightarrow& \hbox{ ADAG},
  \end{eqnarray}
- where $\dot{m}_{\rm minimum}$={\tt accretionRateAdafMinimum} and $\dot{m}_{\rm maximum}$={\tt accretionRateAdafMaximum} are input parameters.
+ where $\dot{m}_{\rm minimum}$={\tt accretionRateThinDiskMinimum} and $\dot{m}_{\rm maximum}$={\tt accretionRateThinDiskMaximum} are input parameters.
 \end{description}
 
 \subsubsection{Accretion Onto Halos}

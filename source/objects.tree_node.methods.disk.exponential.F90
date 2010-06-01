@@ -889,7 +889,6 @@ contains
   subroutine Exponential_Disk_Rotation_Curve(thisNode,radius,massType,componentType,componentVelocity)
     !% Computes the rotation curve at a given radius for an exponential disk.
     use Galactic_Structure_Options
-    use Bessel_Functions
     use Numerical_Constants_Physical
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -897,7 +896,9 @@ contains
     double precision, intent(in)             :: radius
     double precision, intent(out)            :: componentVelocity
     double precision, parameter              :: fractionalRadiusMaximum=30.0d0
-    double precision                         :: fractionalRadius,diskRadius,componentMass,halfRadius
+    double precision, save                   :: scaleLengthFactor
+    logical,          save                   :: scaleLengthFactorSet=.false.
+    double precision                         :: fractionalRadius,fractionalRadiusFactor,diskRadius,componentMass,halfRadius
 
     ! Set to zero by default.
     componentVelocity=0.0d0
@@ -915,14 +916,36 @@ contains
           ! very large arguments.
           componentVelocity=dsqrt(gravitationalConstantGalacticus*componentMass/radius)
        else
-          halfRadius=0.5d0*fractionalRadius
-          componentVelocity=dsqrt(2.0d0*(gravitationalConstantGalacticus*componentMass/diskRadius)*halfRadius**2&
-               &*(Bessel_Function_I0(halfRadius)*Bessel_Function_K0(halfRadius)-Bessel_Function_I1(halfRadius)&
-               &*Bessel_Function_K1(halfRadius)))
+          ! We are often called at precisely one scale length. Use pre-computed factors in that case.
+          if (fractionalRadius == 1.0d0) then
+             !$omp critical (ExponentialDiskFactorCompute)
+             if (.not.scaleLengthFactorSet) then
+                halfRadius          =0.5d0
+                scaleLengthFactor   =Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
+                scaleLengthFactorSet=.true.
+             end if
+             !$omp end critical (ExponentialDiskFactorCompute)
+             fractionalRadiusFactor=scaleLengthFactor
+          else
+             halfRadius=0.5d0*fractionalRadius
+             fractionalRadiusFactor=Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
+          end if
+          componentVelocity=dsqrt(2.0d0*(gravitationalConstantGalacticus*componentMass/diskRadius)*fractionalRadiusFactor)
        end if
     end if
     return
   end subroutine Exponential_Disk_Rotation_Curve
+
+  double precision function Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
+    !% Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
+    use Bessel_Functions
+    implicit none
+    double precision, intent(in) :: halfRadius
+    
+    Exponential_Disk_Rotation_Curve_Bessel_Factors=halfRadius**2*(Bessel_Function_I0(halfRadius)*Bessel_Function_K0(halfRadius) &
+         &-Bessel_Function_I1(halfRadius)*Bessel_Function_K1(halfRadius))
+    return
+  end function Exponential_Disk_Rotation_Curve_Bessel_Factors
 
   !# <densityTask>
   !#  <unitName>Exponential_Disk_Density</unitName>

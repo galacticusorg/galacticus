@@ -14,8 +14,8 @@ module Accretion_Disks_Switched
   integer, parameter :: accretionDiskADAF=1
 
   ! Parameters controlling the range of accretion rates over which the accretion disk will be an ADAF.
-  double precision :: accretionRateAdafMinimum,accretionRateAdafMaximum
-  logical          :: accretionRateAdafMinimumExists,accretionRateAdafMaximumExists
+  double precision :: accretionRateThinDiskMinimum,accretionRateThinDiskMaximum
+  logical          :: accretionRateThinDiskMinimumExists,accretionRateThinDiskMaximumExists
 
 contains
 
@@ -31,41 +31,41 @@ contains
     type(varying_string),          intent(in)    :: accretionDisksMethod
     procedure(),          pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get&
          &,Accretion_Disk_Jet_Power_Get
-    character(len=30)                            :: accretionRateAdaf
+    character(len=30)                            :: accretionRateThin
     
     if (accretionDisksMethod == 'switched') then
        Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_Switched
        Black_Hole_Spin_Up_Rate_Get             => Black_Hole_Spin_Up_Rate_Switched
        Accretion_Disk_Jet_Power_Get            => Accretion_Disk_Jet_Power_Switched
        !@ <inputParameter>
-       !@   <name>accretionRateAdafMinimum</name>
+       !@   <name>accretionRateThinDiskMinimum</name>
        !@   <defaultValue>0.01</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The accretion rate (in Eddington units) below which a switched accretion disk stop being an ADAF.
+       !@    The accretion rate (in Eddington units) below which a switched accretion disk becomes an ADAF.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter("accretionRateAdafMinimum",accretionRateAdaf,defaultValue='0.01d0')
-       if (trim(accretionRateAdaf) == "none") then
-          accretionRateAdafMinimumExists=.false.
+       call Get_Input_Parameter("accretionRateThinDiskMinimum",accretionRateThin,defaultValue='0.01d0')
+       if (trim(accretionRateThin) == "none") then
+          accretionRateThinDiskMinimumExists=.false.
        else
-          accretionRateAdafMinimumExists=.true.
-          read (accretionRateAdaf,*) accretionRateAdafMinimum
+          accretionRateThinDiskMinimumExists=.true.
+          read (accretionRateThin,*) accretionRateThinDiskMinimum
        end if
        !@ <inputParameter>
-       !@   <name>accretionRateAdafMaximum</name>
+       !@   <name>accretionRateThinDiskMaximum</name>
        !@   <defaultValue>0.3</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The accretion rate (in Eddington units) above which a switched accretion disk stop being an ADAF.
+       !@    The accretion rate (in Eddington units) above which a switched accretion disk becomes an ADAF.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter("accretionRateAdafMaximum",accretionRateAdaf,defaultValue="0.30d0")
-       if (trim(accretionRateAdaf) == "none") then
-          accretionRateAdafMaximumExists=.false.
+       call Get_Input_Parameter("accretionRateThinDiskMaximum",accretionRateThin,defaultValue="0.30d0")
+       if (trim(accretionRateThin) == "none") then
+          accretionRateThinDiskMaximumExists=.false.
        else
-          accretionRateAdafMaximumExists=.true.
-          read (accretionRateAdaf,*) accretionRateAdafMaximum
+          accretionRateThinDiskMaximumExists=.true.
+          read (accretionRateThin,*) accretionRateThinDiskMaximum
        end if
     end if
     return
@@ -146,11 +146,11 @@ contains
        massAccretionRateDimensionless=massAccretionRate/eddingtonAccretionRate
        
        ! Decide which type of accretion disk to use.
-       if (        (accretionRateAdafMinimumExists .and. massAccretionRateDimensionless < accretionRateAdafMinimum) &
-            & .or. (accretionRateAdafMaximumExists .and. massAccretionRateDimensionless > accretionRateAdafMaximum)) then
-          Accretion_Disk_Switched_Type=accretionDiskThin
-       else
+       if (        (accretionRateThinDiskMinimumExists .and. massAccretionRateDimensionless < accretionRateThinDiskMinimum) &
+            & .or. (accretionRateThinDiskMaximumExists .and. massAccretionRateDimensionless > accretionRateThinDiskMaximum)) then
           Accretion_Disk_Switched_Type=accretionDiskADAF
+       else
+          Accretion_Disk_Switched_Type=accretionDiskThin
        end if
 
     else
