@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module of spin tree node methods.
 
 module Tree_Node_Methods_Spin_Random
@@ -30,7 +52,6 @@ module Tree_Node_Methods_Spin_Random
 
 contains
 
-  !! Initialization routine.
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Spin_Random_Initialize</unitName>
@@ -74,7 +95,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Spin_Random_Initialize
   
-  !! Methods.
   
   double precision function Tree_Node_Spin_Random(thisNode)
     !% Return the node spin mass.
@@ -98,7 +118,6 @@ contains
     return
   end function Tree_Node_Spin_Growth_Rate_Random
 
-  !! Tasks.
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Tree_Node_Methods_Spin_Random_Initialize_Spin</unitName>
@@ -136,7 +155,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Spin_Random_Initialize_Spin
   
-  !! Auxiliary functions.
 
   integer function Tree_Node_Spin_Random_Index(thisNode)
     !% Ensure the spin component exists and return its position in the components array.
@@ -148,7 +166,6 @@ contains
     return
   end function Tree_Node_Spin_Random_Index
 
-  !! Output functions.
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Spin_Random_Names</unitName>

@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module of satellite orbit tree node methods.
 
 module Tree_Node_Methods_Satellite_Orbit
@@ -36,7 +58,6 @@ module Tree_Node_Methods_Satellite_Orbit
 
 contains
 
-  !! Initialization routine.
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Satellite_Orbit_Initialize</unitName>
@@ -100,7 +121,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Satellite_Orbit_Initialize
   
-  !! Methods.
 
   double precision function Tree_Node_Satellite_Merge_Time_Simple(thisNode)
     !% Return the time until satellite merging.
@@ -163,7 +183,6 @@ contains
     return
   end subroutine Tree_Node_Satellite_Merge_Time_Rate_Compute_Simple
 
-  !! Tasks.
 
   !# <nodeMergerTask>
   !#  <unitName>Satellite_Orbit_Create</unitName>
@@ -186,7 +205,6 @@ contains
     return
   end subroutine Satellite_Orbit_Create
 
-  !! Auxiliary functions.
 
   integer function Tree_Node_Satellite_Orbit_Index(thisNode)
     !% Ensure the satellite orbit component exists and return its position in the components array.
@@ -219,7 +237,6 @@ contains
     return
   end subroutine Satellite_Merger_Process
   
-  !! Output functions.
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Satellite_Orbit_Simple_Names</unitName>

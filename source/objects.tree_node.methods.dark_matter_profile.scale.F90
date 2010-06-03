@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module which implements a dark matter profile method that provides a scale radius.
 
 module Tree_Node_Methods_Dark_Matter_Profile_Scales
@@ -34,7 +56,6 @@ module Tree_Node_Methods_Dark_Matter_Profile_Scales
 
 contains
 
-  !! Initialization routine.
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Profile_Scale_Initialize</unitName>
@@ -89,7 +110,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Profile_Scale_Initialize
   
-  !! Methods.
   
   double precision function Tree_Node_Dark_Matter_Profile_Scale_Scale(thisNode)
     !% Return the node dark matter profile scale length.
@@ -149,7 +169,6 @@ contains
     return
   end function Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate_Scale
 
-  !! Tasks.
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Tree_Node_Methods_Profile_Scale_Initialize_Scale</unitName>
@@ -219,7 +238,6 @@ contains
     return
   end subroutine Tree_Node_Dark_Matter_Profile_Scale_Promote
   
-  !! Auxiliary functions.
 
   integer function Tree_Node_Profile_Scale_Index(thisNode)
     !% Ensure the profile component exists and return its position in the components array.
@@ -231,7 +249,6 @@ contains
     return
   end function Tree_Node_Profile_Scale_Index
 
-  !! Output functions.
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Profile_Scale_Names</unitName>

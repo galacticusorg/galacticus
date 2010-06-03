@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module of Hernquist-profile spheroid tree node methods.
 
 module Tree_Node_Methods_Hernquist_Spheroid
@@ -83,7 +105,6 @@ module Tree_Node_Methods_Hernquist_Spheroid
 
 contains
 
-  !! Initialization routine.
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Hernquist_Spheroid_Initialize</unitName>
@@ -198,7 +219,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Hernquist_Spheroid_Initialize
   
-  !! Methods.
   
   !# <postEvolveTask>
   !# <unitName>Tree_Node_Spheroid_Post_Evolve_Hernquist</unitName>
@@ -720,7 +740,6 @@ contains
     return
   end subroutine Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist
 
-  !! Tasks.
 
   !# <satelliteMergerTask>
   !#  <unitName>Hernquist_Spheroid_Satellite_Merging</unitName>
@@ -1084,7 +1103,6 @@ contains
     return
   end subroutine Hernquist_Spheroid_Radius_Solver
 
-  !! Auxiliary functions.
 
   double precision function Hernquist_Spheroid_SFR(thisNode)
     !% Return the star formation rate of the Hernquist spheroid.
@@ -1223,7 +1241,6 @@ contains
     return
   end subroutine Hernquist_Spheroid_Create
 
-  !! Output functions.
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Spheroid_Hernquist_Names</unitName>

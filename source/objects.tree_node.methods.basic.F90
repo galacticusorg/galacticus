@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module of basic tree node methods.
 
 module Tree_Node_Methods_Basic
@@ -39,7 +61,6 @@ module Tree_Node_Methods_Basic
 
 contains
 
-  !! Initialization routine.
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Basic_Initialize</unitName>
@@ -85,7 +106,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Basic_Initialize
 
-  !! Methods.
 
   double precision function Tree_Node_Mass_Basic(thisNode)
     !% Return the node mass.
@@ -214,7 +234,6 @@ contains
     return
   end function Tree_Node_Time_Last_Isolated_Basic
 
-  !! Tasks.
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Halo_Mass_Accretion_Rate</unitName>
@@ -283,7 +302,6 @@ contains
     return
   end subroutine Tree_Node_Basic_Promote
   
-  !! Auxiliary functions.
 
   integer function Tree_Node_Basic_Index(thisNode)
     !% Ensure the basic component exists and return its position in the components array.
@@ -310,7 +328,6 @@ contains
     return
   end function Unresolved_Mass
 
-  !! Output functions.
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Basic_Names</unitName>

@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module of black hole tree node methods.
 
 module Tree_Node_Methods_Black_Hole
@@ -50,7 +72,6 @@ module Tree_Node_Methods_Black_Hole
 
 contains
 
-  !! Initialization routine.
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Black_Hole_Initialize</unitName>
@@ -139,7 +160,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Black_Hole_Initialize
   
-  !! Methods.
 
   !# <preDerivativeComputeTask>
   !# <unitName>Tree_Node_Black_Hole_PreDerivatives_Standard</unitName>
@@ -312,7 +332,6 @@ contains
     return
   end subroutine Tree_Node_Black_Hole_Spin_Rate_Compute_Standard
 
-  !! Tasks.
 
   !# <hotHaloHeatingTask>
   !#  <unitName>Black_Hole_Hot_Halo_Heating</unitName>
@@ -380,7 +399,6 @@ contains
     return
   end subroutine Black_Hole_Satellite_Merging
   
-  !! Auxiliary functions.
 
   double precision function Mass_Accretion_Rate(thisNode)
     !% Returns the rate of mass accretion onto the black hole in {\tt thisNode}.
@@ -520,7 +538,6 @@ contains
     return
   end subroutine Black_Hole_Create
 
-  !! Output functions.
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Black_Hole_Standard_Names</unitName>

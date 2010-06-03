@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module of exponential disk tree node methods.
 
 module Tree_Node_Methods_Exponential_Disk
@@ -76,7 +98,6 @@ module Tree_Node_Methods_Exponential_Disk
 
 contains
 
-  !! Initialization routine.
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Exponential_Disk_Initialize</unitName>
@@ -205,7 +226,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Exponential_Disk_Initialize
   
-  !! Methods.
   
   !# <postEvolveTask>
   !# <unitName>Tree_Node_Disk_Post_Evolve_Exponential</unitName>
@@ -473,9 +493,6 @@ contains
     end if
 
     ! Return the procedure pointer.
-    !! AJB: Don't see why we should have to have the internal interruptProcedure pointer be passed to the subroutines and then set
-    !! interruptProcedureReturn to point to it, but if I use interruptProcedureReturn in the subroutine calls it doesn't get
-    !! passed back correctly. Maybe a gfortran bug? Should be fixed in <gfortran 4.5>.
     interruptProcedureReturn => interruptProcedure
     
     return
@@ -744,7 +761,6 @@ contains
     return
   end subroutine Tree_Node_Disk_Stellar_Properties_History_Set_Exponential
 
-  !! Tasks.
 
   !# <satelliteMergerTask>
   !#  <unitName>Exponential_Disk_Satellite_Merging</unitName>
@@ -1044,7 +1060,6 @@ contains
     return
   end subroutine Exponential_Disk_Radius_Solver
 
-  !! Auxiliary functions.
 
   double precision function Exponential_Disk_Radius(thisNode)
     !% Return the scale radius of the exponential disk.
@@ -1183,7 +1198,6 @@ contains
     return
   end subroutine Exponential_Disk_Create
 
-  !! Output functions.
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Disk_Exponential_Names</unitName>

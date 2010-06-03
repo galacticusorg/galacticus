@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module of hot halo tree node methods.
 
 module Tree_Node_Methods_Hot_Halo
@@ -87,7 +109,6 @@ module Tree_Node_Methods_Hot_Halo
 
 contains
 
-  !! Initialization routine.
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Hot_Halo_Initialize</unitName>
@@ -203,7 +224,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Hot_Halo_Initialize
   
-  !! Methods.
   
   !# <preDerivativeComputeTask>
   !# <unitName>Tree_Node_Hot_Halo_PreDerivatives_Standard</unitName>
@@ -406,9 +426,6 @@ contains
          &,interruptProcedurePassed,coolingRate)
 
     ! Point the interrupt procedure that is returned to our internal one.
-    !! AJB: Don't see why we should have to have the internal interruptProcedure pointer be passed to the subroutines and then set
-    !! interruptProcedureReturn to point to it, but if I use interruptProcedureReturn in the subroutine calls it doesn't get
-    !! passed back correctly. Maybe a gfortran bug? Should be fixed in <gfortran 4.5>.
     interruptProcedure => interruptProcedurePassed
 
     return
@@ -499,9 +516,6 @@ contains
             &,angularMomentumCoolingRate)
 
        ! Point the interrupt procedure that is returned to our internal one.
-       !! AJB: Don't see why we should have to have the internal interruptProcedure pointer be passed to the subroutines and then set
-       !! interruptProcedureReturn to point to it, but if I use interruptProcedureReturn in the subroutine calls it doesn't get
-       !! passed back correctly. Maybe a gfortran bug? Should be fixed in <gfortran 4.5>.
        interruptProcedure => interruptProcedurePassed
     end if
     return
@@ -573,9 +587,6 @@ contains
             &,interruptProcedurePassed,abundancesCoolingRate)
 
        ! Point the interrupt procedure that is returned to our internal one.
-       !! AJB: Don't see why we should have to have the internal interruptProcedure pointer be passed to the subroutines and then set
-       !! interruptProcedureReturn to point to it, but if I use interruptProcedureReturn in the subroutine calls it doesn't get
-       !! passed back correctly. Maybe a gfortran bug? Should be fixed in <gfortran 4.5>.
        interruptProcedure => interruptProcedurePassed
     end if
     return
@@ -773,7 +784,6 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Compute_Standard
 
-  !! Tasks.
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Hot_Halo_Subresolution_Initialize</unitName>
@@ -941,7 +951,6 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Promote
   
-  !! Auxiliary functions.
 
   subroutine Get_Cooling_Rate(thisNode)
     !% Get and store the cooling rate for {\tt thisNode}.
@@ -1009,7 +1018,6 @@ contains
     return
   end subroutine Hot_Halo_Create
 
-  !! Output functions.
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Hot_Halo_Standard_Names</unitName>

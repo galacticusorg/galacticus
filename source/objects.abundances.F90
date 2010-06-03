@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module which defines the abundances structure used for describing elemental abundances in \glc. (Currently a dumb
 !% implementation.)
 
@@ -7,9 +29,6 @@ module Abundances_Structure
   private
   public :: abundancesStructure, Abundances_Names, Abundances_Property_Count, Abundances_Get_Metallicity
   
-!!! AJB: Abundances_Get_Metallicity should really only be used as a type-bound procedure (via %metallicity), but gfortran 4.4 has
-!!! a bug with optional arguments in type-bound procedures (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43256) so we can't do that
-!!! right now. Should be fixed in <gfortran 4.5>.
 
   type abundancesStructure
      !% The abundances structure used for describing elemental abundances in \glc. (Currently a dumb implementation.)
@@ -79,7 +98,6 @@ module Abundances_Structure
 
 contains
 
-  !! Abundances propert couny function.
 
   integer function Abundances_Property_Count()
     !% Return the number of properties required to track abundances. This is equal to the number of elements tracked, {\tt
@@ -90,7 +108,6 @@ contains
     return
   end function Abundances_Property_Count
 
-  !! Abundance names function.
 
   function Abundances_Names(index)
     !% Return a name for the specified entry in the abundances structure.
@@ -106,7 +123,6 @@ contains
     return
   end function Abundances_Names
 
-  !! Pack/unpack methods - these extract data from the abundances object to a simple array (and the reverse).
 
   subroutine Abundances_Pack(abundances,abundancesArray)
     !% Pack abundances from an array into an abundances structure.
@@ -128,7 +144,6 @@ contains
     return
   end subroutine Abundances_Unpack
 
-  !! Metallicity methods.
 
   double precision function Abundances_Get_Metallicity(abundances,metallicityType)
     !% Return the metallicity of the {\tt abundances} structure.
@@ -179,7 +194,6 @@ contains
     return
   end subroutine Abundances_Set_Metallicity
 
-  !! Hydrogen/helium methods.
 
   double precision function Abundances_Hydrogen_Mass_Fraction(abundances)
     !% Returns the mass fraction of hydrogen.

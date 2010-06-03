@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module defining the merger tree object type.
 
 module Merger_Trees
@@ -121,7 +143,6 @@ module Merger_Trees
   
 contains
 
-  !! Tree creation/destruction methods.
 
   subroutine Merger_Tree_Destroy(thisTree)
     !% Destroys the entire merger tree.
@@ -154,7 +175,6 @@ contains
     return
   end subroutine Merger_Tree_Destroy_Branch
 
-  !! Node creation.
 
   subroutine Tree_Node_Create(thisTree,thisNode,index)
     !% Return a pointer to a newly created and initialize a tree node.
@@ -216,7 +236,6 @@ contains
     return
   end subroutine Tree_Node_Create_Initialize
 
-  !! Node promotion method.
 
   subroutine Tree_Node_Promote(thisTree,thisNode)
     !% Transfer the properties of {\tt thisNode} to its parent node, then destroy it.
@@ -280,7 +299,6 @@ contains
     return
   end subroutine Tree_Node_Promote
 
-  !! Node evolution method.
 
   subroutine Tree_Node_Evolve(thisTree,thisNode,endTime,interrupted,interruptProcedure)
     !% Evolves {\tt thisNode} to time {\tt endTime}, or until evolution is interrupted.
@@ -652,15 +670,11 @@ contains
     !# </include>
 
     ! Return the procedure pointer.
-    !! AJB: Don't see why we should have to have the internal interruptProcedure pointer be passed to the subroutines and then set
-    !! interruptProcedureReturn to point to it, but if I use interruptProcedureReturn in the subroutine calls it doesn't get
-    !! passed back correctly. Maybe a gfortran bug? Should be fixed in <gfortran 4.5>.
     interruptProcedureReturn => interruptProcedure
 
     return
   end subroutine Tree_Node_Compute_Derivatives
 
-  !! Node merging event method.
 
   subroutine Events_Node_Merger(thisTree,thisNode)
     !% Handles instances where {\tt thisNode} is about to merge with its parent node.
@@ -719,7 +733,6 @@ contains
     return
   end subroutine Events_Node_Merger
 
-  !! Node locating method.
   
   function Tree_Node_Get(thisTree,nodeIndex)
     !% Return a pointer to a node in {\tt thisTree} given the index of the node.

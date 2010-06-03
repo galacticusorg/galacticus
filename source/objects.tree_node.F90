@@ -1,3 +1,25 @@
+!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+
+
 !% Contains a module which defines the tree node object and associated methods.
 
 module Tree_Nodes
@@ -163,7 +185,6 @@ module Tree_Nodes
   
 contains
 
-  !! Node indexing.
 
   integer function Tree_Node_Index(thisNode)
     !% Returns the index of {\tt thisNode}.
@@ -188,7 +209,6 @@ contains
     return
   end subroutine Tree_Node_Index_Set
 
-  !! Creation and destruction.
 
   subroutine Tree_Node_Destroy(thisNode)
     !% Destroy a node in the tree, along with all components.
@@ -223,7 +243,6 @@ contains
     return
   end subroutine Tree_Node_Destroy
 
-  !! Component creation and destruction methods.
 
   logical function Tree_Node_Component_Exists(thisNode,componentIndex)
     !% Return true if {\tt thisNode} already has a component with index {\tt componentIndex}.
@@ -345,7 +364,6 @@ contains
     return
   end subroutine Tree_Node_Deallocate_All_Components
 
-  !! (Tree) relational methods.
 
   logical function Tree_Node_Is_Primary_Progenitor(thisNode)
     !% Returns true if {\tt thisNode} is the primary progenitor of its parent node.
@@ -452,7 +470,6 @@ contains
     return
   end function Tree_Node_Is_On_Main_Branch
 
-  !! Satellite methods.
 
   logical function Tree_Node_Is_Satellite(thisNode)
     !% Returns true if {\tt thisNode} is a satellite.
@@ -525,7 +542,6 @@ contains
     return
   end subroutine Get_Last_Satellite
 
-  !! Tree-walking methods
 
   subroutine Merger_Tree_Walk_Tree_Same_Node(thisNode)
     !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_walk_tree}{{\tt
@@ -700,9 +716,7 @@ contains
     return
   end subroutine Merger_Tree_Construction_Walk
 
-  !! Component property get methods.
 
-!!! Currently not used as gfortran 4.4 has a bug when using type-bound procedures with optional argumentds. Should be fixed in <gfortran 4.5>.
 
   ! double precision function Tree_Node_Component_Property_Get(thisNode,componentIndex,propertyIndex,emptyValue)
   !   !% Returns the value of a property identified by index {\tt propertyIndex} in the component identified by {\tt
