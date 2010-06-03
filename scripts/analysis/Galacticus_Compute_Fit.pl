@@ -43,7 +43,7 @@ $reducedChiSquaredNet = $chiSquaredNet/$degreesOfFreedomNet;
 undef($fitData);
 $fitData->{'chiSquared'} = $chiSquaredNet;
 $fitData->{'reducedChiSquared'} = $reducedChiSquaredNet;
-$fitData->{'degreesofFreedom'} = $degreesOfFreedomNet;
+$fitData->{'degreesOfFreedom'} = $degreesOfFreedomNet;
 $fitData->{'name'} = "net";
 ${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
 
