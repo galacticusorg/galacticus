@@ -1126,6 +1126,10 @@ Selected with {\tt criticalOverdensityMethod}$=${\tt spherical top hat} this met
 
 The method used to compute the mean density contrast of virialized dark matter halos is selected via the {\tt virialDensityContrastMethod} parameter.
 
+\subsubsection{Bryan \& Norman Fitting Function}
+
+Selected with {\tt virialDensityContrastMethod}$=${\tt Bryan + Norman} this method calculates virial density contrast using the fitting functions given by \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
+
 \subsubsection{Spherical Collapse (Matter + Cosmological Constant)}
 
 Selected with {\tt virialDensityContrastMethod}$=${\tt spherical top hat} this method calculates virial density contrast using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
@@ -3019,6 +3023,7 @@ The subroutine must tabulate the virial overdensity in array {\tt deltaVirialDel
 Currently defined virial density contrast methods are:
 \begin{description}
  \item [{\tt spherical top hat}] The virial density contrast is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
+ \item [{\tt Bryan + Norman}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
 \end{description}
 
 \subsubsection{Initial Mass Function Functions}\label{sec:IMF_functions}
