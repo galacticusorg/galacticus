@@ -535,6 +535,30 @@ A mass accretion history (i.e. mass as a function of time) for the main branch i
  \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$).
 \end{description}
 
+\subsubsection{Pre-Evolution Merger Trees}
+
+\glc\ can output the full structure of merger trees prior to any evolution. Merger tree structure can be requested by setting {\tt mergerTreeStructureOutput}$=${\tt true}. Structures are written to a new group, {\tt mergerTreeStructures}, in the \glc\ output file. This group will contain groups called {\tt mergerTreeN} where {\tt N} is the merger tree index. Each such group will contain the following datasets:
+\begin{description}
+ \item [{\tt nodeIndex}] The index of the node in the tree;
+ \item [{\tt childNodeIndex}] The index of this node's first child node;
+ \item [{\tt parentNodeIndex}] The index of this node's parent node;
+ \item [{\tt siblingNodeIndex}] The index of this node's sibling node;
+ \item [{\tt nodeTime}] The time at this point in the tree (in Gyr);
+ \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$).
+\end{description}
+Additional, optional, datasets can be added by setting appropriate input parameters. Currently these include:
+\begin{itemize}
+ \item [Virial quantities] If {\tt mergerTreeStructureOutputVirialQuantities}$=${\tt true} then two additional datasets are included:
+ \begin{description}
+  \item [{\tt nodeVirialRadius}] The virial radius of the node (in Mpc);
+  \item [{\tt nodeVirialVelocity}] The virial velocity of the node (in km/s);
+ \end{description}
+ \item [Dark matter scale radii] If {\tt mergerTreeStructureOutputDarkMatterScaleRadius}$=${\tt true} then an additional dataset is included:
+ \begin{description}
+  \item [{\tt darkMatterScaleRadius}] The scale radius of this node's dark matter halo profile (in Mpc);
+ \end{description}
+\end{itemize}
+
 \section{Perl Module for Data Extraction}
 
 A Perl module is provided that allows for easy extraction of datasets from the \glc\ output file together with a straightforward way to implement derived properties. To use this Perl module, add
@@ -4478,6 +4502,26 @@ Here, {\tt Halo\_Mass\_Accretion\_Rate} is the name of a subroutine which will b
   end subroutine Merger_Tree_Initialize_Task
 \end{verbatim}
 where {\tt thisNode} is the node to be initialized. The subroutine will be called once for each node in the tree.
+
+\subsubsection{Merger Tree Structure Output Tasks}
+
+Additional outputs for merger tree structure output can be added using the {\tt mergerTreeStructureOutputTask}. The directive should give the name of the subroutine to be called to perform the task. The templates for this tasks is:
+\begin{verbatim}
+  !# <mergerTreeStructureOutputTask>
+  !#  <unitName>Structure_Output_Task</unitName>
+  !# </mergerTreeStructureOutputTask>
+  subroutine Structure_Output_Task(baseNode,nodeProperty,treeGroupID)
+    implicit none
+    type(treeNode),   intent(in),    pointer      :: baseNode
+    double precision, intent(inout), dimension(:) :: nodeProperty
+    integer,          intent(in)                  :: treeGroupID
+    .
+    .
+    .
+    return
+  end subroutine Structure_Output_Task
+\end{verbatim}
+The subroutine must walk the merger tree beginning from the given {\tt baseNode} and store each property to output in the given {\tt nodeProperty} array. Once populated, this array can be written to the appropriate location, given by {\tt treeGroupID}, in the \glc\ output file.
 
 \subsubsection{Node Dump}
 
