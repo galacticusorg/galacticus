@@ -37,7 +37,7 @@ module Cooling_Rates
 
   ! Pointer to the function that actually does the calculation.
   procedure(Cooling_Rate_Get_Template), pointer :: Cooling_Rate_Get => null()
-  interface Cooling_Rate_Get_Template
+  abstract interface
      double precision function Cooling_Rate_Get_Template(thisNode)
        import treeNode
        type(treeNode), intent(inout), pointer :: thisNode

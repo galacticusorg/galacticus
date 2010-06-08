@@ -24,14 +24,18 @@
 
 !% Contains a module which reads and interpolates a collisional ionization equilibrium cooling function from a file.
 
-module Cooling_Function_CIE_File
+module Cooling_Functions_CIE_File
   !% Reads and interpolates a collisional ionization equilibrium cooling function from a file.
   use ISO_Varying_String
   use FGSL
   private
   public :: Cooling_Function_CIE_File_Initialize, Cooling_Function_CIE_File_Read, Cooling_Function_CIE_File_Interpolate,&
-       & Cooling_Function_CIE_File_logTemperature_Interpolate
+       & Cooling_Function_CIE_File_logTemperature_Interpolate, Cooling_Function_CIE_File,&
+       & Cooling_Function_Temperature_Slope_CIE_File, Cooling_Function_Density_Slope_CIE_File
   
+  ! Flag indicating whether or not this cooling function is selected.
+  logical              :: functionSelected=.false.
+
   ! Flag to indicate if this module has been initialized.
   logical              :: coolingFunctionInitialized=.false.
 
@@ -58,22 +62,18 @@ module Cooling_Function_CIE_File
 
 contains
   
-  !# <coolingFunctionMethod>
+  !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_CIE_File_Initialize</unitName>
-  !# </coolingFunctionMethod>
-  subroutine Cooling_Function_CIE_File_Initialize(coolingFunctionMethod,Cooling_Function_Get&
-       &,Cooling_Function_Density_Log_Slope_Get,Cooling_Function_Temperature_Log_Slope_Get)
+  !# </coolingFunctionMethods>
+  subroutine Cooling_Function_CIE_File_Initialize(coolingFunctionMethods)
     !% Initializes the ``CIE cooling function from file'' module.
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: coolingFunctionMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Function_Get,Cooling_Function_Density_Log_Slope_Get&
-         &,Cooling_Function_Temperature_Log_Slope_Get
+    type(varying_string), intent(in)    :: coolingFunctionMethods(:)
     
-    if (coolingFunctionMethod.eq.'CIE from file') then
-       Cooling_Function_Get => Cooling_Function_CIE_File_Get
-       Cooling_Function_Density_Log_Slope_Get => Cooling_Function_Density_Log_Slope_CIE_File_Get
-       Cooling_Function_Temperature_Log_Slope_Get => Cooling_Function_Temperature_Log_Slope_CIE_File_Get
+    if (any(coolingFunctionMethods == 'CIE_from_file')) then
+       ! Flag that this cooling function has been selected.
+       functionSelected=.true.
        !@ <inputParameter>
        !@   <name>coolingFunctionFile</name>
        !@   <attachedTo>module</attachedTo>
@@ -90,7 +90,7 @@ contains
     !% Ensure that the cooling data file has been read in.
     implicit none
     
-    !$omp critical (CIE_File_Initialize)
+    !$omp critical (Cooling_Function_CIE_File_Initialize)
     if (.not.coolingFunctionInitialized) then
        
        ! Call routine to read in the tabulated data.
@@ -99,61 +99,112 @@ contains
        ! Flag that cooling function is now initialized.
        coolingFunctionInitialized=.true.
     end if
-    !$omp end critical (CIE_File_Initialize)
+    !$omp end critical (Cooling_Function_CIE_File_Initialize)
     return
   end subroutine Cooling_Function_CIE_File_Read_Initialize
 
-  double precision function Cooling_Function_CIE_File_Get(temperature,numberDensityHydrogen,abundances,radiation)
+  !# <coolingFunctionCompute>
+  !#   <unitName>Cooling_Function_CIE_File</unitName>
+  !# </coolingFunctionCompute>
+  subroutine Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the cooling function by interpolating in tabulated CIE data read from a file.
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
+    double precision,          intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure), intent(in)  :: abundances
+    type(radiationStructure),  intent(in)  :: radiation
+    double precision,          intent(out) :: coolingFunction
 
-    ! Ensure file has been read in.
-    call Cooling_Function_CIE_File_Read_Initialize
+    ! Check if this cooling function has been selected.
+    if (functionSelected) then
+       
+       ! Ensure file has been read in.
+       call Cooling_Function_CIE_File_Read_Initialize
+       
+       ! Call routine to interpolate in the tabulated function.
+       coolingFunction=Cooling_Function_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
 
-    ! Call routine to interpolate in the tabulated function.
-    Cooling_Function_CIE_File_Get=Cooling_Function_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
+    else
+       
+       ! Not selected, return zero.
+       coolingFunction=0.0d0
+       
+    end if
 
     return
-  end function Cooling_Function_CIE_File_Get
+  end subroutine Cooling_Function_CIE_File
   
-  double precision function Cooling_Function_Temperature_Log_Slope_CIE_File_Get(temperature,numberDensityHydrogen,abundances,radiation)
-    !% Return the logarithmic slope of the cooling function with respect to temperature by interpolating in tabulated CIE data
+  !# <coolingFunctionTemperatureSlopeCompute>
+  !#   <unitName>Cooling_Function_Temperature_Slope_CIE_File</unitName>
+  !# </coolingFunctionTemperatureSlopeCompute>
+  subroutine Cooling_Function_Temperature_Slope_CIE_File(coolingFunctionTemperatureSlope,temperature,numberDensityHydrogen,abundances,radiation)
+    !% Return the slope of the cooling function with respect to temperature by interpolating in tabulated CIE data
     !% read from a file.
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
+    double precision,          intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure), intent(in)  :: abundances
+    type(radiationStructure),  intent(in)  :: radiation
+    double precision,          intent(out) :: coolingFunctionTemperatureSlope
+    double precision                       :: coolingFunction
 
-    ! Ensure file has been read in.
-    call Cooling_Function_CIE_File_Read_Initialize
+    ! Check if this cooling function has been selected.
+    if (functionSelected) then
+       
+       ! Ensure file has been read in.
+       call Cooling_Function_CIE_File_Read_Initialize
+       
+       ! Get the cooling function.
+       call Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
+       
+       ! Call routine to interpolate in the tabulated function.
+       coolingFunctionTemperatureSlope=Cooling_Function_CIE_File_logTemperature_Interpolate(temperature&
+            &,numberDensityHydrogen,abundances,radiation)*coolingFunction/temperature
 
-    ! Call routine to interpolate in the tabulated function.
-    Cooling_Function_Temperature_Log_Slope_CIE_File_Get=Cooling_Function_CIE_File_logTemperature_Interpolate(temperature&
-         &,numberDensityHydrogen,abundances,radiation)
-
+    else
+       
+       ! Not selected, return zero.
+       coolingFunctionTemperatureSlope=0.0d0
+       
+    end if
+       
     return
-  end function Cooling_Function_Temperature_Log_Slope_CIE_File_Get
+  end subroutine Cooling_Function_Temperature_Slope_CIE_File
   
-  double precision function Cooling_Function_Density_Log_Slope_CIE_File_Get(temperature,numberDensityHydrogen,abundances,radiation)
+  !# <coolingFunctionDensitySlopeCompute>
+  !#   <unitName>Cooling_Function_Density_Slope_CIE_File</unitName>
+  !# </coolingFunctionDensitySlopeCompute>
+  subroutine Cooling_Function_Density_Slope_CIE_File(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the logarithmic slope of the cooling function with respect to density.
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
+    double precision,          intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure), intent(in)  :: abundances
+    type(radiationStructure),  intent(in)  :: radiation
+    double precision,          intent(out) :: coolingFunctionDensitySlope
+    double precision                       :: coolingFunction
 
-    ! Always 2 for a CIE cooling function.
-    Cooling_Function_Density_Log_Slope_CIE_File_Get=2.0d0
+    ! Check if this cooling function has been selected.
+    if (functionSelected) then
+       
+       ! Get the cooling function.
+       call Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
+       
+       ! Logarithmic slope is always 2 for a CIE cooling function.
+       coolingFunctionDensitySlope=2.0d0*coolingFunction/numberDensityHydrogen
+       
+    else
+       
+       ! Not selected, return zero.
+       coolingFunctionDensitySlope=0.0d0
+       
+    end if
+
     return
-  end function Cooling_Function_Density_Log_Slope_CIE_File_Get
+  end subroutine Cooling_Function_Density_Slope_CIE_File
   
   double precision function Cooling_Function_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
     !% Compute the cooling function by interpolation in the tabulated data.
@@ -328,10 +379,10 @@ contains
     double precision,     intent(out), optional :: metallicityMaximumTabulated
     type(Node),           pointer               :: doc,datum,thisCoolingFunction,metallicityElement,extrapolationElement&
          &,extrapolation,limitElement,methodElement
-    type(NodeList),       pointer               :: datumList,coolingFunctionList,metallicityExtrapolationList &
-         &,temperatureExtrapolationList
+    type(NodeList),       pointer               :: temperatureDatumList,coolingDatumList,coolingFunctionList&
+         &,metallicityExtrapolationList ,temperatureExtrapolationList
     integer                                     :: iDatum,ioErr,iCoolingFunction,iExtrapolation,extrapolationMethod
-    double precision                            :: datumValues(2)
+    double precision                            :: datumValues(1)
     character(len=32)                           :: limitType,methodType
 
     !$omp critical (FoX_DOM_Access)
@@ -345,9 +396,9 @@ contains
     coolingFunctionMetallicityNumberPoints=getLength(coolingFunctionList)
 
     ! Extract data from first cooling function and count number of temperatures present.
-    thisCoolingFunction => item(coolingFunctionList,0)
-    datumList => getElementsByTagname(thisCoolingFunction,"datum")
-    coolingFunctionTemperatureNumberPoints=getLength(datumList)
+    thisCoolingFunction  => item(getElementsByTagname(item(coolingFunctionList,0),"temperature"),0)
+    temperatureDatumList => getElementsByTagname(thisCoolingFunction,"datum")
+    coolingFunctionTemperatureNumberPoints=getLength(temperatureDatumList)
 
     ! Allocate space for the table.
     if (allocated(coolingFunctionMetallicities)) call Dealloc_Array(coolingFunctionMetallicities)
@@ -368,14 +419,18 @@ contains
        metallicityElement  => item(getElementsByTagname(thisCoolingFunction,"metallicity"),0)
        call extractDataContent(metallicityElement,coolingFunctionMetallicities(iCoolingFunction+1))
        ! Extract the data.
-       datumList => getElementsByTagname(thisCoolingFunction,"datum")
+       temperatureDatumList => getElementsByTagname(item(getElementsByTagname(thisCoolingFunction,"temperature"),0),"datum")
+       coolingDatumList     => getElementsByTagname(item(getElementsByTagname(thisCoolingFunction,"coolingRate"),0),"datum")
        ! Check that number of temperatures is consistent.
-       if (getLength(datumList) /= coolingFunctionTemperatureNumberPoints) call&
+       if (getLength(temperatureDatumList) /= coolingFunctionTemperatureNumberPoints) call&
             & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','sizes of temperatures grids must be the same for all&
             & metallicities')
+       ! Check that number of cooling rates matches number of temperatures.
+       if (getLength(temperatureDatumList) /= getLength(coolingDatumList)) call&
+            & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','sizes of temperature and cooling rate arrays must match')
        ! Extract data.
-       do iDatum=0,getLength(datumList)-1
-          datum => item(datumList,iDatum)
+       do iDatum=0,getLength(temperatureDatumList)-1
+          datum => item(temperatureDatumList,iDatum)
           call extractDataContent(datum,datumValues)
           if (iCoolingFunction == 0) then
              ! Store the temperature.
@@ -386,7 +441,9 @@ contains
                   & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','temperature grids mismatch')
           end if
           ! Store the cooling function.
-          coolingFunctionTable(iDatum+1,iCoolingFunction+1)=datumValues(2)
+          datum => item(coolingDatumList,iDatum)
+          call extractDataContent(datum,datumValues)
+          coolingFunctionTable(iDatum+1,iCoolingFunction+1)=datumValues(1)
        end do
     end do
     where (coolingFunctionMetallicities>-999.0d0)
@@ -542,4 +599,4 @@ contains
     return
   end function Do_Interpolation
 
-end module Cooling_Function_CIE_File
+end module Cooling_Functions_CIE_File

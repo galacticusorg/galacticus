@@ -47,4 +47,7 @@ module Numerical_Constants_Physical
   ! Thomson cross section (in units of m^2).
   double precision, parameter :: thomsonCrossSection=FGSL_CONST_MKSA_THOMSON_CROSS_SECTION
 
+  ! Electron mass (in units of kg).
+  double precision, parameter :: electronMass=FGSL_CONST_MKSA_MASS_ELECTRON
+
 end module Numerical_Constants_Physical
