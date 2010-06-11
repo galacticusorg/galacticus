@@ -1,8 +1,8 @@
-package system_redir;
+package SystemRedirect;
   my $status = 1;
   $status;
 
-sub main {
+sub tofile {
     ($command, $file) = @_;
 
     # Save current standard output and standard errer    
@@ -16,8 +16,9 @@ sub main {
     select(STDERR); $| = 1;     # make unbuffered
     select(STDOUT); $| = 1;     # make unbuffered
     
-    # Run the system command (ensuring unlimit CPU time)
-    system("ulimit -t unlimited; $command");
+    # Run the system command.
+    system($command);
+    $result = $?;
     
     # Close the output file
     close(STDOUT);
@@ -27,5 +28,5 @@ sub main {
     open(STDOUT, ">&OLDOUT");
     open(STDERR, ">&OLDERR");
 
-    return 1;
+    return $result;
 }

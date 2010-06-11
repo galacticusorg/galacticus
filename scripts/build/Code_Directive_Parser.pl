@@ -77,7 +77,7 @@ foreach $directive ( keys(%includeDirectives) ) {
     open(xmlHndl,">./work/build/".$directive.".xml.tmp");
     print xmlHndl ${$includeDirectives{$directive}}{'xml'};
     close(xmlHndl);
-    system_redir::main("diff -q  $sourcedir/work/build/".$directive.".xml.tmp $sourcedir/work/build/".$directive.".xml","/dev/null");
+    &SystemRedirect::tofile("diff -q  $sourcedir/work/build/".$directive.".xml.tmp $sourcedir/work/build/".$directive.".xml","/dev/null");
     if ( $? == 0 ) {
 	system("rm -f $sourcedir/work/build/".$directive.".xml.tmp");
     } else {

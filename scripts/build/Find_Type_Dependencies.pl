@@ -69,7 +69,7 @@ close(outHndl);
 
 # Replace original file only if it has changed.
 if ( -e $sourcedir."/work/build/Type_Definitions.xml" ) {
-    system_redir::main("diff -q  $sourcedir/work/build/Type_Definitions.xml.tmp $sourcedir/work/build/Type_Definitions.xml","/dev/null");
+    &SystemRedirect::tofile("diff -q  $sourcedir/work/build/Type_Definitions.xml.tmp $sourcedir/work/build/Type_Definitions.xml","/dev/null");
     if ( $? == 0 ) {
 	system("rm -f $sourcedir/work/build/Type_Definitions.xml.tmp");
     } else {
