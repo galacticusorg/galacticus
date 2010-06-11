@@ -38,7 +38,8 @@ module Merger_Tree_Timesteps_History
   double precision :: timestepHistoryBegin,timestepHistoryEnd
 
   ! Storage arrays.
-  double precision, dimension(:), allocatable :: historyTime,historyExpansion,historyStarFormationRate
+  double precision, dimension(:), allocatable :: historyTime,historyExpansion,historyStarFormationRate,historyStellarDensity&
+       &,historyGasDensity,historyNodeDensity
 
   ! Interpolation variables.
   type(fgsl_interp_accel)                     :: interpolationAccelerator
@@ -69,8 +70,8 @@ contains
     !$omp critical (timestepHistoryInitialize)
     if (.not.timestepHistoryInitialized) then
        ! Determine if we have active components that can provide star formation rates.
-       diskActive    =associated(Tree_Node_Disk_SFR)
-       spheroidActive=associated(Tree_Node_Spheroid_SFR)
+       diskActive           =associated(Tree_Node_Disk_SFR)
+       spheroidActive       =associated(Tree_Node_Spheroid_SFR)
        timestepHistoryActive=diskActive.or.spheroidActive
        if (timestepHistoryActive) then
           ! Get time at present day.
@@ -107,12 +108,18 @@ contains
           call Alloc_Array(historyTime             ,timestepHistorySteps,'historyTime'             )
           call Alloc_Array(historyExpansion        ,timestepHistorySteps,'historyExpansion'        )
           call Alloc_Array(historyStarFormationRate,timestepHistorySteps,'historyStarFormationRate')
+          call Alloc_Array(historyStellarDensity   ,timestepHistorySteps,'historyStellarDensity'   )
+          call Alloc_Array(historyGasDensity       ,timestepHistorySteps,'historyGasDensity'       )
+          call Alloc_Array(historyNodeDensity      ,timestepHistorySteps,'historyNodeDensity'      )
           ! Initialize arrays.
           historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
           do timeIndex=1,timestepHistorySteps
              historyExpansion(timeIndex)=Expansion_Factor(historyTime(timeIndex))
           end do
           historyStarFormationRate=0.0d0
+          historyStellarDensity   =0.0d0
+          historyGasDensity       =0.0d0
+          historyNodeDensity      =0.0d0
        end if
        timestepHistoryInitialized=.true.
     end if
@@ -146,6 +153,8 @@ contains
     use Tree_Nodes
     use Tree_Node_Methods
     use Numerical_Interpolation
+    use Galactic_Structure_Options
+    use Galactic_Structure_Enclosed_Masses
     implicit none
     type(mergerTree), intent(in)             :: thisTree
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -163,10 +172,21 @@ contains
     end if
 
     ! Accumulate the properties.
+    ! Star formation rate:
     starFormationRate=0.0d0
-    if (diskActive) starFormationRate=starFormationRate+Tree_Node_Disk_SFR(thisNode)
+    if (diskActive)     starFormationRate=starFormationRate+Tree_Node_Disk_SFR    (thisNode)
     if (spheroidActive) starFormationRate=starFormationRate+Tree_Node_Spheroid_SFR(thisNode)
-    historyStarFormationRate(timeIndex)=historyStarFormationRate(timeIndex)+starFormationRate*thisTree%volumeWeight
+    historyStarFormationRate(timeIndex)=historyStarFormationRate(timeIndex)+starFormationRate                                 &
+         &                 *thisTree%volumeWeight
+    ! Stellar density.
+    historyStellarDensity   (timeIndex)=historyStellarDensity   (timeIndex)+Galactic_Structure_Enclosed_Mass(thisNode,massType&
+         &=massTypeStellar)*thisTree%volumeWeight
+    ! Gas density.
+    historyGasDensity       (timeIndex)=historyGasDensity       (timeIndex)+Galactic_Structure_Enclosed_Mass(thisNode,massType&
+         &=massTypeGaseous)*thisTree%volumeWeight
+    ! Node density
+    historyNodeDensity      (timeIndex)=historyNodeDensity      (timeIndex)+Tree_Node_Mass                  (thisNode)        &
+         &                 *thisTree%volumeWeight
 
     return
   end subroutine Merger_Tree_History_Store
@@ -180,19 +200,25 @@ contains
     use Galacticus_HDF5_Groups
     use HDF5
     implicit none
-    integer(kind=HID_T)              :: historyGroupID=0,historyDataID=0
-    type(varying_string)             :: groupName,groupComment
+    integer(kind=HID_T)  :: historyGroupID=0,historyDataID=0
+    type(varying_string) :: groupName,groupComment
 
     if (timestepHistoryActive) then
        groupName='globalHistory'
        groupComment='Global (volume averaged) history for this model.'
        historyGroupID=Galacticus_Output_Make_Group(groupName,groupComment)
        historyDataID=0
-       call Galacticus_Output_Dataset(historyGroupID,historyDataID,'historyTime'                 ,'Time [Gyr]'                               ,historyTime                 )
+       call Galacticus_Output_Dataset(historyGroupID,historyDataID,'historyTime'             ,'Time [Gyr]'                          ,historyTime             )
        historyDataID=0
-       call Galacticus_Output_Dataset(historyGroupID,historyDataID,'historyExpansion'            ,'Expansion factor []'                      ,historyExpansion            )
+       call Galacticus_Output_Dataset(historyGroupID,historyDataID,'historyExpansion'        ,'Expansion factor []'                 ,historyExpansion        )
        historyDataID=0
        call Galacticus_Output_Dataset(historyGroupID,historyDataID,'historyStarFormationRate','Star formation rate [Msun/Gyr/Mpc^3]',historyStarFormationRate)
+       historyDataID=0
+       call Galacticus_Output_Dataset(historyGroupID,historyDataID,'historyStellarDensity'   ,'Stellar mass density [Msun/Mpc^3]'   ,historyStellarDensity   )
+       historyDataID=0
+       call Galacticus_Output_Dataset(historyGroupID,historyDataID,'historyGasDensity'       ,'Gas mass density [Msun/Mpc^3]'       ,historyGasDensity       )
+       historyDataID=0
+       call Galacticus_Output_Dataset(historyGroupID,historyDataID,'historyNodeDensity'      ,'Node mass density [Msun/Mpc^3]'      ,historyNodeDensity      )
     end if
     return
   end subroutine Merger_Tree_History_Write
