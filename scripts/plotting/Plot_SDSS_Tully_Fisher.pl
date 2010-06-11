@@ -6,6 +6,7 @@ use XML::Simple;
 use Graphics::GnuplotIF;
 use Galacticus::HDF5;
 use Galacticus::Magnitudes;
+use Galacticus::Luminosities;
 use Math::SigFigs;
 use Stats::Means;
 use Data::Dumper;
@@ -44,14 +45,21 @@ $dataSet{'store'} = 0;
 &HDF5::Count_Trees(\%dataSet);
 &HDF5::Select_Output(\%dataSet,0.1);
 $dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','diskCircularVelocity']);
-$dataSets  = \%{$dataSet{'dataSets'}};
-$magnitude = ${$dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'}};
-$velocity  = ${$dataSets->{'diskCircularVelocity'}};
-$weight    = ${$dataSets->{'volumeWeight'}};
+&HDF5::Get_Dataset(\%dataSet,['volumeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas','diskCircularVelocity']);
+$dataSets     = \%{$dataSet{'dataSets'}};
+$magnitude    = ${$dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'}};
+$bulgeToTotal = ${$dataSets->{'bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas'}};
+$velocity     = ${$dataSets->{'diskCircularVelocity'}};
+$weight       = ${$dataSets->{'volumeWeight'}};
 delete($dataSet{'dataSets'});
+# Select galaxies which are disk-dominated.
+$selection         = which ($bulgeToTotal < 0.3);
+# Create subsets of the galaxy properties including only the disk-dominated galaxies.
+$magnitudeSelected = $magnitude->index($selection);
+$velocitySelected  = $velocity ->index($selection);
+$weightSelected    = $weight   ->index($selection);
 ($velocityMeanGalacticus,$velocityMeanErrorGalacticus,$velocitySigmaGalacticus,$velocitySigmaErrorGalacticus)
-    = &Means::BinnedMean($magnitudeBins,$magnitude,$velocity,$weight);
+    = &Means::BinnedMean($magnitudeBins,$magnitudeSelected,$velocitySelected,$weightSelected);
 
 # Read the XML data file.
 $xml     = new XML::Simple;
@@ -67,9 +75,13 @@ $yWeight = 1.0/$yError**2;
     = &Means::BinnedMean($magnitudeBins,$x,$y,$yWeight);
 
 # Compute chi^2.
-$degreesOfFreedom = 2*nelem($velocityMean);
-$chiSquared = sum((($velocityMean-$velocityMeanGalacticus)**2)/($velocityMeanError**2+$velocityMeanErrorGalacticus**2))
-    +sum((($velocitySigma-$velocitySigmaGalacticus)**2)/($velocitySigmaError**2+$velocitySigmaErrorGalacticus**2));
+$nonZeroMeanError  = which ($velocityMeanError **2+$velocityMeanErrorGalacticus **2 > 0.0);
+$nonZeroSigmaError = which ($velocitySigmaError**2+$velocitySigmaErrorGalacticus**2 > 0.0);
+$degreesOfFreedom = nelem($nonZeroMeanError)+nelem($nonZeroSigmaError);
+$chiSquared = sum((($velocityMean->index($nonZeroMeanError)-$velocityMeanGalacticus->index($nonZeroMeanError))**2)
+		  /($velocityMeanError->index($nonZeroMeanError)**2+$velocityMeanErrorGalacticus->index($nonZeroMeanError)**2))
+    +sum((($velocitySigma->index($nonZeroSigmaError)-$velocitySigmaGalacticus->index($nonZeroSigmaError))**2)
+	 /($velocitySigmaError->index($nonZeroSigmaError)**2+$velocitySigmaErrorGalacticus->index($nonZeroSigmaError)**2));
 if ( $showFit == 1 ) {
     $fitData{'name'} = "Pizagno et al. (2007) SDSS Tully-Fisher relation";
     $fitData{'chiSquared'} = $chiSquared;
