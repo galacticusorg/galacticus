@@ -127,6 +127,7 @@ sub Get_Dataset {
 	unless ( exists(${${$dataHash}{'dataSets'}}{$dataSetName}) ) {
 	    if ( exists(${${$dataHash}{'dataSetsAvailable'}}{$dataSetName}) ) {
 		$data = pdl [];
+		$dataTree = pdl [];
 		foreach $mergerTree ( @mergerTrees ) {
 		    $thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset($dataSetName)->get;
 		    if ( $dataSetName eq "volumeWeight" ) {
@@ -137,9 +138,16 @@ sub Get_Dataset {
 			# Append the dataset.
 			$data = $data->append($thisTreeData);
 		    }
+		    unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
+			$dataTree = $dataTree->append($mergerTree*ones($galaxyCount[0]));	
+		    }
 		}
 		${${${$dataHash}{'dataSets'}}{$dataSetName}} = $data;
 		undef($data);
+		unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
+		    ${${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}} = $dataTree;
+		    undef($dataTree);
+		}
 	    } else {
 		foreach $regEx ( keys(%galacticusFunctions) ) {
 		    if ( $dataSetName =~ m/^$regEx$/ ) {
