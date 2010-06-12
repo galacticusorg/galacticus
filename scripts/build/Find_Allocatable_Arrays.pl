@@ -109,7 +109,7 @@ close(outHndl);
 
 # Replace original file only if it has changed.
 if ( -e $sourcedir."/work/build/Allocatable_Arrays.xml" ) {
-    system_redir::main("diff -q  $sourcedir/work/build/Allocatable_Arrays.xml.tmp $sourcedir/work/build/Allocatable_Arrays.xml","/dev/null");
+    &SystemRedirect::tofile("diff -q  $sourcedir/work/build/Allocatable_Arrays.xml.tmp $sourcedir/work/build/Allocatable_Arrays.xml","/dev/null");
     if ( $? == 0 ) {
 	system("rm -f $sourcedir/work/build/Allocatable_Arrays.xml.tmp");
     } else {

@@ -2,7 +2,6 @@
 use lib './perl';
 use Fortran::Utils;
 use File::Changes;
-use System::Redirect;
 use Switch;
 use XML::Simple;
 
