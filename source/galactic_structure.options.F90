@@ -32,6 +32,7 @@ module Galactic_Structure_Options
   integer,          parameter :: massTypeBaryonic=2
   integer,          parameter :: massTypeGalactic=3
   integer,          parameter :: massTypeGaseous =4
+  integer,          parameter :: massTypeStellar =5
 
   ! Values used to represent different component types.
   integer,          parameter :: componentTypeAll     =0
