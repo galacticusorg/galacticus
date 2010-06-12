@@ -48,7 +48,7 @@ contains
     groupComment='Version and timestamp for this model.'
     versionGroupID=Galacticus_Output_Make_Group(groupName,groupComment)
     call Galacticus_Output_Dataset(versionGroupID,versionMajorID   ,'versionMajor'   ,'Major version number',[0])
-    call Galacticus_Output_Dataset(versionGroupID,versionMinorID   ,'versionMinor'   ,'Minor version number',[1])
+    call Galacticus_Output_Dataset(versionGroupID,versionMinorID   ,'versionMinor'   ,'Minor version number',[9])
     call Galacticus_Output_Dataset(versionGroupID,versionRevisionID,'versionRevision','Revision number'     ,[0])
     runTime(1)=Formatted_Date_and_Time()
     call Galacticus_Output_Dataset(versionGroupID,runTimeID        ,'runTime'        ,'Time at which model was run',runTime)

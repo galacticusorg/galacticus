@@ -27,6 +27,9 @@ module Stellar_Population_Properties_Instantaneous
   private
   public :: Stellar_Population_Properties_Instantaneous_Initialize
 
+  ! Index of abundance pattern to use for elemental abundances.
+  integer :: abundanceIndex
+
 contains
 
   !# <stellarPopulationPropertiesMethod>
@@ -37,6 +40,7 @@ contains
        &,Stellar_Population_Properties_History_Create_Do)
     !% Initializes the instantaneous recycling approximation stellar population properties module.
     use ISO_Varying_String
+    use Atomic_Data
     implicit none
     type(varying_string),          intent(in)    :: stellarPopulationPropertiesMethod
     procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get&
@@ -46,6 +50,9 @@ contains
        Stellar_Population_Properties_Rates_Get         =>  Stellar_Population_Properties_Rates_Instantaneous    
        Stellar_Population_Properties_History_Count_Get =>  Stellar_Population_Properties_History_Count_Instantaneous    
        Stellar_Population_Properties_History_Create_Do => Stellar_Population_Properties_History_Create_Instantaneous
+
+       ! Get index of abundance pattern to use.
+       abundanceIndex=Abundance_Pattern_Lookup(abundanceName="solar")
     end if
     return
   end subroutine Stellar_Population_Properties_Instantaneous_Initialize
@@ -100,8 +107,8 @@ contains
     ! Set the rates of change of the stellar and fuel metallicities.
     stellarMetalsRateOfChange=stellarMassRate*fuelMetallicity
     fuelMetalsRateOfChange   =-stellarMetalsRateOfChange+yieldInstantaneous*starFormationRate
-    call stellarAbundancesRates%metallicitySet(stellarMetalsRateOfChange)
-    call fuelAbundancesRates   %metallicitySet(fuelMetalsRateOfChange   )
+    call stellarAbundancesRates%metallicitySet(stellarMetalsRateOfChange,adjustElements=adjustElementsReset,abundanceIndex=abundanceIndex)
+    call fuelAbundancesRates   %metallicitySet(fuelMetalsRateOfChange   ,adjustElements=adjustElementsReset,abundanceIndex=abundanceIndex)
 
     ! Get the IMF.
     imfSelected=IMF_Select(starFormationRate,fuelAbundances)

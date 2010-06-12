@@ -20,19 +20,19 @@
 
 
 
-!% Contains a module which defines the abundances structure used for describing elemental abundances in \glc. (Currently a dumb
-!% implementation.)
+!% Contains a module which defines the abundances structure used for describing elemental abundances in \glc.
 
 module Abundances_Structure
-  !% Defines the abundances structure used for describing elemental abundances in \glc. (Currently a dumb implementation.)
+  !% Defines the abundances structure used for describing elemental abundances in \glc.
   use Numerical_Constants_Astronomical
   private
-  public :: abundancesStructure, Abundances_Names, Abundances_Property_Count, Abundances_Get_Metallicity
+  public :: abundancesStructure, Abundances_Names, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity
   
-
   type abundancesStructure
-     !% The abundances structure used for describing elemental abundances in \glc. (Currently a dumb implementation.)
-     double precision          :: metallicityValue
+     !% The abundances structure used for describing elemental abundances in \glc.
+     private
+     double precision                            :: metallicityValue
+     double precision, allocatable, dimension(:) :: elementalValue
    contains
      ! Pack/unpack methods.
      !@ <objectMethods>
@@ -84,45 +84,151 @@ module Abundances_Structure
   end type abundancesStructure
 
   ! Count of the number of elements being tracked.
-  integer,          parameter         :: elementsCount=0
-  integer,          parameter         :: propertyCount=elementsCount+1
+  integer                                     :: elementsCount=0
+  integer                                     :: propertyCount
+
+  ! Names (two-letter labels) of elements to track.
+  character(len=3), allocatable, dimension(:) :: elementsToTrack
+
+  ! Indices of elements as used in the Atomic_Data module.
+  integer,          allocatable, dimension(:) :: elementsIndices
 
   ! Type of metallicity/abundance measure required.
-  integer,          parameter, public :: linearByMass            =0
-  integer,          parameter, public :: linearByNumber          =1
-  integer,          parameter, public :: logarithmicByMassSolar  =2
-  integer,          parameter, public :: logarithmicByNumberSolar=3
+  integer,          parameter, public         :: linearByMass            =0
+  integer,          parameter, public         :: linearByNumber          =1
+  integer,          parameter, public         :: logarithmicByMassSolar  =2
+  integer,          parameter, public         :: logarithmicByNumberSolar=3
+  integer,          parameter, public         :: linearByMassSolar       =4
+  integer,          parameter, public         :: linearByNumberSolar     =5
   
   ! Value used to indicate a zero metallicity on logarithmic scales.
-  double precision, parameter, public :: logMetallicityZero      =-99.0d0
+  double precision, parameter, public         :: logMetallicityZero      =-99.0d0
+
+  ! Flag indicating if this module has been initialized.
+  logical                                     :: abundancesInitialized=.false.
+
+  ! Labels used in determining how to update elemental abundances when metallicity is adjusted.
+  integer,          parameter, public         :: adjustElementsNone  =0
+  integer,          parameter, public         :: adjustElementsReset =1
+  integer,          parameter, public         :: adjustElementsUpdate=2
 
 contains
 
+  subroutine Abundances_Initialize
+    !% Initialize the {\tt abundanceStructure} object module. Determines which abundances are to be tracked.
+    use Input_Parameters
+    use Memory_Management
+    use Atomic_Data
+    implicit none
+    integer :: iElement
+
+    ! Check if this module has been initialized already.    
+    !$omp critical (Abundances_Module_Initalize)
+    if (.not.abundancesInitialized) then
+
+       ! Determine how many elements we are required to track.
+       elementsCount=Get_Input_Parameter_Array_Size('elementsToTrack')
+       ! Number of properties to track is one greater, as we always track total metallicity.
+       propertyCount=elementsCount+1
+       ! If tracking elements, read names of which ones to track.
+       if (elementsCount > 0) then
+          call Alloc_Array(elementsToTrack,elementsCount,'elementsToTrack')
+          call Alloc_Array(elementsIndices,elementsCount,'elementsIndices')
+          !@ <inputParameter>
+          !@   <name>elementsToTrack</name>
+          !@   <defaultValue></defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The names of the elements to be tracked.
+          !@   </description>
+          !@ </inputParameter>
+          call Get_Input_Parameter('elementsToTrack',elementsToTrack)
+          ! Validate the input names by looking them up in the list of atomic names.
+          do iElement=1,elementsCount
+             elementsIndices(iElement)=Atom_Lookup(shortLabel=elementsToTrack(iElement))
+          end do
+       end if
+       ! Flag that this module is now initialized.
+       abundancesInitialized=.true.
+    end if
+    !$omp end critical (Abundances_Module_Initalize)
+
+    return
+  end subroutine Abundances_Initialize
 
   integer function Abundances_Property_Count()
     !% Return the number of properties required to track abundances. This is equal to the number of elements tracked, {\tt
     !% elementsCount}, plus one since we always track a total metallicity.
     implicit none
 
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
     Abundances_Property_Count=propertyCount
     return
   end function Abundances_Property_Count
 
-
   function Abundances_Names(index)
     !% Return a name for the specified entry in the abundances structure.
     use ISO_Varying_String
+    use Galacticus_Error
     implicit none
     type(varying_string)             :: Abundances_Names
     integer,              intent(in) :: index
 
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
     select case (index)
     case (1)
        Abundances_Names="Metals"
+    case (2:)
+       if (index <= elementsCount+1) then
+          Abundances_Names=trim(elementsToTrack(index-1))
+       else
+          call Galacticus_Error_Report('Abundances_Names','index out of range')
+       end if
+    case default
+       call Galacticus_Error_Report('Abundances_Names','index out of range')
     end select
     return
   end function Abundances_Names
 
+  integer function Abundances_Atomic_Index(index)
+    !% Return the atomic index for the specified entry in the abundances structure.
+    use ISO_Varying_String
+    use Galacticus_Error
+    implicit none
+    integer, intent(in) :: index
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    select case (index)
+    case (1)
+       Abundances_Atomic_Index=0 ! Total metallicity.
+    case (2:)
+       if (index <= elementsCount+1) then
+          Abundances_Atomic_Index=elementsIndices(index-1)
+       else
+          call Galacticus_Error_Report('Abundances_Atomic_Index','index out of range')
+       end if
+    case default
+       call Galacticus_Error_Report('Abundances_Atomic_Index','index out of range')
+    end select
+    return
+  end function Abundances_Atomic_Index
+
+  subroutine Abundances_Allocate_Elemental_Values(abundances)
+    !% Ensure that the {\tt elementalValue} array in an {\tt abundancesStructure} is allocated.
+    use Memory_Management
+    implicit none
+    type(abundancesStructure), intent(inout) :: abundances
+
+    if (.not.allocated(abundances%elementalValue)) call Alloc_Array(abundances%elementalValue,elementsCount&
+         &,'abundances%elementalValue')
+    return
+  end subroutine Abundances_Allocate_Elemental_Values
 
   subroutine Abundances_Pack(abundances,abundancesArray)
     !% Pack abundances from an array into an abundances structure.
@@ -130,7 +236,15 @@ contains
     type(abundancesStructure), intent(out)              :: abundances
     double precision,          intent(in), dimension(:) :: abundancesArray
 
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    ! Extract metallicity from array.
     abundances%metallicityValue=abundancesArray(1)
+    ! Ensure elemental values array exists.
+    call Abundances_Allocate_Elemental_Values(abundances)
+    ! Extract elemental values from array.
+    abundances%elementalValue=abundancesArray(2:elementsCount+1)
     return
   end subroutine Abundances_Pack
 
@@ -140,10 +254,19 @@ contains
     double precision,          intent(out), dimension(:) :: abundancesArray(:)
     type(abundancesStructure), intent(in)                :: abundances
 
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    ! Place metallicity into array.
     abundancesArray(1)=abundances%metallicityValue
+    ! Place elemental values into arrays.
+    if (allocated(abundances%elementalValue)) then
+       abundancesArray(2:elementsCount+1)=abundances%elementalValue
+    else
+       abundancesArray(2:elementsCount+1)=0.0d0
+    end if
     return
   end subroutine Abundances_Unpack
-
 
   double precision function Abundances_Get_Metallicity(abundances,metallicityType)
     !% Return the metallicity of the {\tt abundances} structure.
@@ -152,6 +275,9 @@ contains
     implicit none
     type(abundancesStructure), intent(in)           :: abundances
     integer,                   intent(in), optional :: metallicityType
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
 
     Abundances_Get_Metallicity=abundances%metallicityValue
     if (present(metallicityType)) then
@@ -165,6 +291,9 @@ contains
           else
              Abundances_Get_Metallicity=logMetallicityZero
           end if
+       case (linearByMassSolar)
+          ! Convert to metallicity by mass relative to Solar.
+          Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
        case default
           call Galacticus_Error_Report('Abundances_Get_Metallicity','metallicity type not supported')
        end select
@@ -172,36 +301,82 @@ contains
     return
   end function Abundances_Get_Metallicity
 
-  subroutine Abundances_Set_Metallicity(abundances,metallicity,metallicityType)
+  subroutine Abundances_Set_Metallicity(abundances,metallicity,metallicityType,adjustElements,abundanceIndex)
     !% Set the metallicity of the {\tt abundances} structure to {\tt metallicity}.
     use Galacticus_Error
+    use Atomic_Data
     implicit none
     type(abundancesStructure), intent(inout)        :: abundances
     double precision,          intent(in)           :: metallicity
-    integer,                   intent(in), optional :: metallicityType
+    integer,                   intent(in), optional :: metallicityType,adjustElements,abundanceIndex
+    integer                                         :: adjustElementsActual,iElement
+    double precision                                :: metallicityPrevious
 
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    ! Store the current metallicity.
+    metallicityPrevious        =abundances%metallicityValue
+
+    ! Update the metallicity.
     abundances%metallicityValue=metallicity
     if (present(metallicityType)) then
        select case (metallicityType)
-          case (linearByMass)
-             ! Do nothing, this is how we store metallicity.
-          case (logarithmicByMassSolar)
-             abundances%metallicityValue=(10.0d0**abundances%metallicityValue)*metallicitySolar
-          case default
-             call Galacticus_Error_Report('Abundances_Set_Metallicity','type not supported')
-          end select
+       case (linearByMass)
+          ! Do nothing, this is how we store metallicity.
+       case (logarithmicByMassSolar)
+          abundances%metallicityValue=(10.0d0**abundances%metallicityValue)*metallicitySolar
+       case default
+          call Galacticus_Error_Report('Abundances_Set_Metallicity','type not supported')
+       end select
+    end if
+
+    ! Determine what we're requested to do with any other elements.
+    if (elementsCount > 0) then
+       if (present(adjustElements)) then
+          adjustElementsActual=adjustElements
+       else
+          adjustElementsActual=adjustElementsNone
        end if
+       select case (adjustElementsActual)
+       case (adjustElementsNone)
+          ! Do nothing to the elemental abundances in this case.
+       case (adjustElementsReset)
+          ! Ensure that we have an abundanceIndex specified.
+          if (.not.present(abundanceIndex)) call Galacticus_Error_Report('Abundances_Set_Metallicity', &
+               & 'an abundance pattern must be specified in order to reset elemental abundances')
+          ! Ensure elemental values array exists.
+          call Abundances_Allocate_Elemental_Values(abundances)
+          do iElement=1,elementsCount
+             abundances%elementalValue(iElement)=abundances%metallicityValue*Atomic_Abundance(abundanceIndex=abundanceIndex&
+                  &,atomIndex=elementsIndices(iElement),normalization=normalizationMetals)
+          end do
+       case (adjustElementsUpdate)
+          ! Ensure that we have an abundanceIndex specified.
+          if (.not.present(abundanceIndex)) call Galacticus_Error_Report('Abundances_Set_Metallicity', &
+               & 'an abundance pattern must be specified in order to reset elemental abundances')
+          ! Ensure elemental values array exists.
+          call Abundances_Allocate_Elemental_Values(abundances)
+          do iElement=1,elementsCount
+             abundances%elementalValue(iElement)=abundances%elementalValue(iElement)+(abundances%metallicityValue&
+                  &-metallicityPrevious)*Atomic_Abundance(abundanceIndex=abundanceIndex,atomIndex=elementsIndices(iElement)&
+                  &,normalization=normalizationMetals)
+          end do
+        end select
+    end if
     return
   end subroutine Abundances_Set_Metallicity
-
 
   double precision function Abundances_Hydrogen_Mass_Fraction(abundances)
     !% Returns the mass fraction of hydrogen.
     implicit none
     type(abundancesStructure), intent(in) :: abundances
 
-    Abundances_Hydrogen_Mass_Fraction=(abundances%metallicityValue/metallicitySolar)*(hydrogenByMassSolar-hydrogenByMassPrimordial)&
-         &+hydrogenByMassPrimordial
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    Abundances_Hydrogen_Mass_Fraction=(abundances%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
+         &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial
     return
   end function Abundances_Hydrogen_Mass_Fraction
 
@@ -209,6 +384,9 @@ contains
     !% Returns the mass fraction of helium.
     implicit none
     type(abundancesStructure), intent(in) :: abundances
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
 
     Abundances_Helium_Mass_Fraction=(abundances%metallicityValue/metallicitySolar)*(heliumByMassSolar-heliumByMassPrimordial)&
          &+heliumByMassPrimordial
@@ -220,6 +398,9 @@ contains
     implicit none
     type(abundancesStructure), intent(in) :: abundances
     double precision                      :: numberHydrogen,numberHelium
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
 
     numberHydrogen=Abundances_Hydrogen_Mass_Fraction(abundances)/atomicMassHydrogen
     numberHelium  =Abundances_Helium_Mass_Fraction(abundances)/atomicMassHelium

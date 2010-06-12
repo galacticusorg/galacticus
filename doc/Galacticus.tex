@@ -1498,6 +1498,7 @@ Selected with {\tt stellarAstrophysicsMethod}$=${\tt file} this method uses read
     <metallicity>0.0000</metallicity>
     <ejectedMass>7.65</ejectedMass>
     <metalYieldMass>0.44435954</metalYieldMass>
+    <elementYieldMassFe>2.2017e-13</elementYieldMassFe>
     <source>Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)</source>
     <url>http://adsabs.harvard.edu/abs/2003ApJ...584..608T</url>
   </star>
@@ -1511,7 +1512,7 @@ Selected with {\tt stellarAstrophysicsMethod}$=${\tt file} this method uses read
   .
  </stars
 \end{verbatim}
-Each {\tt star} element must contain the {\tt initialMass} (given in $M_\odot$) and {\tt metallicity} tags. Other tags are optional. {\tt lifetime} gives the lifetime of such a star (in Gyr), {\tt ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during its lifetime and {\tt metalYieldMass} gives the total mass of metals yielded by the star during its lifetime. The {\tt source} and {\tt url} tags are not used, but are recommended to provide a reference to the origin of the stellar data.
+Each {\tt star} element must contain the {\tt initialMass} (given in $M_\odot$) and {\tt metallicity} tags. Other tags are optional. {\tt lifetime} gives the lifetime of such a star (in Gyr), {\tt ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during its lifetime, {\tt metalYieldMass} gives the total mass of metals yielded by the star during its lifetime while {\tt elementYieldMassX} gives the mass of element {\tt X} yielded by the star during its lifetime. The {\tt source} and {\tt url} tags are not used, but are strongly recommended to provide a reference to the origin of the stellar data.
 
 \subsection{Stellar Winds}
 
@@ -3887,7 +3888,7 @@ Here, {\tt Stellar\_Astrophysics\_File\_Initialize} is the name of a subroutine 
 \end{verbatim}
 where {\tt myMethod} is the name of this method as will be specified by the {\tt stellarAstrophysicsMethod} input parameter. The procedure pointers must be set to point to functions which return stellar properties as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The ejected mass, metal yield and lifetime functions must have the form:
+The ejected mass and lifetime functions must have the form:
 \begin{verbatim}
  double precision function Star_Property(initialMass,metallicity)
     implicit none
@@ -3899,6 +3900,20 @@ The ejected mass, metal yield and lifetime functions must have the form:
  end function Star_Property
 \end{verbatim}
 These functions must return the total ejected mass (in $M_\odot$), total metal yield (in $M_\odot$) and lifetime (in Gyr) for a star of the specified {\tt initialMass} and {\tt metallicity}.
+
+The metal yield function must have the form:
+\begin{verbatim}
+ double precision function Star_Metal_Yield(initialMass,metallicity,atomIndex)
+    implicit none
+    double precision, intent(in)           :: initialMass,metallicity
+    integer,          intent(in), optional :: atomIndex
+    .
+    .
+    .
+    return
+ end function Star_Property
+\end{verbatim}
+This function must return the yield (in $M_\odot$) of the element identified by {\tt atomIndex} (as returned by the \hyperlink{atomic.data.F90:atomic_data:atom_lookup}{{\tt Atom\_Lookup()}} function from the \hyperlink{atomic.data.F90:atomic_data}{{\tt Atomic\_Data}} module) if present, or total metal yield otherwise for a star of the specified {\tt initialMass} and {\tt metallicity}.
 
 The initial mass function must have the form:
 \begin{verbatim}
@@ -4140,18 +4155,32 @@ Here, {\tt Supernovae\_Type\_Ia\_Nagashima\_Initialize} is the name of a subrout
 \end{verbatim}
 where {\tt myMethod} is the name of this method as will be specified by the {\tt supernovaeIaMethod} input parameter. The procedure pointers {\tt SNeIa\_Cumulative\_Number\_Get} and {\tt SNeIa\_Cumulative\_Yield\_Get} must be set to point to functions which return the cumulative number of and cumulative yield from Type Ia supernovae as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The functions must have the form:
+The cumulative number function must have the form:
 \begin{verbatim}
-   double precision function Type_Ia_Function(initialMass,age,metallicity)
+   double precision function SNeIa_Cumulative_Number(initialMass,age,metallicity)
     implicit none
     double precision, intent(in) :: initialMass,age,metallicity
     .
     .
     .
     return
-   end function Type_Ia_Function 
+   end function SNeIa_Cumulative_Number 
 \end{verbatim}
-The cumulative number function must return the number of Type Ia supernovae resulting per $M_\odot$ of stars formed with given {\tt initialMass} and {\tt metallicity} after a time {\tt age}. (Since Type Ia's form in binary systems this function should specifically return the number such that when integrated over the \IMF\ it gives the correct total number of Type Ia supernovae formed from a single stellar population.) The cumulative yield function should similarly return the total metal yield from Type Ia's resulting from the same stars.
+and must return the number of Type Ia supernovae resulting per $M_\odot$ of stars formed with given {\tt initialMass} and {\tt metallicity} after a time {\tt age}. (Since Type Ia's form in binary systems this function should specifically return the number such that when integrated over the \IMF\ it gives the correct total number of Type Ia supernovae formed from a single stellar population.)
+
+The cumulative yield function must have the form:
+\begin{verbatim}
+   double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity,atomIndex)
+    implicit none
+    double precision, intent(in)           :: initialMass,age,metallicity
+    integer,          intent(in), optional :: atomIndex
+    .
+    .
+    .
+    return
+   end function SNeIa_Cumulative_Yield 
+\end{verbatim}
+and should return the yield of the element identified by {\tt atomIndex} (as returned by the \hyperlink{atomic.data.F90:atomic_data:atom_lookup}{{\tt Atom\_Lookup()}} function from the \hyperlink{atomic.data.F90:atomic_data}{{\tt Atomic\_Data}} module) if present, or total metal yield otherwise from Type Ia's resulting from stars defined in the same way as for the cumulative number function.
 
 Currently defined transfer function methods are:
 \begin{description}

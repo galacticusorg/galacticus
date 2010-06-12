@@ -328,11 +328,12 @@ contains
     use FoX_dom
     use Memory_Management
     use Numerical_Comparison
+    use Galacticus_Display
     implicit none
     type(varying_string), intent(in)            :: ionizationStateFileToRead
     double precision,     intent(out), optional :: metallicityMaximumTabulated
     type(Node),           pointer               :: doc,datum,thisIonizationState,metallicityElement,extrapolationElement&
-         &,extrapolation,limitElement,methodElement
+         &,extrapolation,limitElement,methodElement,thisTemperature,thisElectronDensity
     type(NodeList),       pointer               :: temperatureDatumList,ionizationDatumList,ionizationStateList&
          &,metallicityExtrapolationList,temperatureExtrapolationList
     integer                                     :: iDatum,ioErr,iIonizationState,iExtrapolation,extrapolationMethod
@@ -342,6 +343,7 @@ contains
     !$omp critical (FoX_DOM_Access)
 
     ! Parse the XML file.
+    call Galacticus_Display_Indent('Parsing file: '//ionizationStateFileToRead,3)
     doc => parseFile(char(ionizationStateFileToRead),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Ionization_State_CIE_File_Read','Unable to find ionization state file')
 
@@ -350,7 +352,8 @@ contains
     ionizationStateMetallicityNumberPoints=getLength(ionizationStateList)
 
     ! Extract data from first ionization state and count number of temperatures present.
-    thisIonizationState  => item(getElementsByTagname(item(ionizationStateList,0),"temperature"),0)
+    thisIonizationState  => item(ionizationStateList,0)
+    thisTemperature      => item(getElementsByTagname(thisIonizationState,"temperature"),0)
     temperatureDatumList => getElementsByTagname(thisIonizationState,"datum")
     ionizationStateTemperatureNumberPoints=getLength(temperatureDatumList)
 
@@ -373,8 +376,10 @@ contains
        metallicityElement  => item(getElementsByTagname(thisIonizationState,"metallicity"),0)
        call extractDataContent(metallicityElement,ionizationStateMetallicities(iIonizationState+1))
        ! Extract the data.
-       temperatureDatumList => getElementsByTagname(item(getElementsByTagname(thisIonizationState,"temperature"),0),"datum")
-       ionizationDatumList     => getElementsByTagname(item(getElementsByTagname(thisIonizationState,"electronDensity"),0),"datum")
+       thisTemperature      => item(getElementsByTagname(thisIonizationState,"temperature"),0)
+       temperatureDatumList =>      getElementsByTagname(thisTemperature    ,"datum"      )
+       thisElectronDensity  => item(getElementsByTagname(thisIonizationState,"coolingRate"),0)
+       ionizationDatumList  =>      getElementsByTagname(thisElectronDensity,"datum"      )
        ! Check that number of temperatures is consistent.
        if (getLength(temperatureDatumList) /= ionizationStateTemperatureNumberPoints) call&
             & Galacticus_Error_Report('Ionization_State_CIE_File_Read','sizes of temperatures grids must be the same for all&
@@ -462,6 +467,7 @@ contains
     end do
     ! Destroy the document.
     call destroy(doc)
+    call Galacticus_Display_Unindent('done',3)
     !$omp end critical (FoX_DOM_Access)
   
     ! Store table ranges for convenience.

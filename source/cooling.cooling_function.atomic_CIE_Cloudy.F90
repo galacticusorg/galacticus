@@ -42,11 +42,14 @@ module Cooling_Functions_Atomic_CIE_Cloudy
   character(len=50)           :: ionizationStateFile='data/ionization_state_Atomic_CIE_Cloudy.xml'
 
   ! Maximum tabulated metallicity.
-  double precision, parameter :: metallicityMaximumDefault=10.0d0 ! Ten times Solar.
+  double precision, parameter :: metallicityMaximumDefault=30.0d0 ! Thirty times Solar.
   double precision            :: metallicityMaximum
 
   ! Maximum metallicity that we will ever tabulate. More than this should be physically implausible.
   double precision, parameter :: metallicityMaximumLimit  =30.0d0 ! Thirty times Solar.
+
+  ! Factor by which metallicity must exceed currently tabulated maximum before we retabulate.
+  double precision, parameter :: metallicityTolerance     =0.1d0
 
 contains
   
@@ -81,8 +84,9 @@ contains
     if (.not.coolingFunctionInitialized) then
        makeFile=.true.
     else
-       if (Abundances_Get_Metallicity(abundances) > 0.0d0) then
-          makeFile=(min(Abundances_Get_Metallicity(abundances),metallicityMaximumLimit) > metallicityMaximum)
+       if (Abundances_Get_Metallicity(abundances,linearByMassSolar) > 0.0d0) then
+          makeFile=(min(Abundances_Get_Metallicity(abundances,linearByMassSolar),metallicityMaximumLimit) > metallicityMaximum&
+               &*(1.0d0+metallicityTolerance))
        else
           makeFile=.false.
        end if
@@ -95,8 +99,9 @@ contains
     ! Read the file if this module has not been initialized or if the metallicity is out of range.
     if (makeFile) then
        ! Determine maximum metallicity to which we should tabulate.
-       if (Abundances_Get_Metallicity(abundances) > 0.0d0) then
-          metallicityMaximum=max(max(metallicityMaximumDefault,3.0d0*Abundances_Get_Metallicity(abundances)),metallicityMaximumLimit)
+       if (Abundances_Get_Metallicity(abundances,linearByMassSolar) > 0.0d0) then
+          metallicityMaximum=min(max(metallicityMaximumDefault,3.0d0*Abundances_Get_Metallicity(abundances,linearByMassSolar))&
+               &,metallicityMaximumLimit)
        else
           metallicityMaximum=metallicityMaximumDefault
        end if

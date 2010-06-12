@@ -837,10 +837,12 @@ contains
           thisLuminosities=0.0d0
           call Tree_Node_Spheroid_Stellar_Luminosities_Set_Hernquist(hostNode, thisLuminosities                                   )
           ! Also add stellar properties histories.
-          historyDisk    =Tree_Node_Disk_Stellar_Properties_History              (hostNode            )
-          historySpheroid=Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(hostNode            )
+          historyDisk    =Tree_Node_Disk_Stellar_Properties_History              (hostNode                )
+          historySpheroid=Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(hostNode                )
           call historyDisk%add(historySpheroid)
-          call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,historyDisk)
+          call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,historyDisk    )
+          call historySpheroid%reset()
+          call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,historySpheroid)
        case (movesToSpheroid)
           call Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist        (hostNode, Tree_Node_Spheroid_Stellar_Mass_Hernquist(hostNode) &
                &                                                              +Tree_Node_Disk_Stellar_Mass              (hostNode))
@@ -862,6 +864,8 @@ contains
           historySpheroid=Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(hostNode                )
           call historySpheroid%add(historyDisk)
           call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,historySpheroid)
+          call historyDisk%reset()
+          call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,historyDisk    )
        case (doesNotMove)
           ! Do nothing.
        case default
@@ -910,10 +914,12 @@ contains
              call Tree_Node_Disk_Angular_Momentum_Set              (hostNode,Tree_Node_Disk_Angular_Momentum(hostNode) &
                   &+spheroidSpecificAngularMomentum*Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode))
              ! Also add stellar properties histories.
-             historySpheroid=Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(thisNode            )
-             thisHistory    =Tree_Node_Disk_Stellar_Properties_History              (hostNode            )
+             historySpheroid=Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(thisNode                )
+             thisHistory    =Tree_Node_Disk_Stellar_Properties_History              (hostNode                )
              call thisHistory%add(historySpheroid)
-             call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,thisHistory)
+             call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,thisHistory    )
+             call historySpheroid%reset()
+             call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (thisNode,historySpheroid)
          case (movesToSpheroid)
              call Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist        (hostNode, Tree_Node_Spheroid_Stellar_Mass_Hernquist(hostNode) &
                   &                                                              +Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode))
@@ -924,10 +930,12 @@ contains
              call Tree_Node_Spheroid_Stellar_Luminosities_Hernquist    (thisNode,thisLuminosities)
              call Tree_Node_Spheroid_Stellar_Luminosities_Set_Hernquist(hostNode,hostLuminosities+thisLuminosities)
              ! Also add stellar properties histories.
-             historySpheroid=Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(thisNode            )
-             thisHistory    =Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(hostNode            )
+             historySpheroid=Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(thisNode                )
+             thisHistory    =Tree_Node_Spheroid_Stellar_Properties_History_Hernquist(hostNode                )
              call thisHistory%add(historySpheroid)
-             call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,thisHistory)
+             call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,thisHistory    )
+             call historySpheroid%reset()
+             call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (thisNode,historySpheroid)
           case default
              call Galacticus_Error_Report('Hernquist_Spheroid_Satellite_Merging','unrecognized movesTo descriptor')
           end select

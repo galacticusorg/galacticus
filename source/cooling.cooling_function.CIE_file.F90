@@ -370,15 +370,17 @@ contains
   end function Cooling_Function_CIE_File_logTemperature_Interpolate
 
   subroutine Cooling_Function_CIE_File_Read(coolingFunctionFileToRead,metallicityMaximumTabulated)
+    !% Read in data from a cooling function file.
     use Galacticus_Error
     use FoX_dom
     use Memory_Management
     use Numerical_Comparison
+    use Galacticus_Display
     implicit none
     type(varying_string), intent(in)            :: coolingFunctionFileToRead
     double precision,     intent(out), optional :: metallicityMaximumTabulated
     type(Node),           pointer               :: doc,datum,thisCoolingFunction,metallicityElement,extrapolationElement&
-         &,extrapolation,limitElement,methodElement
+         &,extrapolation,limitElement,methodElement,thisTemperature,thisCoolingRate
     type(NodeList),       pointer               :: temperatureDatumList,coolingDatumList,coolingFunctionList&
          &,metallicityExtrapolationList ,temperatureExtrapolationList
     integer                                     :: iDatum,ioErr,iCoolingFunction,iExtrapolation,extrapolationMethod
@@ -386,20 +388,18 @@ contains
     character(len=32)                           :: limitType,methodType
 
     !$omp critical (FoX_DOM_Access)
-
     ! Parse the XML file.
+    call Galacticus_Display_Indent('Parsing file: '//coolingFunctionFileToRead,3)
     doc => parseFile(char(coolingFunctionFileToRead),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','Unable to find cooling function file')
-
     ! Get a list of all <coolingFunction> elements.
     coolingFunctionList => getElementsByTagname(doc,"coolingFunction")
     coolingFunctionMetallicityNumberPoints=getLength(coolingFunctionList)
-
     ! Extract data from first cooling function and count number of temperatures present.
-    thisCoolingFunction  => item(getElementsByTagname(item(coolingFunctionList,0),"temperature"),0)
-    temperatureDatumList => getElementsByTagname(thisCoolingFunction,"datum")
+    thisCoolingFunction  => item(coolingFunctionList,0)
+    thisTemperature      => item(getElementsByTagname(thisCoolingFunction,"temperature"),0)
+    temperatureDatumList => getElementsByTagname(thisTemperature,"datum")
     coolingFunctionTemperatureNumberPoints=getLength(temperatureDatumList)
-
     ! Allocate space for the table.
     if (allocated(coolingFunctionMetallicities)) call Dealloc_Array(coolingFunctionMetallicities)
     if (allocated(coolingFunctionTemperatures )) call Dealloc_Array(coolingFunctionTemperatures )
@@ -419,8 +419,10 @@ contains
        metallicityElement  => item(getElementsByTagname(thisCoolingFunction,"metallicity"),0)
        call extractDataContent(metallicityElement,coolingFunctionMetallicities(iCoolingFunction+1))
        ! Extract the data.
-       temperatureDatumList => getElementsByTagname(item(getElementsByTagname(thisCoolingFunction,"temperature"),0),"datum")
-       coolingDatumList     => getElementsByTagname(item(getElementsByTagname(thisCoolingFunction,"coolingRate"),0),"datum")
+       thisTemperature      => item(getElementsByTagname(thisCoolingFunction,"temperature"),0)
+       temperatureDatumList =>      getElementsByTagname(thisTemperature    ,"datum"      )
+       thisCoolingRate      => item(getElementsByTagname(thisCoolingFunction,"coolingRate"),0)
+       coolingDatumList     =>      getElementsByTagname(thisCoolingRate    ,"datum"      )
        ! Check that number of temperatures is consistent.
        if (getLength(temperatureDatumList) /= coolingFunctionTemperatureNumberPoints) call&
             & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','sizes of temperatures grids must be the same for all&
@@ -480,6 +482,7 @@ contains
          call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','unrecognized extrapolation limit')
        end select
     end do
+
     temperatureExtrapolationList => getElementsByTagname(extrapolationElement,"temperature")
     do iExtrapolation=0,getLength(temperatureExtrapolationList)-1
        extrapolation => item(temperatureExtrapolationList,iExtrapolation)
@@ -508,6 +511,7 @@ contains
     end do
     ! Destroy the document.
     call destroy(doc)
+    call Galacticus_Display_Unindent('done',3)
     !$omp end critical (FoX_DOM_Access)
   
     ! Store table ranges for convenience.

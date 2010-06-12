@@ -27,13 +27,15 @@ module Stellar_Population_Properties_Noninstantaneous
   private
   public :: Stellar_Population_Properties_Noninstantaneous_Initialize
 
+  ! Count of number of elements (plus total metals) that are to be tracked.
+  integer            :: elementsCount
   ! Count of the number of histories required by this implementation.
-  integer, parameter :: historyCount          =4
+  integer            :: historyCount
   ! Indices for histories.
-  integer, parameter :: recycledRateIndex     =1
-  integer, parameter :: returnedMetalRateIndex=2
-  integer, parameter :: metalYieldRateIndex   =3
-  integer, parameter :: energyInputRateIndex  =4
+  integer, parameter :: recycledRateIndex          =1
+  integer, parameter :: energyInputRateIndex       =2
+  integer, parameter :: returnedMetalRateBeginIndex=3
+  integer            :: returnedMetalRateEndIndex,metalYieldRateBeginIndex,metalYieldRateEndIndex
 
   ! Number of times to store in histories.
   integer            :: noninstantHistoryTimesCount
@@ -49,6 +51,7 @@ contains
     !% Initializes the noninstantaneous recycling stellar population properties module.
     use ISO_Varying_String
     use Input_Parameters
+    use Abundances_Structure
     implicit none
     type(varying_string),          intent(in)    :: stellarPopulationPropertiesMethod
     procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get&
@@ -67,6 +70,18 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('noninstantHistoryTimesCount',noninstantHistoryTimesCount,defaultValue=10)
+
+       ! Get a count of the number of elements (plus total metals) that will be tracked.
+       elementsCount=Abundances_Property_Count()
+
+       ! Determine the number of histories that we must store. We require one for recycled mass, one for energy input and two
+       ! (return rate and yield rate) for each element.
+       historyCount=2+2*elementsCount
+
+       ! Establish indices in the array of histories where returned metal rates and yield rates will be stored.
+       returnedMetalRateEndIndex=returnedMetalRateBeginIndex+elementsCount-1
+       metalYieldRateBeginIndex =returnedMetalRateEndIndex                +1
+       metalYieldRateEndIndex   =metalYieldRateBeginIndex   +elementsCount-1
       end if
     return
   end subroutine Stellar_Population_Properties_Noninstantaneous_Initialize
@@ -92,18 +107,20 @@ contains
     use Numerical_Interpolation
     use FGSL
     implicit none
-    double precision,          intent(out)                 :: stellarMassRate,fuelMassRate,energyInputRate
-    type(abundancesStructure), intent(out)                 :: stellarAbundancesRates,fuelAbundancesRates
-    double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
-    double precision,          intent(in)                  :: starFormationRate
-    type(abundancesStructure), intent(in)                  :: fuelAbundances
-    type(treeNode),            intent(inout), pointer      :: thisNode
-    type(history),             intent(inout)               :: thisHistory
-    integer                                                :: imfSelected,iHistory
-    double precision                                       :: fuelMetallicity ,stellarMetalsRateOfChange ,fuelMetalsRateOfChange&
-         &,ageMinimum,ageMaximum,currentTime,recyclingRate,metalReturnRate,historyFactors(2),metalYieldRate
-    type(fgsl_interp_accel)                                :: interpolationAccelerator
-    logical                                                :: interpolationReset
+    double precision,          intent(out)                             :: stellarMassRate,fuelMassRate,energyInputRate
+    type(abundancesStructure), intent(out)                             :: stellarAbundancesRates,fuelAbundancesRates
+    double precision,          intent(out),   dimension(:)             :: stellarLuminositiesRates
+    double precision,          intent(in)                              :: starFormationRate
+    type(abundancesStructure), intent(in)                              :: fuelAbundances
+    type(treeNode),            intent(inout), pointer                  :: thisNode
+    type(history),             intent(inout)                           :: thisHistory
+    double precision,                         dimension(elementsCount) :: fuelMetallicity,stellarMetalsRateOfChange&
+         &,fuelMetalsRateOfChange,metalReturnRate,metalYieldRate
+    integer                                                            :: imfSelected,iHistory,iElement
+    double precision                                                   :: ageMinimum,ageMaximum,currentTime,recyclingRate&
+         &,historyFactors(2)
+    type(fgsl_interp_accel)                                            :: interpolationAccelerator
+    logical                                                            :: interpolationReset
 
     ! Get the current time.
     currentTime=Tree_Node_Time(thisNode)
@@ -114,19 +131,24 @@ contains
     historyFactors=Interpolate_Linear_Generate_Factors(size(thisHistory%time),thisHistory%time,iHistory                ,currentTime                   )
 
     ! Interpolate to get recycling rate.
-    recyclingRate  =Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,recycledRateIndex     ),iHistory,historyFactors)
+    recyclingRate  =Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,recycledRateIndex    ),iHistory,historyFactors)
 
-    ! Interpolate to get metal return rate.
-    metalReturnRate=Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,returnedMetalRateIndex),iHistory,historyFactors)
+    ! Interpolate to get energy input rate.
+    energyInputRate=Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,energyInputRateIndex ),iHistory,historyFactors)
 
-    ! Interpolate to get metal yield rate.
-    metalYieldRate =Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,metalYieldRateIndex   ),iHistory,historyFactors)
+    ! Compute element rates.
+    do iElement=1,elementsCount
+       ! Interpolate to get metal return rate.
+       metalReturnRate(iElement)=Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,returnedMetalRateBeginIndex&
+            &+iElement-1),iHistory,historyFactors)
 
-    ! Interpolate to get metal yield rate.
-    energyInputRate =Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,energyInputRateIndex ),iHistory,historyFactors)
+       ! Interpolate to get metal yield rate.
+       metalYieldRate (iElement)=Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,metalYieldRateBeginIndex   &
+            &+iElement-1),iHistory,historyFactors)
+    end do
 
     ! Get the metallicity of the fuel supply.
-    fuelMetallicity=Abundances_Get_Metallicity(fuelAbundances)
+    call fuelAbundances%unpack(fuelMetallicity)
 
     ! Set the stellar and fuel mass rates of change.
     stellarMassRate=starFormationRate-recyclingRate
@@ -135,8 +157,8 @@ contains
     ! Set the rates of change of the stellar and fuel metallicities.
     stellarMetalsRateOfChange=starFormationRate*fuelMetallicity-metalReturnRate
     fuelMetalsRateOfChange   =-stellarMetalsRateOfChange+metalYieldRate
-    call stellarAbundancesRates%metallicitySet(stellarMetalsRateOfChange)
-    call fuelAbundancesRates   %metallicitySet(fuelMetalsRateOfChange   )
+    call stellarAbundancesRates%pack(stellarMetalsRateOfChange)
+    call fuelAbundancesRates   %pack(fuelMetalsRateOfChange   )
 
     ! Get the IMF.
     imfSelected=IMF_Select(starFormationRate,fuelAbundances)
@@ -169,18 +191,21 @@ contains
                &*starFormationRate
           ! Accumulate the mass recycling rate from this population at the future time.
           thisHistory%rates(iHistory,recycledRateIndex     )=thisHistory%rates(iHistory,recycledRateIndex     ) +recyclingRate
-          ! Accumulate the metal return rate from this population at the future time.
-          thisHistory%rates(iHistory,returnedMetalRateIndex)=thisHistory%rates(iHistory,returnedMetalRateIndex) +recyclingRate&
-               &*fuelMetallicity
-          ! Get the metal yield rate.
-          thisHistory%rates(iHistory,metalYieldRateIndex   )=thisHistory%rates(iHistory,metalYieldRateIndex   ) &
-               &+IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum)*starFormationRate
           ! Get the (normalized) energy input rate.
           thisHistory%rates(iHistory,energyInputRateIndex  )=thisHistory%rates(iHistory,energyInputRateIndex  ) &
                &+IMF_Energy_Input_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum)*starFormationRate
+          ! Accumulate the metal return rate from this population at the future time.
+          thisHistory%rates(iHistory,returnedMetalRateBeginIndex:returnedMetalRateEndIndex)=thisHistory%rates(iHistory&
+               &,returnedMetalRateBeginIndex:returnedMetalRateEndIndex)+recyclingRate*fuelMetallicity
+          ! Loop over all elements (and total metallicity).
+          do iElement=1,elementsCount
+             ! Get the metal yield rate.
+             thisHistory%rates(iHistory,metalYieldRateBeginIndex+iElement-1)=thisHistory%rates(iHistory,metalYieldRateBeginIndex &
+                  &+iElement-1)+IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum&
+                  &,iElement)*starFormationRate
+          end do
        end if
     end do
-
     return
   end subroutine Stellar_Population_Properties_Rates_Noninstantaneous
 
