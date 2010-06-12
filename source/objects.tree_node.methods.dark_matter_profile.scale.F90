@@ -30,7 +30,8 @@ module Tree_Node_Methods_Dark_Matter_Profile_Scales
   private
   public :: Tree_Node_Methods_Profile_Scale_Initialize, Tree_Node_Methods_Profile_Scale_Initialize_Scale,&
        & Galacticus_Output_Tree_Profile_Scale, Galacticus_Output_Tree_Profile_Scale_Property_Count,&
-       & Galacticus_Output_Tree_Profile_Scale_Names, Tree_Node_Methods_Profile_Scale_Dump, Tree_Node_Dark_Matter_Profile_Scale_Promote
+       & Galacticus_Output_Tree_Profile_Scale_Names, Tree_Node_Methods_Profile_Scale_Dump,&
+       & Tree_Node_Dark_Matter_Profile_Scale_Promote, Tree_Node_Methods_Profile_Scale_Merger_Tree_Output
   
   ! The index used as a reference for this component.
   integer            :: componentIndex=-1
@@ -53,6 +54,9 @@ module Tree_Node_Methods_Dark_Matter_Profile_Scales
 
   ! Parameters of the method.
   double precision :: darkMatterProfileMinimumConcentration
+
+  ! Flag indicating whether scale radius data should be output when full merger trees are output.
+  logical          :: mergerTreeStructureOutputDarkMatterScaleRadius
 
 contains
 
@@ -96,6 +100,15 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('darkMatterProfileMinimumConcentration',darkMatterProfileMinimumConcentration,defaultValue=4.0d0)
+       !@ <inputParameter>
+       !@   <name>mergerTreeStructureOutputDarkMatterScaleRadius</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Determines whether or not dark matter halo scale radius is included in outputs of merger trees.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeStructureOutputDarkMatterScaleRadius',mergerTreeStructureOutputDarkMatterScaleRadius,defaultValue=.false.)
 
        ! Set up procedure pointers.
        Tree_Node_Dark_Matter_Profile_Scale                          => Tree_Node_Dark_Matter_Profile_Scale_Scale
@@ -326,5 +339,40 @@ contains
     end if
     return
   end subroutine Tree_Node_Methods_Profile_Scale_Dump
+
+  !# <mergerTreeStructureOutputTask>
+  !#  <unitName>Tree_Node_Methods_Profile_Scale_Merger_Tree_Output</unitName>
+  !# </mergerTreeStructureOutputTask>
+  subroutine Tree_Node_Methods_Profile_Scale_Merger_Tree_Output(baseNode,nodeProperty,treeGroupID)
+    !% Write the scale radius property to a full merger tree output.
+    use ISO_Varying_String
+    use Galacticus_HDF5_Groups
+    use Tree_Nodes
+    implicit none
+    type(treeNode),   intent(in),    pointer      :: baseNode
+    double precision, intent(inout), dimension(:) :: nodeProperty
+    integer,          intent(in)                  :: treeGroupID
+    type(treeNode),                  pointer      :: thisNode
+    integer                                       :: nodeCount,structureDataID
+    type(varying_string)                          :: groupName,groupComment
+
+    ! Check if scale radius is to be included in merger tree outputs.
+    if (methodSelected.and.mergerTreeStructureOutputDarkMatterScaleRadius) then
+       
+       ! Extract node scale radius and output to file.
+       nodeCount=0
+       thisNode => baseNode
+       do while (associated(thisNode))
+          nodeCount=nodeCount+1
+          nodeProperty(nodeCount)=Tree_Node_Dark_Matter_Profile_Scale_Scale(thisNode)
+          call thisNode%walkTree()
+       end do
+       structureDataID=0
+       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'darkMatterScaleRadius','Scale radius of the dark matter profile [Mpc].',nodeProperty)
+    
+    end if
+
+    return
+  end subroutine Tree_Node_Methods_Profile_Scale_Merger_Tree_Output
 
 end module Tree_Node_Methods_Dark_Matter_Profile_Scales

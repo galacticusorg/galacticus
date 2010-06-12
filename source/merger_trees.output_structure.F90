@@ -33,6 +33,9 @@ module Merger_Tree_Output_Structure
   ! Flag indicating if output is required.
   logical :: mergerTreeStructureOutput
 
+  ! Flag indicating if virial quantities should be included in output.
+  logical :: mergerTreeStructureOutputVirialQuantities
+
   ! HDF5 group index.
   integer :: structureGroupID
   
@@ -52,6 +55,10 @@ contains
     use HDF5
     use ISO_Varying_String
     use String_Handling
+    use Dark_Matter_Halo_Scales
+    !# <include directive="mergerTreeStructureOutputTask" type="moduleUse">
+    include 'merger_trees.output_structure.tasks.modules.inc'
+    !# </include>
     implicit none
     type(mergerTree), intent(in)                :: thisTree
     type(treeNode),   pointer                   :: thisNode
@@ -72,6 +79,15 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeStructureOutput',mergerTreeStructureOutput,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeStructureOutputVirialQuantities</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not to output virial quantities (radius and velocity) when outputting the structure of merger trees prior to evolution.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeStructureOutputVirialQuantities',mergerTreeStructureOutputVirialQuantities,defaultValue=.false.)
        ! Create an output group if necessary.
        if (mergerTreeStructureOutput) then
           groupName   ='mergerTreeStructures'
@@ -166,6 +182,39 @@ contains
        structureDataID=0
        call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeTime','Time at node.',nodeProperty)
     
+       ! Check whether output of virial quantities is required.
+       if (mergerTreeStructureOutputVirialQuantities) then
+          
+          ! Extract node virial radii and output to file.
+          nodeCount=0
+          thisNode => thisTree%baseNode
+          do while (associated(thisNode))
+             nodeCount=nodeCount+1
+             nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Radius(thisNode)
+             call thisNode%walkTree()
+          end do
+          structureDataID=0
+          call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeVirialRadius','Virial radius of the node [Mpc].',nodeProperty)
+          
+          ! Extract node virial velocity and output to file.
+          nodeCount=0
+          thisNode => thisTree%baseNode
+          do while (associated(thisNode))
+             nodeCount=nodeCount+1
+             nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Velocity(thisNode)
+             call thisNode%walkTree()
+          end do
+          structureDataID=0
+          call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeVirialVelocity','Virial velocity of the node [km/s].',nodeProperty)
+    
+       end if
+       
+       ! Call any subroutines that want to attach data to the merger tree output.
+       !# <include directive="mergerTreeStructureOutputTask" type="code" action="subroutine">
+       !#  <subroutineArgs>thisTree%baseNode,nodeProperty,treeGroupID</subroutineArgs>
+       include 'merger_trees.output_structure.tasks.inc'
+       !# </include>
+
        ! Deallocate storage space.
        call Dealloc_Array(nodeIndex   )
        call Dealloc_Array(nodeProperty)

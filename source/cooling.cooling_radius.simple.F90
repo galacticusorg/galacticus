@@ -27,7 +27,6 @@ module Cooling_Radii_Simple
   !% Implements a simple cooling radius calculation (finds the radius at which the time available for cooling equals the cooling
   !% time).
   use, intrinsic :: ISO_C_Binding
-  use Radiation_Structure
   use Tree_Nodes
   private
   public :: Cooling_Radius_Simple_Initialize
@@ -35,9 +34,6 @@ module Cooling_Radii_Simple
   ! Module global variable that stores the time available for cooling.
   double precision :: coolingTimeAvailable
   !$omp threadprivate(coolingTimeAvailable)
-
-  ! Module global variable which stores a null radiation field.
-  type(radiationStructure) :: radiation
 
   ! Module global pointer to the active node.
   type(treeNode), pointer :: activeNode
@@ -62,8 +58,6 @@ contains
     if (coolingRadiusMethod == 'simple') then
        Cooling_Radius_Get => Cooling_Radius_Simple
        Cooling_Radius_Growth_Rate_Get => Cooling_Radius_Growth_Rate_Simple
-       ! Initialize the radiation field to zero.
-       call radiation%set(noRadiation)
        ! Get a count of the number of abundances properties.
        abundancesCount=Abundances_Property_Count()
     end if
@@ -79,6 +73,7 @@ contains
     use Hot_Halo_Density_Profile
     use Cooling_Times
     use Abundances_Structure
+    use Radiation_Structure
     use Cooling_Times_Available
     implicit none
     type(treeNode),           intent(inout), pointer     :: thisNode
@@ -87,6 +82,7 @@ contains
          &,coolingTimeAvailableIncreaseRate,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope &
          &,coolingTimeTemperatureLogSlope
     type(abundancesStructure)                            :: abundances
+    type(radiationStructure)                             :: radiation
 
     ! Get the virial radius.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
@@ -114,6 +110,9 @@ contains
        density=Hot_Halo_Density(activeNode,coolingRadius)
        temperature=Hot_Halo_Temperature(activeNode,coolingRadius)
 
+       ! Set the radiation field.
+       call radiation%setCMB(Tree_Node_Time(thisNode))
+
        ! Get the abundances for this node.
        call Tree_Node_Hot_Halo_Abundances(thisNode,abundancesMassFraction)
        abundancesMassFraction=abundancesMassFraction/Tree_Node_Hot_Halo_Mass(thisNode)
@@ -128,7 +127,7 @@ contains
        ! Compute rate at which cooling radius grows.
        if (coolingRadius > 0.0d0) then
           Cooling_Radius_Growth_Rate_Simple=(coolingRadius/coolingTimeAvailable)*coolingTimeAvailableIncreaseRate&
-               &/(densityLogSlope *coolingTimeDensityLogSlope+temperatureLogSlope*coolingTimeTemperatureLogSlope)
+               &/(densityLogSlope*coolingTimeDensityLogSlope+temperatureLogSlope*coolingTimeTemperatureLogSlope)
        else
           Cooling_Radius_Growth_Rate_Simple=0.0d0
        end if
@@ -185,6 +184,7 @@ contains
     !% Root function which evaluates the difference between the cooling time at {\tt radius} and the time available for cooling.
     use Cooling_Times
     use Abundances_Structure
+    use Radiation_Structure
     use Hot_Halo_Density_Profile
     use Hot_Halo_Temperature_Profile
     use Tree_Node_Methods
@@ -195,6 +195,7 @@ contains
     double precision,         dimension(abundancesCount) :: abundancesMassFraction
     double precision                                     :: coolingTime,density,temperature
     type(abundancesStructure)                            :: abundances
+    type(radiationStructure)                             :: radiation
 
     ! Compute density, temperature and abundances.
     density    =Hot_Halo_Density    (activeNode,radius)
@@ -204,6 +205,8 @@ contains
     call Tree_Node_Hot_Halo_Abundances(activeNode,abundancesMassFraction)
     abundancesMassFraction=abundancesMassFraction/Tree_Node_Hot_Halo_Mass(activeNode)
     call abundances%pack(abundancesMassFraction)
+    ! Set the radiation field.
+    call radiation%setCMB(Tree_Node_Time(activeNode))
     ! Compute the cooling time at the specified radius.
     coolingTime=Cooling_Time(temperature,density,abundances,radiation)
     ! Return the difference between cooling time and time available.

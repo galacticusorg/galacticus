@@ -20,25 +20,49 @@
 
 
 
-!% Contains a module which defines the radiation structure data type, used to describe radiation fields. (Currently a dummy
-!% implementation.)
+!% Contains a module which defines the radiation structure data type, used to describe radiation fields. (Currently only includes
+!% CMB radiation temperature.)
 
 module Radiation_Structure
-  !% Defines the radiation structure data type, used to describe radiation fields. (Currently a dummy implementation.)
+  !% Defines the radiation structure data type, used to describe radiation fields. (Currently only includes
+  !% CMB radiation temperature.)
   private
   public :: radiationStructure
 
   type radiationStructure
-     !% The radiation structure data type, used to describe radiation fields. (Currently a dummy implementation.)
-     logical, private :: dummy
-     contains
-       procedure :: set => Radiation_Set
+     !% The radiation structure data type, used to describe radiation fields. (Currently only includes
+     !% CMB radiation temperature.)
+     private
+     double precision :: temperatureCosmicMicrowaveBackground
+   contains
+     procedure        :: set            => Radiation_Set
+     procedure        :: setCMB         => Radiation_Set_CMB_Temperature
+     procedure        :: temperatureCMB => Radiation_Get_CMB_Temperature
   end type radiationStructure
 
   ! Option labels.
   integer, public, parameter :: noRadiation=0
 
 contains
+
+  double precision function Radiation_Get_CMB_Temperature(radiation)
+    !% Get the CMB temperature in a radiation structure.
+    use Cosmology_Functions
+    type(radiationStructure), intent(in) :: radiation
+    
+    Radiation_Get_CMB_Temperature=radiation%temperatureCosmicMicrowaveBackground
+    return
+  end function Radiation_Get_CMB_Temperature
+
+  subroutine Radiation_Set_CMB_Temperature(radiation,cosmicTime)
+    !% Set the CMB temperature in a radiation structure.
+    use Cosmology_Functions
+    type(radiationStructure), intent(inout)          :: radiation
+    double precision,         intent(in)             :: cosmicTime
+    
+    radiation%temperatureCosmicMicrowaveBackground=CMB_Temperature(cosmicTime)
+    return
+  end subroutine Radiation_Set_CMB_Temperature
 
   subroutine Radiation_Set(radiation,setOption)
     !% Set the {\tt radiation} field as specified.
