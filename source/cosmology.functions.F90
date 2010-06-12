@@ -28,7 +28,7 @@ module Cosmology_Functions
   private
   public :: Cosmology_Age, Expansion_Factor, Hubble_Parameter, Early_Time_Density_Scaling, Expansion_Factor_Is_Valid,&
        & Cosmic_Time_Is_Valid, Omega_Matter, Omega_Dark_Energy, Expansion_Rate, Epoch_of_Matter_Dark_Energy_Equality,&
-       & Epoch_of_Matter_Domination, Expansion_Factor_from_Redshift
+       & Epoch_of_Matter_Domination, Expansion_Factor_from_Redshift, CMB_Temperature
   
   ! Flag to indicate if this module has been initialized.  
   logical              :: cosmologyInitialized=.false.
@@ -45,6 +45,7 @@ module Cosmology_Functions
   procedure(Cosmology_Density_Scaling_Template),                  pointer :: Early_Time_Density_Scaling_Get           => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Matter_Get                         => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Dark_Energy_Get                    => null()
+  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: CMB_Temperature_Get                      => null()
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Rate_Get                       => null()
   procedure(Cosmology_Double_Function_Optional_Integer_Template), pointer :: Epoch_of_Matter_Dark_Energy_Equality_Get => null()
   procedure(Cosmology_Double_Function_Optional_Integer_Template), pointer :: Epoch_of_Matter_Curvature_Equality_Get   => null()
@@ -116,14 +117,14 @@ contains
        call Get_Input_Parameter('cosmologyMethod',cosmologyMethod,defaultValue='matter + lambda')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="cosmologyMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get</subroutineArgs>
+       !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get</subroutineArgs>
        include 'cosmology_functions.inc'
        !# </include>
        if (.not.(associated(Expansion_Factor_Is_Valid_Get).and.associated(Cosmic_Time_Is_Valid_Get).and.associated(Cosmology_Age_Get) &
             & .and.associated(Expansion_Factor_Get).and.associated(Hubble_Parameter_Get).and.associated(Early_Time_Density_Scaling_Get) &
             & .and.associated(Omega_Matter_Get).and.associated(Omega_Dark_Energy_Get).and.associated(Expansion_Rate_Get) &
             & .and.associated(Epoch_of_Matter_Dark_Energy_Equality_Get).and.associated(Epoch_of_Matter_Domination_Get) & 
-            & .and.associated(Epoch_of_Matter_Curvature_Equality_Get))) &
+            & .and.associated(Epoch_of_Matter_Curvature_Equality_Get).and.associated(CMB_Temperature_Get))) &
             & call Galacticus_Error_Report('Cosmology_Functions','method '//char(cosmologyMethod)//' is unrecognized')
        cosmologyInitialized=.true.
     end if
@@ -278,6 +279,21 @@ contains
      return
    end function Omega_Dark_Energy
 
+   double precision function CMB_Temperature(tCosmological,aExpansion,collapsingPhase)
+     !% Return the temperature of the cosmic microwave background at {\tt aExpansion}.
+     implicit none
+     double precision, intent(in), optional :: tCosmological,aExpansion
+     logical,          intent(in), optional :: collapsingPhase
+ 
+     ! Initialize the module.
+     call Cosmology_Functions_Initialize
+
+     ! Get the answer using the selected method.
+     CMB_Temperature=CMB_Temperature_Get(tCosmological,aExpansion,collapsingPhase)
+
+     return
+   end function CMB_Temperature
+   
    double precision function Epoch_of_Matter_Dark_Energy_Equality(requestType)
      !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
      implicit none

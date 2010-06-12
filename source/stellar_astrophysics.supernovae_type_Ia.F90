@@ -35,12 +35,18 @@ module Supernovae_Type_Ia
   type(varying_string) :: supernovaeIaMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(SNeIa_Cumulative_Template), pointer :: SNeIa_Cumulative_Number_Get => null()
-  procedure(SNeIa_Cumulative_Template), pointer :: SNeIa_Cumulative_Yield_Get  => null()
+  procedure(SNeIa_Cumulative_Number_Template), pointer :: SNeIa_Cumulative_Number_Get => null()
+  procedure(SNeIa_Cumulative_Yield_Template),  pointer :: SNeIa_Cumulative_Yield_Get  => null()
   abstract interface
-    double precision function SNeIa_Cumulative_Template(initialMass,age,metallicity)
+    double precision function SNeIa_Cumulative_Number_Template(initialMass,age,metallicity)
       double precision, intent(in) :: initialMass,age,metallicity
-    end function SNeIa_Cumulative_Template
+    end function SNeIa_Cumulative_Number_Template
+  end interface
+  abstract interface
+    double precision function SNeIa_Cumulative_Yield_Template(initialMass,age,metallicity,atomIndex)
+      double precision, intent(in)           :: initialMass,age,metallicity
+      integer,          intent(in), optional :: atomIndex
+    end function SNeIa_Cumulative_Yield_Template
   end interface
 
 contains
@@ -94,16 +100,17 @@ contains
     return
   end function SNeIa_Cumulative_Number
 
-  double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity)
+  double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity,atomIndex)
     !% Return the cumulative yield of Type Ia supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
+    double precision, intent(in)           :: initialMass,age,metallicity
+    integer,          intent(in), optional :: atomIndex
 
     ! Ensure module is initialized.
     call Supernovae_Type_Ia_Initialize
 
     ! Simply call the function which does the actual work.
-    SNeIa_Cumulative_Yield=SNeIa_Cumulative_Yield_Get(initialMass,age,metallicity)
+    SNeIa_Cumulative_Yield=SNeIa_Cumulative_Yield_Get(initialMass,age,metallicity,atomIndex)
     return
   end function SNeIa_Cumulative_Yield
 

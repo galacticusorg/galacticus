@@ -427,7 +427,6 @@ contains
 
           ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
           massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
-
           if (massOutflowRate > 0.0d0) then
              gasMass =        Tree_Node_Disk_Gas_Mass_Exponential    (thisNode)
              diskMass=gasMass+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
@@ -836,6 +835,8 @@ contains
           hostHistory=Tree_Node_Disk_Stellar_Properties_History(hostNode)
           call hostHistory%add(thisHistory)
           call Tree_Node_Disk_Stellar_Properties_History_Set(hostNode,hostHistory)
+          call thisHistory%reset()
+          call Tree_Node_Disk_Stellar_Properties_History_Set(thisNode,thisHistory)
       case (movesToSpheroid)
           call Tree_Node_Spheroid_Stellar_Mass_Set                (hostNode, Tree_Node_Spheroid_Stellar_Mass        (hostNode)     &
                &                                                            +Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)    )
@@ -850,6 +851,8 @@ contains
           hostHistory=Tree_Node_Spheroid_Stellar_Properties_History(hostNode)
           call hostHistory%add(thisHistory)
           call Tree_Node_Spheroid_Stellar_Properties_History_Set(hostNode,hostHistory)
+          call thisHistory%reset()
+          call Tree_Node_Disk_Stellar_Properties_History_Set    (thisNode,thisHistory)
        case default
           call Galacticus_Error_Report('Exponential_Disk_Satellite_Merging','unrecognized movesTo descriptor')
        end select

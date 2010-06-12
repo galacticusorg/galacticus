@@ -26,13 +26,16 @@ module Atomic_Data
   !% Provides various atomic data.
   use Atomic_Data_Type
   private
-  public :: Atom_Lookup, Abundance_Pattern_Lookup, Atomic_Mass, Atomic_Abundance
+  public :: Atom_Lookup, Abundance_Pattern_Lookup, Atomic_Mass, Atomic_Abundance, Atomic_Data_Atoms_Count, Atomic_Short_Label
 
   ! Flag indicating if module has been initialized.
   logical                                                       :: atomicDataInitialized=.false.
 
   ! Array used to store atomic data.
   type(atomicData), allocatable, dimension(:)                   :: atoms
+
+  ! Metal mass normalizations.
+  double precision, allocatable, dimension(:)                   :: metalMassNormalization
 
   ! Array used to index atomic data by atomic number.
   integer,          allocatable, dimension(:)                   :: atomicNumberIndex
@@ -45,31 +48,60 @@ module Atomic_Data
        &                                                           abundancePatternNames=           &
        &                                                            ["solar"]
 
+  ! Mass normalization options.
+  integer,          parameter, public                           :: normalizationTotal =0
+  integer,          parameter, public                           :: normalizationMetals=1
+
 contains
 
-  double precision function Atomic_Mass(atomicNumber,shortLabel,name)
+  character(len=3) function Atomic_Short_Label(atomIndex,atomicNumber,name)
+    !% Return the short label for an atom.
+    implicit none
+    integer,          intent(in), optional :: atomIndex,atomicNumber
+    character(len=*), intent(in), optional :: name
+    integer                                :: iAtom
+    
+    ! Ensure the module is initialized.
+    call Atomic_Data_Initialize
+    
+    ! Look up the index of this atom in the array if necessary.
+    if (present(atomIndex)) then
+       iAtom=atomIndex
+    else
+       iAtom=Atom_Lookup(atomicNumber=atomicNumber,name=name)
+    end if
+
+    Atomic_Short_Label=atoms(iAtom)%shortLabel
+    return
+  end function Atomic_Short_Label
+
+  double precision function Atomic_Mass(atomIndex,atomicNumber,shortLabel,name)
     !% Returns the atomic mass of an element specified by atomic number, name or short label.
     implicit none
-    integer,          intent(in), optional :: atomicNumber
+    integer,          intent(in), optional :: atomIndex,atomicNumber
     character(len=*), intent(in), optional :: shortLabel,name
     integer                                :: iAtom
 
     ! Ensure the module is initialized.
     call Atomic_Data_Initialize
     
-    ! Look up the index of this atom in the array.
-    iAtom=Atom_Lookup(atomicNumber,shortLabel,name)
-    
+    ! Look up the index of this atom in the array if necessary.
+    if (present(atomIndex)) then
+       iAtom=atomIndex
+    else
+       iAtom=Atom_Lookup(atomicNumber,shortLabel,name)
+    end if
+
     ! Return the atomic mass.
     Atomic_Mass=atoms(iAtom)%atomicMass
 
     return
   end function Atomic_Mass
 
-  double precision function Atomic_Abundance(abundanceIndex,abundanceName,atomicNumber,shortLabel,name)
+  double precision function Atomic_Abundance(abundanceIndex,abundanceName,atomIndex,atomicNumber,shortLabel,name,normalization)
     !% Returns the abundance by mass of a given atom in a given abundance pattern.
     implicit none
-    integer,          intent(in), optional :: abundanceIndex,atomicNumber
+    integer,          intent(in), optional :: abundanceIndex,atomIndex,atomicNumber,normalization
     character(len=*), intent(in), optional :: abundanceName,shortLabel,name
     integer                                :: iAbundancePattern,iAtom
 
@@ -79,14 +111,38 @@ contains
     ! Look up the index of this atom in the array.
     iAbundancePattern=Abundance_Pattern_Lookup(abundanceIndex,abundanceName)
     
-    ! Look up the index of this atom in the array.
-    iAtom=Atom_Lookup(atomicNumber,shortLabel,name)
+    ! Look up the index of this atom in the array if necessary.
+    if (present(atomIndex)) then
+       iAtom=atomIndex
+    else
+       iAtom=Atom_Lookup(atomicNumber,shortLabel,name)
+    end if
     
     ! Return the atomic mass.
     Atomic_Abundance=atoms(iAtom)%abundanceByMass(iAbundancePattern)
 
+    ! Normalize the abundance as requested.
+    if (present(normalization)) then
+       select case (normalization)
+       case (normalizationMetals)
+          Atomic_Abundance=Atomic_Abundance*metalMassNormalization(iAbundancePattern)
+       end select
+    end if
+
     return
   end function Atomic_Abundance
+
+  integer function Atomic_Data_Atoms_Count()
+    !% Return the number of atomic species known in this module.
+    implicit none
+    
+    ! Ensure the module is initialized.
+    call Atomic_Data_Initialize
+    
+    ! Return the number of atomic species stored.
+    Atomic_Data_Atoms_Count=size(atoms)
+    return
+  end function Atomic_Data_Atoms_Count
 
   subroutine Atomic_Data_Initialize
     !% Ensure that the module is initialized by reading in data.
@@ -95,11 +151,11 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    type(Node),       pointer      :: doc,thisElement,abundanceTypeElement
+    type(Node),       pointer      :: doc,thisElement,abundanceTypeElement,thisAtom
     type(NodeList),   pointer      :: elementList
     integer,          dimension(1) :: elementValueInteger
     double precision, dimension(1) :: elementValueDouble
-    integer                        :: ioErr,iAtom,iAbundancePattern,atomsIndex,atomicNumber
+    integer                        :: ioErr,iAtom,iAbundancePattern,atomicNumber
     double precision               :: totalMass,abundance
     character(len=100)             :: abundanceType
   
@@ -123,19 +179,21 @@ contains
           ! Allocate abundance pattern array for this element.
           call Alloc_Array(atoms(iAtom)%abundanceByMass,abundancePatternCount,"abundanceByMass")
           atoms(iAtom)%abundanceByMass=0.0d0
+          ! Get atom.
+          thisAtom => item(elementList,iAtom-1)
           ! Get atomic number.
-          thisElement => item(getElementsByTagname(item(elementList,iAtom-1),"atomicNumber"),0)
+          thisElement => item(getElementsByTagname(thisAtom,"atomicNumber"),0)
           call extractDataContent(thisElement,elementValueInteger    )
           atoms(iAtom)%atomicNumber=elementValueInteger(1)
           ! Get atomic mass.
-          thisElement => item(getElementsByTagname(item(elementList,iAtom-1),"atomicMass"  ),0)
+          thisElement => item(getElementsByTagname(thisAtom,"atomicMass"  ),0)
           call extractDataContent(thisElement,elementValueDouble     )
           atoms(iAtom)%atomicMass  =elementValueDouble(1)
           ! Get short label.
-          thisElement => item(getElementsByTagname(item(elementList,iAtom-1),"shortLabel"  ),0)
+          thisElement => item(getElementsByTagname(thisAtom,"shortLabel"  ),0)
           call extractDataContent(thisElement,atoms(iAtom)%shortLabel)
           ! Get name.
-          thisElement => item(getElementsByTagname(item(elementList,iAtom-1),"name"        ),0)
+          thisElement => item(getElementsByTagname(thisAtom,"name"        ),0)
           call extractDataContent(thisElement,atoms(iAtom)%name      )
           ! Convert name to lower case.
           atoms(iAtom)%name=String_Lower_Case(atoms(iAtom)%name)
@@ -154,6 +212,9 @@ contains
        ! Destroy the document.
        call destroy(doc)
 
+       ! Allocate metal mass normalizations array.
+       call Alloc_Array(metalMassNormalization,abundancePatternCount,'metalMassNormalization')
+
        ! Load tables of abundance patterns.
        do iAbundancePattern=1,abundancePatternCount
 
@@ -166,12 +227,14 @@ contains
 
           ! Loop over elements.
           do iAtom=1,getLength(elementList)
+             ! Get atom.
+             thisAtom => item(elementList,iAtom-1)
              ! Get atomic number.
-             thisElement => item(getElementsByTagname(item(elementList,iAtom-1),"atomicNumber"),0)
+             thisElement => item(getElementsByTagname(thisAtom,"atomicNumber"),0)
              call extractDataContent(thisElement,elementValueInteger)
              atomicNumber=elementValueInteger(1)
              ! Get the abundance.
-             thisElement => item(getElementsByTagname(item(elementList,iAtom-1),"abundance"),0)
+             thisElement => item(getElementsByTagname(thisAtom,"abundance"),0)
              call extractDataContent(thisElement,elementValueDouble )
              abundance=elementValueDouble(1)
              ! Store in the atoms array.
@@ -195,11 +258,18 @@ contains
              call Galacticus_Error_Report("Atomic_Data_Initialize","unrecognized abundance type")
           end if
 
+          ! Compute the normalization for unit metal mass in this abundance pattern.
+          metalMassNormalization(iAbundancePattern)=0.0d0
+          do iAtom=1,getLength(elementList)
+             if (atoms(iAtom)%atomicNumber > 2) metalMassNormalization(iAbundancePattern)&
+                  &=metalMassNormalization(iAbundancePattern)+atoms(iAtom)%abundanceByMass(iAbundancePattern)
+          end do
+          metalMassNormalization(iAbundancePattern)=1.0d0/metalMassNormalization(iAbundancePattern)
+
           ! Destroy the document.
           call destroy(doc)
        end do
        !$omp end critical (FoX_DOM_Access)
-       
 
        ! Mark module as initialized.
        atomicDataInitialized=.true.
@@ -217,6 +287,9 @@ contains
     character(len=*), intent(in), optional :: shortLabel,name
     integer                                :: iAtom
     character(len=20)                      :: nameLowerCase
+
+    ! Ensure the module is initialized.
+    call Atomic_Data_Initialize
  
     ! Look up by atomic number if present.
     if (present(atomicNumber)) then
@@ -259,6 +332,9 @@ contains
     character(len=*), intent(in), optional :: abundanceName
     integer                                :: iAbundancePattern
     character(len=100)                     :: nameLowerCase
+
+    ! Ensure the module is initialized.
+    call Atomic_Data_Initialize
  
     ! Look up by abundance index if present.
     if (present(abundanceIndex)) then

@@ -45,31 +45,31 @@ module Star_Formation_IMF
   integer :: imfAvailableCount=0
 
   ! Array of IMF names.
-  type(varying_string), allocatable, dimension(:    ) :: imfNames
+  type(varying_string), allocatable, dimension(:      ) :: imfNames
 
   ! Tables of recycled fractions.
-  logical,              allocatable, dimension(:    ) :: recycledFractionTabulated
-  integer,              allocatable, dimension(:    ) :: recycledFractionIndex
-  double precision,     allocatable, dimension(:    ) :: recycledFractionTableAge,recycledFractionTableMetallicity
-  double precision,     allocatable, dimension(:,:,:) :: recycledFractionTable
-  integer,              parameter                     :: recycledFractionTableMetallicityCount  =10
-  integer,              parameter                     :: recycledFractionTableAgeCount          =50
-  double precision,     parameter                     :: recycledFractionTableMetallicityMinimum=1.0d-4
-  double precision,     parameter                     :: recycledFractionTableMetallicityMaximum=0.6d-1
-  double precision,     parameter                     :: recycledFractionTableAgeMinimum        =1.0d-3
-  double precision,     parameter                     :: recycledFractionTableAgeMaximum        =1.0d+2
+  logical,              allocatable, dimension(:      ) :: recycledFractionTabulated
+  integer,              allocatable, dimension(:      ) :: recycledFractionIndex
+  double precision,     allocatable, dimension(:      ) :: recycledFractionTableAge,recycledFractionTableMetallicity
+  double precision,     allocatable, dimension(:,:,:  ) :: recycledFractionTable
+  integer,              parameter                       :: recycledFractionTableMetallicityCount  =10
+  integer,              parameter                       :: recycledFractionTableAgeCount          =50
+  double precision,     parameter                       :: recycledFractionTableMetallicityMinimum=1.0d-4
+  double precision,     parameter                       :: recycledFractionTableMetallicityMaximum=0.6d-1
+  double precision,     parameter                       :: recycledFractionTableAgeMinimum        =1.0d-3
+  double precision,     parameter                       :: recycledFractionTableAgeMaximum        =1.0d+2
 
   ! Tables of metal yields fractions.
-  logical,              allocatable, dimension(:    ) :: metalYieldTabulated
-  integer,              allocatable, dimension(:    ) :: metalYieldIndex
-  double precision,     allocatable, dimension(:    ) :: metalYieldTableAge,metalYieldTableMetallicity
-  double precision,     allocatable, dimension(:,:,:) :: metalYieldTable
-  integer,              parameter                     :: metalYieldTableMetallicityCount  =10
-  integer,              parameter                     :: metalYieldTableAgeCount          =50
-  double precision,     parameter                     :: metalYieldTableMetallicityMinimum=1.0d-4
-  double precision,     parameter                     :: metalYieldTableMetallicityMaximum=0.6d-1
-  double precision,     parameter                     :: metalYieldTableAgeMinimum        =1.0d-3
-  double precision,     parameter                     :: metalYieldTableAgeMaximum        =1.0d+2
+  logical,              allocatable, dimension(:      ) :: metalYieldTabulated
+  integer,              allocatable, dimension(:      ) :: metalYieldIndex
+  double precision,     allocatable, dimension(:      ) :: metalYieldTableAge,metalYieldTableMetallicity
+  double precision,     allocatable, dimension(:,:,:,:) :: metalYieldTable
+  integer,              parameter                       :: metalYieldTableMetallicityCount  =10
+  integer,              parameter                       :: metalYieldTableAgeCount          =50
+  double precision,     parameter                       :: metalYieldTableMetallicityMinimum=1.0d-4
+  double precision,     parameter                       :: metalYieldTableMetallicityMaximum=0.6d-1
+  double precision,     parameter                       :: metalYieldTableAgeMinimum        =1.0d-3
+  double precision,     parameter                       :: metalYieldTableAgeMaximum        =1.0d+2
 
   ! Tables of cumulative energy inputs.
   logical,              allocatable, dimension(:    ) :: energyInputTabulated
@@ -84,12 +84,15 @@ module Star_Formation_IMF
   double precision,     parameter                     :: energyInputTableAgeMaximum        =1.0d+2
 
   ! Module global variables used in integration.
-  integer                                             :: imfSelectedGlobal
+  integer                                             :: imfSelectedGlobal,atomIndexGlobal
   double precision                                    :: metallicity,lifetime
 
+  ! Count of number of individual elements tracked.
+  integer                                             :: elementCount
+
   ! Pointer to the function that selects which IMF to use.
-  procedure(IMF_Select_Template), pointer :: IMF_Select => null()
-  interface IMF_Select_Template
+  procedure(IMF_Select_Template), pointer :: IMF_Select_Do => null()
+  abstract interface
      integer function IMF_Select_Template(starFormationRate,fuelAbundances)
        import abundancesStructure
        double precision,          intent(in) :: starFormationRate
@@ -98,6 +101,20 @@ module Star_Formation_IMF
   end interface
 
 contains
+
+  integer function IMF_Select(starFormationRate,fuelAbundances)
+    !% Selects an IMF give an input {\tt starFormationRate} and {\tt fuelAbundances}.
+    implicit none
+    double precision,          intent(in) :: starFormationRate
+    type(abundancesStructure), intent(in) :: fuelAbundances
+    
+    ! Initialize the IMF subsystem.
+    call Star_Formation_IMF_Initialize
+    
+    ! Call the function that makes the selection.
+    IMF_Select=IMF_Select_Do(starFormationRate,fuelAbundances)
+    return
+  end function IMF_Select
 
   function IMF_Name(imfIndex)
     !% Return the name of the IMF with the specified index.
@@ -153,11 +170,14 @@ contains
        call Get_Input_Parameter('imfSelectionMethod',imfSelectionMethod,defaultValue='fixed')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="imfSelectionMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>imfSelectionMethod,IMF_Select,imfNames</subroutineArgs>
+       !#  <subroutineArgs>imfSelectionMethod,IMF_Select_Do,imfNames</subroutineArgs>
        include 'star_formation.IMF.select.inc'
        !# </include>
-       if (.not.associated(IMF_Select)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
+       if (.not.associated(IMF_Select_Do)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
             &,'method '//char(imfSelectionMethod)//' is unrecognized')
+
+       ! Get a count of the number of individual elements that must be tracked.
+       elementCount=Abundances_Property_Count()
 
        ! Flag that the module is now initialized.
        imfInitialized=.true.
@@ -317,7 +337,7 @@ contains
     logical,                   save                          :: interpolationMetallicityReset=.true.,interpolationAgeReset=.true.
     !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
-    type(Node),                pointer                       :: doc
+    type(Node),                pointer                       :: doc,thisItem
     type(NodeList),            pointer                       :: columnList,dataList
     type(c_ptr)                                              :: parameterPointer
     type(fgsl_function)                                      :: integrandFunction
@@ -387,47 +407,62 @@ contains
        if (File_Exists(fileName)) then
           
           ! Open the XML file containing recycled fractions.
+          call Galacticus_Display_Indent('Parsing file: '//fileName,3)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','Unable to parse recycled fractions file')
           
           ! Find the ages element and extract data.
-          columnList => getElementsByTagname(doc               ,"ages")
-          dataList   => getElementsByTagname(item(columnList,0),"data")
-          if (getLength(dataList) /= recycledFractionTableAgeCount) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','ages array in XML file does not match internal expectation')
+          columnList => getElementsByTagname(doc     ,"ages")
+          thisItem   => item(columnList,0)
+          dataList   => getElementsByTagname(thisItem,"data")
+          if (getLength(dataList) /= recycledFractionTableAgeCount) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous'&
+               & ,'ages array in XML file does not match internal expectation')
           do iAge=1,recycledFractionTableAgeCount
-             call extractDataContent(item(dataList,iAge-1),lifetime)
+             thisItem => item(dataList,iAge-1)
+             call extractDataContent(thisItem,lifetime)
              if (recycledFractionIndex(imfSelected) == 1) then
                 recycledFractionTableAge(iAge)=lifetime
              else
-                if (recycledFractionTableAge(iAge) /= lifetime) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','mismatch in ages array in XML file')
+                if (recycledFractionTableAge(iAge) /= lifetime) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous'&
+                     & ,'mismatch in ages array in XML file')
              end if
           end do
 
           ! Find the metallicities element and extract data.
-          columnList => getElementsByTagname(doc               ,"metallicities")
-          dataList   => getElementsByTagname(item(columnList,0),"data"         )
-          if (getLength(dataList) /= recycledFractionTableMetallicityCount) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','metallicities array in XML file does not match internal expectation')
+          columnList => getElementsByTagname(doc     ,"metallicities")
+          thisItem => item(columnList,0)
+          dataList   => getElementsByTagname(thisItem,"data"         )
+          if (getLength(dataList) /= recycledFractionTableMetallicityCount) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous'&
+               & ,'metallicities array in XML file does not match internal expectation')
           do iMetallicity=1,recycledFractionTableMetallicityCount
-             call extractDataContent(item(dataList,iMetallicity-1),metallicity)
+             thisItem => item(dataList,iMetallicity-1)
+             call extractDataContent(thisItem,metallicity)
              if (recycledFractionIndex(imfSelected) == 1) then
                 recycledFractionTableMetallicity(iMetallicity)=metallicity
              else
-                if (recycledFractionTableMetallicity(iMetallicity) /= metallicity) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','mismatch in metallicities array in XML file')
+                if (recycledFractionTableMetallicity(iMetallicity) /= metallicity) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous'&
+                     & ,'mismatch in metallicities array in XML file')
              end if
           end do
 
           ! Find the recycledFraction element and extract data.
-          columnList => getElementsByTagname(doc               ,"recycledFraction")
-          dataList   => getElementsByTagname(item(columnList,0),"data"            )
-          if (getLength(dataList) /= recycledFractionTableAgeCount*recycledFractionTableMetallicityCount) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','recycled fractions array in XML file does not match internal expectation')
+          columnList => getElementsByTagname(doc     ,"recycledFraction")
+          thisItem   => item(columnList,0)
+          dataList   => getElementsByTagname(thisItem,"data"            )
+          if (getLength(dataList) /= recycledFractionTableAgeCount*recycledFractionTableMetallicityCount) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous'&
+               & ,'recycled fractions array in XML file does not match internal expectation')
           iRecycledFraction=0
           do iAge=1,recycledFractionTableAgeCount
              do iMetallicity=1,recycledFractionTableMetallicityCount
                 iRecycledFraction=iRecycledFraction+1
-                call extractDataContent(item(dataList,iRecycledFraction-1),recycledFractionTable(iAge,iMetallicity&
-                     &,recycledFractionIndex(imfSelected)))
+                thisItem => item(dataList,iRecycledFraction-1)
+                call extractDataContent(thisItem,recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected)))
              end do
           end do
+
+          ! Destroy the document.
+          call destroy(doc)
+          call Galacticus_Display_Unindent('done',3)
 
        else
 
@@ -514,7 +549,7 @@ contains
     tableIndex=recycledFractionIndex(imfSelected)
     
     ! Interpolate to get the derivative in the recycled rate at two adjacent metallicities.
-    metallicity=Abundances_Get_Metallicity(fuelAbundances)
+    metallicity=max(Abundances_Get_Metallicity(fuelAbundances),0.0d0)
     if (metallicity > recycledFractionTableMetallicityMaximum) then
        metallicityIndex=recycledFractionTableMetallicityCount
        metallicityFactors=[1.0d0,0.0d0]
@@ -578,12 +613,13 @@ contains
     return
   end function Recycled_Fraction_Integrand
   
-  double precision function IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum)
-     !% Returns the metal yield rate for a simple stellar population. The \IMF\ is determined from the given {\tt starFormationRate}
-     !% and {\tt fuelAbundances}. The metal yield rate (in fraction of the population's mass returned to the \ISM\ as new metals per Gyr) is
-     !% computed for the given {\tt age} (in Gyr). The metal yield is computed on a grid of age and metallicity. This is
-     !% stored to file and will be read back in on subsequent runs. This is useful as computation of the table is relatively slow.
-     use, intrinsic :: ISO_C_Binding
+  double precision function IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum,abundanceIndex)
+    !% Returns the metal yield rate for a simple stellar population, either for the total metallicity or, if {\tt atomIndex} is
+    !% given, for the specified element. The \IMF\ is determined from the given {\tt starFormationRate} and {\tt fuelAbundances}.
+    !% The metal yield rate (in fraction of the population's mass returned to the \ISM\ as new metals per Gyr) is computed for the
+    !% given {\tt age} (in Gyr). The metal yield is computed on a grid of age and metallicity. This is stored to file and will be
+    !% read back in on subsequent runs. This is useful as computation of the table is relatively slow.
+    use, intrinsic :: ISO_C_Binding
      use Abundances_Structure
      use Numerical_Integration
      use Numerical_Interpolation
@@ -598,32 +634,33 @@ contains
      use Galacticus_Error
      use Dates_and_Times
      implicit none
-     double precision,          intent(in)                    :: starFormationRate,ageMinimum
-     double precision,          intent(in),  optional         :: ageMaximum
-     type(abundancesStructure), intent(in)                    :: fuelAbundances
-     logical,                   allocatable, dimension(:    ) :: metalYieldTabulatedTemporary
-     integer,                   allocatable, dimension(:    ) :: metalYieldIndexTemporary
-     double precision,          allocatable, dimension(:,:,:) :: metalYieldTableTemporary
-     double precision,                       dimension(2    ) :: metalYieldRate,metallicityFactors
-     type(fgsl_interp),         save                          ::                                      interpolationAgeObject
-     type(fgsl_interp_accel),   save                          :: interpolationMetallicityAccelerator ,interpolationAgeAccelerator
-     logical,                   save                          :: interpolationMetallicityReset=.true.,interpolationAgeReset=.true.
+     double precision,          intent(in)                      :: starFormationRate,ageMinimum
+     double precision,          intent(in),  optional           :: ageMaximum
+     integer,                   intent(in),  optional           :: abundanceIndex
+     type(abundancesStructure), intent(in)                      :: fuelAbundances
+     logical,                   allocatable, dimension(:      ) :: metalYieldTabulatedTemporary
+     integer,                   allocatable, dimension(:      ) :: metalYieldIndexTemporary
+     double precision,          allocatable, dimension(:,:,:,:) :: metalYieldTableTemporary
+     double precision,                       dimension(2      ) :: metalYieldRate,metallicityFactors
+     type(fgsl_interp),         save                            ::                                      interpolationAgeObject
+     type(fgsl_interp_accel),   save                            :: interpolationMetallicityAccelerator ,interpolationAgeAccelerator
+     logical,                   save                            :: interpolationMetallicityReset=.true.,interpolationAgeReset=.true.
      !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
      !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
-     type(Node),                pointer                       :: doc
-     type(NodeList),            pointer                       :: columnList,dataList
-     type(c_ptr)                                              :: parameterPointer
-     type(fgsl_function)                                      :: integrandFunction
-     type(fgsl_integration_workspace)                         :: integrationWorkspace
-     integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
-          &,metallicityIndex,iMetalYield,ioErr
-     double precision                                         :: minimumMass,maximumMass,initialMass
-     character(len=20)                                        :: progressMessage,parameterValue
-     character(len= 8)                                        :: date
-     character(len=10)                                        :: time
-     character(len= 5)                                        :: zone
-     type(xmlf_t)                                             :: metalYieldDoc
-     type(varying_string)                                     :: fileName
+     type(Node),                pointer                         :: doc,thisItem
+     type(NodeList),            pointer                         :: columnList,dataList
+     type(c_ptr)                                                :: parameterPointer
+     type(fgsl_function)                                        :: integrandFunction
+     type(fgsl_integration_workspace)                           :: integrationWorkspace
+     integer                                                    :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
+          &,metallicityIndex,iMetalYield,ioErr,abundanceIndexActual,iElement
+     double precision                                           :: minimumMass,maximumMass,initialMass
+     character(len=20)                                          :: progressMessage,parameterValue
+     character(len= 8)                                          :: date
+     character(len=10)                                          :: time
+     character(len= 5)                                          :: zone
+     type(xmlf_t)                                               :: metalYieldDoc
+     type(varying_string)                                       :: fileName
 
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
@@ -658,10 +695,10 @@ contains
      
        ! Expand the tabulations array by enough to accomodate a new IMF.
        if (allocated(metalYieldTable)) then
-          imfCount=size(metalYieldTable,dim=3)
+          imfCount=size(metalYieldTable,dim=4)
           call Move_Alloc(metalYieldTable,metalYieldTableTemporary)
-          call Alloc_Array(metalYieldTable,metalYieldTableAgeCount,metalYieldTableMetallicityCount,imfCount,'metalYieldTable')
-          metalYieldTable(:,:,1:imfCount)=metalYieldTableTemporary
+          call Alloc_Array(metalYieldTable,metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,imfCount,'metalYieldTable')
+          metalYieldTable(:,:,:,1:imfCount)=metalYieldTableTemporary
           call Dealloc_Array(metalYieldTableTemporary)
        else
           call Alloc_Array(metalYieldTableAge        ,metalYieldTableAgeCount        ,'metalYieldTableAge'        )
@@ -672,135 +709,198 @@ contains
           metalYieldTableMetallicity(2:metalYieldTableMetallicityCount)&
                &=Make_Range(metalYieldTableMetallicityMinimum,metalYieldTableMetallicityMaximum&
                &,metalYieldTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          call Alloc_Array(metalYieldTable,metalYieldTableAgeCount,metalYieldTableMetallicityCount,1,'metalYieldTable')
+          call Alloc_Array(metalYieldTable,metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,1,'metalYieldTable')
        end if
      
        ! Record the index in the array where this IMF will be stored.
-       metalYieldIndex(imfSelected)=size(metalYieldTable,dim=3)
+       metalYieldIndex(imfSelected)=size(metalYieldTable,dim=4)
 
-       ! Check if the table has been computed and stored previously.
-       fileName='./data/Stellar_Metal_Yield_'//imfNames(imfSelected)//'.xml'
-       if (File_Exists(fileName)) then
-        
-          ! Open the XML file containing metal yields.
-          doc => parseFile(char(fileName),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','Unable to parse metal yields file')
-        
-          ! Find the ages element and extract data.
-          columnList => getElementsByTagname(doc               ,"ages")
-          dataList   => getElementsByTagname(item(columnList,0),"data")
-          if (getLength(dataList) /= metalYieldTableAgeCount) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','ages array in XML file does not match internal expectation')
-          do iAge=1,metalYieldTableAgeCount
-             call extractDataContent(item(dataList,iAge-1),lifetime)
-             if (metalYieldIndex(imfSelected) == 1) then
-                metalYieldTableAge(iAge)=lifetime
-             else
-                if (metalYieldTableAge(iAge) /= lifetime) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','mismatch in ages array in XML file')
-             end if
-          end do
+       ! Loop through all elements (and total metallicity) for which yield must be tabulated.
+       elementsLoop : do iElement=1,elementCount ! iElement=1 will correspond to total metallicity.
 
-          ! Find the metallicities element and extract data.
-          columnList => getElementsByTagname(doc               ,"metallicities")
-          dataList   => getElementsByTagname(item(columnList,0),"data"         )
-          if (getLength(dataList) /= metalYieldTableMetallicityCount) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','metallicities array in XML file does not match internal expectation')
-          do iMetallicity=1,metalYieldTableMetallicityCount
-             call extractDataContent(item(dataList,iMetallicity-1),metallicity)
-             if (metalYieldIndex(imfSelected) == 1) then
-                metalYieldTableMetallicity(iMetallicity)=metallicity
-             else
-                if (metalYieldTableMetallicity(iMetallicity) /= metallicity) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','mismatch in metallicities array in XML file')
-             end if
-          end do
-
-          ! Find the metalYield element and extract data.
-          columnList => getElementsByTagname(doc               ,"metalYield")
-          dataList   => getElementsByTagname(item(columnList,0),"data"      )
-          if (getLength(dataList) /= metalYieldTableAgeCount*metalYieldTableMetallicityCount) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','metal yield array in XML file does not match internal expectation')
-          iMetalYield=0
-          do iAge=1,metalYieldTableAgeCount
-             do iMetallicity=1,metalYieldTableMetallicityCount
-                iMetalYield=iMetalYield+1
-                call extractDataContent(item(dataList,iMetalYield-1),metalYieldTable(iAge,iMetallicity &
-                     &,metalYieldIndex(imfSelected)))
+          ! Check if the table has been computed and stored previously.
+          select case (iElement)
+          case (1)
+             ! Total metallicity.
+             fileName='./data/Stellar_Metal_Yield_'//imfNames(imfSelected)//'.xml'
+          case (2:)
+             ! Individual element.
+             fileName='./data/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'.xml'
+          end select
+          fileNameCheck : if (File_Exists(fileName)) then
+             
+             ! Open the XML file containing metal yields.
+             call Galacticus_Display_Indent('Parsing file: '//fileName,3)
+             doc => parseFile(char(fileName),iostat=ioErr)
+             if (ioErr /= 0) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','Unable to parse metal yields file')
+             
+             ! Find the ages element and extract data.
+             columnList => getElementsByTagname(doc     ,"ages")
+             thisItem   => item(columnList,0)
+             dataList   => getElementsByTagname(thisItem,"data")
+             if (getLength(dataList) /= metalYieldTableAgeCount) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous'&
+                  & ,'ages array in XML file does not match internal expectation')
+             do iAge=1,metalYieldTableAgeCount
+                thisItem => item(dataList,iAge-1)
+                call extractDataContent(thisItem,lifetime)
+                if (iElement == 1 .and. metalYieldIndex(imfSelected) == 1) then
+                   metalYieldTableAge(iAge)=lifetime
+                else
+                   if (metalYieldTableAge(iAge) /= lifetime) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous'&
+                        & ,'mismatch in ages array in XML file')
+                end if
              end do
-          end do
 
-       else
-
-          call Galacticus_Display_Indent('Tabulating metal yield rate for '//char(imfNames(imfSelected))//' IMF',2)
-        
-          ! Open an XML file to output the data to.
-          call xml_OpenFile(char(fileName),metalYieldDoc)
-          call xml_NewElement(metalYieldDoc,"stellarPopulation")
-          call xml_NewElement(metalYieldDoc,"description")
-          call xml_AddCharacters(metalYieldDoc,"Metal yield for a "//char(imfNames(imfSelected))//" IMF")
-          call xml_EndElement(metalYieldDoc,"description")
-          call xml_NewElement(metalYieldDoc,"source")
-          call xml_AddCharacters(metalYieldDoc,"Computed by Galacticus")
-          call xml_EndElement(metalYieldDoc,"source")
-          call xml_NewElement(metalYieldDoc,"date")
-          call xml_AddCharacters(metalYieldDoc,char(Formatted_Date_and_Time()))
-          call xml_EndElement(metalYieldDoc,"date")
-
-          ! Write ages to the XML file.
-          call xml_NewElement(metalYieldDoc,"ages")
-          call xml_NewElement(metalYieldDoc,"description")
-          call xml_AddCharacters(metalYieldDoc,"Age of the stellar population in Gyr")
-          call xml_EndElement(metalYieldDoc,"description")
-          do iAge=1,metalYieldTableAgeCount
-             call xml_NewElement(metalYieldDoc,"data")
-             write (parameterValue,'(e10.4)') metalYieldTableAge(iAge)
-             call xml_AddCharacters(metalYieldDoc,trim(parameterValue))
-             call xml_EndElement(metalYieldDoc,"data")
-          end do
-          call xml_EndElement(metalYieldDoc,"ages")
-
-          ! Write metallicities to the XML file.
-          call xml_NewElement(metalYieldDoc,"metallicities")
-          call xml_NewElement(metalYieldDoc,"description")
-          call xml_AddCharacters(metalYieldDoc,"Metallicity (fractional mass of total metals) of the stellar population")
-          call xml_EndElement(metalYieldDoc,"description")
-          do iMetallicity=1,metalYieldTableMetallicityCount
-             call xml_NewElement(metalYieldDoc,"data")
-             write (parameterValue,'(e10.4)') metalYieldTableMetallicity(iMetallicity)
-             call xml_AddCharacters(metalYieldDoc,trim(parameterValue))
-             call xml_EndElement(metalYieldDoc,"data")
-          end do
-          call xml_EndElement(metalYieldDoc,"metallicities")
-
-          ! Loop over ages and metallicities and compute the metal yield.
-          imfSelectedGlobal=imfSelected
-          call xml_NewElement(metalYieldDoc,"metalYield")
-          do iAge=1,metalYieldTableAgeCount
-             lifetime=metalYieldTableAge(iAge)
-             write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
-             call Galacticus_Display_Message(progressMessage,3)
+             ! Find the metallicities element and extract data.
+             columnList => getElementsByTagname(doc     ,"metallicities")
+             thisItem => item(columnList,0)
+             dataList   => getElementsByTagname(thisItem,"data"         )
+             if (getLength(dataList) /= metalYieldTableMetallicityCount) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous'&
+                  & ,'metallicities array in XML file does not match internal expectation')
              do iMetallicity=1,metalYieldTableMetallicityCount
-                metallicity=metalYieldTableMetallicity(iMetallicity)
-                ! Find the minimum and maximum masses to integrate over for this IMF.
-                minimumMass=IMF_Minimum_Mass(imfSelected)
-                maximumMass=IMF_Maximum_Mass(imfSelected)
-                ! Integrate ejected mass over the IMF between these limits.                
-                metalYieldTable(iAge,iMetallicity,metalYieldIndex(imfSelected))=Integrate(minimumMass,maximumMass&
-                     &,Metal_Yield_Integrand ,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-3&
-                     &,toleranceRelative=1.0d-4)
-                call Integrate_Done(integrandFunction,integrationWorkspace)
-                ! Enforce monotonicity in the metal yield. Non-monotonicity can arise due to the vagaries of interpolating stellar
-                ! lifetimes in an irregular grid of stellar models.
-                if (iAge > 1) metalYieldTable(iAge,iMetallicity,metalYieldIndex(imfSelected))&
-                     &=max(metalYieldTable(iAge,iMetallicity,metalYieldIndex(imfSelected)),metalYieldTable(iAge-1&
-                     &,iMetallicity,metalYieldIndex(imfSelected)))
+                thisItem => item(dataList,iMetallicity-1)
+                call extractDataContent(thisItem,metallicity)
+                if (iElement == 1 .and. metalYieldIndex(imfSelected) == 1) then
+                   metalYieldTableMetallicity(iMetallicity)=metallicity
+                else
+                   if (metalYieldTableMetallicity(iMetallicity) /= metallicity) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous'&
+                        & ,'mismatch in metallicities array in XML file')
+                end if
+             end do
+
+             ! Find the metalYield element and extract data.
+             select case (iElement)
+             case(1)
+                ! Total metallicity.
+                columnList => getElementsByTagname(doc,"metalYield"  )
+             case (2:)
+                ! Individual element.
+                columnList => getElementsByTagname(doc,"elementYield")
+             end select
+             thisItem => item(columnList,0)
+             dataList => getElementsByTagname(thisItem,"data")
+             if (getLength(dataList) /= metalYieldTableAgeCount*metalYieldTableMetallicityCount) call&
+                  & Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous' ,'metal yield array in XML file does not&
+                  & match internal expectation')
+             iMetalYield=0
+             do iAge=1,metalYieldTableAgeCount
+                do iMetallicity=1,metalYieldTableMetallicityCount
+                   iMetalYield=iMetalYield+1
+                   thisItem => item(dataList,iMetalYield-1)
+                   call extractDataContent(thisItem,metalYieldTable(iAge,iMetallicity,iElement &
+                        &,metalYieldIndex(imfSelected)))
+                end do
+             end do
+
+             ! Destroy the document.
+             call destroy(doc)
+             call Galacticus_Display_Unindent('done',3)
+
+          else
+             
+             ! Display a message since this calculation will take a long time.
+             select case (iElement)
+             case (1)
+                call Galacticus_Display_Indent('Tabulating metal yield rate for '//char(imfNames(imfSelected))//' IMF',2)
+             case (2:)
+                call Galacticus_Display_Indent('Tabulating '//char(Abundances_Names(iElement))//' yield rate for '&
+                     &//char(imfNames(imfSelected))//' IMF',2)
+             end select
+          
+             ! Open an XML file to output the data to.
+             call xml_OpenFile(char(fileName),metalYieldDoc)
+             call xml_NewElement(metalYieldDoc,"stellarPopulation")
+             call xml_NewElement(metalYieldDoc,"description")
+             select case (iElement)
+             case (1)
+                call xml_AddCharacters(metalYieldDoc,"Metal yield for a "//char(imfNames(imfSelected))//" IMF")
+             case (2:)
+                call xml_AddCharacters(metalYieldDoc,char(Abundances_Names(iElement))//" yield for a "//char(imfNames(imfSelected))//" IMF")
+             end select
+             call xml_EndElement(metalYieldDoc,"description")
+             call xml_NewElement(metalYieldDoc,"source")
+             call xml_AddCharacters(metalYieldDoc,"Computed by Galacticus")
+             call xml_EndElement(metalYieldDoc,"source")
+             call xml_NewElement(metalYieldDoc,"date")
+             call xml_AddCharacters(metalYieldDoc,char(Formatted_Date_and_Time()))
+             call xml_EndElement(metalYieldDoc,"date")
+
+             ! Write ages to the XML file.
+             call xml_NewElement(metalYieldDoc,"ages")
+             call xml_NewElement(metalYieldDoc,"description")
+             call xml_AddCharacters(metalYieldDoc,"Age of the stellar population in Gyr")
+             call xml_EndElement(metalYieldDoc,"description")
+             do iAge=1,metalYieldTableAgeCount
                 call xml_NewElement(metalYieldDoc,"data")
-                write (parameterValue,'(e10.4)') metalYieldTable(iAge,iMetallicity,metalYieldIndex(imfSelected))
+                write (parameterValue,'(e10.4)') metalYieldTableAge(iAge)
                 call xml_AddCharacters(metalYieldDoc,trim(parameterValue))
                 call xml_EndElement(metalYieldDoc,"data")
              end do
-          end do
-          call xml_EndElement(metalYieldDoc,"metalYield")
-          call Galacticus_Display_Unindent('finished',2)
-          call xml_EndElement(metalYieldDoc,"stellarPopulation")
-          call xml_Close(metalYieldDoc)
-       end if
+             call xml_EndElement(metalYieldDoc,"ages")
+             
+             ! Write metallicities to the XML file.
+             call xml_NewElement(metalYieldDoc,"metallicities")
+             call xml_NewElement(metalYieldDoc,"description")
+             call xml_AddCharacters(metalYieldDoc,"Metallicity (fractional mass of total metals) of the stellar population")
+             call xml_EndElement(metalYieldDoc,"description")
+             do iMetallicity=1,metalYieldTableMetallicityCount
+                call xml_NewElement(metalYieldDoc,"data")
+                write (parameterValue,'(e10.4)') metalYieldTableMetallicity(iMetallicity)
+                call xml_AddCharacters(metalYieldDoc,trim(parameterValue))
+                call xml_EndElement(metalYieldDoc,"data")
+             end do
+             call xml_EndElement(metalYieldDoc,"metallicities")
+             
+             ! Loop over ages and metallicities and compute the metal yield.
+             imfSelectedGlobal=imfSelected
+             atomIndexGlobal=Abundances_Atomic_Index(iElement)
+             select case (iElement)
+             case (1) 
+                ! Total metallicity.
+                call xml_NewElement(metalYieldDoc,"metalYield")
+             case default
+                ! Individual element.
+                call xml_NewElement(metalYieldDoc,"elementYield")
+             end select
+             do iAge=1,metalYieldTableAgeCount
+                lifetime=metalYieldTableAge(iAge)
+                write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
+                call Galacticus_Display_Message(progressMessage,3)
+                do iMetallicity=1,metalYieldTableMetallicityCount
+                   metallicity=metalYieldTableMetallicity(iMetallicity)
+                    ! Find the minimum and maximum masses to integrate over for this IMF.
+                    minimumMass=IMF_Minimum_Mass(imfSelected)
+                    maximumMass=IMF_Maximum_Mass(imfSelected)
+                    ! Integrate ejected mass over the IMF between these limits.
+                    metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))=Integrate(minimumMass,maximumMass&
+                         &,Metal_Yield_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-4&
+                         &,toleranceRelative=1.0d-5)
+                    call Integrate_Done(integrandFunction,integrationWorkspace)
+                    ! Enforce monotonicity in the metal yield. Non-monotonicity can arise due to the vagaries of interpolating stellar
+                    ! lifetimes in an irregular grid of stellar models.
+                    if (iAge > 1) metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))&
+                         &=max(metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected)),metalYieldTable(iAge-1&
+                         &,iMetallicity,iElement,metalYieldIndex(imfSelected)))
+                    call xml_NewElement(metalYieldDoc,"data")
+                    write (parameterValue,'(e10.4)') metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))
+                    call xml_AddCharacters(metalYieldDoc,trim(parameterValue))
+                    call xml_EndElement(metalYieldDoc,"data")
+                end do
+             end do
+             select case (iElement)
+             case (1) 
+                ! Total metallicity.
+                call xml_EndElement(metalYieldDoc,"metalYield")
+             case default
+                ! Individual element.
+                call xml_EndElement(metalYieldDoc,"elementYield")
+             end select
+             call Galacticus_Display_Unindent('finished',2)
+             call xml_EndElement(metalYieldDoc,"stellarPopulation")
+             call xml_Close(metalYieldDoc)
+          end if fileNameCheck
+          
+       end do elementsLoop
      
        ! Flag that this IMF has now been tabulated.
        metalYieldTabulated(imfSelected)=.true.
@@ -809,22 +909,32 @@ contains
     ! Get the index where this IMF is stored in the table.
     tableIndex=metalYieldIndex(imfSelected)
 
+    ! Determine which element (or total metals) we've been asked for.
+    if (present(abundanceIndex)) then
+       ! Use the given abundance index.
+       abundanceIndexActual=abundanceIndex
+    else
+       ! Assume that total metallicity is required.
+       abundanceIndexActual=1
+    end if
+
      ! Interpolate to get the derivative in the metal yield at two adjacent metallicities.
-     metallicity=Abundances_Get_Metallicity(fuelAbundances)
+     metallicity=max(Abundances_Get_Metallicity(fuelAbundances),0.0d0)
      if (metallicity > metalYieldTableMetallicityMaximum) then
         metallicityIndex=metalYieldTableMetallicityCount
         metallicityFactors=[1.0d0,0.0d0]
         if (present(ageMaximum)) then
            ! Get average recycling rate between ageMinimum and ageMaximum.
-           metalYieldRate(1)=(Interpolate(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: ,metallicityIndex&
-                &,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset)&
-                &-Interpolate(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: ,metallicityIndex,tableIndex)&
-                &,interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset))/(ageMaximum&
-                &-ageMinimum)
+           metalYieldRate(1)=(Interpolate(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: ,metallicityIndex &
+                &,abundanceIndexActual,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset &
+                &=interpolationAgeReset) -Interpolate(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(:&
+                &,metallicityIndex,abundanceIndexActual,tableIndex) ,interpolationAgeObject,interpolationAgeAccelerator &
+                &,ageMinimum,reset=interpolationAgeReset))/(ageMaximum-ageMinimum)
         else
            ! Get instantaneous recycling rate at ageMinimum.
            metalYieldRate(1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: &
-                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset)
+                &,metallicityIndex,abundanceIndexActual,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum&
+                &,reset=interpolationAgeReset)
         end if
         metalYieldRate(2)=0.0d0
      else
@@ -836,16 +946,16 @@ contains
         do iMetallicity=0,1
           if (present(ageMaximum)) then
              ! Get average recycling rate between ageMinimum and ageMaximum.
-             metalYieldRate(iMetallicity+1)=(Interpolate(metalYieldTableAgeCount,metalYieldTableAge&
-                  &,metalYieldTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
-                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset)&
-                  &-Interpolate(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(:,metallicityIndex&
-                  &+iMetallicity,tableIndex),interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset&
-                  &=interpolationAgeReset))/(ageMaximum-ageMinimum)
+             metalYieldRate(iMetallicity+1)=(Interpolate(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
+                  &,metallicityIndex+iMetallicity,abundanceIndexActual,tableIndex),interpolationAgeObject &
+                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset) -Interpolate(metalYieldTableAgeCount&
+                  &,metalYieldTableAge,metalYieldTable(:,metallicityIndex+iMetallicity,abundanceIndexActual,tableIndex)&
+                  &,interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset =interpolationAgeReset))/(ageMaximum&
+                  &-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
-             metalYieldRate(iMetallicity+1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge&
-                  &,metalYieldTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
+             metalYieldRate(iMetallicity+1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
+                  &,metallicityIndex+iMetallicity,abundanceIndexActual,tableIndex),interpolationAgeObject &
                   &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset)
           end if
        end do
@@ -866,17 +976,32 @@ contains
     real(c_double)        :: Metal_Yield_Integrand
     real(c_double), value :: initialMass
     type(c_ptr),    value :: parameterPointer
+    real(c_double)        :: yieldMass
 
     ! Include yields from isolated stars.
     if (Star_Lifetime(initialMass,metallicity) <= lifetime) then
-       Metal_Yield_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*Star_Metal_Yield_Mass(initialMass,metallicity)
+       select case (atomIndexGlobal)
+       case (0)
+          ! Total metallicity required.
+          yieldMass=Star_Metal_Yield_Mass(initialMass,metallicity                )
+       case default
+          ! Inidividual element required.
+          yieldMass=Star_Metal_Yield_Mass(initialMass,metallicity,atomIndexGlobal)
+       end select
+       Metal_Yield_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
     else
        Metal_Yield_Integrand=0.0d0
     end if
-
+    
     ! Include yield from Type Ia supernovae.
-    Metal_Yield_Integrand=Metal_Yield_Integrand+IMF_Phi(initialMass,imfSelectedGlobal)*SNeIa_Cumulative_Yield(initialMass&
-         &,lifetime,metallicity)
+    select case (atomIndexGlobal)
+    case (0)
+       ! Total metallicity required.
+       yieldMass=SNeIa_Cumulative_Yield(initialMass,lifetime,metallicity                )
+    case default
+       yieldMass=SNeIa_Cumulative_Yield(initialMass,lifetime,metallicity,atomIndexGlobal)
+    end select
+    Metal_Yield_Integrand=Metal_Yield_Integrand+IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
     return
   end function Metal_Yield_Integrand
 
@@ -912,7 +1037,7 @@ contains
     logical,                   save                          :: interpolationMetallicityReset=.true.,interpolationAgeReset=.true.
     !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
-    type(Node),                pointer                       :: doc
+    type(Node),                pointer                       :: doc,thisItem
     type(NodeList),            pointer                       :: columnList,dataList
     type(c_ptr)                                              :: parameterPointer
     type(fgsl_function)                                      :: integrandFunction
@@ -982,15 +1107,18 @@ contains
        if (File_Exists(fileName)) then
           
           ! Open the XML file containing energy input.
+          call Galacticus_Display_Indent('Parsing file: '//fileName,3)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input file')
           
           ! Find the ages element and extract data.
-          columnList => getElementsByTagname(doc               ,"ages")
-          dataList   => getElementsByTagname(item(columnList,0),"data")
+          columnList => getElementsByTagname(doc       ,"ages")
+          thisItem => item(columnList,0)
+          dataList   => getElementsByTagname(thisItem,"data")
           if (getLength(dataList) /= energyInputTableAgeCount) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','ages array in XML file does not match internal expectation')
           do iAge=1,energyInputTableAgeCount
-             call extractDataContent(item(dataList,iAge-1),lifetime)
+             thisItem => item(dataList,iAge-1)
+             call extractDataContent(thisItem,lifetime)
              if (energyInputIndex(imfSelected) == 1) then
                 energyInputTableAge(iAge)=lifetime
              else
@@ -999,11 +1127,13 @@ contains
           end do
 
           ! Find the metallicities element and extract data.
-          columnList => getElementsByTagname(doc               ,"metallicities")
-          dataList   => getElementsByTagname(item(columnList,0),"data"         )
+          columnList => getElementsByTagname(doc     ,"metallicities")
+          thisItem => item(columnList,0)
+          dataList   => getElementsByTagname(thisItem,"data"         )
           if (getLength(dataList) /= energyInputTableMetallicityCount) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','metallicities array in XML file does not match internal expectation')
           do iMetallicity=1,energyInputTableMetallicityCount
-             call extractDataContent(item(dataList,iMetallicity-1),metallicity)
+             thisItem => item(dataList,iMetallicity-1)
+             call extractDataContent(thisItem,metallicity)
              if (energyInputIndex(imfSelected) == 1) then
                 energyInputTableMetallicity(iMetallicity)=metallicity
              else
@@ -1012,18 +1142,23 @@ contains
           end do
 
           ! Find the energyInput element and extract data.
-          columnList => getElementsByTagname(doc               ,"energyInput")
-          dataList   => getElementsByTagname(item(columnList,0),"data"            )
+          columnList => getElementsByTagname(doc     ,"energyInput")
+          thisItem => item(columnList,0)
+          dataList   => getElementsByTagname(thisItem,"data"       )
           if (getLength(dataList) /= energyInputTableAgeCount*energyInputTableMetallicityCount) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','energy input array in XML file does not match internal expectation')
           iEnergyInput=0
           do iAge=1,energyInputTableAgeCount
              do iMetallicity=1,energyInputTableMetallicityCount
                 iEnergyInput=iEnergyInput+1
-                call extractDataContent(item(dataList,iEnergyInput-1),energyInputTable(iAge,iMetallicity &
-                     &,energyInputIndex(imfSelected)))
+                thisItem => item(dataList,iEnergyInput-1)
+                call extractDataContent(thisItem,energyInputTable(iAge,iMetallicity,energyInputIndex(imfSelected)))
              end do
           end do
 
+          ! Destroy the document.
+          call destroy(doc)
+          call Galacticus_Display_Unindent('done',3)
+          
        else
 
           call Galacticus_Display_Indent('Tabulating cumulative energy input for '//char(imfNames(imfSelected))//' IMF',2)
@@ -1109,7 +1244,7 @@ contains
     tableIndex=energyInputIndex(imfSelected)
     
     ! Interpolate to get the derivative in the recycled rate at two adjacent metallicities.
-    metallicity=Abundances_Get_Metallicity(fuelAbundances)
+    metallicity=max(Abundances_Get_Metallicity(fuelAbundances),0.0d0)
     if (metallicity > energyInputTableMetallicityMaximum) then
        metallicityIndex=energyInputTableMetallicityCount
        metallicityFactors=[1.0d0,0.0d0]

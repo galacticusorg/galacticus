@@ -35,18 +35,18 @@ contains
   !# <imfSelectionMethod>
   !#  <unitName>IMF_Select_Fixed_Initialize</unitName>
   !# </imfSelectionMethod>
-  subroutine IMF_Select_Fixed_Initialize(imfSelectionMethod,IMF_Select,imfNames)
+  subroutine IMF_Select_Fixed_Initialize(imfSelectionMethod,IMF_Select_Do,imfNames)
     !% Initializes the ``fixed'' IMF selection module.
     use ISO_Varying_String
     use Input_Parameters
     use Star_Formation_IMF_Utilities
     implicit none
     type(varying_string),          intent(in)    :: imfSelectionMethod,imfNames(:)
-    procedure(),          pointer, intent(inout) :: IMF_Select
+    procedure(),          pointer, intent(inout) :: IMF_Select_Do
     type(varying_string)                         :: imfSelectionFixed
     
     if (imfSelectionMethod == 'fixed') then
-       IMF_Select => IMF_Select_Fixed
+       IMF_Select_Do => IMF_Select_Fixed
        ! Get IMF choice.
        !@ <inputParameter>
        !@   <name>imfSelectionFixed</name>

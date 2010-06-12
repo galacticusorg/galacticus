@@ -545,6 +545,30 @@ A mass accretion history (i.e. mass as a function of time) for the main branch i
  \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$).
 \end{description}
 
+\subsubsection{Pre-Evolution Merger Trees}
+
+\glc\ can output the full structure of merger trees prior to any evolution. Merger tree structure can be requested by setting {\tt mergerTreeStructureOutput}$=${\tt true}. Structures are written to a new group, {\tt mergerTreeStructures}, in the \glc\ output file. This group will contain groups called {\tt mergerTreeN} where {\tt N} is the merger tree index. Each such group will contain the following datasets:
+\begin{description}
+ \item [{\tt nodeIndex}] The index of the node in the tree;
+ \item [{\tt childNodeIndex}] The index of this node's first child node;
+ \item [{\tt parentNodeIndex}] The index of this node's parent node;
+ \item [{\tt siblingNodeIndex}] The index of this node's sibling node;
+ \item [{\tt nodeTime}] The time at this point in the tree (in Gyr);
+ \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$).
+\end{description}
+Additional, optional, datasets can be added by setting appropriate input parameters. Currently these include:
+\begin{itemize}
+ \item [Virial quantities] If {\tt mergerTreeStructureOutputVirialQuantities}$=${\tt true} then two additional datasets are included:
+ \begin{description}
+  \item [{\tt nodeVirialRadius}] The virial radius of the node (in Mpc);
+  \item [{\tt nodeVirialVelocity}] The virial velocity of the node (in km/s);
+ \end{description}
+ \item [Dark matter scale radii] If {\tt mergerTreeStructureOutputDarkMatterScaleRadius}$=${\tt true} then an additional dataset is included:
+ \begin{description}
+  \item [{\tt darkMatterScaleRadius}] The scale radius of this node's dark matter halo profile (in Mpc);
+ \end{description}
+\end{itemize}
+
 \section{Perl Module for Data Extraction}
 
 A Perl module is provided that allows for easy extraction of datasets from the \glc\ output file together with a straightforward way to implement derived properties. To use this Perl module, add
@@ -1136,6 +1160,10 @@ Selected with {\tt criticalOverdensityMethod}$=${\tt spherical top hat} this met
 
 The method used to compute the mean density contrast of virialized dark matter halos is selected via the {\tt virialDensityContrastMethod} parameter.
 
+\subsubsection{Bryan \& Norman Fitting Function}
+
+Selected with {\tt virialDensityContrastMethod}$=${\tt Bryan + Norman} this method calculates virial density contrast using the fitting functions given by \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
+
 \subsubsection{Spherical Collapse (Matter + Cosmological Constant)}
 
 Selected with {\tt virialDensityContrastMethod}$=${\tt spherical top hat} this method calculates virial density contrast using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
@@ -1367,6 +1395,18 @@ The {\tt Scalo} \IMF\ is defined by \citep{scalo_stellar_1986}:
  0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
+\section{Ionization State}\index{ionization state}
+
+The ionization state of gas is implemented by the algorithm selected using the {\tt ionizatonStateMethod} parameter.
+
+\subsection{Atomic Collisional Ionization Equilibrium Using {\sc Cloudy}}
+
+Selected using {\tt ionizatonStateMethod}$=${\tt atomic\_CIE\_Cloudy}, this method computes the ionization state using the {\sc Cloudy} code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use {\sc Cloudy}'s ``primordial'' metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\sc Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
+
+\subsection{Collisional Ionization Eqiulibruim From File}
+
+Selected using {\tt ionizatonStateMethod}$=${\tt CIE\_from\_file}, in this method the ionization state is read from a file specified by the {\tt ionizationStateFile} parameter. The format of this file is specified in \S\ref{sec:IonizationStateMethods}. The ionization state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$.
+
 \section{Merger Tree Construction}\index{merger trees}
 
 Merger trees are ``constructed\footnote{By ``construct'' we mean any process of creating a representation of a merger tree within \protect\glc.}'' by the method specified by the {\tt mergerTreeConstructMethod} parameter.
@@ -1458,6 +1498,7 @@ Selected with {\tt stellarAstrophysicsMethod}$=${\tt file} this method uses read
     <metallicity>0.0000</metallicity>
     <ejectedMass>7.65</ejectedMass>
     <metalYieldMass>0.44435954</metalYieldMass>
+    <elementYieldMassFe>2.2017e-13</elementYieldMassFe>
     <source>Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)</source>
     <url>http://adsabs.harvard.edu/abs/2003ApJ...584..608T</url>
   </star>
@@ -1471,7 +1512,7 @@ Selected with {\tt stellarAstrophysicsMethod}$=${\tt file} this method uses read
   .
  </stars
 \end{verbatim}
-Each {\tt star} element must contain the {\tt initialMass} (given in $M_\odot$) and {\tt metallicity} tags. Other tags are optional. {\tt lifetime} gives the lifetime of such a star (in Gyr), {\tt ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during its lifetime and {\tt metalYieldMass} gives the total mass of metals yielded by the star during its lifetime. The {\tt source} and {\tt url} tags are not used, but are recommended to provide a reference to the origin of the stellar data.
+Each {\tt star} element must contain the {\tt initialMass} (given in $M_\odot$) and {\tt metallicity} tags. Other tags are optional. {\tt lifetime} gives the lifetime of such a star (in Gyr), {\tt ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during its lifetime, {\tt metalYieldMass} gives the total mass of metals yielded by the star during its lifetime while {\tt elementYieldMassX} gives the mass of element {\tt X} yielded by the star during its lifetime. The {\tt source} and {\tt url} tags are not used, but are strongly recommended to provide a reference to the origin of the stellar data.
 
 \subsection{Stellar Winds}
 
@@ -2117,55 +2158,65 @@ Currently defined cooling rate methods are:
 
 \subsubsection{Cooling Function}\label{sec:CoolingFunctionMethods}
 
-Additional methods for cooling functions can be added using the {\tt coolingFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt atomic CIE Cloudy} method is described by a directive:
+Additional methods for cooling functions can be added using the {\tt coolingFunctionMethods}, {\tt coolingFunctionCompute}, {\tt coolingFunctionDensitySlopeCompute} and {\tt coolingFunctionTemperatureSlopeCompute} directives. Each directive should contain a single argument, giving the name of a subroutine to be called to either initialize the method or compute the relevant quantity. For example, the {\tt atomic CIE Cloudy} method is initialized by a directive:
 \begin{verbatim}
-  !# <coolingFunctionMethod>
+  !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_Atomic_CIE_Cloudy_Initialize</unitName>
-  !# </coolingFunctionMethod>
+  !# </coolingFunctionMethods>
 \end{verbatim}
 Here, {\tt Cooling\_Function\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(coolingFunctionMethod,Cooling_Function_Get,Cooling_Function_Get,Cooling_Function_Density_Log_Slope_Get,Cooling_Function_Temperature_Log_Slope_Get)
+  subroutine Method_Initialize(coolingFunctionMethods)
     implicit none
-    type(varying_string),          intent(in)    :: coolingFunctionMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Function_Get,Cooling_Function_Density_Log_Slope_Get,Cooling_Function_Temperature_Log_Slope_Get
+    type(varying_string), intent(in) :: coolingFunctionMethods(:)
     
-    if (coolingFunctionMethod == 'myMethod') then
-       Cooling_Function_Get => My_Method_Procedure
-       Cooling_Function_Density_Log_Slope_Get => My_Method_Density_Log_Slope_Procedure
-       Cooling_Function_Temperature_Log_Slope_Get => My_Method_Temperature_Log_Slope_Procedure
+    if (any(coolingFunctionMethod == 'myMethod')) then
+       .
+       .
+       .
     end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt coolingFunctionMethod} input parameter. The procedure pointer {\tt Cooling\_Function\_Get} must be set to point to a function which returns the cooling function as described below. The other two procedure points should point to functions which return the logarithmic gradients of the cooling function with respect to density and temperature respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt coolingFunctionMethods} input parameter. The initialization routine should record that whether this cooling function was selected, and perform any other initialization necessary.
 
-The cooling function function must have the form:
+The other directives should specify subroutines with the following template:
 \begin{verbatim}
- double precision function Cooling_Function_Get(temperature,numberDensityHydrogen,abundances,radiation)
+  subroutine Cooling_Function_PropertyCompute(coolingFunctionProperty,temperature,numberDensityHydrogen,abundances&
+       &,radiation)
     implicit none
-    double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
+    double precision,          intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure), intent(in)  :: abundances
+    type(radiationStructure),  intent(in)  :: radiation
+    double precision,          intent(out) :: coolingFunctionProperty
     .
     .
     .
     return
- end function Cooling_Function_Get
+  end subroutine Cooling_Function_PropertyCompute
 \end{verbatim}
-The function must return the cooling function (in units of ergs cm$^3$ s$^{-1}$) for gas at the given {\tt temperature} (in Kelvin), with hydrogen number density {\tt numberDensityHydrogen} (in cm$^{-3}$), composition as described by the {\tt abundances} structure and in the presence of a radiation field described by the {\tt radiation} structure. The logarithmic slope functions should have the same template, but return the appropriate logarithmic slope instead.
+and each should return the relevant quantity in {\tt coolingFunctionProperty}. The {\tt coolingFunctionCompute} subroutine should return the cooling function, the {\tt coolingFunctionDensitySlopeCompute} subroutine should return the partial derivative with respect to hydrogen density and the {\tt coolingFunctionTemperatureSlopeCompute} subroutine should return the partial derivative with respect to temperature.
 
 Currently defined cooling function methods are:
 \begin{description}
- \item [\hyperlink{cooling.cooling_function.CIE_file.F90:cooling_function_cie_file:cooling_function_cie_file_get}{{\tt CIE from file}}] Reads a tabulated CIE cooling function from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
+ \item [\hyperlink{cooling.cooling_function.CIE_file.F90:cooling_functions_cie_file:cooling_function_cie_file}{{\tt CIE from file}}] Reads a tabulated CIE cooling function from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
  \begin{verbatim}
   <coolingFunctions>
   <coolingFunction>
-    <datum>10000.0 1.0e-23</datum>
-    <datum>15000.0 1.7e-23</datum>
-    .
-    .
-    .
+    <temperature>
+      <datum>10000.0</datum>
+      <datum>15000.0</datum>
+      .
+      .
+      .
+    </temperature>
+    <coolingRate>
+      <datum>1.0e-23</datum>
+      <datum>1.7e-23</datum>
+      .
+      .
+      .
+    </coolingRate>
     <metallicity>-4.0</metallicity>
   </coolingFunction>
   <coolingFunction>
@@ -2194,14 +2245,14 @@ Currently defined cooling function methods are:
   </extrapolation>
  </coolingFunctions>
  \end{verbatim}
- Each {\tt coolingFunction} element should contain a list of {\tt datum} elements which specify temperature (in Kelvin) and cooling function (in ergs cm$^3$ s$^{-1}$ computed for a hydrogen density of 1 cm$^{-3}$) pairs, and a {\tt metallicity} element which gives the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero metallicity). Any number of {\tt coolingFunction} elements may appear, but they must be in order of increasing metallicity and must all contain the same set of temperatures. The {\tt extrapolation} element defines how the table is to be extrapolated in the {\tt low} and {\tt high} limits of {\tt temperature} and {\tt metallicity}. The {\tt method} elements can take the following values:
+ Each {\tt coolingFunction} element should contain two lists (inside {\tt temperature} and {\tt coolingRate} tags) of {\tt datum} elements which specify temperature (in Kelvin) and cooling function (in ergs cm$^3$ s$^{-1}$ computed for a hydrogen density of 1 cm$^{-3}$) respectively, and a {\tt metallicity} element which gives the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero metallicity). Any number of {\tt coolingFunction} elements may appear, but they must be in order of increasing metallicity and must all contain the same set of temperatures. The {\tt extrapolation} element defines how the table is to be extrapolated in the {\tt low} and {\tt high} limits of {\tt temperature} and {\tt metallicity}. The {\tt method} elements can take the following values:
  \begin{description}
   \item[{\tt zero}] The cooling function is set to zero beyond the relevant limit.
   \item[{\tt fixed}] The cooling function is held fixed at the value at the relevant limit.
   \item[{\tt power law}] The cooling function is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the cooling function is everywhere positive.
  \end{description}
  If the cooling function is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first cooling function is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and cooling function. Otherwise, interpolation is linear in these quantities. The cooling function is scaled assuming a quadratic dependence on hydrogen density.
- \item [\hyperlink{cooling.cooling_function.CIE_file.F90:cooling_function_cie_file:cooling_function_cie_file_get}{{\tt atomic CIE Cloudy}}] Uses the {\sc Cloudy} software to compute a cooling function for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the cooling function suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}. Figure~\ref{fig:atomicCIECloudyCoolingFunction} shows the cooling function from this method.
+ \item [{\tt atomic CIE Cloudy}] Uses the {\sc Cloudy} software to compute a cooling function for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the cooling function suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}. Figure~\ref{fig:atomicCIECloudyCoolingFunction} shows the cooling function from this method.
 \end{description}
 
 \begin{figure}
@@ -2359,13 +2410,13 @@ Here, {\tt Cosmology\_Functions\_Matter\_Lambda\_Initialize} is the name of a su
   subroutine Method_Initialize(cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
        &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
-       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get)
+       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get)
     implicit none
     type(varying_string),          intent(in)    :: cosmologyMethod
     procedure(),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
        &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
-       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get
+       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get
     
     if (cosmologyMethod == 'myMethod') then
        Procedure_Pointer_Get => My_Procedure
@@ -2529,6 +2580,19 @@ Should return the cosmic epoch at which matter and dark energy have equal energy
    end function My_Epoch_of_Matter_Curvature_Equality
 \end{verbatim}
 Should return the cosmic epoch at which matter and curvature have equal energy densities. If {\tt requestType} is {\tt requestTypeTime} (specified in the {\tt Cosmology\_Functions\_Parameters} module) then cosmic time (in Gyr) should be returned, while if it is {\tt requestTypeExpansionFactor} then expansion factor should be returned instead.
+
+\begin{verbatim}
+   double precision function My_CMB_Temperature(tCosmological,aExpansion,collapsingPhase)
+     implicit none
+     double precision, intent(in), optional :: tCosmological,aExpansion
+     logical,          intent(in), optional :: collapsingPhase
+     .
+     .
+     .
+     return
+   end function My_CMB_Temperature
+\end{verbatim}
+Should return the \CMB\ temperature (in K) at the given cosmic epoch. The cosmic epoch can be specified as a time since the Big Bang, or an expansion factor (in the expanding phase unless the collapsing phase is specifically requested). Specifying a time and an expansion factor is invalid input, and the routine should abort in such cases.
 
 Currently defined cosmology methods are:
 \begin{description}
@@ -3029,6 +3093,7 @@ The subroutine must tabulate the virial overdensity in array {\tt deltaVirialDel
 Currently defined virial density contrast methods are:
 \begin{description}
  \item [{\tt spherical top hat}] The virial density contrast is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
+ \item [{\tt Bryan + Norman}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
 \end{description}
 
 \subsubsection{Initial Mass Function Functions}\label{sec:IMF_functions}
@@ -3142,6 +3207,104 @@ The function must return the index of the \IMF\ appropriate for the given {\tt s
 Currently defined \IMF\ selection methods are:
 \begin{description}
  \item [{\tt fixed}] A fixed \IMF\ is used irrespective of physical conditions. The \IMF\ is specified by the input parameter {\tt imfSelectionFixed}.
+\end{description}
+
+\subsubsection{Ionization State}\label{sec:IonizationStateMethods}
+
+Additional methods for ionization states can be added using the {\tt ionizationStateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt atomic\_CIE\_Cloudy} method is described by a directive:
+\begin{verbatim}
+  !# <ionizationStateMethod>
+  !#  <unitName>Ionization_State_Atomic_CIE_Cloudy_Initialize</unitName>
+  !# </ionizationStateMethod>
+\end{verbatim}
+Here, {\tt Ionization\_State\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(ionizationStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: ionizationStateMethod
+    procedure(),          pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get
+    
+    if (ionizationStateMethod == 'myMethod') then
+      Electron_Density_Get                       => My_Method_Procedure
+      Electron_Density_Temperature_Log_Slope_Get => My_Method_Temperature_Log_Slope_Procedure
+      Electron_Density_Density_Log_Slope_Get     => My_Method_Density_Log_Slope_Procedure
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt ionizationStateMethod} input parameter. The procedure pointer {\tt Electron\_Density\_Get} must be set to point to a function which returns the electron density as described below. The other two procedure points should point to functions which return the logarithmic gradients of the electron density with respect to temperature and density respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The electron density function must have the form:
+\begin{verbatim}
+ double precision function Electron_Density_Get(temperature,numberDensityHydrogen,abundances,radiation)
+    implicit none
+    double precision,          intent(in) :: temperature,numberDensityHydrogen
+    type(abundancesStructure), intent(in) :: abundances
+    type(radiationStructure),  intent(in) :: radiation
+    .
+    .
+    .
+    return
+ end function Electron_Density_Get
+\end{verbatim}
+The function must return the electron density (in units of cm$^{-3}$) for gas at the given {\tt temperature} (in Kelvin), with hydrogen number density {\tt numberDensityHydrogen} (in cm$^{-3}$), composition as described by the {\tt abundances} structure and in the presence of a radiation field described by the {\tt radiation} structure. The logarithmic slope functions should have the same template, but return the appropriate logarithmic slope instead.
+
+Currently defined ionization state methods are:
+\begin{description}
+ \item [\hyperlink{atomic.ionization_state.CIE_file.F90:ionization_states_cie_file:electron_density_cie_file}{{\tt CIE\_from\_file}}] Reads a tabulated CIE ionization state from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
+ \begin{verbatim}
+  <ionizationStates>
+  <ionizationState>
+    <temperature>
+      <datum>10000.0</datum>
+      <datum>15000.0</datum>
+      .
+      .
+      .
+    </temperature>
+    <electronDensity>
+      <datum>1.0e-23</datum>
+      <datum>1.7e-23</datum>
+      .
+      .
+      .
+    </electronDensity>
+    <metallicity>-4.0</metallicity>
+  </ionizationState>
+  <ionizationState>
+  .
+  .
+  .
+  </ionizatonState>
+  <description>Some description of what this ionization state is.</description>
+  <extrapolation>
+    <metallicity>
+      <limit>low</limit>
+      <method>fixed</method>
+    </metallicity>
+    <metallicity>
+      <limit>high</limit>
+      <method>fixed</method>
+    </metallicity>
+    <temperature>
+      <limit>low</limit>
+      <method>fixed</method>
+    </temperature>
+    <temperature>
+      <limit>high</limit>
+      <method>fixed</method>
+    </temperature>
+  </extrapolation>
+ </ionizationStates>
+ \end{verbatim}
+ Each {\tt ionizationState} element should contain two lists (inside {\tt temperature} and {\tt electronDensity} tags) of {\tt datum} elements which specify temperature (in Kelvin) and electron density (by number, relative to hydrogen) respectively, and a {\tt metallicity} element which gives the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero metallicity). Any number of {\tt coolingFunction} elements may appear, but they must be in order of increasing metallicity and must all contain the same set of temperatures. The {\tt extrapolation} element defines how the table is to be extrapolated in the {\tt low} and {\tt high} limits of {\tt temperature} and {\tt metallicity}. The {\tt method} elements can take the following values:
+ \begin{description}
+  \item[{\tt zero}] The electron density is set to zero beyond the relevant limit.
+  \item[{\tt fixed}] The electron density is held fixed at the value at the relevant limit.
+  \item[{\tt power law}] The electron density is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the electron density is everywhere positive.
+ \end{description}
+ If the electron density is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and electron density. Otherwise, interpolation is linear in these quantities. The electron density is scaled assuming a linear dependence on hydrogen density.
+ \item [{\tt atomic CIE Cloudy}] Uses the {\sc Cloudy} software to compute the ionization state for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the ionization state suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}.
 \end{description}
 
 \subsubsection{Linear Growth Function}
@@ -3725,7 +3888,7 @@ Here, {\tt Stellar\_Astrophysics\_File\_Initialize} is the name of a subroutine 
 \end{verbatim}
 where {\tt myMethod} is the name of this method as will be specified by the {\tt stellarAstrophysicsMethod} input parameter. The procedure pointers must be set to point to functions which return stellar properties as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The ejected mass, metal yield and lifetime functions must have the form:
+The ejected mass and lifetime functions must have the form:
 \begin{verbatim}
  double precision function Star_Property(initialMass,metallicity)
     implicit none
@@ -3737,6 +3900,20 @@ The ejected mass, metal yield and lifetime functions must have the form:
  end function Star_Property
 \end{verbatim}
 These functions must return the total ejected mass (in $M_\odot$), total metal yield (in $M_\odot$) and lifetime (in Gyr) for a star of the specified {\tt initialMass} and {\tt metallicity}.
+
+The metal yield function must have the form:
+\begin{verbatim}
+ double precision function Star_Metal_Yield(initialMass,metallicity,atomIndex)
+    implicit none
+    double precision, intent(in)           :: initialMass,metallicity
+    integer,          intent(in), optional :: atomIndex
+    .
+    .
+    .
+    return
+ end function Star_Property
+\end{verbatim}
+This function must return the yield (in $M_\odot$) of the element identified by {\tt atomIndex} (as returned by the \hyperlink{atomic.data.F90:atomic_data:atom_lookup}{{\tt Atom\_Lookup()}} function from the \hyperlink{atomic.data.F90:atomic_data}{{\tt Atomic\_Data}} module) if present, or total metal yield otherwise for a star of the specified {\tt initialMass} and {\tt metallicity}.
 
 The initial mass function must have the form:
 \begin{verbatim}
@@ -3978,18 +4155,32 @@ Here, {\tt Supernovae\_Type\_Ia\_Nagashima\_Initialize} is the name of a subrout
 \end{verbatim}
 where {\tt myMethod} is the name of this method as will be specified by the {\tt supernovaeIaMethod} input parameter. The procedure pointers {\tt SNeIa\_Cumulative\_Number\_Get} and {\tt SNeIa\_Cumulative\_Yield\_Get} must be set to point to functions which return the cumulative number of and cumulative yield from Type Ia supernovae as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The functions must have the form:
+The cumulative number function must have the form:
 \begin{verbatim}
-   double precision function Type_Ia_Function(initialMass,age,metallicity)
+   double precision function SNeIa_Cumulative_Number(initialMass,age,metallicity)
     implicit none
     double precision, intent(in) :: initialMass,age,metallicity
     .
     .
     .
     return
-   end function Type_Ia_Function 
+   end function SNeIa_Cumulative_Number 
 \end{verbatim}
-The cumulative number function must return the number of Type Ia supernovae resulting per $M_\odot$ of stars formed with given {\tt initialMass} and {\tt metallicity} after a time {\tt age}. (Since Type Ia's form in binary systems this function should specifically return the number such that when integrated over the \IMF\ it gives the correct total number of Type Ia supernovae formed from a single stellar population.) The cumulative yield function should similarly return the total metal yield from Type Ia's resulting from the same stars.
+and must return the number of Type Ia supernovae resulting per $M_\odot$ of stars formed with given {\tt initialMass} and {\tt metallicity} after a time {\tt age}. (Since Type Ia's form in binary systems this function should specifically return the number such that when integrated over the \IMF\ it gives the correct total number of Type Ia supernovae formed from a single stellar population.)
+
+The cumulative yield function must have the form:
+\begin{verbatim}
+   double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity,atomIndex)
+    implicit none
+    double precision, intent(in)           :: initialMass,age,metallicity
+    integer,          intent(in), optional :: atomIndex
+    .
+    .
+    .
+    return
+   end function SNeIa_Cumulative_Yield 
+\end{verbatim}
+and should return the yield of the element identified by {\tt atomIndex} (as returned by the \hyperlink{atomic.data.F90:atomic_data:atom_lookup}{{\tt Atom\_Lookup()}} function from the \hyperlink{atomic.data.F90:atomic_data}{{\tt Atomic\_Data}} module) if present, or total metal yield otherwise from Type Ia's resulting from stars defined in the same way as for the cumulative number function.
 
 Currently defined transfer function methods are:
 \begin{description}
@@ -4483,6 +4674,26 @@ Here, {\tt Halo\_Mass\_Accretion\_Rate} is the name of a subroutine which will b
   end subroutine Merger_Tree_Initialize_Task
 \end{verbatim}
 where {\tt thisNode} is the node to be initialized. The subroutine will be called once for each node in the tree.
+
+\subsubsection{Merger Tree Structure Output Tasks}
+
+Additional outputs for merger tree structure output can be added using the {\tt mergerTreeStructureOutputTask}. The directive should give the name of the subroutine to be called to perform the task. The templates for this tasks is:
+\begin{verbatim}
+  !# <mergerTreeStructureOutputTask>
+  !#  <unitName>Structure_Output_Task</unitName>
+  !# </mergerTreeStructureOutputTask>
+  subroutine Structure_Output_Task(baseNode,nodeProperty,treeGroupID)
+    implicit none
+    type(treeNode),   intent(in),    pointer      :: baseNode
+    double precision, intent(inout), dimension(:) :: nodeProperty
+    integer,          intent(in)                  :: treeGroupID
+    .
+    .
+    .
+    return
+  end subroutine Structure_Output_Task
+\end{verbatim}
+The subroutine must walk the merger tree beginning from the given {\tt baseNode} and store each property to output in the given {\tt nodeProperty} array. Once populated, this array can be written to the appropriate location, given by {\tt treeGroupID}, in the \glc\ output file.
 
 \subsubsection{Node Dump}
 
