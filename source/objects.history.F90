@@ -39,6 +39,7 @@ module Histories
      procedure :: destroy => History_Destroy
      procedure :: trim    => History_Trim
      procedure :: add     => History_Add
+     procedure :: reset   => History_Reset
 
   end type history
 
@@ -115,6 +116,19 @@ contains
     end if
     return
   end subroutine History_Destroy
+
+  subroutine History_Reset(thisHistory)
+    !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    use Memory_Management
+    implicit none
+    type(history), intent(inout) :: thisHistory
+    
+    if (allocated(thisHistory%time)) then
+       thisHistory%data =0.0d0
+       thisHistory%rates=0.0d0
+    end if
+    return
+  end subroutine History_Reset
 
   subroutine History_Trim(thisHistory,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
@@ -225,8 +239,8 @@ contains
 
           ! Add them.
           forall(iHistory=1:size(thisHistory%data,dim=2))
-             thisHistory%data(iPoint,iHistory)=thisHistory%data(iPoint,iHistory)+addHistory%data(iPoint,iHistory)&
-                  &*interpolationFactors(1)+addHistory%data(iPoint+1,iHistory)*interpolationFactors(2)
+             thisHistory%data(iPoint,iHistory)=thisHistory%data(iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
+                  &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
           end forall
 
        end if

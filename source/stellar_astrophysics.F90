@@ -35,15 +35,22 @@ module Stellar_Astrophysics
   type(varying_string) :: stellarAstrophysicsMethod
 
   ! Pointer to the functions that actually do the calculations.
-  procedure(Stellar_Astrophysics_Template), pointer :: Star_Ejected_Mass_Get     => null()
-  procedure(Stellar_Astrophysics_Template), pointer :: Star_Initial_Mass_Get     => null()
-  procedure(Stellar_Astrophysics_Template), pointer :: Star_Metal_Yield_Mass_Get => null()
-  procedure(Stellar_Astrophysics_Template), pointer :: Star_Lifetime_Get         => null()
+  procedure(Stellar_Astrophysics_Template),       pointer :: Star_Ejected_Mass_Get     => null()
+  procedure(Stellar_Astrophysics_Template),       pointer :: Star_Initial_Mass_Get     => null()
+  procedure(Stellar_Astrophysics_Yield_Template), pointer :: Star_Metal_Yield_Mass_Get => null()
+  procedure(Stellar_Astrophysics_Template),       pointer :: Star_Lifetime_Get         => null()
 
   abstract interface
      double precision function Stellar_Astrophysics_Template(inputParameter1,inputParameter2)
        double precision, intent(in) :: inputParameter1,inputParameter2
      end function Stellar_Astrophysics_Template
+  end interface
+
+  abstract interface
+     double precision function Stellar_Astrophysics_Yield_Template(inputParameter1,inputParameter2,atomIndex)
+       double precision, intent(in)           :: inputParameter1,inputParameter2
+       integer,          intent(in), optional :: atomIndex
+     end function Stellar_Astrophysics_Yield_Template
   end interface
 
 contains
@@ -112,16 +119,17 @@ contains
     return
   end function Star_Ejected_Mass
   
-  double precision function Star_Metal_Yield_Mass(initialMass,metallicity)
+  double precision function Star_Metal_Yield_Mass(initialMass,metallicity,atomIndex)
     !% Returns the metal mass yielded by a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision, intent(in) :: initialMass,metallicity
+    double precision, intent(in)           :: initialMass,metallicity
+    integer,          intent(in), optional :: atomIndex
     
     ! Initialize the module.
     call Stellar_Astrophysics_Initialize
     
     ! Get the answer using the selected method.
-    Star_Metal_Yield_Mass=Star_Metal_Yield_Mass_Get(initialMass,metallicity)
+    Star_Metal_Yield_Mass=Star_Metal_Yield_Mass_Get(initialMass,metallicity,atomIndex)
     
     return
   end function Star_Metal_Yield_Mass

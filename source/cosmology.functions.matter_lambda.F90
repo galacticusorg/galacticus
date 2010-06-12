@@ -69,7 +69,7 @@ contains
   subroutine Cosmology_Functions_Matter_Lambda_Initialize(cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get &
        &,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get&
-       &,Epoch_of_Matter_Curvature_Equality_Get)
+       &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get)
     !% Initialize the module.
     use ISO_Varying_String
     use ODE_Solver
@@ -78,7 +78,7 @@ contains
     procedure(),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get &
          &,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get,Omega_Dark_Energy_Get &
          &,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get&
-         &,Epoch_of_Matter_Curvature_Equality_Get
+         &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get
     double precision,     parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
     double precision                             :: cubicTerm1,cubicTerm5,cubicTerm9,cubicTerm21Squared,cubicTerm21 &
          &,cubicTerm25Cubed,cubicTerm25,aMaximum,aDominant,timeMaximum(1),densityPower,Omega_Dominant
@@ -99,6 +99,7 @@ contains
        Epoch_of_Matter_Dark_Energy_Equality_Get => Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda
        Epoch_of_Matter_Curvature_Equality_Get   => Epoch_of_Matter_Curvature_Equality_Matter_Lambda
        Epoch_of_Matter_Domination_Get           => Epoch_of_Matter_Domination_Matter_Lambda
+       CMB_Temperature_Get                      => CMB_Temperature_Matter_Lambda
 
        ! Determine if this universe will collapse. We take the Friedmann equation, which gives H^2 as a function of expansion factor,
        ! a, and solve for where H^2=0. If this has a real solution, then we have a collapsing universe.
@@ -522,6 +523,32 @@ contains
     Omega_Dark_Energy_Matter_Lambda=Omega_DE()*((H_0()/Hubble_Parameter_Matter_Lambda(aExpansion=aExpansionActual))**2)
     return
   end function Omega_Dark_Energy_Matter_Lambda
+
+  double precision function CMB_Temperature_Matter_Lambda(tCosmological,aExpansion,collapsingPhase)
+    !% Return the temperature of the CMB at expansion factor {\tt aExpansion}.
+    use Galacticus_Error
+    implicit none
+    double precision, intent(in), optional :: tCosmological,aExpansion
+    logical,          intent(in), optional :: collapsingPhase
+    double precision                       :: aExpansionActual
+
+    ! Determine the actual expansion factor to use.
+    if (present(tCosmological)) then
+       if (present(aExpansion)) then
+          call Galacticus_Error_Report('CMB_Temperature_Matter_Lambda','only one of time or expansion factor can be specified')
+       else
+          aExpansionActual=Expansion_Factor_Matter_Lambda(tCosmological)
+       end if
+    else
+       if (present(aExpansion)) then
+          aExpansionActual=aExpansion
+       else
+          call Galacticus_Error_Report('CMB_Temperature_Matter_Lambda','either a time or expansion factor must be specified')
+       end if
+    end if
+    CMB_Temperature_Matter_Lambda=T_CMB()/aExpansionActual
+    return
+  end function CMB_Temperature_Matter_Lambda
 
   double precision function Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda(requestType)
     !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
