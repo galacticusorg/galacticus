@@ -27,6 +27,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/HI_Gas_Mass_Function.pdf";
 }
+($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
 $dataSet{'file'} = $galacticusFile;
@@ -72,6 +73,7 @@ if ( $showFit == 1 ) {
     $fitData{'name'} = "Zwaan et al. (2003) HI gas mass function";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
+    $fitData{'fileName'} = $fileName;
     $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }

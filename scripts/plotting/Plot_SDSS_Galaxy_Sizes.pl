@@ -28,6 +28,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/SDSS_Galaxy_Sizes.pdf";
 }
+($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Read tabulation of half-radii vs. disk/spheroid properties and extract to PDLs.
 $xml                 = new XML::Simple;
@@ -158,6 +159,7 @@ if ( $showFit == 1 ) {
     $fitData{'name'} = "Shen et al. (2003) galaxy half-light radius distributions";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
+    $fitData{'fileName'} = $fileName;
     $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }

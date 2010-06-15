@@ -30,6 +30,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/Star_Formation_History.pdf";
 }
+($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Extract global data
 &HDF5::Get_History(\%dataSet,['historyExpansion','historyStarFormationRate']);
@@ -100,6 +101,7 @@ if ( $showFit == 1 ) {
     $fitData{'name'} = "Volume averaged star formation rate history.";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
+    $fitData{'fileName'} = $fileName;
     $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }
