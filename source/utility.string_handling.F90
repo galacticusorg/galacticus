@@ -26,7 +26,7 @@ module String_Handling
   !% Implements various useful functionality for manipulating character strings.
   use ISO_Varying_String
   private
-  public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case
+  public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -44,6 +44,9 @@ module String_Handling
   character(len=*), parameter :: charactersLowerCase='abcdefghijklmnopqrstuvwxyz'
   character(len=*), parameter :: charactersUpperCase='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
+  ! Character strings used in whitespace detection.
+  character(len=*), parameter :: charactersWhiteSpace=' '//char(0)//char(10)//char(13)
+
 contains
 
   integer function String_Count_Words(inputString)
@@ -56,7 +59,7 @@ contains
     String_Count_Words=0
     inWord=.false.
     do iCharacter=1,len_trim(inputString)
-       if (inputString(iCharacter:iCharacter) == " ") then
+       if (index(charactersWhiteSpace,inputString(iCharacter:iCharacter)) /= 0) then
           if (inWord) String_Count_Words=String_Count_Words+1
           inWord=.false.
        else
@@ -78,7 +81,7 @@ contains
     inWord=.false.
     iWord=0
     do iCharacter=1,len_trim(inputString)
-       if (inputString(iCharacter:iCharacter) == " ") then
+       if (index(charactersWhiteSpace,inputString(iCharacter:iCharacter)) /= 0) then
           if (inWord) then
              iWord=iWord+1
              words(iWord)=inputString(iCharacterStart:iCharacter-1)
@@ -108,7 +111,7 @@ contains
     inWord=.false.
     iWord=0
     do iCharacter=1,len_trim(inputString)
-       if (inputString(iCharacter:iCharacter) == " ") then
+       if (index(charactersWhiteSpace,inputString(iCharacter:iCharacter)) /= 0) then
           if (inWord) then
              iWord=iWord+1
              words(iWord)=inputString(iCharacterStart:iCharacter-1)
@@ -175,5 +178,20 @@ contains
     end do
     return
   end function String_Lower_Case
+
+  function String_Upper_Case_First(stringInput) result (stringOutput)
+    !% Converts an input string to upper case.
+    character(len=*),           intent(in) :: stringInput
+    character(len(stringInput))            :: stringOutput
+    integer                                :: iCharacter
+
+    ! Transfer input string to output string.
+    stringOutput=stringInput
+    ! Find position of first character in string in list of lower case characters.
+    iCharacter=index(charactersLowerCase,stringOutput(1:1))
+    ! If a match is found, repace with the upper case equivalent.
+    if (iCharacter /= 0) stringOutput(1:1)=charactersUpperCase(iCharacter:iCharacter)
+    return
+  end function String_Upper_Case_First
 
 end module String_Handling
