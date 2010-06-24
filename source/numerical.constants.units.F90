@@ -31,6 +31,12 @@ module Numerical_Constants_Units
   ! Ergs in Joules.
   double precision, parameter :: ergs=1.0d-7
 
+  ! Angstroms in microns.
+  double precision, parameter :: angstromsPerMicron=1.0d4
+
+  ! Angstroms in meters.
+  double precision, parameter :: angstromsPerMeter=1.0d10
+
   ! Conversion from Mpc/(km/s) to Gyr.
   double precision, parameter :: Mpc_per_km_per_s_To_Gyr=megaParsec/kilo/gigaYear
 

@@ -32,6 +32,9 @@ module Numerical_Constants_Astronomical
   ! Solar mass (in kg).
   double precision, parameter :: massSolar=FGSL_CONST_MKSA_SOLAR_MASS
 
+  ! Solar radius (in m; Allen's Astrophysical Quantities, page 340).
+  double precision, parameter :: radiusSolar=6.95508d8
+
   ! Solar luminosity (in W; Allen's Astrophysical Quantities, page 340).
   double precision, parameter :: luminositySolar=3.845d26
 

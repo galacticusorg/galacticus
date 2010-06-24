@@ -38,6 +38,9 @@ module Numerical_Constants_Physical
   ! Newton's gravitational constant (in SI units).
   double precision, parameter :: gravitationalConstant=FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT
 
+  ! Stefan-Boltzmann constant (in units of J/s/M^2/K^4).
+  double precision, parameter :: stefanBoltzmannConstant=FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT
+
   ! Radiation constant (in units of J/m^3/K^4).
   double precision, parameter :: radiationConstant=4.0d0*FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT/FGSL_CONST_MKSA_SPEED_OF_LIGHT
 
@@ -49,5 +52,8 @@ module Numerical_Constants_Physical
 
   ! Electron mass (in units of kg).
   double precision, parameter :: electronMass=FGSL_CONST_MKSA_MASS_ELECTRON
+
+  ! Planck's constant (in units of J s).
+  double precision, parameter :: plancksConstant=FGSL_CONST_MKSA_PLANCKS_CONSTANT_H
 
 end module Numerical_Constants_Physical
