@@ -28,6 +28,7 @@ sub Get_Times {
     ${${${$dataHash}{'outputs'}}{'outputNumber'}}    = $outputNumbers;
     ${${${$dataHash}{'outputs'}}{'time'}}            = $times;
     ${${${$dataHash}{'outputs'}}{'expansionFactor'}} = $expansionFactor;
+    ${${${$dataHash}{'outputs'}}{'redshift'}}        = 1.0/$expansionFactor-1.0;
 }
 
 sub Select_Output {
@@ -45,6 +46,8 @@ sub Select_Output {
 	}
     }
     die("Select_Output(): Unable to find matching redshift.\n") if ( $foundMatch == 0 );
+    # Ensure that the data sets available gets reset for this new output.
+    delete(${$dataHash}{'dataSetsAvailable'});
 }
 
 sub Get_History {
@@ -100,8 +103,14 @@ sub Get_Dataset {
 
     # Extract a list of available datasets.
     unless ( exists(${$dataHash}{'dataSetsAvailable'}) ) {
-	@dataSets = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTrees[0])->datasets;
-	foreach $dataSet ( @dataSets ) {${${$dataHash}{'dataSetsAvailable'}}{$dataSet} = 1};
+	# Find a merger tree that contains some output.
+	foreach $mergerTree ( @mergerTrees ) {
+	    if ( $testID = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->IDget ) {	
+		@dataSets = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->datasets;
+		foreach $dataSet ( @dataSets ) {${${$dataHash}{'dataSetsAvailable'}}{$dataSet} = 1};
+		last;
+	    }
+	}
     }
 
     # Determine the range of data to be extracted.
@@ -129,17 +138,20 @@ sub Get_Dataset {
 		$data = pdl [];
 		$dataTree = pdl [];
 		foreach $mergerTree ( @mergerTrees ) {
-		    $thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset($dataSetName)->get;
-		    if ( $dataSetName eq "volumeWeight" ) {
-			# Append the volumeWeight property once for each galaxy in this tree.
-			@galaxyCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->dims;
-			$data = $data->append($thisTreeData*ones($galaxyCount[0]));
-		    } else {
-			# Append the dataset.
-			$data = $data->append($thisTreeData);
-		    }
-		    unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
-			$dataTree = $dataTree->append($mergerTree*ones($galaxyCount[0]));	
+		    # Check that this tree contains some nodes at this output. If it does not, skip it.
+		    if ( $testID = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->IDget ) {
+			$thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset($dataSetName)->get;
+			if ( $dataSetName eq "volumeWeight" ) {
+			    # Append the volumeWeight property once for each galaxy in this tree.
+			    @galaxyCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->dims;
+			    $data = $data->append($thisTreeData*ones($galaxyCount[0]));
+			} else {
+			    # Append the dataset.
+			    $data = $data->append($thisTreeData);
+			}
+			unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
+			    $dataTree = $dataTree->append($mergerTree*ones($galaxyCount[0]));	
+			}
 		    }
 		}
 		${${${$dataHash}{'dataSets'}}{$dataSetName}} = $data;
