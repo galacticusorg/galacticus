@@ -567,7 +567,7 @@ contains
     call Assert("Extreme Kerr metric ISCO radius",Black_Hole_ISCO_Radius_Spin(1.0d0,orbitPrograde),1.0d0,compareEquals,1.0d-6)
 
     ! Horizon radius for a Schwarzchild black hole should be 2.
-    call Assert("Extreme Kerr metric horizon radius",Black_Hole_Horizon_Radius_Spin(1.0d0),1.0d0,compareEquals,1.0d-6)
+    call Assert("Schwarzchild metric horizon radius",Black_Hole_Horizon_Radius_Spin(0.0d0),2.0d0,compareEquals,1.0d-6)
 
     ! Horizon radius for an extreme Kerr black hole should be 1.
     call Assert("Extreme Kerr metric horizon radius",Black_Hole_Horizon_Radius_Spin(1.0d0),1.0d0,compareEquals,1.0d-6)
