@@ -228,7 +228,7 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if (hostRadius <= 0.0d0 .or. hostMass < -massTolerance .or. hostSpheroidMass < -massTolerance) then
+       if ((hostRadius <= 0.0d0 .and. hostMass > 0.0d0) .or. hostMass < -massTolerance .or. hostSpheroidMass < -massTolerance) then
           write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') hostRadius,hostMass,hostSpheroidMass
           message='Host galaxy ['
           message=message//hostNode%index()//'] has '
@@ -250,12 +250,17 @@ contains
           errorCondition=.true.
        end if
        if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','error condition detected')
-       ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
-       progenitorsEnergy= satelliteSpheroidMass*satelliteMass/satelliteRadius &
-            &            +hostSpheroidMass     *hostMass     /hostRadius      &
-            &            +mergerRemnantSizeOrbitalEnergy*satelliteSpheroidMass*hostSpheroidMass/(satelliteRadius+hostRadius)&
-            &                                                                                  /bindingEnergyFormFactor
-       remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/progenitorsEnergy
+       ! Check if host has finite mass.
+       if (hostMass > 0.0d0) then
+          ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
+          progenitorsEnergy= satelliteSpheroidMass*satelliteMass/satelliteRadius &
+               &            +hostSpheroidMass     *hostMass     /hostRadius      &
+               &            +mergerRemnantSizeOrbitalEnergy*satelliteSpheroidMass*hostSpheroidMass/(satelliteRadius+hostRadius)&
+               &                                                                                  /bindingEnergyFormFactor
+          remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/progenitorsEnergy
+       else
+          remnantRadius=satelliteRadius
+       end if
 
        ! Also compute the specific angular momentum at the half-mass radius.
        remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
