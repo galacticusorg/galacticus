@@ -47,7 +47,7 @@ contains
     type(mergerTree),                         intent(inout) :: thisTree
     double precision,                         intent(in)    :: endTime
     type(treeNode),                           pointer       :: thisNode,nextNode
-    double precision,                         parameter     :: timeTolerance=1.0d-6
+    double precision,                         parameter     :: timeTolerance=1.0d-5
     double precision,                         parameter     :: largeTime    =1.0d10
     procedure(Interrupt_Procedure_Template),  pointer       :: interruptProcedure
     procedure(End_Of_Timestep_Task_Template), pointer       :: End_Of_Timestep_Task
@@ -180,10 +180,12 @@ contains
   end subroutine Merger_Tree_Evolve_To
 
   double precision function Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task)
+    !% Determine the time to which {\tt thisNode} should be evolved.
     use Merger_Tree_Timesteps
     use Cosmology_Functions
     use Input_Parameters
     use Galacticus_Error
+    use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
     implicit none
@@ -192,7 +194,9 @@ contains
     type(treeNode),                  pointer :: satelliteNode
     procedure(),      intent(out),   pointer :: End_Of_Timestep_Task
     procedure(),                     pointer :: End_Of_Timestep_Task_Internal
+    double precision, parameter              :: endTimeToleranceRelative=1.0d-5
     double precision                         :: time,expansionFactor,expansionTimescale,hostTimeLimit
+    character(len=9)                         :: timeFormatted
     type(varying_string)                     :: message
 
     ! Initialize if not yet done.
@@ -255,9 +259,32 @@ contains
 
     ! Check that end time exceeds current time.
     if (Evolve_To_Time < Tree_Node_Time(thisNode)) then
-       message='end time is before current time of node '
-       message=message//thisNode%index()
-       call Galacticus_Error_Report('Evolve_To_Time',message)
+       if (Evolve_To_Time < Tree_Node_Time(thisNode)*(1.0d0-endTimeToleranceRelative)) then
+          ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
+          message='end time ('
+          write (timeFormatted,'(f7.4)') Evolve_To_Time
+          message=message//trim(timeFormatted)//' Gyr) is before current time ('
+          write (timeFormatted,'(f7.4)') Tree_Node_Time(thisNode)
+          message=message//trim(timeFormatted)//' Gyr) of node '
+          message=message//thisNode%index()
+          message=message//' (time difference is '
+          write (timeFormatted,'(e8.2)') Tree_Node_Time(thisNode)-Evolve_To_Time
+          message=message//trim(timeFormatted)//' Gyr) - this should happen infrequently'
+          call Galacticus_Display_Message(message,1)
+          call Tree_Node_Time_Set(thisNode,Evolve_To_Time)
+       else
+          ! End time is well before current time. This is an error.
+          message='end time ('
+          write (timeFormatted,'(f7.4)') Evolve_To_Time
+          message=message//trim(timeFormatted)//' Gyr) is before current time ('
+          write (timeFormatted,'(f7.4)') Tree_Node_Time(thisNode)
+          message=message//trim(timeFormatted)//' Gyr) of node '
+          message=message//thisNode%index()
+          message=message//' (time difference is '
+          write (timeFormatted,'(e8.2)') Tree_Node_Time(thisNode)-Evolve_To_Time
+          message=message//trim(timeFormatted)//' Gyr)'
+          call Galacticus_Error_Report('Evolve_To_Time',message)
+       end if
     end if
     return
   end function Evolve_To_Time
