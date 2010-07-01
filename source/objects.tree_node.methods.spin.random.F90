@@ -30,7 +30,7 @@ module Tree_Node_Methods_Spin_Random
   private
   public :: Tree_Node_Methods_Spin_Random_Initialize, Tree_Node_Methods_Spin_Random_Initialize_Spin,&
        & Galacticus_Output_Tree_Spin_Random, Galacticus_Output_Tree_Spin_Random_Property_Count,&
-       & Galacticus_Output_Tree_Spin_Random_Names, Tree_Node_Methods_Spin_Random_Dump
+       & Galacticus_Output_Tree_Spin_Random_Names, Tree_Node_Methods_Spin_Random_Dump, Tree_Node_Spin_Random_Promote
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -48,10 +48,12 @@ module Tree_Node_Methods_Spin_Random
   !# </treeNodeMethodsPointer>
 
   ! Flag to indicate if this method is selected.
-  logical :: methodSelected=.false.
+  logical          :: methodSelected=.false.
+
+  ! The factor by which the mass of a node must increase before its spin parameter is re-chosen.
+  double precision :: randomSpinResetMassFactor
 
 contains
-
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Spin_Random_Initialize</unitName>
@@ -91,11 +93,20 @@ contains
        Tree_Node_Spin_Growth_Rate_Set          => null()
        Tree_Node_Spin_Growth_Rate_Rate_Adjust  => null()
        Tree_Node_Spin_Growth_Rate_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy
+
+       !@ <inputParameter>
+       !@   <name>randomSpinResetMassFactor</name>
+       !@   <defaultValue>2.0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The factor by which a node must increase in mass before its spin parameter is reset.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('randomSpinResetMassFactor',randomSpinResetMassFactor,defaultValue=2.0d0)
     end if
     return
   end subroutine Tree_Node_Methods_Spin_Random_Initialize
-  
-  
+
   double precision function Tree_Node_Spin_Random(thisNode)
     !% Return the node spin mass.
     implicit none
@@ -118,7 +129,6 @@ contains
     return
   end function Tree_Node_Spin_Growth_Rate_Random
 
-
   !# <mergerTreeInitializeTask>
   !#  <unitName>Tree_Node_Methods_Spin_Random_Initialize_Spin</unitName>
   !# </mergerTreeInitializeTask>
@@ -130,31 +140,35 @@ contains
     type(treeNode),  pointer, intent(inout) :: thisNode
     type(treeNode),  pointer                :: relatedNode
     integer                                 :: thisIndex,relatedIndex
+    double precision                        :: previousSetMass,previousSetSpin
 
-    if (methodSelected) then
-       if (.not.thisNode%componentExists(componentIndex)) then
-          thisIndex=Tree_Node_Spin_Random_Index(thisNode)
-          ! Set the spin of the halo.
-          thisNode%components(thisIndex)%data(spinIndex)=Halo_Spin_Distribution_Sample(thisNode)
-          ! Propagate to any primary children of the halo.
-          relatedNode => thisNode%childNode
-          do while (associated(relatedNode))
-             relatedIndex=Tree_Node_Spin_Random_Index(relatedNode)
-             relatedNode%components(relatedIndex)%data(spinIndex)=thisNode%components(thisIndex)%data(spinIndex)
-             relatedNode => relatedNode%childNode
-          end do
-          ! Propagate to any parents of the halo.
-          relatedNode => thisNode
-          do while (relatedNode%isPrimaryProgenitor())
-             relatedNode => relatedNode%parentNode
-             relatedIndex=Tree_Node_Spin_Random_Index(relatedNode)
-             relatedNode%components(relatedIndex)%data(spinIndex)=thisNode%components(thisIndex)%data(spinIndex)
-          end do
-       end if
-    end if
+     if (methodSelected) then
+        if (.not.thisNode%componentExists(componentIndex)) then
+           ! Walk the tree back along primary children to the earliest such progenitor.
+           relatedNode => thisNode
+           do while (associated(relatedNode%childNode))
+              relatedNode => relatedNode%childNode
+           end do
+           ! Walk forward through the branch, assigning spins. If the mass of the halo exceeds that of the halo for which we last
+           ! selected a spin by a given factor, then select a new spin from the distribution. Otherwise, use the previously
+           ! assigned spin.
+           previousSetSpin=Halo_Spin_Distribution_Sample(relatedNode)
+           previousSetMass=Tree_Node_Mass               (relatedNode)                
+           relatedIndex=Tree_Node_Spin_Random_Index(relatedNode)            
+           relatedNode%components(relatedIndex)%data(spinIndex)=previousSetSpin
+           do while (relatedNode%isPrimaryProgenitor())
+              relatedNode => relatedNode%parentNode
+              if (Tree_Node_Mass(relatedNode) > randomSpinResetMassFactor*previousSetMass) then
+                 previousSetSpin=Halo_Spin_Distribution_Sample(relatedNode)
+                 previousSetMass=Tree_Node_Mass               (relatedNode)                
+              end if
+              relatedIndex=Tree_Node_Spin_Random_Index(relatedNode)            
+              relatedNode%components(relatedIndex)%data(spinIndex)=previousSetSpin
+           end do
+        end if
+     end if
     return
   end subroutine Tree_Node_Methods_Spin_Random_Initialize_Spin
-  
 
   integer function Tree_Node_Spin_Random_Index(thisNode)
     !% Ensure the spin component exists and return its position in the components array.
@@ -166,7 +180,29 @@ contains
     return
   end function Tree_Node_Spin_Random_Index
 
-  
+  !# <nodePromotionTask>
+  !#  <unitName>Tree_Node_Spin_Random_Promote</unitName>
+  !# </nodePromotionTask>
+  subroutine Tree_Node_Spin_Random_Promote(thisNode)
+    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the spin of {\tt thisNode}
+    !% to be that of its parent.
+    use Galacticus_Error
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode), pointer                :: parentNode
+    integer                                :: thisIndex
+
+    if (methodSelected) then
+       parentNode => thisNode%parentNode
+       if (Tree_Node_Time(thisNode) /= Tree_Node_Time(parentNode)) call Galacticus_Error_Report('Tree_Node_Spin_Random_Promote','thisNode&
+            & has not been evolved to its parent')
+       ! Adjust the mass to that of the parent node.
+       thisIndex=Tree_Node_Spin_Random_Index(thisNode)            
+       thisNode%components(thisIndex)%data(spinIndex)=Tree_Node_Spin_Random(parentNode)
+    end if
+    return
+  end subroutine
+
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Spin_Random_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Spin_Random</sortName>
