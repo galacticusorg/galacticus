@@ -31,11 +31,13 @@ foreach $analysis ( @{$data->{'analysis'}} ) {
     }
     close(pipeHndl);
     undef($fitData);
-    $fitData = $xml->XMLin($fitXML);
-    $fitData->{'weight'} = $analysis->{'weight'};
-    ${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
-    $chiSquaredNet += $fitData->{'chiSquared'}*$fitData->{'weight'};
-    $degreesOfFreedomNet += $fitData->{'degreesOfFreedom'}*$fitData->{'weight'};
+    if ( $fitXML =~ m/<galacticusFit>/ ) {
+	$fitData = $xml->XMLin($fitXML);
+	$fitData->{'weight'} = $analysis->{'weight'};
+	${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
+	$chiSquaredNet += $fitData->{'chiSquared'}*$fitData->{'weight'};
+	$degreesOfFreedomNet += $fitData->{'degreesOfFreedom'}*$fitData->{'weight'};
+    }
 }
 
 # Store the net results.
