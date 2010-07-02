@@ -139,6 +139,62 @@ perl -MCPAN -e 'install Sort::Topological'
 \begin{verbatim}
 perl -MCPAN -e 'install LaTeX::Encode'
 \end{verbatim}
+  \item [\href{http://search.cpan.org/~jesse/perl-5.12.1/lib/File/Find.pm}{{\tt File::Find}}] This module provides functionality for searching directory structures for files. It can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install File::Find'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~jesse/perl-5.12.1/lib/File/Copy.pm}{{\tt File::Copy}}] This module provides interfaces for copying and moving files in Perl. It can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install File::Copy'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~jcristy/PerlMagick-6.59/Magick.pm}{{\tt Image::Magick}}] This module provides access to the {\sc ImageMagick} tools from Perl. On Fedora the following (as root) will install {\tt Image::Magick}:
+\begin{verbatim}
+yum install ImageMagick-perl
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Image::Magick'
+\end{verbatim}
+  \item [\href{http://perldoc.perl.org/IO/Compress/Bzip2.html}{{\tt IO::Compress::Bzip2}}] This module provides the {\tt bzip2} compression tool in Perl. On Fedora the following (as root) will install {\tt IO::Compress::Bzip2}:
+\begin{verbatim}
+yum install perl-Compress-Bzip2
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install IO::Compress::Bzip2'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~anno/Text-Table-1.114/lib/Text/Table.pm}{{\tt Text::Table}}] This module provides formatted table output in Perl. On Fedora the following (as root) will install {\tt Text::Table}:
+\begin{verbatim}
+yum install perl-Text-Table
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Text::Table'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/dist/TermReadKey/ReadKey.pm}{{\tt Term::ReadKey}}] This module provides a simple interface for accepting key reads from standard input in Perl. On Fedora the following (as root) will install {\tt Term::ReadKey}:
+\begin{verbatim}
+yum install perl-TermReadKey
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Term::ReadKey'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~rjbs/MIME-Lite-3.027/lib/MIME/Lite.pm}{{\tt MIME::Lite}}] This module provides simple e-mail sending functionality in Perl. On Fedora the following (as root) will install {\tt MIME::Lite}:
+\begin{verbatim}
+yum install perl-MIME-Lite
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install MIME::Lite'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt PDL}}] Provides array math handling in Perl. It is used extensively by \glc\ for analysis of modles. On Fedora the following (as root) will install {\tt PDL}:
+\begin{verbatim}
+yum install perl-PDL
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install PDL'
+\end{verbatim}
   \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
 \begin{verbatim}
 yum install perl-XML-Simple
@@ -271,6 +327,26 @@ perl -MCPAN -e "install XML::Simple"
 perl -MCPAN -e "install Math::SigFigs"
 perl -MCPAN -e "install GraphViz"
 perl -MCPAN -e 'force("install","Astro::Cosmology")'
+perl -MCPAN -e "install File::Find"
+perl -MCPAN -e "install File::Copy"
+perl -MCPAN -e "install Image::Magick"
+perl -MCPAN -e "install Term::ReadKey"
+perl -MCPAN -e "install MIME::Lite"
+perl -MCPAN -e 'install Text::Table'
+perl -MCPAN -e 'install IO::Compress::Bzip2'
+
+! Install PDL::IO::HDF5 (more complicated, because it won't install against recent HDF5 versions with some patching):
+
+perl -MCPAN -e "install PDL::IO::HDF5::Dataset"
+! This will fail. After it does, locate the downloaded tarball, probably in $HOME/.cpan/sources/authors/id/C/CE/CERNEY:
+cd $HOME/.cpan/sources/authors/id/C/CE/CERNEY
+tar xvfz PDL-IO-HDF5-0.6.tar.gz
+cd PDL-IO-HDF5-0.6
+sed -i~ s/"\('CCFLAGS'\s*=>\s*\".*\)\""/'\1 -DH5_USE_16_API"'/g  Makefile.PL
+! Open Makefile.PL, locate the list of directories appearing before the comment "# Add new library paths here!!" and add "/your/install/path/lib" to it. Then locate the list of directories appearing before the comment "# Add new header paths here!!" and add "/your/install/path/include" to it. Then save the editted file.
+cd ..
+tar cvfz PDL-IO-HDF5-0.6.tar.gz PDL-IO-HDF5-0.6
+perl -MCPAN -e "install PDL::IO::HDF5::Dataset"
 
 ! Install GnuPlot:
 
@@ -320,6 +396,7 @@ setenv LD_LIBRARY_PATH /your/install/path/gcc-trunk/lib:/your/install/path/lib:$
 
 wget "http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/fgsl-0.9.3.tar.gz"
 tar xvfz fgsl-0.9.3.tar.gz
+cd fgsl-0.9.3
 ./configure --f90 gfortran --gsl /your/install/path
 make
 make install
@@ -336,9 +413,9 @@ make install
 
 ! Install HDF5:
 
-wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.4-patch1.tar.bz2
-tar xvfz hdf5-1.8.4-patch1.tar.bz2
-cd hdf5-1.8.4-patch1
+wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.5.tar.gz
+tar xvfz hdf5-1.8.5.tar.gz
+cd hdf5-1.8.5
 setenv F9X gfortran
 ./configure --prefix=/your/install/path --enable-fortran --enable-production --with-zlib=/your/install/path
 make
@@ -403,7 +480,7 @@ All parameter values (both those specified in this file and those set to default
 \end{verbatim}
 where {\tt parameterFile} is the name of the file containing a list of parameter values for \glc. \glc\ will display messages indicating its progress as it runs (the verbosity can be controlled with the {\tt verbosityLevel} parameter).
 
-\subsection{Restarting A Crashed Run}
+\subsection{Restarting A Crashed Run}\label{sec:Restarting}
 
 If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\tt build} method of merger tree construction, such that the internal state is stored prior to commencing the building of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.
 
@@ -426,6 +503,92 @@ This will cause the internal state to be stored to files {\tt galacticusState.st
   </parameter>
 \end{verbatim}
 where {\tt N} is the number of the tree that crashed. This will cause calculations to begin with tree {\tt N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
+
+\section{Running Grids of Models}\label{sec:RunningGrids}
+
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. To run the script simply enter:
+\begin{verbatim}
+ ./scripts/aux/Run_Galacticus.pl <runFile>
+\end{verbatim}
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). The {\tt runFile} is an XML file with the following structure:
+\begin{verbatim}
+<parameterGrid>
+  <modelRootDirectory>models.new</modelRootDirectory>
+  <baseParameters>newBestParametersQuick.xml</baseParameters>
+  <parameters>
+   <parameter>
+    <name>stabilityThresholdStellar</name>
+    <value>1.1</value>
+    <value>0.9</value>
+   </parameter>
+  </parameters>
+  <parameters>
+   <parameter>
+    <name>stabilityThresholdGaseous</name>
+    <value>1.1</value>
+    <value>0.9</value>
+   </parameter>
+   <parameter>
+    <name>imfSalpeterYieldInstantaneous</name>
+    <value>0.02</value>
+    <value>0.04</value>
+   </parameter>
+  </parameters>
+</parameterGrid>
+\end{verbatim}
+Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values.
+
+By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur.
+
+In addition to the {\tt galacticus.hdf5} output file, each model directory will contain a file {\tt newParameters.xml} which contains the parameters used to run the model and {\tt galacticus.log} which contains any output from \glc\ during the run.
+
+If present, the file {\tt runGalacticus.xml} is parsed for configuration options. It should have the following structure:
+\begin{verbatim}
+<config>
+  <errorReport>
+    <name>My Name</name>
+    <email>me@ivory.towers.edu</email>
+  </errorReport>
+</config>
+\end{verbatim}
+The {\tt errorReport} element contains the name and e-mail address of the person who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
+
+\subsubsection{Analysis of Models}
+
+The {\tt Run\_Galacticus.pl} script will automatically run {\tt scripts/analysis/Galacticus\_Compute\_Fit.pl} on each model to generate plots and fitting data. This script, which can also be running manually using
+\begin{verbatim}
+ ./scripts/analysis/Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory>
+\end{verbatim}
+where {\tt galacticusFile} is the name of the \glc\ output file to analyze and {\tt outputDirectory} is the directory into which plots and fitting data should be placed, reads the file {\tt data/Galacticus\_Compute\_Fit\_Analyses.xml} which has the following structure:
+\begin{verbatim}
+ <analyses>
+  <analysis>
+    <script>scripts/plotting/Plot_HI_Mass_Function.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_K_Luminosity_Function.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  .
+  .
+  .
+ </analyses>
+\end{verbatim}
+Each {\tt analysis} element contains the name of a script to run to perform some analysis and a weight to be given to the results of this analysis when combining results to get a net goodness of fit. Each script listed will be run and is expected to have accept arguments of the form:
+\begin{verbatim}
+ My_Analysis_Script.pl <galacticusFile> <outputDirectory> <showFit>
+\end{verbatim}
+where the {\tt showFit} argument can be 0 or 1 and, if set to 1, the script should output an XML chunk to standard output giving details of its fitting analysis. This chunk should have the form:
+\begin{verbatim}
+ <galacticusFit>
+   <name>Description of this analysis</name>
+   <chiSquared>24.5</chiSquared>
+   <degreesOfFreedom>19</degreesOfFreedom>
+   <fileName>Output_File_Name.pdf</fileName>
+ </galacticusFit>
+\end{verbatim}
+where {\tt chiSquared} and {\tt degreesOfFreedom} are the fitting results. All such data returned from fitting scripts will be collated by {\tt Galacticus\_Compute\_Fit.pl}, augmented with the weight value and the net goodness of fit determined. All of this information is then output to {\tt galacticusFits.xml} in the selected output directory.
 
 \chapter{Input Parameters}
 
@@ -517,6 +680,9 @@ The {\tt globalHistory} group stores volume averaged properties of the model uni
  \item[{\tt historyTime}] Cosmic time (in Gyr);
  \item[{\tt historyExpansion}] Expansion factor;
  \item[{\tt historyStarFormationRate}] Volume averaged star formation rate (in $M_\odot/$Gyr/Mpc$^3$).
+ \item[{\tt historyStellarDensity}] Volume averaged stellar mass density (in $M_\odot/$Mpc$^3$).
+ \item[{\tt historyGasDensity}] Volume averaged cooled gas density (in $M_\odot/$Mpc$^3$).
+ \item[{\tt historyNodeDensity}] Volume averaged resolved node density (in $M_\odot/$Mpc$^3$).
 \end{description}
 
 \subsection{Outputs}
@@ -628,11 +794,63 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
 \subsubsection{Available Derived Properties}
 
 \begin{description}
+ \item[{\tt mergerTreeIndex}] The index of the merger tree in which the galaxy is found. Provided by: {\tt Galacticus::HDF5}.
  \item[{\tt hotHalo(Fraction\textbar Frac)}] The fraction the node's mass in the hot gas halo. Provided by: {\tt Galacticus::Baryons}.
  \item[{\tt inclination}] A randomly selected inclination for the disk (in degrees). Provided by: {\tt Galacticus::Inclination}.
  \item[{\tt \textasciicircum(disk\textbar bulge)StellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Dust-extingiushed luminosities for disk and bulge found by interpolating in the dust tables of \cite{ferrara_atlas_1999}. If the {\tt [faceOn]} qualifier is present, extinctions are computed assuming that the disk is observed face-on, otherwise a random inclination is used. Optionally, the dust atlas file to used can be specified via {\tt \$\{\$dataSet\}\{'dustAtlasFile'\}}. The available dust atlases span a limited range of spheroid sizes and central optical depths in their tabulations. Standard behavior is to extrapolate beyond the ends of these ranges. This can be controlled via {\tt \$\{\$dataSet\}\{'dustAtlasExtrapolateInSize'\}} and {\tt \$\{\$dataSet\}\{'dustAtlasExtrapolateInTau'\}} respectively, which can be set to {\tt yes}/{\tt no} (or, equivalently, 1/0). Provided by: {\tt Galacticus::DustAttenuation}.
+ \item[{\tt \textasciicircum totalStellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] (Optionally dust-extingiushed) luminosities for disk plus bulge found by adding together the corresponding disk and bulge luminosities. Provided by: {\tt Galacticus::Luminosities}.
+ \item[{\tt \textasciicircum bulgeToTotalLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Ratio of bulge to total (optionally dust-extingiushed) luminosities. Provided by: {\tt Galacticus::Luminosities}.
  \item[{\tt \textasciicircum magnitude([\textasciicircum :]+):([\textasciicircum :]+):([\textasciicircum :]+):z([$\backslash$d$\backslash$.]+)(:dust[\textasciicircum :]+)?(:vega\textbar :AB)?}] Absolute magnitude corresponding to a stellar luminosity, in either Vega or AB systems. Provided by: {\tt Galacticus::Magnitudes}.
 \end{description}
+
+\section{Postprocessing Scripts}\label{sec:PostProcessingScripts}
+
+\subsection{Model Rating}\label{sec:ModelRating}
+
+While quantitative goodness-of-fit measures for a \glc\ model are useful it is often beneficial to be able to rate model quality ``by eye''. The {\tt scripts/aux/Rate\_Models.pl} script facilitates this. To rate models use:
+\begin{verbatim}
+ ./scripts/aux/Rate_Models.pl [option=....] [option=...] ...
+\end{verbatim}
+Allowed options are:
+\begin{description}
+ \item [{\tt modelDirectories}] [default={\tt models}] A comma-separated list of directories to be searched for models;
+ \item [{\tt plotToRate}] [default={\tt Star\_Formation\_History.pdf}] The name of files containing a plot that you want to rate;
+ \item [{\tt fitName}] [default={\tt Volume averaged star formation rate history}] A Perl regex name of the fit corresponding to these plots;
+ \item [{\tt userName}] [default=<username>] The name of the person performing the rating.
+\end{description}
+The given model directories will be searched for files matching the name of the specified plot file. Each file found will be displayed on screen. The user can examine the plot and judge how good the fit is. Pressing {\tt q} will then close the image. The user may then enter a rating from 1--5 (higher values corresponding to better fits) by pressing the appropriate key. This rating (along with the name of the rater) will be stored in the corresponding fit data file. The net rating (an average of all ratings given to this model) is also stored.
+
+\subsection{Model Sorting}\label{sec:ModelSorting}
+
+When the {\tt Run\_Galacticus.pl} script (see \S\ref{sec:RunningGrids}) script is used to run grids of models and perform analysis on them it can be useful to be able to sort the resulting models on the basis of a goodness of fit measure. The {\tt scripts/aux/Sort\_Models.pl} provides this functionality. It will search one or more directories for \glc\ models and output an order list of models found, sorted by a goodness of fit measure. To run the script use:
+\begin{verbatim}
+ ./scripts/aux/Sort_Models.pl [option=....] [option=...] ...
+\end{verbatim}
+Allowed options are:
+\begin{description}
+ \item [{\tt modelDirectories}] [default={\tt models}] A comma-separated list of directories to be searched for models;
+ \item [{\tt parametersToShow}] [default={\tt starFormationDiskEfficiency}] A comma-separated list of model parameter values to be included in the output;
+ \item [{\tt sortOn}] [default=\verb@^net$@] A Perl regex to match the name of the fit-measure on which the sort should be performed;
+ \item [{\tt useReducedChi2}] [default=1] Sort using $\chi^2$ if set to 0, or reduced $\chi^2$ if set to 1;
+ \item [{\tt sortOnRating}] [default=1] Sort on the rating given to each model (see \S\ref{sec:ModelRating}) first, then on the $\chi^2$ value.
+\end{description}
+
+\subsection{Model Archiving}\label{sec:ModelArchiving}
+
+It can be useful to store the results of \glc\ runs without storing the full output (e.g. when searching model parameter space it's useful to have a record of the goodness of fit at each point in space, but it's often useful to delete the full model output to save on disk space). The {\tt scripts/aux/Archive\_Models.pl} script archives models. To archive models use:
+\begin{verbatim}
+ ./scripts/aux/Archive_Models.pl <modelDirectory> <archiveDirectory>
+\end{verbatim}
+Here {\tt <modelDirectory>} should be the name of a directory containing \glc\ models as generated by the {\tt Run\_Galacticus.pl} script (see \S\ref{sec:RunningGrids}) and {\tt <archiveDirectory>} is a directory in which to archive the models. The specified model directory will be searched for models. For each model found, an XML file is created in the archive directory and will contain:
+\begin{itemize}
+ \item A full list of parameters used to run the model;
+ \item The full version and revision data for \glc;
+ \item The time at which the model was run;
+ \item Any fitting data;
+ \item Any comments associated with the model (i.e. anything placed in a file {\tt comments.txt} in the model directory);
+ \item The name of a {\tt tar} archive containing any plots generated for the model.
+\end{itemize}
+Any plots found in the model directory will be combined into a {\tt tar} archive and stored in the archive directory.
 
 \chapter{Input Data}
 
@@ -741,7 +959,32 @@ In the standard black implementation the mass and spin evolve as:
 \dot{M}_\bullet &=& (1-\epsilon_{\rm radiation}) \dot{M}_0 \\
 \dot{j}_\bullet &=& \dot{j}(M_\bullet,j_\bullet,\dot{M}_0),
 \end{eqnarray}
-where $\dot{M}_0$ is the rest mass accretion rate, $\epsilon_{\rm radiation}$ is the radiative efficiency of the accretion flow feeding the black hole and $\dot{j}(M_\bullet,j_\bullet,\dot{M}_0)$ is the spin-up function of that accretion flow (see \S\ref{sec:AccretionDisks}). The rest mass accretion rate is computed assuming Bondi-Hoyle-Lyttleton accretion from the spheroid gas reservoir (with an assumed temperature of {\tt bondiHoyleAccretionTemperature}) enhanced by a factor of {\tt bondiHoyleAccretionEnhancement}. The rest mass accretion rate is removed (as a mass sink) from the spheroid component.
+where $\dot{M}_0$ is the rest mass accretion rate, $\epsilon_{\rm radiation}$ is the radiative efficiency of the accretion flow feeding the black hole and $\dot{j}(M_\bullet,j_\bullet,\dot{M}_0)$ is the spin-up function of that accretion flow (see \S\ref{sec:AccretionDisks}). The rest mass accretion rate is computed assuming Bondi-Hoyle-Lyttleton accretion from the spheroid gas reservoir (with an assumed temperature of {\tt bondiHoyleAccretionTemperature}) enhanced by a factor of {\tt bondiHoyleAccretionEnhancement}. The rest mass accretion rate is removed (as a mass sink) from the spheroid component. The black hole is assumed to cause feedback in two ways:
+\begin{description}
+ \item [Radio-mode] Any jet power from the black hole-accretion disk system (see \S\ref{sec:CircumnuclearDisks}) is included in the hot halo heating rate;
+ \item [Quasar-mode] A mechanical wind luminosity of \citep{ostriker_momentum_2010}
+\begin{equation}
+ L_{\rm wind} = \epsilon_{\bullet, wind} \dot{M}_0 \clight^2
+\end{equation}
+is added to the gas component of the spheroid (which, presumably, will respond with an outflow for example) if and only if the wind pressure (at the spheroid characteristic radius) is less than the typical thermal pressure in the spheroid gas \citep{ciotti_feedbackcentral_2009}, i.e.
+\begin{eqnarray}
+ P_{\rm wind} &<& P_{\rm ISM} \nonumber \\
+ \frac{1}{2}\rho_{\rm wind} V_{\rm wind}^2 &<& {3 {\rm k_B} T_{\rm ISM} \langle \rho_{\rm ISM}\rangle \over 2 m_{\rm H}}.
+\end{eqnarray}
+Since $\Omega r^2 \rho_{\rm wind} V_{\rm wind}^3 = L_{\rm wind}$ where $\Omega$ is the solid angle of the wind flow, this can be rearranged to give $\langle\rho_{\rm ISM}\rangle > \rho_{\rm wind, critical}$ where
+\begin{equation}
+\rho_{\rm wind,critical} = {2 m_{\rm H} L_{\rm wind} \over 3 \Omega r^2 V_{\rm wind} {\rm k_B} T_{\rm ISM}}.
+\end{equation}
+This critical wind density is computed at the characteristic radius of the spheroid, $r_{\rm spheroid}$, assuming $V_{\rm wind}=10^4$km/s, $T_{\rm ISM}=10^4$K and $\Omega=\pi$, and the \ISM\ density is approximated by
+\begin{equation}
+ \langle\rho_{\rm ISM}\rangle = {3 M_{\rm gas, spheroid} \over 4 \pi} r_{\rm spheroid}^3.
+\end{equation}
+For numerical ease, the fraction, $f_{\rm wind}$, of the wind luminosity added to the spheroid is adjusted smoothly through the $\rho_{\rm ISM}\approx\rho_{\rm wind,critical}$ region according to
+\begin{equation}
+ f_{\rm wind} = \left\{ \begin{array}{ll} 0 & \hbox{ if } x < 0, \\ 3x^2-2x^3 & \hbox{ if } 0 \le x \le 1, \\ 1 & \hbox{ if } x > 1, \end{array} \right.
+\end{equation}
+where $x=\rho_{\rm ISM}/\rho_{\rm wind,critical}-1/2$.
+\end{description}
 
 \subsubsection{Event Evolution}
 
@@ -864,6 +1107,7 @@ where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the r
 \begin{equation}
  \dot{J}_{\rm disk} = \dot{J}_{\rm cooling~rate}.
 \end{equation}
+The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}).
 
 \subsubsection{Event Evolution}
 
@@ -893,6 +1137,11 @@ The Hernquist galactic spheroid implementation defines the following properties:
  \item [{\tt Spheroid\_Angular\_Momentum}] The pseudo-angular momentum of the spheroid, $J_{\rm spheroid}$ [{\tt spheroidAngularMomentum}].
  \item [{\tt Spheroid\_Radius}] The radial scale length of the spheroid, $r_{\rm spheroid}$ [{\tt spheroidScaleLength}].
  \item [{\tt Spheroid\_Velocity}] The circular velocity of the spheroid at $r_{\rm spheroid}$, $V_{\rm spheroid}$ [{\tt spheroidCircularVelocity}].
+\end{description}
+and the following pipes:
+\begin{description}
+ \item [{\tt Tree\_Node\_Spheroid\_Gas\_Energy\_Input}] Energy sent through this pipe is added to the gas of the spheroid and will result in an outflow (see below). Input energy should be in units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$ and must be positive (energy cannot be removed from the gas via this pipe).
+ \item [{\tt Tree\_Node\_Spheroid\_Gas\_Sink}] Removes gas (and proportionate amounts of angular momentum and elements) from the spheroid gas. Removed mass should be in units of $M_\odot$ and must be positive (a negative mass sink would add mass to the spheroid which is not allowed via this pipe).
 \end{description}
 
 \subsubsection{Initialization}
@@ -926,6 +1175,11 @@ where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the r
 \begin{equation}
  \dot{J}_{\rm spheroid} = \dot{M}_{\rm outflow, spheroid} {J_{\rm spheroid} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}}.
 \end{equation}
+The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}), with an additional contribution given by
+\begin{equation}
+ \dot{M}_{\rm outflow, spheroid} = \beta_{\rm spheroid, energy} {\dot{E}_{\rm gas, spheroid} \over V_{\rm spheroid}^2}
+\end{equation}
+where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is an input parameter, and $\dot{E}_{\rm gas,spheroid}$ is any input energy sent through the {\tt Tree\_Node\_Spheroid\_Gas\_Energy\_Input} pipe.
 
 \subsubsection{Event Evolution}
 
@@ -1015,7 +1269,7 @@ The random dark matter halo spin implementation defines the following properties
 
 \subsubsection{Initialization}
 
-The spin parameter of each node, if not already assigned, is selected at random from a distribution of spin parameters. The value is propagated in both directions along the primary child branch from the node.
+The spin parameter of each node, if not already assigned, is selected at random from a distribution of spin parameters. This value is assigned to the earliest progenitor of the halo traced along its primary branch. The value is then propagated forward along the primary branch until the node mass exceeds that of the node for which the spin was selected by a factor of {\tt [randomSpinResetMassFactor]}, at which point a new spin is selected at random, and the process repeated until the end of the branch is reached. 
 
 \subsubsection{Differential Evolution}
 
@@ -1027,7 +1281,7 @@ The spin parameter does not evolve.
 
 \noindent\emph{Satellite merging:} None.\\
 
-\noindent\emph{Node promotion:} None.\\
+\noindent\emph{Node promotion:} The spin is updated to equal that of the parent node. (The two will differ only if this is a case where the new halo node was sufficiently more massive than the node for which a spin was last selected that a new spin value was chosen.)\\
 
 \section{Dark Matter Profile}
 
@@ -1079,7 +1333,7 @@ where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the reds
 
 The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time. Currently, only one implementation of background cosmology is available and is hard-coded into \glc. This will likely change in future releases to allow other cosmological models to be considered. The current implementation considers a standard cosmological model containing a mixture of collisionless matter (including dark matter) and dark energy. The dynamical effects of the radiation component are ignored.
 
-\section{Circumnuclear Accretion Disks}\index{accretion disks}\index{accretion!disk}
+\section{Circumnuclear Accretion Disks}\label{sec:CircumnuclearDisks}\index{accretion disks}\index{accretion!disk}
 
 Circumnuclear accretion disks surrounding supermassive black holes at the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic outflows (e.g. jets) from the nuclear region. Accretion disk type is specified via the {\tt accretionDisksMethod}, and the physics that must be implemented for each accretion disk type is describe in more detail in \S\ref{sec:AccretionDisks}. Current implementations of accretion disks are as follows.
 
@@ -1456,7 +1710,7 @@ Selected with {\tt starFormationTimescale[Disks|Spheroids]Method}$=${\tt dynamic
 \end{equation}
 where $\epsilon_\star=${\tt starFormation[Disks|Spheroids]Efficiency} and $\alpha_\star=${\tt starFormation[Disks|Spheroids]VelocityExponent} are input parameters, $\tau_{\rm dynamical}\equiv r/V$ is the dynamical timescale of the component and $r$ and $V$ are the characteristic radius and velocity respectively of the component. The timescale is not allowed to fall below a minimum value specified by {\tt starFormation[Disks|Spheroids]MinimumTimescale} (in Gyr).
 
-\section{Stellar Population Properties}\index{stellar populations}
+\section{Stellar Population Properties}\label{sec:StellarPopulationProperties}\index{stellar populations}
 
 Algorithms for determining stellar population properties---essentially the rates of change of stellar and gas mass and abundances given a star formation rate and fuel abundances (and perhaps a historical record of star formation in the component)---are selected by the {\tt stellarPopulationPropertiesMethod} parameter.
 
@@ -4414,6 +4668,8 @@ If {\tt componentType} is a match to the component then the procedure should ret
  \item [{\tt massTypeDark}] Only dark matter is included;
  \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
  \item [{\tt massTypeGalactic}] Only galactic mass is included.
+ \item [{\tt massTypeGaseous}] Only gaseous mass is included.
+ \item [{\tt massTypeStellar}] Only stellar mass is included.
 \end{description}
 The coordinate system in which {\tt position} is specified is given by {\tt coordinateSystem} which can take on the following values:
 \begin{description}
@@ -4455,6 +4711,8 @@ If {\tt componentType} is a match to the component then the procedure should ret
  \item [{\tt massTypeDark}] Only dark matter is included;
  \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
  \item [{\tt massTypeGalactic}] Only galactic mass is included.
+ \item [{\tt massTypeGaseous}] Only gaseous mass is included.
+ \item [{\tt massTypeStellar}] Only stellar mass is included.
 \end{description}
 If {\tt radius} is equal to or greater than {\tt radiusLarge} the routine should the total mass (i.e. mass within infinite radius).
 
@@ -4491,6 +4749,8 @@ If {\tt componentType} is a match to the component then the procedure should ret
  \item [{\tt massTypeDark}] Only dark matter is included;
  \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
  \item [{\tt massTypeGalactic}] Only galactic mass is included.
+ \item [{\tt massTypeGaseous}] Only gaseous mass is included.
+ \item [{\tt massTypeStellar}] Only stellar mass is included.
 \end{description}
 
 \subsubsection{HDF5 File Close}
