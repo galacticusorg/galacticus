@@ -94,9 +94,9 @@ contains
     double precision                                :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
+    galaxyIsPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
     if (galaxyIsPhysicallyPlausible) then
-
        ! Initialize the solver state.
        iterationCount=0
        fitMeasure    =2.0d0*fitMeasureAcceptable
