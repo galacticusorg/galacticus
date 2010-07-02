@@ -76,7 +76,7 @@ contains
        call Get_Input_Parameter('hdf5ChunkSize',chunksize,defaultValue=100)
        hdf5ChunkSize=chunksize
        !@ <inputParameter>
-       !@   <name>hdf5ChunkSize</name>
+       !@   <name>hdf5CompressionLevel</name>
        !@   <defaultValue>100</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
