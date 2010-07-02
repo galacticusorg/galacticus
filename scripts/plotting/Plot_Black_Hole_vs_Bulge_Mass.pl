@@ -47,8 +47,8 @@ $dataSet{'store'} = 0;
 $dataSet{'tree'} = "all";
 &HDF5::Get_Dataset(\%dataSet,['volumeWeight','spheroidStellarMass','blackHoleMass']);
 $dataSets         = \%{$dataSet{'dataSets'}};
-$spheroidMass     = ${$dataSets->{'spheroidStellarMass'}};
-$blackHoleMass    = ${$dataSets->{'blackHoleMass'}};
+$spheroidMass     = where(${$dataSets->{'spheroidStellarMass'}},${$dataSets->{'spheroidStellarMass'}} > 3.0e8);
+$blackHoleMass    = where(${$dataSets->{'blackHoleMass'}}      ,${$dataSets->{'spheroidStellarMass'}} > 3.0e8);
 unless (exists($dataSets->{'blackHoleMass'})) {
     if ( $showFit == 1 ) {
 	$fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";
@@ -66,7 +66,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weight);
     }
 
-# Read the XML data file.
+    # Read the XML data file.
     $xml = new XML::Simple;
     $data = $xml->XMLin("data/Black_Hole_Mass_vs_Galaxy_Properties.xml");
     $columns = $data->{'blackHoleData'}->{'columns'};
@@ -84,59 +84,57 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $logBlackHoleMass      = log10($y);
     $logError = 0.5*($yErrorUp-$yErrorDown)/$y/log(10.0);
     $weights = 1.0/$logError**2;
-($logBlackHoleMassMean,$logBlackHoleMassMeanError,$logBlackHoleMassSigma,$logBlackHoleMassSigmaError)
-    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
-
-# Compute chi^2.
-if ( nelem($logSpheroidMass) > 0 ) {
-    $degreesOfFreedom = 2*nelem($logBlackHoleMassMean);
-    $chiSquared = sum((($logBlackHoleMassMean-$logBlackHoleMassMeanGalacticus)**2)/($logBlackHoleMassMeanError**2+$logBlackHoleMassMeanErrorGalacticus**2))
-	+sum((($logBlackHoleMassSigma-$logBlackHoleMassSigmaGalacticus)**2)/($logBlackHoleMassSigmaError**2+$logBlackHoleMassSigmaErrorGalacticus**2));
-} else {
-    $chiSquared = 0.0;
-    $degreesOfFreedom = 0;
-}
-
-if ( $showFit == 1 ) {
-    $fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";
-    $fitData{'chiSquared'} = $chiSquared;
-    $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
-    $fitData{'fileName'} = $fileName;
-    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
-    print $xmlOutput->XMLout(\%fitData);
-}
-
-# Make the plot.
-$plot1  = Graphics::GnuplotIF->new();
-$plot1->gnuplot_hardcopy( '| ps2pdf - '.$outputFile, 
-			  'postscript enhanced', 
-			  'color lw 3 solid' );
-$plot1->gnuplot_set_xlabel("M_{bulge} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
-$plot1->gnuplot_set_ylabel("M_{black hole} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
-$plot1->gnuplot_set_title("Black hole mass vs. bulge mass");
-$plot1->gnuplot_cmd("set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.6, screen 0.2");
-$plot1->gnuplot_cmd("set xrange [1.0e8:1.0e13]");
-$plot1->gnuplot_cmd("set yrange [1.0e6:1.0e10]");
-$plot1->gnuplot_cmd("set key left");
-$plot1->gnuplot_cmd("set logscale xy");
-$plot1->gnuplot_cmd("set mxtics 10");
-$plot1->gnuplot_cmd("set mytics 10");
-$plot1->gnuplot_cmd("set format x \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set pointsize 1.0");
-$plotCommand = "plot '-' with errorbars pt 6 title \"".$data->{'blackHoleData'}->{'label'}."\"";
-if ( nelem($logSpheroidMass) > 0 ) {$plotCommand .= ", '-' pt 4 title \"Galacticus\""};
-$plot1->gnuplot_cmd($plotCommand);
-for ($i=0;$i<nelem($x);++$i) {
-    $plot1->gnuplot_cmd($x->index($i)." ".$y->index($i)." ".$yErrorDown->index($i)." ".$yErrorUp->index($i));
-}
-$plot1->gnuplot_cmd("e");
-if ( nelem($logSpheroidMass) > 0 ) {
-    for ($i=0;$i<nelem($spheroidMass);++$i) {
-	$plot1->gnuplot_cmd($spheroidMass->index($i)." ".$blackHoleMass->index($i));
+    ($logBlackHoleMassMean,$logBlackHoleMassMeanError,$logBlackHoleMassSigma,$logBlackHoleMassSigmaError)
+	= &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
+    
+    # Compute chi^2.
+    if ( nelem($logSpheroidMass) > 0 ) {
+	$degreesOfFreedom = 2*nelem($logBlackHoleMassMean);
+	$chiSquared = sum((($logBlackHoleMassMean-$logBlackHoleMassMeanGalacticus)**2)/($logBlackHoleMassMeanError**2+$logBlackHoleMassMeanErrorGalacticus**2))
+	    +sum((($logBlackHoleMassSigma-$logBlackHoleMassSigmaGalacticus)**2)/($logBlackHoleMassSigmaError**2+$logBlackHoleMassSigmaErrorGalacticus**2));
+    } else {
+	$chiSquared = 0.0;
+	$degreesOfFreedom = 0;
+    }
+    
+    if ( $showFit == 1 ) {
+	$fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";
+	$fitData{'chiSquared'} = $chiSquared;
+	$fitData{'degreesOfFreedom'} = $degreesOfFreedom;
+	$fitData{'fileName'} = $fileName;
+	$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+	print $xmlOutput->XMLout(\%fitData);
+    }
+    
+    # Make the plot.
+    $plot1  = Graphics::GnuplotIF->new();
+    $plot1->gnuplot_hardcopy( '| ps2pdf - '.$outputFile, 
+			      'postscript enhanced', 
+			      'color lw 3 solid' );
+    $plot1->gnuplot_set_xlabel("M_{bulge} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
+    $plot1->gnuplot_set_ylabel("M_{black hole} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
+    $plot1->gnuplot_set_title("Black hole mass vs. bulge mass");
+    $plot1->gnuplot_cmd("set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.6, screen 0.2");
+    $plot1->gnuplot_cmd("set key left");
+    $plot1->gnuplot_cmd("set logscale xy");
+    $plot1->gnuplot_cmd("set mxtics 10");
+    $plot1->gnuplot_cmd("set mytics 10");
+    $plot1->gnuplot_cmd("set format x \"10^{\%L}\"");
+    $plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
+    $plot1->gnuplot_cmd("set pointsize 1.0");
+    $plotCommand = "plot '-' with errorbars pt 6 title \"".$data->{'blackHoleData'}->{'label'}."\"";
+    if ( nelem($logSpheroidMass) > 0 ) {$plotCommand .= ", '-' pt 4 title \"Galacticus\""};
+    $plot1->gnuplot_cmd($plotCommand);
+    for ($i=0;$i<nelem($x);++$i) {
+	$plot1->gnuplot_cmd($x->index($i)." ".$y->index($i)." ".$yErrorDown->index($i)." ".$yErrorUp->index($i));
     }
     $plot1->gnuplot_cmd("e");
-}
+    if ( nelem($logSpheroidMass) > 0 ) {
+	for ($i=0;$i<nelem($spheroidMass);++$i) {
+	    $plot1->gnuplot_cmd($spheroidMass->index($i)." ".$blackHoleMass->index($i));
+	}
+	$plot1->gnuplot_cmd("e");
+    }
 }
 
 exit;
