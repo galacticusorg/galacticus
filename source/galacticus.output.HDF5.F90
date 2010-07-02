@@ -24,9 +24,16 @@
 
 module Galacticus_HDF5
   !% Manages HDF5 output from \glc.
+  use HDF5
   private
 
   ! Output file identifier.
-  integer, public :: galacticusOutputID=-1
+  integer,               public :: galacticusOutputID  =-1
+
+  ! Chunk size.
+  integer(kind=HSIZE_T), public :: hdf5ChunkSize       = 1
+
+  ! Compression level (-1 means no compression, 0-9 means GNU gzip compression with higher numbers giving more compression).
+  integer,               public :: hdf5CompressionLevel=-1
 
 end module Galacticus_HDF5

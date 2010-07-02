@@ -44,7 +44,7 @@ contains
     include 'galacticus.output.open.modules.inc'
     !# </include>
     implicit none
-    integer :: errorCode
+    integer :: errorCode,chunkSize
     
     if (galacticusOutputID < 0) then
        ! Ensure HDF5 system is initialized.
@@ -64,6 +64,26 @@ contains
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Open_File','failed to open output file')
        ! Get file name parameter again and write it to the output file.
        call Get_Input_Parameter('galacticusOutputFile',galacticusOutputFile,defaultValue='galacticus.hdf5')
+       ! Read parameters.
+       !@ <inputParameter>
+       !@   <name>hdf5ChunkSize</name>
+       !@   <defaultValue>100</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The chunk size used for outputting HDF5 datasets.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hdf5ChunkSize',chunksize,defaultValue=100)
+       hdf5ChunkSize=chunksize
+       !@ <inputParameter>
+       !@   <name>hdf5ChunkSize</name>
+       !@   <defaultValue>100</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The chunk size used for outputting HDF5 datasets.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hdf5CompressionLevel',hdf5CompressionLevel,defaultValue=9)
 
        ! Call all routines that requested to output to the file on start up.
        !# <include directive="outputFileOpenTask" type="code" action="subroutine">

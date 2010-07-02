@@ -41,51 +41,9 @@ module Galacticus_HDF5_Groups
 
   ! Flag indicating if module is initialized.
   logical                          :: galacticusHDF5GroupsInitialized=.false.
-
-  ! Parameters controlling chunking and compression of HDF5 output.
-  integer(kind=HSIZE_T) :: hdf5ChunkSize
-  integer               :: hdf5CompressionLevel ! (-1 means no compression, 0-9 means GNU gzip compression with higher numbers giving more compression).
   
 contains
   
-  subroutine Galacticus_HDF5_Groups_Initialize
-    !% Read parameters controlling output of datasets.
-    use Input_Parameters
-    implicit none
-    integer :: chunkSize
-
-    ! Initialize the module if necessary.
-    !$omp critical (Galacticus_HDF5_Groups_Initialize)
-    if (.not.galacticusHDF5GroupsInitialized) then
-       ! Read parameters.
-       !@ <inputParameter>
-       !@   <name>hdf5ChunkSize</name>
-       !@   <defaultValue>100</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The chunk size used for outputting HDF5 datasets.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hdf5ChunkSize',chunksize,defaultValue=100)
-       hdf5ChunkSize=chunksize
-       !@ <inputParameter>
-       !@   <name>hdf5ChunkSize</name>
-       !@   <defaultValue>100</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The chunk size used for outputting HDF5 datasets.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hdf5CompressionLevel',hdf5CompressionLevel,defaultValue=9)
-
-       ! Flag that the module is initialized.
-       galacticusHDF5GroupsInitialized=.true.
-    end if
-    !$omp end critical (Galacticus_HDF5_Groups_Initialize)
-
-    return
-  end subroutine Galacticus_HDF5_Groups_Initialize
-
   subroutine Galacticus_Output_Dataset_Integer(locationID,datasetID,datasetName,commentText,datasetInteger,isExtendable)
     !% Write an integer dataset to the \glc\ output file.
     implicit none
