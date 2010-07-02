@@ -36,9 +36,9 @@ sub Get_Dust_Attenuated_Luminosity {
     # Check if a face-on magnitude is required.
     if ( $dataSetName =~ m/\[faceOn\]/ ) {
 	$faceOn = 1;
-	push(@propertyList,"inclination");
     } else {
 	$faceOn = 0;
+	push(@propertyList,"inclination");
     }
 
     # Get the datasets needed for our calculation.
@@ -99,7 +99,7 @@ sub Get_Dust_Attenuated_Luminosity {
 	if ( $frame eq "rest" ) {
 	    $effectiveWavelength{$filterLabel} = pdl $filterData->{'effectiveWavelength'};
 	} else {
-	    $effectiveWavelength{$filterLabel} = pdl $filterData->{'effectiveWavelength'}/$redshift;
+	    $effectiveWavelength{$filterLabel} = pdl $filterData->{'effectiveWavelength'}/(1.0+$redshift);
 	}
 	($wavelengthIndex{$filterLabel},$error) = interpolate($effectiveWavelength{$filterLabel},$wavelengths,$wavelengthIndices);
     }
@@ -149,7 +149,9 @@ sub Get_Dust_Attenuated_Luminosity {
     # Central surface density in M_Solar/pc^2.
     $gasMetalMass                   = pdl ${$dataSets->{"diskGasMetals"}};
     $diskScaleLength                = pdl ${$dataSets->{"diskScaleLength"}};
+    $noDisks                        = which($diskScaleLength <= 0.0);
     $gasMetalsSurfaceDensityCentral = $gasMetalMass/(2.0*$Pi*($mega*$diskScaleLength)**2);
+    $gasMetalsSurfaceDensityCentral->index($noDisks) .= 0.0;
 
     # Compute central optical depths.
     $opticalDepthCentral            = $opticalDepthNormalization*$gasMetalsSurfaceDensityCentral;
