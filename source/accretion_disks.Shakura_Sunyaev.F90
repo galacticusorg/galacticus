@@ -64,14 +64,43 @@ contains
   end function Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev
 
   double precision function Accretion_Disk_Jet_Power_Shakura_Sunyaev(thisNode,massAccretionRate)
-    !% Computes the jet power for a Shakura-Sunyaev (thin) accretion disk.
+    !% Computes the jet power for a Shakura-Sunyaev (thin) accretion disk, using the expressions from
+    !% \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
     use Tree_Nodes
+    use Tree_Node_Methods
+    use Black_Hole_Fundamentals
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Units
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
+    double precision, parameter              :: alphaViscosity                =0.01d0
+    double precision, parameter              :: alphaViscosityNormalized      =alphaViscosity/0.01d0
+    double precision, parameter              :: powerNormalizationKerr        =(10.0d0**42.7)*ergs*gigaYear/massSolar/kilo**2
+    double precision, parameter              :: powerNormalizationSchwarzchild=(10.0d0**41.7)*ergs*gigaYear/massSolar/kilo**2
+    double precision, parameter              :: meierMassNormalization        =1.0d9
+    double precision                         :: blackHoleSpin,accretionRateDimensionless,blackHoleMassDimensionless
 
-    ! Assume no jet is produced.
-    Accretion_Disk_Jet_Power_Shakura_Sunyaev=0.0d0
+    ! Get the black hole spin and dimensionless accretion rate and mass as defined by Meier (2001).
+    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    accretionRateDimensionless=massAccretionRate/Black_Hole_Eddington_Accretion_Rate(thisNode)
+    blackHoleMassDimensionless=Tree_Node_Black_Hole_Mass(thisNode)/meierMassNormalization
+    if (blackHoleMassDimensionless > 0.0d0 .and. accretionRateDimensionless > 0.0d0) then
+       if (blackHoleSpin > 0.8d0) then
+          ! Use Meier's rapidly rotating (Kerr) solution for high spin black holes.
+          Accretion_Disk_Jet_Power_Shakura_Sunyaev=powerNormalizationKerr*(blackHoleMassDimensionless**0.9d0)&
+               &*(accretionRateDimensionless**1.2d0)*(1.0d0+1.1d0*blackHoleSpin+0.29d0*blackHoleSpin**2)/(alphaViscosityNormalized&
+               &**0.1d0)
+       else
+          ! Use Meier's rapidly rotating (Schwarzchild) solution for low spin black holes. We, somewhat arbitrarily, interpolate
+          ! from the Schwarzchild solution assuming power grows exponentially with spin and matched to the Kerr solution at the
+          ! transition spin.
+         Accretion_Disk_Jet_Power_Shakura_Sunyaev=powerNormalizationSchwarzchild*(blackHoleMassDimensionless**0.9d0) &
+              &*(accretionRateDimensionless**1.2d0)*dexp(3.785d0*blackHoleSpin)/(alphaViscosityNormalized**0.1d0)
+      end if
+    end if
     return
   end function Accretion_Disk_Jet_Power_Shakura_Sunyaev
 
