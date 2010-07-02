@@ -94,10 +94,9 @@ contains
     use Root_Finder
     use FGSL
     use Dark_Matter_Halo_Scales
-
-use tree_node_methods
-
-
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode
     integer,                 intent(in),    optional :: massType,componentType
@@ -107,6 +106,8 @@ use tree_node_methods
     !$omp threadprivate(rootFunction,rootFunctionSolver)
     double precision                                 :: radiusMinimum,radiusMaximum
     type(c_ptr)                                      :: parameterPointer
+    type(varying_string)                             :: message
+    character(len=11)                                :: massLabel
 
     ! Determine which mass type to use.
     if (present(massType)) then
@@ -144,6 +145,15 @@ use tree_node_methods
     ! Solve for the radius.
     activeNode => thisNode
     radiusMinimum=0.0d0
+    if (Enclosed_Mass_Root(radiusMinimum,parameterPointer) >= 0.0d0) then
+       message='Enclosed mass in galaxy (ID='
+       write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,radiusMinimum,massTypeRoot,componentTypeRoot)
+       message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
+       write (massLabel,'(e10.4)') massRoot
+       message=message//') at zero radius (was seeking '//trim(massLabel)
+       message=message//') - expect a crash.'
+       call Galacticus_Display_Message(message,1)
+     end if
     radiusMaximum=Dark_Matter_Halo_Virial_Radius(thisNode)
     do while (Enclosed_Mass_Root(radiusMaximum,parameterPointer) <= 0.0d0)
        radiusMaximum=radiusMaximum*2.0d0
