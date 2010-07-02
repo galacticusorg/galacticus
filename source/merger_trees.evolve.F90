@@ -259,31 +259,24 @@ contains
 
     ! Check that end time exceeds current time.
     if (Evolve_To_Time < Tree_Node_Time(thisNode)) then
+       message='end time ('
+       write (timeFormatted,'(f7.4)') Evolve_To_Time
+       message=message//trim(timeFormatted)//' Gyr) is before current time ('
+       write (timeFormatted,'(f7.4)') Tree_Node_Time(thisNode)
+       message=message//trim(timeFormatted)//' Gyr) of node '
+       message=message//thisNode%index()
+       message=message//' (time difference is '
+       write (timeFormatted,'(e8.2)') Tree_Node_Time(thisNode)-Evolve_To_Time
+       message=message//trim(timeFormatted)
        if (Evolve_To_Time < Tree_Node_Time(thisNode)*(1.0d0-endTimeToleranceRelative)) then
+          ! End time is well before current time. This is an error.
+          message=message//' Gyr)'
+          call Galacticus_Error_Report('Evolve_To_Time',message)
+       else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
-          message='end time ('
-          write (timeFormatted,'(f7.4)') Evolve_To_Time
-          message=message//trim(timeFormatted)//' Gyr) is before current time ('
-          write (timeFormatted,'(f7.4)') Tree_Node_Time(thisNode)
-          message=message//trim(timeFormatted)//' Gyr) of node '
-          message=message//thisNode%index()
-          message=message//' (time difference is '
-          write (timeFormatted,'(e8.2)') Tree_Node_Time(thisNode)-Evolve_To_Time
-          message=message//trim(timeFormatted)//' Gyr) - this should happen infrequently'
+          message=message//' Gyr) - this should happen infrequently'
           call Galacticus_Display_Message(message,1)
           call Tree_Node_Time_Set(thisNode,Evolve_To_Time)
-       else
-          ! End time is well before current time. This is an error.
-          message='end time ('
-          write (timeFormatted,'(f7.4)') Evolve_To_Time
-          message=message//trim(timeFormatted)//' Gyr) is before current time ('
-          write (timeFormatted,'(f7.4)') Tree_Node_Time(thisNode)
-          message=message//trim(timeFormatted)//' Gyr) of node '
-          message=message//thisNode%index()
-          message=message//' (time difference is '
-          write (timeFormatted,'(e8.2)') Tree_Node_Time(thisNode)-Evolve_To_Time
-          message=message//trim(timeFormatted)//' Gyr)'
-          call Galacticus_Error_Report('Evolve_To_Time',message)
        end if
     end if
     return
