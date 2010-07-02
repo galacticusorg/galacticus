@@ -12,7 +12,7 @@ F03COMPILER = gfortran
 MODULETYPE = GCC-f95-on-LINUX
 
 # Fortran compiler flags:
-F03FLAGS = -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include
+F03FLAGS = -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/finclude
 # Error checking flags
 F03FLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
 # Add bounds checking.
