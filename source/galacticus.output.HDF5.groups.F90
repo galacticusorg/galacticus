@@ -38,9 +38,54 @@ module Galacticus_HDF5_Groups
      module procedure Galacticus_Output_Dataset_Character
      module procedure Galacticus_Output_Dataset_VarString
   end interface
+
+  ! Flag indicating if module is initialized.
+  logical                          :: galacticusHDF5GroupsInitialized=.false.
+
+  ! Parameters controlling chunking and compression of HDF5 output.
+  integer(kind=HSIZE_T) :: hdf5ChunkSize
+  integer               :: hdf5CompressionLevel ! (-1 means no compression, 0-9 means GNU gzip compression with higher numbers giving more compression).
   
 contains
   
+  subroutine Galacticus_HDF5_Groups_Initialize
+    !% Read parameters controlling output of datasets.
+    use Input_Parameters
+    implicit none
+    integer :: chunkSize
+
+    ! Initialize the module if necessary.
+    !$omp critical (Galacticus_HDF5_Groups_Initialize)
+    if (.not.galacticusHDF5GroupsInitialized) then
+       ! Read parameters.
+       !@ <inputParameter>
+       !@   <name>hdf5ChunkSize</name>
+       !@   <defaultValue>100</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The chunk size used for outputting HDF5 datasets.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hdf5ChunkSize',chunksize,defaultValue=100)
+       hdf5ChunkSize=chunksize
+       !@ <inputParameter>
+       !@   <name>hdf5ChunkSize</name>
+       !@   <defaultValue>100</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The chunk size used for outputting HDF5 datasets.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hdf5CompressionLevel',hdf5CompressionLevel,defaultValue=9)
+
+       ! Flag that the module is initialized.
+       galacticusHDF5GroupsInitialized=.true.
+    end if
+    !$omp end critical (Galacticus_HDF5_Groups_Initialize)
+
+    return
+  end subroutine Galacticus_HDF5_Groups_Initialize
+
   subroutine Galacticus_Output_Dataset_Integer(locationID,datasetID,datasetName,commentText,datasetInteger,isExtendable)
     !% Write an integer dataset to the \glc\ output file.
     implicit none
@@ -50,7 +95,6 @@ contains
     character(len=*),      intent(in)           :: datasetName,commentText
     logical,               intent(in), optional :: isExtendable
     integer(kind=HID_T),   parameter            :: datasetRank=1
-    integer(kind=HSIZE_T), parameter            :: chunkSize=1
     integer                                     :: errorCode
     integer(kind=HSIZE_T)                       :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
     integer(kind=HID_T)                         :: dataspaceID,newDataspaceID,propertyList
@@ -79,10 +123,15 @@ contains
        call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to make property list &
             &for integer datset')
-       datasetDimensions=[chunkSize]
+       datasetDimensions=[min(size(datasetInteger),hdf5ChunkSize)]
        call h5pset_chunk_f(propertyList,datasetRank,datasetDimensions,errorCode) 
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to set chunk size &
             &for integer dataset')
+       if (hdf5CompressionLevel >= 0) then
+          call h5pset_deflate_f(propertyList,hdf5CompressionLevel,errorCode) 
+          if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to set compression level &
+               &for integer dataset')
+       end if
        call h5dcreate_f(locationID,trim(datasetName),H5T_NATIVE_INTEGER,dataspaceID,datasetID,errorCode,propertyList)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to make dataset &
             &for integer dataset')
@@ -134,7 +183,6 @@ contains
     character(len=*),      intent(in)           :: datasetName,commentText
     logical,               intent(in), optional :: isExtendable
     integer(kind=HID_T),   parameter            :: datasetRank=1
-    integer(kind=HSIZE_T), parameter            :: chunkSize=1
     integer                                     :: errorCode
     integer(kind=HSIZE_T)                       :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
     integer(kind=HID_T)                         :: dataspaceID,newDataspaceID,propertyList
@@ -164,10 +212,15 @@ contains
        call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to make property list &
             &for double datset')
-       datasetDimensions=[chunkSize]
+       datasetDimensions=[min(size(datasetDouble),hdf5ChunkSize)]
        call h5pset_chunk_f(propertyList,datasetRank,datasetDimensions,errorCode) 
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to set chunk size &
             &for double dataset')
+       if (hdf5CompressionLevel >= 0) then
+          call h5pset_deflate_f(propertyList,hdf5CompressionLevel,errorCode) 
+          if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to set compression level &
+               &for double dataset')
+       end if
        call h5dcreate_f(locationID,trim(datasetName),H5T_NATIVE_DOUBLE,dataspaceID,datasetID,errorCode,propertyList)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to make dataset &
             &for double dataset: '//trim(datasetName))
@@ -219,7 +272,6 @@ contains
     character(len=*),      intent(in)           :: datasetName,commentText
     logical,               intent(in), optional :: isExtendable
     integer(kind=HID_T),   parameter            :: datasetRank=1
-    integer(kind=HSIZE_T), parameter            :: chunkSize=1
     integer                                     :: errorCode
     integer(kind=HSIZE_T)                       :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
     integer(kind=HID_T)                         :: dataspaceID,newDataspaceID,propertyList,dataTypeID
@@ -255,10 +307,15 @@ contains
        call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to make property list &
             &for character datset')
-       datasetDimensions=[chunkSize]
+       datasetDimensions=[min(size(datasetCharacter),hdf5ChunkSize)]
        call h5pset_chunk_f(propertyList,datasetRank,datasetDimensions,errorCode) 
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to set chunk size &
             &for character dataset')
+       if (hdf5CompressionLevel >= 0) then
+          call h5pset_deflate_f(propertyList,hdf5CompressionLevel,errorCode) 
+          if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to set compression level &
+               &for character dataset')
+       end if
        call h5dcreate_f(locationID,trim(datasetName),datatypeID,dataspaceID,datasetID,errorCode,propertyList)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to make dataset &
             &for character dataset')
@@ -311,7 +368,6 @@ contains
     character(len=*),      intent(in)            :: datasetName,commentText
     logical,               intent(in), optional  :: isExtendable
     integer(kind=HID_T),   parameter             :: datasetRank=1
-    integer(kind=HSIZE_T), parameter             :: chunkSize=1
     integer                                      :: errorCode
     integer(kind=HSIZE_T)                        :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1)&
          &,hyperslabCount(1)
@@ -352,10 +408,15 @@ contains
        call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to make property list &
             &for varying_string datset')
-       datasetDimensions=[chunkSize]
+       datasetDimensions=[min(size(datasetCharacter),hdf5ChunkSize)]
        call h5pset_chunk_f(propertyList,datasetRank,datasetDimensions,errorCode) 
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to set chunk size &
             &for varying_string dataset')
+       if (hdf5CompressionLevel >= 0) then
+          call h5pset_deflate_f(propertyList,hdf5CompressionLevel,errorCode) 
+          if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to set compression level &
+               &for varying_string dataset')
+       end if
        call h5dcreate_f(locationID,trim(datasetName),datatypeID,dataspaceID,datasetID,errorCode,propertyList)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to make dataset &
             &for varying_string dataset')
