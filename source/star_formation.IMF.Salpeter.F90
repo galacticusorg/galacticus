@@ -120,22 +120,22 @@ contains
     if (.not.imfSalpeterInitialized) then
        !@ <inputParameter>
        !@   <name>imfSalpeterRecycledInstantaneous</name>
-       !@   <defaultValue>0.30 (internally computed)</defaultValue>
+       !@   <defaultValue>0.39</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The recycled fraction for the Salpeter \IMF\ in the instantaneous recycling approximation.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('imfSalpeterRecycledInstantaneous',imfSalpeterRecycledInstantaneous,defaultValue=0.30d0)
+       call Get_Input_Parameter('imfSalpeterRecycledInstantaneous',imfSalpeterRecycledInstantaneous,defaultValue=0.39d0)
        !@ <inputParameter>
        !@   <name>imfSalpeterYieldInstantaneous</name>
-       !@   <defaultValue>0.022 (internally computed)</defaultValue>
+       !@   <defaultValue>0.02</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The yield for the Salpeter \IMF\ in the instantaneous recycling approximation.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('imfSalpeterYieldInstantaneous'   ,imfSalpeterYieldInstantaneous   ,defaultValue=0.022d0)
+       call Get_Input_Parameter('imfSalpeterYieldInstantaneous'   ,imfSalpeterYieldInstantaneous   ,defaultValue=0.02d0)
 
        ! Get the normalization for this IMF.
        call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)

@@ -100,13 +100,13 @@ contains
        ! Get the halo spin distribution method parameter.
        !@ <inputParameter>
        !@   <name>barInstabilityMethod</name>
-       !@   <defaultValue>null</defaultValue>
+       !@   <defaultValue>ELN</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for bar instability calculations.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('barInstabilityMethod',barInstabilityMethod,defaultValue='null')
+       call Get_Input_Parameter('barInstabilityMethod',barInstabilityMethod,defaultValue='ELN')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="barInstabilityMethod" type="code" action="subroutine">
        !#  <subroutineArgs>barInstabilityMethod,Bar_Instability_Timescale_Get</subroutineArgs>

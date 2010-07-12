@@ -88,13 +88,13 @@ contains
        ! Get parameters of for the timescale calculation.
        !@ <inputParameter>
        !@   <name>starFormationDiskEfficiency</name>
-       !@   <defaultValue>0.005</defaultValue>
+       !@   <defaultValue>0.01</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The efficiency of star formation in disks for the dynamical time method.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('starFormationDiskEfficiency'      ,starFormationDiskEfficiency      ,defaultValue= 0.005d0)
+       call Get_Input_Parameter('starFormationDiskEfficiency'      ,starFormationDiskEfficiency      ,defaultValue= 0.01d0)
        !@ <inputParameter>
        !@   <name>starFormationDiskVelocityExponent</name>
        !@   <defaultValue>$-1.5$</defaultValue>

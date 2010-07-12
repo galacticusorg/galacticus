@@ -90,13 +90,13 @@ contains
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_WF
        !@ <inputParameter>
        !@   <name>coolingTimeAvailableAgeFactor</name>
-       !@   <defaultValue>1</defaultValue>
+       !@   <defaultValue>0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the {\tt White-Frenk} method.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingTimeAvailableAgeFactor',coolingTimeAvailableAgeFactor,defaultValue=1.0d0)
+       call Get_Input_Parameter('coolingTimeAvailableAgeFactor',coolingTimeAvailableAgeFactor,defaultValue=0.0d0)
        if (coolingTimeAvailableAgeFactor < 0.0d0 .or. coolingTimeAvailableAgeFactor > 1.0d0) call Galacticus_Error_Report('Cooling_Time_Available_WF_Initialize','0 <= coolingTimeAvailableAgeFactor <= 1 is required')
 
     end if

@@ -89,13 +89,13 @@ contains
        ! Get parameters of for the feedback calculation.
        !@ <inputParameter>
        !@   <name>spheroidOutflowVelocity</name>
-       !@   <defaultValue>200</defaultValue>
+       !@   <defaultValue>50</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The velocity scale at which the \SNe-driven outflow rate equals the star formation rate in spheroids.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowVelocity',spheroidOutflowVelocity,defaultValue=200.0d0)
+       call Get_Input_Parameter('spheroidOutflowVelocity',spheroidOutflowVelocity,defaultValue=50.0d0)
        !@ <inputParameter>
        !@   <name>spheroidOutflowExponent</name>
        !@   <defaultValue>2</defaultValue>
@@ -104,7 +104,7 @@ contains
        !@     The velocity scaling of the \SNe-driven outflow rate in spheroids.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowExponent',spheroidOutflowExponent,defaultValue=  2.0d0)
+       call Get_Input_Parameter('spheroidOutflowExponent',spheroidOutflowExponent,defaultValue= 2.0d0)
     end if
     return
   end subroutine Star_Formation_Feedback_Spheroids_Power_Law_Initialize

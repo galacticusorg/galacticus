@@ -79,7 +79,7 @@ contains
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Dark_Matter_Profile_Null_Initialize</unitName>
-  !#  <optionName default="null">treeNodeMethodDarkMatterProfile</optionName>
+  !#  <optionName>treeNodeMethodDarkMatterProfile</optionName>
   !# </treeNodeCreateInitialize>
   subroutine Tree_Node_Methods_Dark_Matter_Profile_Null_Initialize(componentOption,componentTypeCount)
     !% Initializes the tree node dark matter profile null methods module.

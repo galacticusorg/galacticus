@@ -102,7 +102,7 @@ contains
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Profile_Scale_Initialize</unitName>
-  !#  <optionName>treeNodeMethodDarkMatterProfile</optionName>
+  !#  <optionName default="scale">treeNodeMethodDarkMatterProfile</optionName>
   !# </treeNodeCreateInitialize>
   subroutine Tree_Node_Methods_Profile_Scale_Initialize(componentOption,componentTypeCount)
     !% Initializes the tree node ``scale'' dark matter profile method module.

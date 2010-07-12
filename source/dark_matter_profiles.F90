@@ -117,13 +117,13 @@ contains
        ! Get the halo spin distribution method parameter.
        !@ <inputParameter>
        !@   <name>darkMatterProfileMethod</name>
-       !@   <defaultValue>isothermal</defaultValue>
+       !@   <defaultValue>NFW</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of dark matter halo density profiles.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterProfileMethod',darkMatterProfileMethod,defaultValue='isothermal')
+       call Get_Input_Parameter('darkMatterProfileMethod',darkMatterProfileMethod,defaultValue='NFW')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="darkMatterProfileMethod" type="code" action="subroutine">
        !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get</subroutineArgs>

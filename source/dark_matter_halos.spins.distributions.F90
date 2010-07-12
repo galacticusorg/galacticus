@@ -101,13 +101,13 @@ contains
        ! Get the halo spin distribution method parameter.
        !@ <inputParameter>
        !@   <name>haloSpinDistributionMethod</name>
-       !@   <defaultValue>lognormal</defaultValue>
+       !@   <defaultValue>Bett2007</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be use for computing halo spin distributions.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('haloSpinDistributionMethod',haloSpinDistributionMethod,defaultValue='lognormal')
+       call Get_Input_Parameter('haloSpinDistributionMethod',haloSpinDistributionMethod,defaultValue='Bett2007')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="haloSpinDistributionMethod" type="code" action="subroutine">
        !#  <subroutineArgs>haloSpinDistributionMethod,Halo_Spin_Sample_Get</subroutineArgs>
