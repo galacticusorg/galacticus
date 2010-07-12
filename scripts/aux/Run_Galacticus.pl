@@ -113,10 +113,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
 	    # Output the parameters as an XML file.
 	    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
 	    open(outHndl,">".$galacticusOutputDirectory."/newParameters.xml");
-	    print $xmlOutput->XMLout($data);
-
-	    print "\n\n\n";
-
+	    print outHndl $xmlOutput->XMLout($data);
 	    close(outHndl);
 	    undef($data);
 	    undef(%parameterHash);
