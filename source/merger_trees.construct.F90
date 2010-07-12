@@ -76,15 +76,16 @@ module Merger_Tree_Construction
   ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
   procedure(Merger_Tree_Construct_Template), pointer :: Merger_Tree_Construct => null()
   interface Merger_Tree_Construct_Template
-     subroutine Merger_Tree_Construct_Template(thisTree)
+     subroutine Merger_Tree_Construct_Template(thisTree,skipTree)
        import mergerTree
        type(mergerTree), intent(inout) :: thisTree
+       logical,          intent(in)    :: skipTree
      end subroutine Merger_Tree_Construct_Template
   end interface
   
 contains
 
-  function Merger_Tree_Create() result(thisTree)
+  function Merger_Tree_Create(skipTree) result(thisTree)
     !% Creates a merger tree.
     use Input_Parameters
     use Galacticus_Error
@@ -92,7 +93,8 @@ contains
     include 'merger_trees.construct.modules.inc'
     !# </include>
     implicit none
-    type(mergerTree), pointer :: thisTree
+    type(mergerTree), pointer    :: thisTree
+    logical,          intent(in) :: skipTree
 
     !$omp critical(Merger_Tree_Construct_Initialization) 
     ! Initialize if necessary.
@@ -121,7 +123,7 @@ contains
     allocate(thisTree)
 
     ! Call the routine to construct the merger tree.
-    call Merger_Tree_Construct(thisTree)
+    call Merger_Tree_Construct(thisTree,skipTree)
 
     ! Deallocate the tree if no nodes were created.
     if (.not.associated(thisTree%baseNode)) then

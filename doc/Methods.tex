@@ -1830,15 +1830,16 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The construction subroutine should have the following form:
 \begin{verbatim}
-  subroutine Merger_Tree_Construct_Do(thisTree)
+  subroutine Merger_Tree_Construct_Do(thisTree,skipTree)
     type(mergerTree), intent(inout) :: thisTree
+    logical,          intent(in)    :: skipTree
     .
     .
     .
     return
   end subroutine Merger_Tree_Construct_Do
 \end{verbatim}
-and should return a full merger tree in {\tt thisTree}. The tree must have at least masses, times and parent/child/sibling links created. Other properties (e.g. spins) can be optionally included also.
+and should return a full merger tree in {\tt thisTree}}, unless {\tt skipTree} is true, in which case this tree will be skipped (i.e. not evolved or output) and so it suffices to merely allocate the base node---there is no need to create the entire tree (although it is permissible to do so)---and update any internal data (e.g. a count of trees constructed) as required. The tree must have at least masses, times and parent/child/sibling links created. Other properties (e.g. spins) can be optionally included also.
 
 Currently defined merger tree building methods are:
 \begin{description}
