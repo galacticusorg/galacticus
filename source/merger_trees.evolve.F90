@@ -227,13 +227,13 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
+    use Merger_Trees
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: endTime
     type(treeNode),                  pointer :: satelliteNode
     procedure(),      intent(out),   pointer :: End_Of_Timestep_Task
     procedure(),                     pointer :: End_Of_Timestep_Task_Internal
-    double precision, parameter              :: endTimeToleranceRelative=1.0d-5
     double precision                         :: time,expansionFactor,expansionTimescale,hostTimeLimit
     character(len=9)                         :: timeFormatted
     type(varying_string)                     :: message
@@ -307,7 +307,7 @@ contains
        message=message//' (time difference is '
        write (timeFormatted,'(e8.2)') Tree_Node_Time(thisNode)-Evolve_To_Time
        message=message//trim(timeFormatted)
-       if (Evolve_To_Time < Tree_Node_Time(thisNode)*(1.0d0-endTimeToleranceRelative)) then
+       if (.not.Tree_Node_Is_Accurate(Tree_Node_Time(thisNode),Evolve_To_Time)) then
           ! End time is well before current time. This is an error.
           message=message//' Gyr)'
           call Galacticus_Error_Report('Evolve_To_Time',message)

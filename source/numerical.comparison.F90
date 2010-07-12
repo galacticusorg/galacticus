@@ -64,7 +64,7 @@
 module Numerical_Comparison
   !% Implements comparisons of values.
   private
-  public :: Values_Differ
+  public :: Values_Differ, Values_Agree
 
 contains
 
@@ -81,5 +81,31 @@ contains
     if (.not.(present(absTol).or.present(relTol))) Values_Differ=(value1 /= value2)
     return
   end function Values_Differ
+
+  logical function Values_Agree(value1,value2,absTol,relTol)
+    !% Returns true if {\tt value1} and {\tt value2} agree to within {\tt absTol} in absolute terms, or {\tt relTol} in
+    !% relative terms.
+    implicit none
+    double precision, intent(in)           :: value1,value2
+    double precision, intent(in), optional :: absTol,relTol
+    logical                                :: agreeAbsolutely,agreeRelatively
+
+    if (.not.(present(absTol).or.present(relTol))) then
+       Values_Agree=(value1 == value2)
+       return
+    end if
+    if (present(absTol)) then
+       agreeAbsolutely=(abs(value1-value2) <= absTol)
+    else
+       agreeAbsolutely=.true.
+    end if
+    if (present(relTol)) then
+       agreeRelatively=(abs(value1-value2) <= 0.5d0*abs(value1+value2)*relTol)
+    else
+       agreeRelatively=.true.
+    end if
+    Values_Agree=agreeAbsolutely.or.agreeRelatively
+    return
+  end function Values_Agree
   
 end module Numerical_Comparison
