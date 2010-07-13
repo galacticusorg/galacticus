@@ -1839,7 +1839,7 @@ The construction subroutine should have the following form:
     return
   end subroutine Merger_Tree_Construct_Do
 \end{verbatim}
-and should return a full merger tree in {\tt thisTree}}, unless {\tt skipTree} is true, in which case this tree will be skipped (i.e. not evolved or output) and so it suffices to merely allocate the base node---there is no need to create the entire tree (although it is permissible to do so)---and update any internal data (e.g. a count of trees constructed) as required. The tree must have at least masses, times and parent/child/sibling links created. Other properties (e.g. spins) can be optionally included also.
+and should return a full merger tree in {\tt thisTree}, unless {\tt skipTree} is true, in which case this tree will be skipped (i.e. not evolved or output) and so it suffices to merely allocate the base node---there is no need to create the entire tree (although it is permissible to do so)---and update any internal data (e.g. a count of trees constructed) as required. The tree must have at least masses, times and parent/child/sibling links created. Other properties (e.g. spins) can be optionally included also.
 
 Currently defined merger tree building methods are:
 \begin{description}
@@ -2325,6 +2325,73 @@ and should return the number of histories that will be required by this method.
 Currently defined stellar population properties methods are:
 \begin{description}
  \item [\hyperlink{stellar_populations.properties.instantaneous.F90:stellar_population_properties_instantaneous:stellar_population_properties_rates_instantaneous}{{\tt instantaneous}}] Computes stellar population properties using an instantaneous recyclying approximation.
+\end{description}
+
+\subsubsection{Stellar Population Spectra}\label{sec:StellarPopulationSpectra}
+
+Additional methods for computing specta of stellar populations can be added using the {\tt stellarPopulationSpectraMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Conroy, White \& Gunn} method is described by a directive:
+\begin{verbatim}
+ !# <stellarPopulationSpectraMethod>
+ !#  <unitName>Stellar_Population_Spectra_Conroy_Initialize</unitName>
+ !# </stellarPopulationSpectraMethod>
+\end{verbatim}
+Here, {\tt Stellar\_Population\_Spectra\_Conroy\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(stellarPopulationSpectraMethod,Stellar_Population_Spectra_Get,Stellar_Population_Spectrum_Tabulation_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: stellarPopulationSpectraMethod
+    procedure(),          pointer, intent(inout) :: Stellar_Population_Spectra_Get,Stellar_Population_Spectrum_Tabulation_Get
+    
+    if (stellarPopulationSpectraMethod == 'myMethod') then
+        Stellar_Population_Spectra_Get             => My_Method_Spectra_Get
+        Stellar_Population_Spectrum_Tabulation_Get => My_Method_Spectrum_Tabulation_Get
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt stellarPopulationSpectraMethod} input parameter. The procedure pointer {\tt Stellar\_Population\_Spectra\_Get} must be set to point to a function which returns the spectrum of a stellar population as described below while the {\tt Stellar\_Population\_Spectrum\_Tabulation\_Get} pointer must be set to point to a subroutine which returns a tabulation of ages and metallicities on which stellar spectra should be tabulated. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The stellar spectra function must have the form:
+\begin{verbatim}
+  double precision function Stellar_Population_Spectra_Get(abundances,age,wavelength,imfIndex)
+    implicit none
+    type(abundancesStructure), intent(in) :: abundances
+    double precision,          intent(in) :: age,wavelength
+    integer,                   intent(in) :: imfIndex
+    .
+    .
+    .
+    return
+  end function Stellar_Population_Spectra_Get
+\end{verbatim}
+The function is given the {\tt abundances}, {\tt age} (in Gyr), and {\tt imfIndex} of the stellar population and the {\tt wavelength} (in \AA) at which the spectrum should be computed. The spectrum should be returned in units of $L_\odot$ Hz$^{-1}$.
+
+The tabulation subroutine must have the form:
+\begin{verbatim}
+  subroutine Stellar_Population_Spectrum_Tabulation(imfIndex,agesCount,metallicitiesCount,age,metallicity)
+    implicit none
+    integer,          intent(in)                             :: imfIndex
+    integer,          intent(out)                            :: agesCount,metallicitiesCount
+    double precision, intent(out), allocatable, dimension(:) :: age,metallicity
+    .
+    .
+    .
+    return
+  end subroutine Stellar_Population_Spectrum_Tabulation
+\end{verbatim}
+and should return the number of ages and metallicities at which stellar population spectra should be tabualted for the specified \IMF, and should allocate the {\tt age} and {\tt metallicity} arrays appropriately and should fill them with the ages and metallicities at which to tabulate.
+
+Currently defined stellar population properties methods are:
+\begin{description}
+ \item [\hyperlink{stellar_populations.spectra.conroy.F90:stellar_population_spectra_conroy}{{\tt Conroy, White \& Gunn}}] Uses the {\tt FSPS} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\tt FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval.
+ \item [\hyperlink{stellar_populations.spectra.file.F90:stellar_population_spectra_file}{{\tt file}}] Stellar spectra for a given \IMF\ are read from the file specified by the {\tt stellarPopulationSpectraForXXXXIMF} where {\tt XXXX} is the name of the \IMF. This should specify an HDF5 file with the following structure:
+\begin{verbatim}
+ ages                     Dataset {ageCount}
+ metallicities            Dataset {metallicityCount}
+ spectra                  Dataset {wavelengthCount, ageCount, metallicityCount}
+ wavelengths              Dataset {wavelengthCount}
+\end{verbatim}
+where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
 \end{description}
 
 \subsubsection{Stellar Feedback}

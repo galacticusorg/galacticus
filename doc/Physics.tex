@@ -416,6 +416,18 @@ Selected with {\tt stellarPopulationPropertiesMethod}$=${\tt noninstantaneous} t
 \end{eqnarray}
 where $\dot{R}(t;Z)$ and $\dot{p}(t;Z)$ are the recycling and metal yield rates respectively from a stellar population of age $t$ and metallicity $Z$. The energy input rate is computed self-consistently from the star formation history.
 
+\section{Stellar Population Spectra}
+
+Stellar population spectra are used to construct intgrated spectra of galaxies. The method used to compute such spectra is specified by the {\tt stellarPopulationSpectraMethod} parameter.
+
+\subsection{Conroy, White \& Gunn}
+
+Selected with {\tt stellarPopulationSpectraMethod}$=${\tt Conroy, White \& Gunn} this method uses the {\tt FSPS} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\tt FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval.
+
+\subsection{File}
+
+Selected with {\tt stellarPopulationSpectraMethod}$=${\tt file} this method reads stellar population spectra from an HDF5 file, with format described in \S\ref{sec:StellarPopulationSpectra}.
+
 \section{Stellar Astrophysics}
 
 Various properties related to stellar astrophysics are required by \glc. The following documents their implementation.
