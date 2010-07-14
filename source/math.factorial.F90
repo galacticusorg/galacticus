@@ -59,33 +59,23 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements calculations of gamma functions.
+!% Contains a module which implements calculations of factorials.
 
-module Gamma_Functions
-  !% Implements calculations of gamma functions.
+module Factorials
+  !% Implements calculations of factorials
   private
-  public :: Gamma_Function_Incomplete_Complementary,Gamma_Function_Logarithmic
+  public :: Factorial
 
 contains
 
-  double precision function Gamma_Function_Incomplete_Complementary(exponent,argument)
-    !% Computes the complementary incomplete gamma function.
+  double precision function Factorial(argument)
+    !% Computes the factorial of {\tt argument}.
     use FGSL
     implicit none
-    double precision, intent(in) :: exponent,argument
+    integer, intent(in) :: argument
 
-    Gamma_Function_Incomplete_Complementary=FGSL_SF_Gamma_Inc_P(exponent,argument)
+    Factorial=FGSL_SF_Fact(argument)
     return
-  end function Gamma_Function_Incomplete_Complementary
+  end function Factorial
   
-  double precision function Gamma_Function_Logarithmic(argument)
-    !% Computes the logarithm of the gamma function.
-    use FGSL
-    implicit none
-    double precision, intent(in) :: argument
-
-    Gamma_Function_Logarithmic=FGSL_SF_lnGamma(argument)
-    return
-  end function Gamma_Function_Logarithmic
-  
-end module Gamma_Functions
+end module Factorials

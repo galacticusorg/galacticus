@@ -59,33 +59,40 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements calculations of gamma functions.
+!% Contains a module which implements a null post-processing of stellar spectra.
 
-module Gamma_Functions
-  !% Implements calculations of gamma functions.
-  private
-  public :: Gamma_Function_Incomplete_Complementary,Gamma_Function_Logarithmic
+module Stellar_Population_Spectra_Postprocess_Null
+  !% Implements a null post-processing of stellar spectra.
+  use ISO_Varying_String
+
+  public :: Stellar_Population_Spectra_Postprocess_Null_Initialize
 
 contains
-
-  double precision function Gamma_Function_Incomplete_Complementary(exponent,argument)
-    !% Computes the complementary incomplete gamma function.
-    use FGSL
-    implicit none
-    double precision, intent(in) :: exponent,argument
-
-    Gamma_Function_Incomplete_Complementary=FGSL_SF_Gamma_Inc_P(exponent,argument)
-    return
-  end function Gamma_Function_Incomplete_Complementary
   
-  double precision function Gamma_Function_Logarithmic(argument)
-    !% Computes the logarithm of the gamma function.
-    use FGSL
+  !# <stellarPopulationSpectraPostprocessMethod>
+  !#  <unitName>Stellar_Population_Spectra_Postprocess_Null_Initialize</unitName>
+  !# </stellarPopulationSpectraPostprocessMethod>
+  subroutine Stellar_Population_Spectra_Postprocess_Null_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
+    !% Initializes the ``Null'' stellar spectrum postprocessing module.
     implicit none
-    double precision, intent(in) :: argument
-
-    Gamma_Function_Logarithmic=FGSL_SF_lnGamma(argument)
+    type(varying_string),          intent(in)    :: stellarPopulationSpectraPostprocessMethod
+    procedure(),          pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
+    
+    if (stellarPopulationSpectraPostprocessMethod == 'null') Stellar_Population_Spectra_Postprocess_Get =>&
+         & Stellar_Population_Spectra_Postprocess_Null_Get
     return
-  end function Gamma_Function_Logarithmic
-  
-end module Gamma_Functions
+  end subroutine Stellar_Population_Spectra_Postprocess_Null_Initialize
+
+  double precision function Stellar_Population_Spectra_Postprocess_Null_Get(wavelength,redshift)
+    !% Null post-processing of stellar spectra: always returns unity.
+    use Numerical_Constants_Atomic
+    use Factorials
+    use Gamma_Functions
+    implicit none
+    double precision, intent(in)   :: wavelength,redshift
+
+    Stellar_Population_Spectra_Postprocess_Null_Get=1.0d0
+    return
+  end function Stellar_Population_Spectra_Postprocess_Null_Get
+
+end module Stellar_Population_Spectra_Postprocess_Null

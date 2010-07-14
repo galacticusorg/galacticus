@@ -250,6 +250,7 @@ contains
   function Filter_Luminosity_Integrand(wavelength,parameterPointer) bind(c)
     !% Integrand for the luminosity through a given filter.
     use Stellar_Population_Spectra
+    use Stellar_Population_Spectra_Postprocess
     use Instruments_Filters
     implicit none
     real(c_double)         :: Filter_Luminosity_Integrand
@@ -263,10 +264,10 @@ contains
     ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
     ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
     ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
-    ! bolometer/calorimeter type detector.
+    ! bolometer/calorimeter type detector).
     wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
     Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*Stellar_Population_Spectrum(abundancesTabulate &
-         &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)/wavelength
+         &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(wavelengthRedshifted,redshiftTabulate)/wavelength
     return
   end function Filter_Luminosity_Integrand
   

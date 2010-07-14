@@ -428,6 +428,22 @@ Selected with {\tt stellarPopulationSpectraMethod}$=${\tt Conroy, White \& Gunn}
 
 Selected with {\tt stellarPopulationSpectraMethod}$=${\tt file} this method reads stellar population spectra from an HDF5 file, with format described in \S\ref{sec:StellarPopulationSpectra}.
 
+\section{Stellar Population Spectra Postprocessing}
+
+Stellar population spectra are postprocessed (to handle, for example, absorption by the \IGM). The method used to postprocess spectra is specified by the {\tt stellarPopulationSpectraPostprocessMethod} parameter.
+
+\subsection{Meiksin (2006) IGM Attenuation}
+
+Selected with {\tt stellarPopulationSpectraPostprocessMethod}$=${\tt Meiksin2006} this method postprocesses spectra through absorption by the \IGM\ using the results of \cite{meiksin_colour_2006}.
+
+\subsection{Madau (1995) IGM Attenuation}
+
+Selected with {\tt stellarPopulationSpectraPostprocessMethod}$=${\tt Madau1995} this method postprocesses spectra through absorption by the \IGM\ using the results of \cite{madau_radiative_1995}.
+
+\subsection{Null Method}
+
+Selected with {\tt stellarPopulationSpectraPostprocessMethod}$=${\tt null} this method performs no postprocessing.
+
 \section{Stellar Astrophysics}
 
 Various properties related to stellar astrophysics are required by \glc. The following documents their implementation.
