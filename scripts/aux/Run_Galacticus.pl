@@ -5,7 +5,7 @@ use Data::Dumper;
 use File::Copy;
 use System::Redirect;
 use MIME::Lite;
-use IO::Compress::Bzip2 qw(bzip2 $Bzip2Error);
+use IO::Compress::Simple;
 
 # Script to run sets of Galacticus models, looping through sets of parameters and performing analysis on the results.
 # Contains error reporting functionality.
@@ -157,7 +157,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
  	    }
 
  	    # Compress all files in the output directory.
-	    bzip2 "<".$galacticusOutputDirectory."/*>" => "<*.bz2>" or die "bzip2 failed: $Bzip2Error\n";
+	    &Simple::Compress_Directory($galacticusOutputDirectory);
 
 	}
     }
