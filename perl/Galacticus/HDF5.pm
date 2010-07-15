@@ -149,7 +149,9 @@ sub Get_Dataset {
 			    # Append the dataset.
 			    $data = $data->append($thisTreeData);
 			}
+			# Append the merger tree index.
 			unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
+			    @galaxyCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->dims;
 			    $dataTree = $dataTree->append($mergerTree*ones($galaxyCount[0]));	
 			}
 		    }
