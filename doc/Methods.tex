@@ -1845,6 +1845,7 @@ Currently defined merger tree building methods are:
 \begin{description}
  \item [{\tt build}] Generates a set of halo masses distributed between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} (with {\tt mergerTreeBuildTreesPerDecade} halos per decade of mass) at redshift {\tt mergerTreeBuildTreesBaseRedshift} and then uses the selected merger tree build method (see \S\ref{sec:MergerTreeBuildMethod}) to build trees from these base nodes;
  \item [{\tt read}] Reads merger tree data from an HDF5 file (see \S\ref{sec:MergerTreeFiles}). The file to read is specified by the {\tt [mergerTreeReadFileName]} parameter.
+ \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history based on the fitting formula of \cite{wechsler_concentrations_2002}. See \S\ref{sec:SmoothAccretion} for details.
 \end{description}
 
 \subsubsection{Population III Supernovae}

@@ -373,6 +373,10 @@ Selected with {\tt mergerTreeBuildMethod}$=${\tt Cole2000}, this method uses the
  \item [{\tt mergerTreeBuildCole2000MassResolution}] The minimum halo mass (in $M_\odot$) that the algorithm will follow. Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
 \end{description}
 
+\subsection{Smooth Accretion}\label{sec:SmoothAccretion}
+
+Selected with {\tt mergerTreeConstructMethod}$=${\tt smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the fitting formula of \cite{wechsler_concentrations_2002}. The tree has a final mass of {\tt mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\tt mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\tt mergerTreeHaloMassDeclineFactor} at each new node until a specified {\tt mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached. The fitting formula of \cite{wechsler_concentrations_2002} has one free parameter, the formation redshift. If {\tt mergerTreeFormationRedshiftCompute} is set to true, then this formation redshift is computed automatically using the method of \cite{bullock_profiles_2001}, otherwise it is read from {\tt mergerTreeFormationRedshift}.
+
 \section{Merger Tree Branching}\index{merger trees!branching}
 
 The method to be used for computing branching probabilities in merger trees is specified by the {\tt treeBranchingMethod} parameter.
