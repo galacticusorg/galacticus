@@ -127,7 +127,7 @@ contains
        imfName=IMF_Name(imfIndex)
 
        ! Name of the parameter to be used for this IMF.
-       stellarPopulationSpectraFile='data/SSP_Spectra_Conroy-et-al_v2.0_imf'//imfName//'.hdf5'
+       stellarPopulationSpectraFile='data/SSP_Spectra_Conroy-et-al_v2.1_imf'//imfName//'.hdf5'
 
        ! Generate the IMF tabulation.
        if (allocated(imfMass)) call Dealloc_Array(imfMass)

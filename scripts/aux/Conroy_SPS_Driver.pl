@@ -3,7 +3,7 @@ use XML::Simple;
 use Data::Dumper;
 use File::Copy;
 
-# Driver script for FSPS_v2.0 (Conroy, White & Gunn stellar population code).
+# Driver script for FSPS_v2.1 (Conroy, White & Gunn stellar population code).
 # Andrew Benson (26-Jan-2010)
 
 # Get arguments.
@@ -15,39 +15,39 @@ $stellarPopulationFile = $ARGV[1];
 unless ( -e $stellarPopulationFile ) {
     
     # Download the code.
-    unless ( -e "aux/FSPS_v2.0.tar.gz" ) {
+    unless ( -e "aux/FSPS_v2.1.tar.gz" ) {
 	print "Conroy_SPS_Driver.pl: downloading source code.\n";
-	system("wget http://www.astro.princeton.edu/~cconroy/SPS/FSPS_v2.0.tar.gz -O aux/FSPS_v2.0.tar.gz");
-	die("Conroy_SPS_Driver.pl: FATAL - failed to download source code.") unless ( -e "aux/FSPS_v2.0.tar.gz" );
+	system("wget http://www.cfa.harvard.edu/~cconroy/SPS/FSPS_v2.1.tar.gz -O aux/FSPS_v2.1.tar.gz");
+	die("Conroy_SPS_Driver.pl: FATAL - failed to download source code.") unless ( -e "aux/FSPS_v2.1.tar.gz" );
     }
     
     # Unpack the code.
-    unless ( -e "aux/FSPS_v2.0" ) {
+    unless ( -e "aux/FSPS_v2.1" ) {
 	print "Conroy_SPS_Driver.pl: unpacking source code.\n";
-	system("tar -x -v -z -C aux -f aux/FSPS_v2.0.tar.gz");
-	die("Conroy_SPS_Driver.pl: FATAL - failed to unpack source code.") unless ( -e "aux/v2.0" );
-	move("aux/v2.0","aux/FSPS_v2.0");
+	system("tar -x -v -z -C aux -f aux/FSPS_v2.1.tar.gz");
+	die("Conroy_SPS_Driver.pl: FATAL - failed to unpack source code.") unless ( -e "aux/v2.1" );
+	move("aux/v2.1","aux/FSPS_v2.1");
     }
 
     # Patch the code.
-    unless ( -e "aux/FSPS_v2.0/src/galacticus_IMF.f90" ) {
+    unless ( -e "aux/FSPS_v2.1/src/galacticus_IMF.f90" ) {
 	foreach $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch" ) {
-	    copy("aux/FSPS_v2.0_Galacticus_Modifications/".$file,"aux/FSPS_v2.0/src/".$file);
-	    if ( $file =~ m/\.patch$/ ) {system("cd aux/FSPS_v2.0/src; patch < $file")};
+	    copy("aux/FSPS_v2.1_Galacticus_Modifications/".$file,"aux/FSPS_v2.1/src/".$file);
+	    if ( $file =~ m/\.patch$/ ) {system("cd aux/FSPS_v2.1/src; patch < $file")};
 	    print "$file\n";
 	}
     }
-    
+
     # Build the code.
-    unless ( -e "aux/FSPS_v2.0/src/autosps.exe" ) {
+    unless ( -e "aux/FSPS_v2.1/src/autosps.exe" ) {
 	print "Conroy_SPS_Driver.pl: compiling autosps.exe code.\n";
-	system("cd aux/FSPS_v2.0/src; export SPS_HOME=`pwd`; make");
-	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e "aux/FSPS_v2.0/src/autosps.exe" );
+	system("cd aux/FSPS_v2.1/src; export SPS_HOME=`pwd`; make");
+	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e "aux/FSPS_v2.1/src/autosps.exe" );
     }
 
     # Read the wavelength array.
     undef(%data);
-    open(lambdaFile,"aux/FSPS_v2.0/BaSeL3.1/basel.lambda");
+    open(lambdaFile,"aux/FSPS_v2.1/BaSeL3.1/basel.lambda");
     while ( $line = <lambdaFile> ) {
 	chomp($line);
 	$line =~ s/^\s*//;
@@ -59,7 +59,7 @@ unless ( -e $stellarPopulationFile ) {
     # Run the code.
     $pwd = `pwd`;
     chomp($pwd);
-    $ENV{'SPS_HOME'} = $pwd."/aux/FSPS_v2.0";
+    $ENV{'SPS_HOME'} = $pwd."/aux/FSPS_v2.1";
     $iMetallicity = -1;
 
     # Add a description of the file.
@@ -72,8 +72,8 @@ unless ( -e $stellarPopulationFile ) {
     # Loop over metallicities.
     for($iZ=1;$iZ<=22;++$iZ) {
 	$outFile = "imf".$imfName.".iZ".$iZ;
-	unless ( -e "aux/FSPS_v2.0/OUTPUTS/".$outFile.".spec" ) {
-	    open(spsPipe,"|aux/FSPS_v2.0/src/autosps.exe");
+	unless ( -e "aux/FSPS_v2.1/OUTPUTS/".$outFile.".spec" ) {
+	    open(spsPipe,"|aux/FSPS_v2.1/src/autosps.exe");
 	    print spsPipe "4\n";        # IMF.
 	    print spsPipe "0\n";        # Generate SSP.
 	    print spsPipe "$iZ\n";      # Specify metallicity.
@@ -86,7 +86,7 @@ unless ( -e $stellarPopulationFile ) {
 	$ageCount = 0;
 	$iAge     = -1;
 	$gotAge   = 0;
-	open(specFile,"aux/FSPS_v2.0/OUTPUTS/".$outFile.".spec");
+	open(specFile,"aux/FSPS_v2.1/OUTPUTS/".$outFile.".spec");
 	while ( $line = <specFile> ) {
 	    chomp($line);
 	    $line =~ s/^\s*//;
