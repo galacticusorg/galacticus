@@ -94,13 +94,13 @@ contains
        ! Do the binary black hole merger method parameter.
        !@ <inputParameter>
        !@   <name>accretionDisksMethod</name>
-       !@   <defaultValue>switched</defaultValue>
+       !@   <defaultValue>ADAF</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Selects which accretion disk method should be used.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('accretionDisksMethod',accretionDisksMethod,defaultValue='switched')
+       call Get_Input_Parameter('accretionDisksMethod',accretionDisksMethod,defaultValue='ADAF')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="accretionDisksMethod" type="code" action="subroutine">
        !#  <subroutineArgs>accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get</subroutineArgs>
