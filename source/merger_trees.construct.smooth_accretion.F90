@@ -107,7 +107,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeHaloMass'                ,mergerTreeHaloMass                ,defaultValue=1.0d12)
        !@ <inputParameter>
-       !@   <name>mergerTreeHaloMass</name>
+       !@   <name>mergerTreeHaloMassResolution</name>
        !@   <defaultValue>$10^{12}$</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -116,7 +116,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeHaloMassResolution'      ,mergerTreeHaloMassResolution      ,defaultValue=1.0d9 )
        !@ <inputParameter>
-       !@   <name>mergerTreeHaloMassResolution</name>
+       !@   <name>mergerTreeHaloMassDeclineFactor</name>
        !@   <defaultValue>$0.9$</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -134,7 +134,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBaseRedshift'            ,mergerTreeBaseRedshift            ,defaultValue=0.0d0 )
        !@ <inputParameter>
-       !@   <name>mergerTreeBaseRedshiftCompute</name>
+       !@   <name>mergerTreeFormationRedshiftCompute</name>
        !@   <defaultValue>true</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -149,7 +149,7 @@ contains
        case (.false.)
           ! In this case, read the formation redshift.
           !@ <inputParameter>
-          !@   <name>mergerTreeBaseRedshiftCompute</name>
+          !@   <name>mergerTreeFormationRedshift</name>
           !@   <defaultValue>0.4</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
