@@ -716,6 +716,9 @@ contains
     !% Call routines to set alls derivatives for {\tt thisNode}.
     use Tree_Node_Methods
     use Galacticus_Calculations_Resets
+    !# <include directive="preDerivativeTask" type="moduleUse">
+    include 'objects.merger_trees.prederivative.tasks.modules.inc'
+    !# </include>
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(out)   :: interrupt
@@ -729,6 +732,12 @@ contains
     ! Call component routines to indicate that derivative calculation is commencing.
     call Galacticus_Calculations_Reset(thisNode)
 
+    ! Call routines to perform any pre-derivative calculations.
+    !# <include directive="preDerivativeTask" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode</subroutineArgs>
+    include 'objects.merger_trees.prederivative.tasks.inc'
+    !# </include>
+    
     ! Call component routines to compute derivatives.
     !# <include directive="treeNodeMethodsPointer" type="derivatives">
     include 'objects.tree_node.derivatives.inc'

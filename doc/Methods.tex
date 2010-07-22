@@ -2794,7 +2794,7 @@ Tasks are any processing which must be performed on a node as a result of some s
 
 \subsubsection{Calculation Reset Tasks}\label{sec:CalculationResetTask}
 
-Additional methods for calculation reset tasks (i.e. things that should be done just prior to the computation of derivatives or properties for a node) can be added using the {\tt calculationResetTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
+Additional methods for calculation reset tasks (i.e. flagging that the properties of a node may have changed so that any calculations must be performed anew) can be added using the {\tt calculationResetTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
 \begin{verbatim}
   !# <calculationResetTask>
   !#  <unitName>Tree_Node_Hot_Halo_Reset_Standard</unitName>
@@ -3164,6 +3164,27 @@ where {\tt Node\_Dump\_Procedure} is the name of a subroutine with the following
  end subroutine Node_Dump_Procedure
 \end{verbatim}
 If the node contains an active component, this subroutine should display all relevant properties of the component. If not, it can display a short message indicating that fact.
+
+\subsubsection{Pre-derivative Tasks}\index{pre-derivative task}\index{task, pre-derivative}
+
+Additional methods for pre-derivative tasks (i.e. things that should be done just prior to the computation of derivatives or properties for a node) can be added using the {\tt preDerivativeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
+\begin{verbatim}
+  !# <preDerivativeTask>
+  !#  <unitName>Tree_Node_Hot_Halo_Prederivative_Standard</unitName>
+  !# </preDerivativeTask>
+\end{verbatim}
+Here, {\tt Tree\_Node\_Hot\_Halo\_Prederivative\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+\begin{verbatim}
+   subroutine Prederivative_Task(thisNode)
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    .
+    .
+    .
+    return
+  end subroutine Prederivative_Task
+\end{verbatim}
+where {\tt thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives.
 
 \subsubsection{Radius Solver Tasks}\label{sec:radius_solver}
 
