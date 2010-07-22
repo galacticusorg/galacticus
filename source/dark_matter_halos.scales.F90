@@ -65,12 +65,42 @@ module Dark_Matter_Halo_Scales
   !% Implements calculations of various scales for dark matter halos.
   use Tree_Nodes
   use Tree_Node_Methods
+  use Kind_Numbers
   private
   public :: Dark_Matter_Halo_Dynamical_Timescale, Dark_Matter_Halo_Virial_Velocity, Dark_Matter_Halo_Virial_Velocity_Growth_Rate,&
        & Dark_Matter_Halo_Virial_Radius, Dark_Matter_Halo_Virial_Radius_Growth_Rate, Dark_Matter_Halo_Mean_Density,&
-       & Dark_Matter_Halo_Mean_Density_Growth_Rate, Dark_Matter_Halo_Virial_Temperature
+       & Dark_Matter_Halo_Mean_Density_Growth_Rate, Dark_Matter_Halo_Virial_Temperature, Dark_Matter_Halo_Scales_Reset
+
+  ! Record of unique ID of node which we last computed results for.
+  integer(kind=kind_int8) :: lastUniqueID=-1
+  !$omp threadprivate(lastUniqueID)
+
+  ! Record of whether or not halo scales have already been computed for this node.
+  logical :: virialRadiusComputed=.false.,virialTemperatureComputed=.false.,virialVelocityComputed=.false.,dynamicalTimescaleComputed=.false.
+  !$omp threadprivate(virialRadiusComputed,virialTemperatureComputed,virialVelocityComputed,dynamicalTimescaleComputed)
+
+  ! Stored values of halo scales.
+  double precision :: virialRadiusStored,virialTemperatureStored,virialVelocityStored,dynamicalTimescaleStored
+  !$omp threadprivate(virialRadiusStored,virialTemperatureStored,virialVelocityStored,dynamicalTimescaleStored)
 
 contains
+
+  !# <calculationResetTask>
+  !# <unitName>Dark_Matter_Halo_Scales_Reset</unitName>
+  !# </calculationResetTask>
+  subroutine Dark_Matter_Halo_Scales_Reset(thisNode)
+    !% Reset the cooling radius calculation.
+    use Tree_Nodes
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    virialRadiusComputed      =.false.
+    virialTemperatureComputed =.false.
+    virialVelocityComputed    =.false.
+    dynamicalTimescaleComputed=.false.
+    lastUniqueID              =thisNode%uniqueID()
+    return
+  end subroutine Dark_Matter_Halo_Scales_Reset
 
   double precision function Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     !% Returns the dynamical timescale for {\tt thisNode}.
@@ -79,8 +109,18 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    Dark_Matter_Halo_Dynamical_Timescale=Dark_Matter_Halo_Virial_Radius(thisNode)*(megaParsec/kilo/gigaYear)&
-         &/Dark_Matter_Halo_Virial_Velocity(thisNode)
+    ! Check if node differs from previous one for which we performed calculations.
+    if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
+
+    ! Check if halo dynamical timescale is already computed. Compute and store if not.
+    if (.not.dynamicalTimescaleComputed) then
+       dynamicalTimescaleComputed=.true.
+       dynamicalTimescaleStored=Dark_Matter_Halo_Virial_Radius(thisNode)*(megaParsec/kilo/gigaYear) &
+            &/Dark_Matter_Halo_Virial_Velocity(thisNode)
+    end if
+    
+    ! Return the stored timescale.
+    Dark_Matter_Halo_Dynamical_Timescale=dynamicalTimescaleStored
     return
   end function Dark_Matter_Halo_Dynamical_Timescale
 
@@ -90,8 +130,18 @@ contains
     implicit none
     type(treeNode),  intent(inout), pointer :: thisNode
 
-    Dark_Matter_Halo_Virial_Velocity=dsqrt(gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)&
-         &/Dark_Matter_Halo_Virial_Radius(thisNode))
+    ! Check if node differs from previous one for which we performed calculations.
+    if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
+
+    ! Check if virial velocity is already computed. Compute and store if not.
+    if (.not.virialVelocityComputed) then
+       virialVelocityComputed=.true.
+       virialVelocityStored=dsqrt(gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)&
+            &/Dark_Matter_Halo_Virial_Radius(thisNode))
+    end if
+    
+    ! Return the stored virial velocity.
+    Dark_Matter_Halo_Virial_Velocity=virialVelocityStored
     return
   end function Dark_Matter_Halo_Virial_Velocity
 
@@ -115,8 +165,18 @@ contains
     implicit none
     type(treeNode),  intent(inout), pointer :: thisNode
 
-    Dark_Matter_Halo_Virial_Temperature=0.5d0*atomicMassUnit*meanAtomicMassPrimordial*((kilo&
-         &*Dark_Matter_Halo_Virial_Velocity(thisNode))**2)/boltzmannsConstant
+    ! Check if node differs from previous one for which we performed calculations.
+    if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
+
+    ! Check if virial temperature is already computed. Compute and store if not.
+    if (.not.virialTemperatureComputed) then
+       virialTemperatureComputed=.true.
+       virialTemperatureStored=0.5d0*atomicMassUnit*meanAtomicMassPrimordial*((kilo&
+            &*Dark_Matter_Halo_Virial_Velocity(thisNode))**2)/boltzmannsConstant
+    end if
+
+    ! Return the stored temperature.
+    Dark_Matter_Halo_Virial_Temperature=virialTemperatureStored
     return
   end function Dark_Matter_Halo_Virial_Temperature
 
@@ -126,8 +186,17 @@ contains
     implicit none
     type(treeNode),  intent(inout), pointer :: thisNode
 
-    Dark_Matter_Halo_Virial_Radius=(3.0d0*Tree_Node_Mass(thisNode)/4.0d0/Pi/Dark_Matter_Halo_Mean_Density(thisNode))**(1.0d0&
-         &/3.0d0)
+    ! Check if node differs from previous one for which we performed calculations.
+    if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
+
+    ! Check if virial radius is already computed. Compute and store if not.
+    if (.not.virialRadiusComputed) then
+       virialRadiusComputed=.true.
+       virialRadiusStored=(3.0d0*Tree_Node_Mass(thisNode)/4.0d0/Pi/Dark_Matter_Halo_Mean_Density(thisNode))**(1.0d0/3.0d0)
+    end if
+
+    ! Return the stored value.
+    Dark_Matter_Halo_Virial_Radius=virialRadiusStored
     return
   end function Dark_Matter_Halo_Virial_Radius
 

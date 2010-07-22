@@ -71,7 +71,7 @@ module Tree_Node_Methods_Hot_Halo
   public :: Tree_Node_Methods_Hot_Halo_Initialize, Hot_Halo_Starve, Hot_Halo_Remove_Before_Satellite_Merging,&
        & Tree_Node_Hot_Halo_Promote, Hot_Halo_Subresolution_Initialize, Galacticus_Output_Tree_Hot_Halo_Standard,&
        & Galacticus_Output_Tree_Hot_Halo_Standard_Property_Count, Galacticus_Output_Tree_Hot_Halo_Standard_Names,&
-       & Tree_Node_Hot_Halo_PreDerivatives_Standard, Tree_Node_Hot_Halo_Post_Evolve_Standard, Hot_Halo_Standard_Density,&
+       & Tree_Node_Hot_Halo_Reset_Standard, Tree_Node_Hot_Halo_Post_Evolve_Standard, Hot_Halo_Standard_Density,&
        & Tree_Node_Methods_Hot_Halo_Standard_Dump
   
   ! Internal count of abundances.
@@ -264,17 +264,17 @@ contains
   end subroutine Tree_Node_Methods_Hot_Halo_Initialize
   
   
-  !# <preDerivativeComputeTask>
-  !# <unitName>Tree_Node_Hot_Halo_PreDerivatives_Standard</unitName>
-  !# </preDerivativeComputeTask>
-  subroutine Tree_Node_Hot_Halo_PreDerivatives_Standard(thisNode)
+  !# <calculationResetTask>
+  !# <unitName>Tree_Node_Hot_Halo_Reset_Standard</unitName>
+  !# </calculationResetTask>
+  subroutine Tree_Node_Hot_Halo_Reset_Standard(thisNode)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
 
     gotCoolingRate=.false.
     return
-  end subroutine Tree_Node_Hot_Halo_PreDerivatives_Standard
+  end subroutine Tree_Node_Hot_Halo_Reset_Standard
 
   !# <postEvolveTask>
   !#  <unitName>Tree_Node_Hot_Halo_Post_Evolve_Standard</unitName>

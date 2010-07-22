@@ -73,7 +73,8 @@ module Tree_Node_Methods_Exponential_Disk
        & Galacticus_Output_Tree_Disk_Exponential, Galacticus_Output_Tree_Disk_Exponential_Property_Count,&
        & Galacticus_Output_Tree_Disk_Exponential_Names, Exponential_Disk_Radius_Solver, Exponential_Disk_Enclosed_Mass,&
        & Exponential_Disk_Density, Exponential_Disk_Rotation_Curve, Tree_Node_Disk_Post_Evolve_Exponential,&
-       & Tree_Node_Methods_Exponential_Disk_Dump, Exponential_Disk_Radius_Solver_Plausibility
+       & Tree_Node_Methods_Exponential_Disk_Dump, Exponential_Disk_Radius_Solver_Plausibility,&
+       & Tree_Node_Methods_Exponential_Disk_State_Store, Tree_Node_Methods_Exponential_Disk_State_Retrieve
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -137,6 +138,15 @@ module Tree_Node_Methods_Exponential_Disk
 
   ! Parameters controlling the physical implementation.
   double precision :: diskMassToleranceAbsolute
+
+  ! Tabulation of the exponential disk rotation curve.
+  integer,          parameter                 :: rotationCurvePointsPerDecade=10
+  integer                                     :: rotationCurvePointsCount
+  logical                                     :: rotationCurveInitialized=.false.
+  double precision, parameter                 :: rotationCurveHalfRadiusMinimumDefault=1.0d-6,rotationCurveHalfRadiusMaximumDefault=10.0d0
+  double precision                            :: rotationCurveHalfRadiusMinimum=rotationCurveHalfRadiusMinimumDefault&
+       &,rotationCurveHalfRadiusMaximum=rotationCurveHalfRadiusMaximumDefault
+  double precision, allocatable, dimension(:) :: rotationCurveHalfRadius,rotationCurveBesselFactors
 
 contains
 
@@ -1012,11 +1022,56 @@ contains
   double precision function Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
     !% Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
     use Bessel_Functions
+    use Memory_Management
+    use Numerical_Ranges
+    use Numerical_Interpolation
+    use FGSL
     implicit none
-    double precision, intent(in) :: halfRadius
-    
-    Exponential_Disk_Rotation_Curve_Bessel_Factors=halfRadius**2*(Bessel_Function_I0(halfRadius)*Bessel_Function_K0(halfRadius) &
-         &-Bessel_Function_I1(halfRadius)*Bessel_Function_K1(halfRadius))
+    double precision,        intent(in) :: halfRadius
+    integer                             :: iPoint
+    type(fgsl_interp),       save       :: interpolationObject
+    type(fgsl_interp_accel), save       :: interpolationAccelerator
+    logical,                 save       :: interpolationReset=.true.
+
+    !$omp critical(Exponential_Disk_Rotation_Curve_Tabulate)
+    if (.not.rotationCurveInitialized .or. halfRadius <  rotationCurveHalfRadiusMinimum .or. halfRadius > rotationCurveHalfRadiusMaximum) then
+       ! Find the minimum and maximum half-radii to tabulate.
+       rotationCurveHalfRadiusMinimum=min(rotationCurveHalfRadiusMinimum,0.5d0*halfRadius)
+       rotationCurveHalfRadiusMaximum=max(rotationCurveHalfRadiusMaximum,2.0d0*halfRadius)
+
+       ! Determine how many points to tabulate.
+       rotationCurvePointsCount=int(dlog10(rotationCurveHalfRadiusMaximum/rotationCurveHalfRadiusMinimum)*dble(rotationCurvePointsPerDecade))+1
+
+       ! Allocate table arrays.
+       if (allocated(rotationCurveHalfRadius   )) call Dealloc_Array(rotationCurveHalfRadius   )
+       if (allocated(rotationCurveBesselFactors)) call Dealloc_Array(rotationCurveBesselFactors)
+       call Alloc_Array(rotationCurveHalfRadius   ,rotationCurvePointsCount,'rotationCurveHalfRadius'   )
+       call Alloc_Array(rotationCurveBesselFactors,rotationCurvePointsCount,'rotationCurveBesselFactors')
+
+       ! Create range of half-radii.
+       rotationCurveHalfRadius=Make_Range(rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,rotationCurvePointsCount,rangeType=rangeTypeLogarithmic)
+
+       ! Compute Bessel factors.
+       do iPoint=1,rotationCurvePointsCount
+          rotationCurveBesselFactors(iPoint)=rotationCurveHalfRadius(iPoint)**2&
+               &*(Bessel_Function_I0(rotationCurveHalfRadius(iPoint))*Bessel_Function_K0(rotationCurveHalfRadius(iPoint)) &
+               &-Bessel_Function_I1(rotationCurveHalfRadius(iPoint))*Bessel_Function_K1(rotationCurveHalfRadius(iPoint)))
+       end do
+
+       ! Reset the interpolations.
+       interpolationReset=.true.
+
+       ! Flag that the rotation curve is now initialized.
+       rotationCurveInitialized=.true.
+    end if
+    !$omp end critical(Exponential_Disk_Rotation_Curve_Tabulate)
+
+    ! Interpolate in the tabulated function.
+    !$omp critical(Exponential_Disk_Rotation_Curve_Interpolate)
+    Exponential_Disk_Rotation_Curve_Bessel_Factors=Interpolate(rotationCurvePointsCount,rotationCurveHalfRadius&
+         &,rotationCurveBesselFactors,interpolationObject,interpolationAccelerator,halfRadius,reset=interpolationReset)
+    !$omp end critical(Exponential_Disk_Rotation_Curve_Interpolate)
+
     return
   end function Exponential_Disk_Rotation_Curve_Bessel_Factors
 
@@ -1420,4 +1475,36 @@ contains
     return
   end subroutine Tree_Node_Methods_Exponential_Disk_Dump
 
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Tree_Node_Methods_Exponential_Disk_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Tree_Node_Methods_Exponential_Disk_State_Store(stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use FGSL
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum
+    return
+  end subroutine Tree_Node_Methods_Exponential_Disk_State_Store
+  
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Tree_Node_Methods_Exponential_Disk_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Tree_Node_Methods_Exponential_Disk_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    use FGSL
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+    double precision            :: tCosmological
+
+    ! Read the minimum and maximum tabulated times.
+    read (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum
+    ! Flag that the table is now uninitialized.
+    rotationCurveInitialized=.false.
+    return
+  end subroutine Tree_Node_Methods_Exponential_Disk_State_Retrieve
+  
 end module Tree_Node_Methods_Exponential_Disk

@@ -64,15 +64,17 @@
 module Tree_Nodes
   !% Defines the tree node object and associated methods.
   use Components
+  use Kind_Numbers
   private
   public :: treeNode, treeNodeList
 
   type treeNode
      !% The tree node object type.
-     integer,         private                   :: nodeIndex
-     type(treeNode),  pointer                   :: parentNode,childNode,siblingNode,satelliteNode
-     integer,         allocatable, dimension(:) :: componentIndex
-     type(component), allocatable, dimension(:) :: components ! memoryManagementIgnore (force memory management system to ignore)
+     integer,                 private                   :: nodeIndex
+     integer(kind=kind_int8), private                   :: nodeUniqueID
+     type(treeNode),          pointer                   :: parentNode,childNode,siblingNode,satelliteNode
+     integer,                 allocatable, dimension(:) :: componentIndex
+     type(component),         allocatable, dimension(:) :: components ! memoryManagementIgnore (force memory management system to ignore)
    contains
      ! Node indexing methods.
      !@ <objectMethods>
@@ -85,9 +87,19 @@ module Tree_Nodes
      !@     <method>indexSet</method>
      !@     <description>Set the index of the node.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>uniqueID</method>
+     !@     <description>Return the unique ID of the node.\label{method:uniqueID}</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>uniqueIDSet</method>
+     !@     <description>Set the unique ID of the node.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure                                  :: index                  => Tree_Node_Index
      procedure                                  :: indexSet               => Tree_Node_Index_Set
+     procedure                                  :: uniqueID               => Tree_Node_Unique_ID
+     procedure                                  :: uniqueIDSet            => Tree_Node_Unique_ID_Set
      ! Create/destroy methods.
      !@ <objectMethod>
      !@   <object>treeNode</object>
@@ -221,9 +233,31 @@ module Tree_Nodes
      !% Type to give a list of treeNodes.
      type(treeNode), pointer :: node
   end type treeNodeList
-  
+
 contains
 
+  integer function Tree_Node_Unique_ID(thisNode)
+    !% Returns the unique ID of {\tt thisNode}.
+    implicit none
+    type(treeNode), intent(in), pointer :: thisNode
+
+    if (associated(thisNode)) then
+       Tree_Node_Unique_ID=thisNode%nodeUniqueID
+    else
+       Tree_Node_Unique_ID=-1
+    end if
+    return
+  end function Tree_Node_Unique_ID
+
+  subroutine Tree_Node_Unique_ID_Set(thisNode,uniqueID)
+    !% Set the index of {\tt thisNode}.
+    implicit none
+    type(treeNode), intent(inout) :: thisNode
+    integer,        intent(in)    :: uniqueID
+
+    thisNode%nodeUniqueID=uniqueID
+    return
+  end subroutine Tree_Node_Unique_ID_Set
 
   integer function Tree_Node_Index(thisNode)
     !% Returns the index of {\tt thisNode}.

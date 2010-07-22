@@ -85,9 +85,9 @@ module Galactic_Structure_Radii
   
 contains
 
-  !# <preDerivativeComputeTask>
+  !# <calculationResetTask>
   !# <unitName>Galactic_Structure_Radii_Solve</unitName>
-  !# </preDerivativeComputeTask>
+  !# </calculationResetTask>
   subroutine Galactic_Structure_Radii_Solve(thisNode)
     !% Solve for the radii of galactic components in {\tt thisNode}.
     use Galacticus_Error
