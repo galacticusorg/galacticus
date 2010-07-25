@@ -84,7 +84,6 @@ contains
     !% Output the mass accretion history of {\tt thisTree}.
     use Merger_Trees
     use Tree_Nodes
-    use Tree_Node_Methods
     use Input_Parameters
     use Memory_Management
     use Galacticus_HDF5_Groups
@@ -131,9 +130,9 @@ contains
           thisNode => thisNode%childNode
        end do
        ! Allocate storage space.
-       call Alloc_Array(accretionHistoryNodeIndex,accretionHistoryCount,'accretionHistoryNodeIndex')
-       call Alloc_Array(accretionHistoryNodeTime ,accretionHistoryCount,'accretionHistoryNodeTime' )
-       call Alloc_Array(accretionHistoryNodeMass ,accretionHistoryCount,'accretionHistoryNodeMass' )
+       call Alloc_Array(accretionHistoryNodeIndex,[accretionHistoryCount])
+       call Alloc_Array(accretionHistoryNodeTime ,[accretionHistoryCount])
+       call Alloc_Array(accretionHistoryNodeMass ,[accretionHistoryCount])
        ! Extract accretion history.
        accretionHistoryCount=0
        thisNode => thisTree%baseNode

@@ -111,8 +111,8 @@ contains
 
        ! Count how many elements are present and allocate arrays.
        supernovaeTableCount=getLength(massDataList)
-       call Alloc_Array(supernovaeTableHeliumCoreMass,supernovaeTableCount,'supernovaeTableHeliumCoreMass')
-       call Alloc_Array(supernovaeTableEnergy        ,supernovaeTableCount,'supernovaeTableEnergy'        )
+       call Alloc_Array(supernovaeTableHeliumCoreMass,[supernovaeTableCount])
+       call Alloc_Array(supernovaeTableEnergy        ,[supernovaeTableCount])
 
        ! Loop through isotopes and compute the net metal yield.
        do iSupernovae=0,getLength(massDataList)-1

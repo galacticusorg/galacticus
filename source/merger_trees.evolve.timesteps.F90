@@ -74,7 +74,6 @@ contains
     use Merger_Trees
     use Input_Parameters
     use Galacticus_Error
-    use Tree_Node_Methods
     use Merger_Trees_Evolve_Timesteps_Template
     !# <include directive="timeStepsTask" type="moduleUse">
     include 'merger_trees.evolve.timesteps.moduleUse.inc'

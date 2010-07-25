@@ -117,7 +117,6 @@ contains
   double precision function Halo_Baryonic_Accretion_Rate_Simple_Get(thisNode)
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
@@ -145,7 +144,6 @@ contains
   double precision function Halo_Baryonic_Accreted_Mass_Simple_Get(thisNode)
     !% Computes the mass of baryons accreted into {\tt thisNode}.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
@@ -163,7 +161,6 @@ contains
   double precision function Halo_Baryonic_Failed_Accretion_Rate_Simple_Get(thisNode)
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
@@ -192,7 +189,6 @@ contains
   double precision function Halo_Baryonic_Failed_Accreted_Mass_Simple_Get(thisNode)
     !% Computes the mass of baryons accreted into {\tt thisNode}.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none

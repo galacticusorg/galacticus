@@ -101,7 +101,6 @@ contains
   subroutine Galacticus_Merger_Tree_Output(thisTree,iOutput,time,isLastOutput)
     !% Write properties of nodes in {\tt thisTree} to the \glc\ output file.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Galacticus_Output_Open
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
@@ -163,6 +162,9 @@ contains
     end do
     if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(thisTree)
     if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (thisTree)
+
+    ! Close the tree group.
+    call Galacticus_Output_Close_Group(thisTree%hdf5GroupID)
       
     ! Close down if this is the final output.
     if (present(isLastOutput)) then
@@ -270,10 +272,10 @@ contains
           call Dealloc_Array(integerPropertyNames   )
           call Dealloc_Array(integerPropertyComments)
        end if
-       call Alloc_Array(integerBuffer          ,bufferSize,integerPropertyCount,'integerBuffer'          )
-       call Alloc_Array(integerPropertyIDs                ,integerPropertyCount,'integerPropertyIDs'     )
-       call Alloc_Array(integerPropertyNames              ,integerPropertyCount,'integerPropertyNames'   )
-       call Alloc_Array(integerPropertyComments           ,integerPropertyCount,'integerPropertyComments')
+       call Alloc_Array(integerBuffer          ,[bufferSize,integerPropertyCount])
+       call Alloc_Array(integerPropertyIDs                ,[integerPropertyCount])
+       call Alloc_Array(integerPropertyNames              ,[integerPropertyCount])
+       call Alloc_Array(integerPropertyComments           ,[integerPropertyCount])
     end if
     integerPropertyIDs=0
     if (doublePropertyCount  > 0 .and. (.not.allocated(doubleBuffer ) .or. doublePropertyCount  > size(doublePropertyIDs ))) then
@@ -283,10 +285,10 @@ contains
           call Dealloc_Array(doublePropertyNames    )
           call Dealloc_Array(doublePropertyComments )
        end if
-       call Alloc_Array(doubleBuffer           ,bufferSize,doublePropertyCount ,'doubleBuffer'           )
-       call Alloc_Array(doublePropertyIDs                 ,doublePropertyCount ,'doublePropertyIDs'      )
-       call Alloc_Array(doublePropertyNames               ,doublePropertyCount ,'doublePropertyNames'    )
-       call Alloc_Array(doublePropertyComments            ,doublePropertyCount ,'doublePropertyComments' )
+       call Alloc_Array(doubleBuffer           ,[bufferSize,doublePropertyCount])
+       call Alloc_Array(doublePropertyIDs                 ,[doublePropertyCount])
+       call Alloc_Array(doublePropertyNames               ,[doublePropertyCount])
+       call Alloc_Array(doublePropertyComments            ,[doublePropertyCount])
     end if
     doublePropertyIDs=0
     return
@@ -315,7 +317,7 @@ contains
     !% Create a group in which to store this output.
     use String_Handling
     use Cosmology_Functions
-    use Tree_Node_Methods
+    use Memory_Management
     implicit none
     integer,             intent(in)                :: iOutput      
     double precision,    intent(in)                :: time
@@ -334,9 +336,11 @@ contains
           outputGroupsIDs(1:size(outputGroupsIDsTemporary))=outputGroupsIDsTemporary
           outputGroupsIDs(size(outputGroupsIDsTemporary)+1:size(outputGroupsIDs))=0
           deallocate(outputGroupsIDsTemporary)
+          call Memory_Usage_Record(sizeof(outputGroupsIDs(1)),blockCount=0)
        else
           outputGroupsCount=outputGroupsIncrement
           allocate(outputGroupsIDs(outputGroupsCount))
+          call Memory_Usage_Record(sizeof(outputGroupsIDs))
           outputGroupsIDs=0
        end if
     end if

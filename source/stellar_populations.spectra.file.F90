@@ -65,11 +65,25 @@ module Stellar_Population_Spectra_File
   !% Reads and interpolates a file of stellar population spectra.
   use ISO_Varying_String
   use FGSL
-  use Stellar_Population_Spectra_Table
   private
   public :: Stellar_Population_Spectra_File_Initialize, Stellar_Population_Spectra_File_Read,&
        & Stellar_Population_Spectra_File_Interpolate, Stellar_Population_Spectra_File_Tabulation
   
+  type spectralTable
+     !% Structure to hold spectral data.
+     ! The spectra tables.
+     integer                                         :: stellarPopulationSpectraAgesNumberPoints &
+          &,stellarPopulationSpectraMetallicityNumberPoints,stellarPopulationSpectraWavelengthsNumberPoints
+     double precision, allocatable, dimension(:)     :: stellarPopulationSpectraMetallicities,stellarPopulationSpectraAges &
+          &,stellarPopulationSpectraWavelengths
+     double precision, allocatable, dimension(:,:,:) :: stellarPopulationSpectraTable
+     
+     ! Interpolation structures.
+     logical                                         :: resetAge=.true., resetMetallicity=.true., resetWavelength=.true.
+     type(fgsl_interp_accel)                         :: interpolationAcceleratorAge,interpolationAcceleratorMetallicity &
+          &,interpolationAcceleratorWavelength
+  end type spectralTable
+
   ! Array of spectral tables.
   type(spectralTable), allocatable, dimension(:) :: spectra
 
@@ -245,13 +259,13 @@ contains
     if (allocated(imfLookup)) then
        if (size(imfLookup) < imfIndex) then
           call Move_Alloc(imfLookup,imfLookupTemporary)
-          call Alloc_Array(imfLookup,imfIndex,'imfLookup')
+          call Alloc_Array(imfLookup,[imfIndex])
           imfLookup(1:size(imfLookupTemporary))=imfLookupTemporary
           imfLookup(size(imfLookupTemporary)+1:size(imfLookup))=0
           call Dealloc_Array(imfLookupTemporary)
        end if
     else
-       call Alloc_Array(imfLookup,imfIndex,'imfLookup')
+       call Alloc_Array(imfLookup,[imfIndex])
        imfLookup=0
     end if
 
@@ -260,12 +274,14 @@ contains
        if (allocated(spectra)) then
           imfLookup(imfIndex)=size(spectra)+1
           call Move_Alloc(spectra,spectraTemporary)
-          call Alloc_Array(spectra,imfLookup(imfIndex),'spectra')
+          allocate(spectra(imfLookup(imfIndex)))
           spectra(1:size(spectraTemporary))=spectraTemporary
-          call Dealloc_Array(spectraTemporary)
+          deallocate(spectraTemporary)
+          call Memory_Usage_Record(sizeof(spectra(1)),blockCount=0)
        else
           imfLookup(imfIndex)=1
           allocate(spectra(1))
+          call Memory_Usage_Record(sizeof(spectra))
        end if
        imfLookupIndex=imfLookup(imfIndex)
      
@@ -279,8 +295,7 @@ contains
        call h5ltget_dataset_info_f(fileIndex,'wavelengths',dimensions,typeClass,typeSize,errorCode)
        spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints=dimensions(1)
        call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths&
-            &,spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints &
-            &,'spectra()%stellarPopulationSpectraWavelengths')
+            &,[spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints])
        call h5ltread_dataset_double_f(fileIndex,'wavelengths',spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths&
             &,dimensions,errorCode)
        
@@ -288,23 +303,24 @@ contains
        call h5ltget_dataset_info_f(fileIndex,'ages',dimensions,typeClass,typeSize,errorCode)
        spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints=dimensions(1)
        call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraAges&
-            &,spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints ,'spectra()%stellarPopulationSpectraAges')
+            &,[spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints])
        call h5ltread_dataset_double_f(fileIndex,'ages',spectra(imfLookupIndex)%stellarPopulationSpectraAges,dimensions,errorCode)
        
        ! Read the metallicity array.
        call h5ltget_dataset_info_f(fileIndex,'metallicities',dimensions,typeClass,typeSize,errorCode)
        spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints=dimensions(1)
        call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities&
-            &,spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints &
-            &,'spectra()%stellarPopulationSpectraMetallicities')
+            &,[spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints])
        call h5ltread_dataset_double_f(fileIndex,'metallicities',spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities&
             &,dimensions ,errorCode)
        
        ! Allocate space for the spectra.
-       call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraTable&
-            &,spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints &
-            &,spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints&
-            &,spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints ,'spectra%stellarPopulationSpectraTable')
+       call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraTable,[        &
+            &  spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints &
+            & ,spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints        &
+            & ,spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints &
+            &                                                                 ]        &
+            &          )
        
        ! Read the spectra.
        call h5ltread_dataset_double_f(fileIndex,'spectra',spectra(imfLookupIndex)%stellarPopulationSpectraTable,dimensions&
@@ -343,8 +359,8 @@ contains
     imfLookupIndex=imfLookup(imfIndex)
     agesCount         =spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints
     metallicitiesCount=spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints
-    call Alloc_Array(age        ,agesCount         ,'age'        )
-    call Alloc_Array(metallicity,metallicitiesCount,'metallicity')
+    call Alloc_Array(age        ,[agesCount         ])
+    call Alloc_Array(metallicity,[metallicitiesCount])
     age               =         spectra(imfLookupIndex)%stellarPopulationSpectraAges
     metallicity       =(10.0d0**spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities)*metallicitySolar
 

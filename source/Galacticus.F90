@@ -96,11 +96,11 @@ program Galacticus
   ! Perform tasks, until all tasks are done.
   call Galacticus_Task_Do
 
-  ! Close the Galacticus output file.
-  call Galacticus_Output_Close_File
-
   ! Close the parameter file.
   call Input_Parameters_File_Close
   
+  ! Close the Galacticus output file.
+  call Galacticus_Output_Close_File
+
   ! All done, finish.
 end program Galacticus

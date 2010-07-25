@@ -175,8 +175,8 @@ contains
        if (allocated(transferFunctionLogWavenumber)) call Dealloc_Array(transferFunctionLogWavenumber)
        if (allocated(transferFunctionLogT))          call Dealloc_Array(transferFunctionLogT         )
        ! Allocate the arrays to current required size.
-       call Alloc_Array(transferFunctionLogWavenumber,transferFunctionNumberPoints,'transferFunctionLogWavenumber')
-       call Alloc_Array(transferFunctionLogT         ,transferFunctionNumberPoints,'transferFunctionLogT'         )
+       call Alloc_Array(transferFunctionLogWavenumber,[transferFunctionNumberPoints])
+       call Alloc_Array(transferFunctionLogT         ,[transferFunctionNumberPoints])
        ! Extract data from elements.
        do iDatum=0,getLength(datumList)-1
           datum => item(datumList,iDatum)

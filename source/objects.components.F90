@@ -71,7 +71,7 @@ module Components
      !% The component object type.
      double precision, allocatable, dimension(:,:) :: properties
      double precision, allocatable, dimension(:)   :: data
-     type(history),    allocatable, dimension(:)   :: histories ! memoryManagementIgnore (force memory management system to ignore)
+     type(history),    allocatable, dimension(:)   :: histories
      type(component),  pointer                     :: nextComponentOfType
   end type component
 

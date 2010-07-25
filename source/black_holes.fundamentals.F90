@@ -64,7 +64,6 @@
 module Black_Hole_Fundamentals
   !% Implements fundamental properties of black holes.
   use Tree_Nodes
-  use Tree_Node_Methods
   private
   public :: Black_Hole_ISCO_Radius, Black_Hole_ISCO_Specific_Energy, Black_Hole_Gravitational_Radius,&
        & Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor, Black_Hole_Horizon_Radius,&

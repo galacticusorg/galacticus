@@ -197,8 +197,8 @@ contains
        ! Allocate arrays.
        if (allocated(sigmaTableLogMass)) call Dealloc_Array(sigmaTableLogMass)
        if (allocated(sigmaTable    ))    call Dealloc_Array(sigmaTable       )
-       call Alloc_Array(sigmaTableLogMass,sigmaTableNPoints,'sigmaTableLogMass')
-       call Alloc_Array(sigmaTable       ,sigmaTableNPoints,'sigmaTable'       )
+       call Alloc_Array(sigmaTableLogMass,[sigmaTableNPoints])
+       call Alloc_Array(sigmaTable       ,[sigmaTableNPoints])
        ! Generate a range of mass values to tabulate.
        sigmaTableLogMass=Make_Range(sigmaTableLogMassMinimum,sigmaTableLogMassMaximum,sigmaTableNPoints,rangeTypeLinear)
        ! Compute sigma(M) at each tabulated point.

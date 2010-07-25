@@ -64,7 +64,6 @@
 module Tree_Node_Methods_Hot_Halo
   !% Implement hot halo tree node methods.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Components
   use Tree_Node_Methods_Hot_Halo_Data
   private
@@ -910,7 +909,6 @@ contains
   !# </satelliteMergerTask>
   subroutine Hot_Halo_Remove_Before_Satellite_Merging(thisNode)
     !% Remove any hot halo associated with {\tt thisNode} before it merges with its host halo.
-    use Tree_Node_Methods
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: hostNode
@@ -1124,7 +1122,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store hot halo properties in the \glc\ output file buffers.
     use Tree_Nodes
-    use Tree_Node_Methods
     implicit none
     double precision, intent(in)                 :: time
     type(treeNode),   intent(inout), pointer     :: thisNode

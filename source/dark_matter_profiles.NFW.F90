@@ -104,7 +104,6 @@ contains
        &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get)
     !% Initializes the ``NFW'' halo profile module.
     use ISO_Varying_String
-    use Tree_Node_Methods
     use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: darkMatterProfileMethod
@@ -161,9 +160,9 @@ contains
           call Dealloc_Array(nfwEnergy               )
           call Dealloc_Array(nfwRotationNormalization)
        end if
-       call Alloc_Array(nfwConcentration        ,nfwTableNumberPoints,'nfwConcentration'        )
-       call Alloc_Array(nfwEnergy               ,nfwTableNumberPoints,'nfwEnergy'               )
-       call Alloc_Array(nfwRotationNormalization,nfwTableNumberPoints,'nfwRotationNormalization')
+       call Alloc_Array(nfwConcentration        ,[nfwTableNumberPoints])
+       call Alloc_Array(nfwEnergy               ,[nfwTableNumberPoints])
+       call Alloc_Array(nfwRotationNormalization,[nfwTableNumberPoints])
        ! Create a range of concentrations.
        nfwConcentration=Make_Range(concentrationMinimum,concentrationMaximum,nfwTableNumberPoints,rangeType=rangeTypeLogarithmic)
        ! Loop over concentrations and populate tables.
@@ -213,8 +212,8 @@ contains
           call Dealloc_Array(nfwRadius                 )
           call Dealloc_Array(nfwSpecificAngularMomentum)
        end if
-       call Alloc_Array(nfwRadius                 ,nfwInverseTableNumberPoints,'nfwRadius'                 )
-       call Alloc_Array(nfwSpecificAngularMomentum,nfwInverseTableNumberPoints,'nfwSpecificAngularMomentum')
+       call Alloc_Array(nfwRadius                 ,[nfwInverseTableNumberPoints])
+       call Alloc_Array(nfwSpecificAngularMomentum,[nfwInverseTableNumberPoints])
        ! Create a range of radii.
        nfwRadius=Make_Range(radiusMinimum,radiusMaximum,nfwInverseTableNumberPoints,rangeType=rangeTypeLogarithmic)
        ! Loop over radii and populate tables.
@@ -234,7 +233,6 @@ contains
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -252,7 +250,6 @@ contains
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -293,7 +290,6 @@ contains
     !% velocity). Therefore, $r = j/V_{\rm virial}$ where $j$(={\tt specificAngularMomentum}) is the specific angular momentum and
     !% $r$ the required radius.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -332,7 +328,6 @@ contains
   double precision function Dark_Matter_Profile_Rotation_Normalization_NFW(thisNode)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -357,7 +352,6 @@ contains
   double precision function Dark_Matter_Profile_Energy_NFW(thisNode)
     !% Return the energy of an NFW halo density profile.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -382,7 +376,6 @@ contains
   double precision function Dark_Matter_Profile_Energy_Growth_Rate_NFW(thisNode)
     !% Return the rate of change of the energy of an NFW halo density profile.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none

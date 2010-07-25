@@ -366,8 +366,8 @@ contains
     if (allocated(ageTableTime))            call Dealloc_Array(ageTableTime)
     if (allocated(ageTableExpansionFactor)) call Dealloc_Array(ageTableExpansionFactor)
     ! Allocate the arrays to current required size.
-    call Alloc_Array(ageTableTime,           ageTableNumberPoints,'ageTableTime'           )
-    call Alloc_Array(ageTableExpansionFactor,ageTableNumberPoints,'ageTableExpansionFactor')
+    call Alloc_Array(ageTableTime,           [ageTableNumberPoints])
+    call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
     
     ! Create set of grid points in time variable.
     ageTableTime=Make_Range(ageTableTimeMinimum,ageTableTimeMaximum,ageTableNumberPoints,rangeTypeLogarithmic)

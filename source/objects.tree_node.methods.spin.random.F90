@@ -64,7 +64,6 @@
 module Tree_Node_Methods_Spin_Random
   !% Implement random spin tree node method.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Components
   private
   public :: Tree_Node_Methods_Spin_Random_Initialize, Tree_Node_Methods_Spin_Random_Initialize_Spin,&
@@ -285,7 +284,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store spin properties in the \glc\ output file buffers.
     use Tree_Nodes
-    use Tree_Node_Methods
     implicit none
     double precision, intent(in)             :: time
     type(treeNode),   intent(inout), pointer :: thisNode

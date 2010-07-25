@@ -145,8 +145,8 @@ contains
     if (allocated(powerSpectrumLogWavenumber)) call Dealloc_Array(powerSpectrumLogWavenumber)
     if (allocated(powerSpectrumLogP))          call Dealloc_Array(powerSpectrumLogP         )
     ! Allocate the arrays to current required size.
-    call Alloc_Array(powerSpectrumLogWavenumber,powerSpectrumNumberPoints,'powerSpectrumLogWavenumber')
-    call Alloc_Array(powerSpectrumLogP         ,powerSpectrumNumberPoints,'powerSpectrumLogP'         )
+    call Alloc_Array(powerSpectrumLogWavenumber,[powerSpectrumNumberPoints])
+    call Alloc_Array(powerSpectrumLogP         ,[powerSpectrumNumberPoints])
 
     ! Tabulate the function.
     powerSpectrumLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,powerSpectrumNumberPoints,rangeTypeLinear)

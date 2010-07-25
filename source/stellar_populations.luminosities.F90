@@ -65,11 +65,21 @@ module Stellar_Population_Luminosities
   !% Implements calculations of stellar population luminosities in the AB magnitude system.
   use FGSL
   use, intrinsic :: ISO_C_Binding                             
-  use Stellar_Population_Luminosities_Table_Type
   use Abundances_Structure
   private
   public :: Stellar_Population_Luminosity
 
+  type luminosityTable
+     !% Structure for holding tables of simple stellar population luminosities.
+     integer                                         :: agesCount,metallicitiesCount
+     logical,          allocatable, dimension(:)     :: isTabulated
+     double precision, allocatable, dimension(:)     :: age,metallicity
+     double precision, allocatable, dimension(:,:,:) :: luminosity
+     ! Interpolation structures.
+     logical                                         :: resetAge=.true., resetMetallicity=.true.
+     type(fgsl_interp_accel)                         :: interpolationAcceleratorAge,interpolationAcceleratorMetallicity
+    end type luminosityTable
+  
   ! Array of simple stellar population luminosity tables.
   type(luminosityTable), allocatable, dimension(:) :: luminosityTables
 
@@ -113,13 +123,15 @@ contains
     !$omp critical (Luminosity_Tables_Initialize)
     if (allocated(luminosityTables)) then
        if (size(luminosityTables) < imfIndex) then
-          call Move_Alloc (luminosityTables,luminosityTablesTemporary)
-          call Alloc_Array(luminosityTables,imfIndex,'luminosityTables')
+          call Move_Alloc(luminosityTables,luminosityTablesTemporary)
+          allocate(luminosityTables(imfIndex))
           luminosityTables(1:size(luminosityTablesTemporary))=luminosityTablesTemporary
-          call Dealloc_Array(luminosityTablesTemporary)
+          deallocate(luminosityTablesTemporary)
+          call Memory_Usage_Record(sizeof(luminosityTables(1)),blockCount=0)
        end if
     else
-       call Alloc_Array(luminosityTables,imfIndex,'luminosityTables')
+       allocate(luminosityTables(imfIndex))
+       call Memory_Usage_Record(sizeof(luminosityTables))
     end if
     
     ! Determine if we have tabulated luminosities for this luminosityIndex in this IMF yet.
@@ -130,11 +142,9 @@ contains
           else
              call Move_Alloc (luminosityTables(imfIndex)%isTabulated,isTabulatedTemporary)
              call Move_Alloc (luminosityTables(imfIndex)%luminosity ,luminosityTemporary )
-             call Alloc_Array(luminosityTables(imfIndex)%isTabulated,luminosityIndex(iLuminosity)&
-                  &,'luminosityTables()%isTabulated')
-             call Alloc_Array(luminosityTables(imfIndex)%luminosity ,luminosityIndex(iLuminosity)&
-                  &,luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%metallicitiesCount&
-                  &,'luminosityTables()%luminosity')
+             call Alloc_Array(luminosityTables(imfIndex)%isTabulated,[luminosityIndex(iLuminosity)])
+             call Alloc_Array(luminosityTables(imfIndex)%luminosity ,[luminosityIndex(iLuminosity)&
+                  &,luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%metallicitiesCount])
              luminosityTables(imfIndex)%isTabulated(1:size(isTabulatedTemporary)    )=isTabulatedTemporary
              luminosityTables(imfIndex)%isTabulated(  size(isTabulatedTemporary)+1:luminosityIndex(iLuminosity))=.false.
              luminosityTables(imfIndex)%luminosity (1:size(isTabulatedTemporary),:,:)=luminosityTemporary
@@ -143,7 +153,7 @@ contains
              computeTable=.true.
           end if
        else
-          call Alloc_Array(luminosityTables(imfIndex)%isTabulated,luminosityIndex(iLuminosity),'luminosityTables()%isTabulated')
+          call Alloc_Array(luminosityTables(imfIndex)%isTabulated,[luminosityIndex(iLuminosity)])
           luminosityTables(imfIndex)%isTabulated=.false.
           ! Since we have not yet tabulated any luminosities yet for this IMF, we need to get a list of suitable metallicities and
           ! ages at which to tabulate.
@@ -155,9 +165,8 @@ contains
           elsewhere
              luminosityTables(imfIndex)%metallicity=logMetallicityZero
           end where
-          call Alloc_Array(luminosityTables(imfIndex)%luminosity,luminosityIndex(iLuminosity)&
-               &,luminosityTables(imfIndex)%agesCount ,luminosityTables(imfIndex)%metallicitiesCount&
-               &,'luminosityTables()%luminosity')
+          call Alloc_Array(luminosityTables(imfIndex)%luminosity,[luminosityIndex(iLuminosity)&
+               &,luminosityTables(imfIndex)%agesCount ,luminosityTables(imfIndex)%metallicitiesCount])
           computeTable=.true.
        end if
        

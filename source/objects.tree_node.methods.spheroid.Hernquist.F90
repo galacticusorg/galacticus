@@ -64,7 +64,6 @@
 module Tree_Node_Methods_Hernquist_Spheroid
   !% Implement Hernquist spheroid tree node methods.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Histories
   use Components
   use Stellar_Population_Properties
@@ -536,7 +535,8 @@ contains
     integer                                                 :: thisIndex
     double precision                                        :: starFormationRate,stellarMassRate ,fuelMassRate,fuelMass&
          &,massOutflowRate,spheroidMass,angularMomentumOutflowRate,energyInputRate
-    type(abundancesStructure)                               :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
+    type(abundancesStructure), save                         :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
+    !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
 
     ! Compute star formation rate if this node has a spheroid.
     if (thisNode%componentExists(componentIndex)) then
@@ -871,7 +871,6 @@ contains
   subroutine Hernquist_Spheroid_Satellite_Merging(thisNode)
     !% Transfer any Hernquist spheroid associated with {\tt thisNode} to its host halo.
     use Satellite_Merging_Mass_Movements_Descriptors
-    use Tree_Node_Methods
     use Galacticus_Error
     use Satellite_Merging_Remnant_Sizes_Properties
     implicit none
@@ -1461,7 +1460,6 @@ contains
     !% Store Hernquist spheroid properties in the \glc\ output file buffers.
     use Stellar_Population_Properties_Luminosities
     use Tree_Nodes
-    use Tree_Node_Methods
     implicit none
     double precision, intent(in)                   :: time
     type(treeNode),   intent(inout), pointer       :: thisNode

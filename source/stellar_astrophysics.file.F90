@@ -128,8 +128,8 @@ contains
             &/Stellar_Properties_Compilation.xml')
 
        ! Allocate array to store number of entries in file for yield of each element.
-       call Alloc_Array(elementYieldCount,Atomic_Data_Atoms_Count(),'elementYieldCount')
-       call Alloc_Array(atomIndexMap     ,Atomic_Data_Atoms_Count(),'atomIndexMap'     )
+       call Alloc_Array(elementYieldCount,[Atomic_Data_Atoms_Count()])
+       call Alloc_Array(atomIndexMap     ,[Atomic_Data_Atoms_Count()])
 
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing stellar properties.
@@ -188,22 +188,23 @@ contains
        end do
 
        ! Allocate arrays to store stellar properties.
-       call Alloc_Array(stellarLifetime           ,lifetimeCount                        ,'stellarLifetime'           )
-       call Alloc_Array(stellarLifetimeMass       ,lifetimeCount                        ,'stellarLifetimeMass'       )
-       call Alloc_Array(stellarLifetimeMetallicity,lifetimeCount                        ,'stellarLifetimeMetallicity')
-       call Alloc_Array(ejectedMass               ,ejectedMassCount                     ,'ejectedMass'               )
-       call Alloc_Array(ejectedMassMass           ,ejectedMassCount                     ,'ejectedMassMass'           )
-       call Alloc_Array(ejectedMassMetallicity    ,ejectedMassCount                     ,'ejectedMassMetallicity'    )
-       call Alloc_Array(metalYield                ,metalYieldCount                      ,'metalYield'                )
-       call Alloc_Array(metalYieldMass            ,metalYieldCount                      ,'metalYieldMass'            )
-       call Alloc_Array(metalYieldMetallicity     ,metalYieldCount                      ,'metalYieldMetallicity'     )
-       call Alloc_Array(elementYield              ,elementYieldCountMaximum,elementCount,'elementYield'              )
-       call Alloc_Array(elementYieldMass          ,elementYieldCountMaximum,elementCount,'elementYieldMass'          )
-       call Alloc_Array(elementYieldMetallicity   ,elementYieldCountMaximum,elementCount,'elementYieldMetallicity'   )
+       call Alloc_Array(stellarLifetime           ,[lifetimeCount                        ])
+       call Alloc_Array(stellarLifetimeMass       ,[lifetimeCount                        ])
+       call Alloc_Array(stellarLifetimeMetallicity,[lifetimeCount                        ])
+       call Alloc_Array(ejectedMass               ,[ejectedMassCount                     ])
+       call Alloc_Array(ejectedMassMass           ,[ejectedMassCount                     ])
+       call Alloc_Array(ejectedMassMetallicity    ,[ejectedMassCount                     ])
+       call Alloc_Array(metalYield                ,[metalYieldCount                      ])
+       call Alloc_Array(metalYieldMass            ,[metalYieldCount                      ])
+       call Alloc_Array(metalYieldMetallicity     ,[metalYieldCount                      ])
+       call Alloc_Array(elementYield              ,[elementYieldCountMaximum,elementCount])
+       call Alloc_Array(elementYieldMass          ,[elementYieldCountMaximum,elementCount])
+       call Alloc_Array(elementYieldMetallicity   ,[elementYieldCountMaximum,elementCount])
 
        ! Allocate interpolator objects for element yields.
-       call Alloc_Array(elementYieldInterpolationWorkspace,elementCount,'elementYieldInterpolationWorkspace')
-       call Alloc_Array(elementYieldResetInterpolation    ,elementCount,'elementYieldResetInterpolation'    )
+       allocate(elementYieldInterpolationWorkspace(elementCount))
+       call Memory_Usage_Record(sizeof(elementYieldInterpolationWorkspace))
+       call Alloc_Array(elementYieldResetInterpolation    ,[elementCount])
        elementYieldResetInterpolation=.true.
 
        ! Loop over stars to process their properties.

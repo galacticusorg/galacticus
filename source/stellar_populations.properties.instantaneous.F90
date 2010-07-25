@@ -109,7 +109,6 @@ contains
        &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Abundances_Structure
     use Histories
     use Star_Formation_IMF

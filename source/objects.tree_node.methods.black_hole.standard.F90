@@ -64,7 +64,6 @@
 module Tree_Node_Methods_Black_Hole
   !% Implement black hole tree node methods.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Components
   private
   public :: Tree_Node_Methods_Black_Hole_Initialize, Galacticus_Output_Tree_Black_Hole_Standard,&
@@ -275,7 +274,6 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
-    use Tree_Node_Methods
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -469,7 +467,6 @@ contains
   !# </satelliteMergerTask>
   subroutine Black_Hole_Satellite_Merging(thisNode)
     !% Merge (instantaneously) any black hole associated with {\tt thisNode} before it merges with its host halo.
-    use Tree_Node_Methods
     use Black_Hole_Binary_Mergers
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
@@ -686,7 +683,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store black hole properties in the \glc\ output file buffers.
     use Tree_Nodes
-    use Tree_Node_Methods
     implicit none
     double precision, intent(in)                 :: time
     type(treeNode),   intent(inout), pointer     :: thisNode

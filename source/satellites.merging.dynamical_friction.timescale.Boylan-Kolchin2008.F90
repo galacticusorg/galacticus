@@ -86,7 +86,6 @@ contains
   double precision function Satellite_Time_Until_Merging_BoylanKolchin2008(thisNode)
     !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Virial_Orbits
     use Numerical_Constants_Math

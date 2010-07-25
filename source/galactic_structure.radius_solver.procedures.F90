@@ -68,22 +68,22 @@ module Galactic_Structure_Radius_Solver_Procedures
   public :: Radius_Get, Radius_Set, Velocity_Get, Velocity_Set
 
   ! Pointers to get and set procedures.
-  procedure(Get_Template), pointer :: Radius_Get => null(), Velocity_Get => null()
-  procedure(Set_Template), pointer :: Radius_Set => null(), Velocity_Set => null()
+  procedure(Structure_Get_Template), pointer :: Radius_Get => null(), Velocity_Get => null()
+  procedure(Structure_Set_Template), pointer :: Radius_Set => null(), Velocity_Set => null()
   !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
 
   abstract interface
-     double precision function Get_Template(thisNode)
+     double precision function Structure_Get_Template(thisNode)
        import treeNode
        type(treeNode), pointer, intent(inout) :: thisNode
-     end function Get_Template
+     end function Structure_Get_Template
   end interface
   abstract interface
-     subroutine Set_Template(thisNode,value)
+     subroutine Structure_Set_Template(thisNode,value)
        import treeNode
        type(treeNode),   pointer, intent(inout) :: thisNode
        double precision,          intent(in)    :: value
-     end subroutine Set_Template
+     end subroutine Structure_Set_Template
   end interface
 
 end module Galactic_Structure_Radius_Solver_Procedures

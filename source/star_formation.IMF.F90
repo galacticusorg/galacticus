@@ -191,7 +191,8 @@ contains
        !# </include>
 
        ! Get a list of IMF names.
-       call Alloc_Array(imfNames,imfAvailableCount,'imfNames')
+       allocate(imfNames(imfAvailableCount))
+       call Memory_Usage_Record(sizeof(imfNames))
        !# <include directive="imfRegisterName" type="code" action="subroutine">
        !#  <subroutineArgs>imfNames</subroutineArgs>
        include 'star_formation.IMF.register_names.inc'
@@ -396,8 +397,8 @@ contains
 
     ! Check that flag and index arrays exist.
     if (.not.allocated(recycledFractionTabulated)) then
-       call Alloc_Array(recycledFractionTabulated,imfSelected,'recycledFractionTabulated')
-       call Alloc_Array(recycledFractionIndex    ,imfSelected,'recycledFractionIndex'    )
+       call Alloc_Array(recycledFractionTabulated,[imfSelected])
+       call Alloc_Array(recycledFractionIndex    ,[imfSelected])
        recycledFractionTabulated=.false.
        recycledFractionIndex    =0
     end if
@@ -406,8 +407,8 @@ contains
     if (size(recycledFractionTabulated) < imfSelected) then
        call Move_Alloc (recycledFractionTabulated,recycledFractionTabulatedTemporary)
        call Move_Alloc (recycledFractionIndex    ,recycledFractionIndexTemporary    )
-       call Alloc_Array(recycledFractionTabulated,imfSelected,'recycledFractionTabulated')
-       call Alloc_Array(recycledFractionIndex    ,imfSelected,'recycledFractionIndex'    )
+       call Alloc_Array(recycledFractionTabulated,[imfSelected])
+       call Alloc_Array(recycledFractionIndex    ,[imfSelected])
        recycledFractionTabulated(1:size(recycledFractionTabulatedTemporary))            =recycledFractionTabulatedTemporary
        recycledFractionIndex    (1:size(recycledFractionIndexTemporary    ))            =recycledFractionIndexTemporary
        recycledFractionTabulated(  size(recycledFractionTabulatedTemporary):imfSelected)=.false.
@@ -423,19 +424,19 @@ contains
        if (allocated(recycledFractionTable)) then
           imfCount=size(recycledFractionTable,dim=3)
           call Move_Alloc(recycledFractionTable,recycledFractionTableTemporary)
-          call Alloc_Array(recycledFractionTable,recycledFractionTableAgeCount,recycledFractionTableMetallicityCount,imfCount,'recycledFractionTable')
+          call Alloc_Array(recycledFractionTable,[recycledFractionTableAgeCount,recycledFractionTableMetallicityCount,imfCount])
           recycledFractionTable(:,:,1:imfCount)=recycledFractionTableTemporary
           call Dealloc_Array(recycledFractionTableTemporary)
        else
-          call Alloc_Array(recycledFractionTableAge        ,recycledFractionTableAgeCount        ,'recycledFractionTableAge'        )
-          call Alloc_Array(recycledFractionTableMetallicity,recycledFractionTableMetallicityCount,'recycledFractionTableMetallicity')
+          call Alloc_Array(recycledFractionTableAge        ,[recycledFractionTableAgeCount        ])
+          call Alloc_Array(recycledFractionTableMetallicity,[recycledFractionTableMetallicityCount])
           recycledFractionTableAge                                                 =Make_Range(recycledFractionTableAgeMinimum&
                &,recycledFractionTableAgeMaximum,recycledFractionTableAgeCount,rangeType=rangeTypeLogarithmic)
           recycledFractionTableMetallicity(1)                                      =0.0d0
           recycledFractionTableMetallicity(2:recycledFractionTableMetallicityCount)&
                &=Make_Range(recycledFractionTableMetallicityMinimum,recycledFractionTableMetallicityMaximum&
                &,recycledFractionTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          call Alloc_Array(recycledFractionTable,recycledFractionTableAgeCount,recycledFractionTableMetallicityCount,1,'recycledFractionTable')
+          call Alloc_Array(recycledFractionTable,[recycledFractionTableAgeCount,recycledFractionTableMetallicityCount,1])
        end if
        
        ! Record the index in the array where this IMF will be stored.
@@ -709,8 +710,8 @@ contains
 
     ! Check that flag and index arrays exist.
     if (.not.allocated(metalYieldTabulated)) then
-       call Alloc_Array(metalYieldTabulated,imfSelected,'metalYieldTabulated')
-       call Alloc_Array(metalYieldIndex    ,imfSelected,'metalYieldIndex'    )
+       call Alloc_Array(metalYieldTabulated,[imfSelected])
+       call Alloc_Array(metalYieldIndex    ,[imfSelected])
        metalYieldTabulated=.false.
        metalYieldIndex    =0
     end if
@@ -719,8 +720,8 @@ contains
     if (size(metalYieldTabulated) < imfSelected) then
        call Move_Alloc (metalYieldTabulated,metalYieldTabulatedTemporary)
        call Move_Alloc (metalYieldIndex    ,metalYieldIndexTemporary    )
-       call Alloc_Array(metalYieldTabulated,imfSelected,'metalYieldTabulated')
-       call Alloc_Array(metalYieldIndex    ,imfSelected,'metalYieldIndex'    )
+       call Alloc_Array(metalYieldTabulated,[imfSelected])
+       call Alloc_Array(metalYieldIndex    ,[imfSelected])
        metalYieldTabulated(1:size(metalYieldTabulatedTemporary))            =metalYieldTabulatedTemporary
        metalYieldIndex    (1:size(metalYieldIndexTemporary    ))            =metalYieldIndexTemporary
        metalYieldTabulated(  size(metalYieldTabulatedTemporary):imfSelected)=.false.
@@ -736,19 +737,19 @@ contains
        if (allocated(metalYieldTable)) then
           imfCount=size(metalYieldTable,dim=4)
           call Move_Alloc(metalYieldTable,metalYieldTableTemporary)
-          call Alloc_Array(metalYieldTable,metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,imfCount,'metalYieldTable')
+          call Alloc_Array(metalYieldTable,[metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,imfCount])
           metalYieldTable(:,:,:,1:imfCount)=metalYieldTableTemporary
           call Dealloc_Array(metalYieldTableTemporary)
        else
-          call Alloc_Array(metalYieldTableAge        ,metalYieldTableAgeCount        ,'metalYieldTableAge'        )
-          call Alloc_Array(metalYieldTableMetallicity,metalYieldTableMetallicityCount,'metalYieldTableMetallicity')
+          call Alloc_Array(metalYieldTableAge        ,[metalYieldTableAgeCount        ])
+          call Alloc_Array(metalYieldTableMetallicity,[metalYieldTableMetallicityCount])
           metalYieldTableAge                                           =Make_Range(metalYieldTableAgeMinimum&
                &,metalYieldTableAgeMaximum,metalYieldTableAgeCount,rangeType=rangeTypeLogarithmic)
           metalYieldTableMetallicity(1)                                =0.0d0
           metalYieldTableMetallicity(2:metalYieldTableMetallicityCount)&
                &=Make_Range(metalYieldTableMetallicityMinimum,metalYieldTableMetallicityMaximum&
                &,metalYieldTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          call Alloc_Array(metalYieldTable,metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,1,'metalYieldTable')
+          call Alloc_Array(metalYieldTable,[metalYieldTableAgeCount,metalYieldTableMetallicityCount,elementCount+1,1])
        end if
      
        ! Record the index in the array where this IMF will be stored.
@@ -1096,8 +1097,8 @@ contains
 
     ! Check that flag and index arrays exist.
     if (.not.allocated(energyInputTabulated)) then
-       call Alloc_Array(energyInputTabulated,imfSelected,'energyInputTabulated')
-       call Alloc_Array(energyInputIndex    ,imfSelected,'energyInputIndex'    )
+       call Alloc_Array(energyInputTabulated,[imfSelected])
+       call Alloc_Array(energyInputIndex    ,[imfSelected])
        energyInputTabulated=.false.
        energyInputIndex    =0
     end if
@@ -1106,8 +1107,8 @@ contains
     if (size(energyInputTabulated) < imfSelected) then
        call Move_Alloc (energyInputTabulated,energyInputTabulatedTemporary)
        call Move_Alloc (energyInputIndex    ,energyInputIndexTemporary    )
-       call Alloc_Array(energyInputTabulated,imfSelected,'energyInputTabulated')
-       call Alloc_Array(energyInputIndex    ,imfSelected,'energyInputIndex'    )
+       call Alloc_Array(energyInputTabulated,[imfSelected])
+       call Alloc_Array(energyInputIndex    ,[imfSelected])
        energyInputTabulated(1:size(energyInputTabulatedTemporary))=energyInputTabulatedTemporary
        energyInputIndex    (1:size(energyInputIndexTemporary    ))=energyInputIndexTemporary
        energyInputTabulated(  size(energyInputTabulatedTemporary):imfSelected)=.false.
@@ -1123,19 +1124,19 @@ contains
        if (allocated(energyInputTable)) then
           imfCount=size(energyInputTable,dim=3)
           call Move_Alloc(energyInputTable,energyInputTableTemporary)
-          call Alloc_Array(energyInputTable,energyInputTableAgeCount,energyInputTableMetallicityCount,imfCount,'energyInputTable')
+          call Alloc_Array(energyInputTable,[energyInputTableAgeCount,energyInputTableMetallicityCount,imfCount])
           energyInputTable(:,:,1:imfCount)=energyInputTableTemporary
           call Dealloc_Array(energyInputTableTemporary)
        else
-          call Alloc_Array(energyInputTableAge        ,energyInputTableAgeCount        ,'energyInputTableAge'        )
-          call Alloc_Array(energyInputTableMetallicity,energyInputTableMetallicityCount,'energyInputTableMetallicity')
+          call Alloc_Array(energyInputTableAge        ,[energyInputTableAgeCount        ])
+          call Alloc_Array(energyInputTableMetallicity,[energyInputTableMetallicityCount])
           energyInputTableAge=Make_Range(energyInputTableAgeMinimum&
                &,energyInputTableAgeMaximum,energyInputTableAgeCount,rangeType=rangeTypeLogarithmic)
           energyInputTableMetallicity(1)=0.0d0
           energyInputTableMetallicity(2:energyInputTableMetallicityCount)&
                &=Make_Range(energyInputTableMetallicityMinimum,energyInputTableMetallicityMaximum&
                &,energyInputTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
-          call Alloc_Array(energyInputTable,energyInputTableAgeCount,energyInputTableMetallicityCount,1,'energyInputTable')
+          call Alloc_Array(energyInputTable,[energyInputTableAgeCount,energyInputTableMetallicityCount,1])
        end if
        
        ! Record the index in the array where this IMF will be stored.

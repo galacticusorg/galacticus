@@ -175,8 +175,8 @@ contains
     if (allocated(deltaTableTime )) call Dealloc_Array(deltaTableTime )
     if (allocated(deltaTableDelta)) call Dealloc_Array(deltaTableDelta)
     ! Allocate the arrays to current required size.
-    call Alloc_Array(deltaTableTime ,deltaTableNumberPoints,'deltaTableTime' )
-    call Alloc_Array(deltaTableDelta,deltaTableNumberPoints,'deltaTableDelta')
+    call Alloc_Array(deltaTableTime ,[deltaTableNumberPoints])
+    call Alloc_Array(deltaTableDelta,[deltaTableNumberPoints])
     
     ! Create set of grid points in time variable.
     deltaTableTime=Make_Range(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints,rangeTypeLogarithmic)

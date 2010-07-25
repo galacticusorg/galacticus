@@ -81,7 +81,6 @@ contains
     !% Determine a suitable timestep for {\tt thisNode} using the simple method. This simply selects the smaller of {\tt
     !% timestepSimpleAbsolute} and {\tt timestepSimpleRelative}$H^{-1}(t)$.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Input_Parameters
     use Cosmology_Functions
     implicit none

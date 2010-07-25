@@ -93,7 +93,6 @@ contains
     use Merger_Tree_Construction
     use Merger_Trees_Evolve
     use Tree_Nodes
-    use Tree_Node_Methods
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
     use Input_Parameters
@@ -120,7 +119,7 @@ contains
 
        ! Get a list of output redshifts - stored temporarily in the outputTimes array.
        outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
-       call Alloc_Array(outputTimes,outputCount,'outputTimes')
+       call Alloc_Array(outputTimes,[outputCount])
        !@ <inputParameter>
        !@   <name>outputRedshifts</name>
        !@   <defaultValue>0</defaultValue>

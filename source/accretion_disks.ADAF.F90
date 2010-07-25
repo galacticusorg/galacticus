@@ -208,7 +208,6 @@ contains
   double precision function Accretion_Disk_Jet_Power_ADAF(thisNode,massAccretionRate)
     !% Computes the jet power for an ADAF in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Black_Hole_Fundamentals
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
@@ -246,7 +245,6 @@ contains
     !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from an ADAF.
     !% disk.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Black_Hole_Fundamentals
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

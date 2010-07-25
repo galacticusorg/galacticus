@@ -92,7 +92,6 @@ contains
   subroutine Merger_Tree_Timestep_History(thisNode,timeStep,End_Of_Timestep_Task)
     !% Determines the timestep to go to the next tabulation point for global history storage.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
@@ -144,12 +143,12 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
           ! Allocate storage arrays.
-          call Alloc_Array(historyTime             ,timestepHistorySteps,'historyTime'             )
-          call Alloc_Array(historyExpansion        ,timestepHistorySteps,'historyExpansion'        )
-          call Alloc_Array(historyStarFormationRate,timestepHistorySteps,'historyStarFormationRate')
-          call Alloc_Array(historyStellarDensity   ,timestepHistorySteps,'historyStellarDensity'   )
-          call Alloc_Array(historyGasDensity       ,timestepHistorySteps,'historyGasDensity'       )
-          call Alloc_Array(historyNodeDensity      ,timestepHistorySteps,'historyNodeDensity'      )
+          call Alloc_Array(historyTime             ,[timestepHistorySteps])
+          call Alloc_Array(historyExpansion        ,[timestepHistorySteps])
+          call Alloc_Array(historyStarFormationRate,[timestepHistorySteps])
+          call Alloc_Array(historyStellarDensity   ,[timestepHistorySteps])
+          call Alloc_Array(historyGasDensity       ,[timestepHistorySteps])
+          call Alloc_Array(historyNodeDensity      ,[timestepHistorySteps])
           ! Initialize arrays.
           historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
           do timeIndex=1,timestepHistorySteps
@@ -190,7 +189,6 @@ contains
     !% Store various properties in global arrays.
     use Merger_Trees
     use Tree_Nodes
-    use Tree_Node_Methods
     use Numerical_Interpolation
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses

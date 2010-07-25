@@ -187,8 +187,8 @@ contains
        call Get_Input_Parameter('mergerTreeBuildTreesHaloMassExponent',mergerTreeBuildTreesHaloMassExponent,defaultValue=1.0d0)
        ! Generate a randomly sampled set of halo masses.
        treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
-       call Alloc_Array(treeHaloMass,treeCount,'treeHaloMass')
-       call Alloc_Array(treeWeight  ,treeCount,'treeWeight'  )
+       call Alloc_Array(treeHaloMass,[treeCount])
+       call Alloc_Array(treeWeight  ,[treeCount])
 
       ! Create a distribution of halo masses.
        select case (char(mergerTreeBuildTreesHaloMassDistribution))
@@ -251,7 +251,7 @@ contains
 
   subroutine Merger_Tree_Build_Do(thisTree,skipTree)
     !% Build a merger tree.
-    use Tree_Node_Methods
+    use Tree_Nodes
     use Galacticus_State
     implicit none
     type(mergerTree), intent(inout) :: thisTree

@@ -102,18 +102,11 @@ vpath %.F90 source
 ./work/build/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc90)
 	./scripts/build/Find_Allocatable_Arrays.pl `pwd`
 
-./work/build/Type_Definitions.xml: ./scripts/build/Find_Type_Dependencies.pl source/*.[fF]90 $(wildcard source/*.Inc90)
-	./scripts/build/Find_Type_Dependencies.pl `pwd`
-
-./work/build/utility.memory_management.use.inc: ./scripts/build/Make_Memory_Usage_Routines.pl ./work/build/Allocatable_Arrays.xml ./work/build/Type_Definitions.xml
+./work/build/utility.memory_management.precontain.inc: ./scripts/build/Make_Memory_Usage_Routines.pl ./work/build/Allocatable_Arrays.xml
 	./scripts/build/Make_Memory_Usage_Routines.pl
-	./scripts/build/Find_Use_Dependencies.pl .
-
-./work/build/utility.memory_management.precontain.inc:
-	@touch ./work/build/utility.memory_usage.precontain.inc
 
 ./work/build/utility.memory_management.postcontain.inc:
-	@touch ./work/build/utility.memory_usage.postcontain.inc
+	@touch ./work/build/utility.memory_management.postcontain.inc
 
 # Rules for cleaning up.
 clean: tidy

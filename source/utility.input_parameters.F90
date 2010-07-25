@@ -91,7 +91,7 @@ module Input_Parameters
   end interface
 
   ! Parameters group identifier in the output file.
-  integer :: parametersGroupID=0
+  integer(kind=HID_T) :: parametersGroupID=0
   
 contains
 
@@ -131,6 +131,7 @@ contains
     implicit none
 
     call destroy(parameterDoc)
+    call Galacticus_Output_Close_Group(parametersGroupID)
     return
   end subroutine Input_Parameters_File_Close
 

@@ -104,7 +104,6 @@ contains
   double precision function Cooling_Rate_White_Frenk(thisNode)
     !% Computes the mass cooling rate in a hot gas halo utilizing the \cite{white_galaxy_1991} method.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
     use Cooling_Radii

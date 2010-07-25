@@ -167,7 +167,6 @@ contains
   subroutine Merger_Tree_Smooth_Accretion_Do(thisTree,skipTree)
     !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Cosmology_Functions
     implicit none
     type(mergerTree), intent(inout) :: thisTree

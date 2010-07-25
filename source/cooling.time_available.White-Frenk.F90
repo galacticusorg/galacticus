@@ -107,7 +107,6 @@ contains
     !% Compute the time available for cooling using the \cite{white_galaxy_1991} method. This is assumed to be equal to the
     !% dynamical timescale of the halo.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

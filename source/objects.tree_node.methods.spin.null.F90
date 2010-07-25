@@ -75,7 +75,6 @@ contains
   !# </treeNodeCreateInitialize>
   subroutine Tree_Node_Methods_Spin_Null_Initialize(componentOption,componentTypeCount)
     !% Initializes the tree node spin null methods module.
-    use Tree_Node_Methods
     use ISO_Varying_String
     use Galacticus_Display
     implicit none

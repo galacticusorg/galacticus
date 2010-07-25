@@ -99,7 +99,6 @@ contains
   double precision function Satellite_Time_Until_Merging_Lacey_Cole(thisNode)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Virial_Orbits
     use Numerical_Constants_Math

@@ -155,7 +155,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store virial properties in the \glc\ output file buffers.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     implicit none
     double precision, intent(in)             :: time

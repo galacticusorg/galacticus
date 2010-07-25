@@ -134,7 +134,6 @@ contains
   double precision function Cooling_Radius_Growth_Rate_Simple(thisNode)
     !% Return the growth rate of the cooling radius in the ``simple'' model in Mpc/Gyr.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Hot_Halo_Temperature_Profile
     use Hot_Halo_Density_Profile
@@ -143,13 +142,14 @@ contains
     use Radiation_Structure
     use Cooling_Times_Available
     implicit none
-    type(treeNode),           intent(inout), pointer     :: thisNode
-    double precision,         dimension(abundancesCount) :: abundancesMassFraction
-    double precision                                     :: virialRadius,coolingRadius,coolingTimeAvailable &
+    type(treeNode),            intent(inout), pointer     :: thisNode
+    double precision,          dimension(abundancesCount) :: abundancesMassFraction
+    double precision                                      :: virialRadius,coolingRadius,coolingTimeAvailable &
          &,coolingTimeAvailableIncreaseRate,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope &
          &,coolingTimeTemperatureLogSlope
-    type(abundancesStructure)                            :: abundances
-    type(radiationStructure)                             :: radiation
+    type(abundancesStructure), save                       :: abundances
+    !$omp threadprivate(abundances)
+    type(radiationStructure)                              :: radiation
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -278,15 +278,15 @@ contains
     use Radiation_Structure
     use Hot_Halo_Density_Profile
     use Hot_Halo_Temperature_Profile
-    use Tree_Node_Methods
     implicit none
-    real(c_double)                                       :: Cooling_Radius_Root
-    real(c_double),           value                      :: radius
-    type(c_ptr),              value                      :: parameterPointer
-    double precision,         dimension(abundancesCount) :: abundancesMassFraction
-    double precision                                     :: coolingTime,density,temperature
-    type(abundancesStructure)                            :: abundances
-    type(radiationStructure)                             :: radiation
+    real(c_double)                                        :: Cooling_Radius_Root
+    real(c_double),            value                      :: radius
+    type(c_ptr),               value                      :: parameterPointer
+    double precision,          dimension(abundancesCount) :: abundancesMassFraction
+    double precision                                      :: coolingTime,density,temperature
+    type(abundancesStructure), save                       :: abundances
+    !$omp threadprivate(abundances)
+    type(radiationStructure)                              :: radiation
 
     ! Compute density, temperature and abundances.
     density    =Hot_Halo_Density    (activeNode,radius)

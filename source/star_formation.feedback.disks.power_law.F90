@@ -120,7 +120,6 @@ contains
     !% adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Tree_Nodes
     use Numerical_Constants_Units
-    use Tree_Node_Methods
     use Stellar_Feedback
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

@@ -171,7 +171,6 @@ contains
     !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from a switching accretion disk.
     !% disk.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Black_Hole_Fundamentals
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -190,7 +189,6 @@ contains
   integer function Accretion_Disk_Switched_Type(thisNode,massAccretionRate)
     !% Decide which type of accretion disk to use.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Black_Hole_Fundamentals
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

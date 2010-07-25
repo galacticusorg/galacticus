@@ -64,7 +64,6 @@
 module Tree_Node_Methods_Satellite_Orbit
   !% Implement satellite orbit tree node methods.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Components
   private
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize, Satellite_Orbit_Create, Galacticus_Output_Tree_Satellite_Orbit_Simple,&
@@ -320,7 +319,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store satellite orbit properties in the \glc\ output file buffers.
     use Tree_Nodes
-    use Tree_Node_Methods
     implicit none
     double precision, intent(in)             :: time
     type(treeNode),   intent(inout), pointer :: thisNode
