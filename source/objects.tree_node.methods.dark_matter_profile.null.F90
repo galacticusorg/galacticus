@@ -83,7 +83,7 @@ contains
   !# </treeNodeCreateInitialize>
   subroutine Tree_Node_Methods_Dark_Matter_Profile_Null_Initialize(componentOption,componentTypeCount)
     !% Initializes the tree node dark matter profile null methods module.
-    use Tree_Node_Methods
+    use Tree_Nodes
     use ISO_Varying_String
     use Galacticus_Display
     implicit none

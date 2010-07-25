@@ -441,12 +441,9 @@ contains
     if (allocated(coolingFunctionMetallicities)) call Dealloc_Array(coolingFunctionMetallicities)
     if (allocated(coolingFunctionTemperatures )) call Dealloc_Array(coolingFunctionTemperatures )
     if (allocated(coolingFunctionTable        )) call Dealloc_Array(coolingFunctionTable        )
-    call Alloc_Array(coolingFunctionMetallicities                                       ,coolingFunctionMetallicityNumberPoints&
-         &,'coolingFunctionMetallicities')
-    call Alloc_Array(coolingFunctionTemperatures ,coolingFunctionTemperatureNumberPoints                                       &
-         &,'coolingFunctionTemperature'  )
-    call Alloc_Array(coolingFunctionTable        ,coolingFunctionTemperatureNumberPoints,coolingFunctionMetallicityNumberPoints&
-         &,'coolingFunctionTable'        )
+    call Alloc_Array(coolingFunctionMetallicities                                       ,[coolingFunctionMetallicityNumberPoints])
+    call Alloc_Array(coolingFunctionTemperatures ,[coolingFunctionTemperatureNumberPoints                                       ])
+    call Alloc_Array(coolingFunctionTable        ,[coolingFunctionTemperatureNumberPoints,coolingFunctionMetallicityNumberPoints])
 
     ! Extract data from the cooling functions and populate metallicity and temperature arrays.
     do iCoolingFunction=0,getLength(coolingFunctionList)-1

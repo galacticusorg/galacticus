@@ -100,7 +100,6 @@ contains
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -155,7 +154,6 @@ contains
   double precision function Dark_Matter_Profile_Rotation_Normalization_Isothermal(thisNode)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     implicit none
@@ -168,7 +166,6 @@ contains
   double precision function Dark_Matter_Profile_Energy_Isothermal(thisNode)
     !% Return the energy of an isothermal halo density profile.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
@@ -180,7 +177,6 @@ contains
   double precision function Dark_Matter_Profile_Energy_Growth_Rate_Isothermal(thisNode)
     !% Return the rate of change of the energy of an isothermal halo density profile.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

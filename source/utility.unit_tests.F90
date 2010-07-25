@@ -161,6 +161,7 @@ contains
     !% Write out the results of unit testing.
     use Galacticus_Display
     use String_Handling
+    use Memory_Management
     implicit none
     type(assertResult),   pointer :: thisResult,nextResult
     integer                       :: passCount,failCount,percentage
@@ -200,6 +201,7 @@ contains
     do while (associated(thisResult))
        nextResult => thisResult%nextResult
        deallocate(thisResult)
+       call Memory_Usage_Record(sizeof(thisResult),addRemove=-1)
        thisResult => nextResult
     end do
     return
@@ -207,12 +209,15 @@ contains
 
   function Get_New_Assert_Result() result(newResult)
     !% Get a new assert result object.
+    use Memory_Management
+    implicit none
     type(assertResult), pointer :: newResult
 
     ! Return the first result if this is the first assert, otherwise, allocate a new one.
     select case (firstAssert)
     case (.false.)
        allocate(currentResult%nextResult)
+       call Memory_Usage_Record(sizeof(currentResult%nextResult))
        newResult => currentResult%nextResult
     case (.true. )
        newResult => firstResult

@@ -65,8 +65,10 @@ module Tree_Nodes
   !% Defines the tree node object and associated methods.
   use Components
   use Kind_Numbers
+  use Histories
   private
-  public :: treeNode, treeNodeList
+  public :: treeNode, treeNodeList, Tree_Node_Rate_Rate_Compute_Dummy, Tree_Node_Rate_Adjust_Dummy,&
+       & Tree_Node_Rate_Adjust_Array_Dummy, Tree_Node_Rate_Adjust_History_Dummy, Get_Template, Set_Template
 
   type treeNode
      !% The tree node object type.
@@ -74,7 +76,7 @@ module Tree_Nodes
      integer(kind=kind_int8), private                   :: nodeUniqueID
      type(treeNode),          pointer                   :: parentNode,childNode,siblingNode,satelliteNode
      integer,                 allocatable, dimension(:) :: componentIndex
-     type(component),         allocatable, dimension(:) :: components ! memoryManagementIgnore (force memory management system to ignore)
+     type(component),         allocatable, dimension(:) :: components
    contains
      ! Node indexing methods.
      !@ <objectMethods>
@@ -234,6 +236,93 @@ module Tree_Nodes
      type(treeNode), pointer :: node
   end type treeNodeList
 
+  ! Procedure pointers go here.
+  !# <include directive="treeNodeMethodsPointer" type="methods">
+  include 'objects.tree_node.methods.inc'
+  !# </include>
+
+  ! Pipe procedure pointers go here.
+  !# <include directive="treeNodePipePointer" type="pipe">
+  include 'objects.tree_node.pipes.inc'
+  !# </include>
+
+  abstract interface
+     double precision function Get_Template(thisNode)
+       import treeNode
+       type(treeNode), pointer, intent(inout) :: thisNode
+     end function Get_Template
+  end interface
+  abstract interface
+     subroutine Get_Template_Array(thisNode,values)
+       import treeNode
+       type(treeNode),   pointer,      intent(inout) :: thisNode
+       double precision, dimension(:), intent(out)   :: values
+     end subroutine Get_Template_Array
+  end interface
+  abstract interface
+     function Get_Template_History(thisNode)
+       import treeNode, history
+       type(treeNode), pointer, intent(inout) :: thisNode
+       type(history)                          :: Get_Template_History
+     end function Get_Template_History
+  end interface
+  abstract interface
+     subroutine Set_Template(thisNode,value)
+       import treeNode
+       type(treeNode),   pointer, intent(inout) :: thisNode
+       double precision,          intent(in)    :: value
+     end subroutine Set_Template
+  end interface
+  abstract interface
+     subroutine Set_Template_Array(thisNode,values)
+       import treeNode
+       type(treeNode),   pointer, intent(inout) :: thisNode
+       double precision,          intent(in)    :: values(:)
+     end subroutine Set_Template_Array
+  end interface
+  abstract interface
+     subroutine Set_Template_History(thisNode,values)
+       import treeNode, history
+       type(treeNode), pointer, intent(inout) :: thisNode
+       type(history),           intent(in)    :: values
+     end subroutine Set_Template_History
+  end interface
+  abstract interface
+     subroutine Rate_Adjust_Template(thisNode,interrupt,interruptProcedure,rateAdjustment)
+       import treeNode
+       type(treeNode),  pointer, intent(inout) :: thisNode
+       logical,                  intent(inout) :: interrupt
+       procedure(),     pointer, intent(inout) :: interruptProcedure
+       double precision,         intent(in)    :: rateAdjustment
+     end subroutine Rate_Adjust_Template
+  end interface
+  abstract interface
+     subroutine Rate_Adjust_Template_Array(thisNode,interrupt,interruptProcedure,rateAdjustments)
+       import treeNode
+       type(treeNode),  pointer, intent(inout) :: thisNode
+       logical,                  intent(inout) :: interrupt
+       procedure(),     pointer, intent(inout) :: interruptProcedure
+       double precision,         intent(in)    :: rateAdjustments(:)
+     end subroutine Rate_Adjust_Template_Array
+  end interface
+  abstract interface
+     subroutine Rate_Adjust_Template_History(thisNode,interrupt,interruptProcedure,rateAdjustments)
+       import treeNode, history
+       type(treeNode),  pointer, intent(inout) :: thisNode
+       logical,                  intent(inout) :: interrupt
+       procedure(),     pointer, intent(inout) :: interruptProcedure
+       type(history),            intent(in)    :: rateAdjustments
+     end subroutine Rate_Adjust_Template_History
+  end interface
+  abstract interface
+     subroutine Rate_Compute_Template(thisNode,interrupt,interruptProcedure)
+       import treeNode
+       type(treeNode), pointer, intent(inout) :: thisNode
+       logical,                 intent(inout) :: interrupt
+       procedure(),    pointer, intent(inout) :: interruptProcedure
+    end subroutine Rate_Compute_Template
+  end interface
+
 contains
 
   integer function Tree_Node_Unique_ID(thisNode)
@@ -282,7 +371,6 @@ contains
     return
   end subroutine Tree_Node_Index_Set
 
-
   subroutine Tree_Node_Destroy(thisNode)
     !% Destroy a node in the tree, along with all components.
     use Memory_Management
@@ -291,25 +379,29 @@ contains
     integer                                :: iComponent
 
     ! Deallocate list of component indices.
-    call Memory_Usage_Record(size(thisNode%componentIndex),addRemove=-4)
-    if (allocated(thisNode%componentIndex)) deallocate(thisNode%componentIndex)
+    if (allocated(thisNode%componentIndex)) then
+       call Memory_Usage_Record(sizeof(thisNode%componentIndex),addRemove=-1,memoryType=memoryTypeNodes)
+       deallocate(thisNode%componentIndex)
+    end if
 
     ! Deallocate components.
     if (allocated(thisNode%components)) then
        do iComponent=1,size(thisNode%components)
           if (allocated(thisNode%components(iComponent)%properties)) then
-             call Memory_Usage_Record(size(thisNode%components(iComponent)%properties),addRemove=-16)
+             call Memory_Usage_Record(sizeof(thisNode%components(iComponent)%properties),addRemove=-1,memoryType=memoryTypeNodes)
              deallocate(thisNode%components(iComponent)%properties)
           end if
           if (allocated(thisNode%components(iComponent)%data)) then
-             call Memory_Usage_Record(size(thisNode%components(iComponent)%data),addRemove=-8)
+             call Memory_Usage_Record(sizeof(thisNode%components(iComponent)%data),addRemove=-1,memoryType=memoryTypeNodes)
              deallocate(thisNode%components(iComponent)%data)
           end if
        end do
        deallocate(thisNode%components)
+       call Memory_Usage_Record(sizeof(thisNode%components),addRemove=-1,memoryType=memoryTypeNodes)
     end if
 
     ! Deallocate the tree node object.
+    call Memory_Usage_Record(sizeof(thisNode),addRemove=-1,memoryType=memoryTypeNodes)
     deallocate(thisNode)
     thisNode => null()
 
@@ -333,7 +425,7 @@ contains
     implicit none
     integer,         intent(in)                :: componentIndex,propertyCount,dataCount,historyCount
     type(treeNode),  intent(inout)             :: thisNode
-    type(component), allocatable, dimension(:) :: tempComponents ! memoryManagementIgnore (force memory management system to ignore)
+    type(component), allocatable, dimension(:) :: tempComponents
     integer                                    :: previousSize,thisIndex
 
     if (thisNode%componentIndex(componentIndex) == -1) then
@@ -343,8 +435,10 @@ contains
           allocate(thisNode%components(previousSize+1))
           thisNode%components(1:previousSize)=tempComponents
           deallocate(tempComponents)
+          call Memory_Usage_Record(sizeof(thisNode%components(1)),memoryType=memoryTypeNodes,blockCount=0)
        else
           allocate(thisNode%components(1))
+          call Memory_Usage_Record(sizeof(thisNode%components),memoryType=memoryTypeNodes)
        end if
        thisNode%componentIndex(componentIndex)=size(thisNode%components)
        thisIndex=size(thisNode%components)
@@ -352,15 +446,18 @@ contains
        if (.not.allocated(thisNode%components(thisIndex)%properties)) then
           if (propertyCount > 0) then
              allocate(thisNode%components(thisIndex)%properties(propertyCount,2))
-             call Memory_Usage_Record(propertyCount,addRemove=+16)
+             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%properties),memoryType=memoryTypeNodes)
              thisNode%components(thisIndex)%properties=0.0d0
           end if
           if (dataCount > 0) then
              allocate(thisNode%components(thisIndex)%data(dataCount))
-             call Memory_Usage_Record(dataCount,addRemove=+8)
+             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%data),memoryType=memoryTypeNodes)
              thisNode%components(thisIndex)%data=0.0d0
           end if
-          if (historyCount > 0) allocate(thisNode%components(thisIndex)%histories(historyCount))
+          if (historyCount > 0) then
+             allocate(thisNode%components(thisIndex)%histories(historyCount))
+             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%histories),memoryType=memoryTypeNodes)
+          end if
        end if
     end if
 
@@ -373,21 +470,20 @@ contains
     implicit none
     integer,         intent(in)                :: componentIndex,propertyCount,dataCount
     type(treeNode),  intent(inout)             :: thisNode
-    type(component), allocatable, dimension(:) :: tempComponents ! memoryManagementIgnore (force memory management system to ignore)
+    type(component), allocatable, dimension(:) :: tempComponents
     integer                                    :: previousSize,listIndex,timesCount,historyCount,iHistory
 
     listIndex=thisNode%componentIndex(componentIndex)
     if (listIndex /= -1) then
        ! Count memory that will be freed.
-       call Memory_Usage_Record(propertyCount,addRemove=-16)
-       call Memory_Usage_Record(dataCount    ,addRemove=-8 )
-       do iHistory=1,size(thisNode%components(listIndex)%histories)
-          if (allocated(thisNode%components(listIndex)%histories(iHistory)%time)) then
-             timesCount  =size(thisNode%components(listIndex)%histories(iHistory)%time      )
-             historyCount=size(thisNode%components(listIndex)%histories(iHistory)%data,dim=2)
-             call Memory_Usage_Record(timesCount*(1+2*historyCount),addRemove=-8)
-          end if
-       end do
+       call Memory_Usage_Record(sizeof(thisNode%components(listIndex)           ),addRemove=-1,memoryType=memoryTypeNodes)
+       call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%properties),addRemove=-1,memoryType=memoryTypeNodes)
+       call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%data      ),addRemove=-1,memoryType=memoryTypeNodes)
+       if (allocated(thisNode%components(listIndex)%histories)) then
+          do iHistory=1,size(thisNode%components(listIndex)%histories)
+             call thisNode%components(listIndex)%histories(iHistory)%destroy()
+          end do
+       end if
        previousSize=size(thisNode%components)
        if (previousSize > 1) then
           call Move_Alloc(thisNode%components,tempComponents)
@@ -401,8 +497,10 @@ contains
           where (thisNode%componentIndex > listIndex)
              thisNode%componentIndex=thisNode%componentIndex-1
           end where
+          call Memory_Usage_Record(sizeof(thisNode%components(1)),addRemove=-1,memoryType=memoryTypeNodes,blockCount=0)
        else
           deallocate(thisNode%components)
+          call Memory_Usage_Record(sizeof(thisNode%components),addRemove=-1,memoryType=memoryTypeNodes)
        end if
        thisNode%componentIndex(componentIndex)=-1
     end if
@@ -414,23 +512,29 @@ contains
     use Memory_Management
     implicit none
     type(treeNode),  intent(inout)             :: thisNode
-    integer                                    :: listIndex,thisIndex
+    integer                                    :: listIndex,thisIndex,iHistory
 
     ! Deallocate each component and record the memory usage change.
     do thisIndex=1,size(thisNode%componentIndex)
        listIndex=thisNode%componentIndex(thisIndex)
        if (listIndex /= -1) then
           if (allocated(thisNode%components(listIndex)%properties)) then
-             call Memory_Usage_Record(size(thisNode%components(listIndex)%properties,dim=1),addRemove=-16)
+             call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%properties),addRemove=-1,memoryType=memoryTypeNodes)
              deallocate(thisNode%components(listIndex)%properties)
           end if
           if (allocated(thisNode%components(listIndex)%data)) then
-             call Memory_Usage_Record(size(thisNode%components(listIndex)%data),addRemove=-8)
+             call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%data),addRemove=-1,memoryType=memoryTypeNodes)
              deallocate(thisNode%components(listIndex)%data)
+          end if
+          if (allocated(thisNode%components(listIndex)%histories)) then
+             do iHistory=1,size(thisNode%components(listIndex)%histories)
+                call thisNode%components(listIndex)%histories(iHistory)%destroy()
+             end do
           end if
        end if
     end do
     ! Deallocate the components array.
+    call Memory_Usage_Record(sizeof(thisNode%components),addRemove=-1,memoryType=memoryTypeNodes)
     deallocate(thisNode%components)
     ! Reset the component index array.
     thisNode%componentIndex=-1
@@ -834,5 +938,48 @@ contains
   !   end if
   !   return
   ! end function Tree_Node_Component_Data_Get
+
+  subroutine Tree_Node_Rate_Rate_Compute_Dummy(thisNode,interrupt,interruptProcedure)
+    !% A dummy rate compute subroutine that can be pointed to by any sterile methods.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    logical,                 intent(inout) :: interrupt
+    procedure(),    pointer, intent(inout) :: interruptProcedure
+
+    return
+  end subroutine Tree_Node_Rate_Rate_Compute_Dummy
+
+  subroutine Tree_Node_Rate_Adjust_Dummy(thisNode,interrupt,interruptProcedure,rateAdjustment)
+    !% A dummy rate-adjust subroutine that can be pointed to by unconnected pipes.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    double precision,          intent(in)    :: rateAdjustment
+
+    return
+  end subroutine Tree_Node_Rate_Adjust_Dummy
+
+  subroutine Tree_Node_Rate_Adjust_Array_Dummy(thisNode,interrupt,interruptProcedure,rateAdjustment)
+    !% A dummy rate-adjust subroutine that can be pointed to by unconnected pipes.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    double precision,          intent(in)    :: rateAdjustment(:)
+
+    return
+  end subroutine Tree_Node_Rate_Adjust_Array_Dummy
+
+  subroutine Tree_Node_Rate_Adjust_History_Dummy(thisNode,interrupt,interruptProcedure,rateAdjustment)
+    !% A dummy rate-adjust subroutine that can be pointed to by unconnected pipes.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    logical,                 intent(inout) :: interrupt
+    procedure(),    pointer, intent(inout) :: interruptProcedure
+    type(history),           intent(in)    :: rateAdjustment
+
+    return
+  end subroutine Tree_Node_Rate_Adjust_History_Dummy
 
 end module Tree_Nodes

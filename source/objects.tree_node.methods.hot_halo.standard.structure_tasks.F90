@@ -75,7 +75,6 @@ contains
   subroutine Hot_Halo_Standard_Density(thisNode,positionSpherical,massType,componentType,componentDensity)
     !% Computes the density at a given position in the hot halo.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Hot_Halo_Density_Profile
     use Galactic_Structure_Options
     implicit none

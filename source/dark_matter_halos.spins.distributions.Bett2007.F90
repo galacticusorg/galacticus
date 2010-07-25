@@ -123,8 +123,8 @@ contains
        call Get_Input_Parameter('spinDistributionBett2007Alpha',spinDistributionBett2007Alpha,defaultValue=2.509d0)
 
        ! Tabulate the cumulative distribution.
-       call Alloc_Array(spinDistributionTableSpin      ,spinDistributionTableNumberPoints,'spinDistributionTableSpin'      )
-       call Alloc_Array(spinDistributionTableCumulative,spinDistributionTableNumberPoints,'spinDistributionTableCumulative')
+       call Alloc_Array(spinDistributionTableSpin      ,[spinDistributionTableNumberPoints])
+       call Alloc_Array(spinDistributionTableCumulative,[spinDistributionTableNumberPoints])
        ! Maximum value of x=(lambda/lambda_0)^(3/alpha) to tabulate.
        spinDistributionTableMaximum=(spinDistributionTableSpinMaximum/spinDistributionBett2007Lambda0)**(3.0d0/spinDistributionBett2007Alpha)
        ! Generate a range of spins.

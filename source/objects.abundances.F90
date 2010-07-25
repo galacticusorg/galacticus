@@ -171,8 +171,8 @@ contains
        propertyCount=elementsCount+1
        ! If tracking elements, read names of which ones to track.
        if (elementsCount > 0) then
-          call Alloc_Array(elementsToTrack,elementsCount,'elementsToTrack')
-          call Alloc_Array(elementsIndices,elementsCount,'elementsIndices')
+          call Alloc_Array(elementsToTrack,[elementsCount])
+          call Alloc_Array(elementsIndices,[elementsCount])
           !@ <inputParameter>
           !@   <name>elementsToTrack</name>
           !@   <defaultValue></defaultValue>
@@ -264,15 +264,14 @@ contains
     implicit none
     type(abundancesStructure), intent(inout) :: abundances
 
-    if (.not.allocated(abundances%elementalValue)) call Alloc_Array(abundances%elementalValue,elementsCount&
-         &,'abundances%elementalValue')
+    if (.not.allocated(abundances%elementalValue)) call Alloc_Array(abundances%elementalValue,[elementsCount])
     return
   end subroutine Abundances_Allocate_Elemental_Values
 
   subroutine Abundances_Pack(abundances,abundancesArray)
     !% Pack abundances from an array into an abundances structure.
     implicit none
-    type(abundancesStructure), intent(out)              :: abundances
+    type(abundancesStructure), intent(inout)            :: abundances
     double precision,          intent(in), dimension(:) :: abundancesArray
 
     ! Ensure module is initialized.

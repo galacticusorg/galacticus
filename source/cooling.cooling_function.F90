@@ -101,7 +101,8 @@ contains
        !@   </description>
        !@ </inputParameter>
        coolingFunctionsCount=max(1,Get_Input_Parameter_Array_Size('coolingFunctionMethods'))
-       call Alloc_Array(coolingFunctionMethods,coolingFunctionsCount,'coolingFunctionMethods')
+       allocate(coolingFunctionMethods(coolingFunctionsCount))
+       call Memory_Usage_Record(sizeof(coolingFunctionMethods))
        call Get_Input_Parameter('coolingFunctionMethods',coolingFunctionMethods,defaultValue=['atomic_CIE_Cloudy'])
 
        ! Include file that makes calls to all available method initialization routines.

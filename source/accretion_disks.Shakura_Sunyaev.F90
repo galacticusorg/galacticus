@@ -106,7 +106,6 @@ contains
     !% Computes the jet power for a Shakura-Sunyaev (thin) accretion disk, using the expressions from
     !% \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
     use Tree_Nodes
-    use Tree_Node_Methods
     use Black_Hole_Fundamentals
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
@@ -147,7 +146,6 @@ contains
     !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from a Shakura-Sunyaev (thin) accretion
     !% disk.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Black_Hole_Fundamentals
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

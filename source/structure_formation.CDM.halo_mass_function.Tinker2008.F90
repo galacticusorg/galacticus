@@ -112,11 +112,11 @@ contains
        columnElement     => item(getElementsByTagname(columnsElement,"parameterC"   ),0)
        parameterCList    =>      getElementsByTagname(columnElement ,"data"         )
        deltaTableNumberPoints=getLength(deltaList)
-       call Alloc_Array(deltaTableDelta        ,deltaTableNumberPoints,'deltaTableDelta'        )
-       call Alloc_Array(deltaTableNormalization,deltaTableNumberPoints,'deltaTableNormalization')
-       call Alloc_Array(deltaTableA            ,deltaTableNumberPoints,'deltaTableA'            )
-       call Alloc_Array(deltaTableB            ,deltaTableNumberPoints,'deltaTableB'            )
-       call Alloc_Array(deltaTableC            ,deltaTableNumberPoints,'deltaTableC'            )
+       call Alloc_Array(deltaTableDelta        ,[deltaTableNumberPoints])
+       call Alloc_Array(deltaTableNormalization,[deltaTableNumberPoints])
+       call Alloc_Array(deltaTableA            ,[deltaTableNumberPoints])
+       call Alloc_Array(deltaTableB            ,[deltaTableNumberPoints])
+       call Alloc_Array(deltaTableC            ,[deltaTableNumberPoints])
        do iDatum=0,getLength(deltaList)-1
           datum => item(deltaList,iDatum)
           call extractDataContent(datum,datumValue)
@@ -176,8 +176,8 @@ contains
     if (allocated(haloMassFunctionLogMass))      call Dealloc_Array(haloMassFunctionLogMass     )
     if (allocated(haloMassFunctionLogAbundance)) call Dealloc_Array(haloMassFunctionLogAbundance)
     ! Allocate the arrays to current required size.
-    call Alloc_Array(haloMassFunctionLogMass     ,haloMassFunctionNumberPoints,'haloMassFunctionLogMass'     )
-    call Alloc_Array(haloMassFunctionLogAbundance,haloMassFunctionNumberPoints,'haloMassFunctionLogAbundance')
+    call Alloc_Array(haloMassFunctionLogMass     ,[haloMassFunctionNumberPoints])
+    call Alloc_Array(haloMassFunctionLogAbundance,[haloMassFunctionNumberPoints])
 
     expansionFactor=Expansion_Factor            (time)
     Delta          =Halo_Virial_Density_Contrast(time)

@@ -64,7 +64,6 @@
 module Dark_Matter_Halo_Scales
   !% Implements calculations of various scales for dark matter halos.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Kind_Numbers
   private
   public :: Dark_Matter_Halo_Dynamical_Timescale, Dark_Matter_Halo_Virial_Velocity, Dark_Matter_Halo_Virial_Velocity_Growth_Rate,&

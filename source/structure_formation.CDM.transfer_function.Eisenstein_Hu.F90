@@ -138,8 +138,8 @@ contains
     if (allocated(transferFunctionLogWavenumber)) call Dealloc_Array(transferFunctionLogWavenumber)
     if (allocated(transferFunctionLogT))          call Dealloc_Array(transferFunctionLogT         )
     ! Allocate the arrays to current required size.
-    call Alloc_Array(transferFunctionLogWavenumber,transferFunctionNumberPoints,'transferFunctionLogWavenumber')
-    call Alloc_Array(transferFunctionLogT         ,transferFunctionNumberPoints,'transferFunctionLogT'         )
+    call Alloc_Array(transferFunctionLogWavenumber,[transferFunctionNumberPoints])
+    call Alloc_Array(transferFunctionLogT         ,[transferFunctionNumberPoints])
     ! Create range of wavenumbers.
     transferFunctionLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,transferFunctionNumberPoints&
          &,rangeTypeLinear)

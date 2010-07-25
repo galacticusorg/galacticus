@@ -63,9 +63,17 @@
 
 module Atomic_Data
   !% Provides various atomic data.
-  use Atomic_Data_Type
   private
   public :: Atom_Lookup, Abundance_Pattern_Lookup, Atomic_Mass, Atomic_Abundance, Atomic_Data_Atoms_Count, Atomic_Short_Label
+
+  type atomicData
+     !% Data type for storing atomic data.
+     integer                                     :: atomicNumber
+     double precision                            :: atomicMass
+     double precision, allocatable, dimension(:) :: abundanceByMass
+     character(len=3)                            :: shortLabel
+     character(len=20)                           :: name
+  end type atomicData
 
   ! Flag indicating if module has been initialized.
   logical                                                       :: atomicDataInitialized=.false.
@@ -210,13 +218,14 @@ contains
        elementList => getElementsByTagname(doc,"element")
        
        ! Allocate storage space.
-       call Alloc_Array(atoms,getLength(elementList),'atoms')
+       allocate(atoms(getLength(elementList)))
+       call Memory_Usage_Record(sizeof(atoms))
 
        ! Extract the data into our array.
        atomicNumberMaximum=0
        do iAtom=1,getLength(elementList)
           ! Allocate abundance pattern array for this element.
-          call Alloc_Array(atoms(iAtom)%abundanceByMass,abundancePatternCount,"abundanceByMass")
+          call Alloc_Array(atoms(iAtom)%abundanceByMass,[abundancePatternCount])
           atoms(iAtom)%abundanceByMass=0.0d0
           ! Get atom.
           thisAtom => item(elementList,iAtom-1)
@@ -241,7 +250,7 @@ contains
        end do
 
        ! Allocate space for atomic number lookup array.
-       call Alloc_Array(atomicNumberIndex,atomicNumberMaximum,'atomicNumberIndex')
+       call Alloc_Array(atomicNumberIndex,[atomicNumberMaximum])
 
        ! Create lookup array by atomic number.
        forall(iAtom=1:size(atoms))
@@ -252,7 +261,7 @@ contains
        call destroy(doc)
 
        ! Allocate metal mass normalizations array.
-       call Alloc_Array(metalMassNormalization,abundancePatternCount,'metalMassNormalization')
+       call Alloc_Array(metalMassNormalization,[abundancePatternCount])
 
        ! Load tables of abundance patterns.
        do iAbundancePattern=1,abundancePatternCount

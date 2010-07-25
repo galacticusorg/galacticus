@@ -133,7 +133,6 @@ contains
   subroutine Merger_Tree_Build_Do_Cole2000(thisTree)
     !% Build a merger tree.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Critical_Overdensity
     use Merger_Tree_Branching
     use Pseudo_Random

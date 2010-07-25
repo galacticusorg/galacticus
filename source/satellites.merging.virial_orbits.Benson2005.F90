@@ -93,7 +93,6 @@ contains
     !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{benson_orbital_2005}.
     use Pseudo_Random
     use Tree_Nodes
-    use Tree_Node_Methods
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
     implicit none

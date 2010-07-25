@@ -125,17 +125,17 @@ contains
   subroutine Merger_Tree_Read_Do(thisTree,skipTree)
     !% Read a merger tree from file.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Cosmology_Functions
     use Galacticus_Error
     use String_Handling
     use H5Lt
+    use Memory_Management
     implicit none
     type(mergerTree),      intent(inout)             :: thisTree
     logical,               intent(in)                :: skipTree
     integer,               allocatable, dimension(:) :: nodeIndex,childNode,parentNode,siblingNode
     double precision,      allocatable, dimension(:) :: nodeMass,nodeRedshift,nodeTime
-    type(treeNodeList),    allocatable, dimension(:) :: thisNodeList ! memoryManagementIgnore (force memory management system to ignore this)
+    type(treeNodeList),    allocatable, dimension(:) :: thisNodeList
     integer(kind=HID_T)                              :: mergerTreeGroupID
     integer(kind=HSIZE_T)                            :: datasetDimensions(1)
     integer(kind=SIZE_T)                             :: datasetTypeSize
@@ -177,14 +177,15 @@ contains
        nodeCount=datasetDimensions(1)
 
        ! Allocate temporary arrays to hold the merger tree data.
-       allocate(nodeIndex   (nodeCount))
-       allocate(childNode   (nodeCount))
-       allocate(parentNode  (nodeCount))
-       allocate(siblingNode (nodeCount))
-       allocate(nodeMass    (nodeCount))
-       allocate(nodeRedshift(nodeCount))
-       allocate(nodeTime    (nodeCount))
+       call Alloc_Array(nodeIndex   ,[nodeCount])
+       call Alloc_Array(childNode   ,[nodeCount])
+       call Alloc_Array(parentNode  ,[nodeCount])
+       call Alloc_Array(siblingNode ,[nodeCount])
+       call Alloc_Array(nodeMass    ,[nodeCount])
+       call Alloc_Array(nodeRedshift,[nodeCount])
+       call Alloc_Array(nodeTime    ,[nodeCount])
        allocate(thisNodeList(nodeCount))
+       call Memory_Usage_Record(sizeof(thisNodeList))
 
        ! Read data from the file.
        ! nodeIndex
@@ -297,7 +298,15 @@ contains
        end do
 
        ! Deallocate the temporary arrays.
-       deallocate(nodeIndex,childNode,parentNode,siblingNode,nodeMass,nodeRedshift,nodeTime,thisNodeList)
+       call Dealloc_Array(nodeIndex   )
+       call Dealloc_Array(childNode   )
+       call Dealloc_Array(parentNode  )
+       call Dealloc_Array(siblingNode )
+       call Dealloc_Array(nodeMass    )
+       call Dealloc_Array(nodeRedshift)
+       call Dealloc_Array(nodeTime    )
+       deallocate(thisNodeList)
+       call Memory_Usage_Record(sizeof(thisNodeList),addRemove=-1)
 
        ! Close the merger tree group.
        call h5gclose_f(mergerTreeGroupID,errorCode)

@@ -89,6 +89,7 @@ contains
     !% Creates a merger tree.
     use Input_Parameters
     use Galacticus_Error
+    use Memory_Management
     !# <include directive="mergerTreeConstructMethod" type="moduleUse">
     include 'merger_trees.construct.modules.inc'
     !# </include>
@@ -121,12 +122,14 @@ contains
 
     ! Create the object.
     allocate(thisTree)
+    call Memory_Usage_Record(sizeof(thisTree))
 
     ! Call the routine to construct the merger tree.
     call Merger_Tree_Construct(thisTree,skipTree)
 
     ! Deallocate the tree if no nodes were created.
     if (.not.associated(thisTree%baseNode)) then
+       call Memory_Usage_Record(sizeof(thisTree),addRemove=-1)
        deallocate(thisTree)
        thisTree => null()
     else

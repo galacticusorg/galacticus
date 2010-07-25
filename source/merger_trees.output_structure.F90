@@ -87,7 +87,6 @@ contains
     !% Output the structure of {\tt thisTree}.
     use Merger_Trees
     use Tree_Nodes
-    use Tree_Node_Methods
     use Input_Parameters
     use Memory_Management
     use Galacticus_HDF5_Groups
@@ -147,8 +146,8 @@ contains
           call thisNode%walkTree()
        end do
        ! Allocate storage space.
-       call Alloc_Array(nodeIndex   ,nodeCount,'nodeIndex'   )
-       call Alloc_Array(nodeProperty,nodeCount,'nodeProperty')
+       call Alloc_Array(nodeIndex   ,[nodeCount])
+       call Alloc_Array(nodeProperty,[nodeCount])
        ! Create a group for this tree structure.
        groupName   ='mergerTree'
        groupName   =groupName//thisTree%index

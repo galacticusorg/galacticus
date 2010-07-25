@@ -113,7 +113,6 @@ contains
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none

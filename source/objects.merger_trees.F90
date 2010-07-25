@@ -189,6 +189,7 @@ contains
 
   subroutine Merger_Tree_Destroy(thisTree)
     !% Destroys the entire merger tree.
+    use Memory_Management
     implicit none
     type(mergerTree), pointer, intent(inout) :: thisTree
 
@@ -196,6 +197,7 @@ contains
        ! Destroy all nodes.
        if (associated(thisTree%baseNode)) call thisTree%destroyBranch(thisTree%baseNode)
        ! Deallocate the tree.
+       call Memory_Usage_Record(sizeof(thisTree),addRemove=-1,memoryType=memoryTypeNodes)
        deallocate(thisTree)
     end if
     return
@@ -218,7 +220,6 @@ contains
     return
   end subroutine Merger_Tree_Destroy_Branch
 
-
   subroutine Tree_Node_Create(thisTree,thisNode,index)
     !% Return a pointer to a newly created and initialize a tree node.
     use Galacticus_Error
@@ -237,10 +238,11 @@ contains
     ! Allocate the object.
     allocate(thisNode,stat=allocErr)
     if (allocErr/=0) call Galacticus_Error_Report('Tree_Node_Create','unable to allocate node')
+    call Memory_Usage_Record(sizeof(thisNode),memoryType=memoryTypeNodes)
 
     ! Initialize list of component indices.
     allocate(thisNode%componentIndex(componentTypesCount))
-    call Memory_Usage_Record(size(thisNode%componentIndex),addRemove=+4)
+    call Memory_Usage_Record(sizeof(thisNode%componentIndex),memoryType=memoryTypeNodes)
     thisNode%componentIndex=-1
 
     ! Ensure pointers are nullified.
@@ -261,7 +263,6 @@ contains
     !% Initializes tree node create by calling all relevant initialization routines.
     use ISO_Varying_String
     use Input_Parameters
-    use Tree_Node_Methods
     implicit none
     ! Read all parameters needed by methods.
     !# <include directive="treeNodeCreateInitialize" type="optionNames">
@@ -284,13 +285,11 @@ contains
     return
   end subroutine Tree_Node_Create_Initialize
 
-
   subroutine Tree_Node_Promote(thisTree,thisNode)
     !% Transfer the properties of {\tt thisNode} to its parent node, then destroy it.
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
-    use Tree_Node_Methods
     !# <include directive="nodePromotionTask" type="moduleUse">
     include 'objects.tree_node.promote.modules.inc'
     !# </include>
@@ -382,8 +381,8 @@ contains
 
   subroutine Tree_Node_Evolve(thisTree,thisNode,endTime,interrupted,interruptProcedure)
     !% Evolves {\tt thisNode} to time {\tt endTime}, or until evolution is interrupted.
-    use Tree_Node_Methods
     use ODE_Solver
+    use Memory_Management
     !# <include directive="postEvolveTask" type="moduleUse">
     include 'objects.tree_node.post_evolve.modules.inc'
     !# </include>
@@ -414,8 +413,12 @@ contains
 
     ! Allocate pointer arrays if necessary.
     if (nProperties > nPropertiesMax) then
-       if (allocated(propertyValues)) deallocate(propertyValues)
+       if (allocated(propertyValues)) then
+          call Memory_Usage_Record(sizeof(propertyValues),addRemove=-1)
+          deallocate(propertyValues)
+       end if
        allocate(propertyValues(nProperties))
+       call Memory_Usage_Record(sizeof(propertyValues))
        nPropertiesMax=nProperties
     end if
 
@@ -714,7 +717,6 @@ contains
 
   subroutine Tree_Node_Compute_Derivatives(thisNode,interrupt,interruptProcedureReturn)
     !% Call routines to set alls derivatives for {\tt thisNode}.
-    use Tree_Node_Methods
     use Galacticus_Calculations_Resets
     !# <include directive="preDerivativeTask" type="moduleUse">
     include 'objects.merger_trees.prederivative.tasks.modules.inc'

@@ -130,8 +130,8 @@ contains
     ! Create the reversed arrays.
     if (allocated(deltaCritReverseTableTime     )) call Dealloc_Array(deltaCritReverseTableTime     )
     if (allocated(deltaCritReverseTableDeltaCrit)) call Dealloc_Array(deltaCritReverseTableDeltaCrit)
-    call Alloc_Array(deltaCritReverseTableTime     ,deltaCritTableNumberPoints,'deltaCritReverseTableTime'     )
-    call Alloc_Array(deltaCritReverseTableDeltaCrit,deltaCritTableNumberPoints,'deltaCritReverseTableDeltaCrit')
+    call Alloc_Array(deltaCritReverseTableTime     ,[deltaCritTableNumberPoints])
+    call Alloc_Array(deltaCritReverseTableDeltaCrit,[deltaCritTableNumberPoints])
     deltaCritReverseTableTime     =Array_Reverse(deltaCritTableTime     )
     deltaCritReverseTableDeltaCrit=Array_Reverse(deltaCritTableDeltaCrit)
     ! Flag that the module and tables are now initialized.

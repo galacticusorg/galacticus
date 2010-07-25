@@ -213,13 +213,14 @@ contains
             & input arrays must have same dimension')
 
        if (luminosityCount > 0) then
-          call Alloc_Array(luminosityRedshift   ,luminosityCount,'luminosityRedshift'   )
-          call Alloc_Array(luminosityCosmicTime ,luminosityCount,'luminosityCosmicTime' )
-          call Alloc_Array(luminosityFilter     ,luminosityCount,'luminosityFilter'     )
-          call Alloc_Array(luminosityType       ,luminosityCount,'luminosityType'       )
-          call Alloc_Array(luminosityName       ,luminosityCount,'luminosityName'       )
-          call Alloc_Array(luminosityFilterIndex,luminosityCount,'luminosityFilterIndex')
-          call Alloc_Array(luminosityIndex      ,luminosityCount,'luminosityIndex'      )
+          call Alloc_Array(luminosityRedshift   ,[luminosityCount])
+          call Alloc_Array(luminosityCosmicTime ,[luminosityCount])
+          allocate(luminosityFilter(luminosityCount))
+          allocate(luminosityType  (luminosityCount))
+          allocate(luminosityName  (luminosityCount))
+          call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityName),blockCount=3)
+          call Alloc_Array(luminosityFilterIndex,[luminosityCount])
+          call Alloc_Array(luminosityIndex      ,[luminosityCount])
           !@ <inputParameter>
           !@   <name>luminosityRedshift</name>
           !@   <attachedTo>module</attachedTo>

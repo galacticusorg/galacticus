@@ -68,7 +68,7 @@ module Galacticus_HDF5_Groups
   use ISO_Varying_String
   use HDF5
   private
-  public :: Galacticus_Output_Make_Group, Galacticus_Output_Dataset
+  public :: Galacticus_Output_Make_Group, Galacticus_Output_Close_Group, Galacticus_Output_Dataset
 
   interface Galacticus_Output_Dataset
      !% Generic interface to the HDF5 dataset writing subroutines.
@@ -167,6 +167,10 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to close dataspace')
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to close dataspace')
+    call h5dclose_f(datasetID,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to close dataset')
+    call h5pclose_f(propertyList,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to close property list')
     !$omp end critical (HDF5_Operation)
     return
   end subroutine Galacticus_Output_Dataset_Integer
@@ -256,6 +260,10 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to close dataspace')
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to close dataspace')
+    call h5dclose_f(datasetID,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to close dataset')
+    call h5pclose_f(propertyList,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to close property list')
     !$omp end critical (HDF5_Operation)
     return
   end subroutine Galacticus_Output_Dataset_Double
@@ -351,6 +359,10 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to close dataspace')
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to close dataspace')
+    call h5dclose_f(datasetID,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to close dataset')
+    call h5pclose_f(propertyList,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to close property list')
     !$omp end critical (HDF5_Operation)
     return
   end subroutine Galacticus_Output_Dataset_Character
@@ -452,15 +464,20 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to close dataspace')
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to close dataspace')
+    call h5dclose_f(datasetID,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to close dataset')
+    call h5pclose_f(propertyList,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to close property list')
     !$omp end critical (HDF5_Operation)
     return
   end subroutine Galacticus_Output_Dataset_VarString
 
-  integer function Galacticus_Output_Make_Group(groupName,commentText,locationID)
+  function Galacticus_Output_Make_Group(groupName,commentText,locationID)
     !% Create a group within the \glc\ output file.
     use OMP_Lib
     use String_Handling
     implicit none
+    integer(kind=HID_T)                        :: Galacticus_Output_Make_Group
     type(varying_string), intent(in)           :: groupName
     type(varying_string), intent(in), optional :: commentText
     integer,              intent(in), optional :: locationID
@@ -489,5 +506,16 @@ contains
     !$omp end critical (HDF5_Operation)
     return
   end function Galacticus_Output_Make_Group
+
+  subroutine Galacticus_Output_Close_Group(groupID)
+    !% Closes an output group.
+    implicit none
+    integer(kind=HID_T), intent(in) :: groupID
+    integer                         :: errorCode
+
+    call h5gclose_f(groupID,errorCode)
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Close_Group','failed to close group')
+    return
+  end subroutine Galacticus_Output_Close_Group
 
 end module Galacticus_HDF5_Groups

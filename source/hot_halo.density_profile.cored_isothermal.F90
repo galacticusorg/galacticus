@@ -107,7 +107,6 @@ contains
     !% Compute the density at radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Tree_Node_Methods
     use Numerical_Constants_Math
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -126,7 +125,6 @@ contains
     !% Compute the density at radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Tree_Node_Methods
     use Numerical_Constants_Math
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

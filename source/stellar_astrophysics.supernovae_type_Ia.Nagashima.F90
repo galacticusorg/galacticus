@@ -103,7 +103,7 @@ contains
        SNeIa_Cumulative_Yield_Get  => SNeIa_Cumulative_Yield_Nagashima
 
        ! Allocate an array to store individual element yields.
-       call Alloc_Array(elementYield,Atomic_Data_Atoms_Count(),'elementYield')
+       call Alloc_Array(elementYield,[Atomic_Data_Atoms_Count()])
        elementYield=0.0d0
 
        ! Read in Type Ia yields.

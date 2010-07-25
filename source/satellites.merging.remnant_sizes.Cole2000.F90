@@ -100,7 +100,6 @@ contains
   subroutine Satellite_Merging_Remnant_Size_Cole2000(thisNode)
     !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{cole_hierarchical_2000} algorithm.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Galactic_Structure_Radii
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options

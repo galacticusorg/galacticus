@@ -151,13 +151,13 @@ contains
        end do
 
        ! Allocate storage space for data.
-       call Alloc_Array(stellarTrackLogMetallicities,                                        metallicityCountMaximum,'stellarTrackLogMetallicities')
-       call Alloc_Array(stellarTrackInitialMassCount,                                        metallicityCountMaximum,'stellarTrackInitialMassCount')
-       call Alloc_Array(stellarTrackInitialMasses   ,                initialMassCountMaximum,metallicityCountMaximum,'stellarTrackInitialMasses'   )
-       call Alloc_Array(stellarTrackAgesCount       ,                initialMassCountMaximum,metallicityCountMaximum,'stellarTrackAgesCount'       )
-       call Alloc_Array(stellarTrackAges            ,ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum,'stellarTrackLuminosities'    )
-       call Alloc_Array(stellarTrackLuminosities    ,ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum,'stellarTrackLuminosities'    )
-       call Alloc_Array(stellarTrackTemperatures    ,ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum,'stellarTrackTemperatures'    )
+       call Alloc_Array(stellarTrackLogMetallicities,                                        [metallicityCountMaximum])
+       call Alloc_Array(stellarTrackInitialMassCount,                                        [metallicityCountMaximum])
+       call Alloc_Array(stellarTrackInitialMasses   ,                [initialMassCountMaximum,metallicityCountMaximum])
+       call Alloc_Array(stellarTrackAgesCount       ,                [initialMassCountMaximum,metallicityCountMaximum])
+       call Alloc_Array(stellarTrackAges            ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+       call Alloc_Array(stellarTrackLuminosities    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+       call Alloc_Array(stellarTrackTemperatures    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
 
        ! Read in all data.
        do stellarTrackMetallicityCount=1,metallicityCountMaximum

@@ -123,7 +123,6 @@ contains
   subroutine Satellite_Merging_Mass_Movement_Simple(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo)
     !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{benson_orbital_2005}.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none

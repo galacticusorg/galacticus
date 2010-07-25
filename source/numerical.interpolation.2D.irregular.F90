@@ -85,6 +85,7 @@ contains
 
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset)
     !% Perform interpolation on a set of points irregularly spaced on a 2D surface.
+    use Memory_Management
     implicit none
     type(interp2dIrregularObject), intent(inout)                                :: workspace
     double precision,              intent(in),    dimension(:)                  :: dataX,dataY,dataZ,interpolateX,interpolateY
@@ -128,16 +129,21 @@ contains
     realWorkspaceSize   =8                                   *dataPointCount
     if (allocated(workspace%integerWork)) then
        if (size(workspace%integerWork) < integerWorkspaceSize) then
+          call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=-1)
           deallocate(workspace%integerWork                      )
           allocate  (workspace%integerWork(integerWorkspaceSize))
+          call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=+1)
        end if
        if (size(workspace%realWork   ) < realWorkspaceSize   ) then
+          call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=-1)
           deallocate(workspace%realWork                         )
           allocate  (workspace%realWork   (realWorkspaceSize   ))
+          call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=+1)
        end if
     else
        allocate(workspace%integerWork(integerWorkspaceSize))
        allocate(workspace%realWork   (realWorkspaceSize   ))
+       call Memory_Usage_Record(sizeof(workspace%integerWork)+sizeof(workspace%realWork),blockCount=2)
     end if
 
     ! Call the subroutine that does the interpolation.

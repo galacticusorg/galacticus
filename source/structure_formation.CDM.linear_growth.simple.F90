@@ -147,8 +147,8 @@ contains
     if (allocated(growthTableTime))         call Dealloc_Array(growthTableTime)
     if (allocated(growthTableGrowthFactor)) call Dealloc_Array(growthTableGrowthFactor)
     ! Allocate the arrays to current required size.
-    call Alloc_Array(growthTableTime        ,growthTableNumberPoints,'growthTableTime'        )
-    call Alloc_Array(growthTableGrowthFactor,growthTableNumberPoints,'growthTableGrowthFactor')
+    call Alloc_Array(growthTableTime        ,[growthTableNumberPoints])
+    call Alloc_Array(growthTableGrowthFactor,[growthTableNumberPoints])
     
     ! Create set of grid points in time variable.
     growthTableTime=Make_Range(growthTableTimeMinimum,growthTableTimeMaximum,growthTableNumberPoints,rangeTypeLogarithmic)

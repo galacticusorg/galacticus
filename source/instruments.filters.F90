@@ -64,10 +64,21 @@
 module Instruments_Filters
   !% Implements calculations of filter response curves.
   use ISO_Varying_String
-  use Instruments_Filters_Type
+  use FGSL
   private
   public :: Filter_Get_Index, Filter_Response, Filter_Extent
 
+  type filterType
+     !% A structure which holds filter response curves.
+     integer                                         :: nPoints
+     double precision,     allocatable, dimension(:) :: wavelength,response
+     type(varying_string)                            :: name
+     ! Interpolation structures.
+     logical                                         :: reset=.true.
+     type(fgsl_interp_accel)                         :: interpolationAccelerator
+     type(fgsl_interp)                               :: interpolationObject
+  end type filterType
+  
   ! Array to hold filter data.
   type(filterType), allocatable, dimension(:) :: filterResponses
 
@@ -127,11 +138,13 @@ contains
     ! Allocate space for this filter.
     if (allocated(filterResponses)) then
        call Move_Alloc(filterResponses,filterResponsesTemporary)
-       call Alloc_Array(filterResponses,size(filterResponsesTemporary)+1,'filterResponses')
+       allocate(filterResponses(size(filterResponsesTemporary)+1))
        filterResponses(1:size(filterResponsesTemporary))=filterResponsesTemporary
-       call Dealloc_Array(filterResponsesTemporary)
+       deallocate(filterResponsesTemporary)
+       call Memory_Usage_Record(sizeof(filterResponses(1)),blockCount=0)
     else
-       call Alloc_Array(filterResponses,1,'filterResponses')
+       allocate(filterResponses(1))
+       call Memory_Usage_Record(sizeof(filterResponses))
     end if
 
     ! Index in array to load into.
@@ -153,8 +166,8 @@ contains
     filterResponses(filterIndex)%nPoints=getLength(datumList)
 
     ! Allocate space for the response curve.
-    call Alloc_Array(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%nPoints,'filterResponses()%wavelength')
-    call Alloc_Array(filterResponses(filterIndex)%response  ,filterResponses(filterIndex)%nPoints,'filterResponses()%response'  )
+    call Alloc_Array(filterResponses(filterIndex)%wavelength,[filterResponses(filterIndex)%nPoints])
+    call Alloc_Array(filterResponses(filterIndex)%response  ,[filterResponses(filterIndex)%nPoints])
 
     ! Extract the data from the file.
     do iDatum=0,filterResponses(filterIndex)%nPoints-1

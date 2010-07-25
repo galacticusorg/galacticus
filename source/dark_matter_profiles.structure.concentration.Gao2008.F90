@@ -91,7 +91,6 @@ contains
     !% concentration. Note that the fits of \cite{gao_redshift_2008} were computed using Einasto profile fits and utilizing
     !% $M_{200}$ and $c_{200}$.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Cosmology_Functions
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

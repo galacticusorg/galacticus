@@ -64,7 +64,6 @@
 module Tree_Node_Methods_Dark_Matter_Profile_Scales
   !% Implements a dark matter profile method that provides a scale radius.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Components
   private
   public :: Tree_Node_Methods_Profile_Scale_Initialize, Tree_Node_Methods_Profile_Scale_Initialize_Scale,&
@@ -345,7 +344,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store spin properties in the \glc\ output file buffers.
     use Tree_Nodes
-    use Tree_Node_Methods
     implicit none
     double precision, intent(in)             :: time
     type(treeNode),   intent(inout), pointer :: thisNode

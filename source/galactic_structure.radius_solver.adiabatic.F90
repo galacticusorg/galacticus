@@ -119,7 +119,6 @@ contains
   subroutine Galactic_Structure_Radii_Solve_Adiabatic(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``adiabatic'' method.
     use Tree_Nodes
-    use Tree_Node_Methods
     use Cosmological_Parameters
     use Galacticus_Error
     use Galactic_Structure_Enclosed_Masses

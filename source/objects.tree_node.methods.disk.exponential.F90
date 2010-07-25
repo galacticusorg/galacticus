@@ -64,7 +64,6 @@
 module Tree_Node_Methods_Exponential_Disk
   !% Implement exponential disk tree node methods.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Histories
   use Components
   use Stellar_Population_Properties
@@ -441,7 +440,8 @@ contains
     integer                                                 :: thisIndex 
     double precision                                        :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass&
          &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate
-    type(abundancesStructure)                               :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
+    type(abundancesStructure), save                         :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
+    !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
@@ -830,7 +830,6 @@ contains
   !# </satelliteMergerTask>
   subroutine Exponential_Disk_Satellite_Merging(thisNode)
     !% Transfer any exponential disk associated with {\tt thisNode} to its host halo.
-    use Tree_Node_Methods
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     implicit none
@@ -1045,8 +1044,8 @@ contains
        ! Allocate table arrays.
        if (allocated(rotationCurveHalfRadius   )) call Dealloc_Array(rotationCurveHalfRadius   )
        if (allocated(rotationCurveBesselFactors)) call Dealloc_Array(rotationCurveBesselFactors)
-       call Alloc_Array(rotationCurveHalfRadius   ,rotationCurvePointsCount,'rotationCurveHalfRadius'   )
-       call Alloc_Array(rotationCurveBesselFactors,rotationCurvePointsCount,'rotationCurveBesselFactors')
+       call Alloc_Array(rotationCurveHalfRadius   ,[rotationCurvePointsCount])
+       call Alloc_Array(rotationCurveBesselFactors,[rotationCurvePointsCount])
 
        ! Create range of half-radii.
        rotationCurveHalfRadius=Make_Range(rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,rotationCurvePointsCount,rangeType=rangeTypeLogarithmic)
@@ -1395,7 +1394,6 @@ contains
     !% Store exponential disk properties in the \glc\ output file buffers.
     use Stellar_Population_Properties_Luminosities
     use Tree_Nodes
-    use Tree_Node_Methods
     implicit none
     double precision, intent(in)                   :: time
     type(treeNode),   intent(inout), pointer       :: thisNode

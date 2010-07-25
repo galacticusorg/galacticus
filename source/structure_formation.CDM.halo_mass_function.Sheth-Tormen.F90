@@ -114,8 +114,8 @@ contains
     if (allocated(haloMassFunctionLogMass))      call Dealloc_Array(haloMassFunctionLogMass     )
     if (allocated(haloMassFunctionLogAbundance)) call Dealloc_Array(haloMassFunctionLogAbundance)
     ! Allocate the arrays to current required size.
-    call Alloc_Array(haloMassFunctionLogMass     ,haloMassFunctionNumberPoints,'haloMassFunctionLogMass'     )
-    call Alloc_Array(haloMassFunctionLogAbundance,haloMassFunctionNumberPoints,'haloMassFunctionLogAbundance')
+    call Alloc_Array(haloMassFunctionLogMass     ,[haloMassFunctionNumberPoints])
+    call Alloc_Array(haloMassFunctionLogAbundance,[haloMassFunctionNumberPoints])
 
     ! Tabulate the function.
     haloMassFunctionLogMass=Make_Range(logMassMinimum,logMassMaximum,haloMassFunctionNumberPoints,rangeTypeLinear)

@@ -119,7 +119,7 @@ contains
        allocate(thisHistory%time (timesCount             ))
        allocate(thisHistory%data (timesCount,historyCount))
        allocate(thisHistory%rates(timesCount,historyCount))
-       call Memory_Usage_Record(timesCount*(1+2*historyCount),addRemove=+8)
+       call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data)+sizeof(thisHistory%rates),memoryType=memoryTypeNodes,blockCount=3)
        if (present(timeBegin)) then
           if (.not.present(timeEnd)) call Galacticus_Error_Report('History_Create','an end time must be given if a begin time is given')
           if (present(rangeType)) then
@@ -148,7 +148,7 @@ contains
     if (allocated(thisHistory%time)) then
        timesCount  =size(thisHistory%time      )
        historyCount=size(thisHistory%data,dim=2)
-       call Memory_Usage_Record(timesCount*(1+2*historyCount),addRemove=-8)
+       call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data)+sizeof(thisHistory%rates),memoryType=memoryTypeNodes,addRemove=-1,blockCount=3)
        deallocate(thisHistory%time )
        deallocate(thisHistory%data )
        deallocate(thisHistory%rates)
@@ -230,7 +230,7 @@ contains
        deallocate(temporaryHistory%data )
        deallocate(temporaryHistory%rates)
        ! Account for change in memory usage.
-       call Memory_Usage_Record(iTrim*(1+2*historyCount),addRemove=-8)
+       call Memory_Usage_Record(iTrim*(1+2*historyCount),memoryType=memoryTypeNodes,addRemove=-sizeof(thisHistory%time(1)),blockCount=0)
     end if
     return
   end subroutine History_Trim

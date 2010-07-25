@@ -398,12 +398,9 @@ contains
     if (allocated(ionizationStateMetallicities)) call Dealloc_Array(ionizationStateMetallicities)
     if (allocated(ionizationStateTemperatures )) call Dealloc_Array(ionizationStateTemperatures )
     if (allocated(electronDensityTable        )) call Dealloc_Array(electronDensityTable        )
-    call Alloc_Array(ionizationStateMetallicities                                       ,ionizationStateMetallicityNumberPoints&
-         &,'ionizationStateMetallicities')
-    call Alloc_Array(ionizationStateTemperatures ,ionizationStateTemperatureNumberPoints                                       &
-         &,'ionizationStateTemperature'  )
-    call Alloc_Array(electronDensityTable        ,ionizationStateTemperatureNumberPoints,ionizationStateMetallicityNumberPoints&
-         &,'electronDensityTable'        )
+    call Alloc_Array(ionizationStateMetallicities                                       ,[ionizationStateMetallicityNumberPoints])
+    call Alloc_Array(ionizationStateTemperatures ,[ionizationStateTemperatureNumberPoints                                       ])
+    call Alloc_Array(electronDensityTable        ,[ionizationStateTemperatureNumberPoints,ionizationStateMetallicityNumberPoints])
 
     ! Extract data from the ionization states and populate metallicity and temperature arrays.
     do iIonizationState=0,getLength(ionizationStateList)-1

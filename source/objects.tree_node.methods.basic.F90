@@ -64,7 +64,6 @@
 module Tree_Node_Methods_Basic
   !% Implement basic tree node methods.
   use Tree_Nodes
-  use Tree_Node_Methods
   use Components
   private
   public :: Tree_Node_Methods_Basic_Initialize, Tree_Node_Basic_Promote, Halo_Mass_Accretion_Rate, Tree_Node_Mass_Stop_Accretion,&
@@ -414,7 +413,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store basic properties in the \glc\ output file buffers.
     use Tree_Nodes
-    use Tree_Node_Methods
     implicit none
     double precision, intent(in)             :: time
     type(treeNode),   intent(inout), pointer :: thisNode

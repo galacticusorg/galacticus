@@ -255,8 +255,8 @@ contains
 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_MillerScalo
-       call Alloc_Array(imfMass,nPoints,'imfMass')
-       call Alloc_Array(imfPhi ,nPoints,'imfPhi' )
+       call Alloc_Array(imfMass,[nPoints])
+       call Alloc_Array(imfPhi ,[nPoints])
        imfMass=Make_Range(massLower(1),massUpper(imfPieceCount),nPoints,rangeType=rangeTypeLogarithmic)
        imfPhi =Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,imfMass)
        imfMatched=.true.
