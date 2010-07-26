@@ -94,7 +94,7 @@ contains
        ! Get the cooling function method parameter.
        !@ <inputParameter>
        !@   <name>coolingFunctionMethods</name>
-       !@   <defaultValue>atomic CIE Cloudy, CMB Compton</defaultValue>
+       !@   <defaultValue>atomic CIE Cloudy</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The names of the methods to be used for computing the cooling function.
