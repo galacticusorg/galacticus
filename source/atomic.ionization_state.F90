@@ -131,9 +131,6 @@ contains
   double precision function Electron_Density(temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the electron density at the given temperature and hydrogen density for the specified set of abundances and radiation
     !% field. Units of the returned electron density are cm$^-3$.
-    !# <include directive="ionizationStateCompute" type="moduleUse">
-    include 'atomic.ionization_state.compute.modules.inc'
-    !# </include>
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
     type(abundancesStructure), intent(in) :: abundances
@@ -151,9 +148,6 @@ contains
   double precision function Electron_Density_Temperature_Log_Slope(temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the logarithmic gradient of electron density with temperature at the given temperature and hydrogen density for the
     !% specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.
-    !# <include directive="ionizationStateCompute" type="moduleUse">
-    include 'atomic.ionization_state.compute.modules.inc'
-    !# </include>
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
     type(abundancesStructure), intent(in) :: abundances
@@ -172,9 +166,6 @@ contains
   double precision function Electron_Density_Density_Log_Slope(temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the logarithmic gradient of electron density with respect to density at the given temperature and hydrogen density
     !% for the specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.
-    !# <include directive="ionizationStateCompute" type="moduleUse">
-    include 'atomic.ionization_state.compute.modules.inc'
-    !# </include>
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
     type(abundancesStructure), intent(in) :: abundances
