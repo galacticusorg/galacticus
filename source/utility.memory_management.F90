@@ -255,10 +255,11 @@ contains
 
   subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount)
     !% Record a change in memory usage.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer, intent(in)           :: elementsUsed
-    integer, intent(in), optional :: memoryType,addRemove,blockCount
-    integer                       :: memoryTypeActual,addRemoveActual,blockCountActual
+    integer(kind=C_SIZE_T), intent(in)           :: elementsUsed
+    integer,                intent(in), optional :: addRemove,memoryType,blockCount
+    integer                                      :: memoryTypeActual,blockCountActual,addRemoveActual
 
     if (present(memoryType)) then
        memoryTypeActual=memoryType
