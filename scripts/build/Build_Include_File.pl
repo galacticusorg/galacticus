@@ -5,6 +5,7 @@ use Data::Dumper;
 use Switch;
 use Sort::Topological qw(toposort);
 use Fortran::Utils;
+use UNIVERSAL 'isa';
 
 # Scans source code for "!#" directives and generates an include file.
 
@@ -17,6 +18,15 @@ $xmlFile = $ARGV[1];
 # Specify verbosity.
 $verbosity = 0;
 
+# Load the file of directive locations.
+if ( -e "./work/build/Code_Directive_Locations.xml" ) {
+    $xml = new XML::Simple;
+    $locations = $xml->XMLin("./work/build/Code_Directive_Locations.xml");
+    $gotLocations = 1;
+} else {
+    $gotLocations = 0;
+}
+
 # Create XML object and process the XML file.
 $xml = new XML::Simple;
 $instructions = $xml->XMLin($xmlFile);
@@ -24,156 +34,168 @@ $instructions = $xml->XMLin($xmlFile);
 # Initially not inside any module.
 $moduleName = "";
 
-# Open the source directory.
-foreach $srcdir ( @sourcedirs ) {
-    opendir(indir,$srcdir) or die "Can't open the source directory: #!";
-    while ($fname = readdir indir) {	
-	if ( $fname =~ m/\.[fF](90)??t??$/ && $fname !~ m/^\.\#/ ) {
-	    $fullname = "$srcdir/$fname";
-	    open($infile,$fullname) or die "Can't open input file: #!";
-	    until ( eof($infile) ) {
+# Find files to scan.
+if ( $gotLocations == 1 ) {
+    if ( isa($locations->{$instructions->{'directive'}}->{'file'},'ARRAY') ) {
+	@filesToScan    = @{$locations->{$instructions->{'directive'}}->{'file'}};
+    } else {
+	$filesToScan[0] =   $locations->{$instructions->{'directive'}}->{'file'} ;
+    }
+} else {
+    foreach $srcdir ( @sourcedirs ) {
+	opendir(indir,$srcdir) or die "Can't open the source directory: #!";
+	while ($fname = readdir indir) {	
+	    if ( $fname =~ m/\.[fF](90)??t??$/ && $fname !~ m/^\.\#/ ) {
+		$fullname = $srcdir."/".$fname;
+		push(@filesToScan,$fullname);
+	    }
+	}
+    }
+}
 
-		# Get next line from the Fortran source.
-		&Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
-
-		# Check if we've entered or left a module.
-		if ( $processedLine =~ /^\s*module\s*([a-z0-9_]+)\s*$/i ) {$moduleName = $1};
-		if ( $processedLine =~ /^\s*end\s+module\s*([a-z0-9_]+)\s*$/i ) {$moduleName = ""};
-
-		if ( $rawLine =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
-		    $xmlCode = $1."\n";
-		    $xmlTag  = $2;
-		    # Read ahead until a matching close tag is found.
-		    unless ( $xmlCode =~  m/\/>/ ) {
-			$nextLine = "";
-			until ( $nextLine =~ m/<\/$xmlTag>/ || eof($infile) ) {
-			    &Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
-			    $nextLine =~ s/^\s*!\#\s+//;
-			    $xmlCode .= $nextLine;
-			}
-		    }
-		    # Check if this dircetive matches that which we are currently processing.
-		    if ( $xmlTag eq $instructions->{'directive'} ) {
-			$data = $xml->XMLin($xmlCode);
-			if ( $verbosity == 1 ) {
-			    print Dumper($data);
-			}
-			# Process the directive based on the type of instruction we have.
-			switch ( $instructions->{'type'} ) {
-			    # Instruction is to insert some type of code.				
-			    case ( "code" ) {
-				switch ( $instructions->{'action'} ) {
-				    # Action is to assign a procedure pointer.
-				    case ( "procPointer" ) {
-					$inserts{$data->{'unitName'}} = $instructions->{'pointerName'}." => ".$data->{'unitName'}."\n";
-					if ( exists($instructions->{'pointerAction'}) ) {
-					    $inserts{$data->{'unitName'}} .= $instructions->{'pointerAction'}."\n";
-					}
-				    }
-				    # Action is to call a subroutine.
-				    case ( "subroutine" ) {
-					$inserts{$data->{'unitName'}} = "call ".$data->{'unitName'}."(";
-					# Check for existance of an option name. This will be used as a parameter to select between
-					# different implementations of a component.
-					if ( exists($data->{'optionName'}) ) {
-					    if ( exists($data->{'optionName'}->{'content'}) ) {
-						$content = $data->{'optionName'}->{'content'};
-					    } else {
-						$content = $data->{'optionName'};
-					    }
-					    $inserts{$data->{'unitName'}} .= $content;
-					}
-					# If we have subroutine arguments, append them to the call.
-					if ( exists($instructions->{'subroutineArgs'}) ) {
-					    if ( $inserts{$data->{'unitName'}} !~ m/\($/ ) {$inserts{$data->{'unitName'}} .= ","};
-					    $inserts{$data->{'unitName'}} .= $instructions->{'subroutineArgs'};
-					}
-					$inserts{$data->{'unitName'}} .= ")\n";
-					# If some action is specified, perform this action after the subroutine call.
-					if ( exists($instructions->{'subroutineAction'}) ) {
-					    $inserts{$data->{'unitName'}} .= $instructions->{'subroutineAction'}."\n";
-					}
-				    }
+# Scan all necessary files.
+foreach $fullname ( @filesToScan ) {
+    open($infile,$fullname) or die "Can't open input file: #!";
+    until ( eof($infile) ) {
+	
+	# Get next line from the Fortran source.
+	&Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
+	
+	# Check if we've entered or left a module.
+	if ( $processedLine =~ /^\s*module\s*([a-z0-9_]+)\s*$/i ) {$moduleName = $1};
+	if ( $processedLine =~ /^\s*end\s+module\s*([a-z0-9_]+)\s*$/i ) {$moduleName = ""};
+	
+	if ( $rawLine =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
+	    $xmlCode = $1."\n";
+	    $xmlTag  = $2;
+	    # Read ahead until a matching close tag is found.
+	    unless ( $xmlCode =~  m/\/>/ ) {
+		$nextLine = "";
+		until ( $nextLine =~ m/<\/$xmlTag>/ || eof($infile) ) {
+		    &Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
+		    $nextLine =~ s/^\s*!\#\s+//;
+		    $xmlCode .= $nextLine;
+		}
+	    }
+	    # Check if this dircetive matches that which we are currently processing.
+	    if ( $xmlTag eq $instructions->{'directive'} ) {
+		$data = $xml->XMLin($xmlCode);
+		if ( $verbosity == 1 ) {
+		    print Dumper($data);
+		}
+		# Process the directive based on the type of instruction we have.
+		switch ( $instructions->{'type'} ) {
+		    # Instruction is to insert some type of code.				
+		    case ( "code" ) {
+			switch ( $instructions->{'action'} ) {
+			    # Action is to assign a procedure pointer.
+			    case ( "procPointer" ) {
+				$inserts{$data->{'unitName'}} = $instructions->{'pointerName'}." => ".$data->{'unitName'}."\n";
+				if ( exists($instructions->{'pointerAction'}) ) {
+				    $inserts{$data->{'unitName'}} .= $instructions->{'pointerAction'}."\n";
 				}
 			    }
-			    # Instruction is to insert a "use" statement for the module which the directive appears in.
-			    case ( "moduleUse" ) {
-				$inserts{$moduleName} = "use ".$moduleName."\n";	
-			    }
-			    # Instruction is to process a new component property method.
-			    case ( "methods" ) {
-				# Get the type of this method.
-				$inserts{$data->{'methodName'}} = &Get_Type($data);
-			    }
-			    # Instruction is to process a pipe to/from a component property.
-			    case ( "pipe" ) {
-				# Get the type of this pipe.
-				$inserts{$data->{'pipeName'}} = &Get_Type($data);
-			    }
-			    # Instruction is to build a set of calls to evaluate property derivatives.
-			    case ( "derivatives" ) {
-				$inserts{$data->{'methodName'}} = 1;
-			    }
-			    # Instruction is to build a set of calls that initialize methods.
-			    case ( "initializeMethods" ) {
-				# Get the type of this method.
-				$inserts{$data->{'methodName'}} = &Get_Type($data);
-			    }
-			    # Process option names associated with component implementations.
-			    case ( "optionNames" ) {
+			    # Action is to call a subroutine.
+			    case ( "subroutine" ) {
+				$inserts{$data->{'unitName'}} = "call ".$data->{'unitName'}."(";
+				# Check for existance of an option name. This will be used as a parameter to select between
+				# different implementations of a component.
 				if ( exists($data->{'optionName'}) ) {
 				    if ( exists($data->{'optionName'}->{'content'}) ) {
 					$content = $data->{'optionName'}->{'content'};
 				    } else {
 					$content = $data->{'optionName'};
 				    }
-				    # Check if a default option is specified
-				    if ( exists($data->{'optionName'}->{'default'}) ) {
-					# A default has already been specified, report and error.
-					if ( exists($inserts{$content}) && $inserts{$content} ne "none" ) {die("Build_Include_File.pl: FATAL - multiple defaults found")};
-					# Store this default.
-					$inserts{$content} = $data->{'optionName'}->{'default'};
-				    } else {
-					# If no default has already been specified, then set to "none".
-					unless ( exists($inserts{$content}) ) {
-					    $inserts{$content} = "none";
-					}
-				    }
+				    $inserts{$data->{'unitName'}} .= $content;
+				}
+				# If we have subroutine arguments, append them to the call.
+				if ( exists($instructions->{'subroutineArgs'}) ) {
+				    if ( $inserts{$data->{'unitName'}} !~ m/\($/ ) {$inserts{$data->{'unitName'}} .= ","};
+				    $inserts{$data->{'unitName'}} .= $instructions->{'subroutineArgs'};
+				}
+				$inserts{$data->{'unitName'}} .= ")\n";
+				# If some action is specified, perform this action after the subroutine call.
+				if ( exists($instructions->{'subroutineAction'}) ) {
+				    $inserts{$data->{'unitName'}} .= $instructions->{'subroutineAction'}."\n";
 				}
 			    }
 			}
-			# Check for "after" tags, which influence the sort order of commands.
-			if ( exists($data->{'after'}) ) {
-			    # Store the names of procedures named in after tags.
-			    if ( UNIVERSAL::isa($data->{'after'},"ARRAY" ) ) {
-				foreach $after ( @{$data->{'after'}} ) {
-				    ${$Dependencies{$after}}[++$#{$Dependencies{$after}}] = $data->{'unitName'};
+		    }
+		    # Instruction is to insert a "use" statement for the module which the directive appears in.
+		    case ( "moduleUse" ) {
+			$inserts{$moduleName} = "use ".$moduleName."\n";	
+		    }
+		    # Instruction is to process a new component property method.
+		    case ( "methods" ) {
+			# Get the type of this method.
+			$inserts{$data->{'methodName'}} = &Get_Type($data);
+		    }
+		    # Instruction is to process a pipe to/from a component property.
+		    case ( "pipe" ) {
+			# Get the type of this pipe.
+			$inserts{$data->{'pipeName'}} = &Get_Type($data);
+		    }
+		    # Instruction is to build a set of calls to evaluate property derivatives.
+		    case ( "derivatives" ) {
+			$inserts{$data->{'methodName'}} = 1;
+		    }
+		    # Instruction is to build a set of calls that initialize methods.
+		    case ( "initializeMethods" ) {
+			# Get the type of this method.
+			$inserts{$data->{'methodName'}} = &Get_Type($data);
+		    }
+		    # Process option names associated with component implementations.
+		    case ( "optionNames" ) {
+			if ( exists($data->{'optionName'}) ) {
+			    if ( exists($data->{'optionName'}->{'content'}) ) {
+				$content = $data->{'optionName'}->{'content'};
+			    } else {
+				$content = $data->{'optionName'};
+			    }
+			    # Check if a default option is specified
+			    if ( exists($data->{'optionName'}->{'default'}) ) {
+				# A default has already been specified, report and error.
+				if ( exists($inserts{$content}) && $inserts{$content} ne "none" ) {die("Build_Include_File.pl: FATAL - multiple defaults found")};
+				# Store this default.
+				$inserts{$content} = $data->{'optionName'}->{'default'};
+			    } else {
+				# If no default has already been specified, then set to "none".
+				unless ( exists($inserts{$content}) ) {
+				    $inserts{$content} = "none";
 				}
-			    } else {
-				${$Dependencies{$data->{'after'}}}[++$#{$Dependencies{$data->{'after'}}}] = $data->{'unitName'};
 			    }
-			}
-			# Check for "before" tags, which influence the sort order of commands.
-			if ( exists($data->{'before'}) ) {
-			    # Store the names of procedures named in before tags.
-			    if ( UNIVERSAL::isa($data->{'before'},"ARRAY" ) ) {
-				push(@{$Dependencies{$data->{'unitName'}}},@{$data->{'before'}});
-			    } else {
-				${$Dependencies{$data->{'unitName'}}}[++$#{$Dependencies{$data->{'unitName'}}}] = $data->{'before'};
-			    }
-			}
-			# Check if a specific sorting name has been given for this directive.
-			if ( exists($data->{'sortName'}) ) {
-			    # One has, so store it.
-			    $sortNames{$data->{'unitName'}} = $data->{'sortName'};
 			}
 		    }
 		}
+		# Check for "after" tags, which influence the sort order of commands.
+		if ( exists($data->{'after'}) ) {
+		    # Store the names of procedures named in after tags.
+		    if ( UNIVERSAL::isa($data->{'after'},"ARRAY" ) ) {
+			foreach $after ( @{$data->{'after'}} ) {
+			    ${$Dependencies{$after}}[++$#{$Dependencies{$after}}] = $data->{'unitName'};
+			}
+		    } else {
+			${$Dependencies{$data->{'after'}}}[++$#{$Dependencies{$data->{'after'}}}] = $data->{'unitName'};
+		    }
+		}
+		# Check for "before" tags, which influence the sort order of commands.
+		if ( exists($data->{'before'}) ) {
+		    # Store the names of procedures named in before tags.
+		    if ( UNIVERSAL::isa($data->{'before'},"ARRAY" ) ) {
+			push(@{$Dependencies{$data->{'unitName'}}},@{$data->{'before'}});
+		    } else {
+			${$Dependencies{$data->{'unitName'}}}[++$#{$Dependencies{$data->{'unitName'}}}] = $data->{'before'};
+		    }
+		}
+		# Check if a specific sorting name has been given for this directive.
+		if ( exists($data->{'sortName'}) ) {
+		    # One has, so store it.
+		    $sortNames{$data->{'unitName'}} = $data->{'sortName'};
+		}
 	    }
-	    close($infile);
 	}
     }
-    closedir(indir);
+    close($infile);
 }
 
 # Sort the list of commands for dependencies (from <before> and <after> tags).
