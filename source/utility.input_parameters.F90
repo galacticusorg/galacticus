@@ -131,7 +131,6 @@ contains
     implicit none
 
     call destroy(parameterDoc)
-    call Galacticus_Output_Close_Group(parametersGroupID)
     return
   end subroutine Input_Parameters_File_Close
 
