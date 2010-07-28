@@ -65,8 +65,10 @@ module Dark_Matter_Profiles_NFW
   !% Implements NFW halo profiles.
   use Tree_Nodes
   use FGSL
+  use Kind_Numbers
   private
-  public :: Dark_Matter_Profile_NFW_Initialize, Dark_Matter_Profiles_NFW_State_Store, Dark_Matter_Profiles_NFW_State_Retrieve
+  public :: Dark_Matter_Profile_NFW_Initialize, Dark_Matter_Profiles_NFW_State_Store, Dark_Matter_Profiles_NFW_State_Retrieve,&
+       & Dark_Matter_Profile_NFW_Reset
 
   ! Minimum and maximum concentrations to tabulate.
   double precision                            :: concentrationMinimum   = 1.0d0
@@ -92,6 +94,18 @@ module Dark_Matter_Profiles_NFW
 
   ! Module variables used in integrations.
   double precision                            :: concentrationParameter
+
+  ! Record of unique ID of node which we last computed results for.
+  integer(kind=kind_int8)                     :: lastUniqueID=-1
+  !$omp threadprivate(lastUniqueID)
+
+  ! Record of whether or not quantities have been computed.
+  logical :: specificAngularMomentumScalingsComputed=.false.
+  !$omp threadprivate(specificAngularMomentumScalingsComputed)
+
+  ! Stored values of computed quantities.
+  double precision :: specificAngularMomentumLengthScale,specificAngularMomentumScale
+  !$omp threadprivate(specificAngularMomentumLengthScale,specificAngularMomentumScale)
 
 contains
 
@@ -130,6 +144,20 @@ contains
     end if
     return
   end subroutine Dark_Matter_Profile_NFW_Initialize
+
+  !# <calculationResetTask>
+  !# <unitName>Dark_Matter_Profile_NFW_Reset</unitName>
+  !# </calculationResetTask>
+  subroutine Dark_Matter_Profile_NFW_Reset(thisNode)
+    !% Reset the cooling radius calculation.
+    use Tree_Nodes
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    specificAngularMomentumScalingsComputed=.false.
+    lastUniqueID                           =thisNode%uniqueID()
+    return
+  end subroutine Dark_Matter_Profile_NFW_Reset
 
   subroutine Dark_Matter_Profile_NFW_Tabulate(concentration)
     !% Tabulate properties of the NFW halo profile which must be computed numerically.
@@ -295,19 +323,33 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: specificAngularMomentum
-    double precision                         :: scaleRadius,specificAngularMomentumScaleFree
+    double precision                         :: specificAngularMomentumScaleFree
 
+    ! Return immediately with zero radius for non-positive specific angular momenta.
     if (specificAngularMomentum <= 0.0d0) then
        Radius_from_Specific_Angular_Momentum_NFW=0.0d0
        return
     end if
 
-    ! Get the scale radius.
-    scaleRadius=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    
+    ! Check if node differs from previous one for which we performed calculations.
+    if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Profile_NFW_Reset(thisNode)
+
+    ! Check if scalings are already computed. Compute and store if not.
+    if (.not.specificAngularMomentumScalingsComputed) then
+       ! Flag that scale quantities are now computed.
+       specificAngularMomentumScalingsComputed=.true.
+      
+       ! Get the scale radius.
+       specificAngularMomentumLengthScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+
+       ! Get the specific angular momentum scale.
+       specificAngularMomentumScale=specificAngularMomentumLengthScale*Dark_Matter_Profile_Circular_Velocity_NFW(thisNode&
+            &,specificAngularMomentumLengthScale)
+    end if
+
     ! Compute the specific angular momentum in scale free units (using the scale length for distances the sqrt(G M(r_scale) /
     ! r_scale) for velocities).
-    specificAngularMomentumScaleFree=specificAngularMomentum/scaleRadius/Dark_Matter_Profile_Circular_Velocity_NFW(thisNode,scaleRadius)
+    specificAngularMomentumScaleFree=specificAngularMomentum/specificAngularMomentumScale
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call Dark_Matter_Profile_NFW_Inverse_Angular_Momentum(specificAngularMomentumScaleFree)
@@ -320,7 +362,7 @@ contains
     !$omp end critical(NFW_Inverse_Interpolation)
 
     ! Convert to a physical radius.
-    Radius_from_Specific_Angular_Momentum_NFW=Radius_from_Specific_Angular_Momentum_NFW*scaleRadius
+    Radius_from_Specific_Angular_Momentum_NFW=Radius_from_Specific_Angular_Momentum_NFW*specificAngularMomentumLengthScale
 
     return
   end function Radius_from_Specific_Angular_Momentum_NFW

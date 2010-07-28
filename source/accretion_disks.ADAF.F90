@@ -65,6 +65,7 @@ module Accretion_Disks_ADAF
   !% Implements calculations of properties of ADAFs based on the implementation of \cite{benson_maximum_2009}.
   use ISO_Varying_String
   use Black_Hole_Fundamentals
+  use FGSL
   private
   public :: Accretion_Disks_ADAF_Initialize, Accretion_Disk_Radiative_Efficiency_ADAF,&
        & Black_Hole_Spin_Up_Rate_ADAF, Accretion_Disk_Jet_Power_ADAF
@@ -88,6 +89,14 @@ module Accretion_Disks_ADAF
   type(varying_string)           :: adafEnergyOption
   integer,             parameter :: adafEnergyIsco=0, adafEnergy1=1
   integer                        :: adafEnergy
+
+  ! Tables to store spin-up and jet power functions.
+  logical                                       :: spinUpFunctionTabulated=.false., jetPowerFunctionTabulated=.false.
+  integer,            parameter                 :: spinUpTableCount=10000, jetPowerTableCount=10000
+  double precision,   allocatable, dimension(:) :: spinUpSpinParameterTable,spinUpTable,jetPowerSpinParameterTable,jetPowerTable
+  type(fgsl_interp)                             :: spinUpInterpolationObject      , jetPowerInterpolationObject
+  type(fgsl_interp_accel)                       :: spinUpInterpolationAccelerator , jetPowerInterpolationAccelerator
+  logical                                       :: spinUpInterpolationReset=.true., jetPowerInterpolationReset=.true.
 
 contains
 
@@ -208,35 +217,60 @@ contains
   double precision function Accretion_Disk_Jet_Power_ADAF(thisNode,massAccretionRate)
     !% Computes the jet power for an ADAF in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$.
     use Tree_Nodes
+    use Memory_Management
     use Black_Hole_Fundamentals
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
+    use Numerical_Ranges
+    use Numerical_Interpolation
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
-    double precision                         :: radiusIsco,radiusStatic,blackHoleSpin,adafViscosityAlpha
+    double precision, parameter              :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
+    integer                                  :: iSpin
+    double precision                         :: radiusIsco,radiusStatic,blackHoleSpin,adafViscosityAlpha,blackHoleSpinParameter
 
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
 
+    ! Tabulate the jet power as a function of spin.
+    if (.not.jetPowerFunctionTabulated) then
+       call Alloc_Array(jetPowerSpinParameterTable,[jetPowerTableCount])
+       call Alloc_Array(jetPowerTable             ,[jetPowerTableCount])
+       jetPowerSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,jetPowerTableCount,rangeType&
+            &=rangeTypeLogarithmic)
+       do iSpin=1,jetPowerTableCount
+ 
+          ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
+          blackHoleSpin=1.0d0-jetPowerSpinParameterTable(iSpin)
+          
+          ! Determine the ADAF viscosity.
+          select case (adafViscosity)
+          case (adafViscosityFixed)
+             adafViscosityAlpha=adafViscosityFixedAlpha
+          case (adafViscosityFit)
+             adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
+          end select
+          
+          ! Compute jet launch radii.
+          radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
+          radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
+
+          jetPowerTable(iSpin)=(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin,adafViscosityAlpha)+ADAF_Disk_Jet_Power(radiusIsco&
+               &,blackHoleSpin,adafViscosityAlpha))*(speedLight/kilo)**2
+       end do
+       jetPowerFunctionTabulated=.true.
+    end if
+
     ! Get the black hole spin.
     blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
 
-    ! Determine the ADAF viscosity.
-    select case (adafViscosity)
-    case (adafViscosityFixed)
-       adafViscosityAlpha=adafViscosityFixedAlpha
-    case (adafViscosityFit)
-       adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
-    end select
-
-    ! Compute jet launch radii.
-    radiusIsco=Black_Hole_ISCO_Radius(thisNode,unitsGravitational)
-    radiusStatic=Black_Hole_Static_Radius(thisNode,units=unitsGravitational)
+    ! Get the "spin parameter".
+    blackHoleSpinParameter=1.0d0-blackHoleSpin
 
     ! Compute the jet power.
-    Accretion_Disk_Jet_Power_ADAF=(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin,adafViscosityAlpha) &
-         &+ADAF_Disk_Jet_Power(radiusIsco,blackHoleSpin,adafViscosityAlpha))*massAccretionRate*(speedLight/kilo)**2
+    Accretion_Disk_Jet_Power_ADAF=massAccretionRate*Interpolate(jetPowerTableCount,jetPowerSpinParameterTable,jetPowerTable&
+         &,jetPowerInterpolationObject,jetPowerInterpolationAccelerator,blackHoleSpinParameter,reset=jetPowerInterpolationReset)
 
     return
   end function Accretion_Disk_Jet_Power_ADAF
@@ -246,42 +280,70 @@ contains
     !% disk.
     use Tree_Nodes
     use Black_Hole_Fundamentals
+    use Memory_Management
+    use Numerical_Ranges
+    use Numerical_Interpolation
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
+    double precision, parameter              :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
+    integer                                  :: iSpin
     double precision                         :: radiusIsco,radiusStatic,blackHoleSpin,adafEnergyValue,adafViscosityAlpha&
-         &,spinToMassRateOfChangeRatio
+         &,spinToMassRateOfChangeRatio,blackHoleSpinParameter
 
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
+    
+    ! Tabulate the spin up rate as a function of spin parameter.
+    if (.not.spinUpFunctionTabulated) then
+       call Alloc_Array(spinUpSpinParameterTable,[spinUpTableCount])
+       call Alloc_Array(spinUpTable             ,[spinUpTableCount])
+       spinUpSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,spinUpTableCount,rangeType&
+            &=rangeTypeLogarithmic)
+       do iSpin=1,spinUpTableCount
+ 
+          ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
+          blackHoleSpin=1.0d0-spinUpSpinParameterTable(iSpin)
+          
+          ! Determine the ADAF energy.
+          select case (adafEnergy)
+          case (adafEnergy1)
+             adafEnergyValue=1.0d0
+          case (adafEnergyIsco)
+             adafEnergyValue=Black_Hole_ISCO_Specific_Energy(blackHoleSpin,orbitPrograde)
+          end select
+          
+          ! Determine the ADAF viscosity.
+          select case (adafViscosity)
+          case (adafViscosityFixed)
+             adafViscosityAlpha=adafViscosityFixedAlpha
+          case (adafViscosityFit)
+             adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
+          end select
+          
+          ! Compute the spin up rate including braking term due to jets.
+          radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
+          radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
 
-    ! Determine the ADAF energy.
-    select case (adafEnergy)
-    case (adafEnergy1)
-       adafEnergyValue=1.0d0
-    case (adafEnergyIsco)
-       adafEnergyValue=Black_Hole_ISCO_Specific_Energy(thisNode,unitsGravitational,orbitPrograde)
-    end select
+          ! Compute the rate of spin up to mass rate of change ratio.
+          spinUpTable(iSpin)=ADAF_Angular_Momentum(radiusIsco,blackHoleSpin,adafViscosityAlpha)-2.0d0*blackHoleSpin&
+               &*adafEnergyValue-Black_Hole_Rotational_Energy_Spin_Down(blackHoleSpin)*(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin&
+               &,adafViscosityAlpha)+ADAF_Disk_Jet_Power_From_Black_Hole(radiusIsco,blackHoleSpin,adafViscosityAlpha))
+       end do
+       spinUpFunctionTabulated=.true.
+    end if
 
     ! Get the black hole spin.
     blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
 
-    ! Determine the ADAF viscosity.
-    select case (adafViscosity)
-    case (adafViscosityFixed)
-       adafViscosityAlpha=adafViscosityFixedAlpha
-    case (adafViscosityFit)
-       adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
-    end select
+    ! Get the "spin parameter".
+    blackHoleSpinParameter=1.0d0-blackHoleSpin
 
-    ! Compute the spin up rate including braking term due to jets.
-    radiusIsco=Black_Hole_ISCO_Radius(thisNode,unitsGravitational)
-    radiusStatic=Black_Hole_Static_Radius(thisNode,units=unitsGravitational)
+    ! Compute the ratio of spin and mass rates of change.
+    spinToMassRateOfChangeRatio=Interpolate(spinUpTableCount,spinUpSpinParameterTable,spinUpTable,spinUpInterpolationObject&
+         &,spinUpInterpolationAccelerator,blackHoleSpinParameter,reset=spinUpInterpolationReset)
 
-    spinToMassRateOfChangeRatio=ADAF_Angular_Momentum(radiusIsco,blackHoleSpin,adafViscosityAlpha)-2.0d0*blackHoleSpin&
-         &*adafEnergyValue-Black_Hole_Rotational_Energy_Spin_Down(blackHoleSpin)*(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin&
-         &,adafViscosityAlpha)+ADAF_Disk_Jet_Power_From_Black_Hole(radiusIsco,blackHoleSpin,adafViscosityAlpha))
-
+    ! Scale to the mass rate of change.
     Black_Hole_Spin_Up_Rate_ADAF=spinToMassRateOfChangeRatio*massAccretionRate/Tree_Node_Black_Hole_Mass(thisNode)
     return
   end function Black_Hole_Spin_Up_Rate_ADAF
@@ -557,7 +619,7 @@ contains
        etaLADAF3=0.153d0*(radiusISCO-0.6d0)**0.30d0+0.105d0
        etaLADAF4=etaLADAF3*(0.9d0*adafAdiabaticIndex-0.2996d0)*(1.202d0-0.08d0*(logarithmAlpha+2.5d0)**2.6d0)
        etaLADAF5=-1.8d0*adafAdiabaticIndex+4.299d0-0.018d0+0.018d0*(logarithmAlpha+2.0d0)**3.571d0
-       etaLADAF6=etaLADAF4*(((0.14*dlog10(radius)**etaLADAF5+0.23)/etaLADAF4)**10.0+1.0)**0.1
+       etaLADAF6=etaLADAF4*(((0.14d0*dlog10(radius)**etaLADAF5+0.23d0)/etaLADAF4)**10.0d0+1.0d0)**0.1d0
        ADAF_Enthalpy_Angular_Momentum_Product=etaLADAF2+(etaLADAF1+10.0d0**etaLADAF6)*(1.15d0-0.03d0*(3.0d0+logarithmAlpha)**2.37d0)
        radiusPrevious                 =radius
        blackHoleSpinPrevious          =blackHoleSpin
