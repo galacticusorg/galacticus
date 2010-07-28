@@ -83,31 +83,45 @@ module Galacticus_HDF5_Groups
   
 contains
   
-  subroutine Galacticus_Output_Dataset_Integer(locationID,datasetID,datasetName,commentText,datasetInteger,isExtendable)
+  subroutine Galacticus_Output_Dataset_Integer(locationID,datasetID,datasetName,commentText,datasetInteger,isExtendable,isNew)
     !% Write an integer dataset to the \glc\ output file.
     implicit none
-    integer(kind=HID_T),   intent(in)           :: locationID
-    integer(kind=HID_T),   intent(inout)        :: datasetID
-    integer,               intent(in)           :: datasetInteger(:)
-    character(len=*),      intent(in)           :: datasetName,commentText
-    logical,               intent(in), optional :: isExtendable
-    integer(kind=HID_T),   parameter            :: datasetRank=1
-    integer                                     :: errorCode
-    integer(kind=HSIZE_T)                       :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
-    integer(kind=HID_T)                         :: dataspaceID,newDataspaceID,propertyList
-    logical                                     :: isExtendableActual
+    integer(kind=HID_T),   intent(in)              :: locationID
+    integer(kind=HID_T),   intent(inout)           :: datasetID
+    integer,               intent(in)              :: datasetInteger(:)
+    character(len=*),      intent(in)              :: datasetName,commentText
+    logical,               intent(in),    optional :: isExtendable
+    logical,               intent(inout), optional :: isNew
+    integer(kind=HID_T),   parameter               :: datasetRank=1
+    integer                                        :: errorCode
+    integer(kind=HSIZE_T)                          :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
+    integer(kind=HID_T)                            :: dataspaceID,newDataspaceID,propertyList
+    logical                                        :: isExtendableActual,isNewActual
 
     ! Check if location actually exists.
     if (locationID <= 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','location is null')
+
+    ! See if the dataset is new.
+    if (present(isNew)) then
+       isNewActual=isNew
+    else
+       isNewActual=.true.
+    end if
+
+    ! Determine if dataset is extendable.
+    if (present(isExtendable)) then
+       isExtendableActual=isExtendable
+    else
+       isExtendableActual=.false.
+    end if
+
+    ! Non-new datasets must be extensible.
+    if (.not.isNewActual.and..not.isExtendableActual) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','non-new datasets must be extendable')
+   
     ! Create the dataset if necessary.
     !$omp critical (HDF5_Operation)
-    if (datasetID <= 0) then
+    if (isNewActual) then
        datasetDimensions=[size(datasetInteger)]
-       if (present(isExtendable)) then
-          isExtendableActual=isExtendable
-       else
-          isExtendableActual=.false.
-       end if
        select case (isExtendableActual)
        case (.true.)
           datasetDimensionsMaximum=[H5S_UNLIMITED_F]
@@ -142,6 +156,7 @@ contains
        hyperslabCount=[size(datasetInteger)]
     else
        ! Get size of existing dataset here.
+       call h5dopen_f(locationID,trim(datasetName),datasetID,errorCode)
        call h5dget_space_f(datasetID,dataspaceID,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to get dataspace')
        call h5sget_simple_extent_dims_f(dataspaceID,datasetDimensions,datasetDimensionsMaximum,errorCode) 
@@ -169,38 +184,55 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to close dataspace')
     call h5dclose_f(datasetID,errorCode)
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to close dataset')
-    call h5pclose_f(propertyList,errorCode)
-    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to close property list')
+    if (isNewActual) then
+       call h5pclose_f(propertyList,errorCode)
+       if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Integer','failed to close property list')
+    end if
+    ! Dataset is no longer new.
+    if (present(isNew)) isNew=.false.
     !$omp end critical (HDF5_Operation)
     return
   end subroutine Galacticus_Output_Dataset_Integer
 
-  subroutine Galacticus_Output_Dataset_Double(locationID,datasetID,datasetName,commentText,datasetDouble,isExtendable)
+  subroutine Galacticus_Output_Dataset_Double(locationID,datasetID,datasetName,commentText,datasetDouble,isExtendable,isNew)
     !% Write an double precision dataset to the \glc\ output file. 
     implicit none
-    integer(kind=HID_T),   intent(in)           :: locationID
-    integer(kind=HID_T),   intent(inout)        :: datasetID
-    double precision,      intent(in)           :: datasetDouble(:)
-    character(len=*),      intent(in)           :: datasetName,commentText
-    logical,               intent(in), optional :: isExtendable
-    integer(kind=HID_T),   parameter            :: datasetRank=1
-    integer                                     :: errorCode
-    integer(kind=HSIZE_T)                       :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
-    integer(kind=HID_T)                         :: dataspaceID,newDataspaceID,propertyList
-    logical                                     :: isExtendableActual
+    integer(kind=HID_T),   intent(in)              :: locationID
+    integer(kind=HID_T),   intent(inout)           :: datasetID
+    double precision,      intent(in)              :: datasetDouble(:)
+    character(len=*),      intent(in)              :: datasetName,commentText
+    logical,               intent(in),    optional :: isExtendable
+    logical,               intent(inout), optional :: isNew
+    integer(kind=HID_T),   parameter               :: datasetRank=1
+    integer                                        :: errorCode
+    integer(kind=HSIZE_T)                          :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
+    integer(kind=HID_T)                            :: dataspaceID,newDataspaceID,propertyList
+    logical                                        :: isExtendableActual,isNewActual
 
     ! Check if location actually exists.
     if (locationID <= 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','location is null')
 
+    ! See if the dataset is new.
+    if (present(isNew)) then
+       isNewActual=isNew
+    else
+       isNewActual=.true.
+    end if
+
+    ! Determine if dataset is extendable.
+    if (present(isExtendable)) then
+       isExtendableActual=isExtendable
+    else
+       isExtendableActual=.false.
+    end if
+
+    ! Non-new datasets must be extensible.
+    if (.not.isNewActual.and..not.isExtendableActual) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','non-new datasets must be extendable')
+   
     ! Create the dataset if necessary.
     !$omp critical (HDF5_Operation)
-    if (datasetID <= 0) then
+    if (isNewActual) then
        datasetDimensions=[size(datasetDouble)]
-       if (present(isExtendable)) then
-          isExtendableActual=isExtendable
-       else
-          isExtendableActual=.false.
-       end if
        select case (isExtendableActual)
        case (.true.)
           datasetDimensionsMaximum=[H5S_UNLIMITED_F]
@@ -235,6 +267,7 @@ contains
        hyperslabCount=[size(datasetDouble)]
     else
        ! Get size of existing dataset here.
+       call h5dopen_f(locationID,trim(datasetName),datasetID,errorCode)
        call h5dget_space_f(datasetID,dataspaceID,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to get dataspace')
        call h5sget_simple_extent_dims_f(dataspaceID,datasetDimensions,datasetDimensionsMaximum,errorCode) 
@@ -262,29 +295,51 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to close dataspace')
     call h5dclose_f(datasetID,errorCode)
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to close dataset')
-    call h5pclose_f(propertyList,errorCode)
-    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to close property list')
+    if (isNewActual) then
+       call h5pclose_f(propertyList,errorCode)
+       if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Double','failed to close property list')
+    end if
+    ! Dataset is no longer new.
+    if (present(isNew)) isNew=.false.
     !$omp end critical (HDF5_Operation)
     return
   end subroutine Galacticus_Output_Dataset_Double
 
-  subroutine Galacticus_Output_Dataset_Character(locationID,datasetID,datasetName,commentText,datasetCharacter,isExtendable)
+  subroutine Galacticus_Output_Dataset_Character(locationID,datasetID,datasetName,commentText,datasetCharacter,isExtendable,isNew)
     !% Write an character dataset to the \glc\ output file.
     implicit none
-    integer(kind=HID_T),   intent(in)           :: locationID
-    integer(kind=HID_T),   intent(inout)        :: datasetID
-    character(len=*),      intent(in)           :: datasetCharacter(:)
-    character(len=*),      intent(in)           :: datasetName,commentText
-    logical,               intent(in), optional :: isExtendable
-    integer(kind=HID_T),   parameter            :: datasetRank=1
-    integer                                     :: errorCode
-    integer(kind=HSIZE_T)                       :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
-    integer(kind=HID_T)                         :: dataspaceID,newDataspaceID,propertyList,dataTypeID
-    logical                                     :: isExtendableActual
+    integer(kind=HID_T),   intent(in)              :: locationID
+    integer(kind=HID_T),   intent(inout)           :: datasetID
+    character(len=*),      intent(in)              :: datasetCharacter(:)
+    character(len=*),      intent(in)              :: datasetName,commentText
+    logical,               intent(in),    optional :: isExtendable
+    logical,               intent(inout), optional :: isNew
+    integer(kind=HID_T),   parameter               :: datasetRank=1
+    integer                                        :: errorCode
+    integer(kind=HSIZE_T)                          :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1),hyperslabCount(1)
+    integer(kind=HID_T)                            :: dataspaceID,newDataspaceID,propertyList,dataTypeID
+    logical                                        :: isExtendableActual,isNewActual
 
     ! Check if location actually exists.
     if (locationID <= 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','location is null')
 
+    ! See if the dataset is new.
+    if (present(isNew)) then
+       isNewActual=isNew
+    else
+       isNewActual=.true.
+    end if
+
+    ! Determine if dataset is extendable.
+    if (present(isExtendable)) then
+       isExtendableActual=isExtendable
+    else
+       isExtendableActual=.false.
+    end if
+    
+    ! Non-new datasets must be extensible.
+    if (.not.isNewActual.and..not.isExtendableActual) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','non-new datasets must be extendable')
+   
     ! Create a datatype
     !$omp critical (HDF5_Operation)
     call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
@@ -293,7 +348,7 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Version_Output','failed to set datatype size')
 
     ! Create the dataset if necessary.
-    if (datasetID <= 0) then
+    if (isNewActual) then
        datasetDimensions=[size(datasetCharacter)]
        if (present(isExtendable)) then
           isExtendableActual=isExtendable
@@ -334,6 +389,7 @@ contains
        hyperslabCount=[size(datasetCharacter)]
     else
        ! Get size of existing dataset here.
+       call h5dopen_f(locationID,trim(datasetName),datasetID,errorCode)
        call h5dget_space_f(datasetID,dataspaceID,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to get dataspace')
        call h5sget_simple_extent_dims_f(dataspaceID,datasetDimensions,datasetDimensionsMaximum,errorCode) 
@@ -361,28 +417,33 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to close dataspace')
     call h5dclose_f(datasetID,errorCode)
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to close dataset')
-    call h5pclose_f(propertyList,errorCode)
-    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to close property list')
+    if (isNewActual) then
+       call h5pclose_f(propertyList,errorCode)
+       if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_Character','failed to close property list')
+    end if
+    ! Dataset is no longer new.
+    if (present(isNew)) isNew=.false.
     !$omp end critical (HDF5_Operation)
     return
   end subroutine Galacticus_Output_Dataset_Character
 
-  subroutine Galacticus_Output_Dataset_VarString(locationID,datasetID,datasetName,commentText,datasetVarString,isExtendable)
+  subroutine Galacticus_Output_Dataset_VarString(locationID,datasetID,datasetName,commentText,datasetVarString,isExtendable,isNew)
     !% Write an varying string dataset to the \glc\ output file.
     use ISO_Varying_String
     implicit none
-    integer(kind=HID_T),   intent(in)            :: locationID
-    integer(kind=HID_T),   intent(inout)         :: datasetID
-    type(varying_string),  intent(in)            :: datasetVarString(:)
-    character(len=*),      intent(in)            :: datasetName,commentText
-    logical,               intent(in), optional  :: isExtendable
-    integer(kind=HID_T),   parameter             :: datasetRank=1
-    integer                                      :: errorCode
-    integer(kind=HSIZE_T)                        :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1)&
+    integer(kind=HID_T),   intent(in)              :: locationID
+    integer(kind=HID_T),   intent(inout)           :: datasetID
+    type(varying_string),  intent(in)              :: datasetVarString(:)
+    character(len=*),      intent(in)              :: datasetName,commentText
+    logical,               intent(in),    optional :: isExtendable
+    logical,               intent(inout), optional :: isNew
+    integer(kind=HID_T),   parameter               :: datasetRank=1
+    integer                                        :: errorCode
+    integer(kind=HSIZE_T)                          :: datasetDimensions(1),datasetDimensionsMaximum(1),hyperslabStart(1)&
          &,hyperslabCount(1)
-    integer(kind=HID_T)                          :: dataspaceID,newDataspaceID,propertyList,dataTypeID
-    logical                                      :: isExtendableActual
-    character(len=maxval(len(datasetVarString))) :: datasetCharacter(size(datasetVarString))
+    integer(kind=HID_T)                            :: dataspaceID,newDataspaceID,propertyList,dataTypeID
+    logical                                        :: isExtendableActual,isNewActual
+    character(len=maxval(len(datasetVarString)))   :: datasetCharacter(size(datasetVarString))
 
     ! Check if location actually exists.
     if (locationID <= 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','location is null')
@@ -390,21 +451,33 @@ contains
     ! Copy varying string data into temporary character array.
     datasetCharacter=datasetVarString
 
+    ! See if the dataset is new.
+    if (present(isNew)) then
+       isNewActual=isNew
+    else
+       isNewActual=.true.
+    end if
+
+    ! Determine if dataset is extendable.
+    if (present(isExtendable)) then
+       isExtendableActual=isExtendable
+    else
+       isExtendableActual=.false.
+    end if
+    
+    ! Non-new datasets must be extensible.
+    if (.not.isNewActual.and..not.isExtendableActual) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','non-new datasets must be extendable')
+   
     ! Create a datatype
     !$omp critical (HDF5_Operation)
     call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
-    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Version_Output','failed to copy datatype')
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to copy datatype')
     call h5tset_size_f(dataTypeID,int(len(datasetCharacter),size_t),errorCode)
-    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Version_Output','failed to set datatype size')
+    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to set datatype size')
 
     ! Create the dataset if necessary.
-    if (datasetID <= 0) then
+    if (isNewActual) then
        datasetDimensions=[size(datasetCharacter)]
-       if (present(isExtendable)) then
-          isExtendableActual=isExtendable
-       else
-          isExtendableActual=.false.
-       end if
        select case (isExtendableActual)
        case (.true.)
           datasetDimensionsMaximum=[H5S_UNLIMITED_F]
@@ -439,6 +512,7 @@ contains
        hyperslabCount=[size(datasetCharacter)]
     else
        ! Get size of existing dataset here.
+       call h5dopen_f(locationID,trim(datasetName),datasetID,errorCode)
        call h5dget_space_f(datasetID,dataspaceID,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to get dataspace')
        call h5sget_simple_extent_dims_f(dataspaceID,datasetDimensions,datasetDimensionsMaximum,errorCode) 
@@ -466,8 +540,12 @@ contains
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to close dataspace')
     call h5dclose_f(datasetID,errorCode)
     if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to close dataset')
-    call h5pclose_f(propertyList,errorCode)
-    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to close property list')
+    if (isNewActual) then
+       call h5pclose_f(propertyList,errorCode)
+       if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Dataset_VarString','failed to close property list')
+    end if
+    ! Dataset is no longer new.
+    if (present(isNew)) isNew=.false.
     !$omp end critical (HDF5_Operation)
     return
   end subroutine Galacticus_Output_Dataset_VarString
