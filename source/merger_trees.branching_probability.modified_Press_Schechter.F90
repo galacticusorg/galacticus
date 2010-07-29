@@ -193,7 +193,7 @@ contains
     implicit none
     double precision, intent(in) :: haloMass,deltaCritical,massResolution
     double precision, parameter  :: largeStep=1.0d10 ! Effectively infinitely large step in w(=delta_crit).
-    double precision             :: parentHalfMassSigma,wMax
+    double precision             :: parentHalfMassSigma
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then

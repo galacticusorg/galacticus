@@ -215,7 +215,7 @@ contains
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in),    optional :: units,orbit
     integer                                   :: unitsActual
-    double precision                          :: blackHoleSpin,blackHoleIscoRadius
+    double precision                          :: blackHoleSpin
  
     ! Determine what system of units to use.
     if (present(units)) then

@@ -384,7 +384,7 @@ contains
     type(fgsl_integration_workspace)                         :: integrationWorkspace
     integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
          &,metallicityIndex,iRecycledFraction,ioErr
-    double precision                                         :: minimumMass,maximumMass,initialMass
+    double precision                                         :: minimumMass,maximumMass
     character(len=20)                                        :: progressMessage,parameterValue
     type(xmlf_t)                                             :: recycledFractionDoc
     type(varying_string)                                     :: fileName
@@ -694,11 +694,8 @@ contains
      type(fgsl_integration_workspace)                           :: integrationWorkspace
      integer                                                    :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
           &,metallicityIndex,iMetalYield,ioErr,abundanceIndexActual,iElement
-     double precision                                           :: minimumMass,maximumMass,initialMass
+     double precision                                           :: minimumMass,maximumMass
      character(len=20)                                          :: progressMessage,parameterValue
-     character(len= 8)                                          :: date
-     character(len=10)                                          :: time
-     character(len= 5)                                          :: zone
      type(xmlf_t)                                               :: metalYieldDoc
      type(varying_string)                                       :: fileName
 
@@ -1084,7 +1081,7 @@ contains
     type(fgsl_integration_workspace)                         :: integrationWorkspace
     integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
          &,metallicityIndex,iEnergyInput,ioErr
-    double precision                                         :: minimumMass,maximumMass,initialMass,totalEnergyInput
+    double precision                                         :: minimumMass,maximumMass
     character(len=20)                                        :: progressMessage,parameterValue
     type(xmlf_t)                                             :: energyInputDoc
     type(varying_string)                                     :: fileName

@@ -623,7 +623,6 @@ contains
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
-    double precision            :: tCosmological
 
     ! Read the minimum and maximum tabulated times.
     read (stateFile) concentrationMinimum,concentrationMaximum,radiusMinimum,radiusMaximum

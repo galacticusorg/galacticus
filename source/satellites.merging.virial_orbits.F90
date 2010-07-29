@@ -110,7 +110,7 @@ contains
     double precision,        parameter               :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
     type(c_ptr)                                      :: parameterPointer
     double precision                                 :: velocityRadialInternal,velocityTangentialInternal,angularMomentumInternal&
-         & ,eccentricityInternal,semimajorAxisInternal,radiusMinimum,radiusMaximum,test
+         & ,eccentricityInternal,semimajorAxisInternal,radiusMinimum,radiusMaximum
     
     !$omp critical(virialOrbitsInitialized)
     if (.not.virialOrbitsInitialized) then

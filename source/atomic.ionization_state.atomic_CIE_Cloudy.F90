@@ -186,7 +186,6 @@ contains
        &,radiation)
     !% Return the logarithmic slope of the electron density with respect to temperature assuming atomic CIE as computed by {\sc Cloudy}.
     use Ionization_States_CIE_File
-    use System_Command
     use Abundances_Structure
     use Radiation_Structure
     implicit none

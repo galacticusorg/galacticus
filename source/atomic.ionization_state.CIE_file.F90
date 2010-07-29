@@ -261,7 +261,6 @@ contains
     !% Compute the logarithmic gradient of the electron density with respect to temperature by interpolation in the tabulated data.
     use Abundances_Structure
     use Radiation_Structure
-    use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen

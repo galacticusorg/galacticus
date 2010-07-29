@@ -177,7 +177,7 @@ contains
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
     type(treeNode),  pointer                :: relatedNode
-    integer                                 :: thisIndex,relatedIndex
+    integer                                 :: relatedIndex
     double precision                        :: previousSetMass,previousSetSpin
 
      if (methodSelected) then

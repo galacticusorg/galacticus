@@ -471,7 +471,7 @@ contains
     integer,         intent(in)                :: componentIndex,propertyCount,dataCount
     type(treeNode),  intent(inout)             :: thisNode
     type(component), allocatable, dimension(:) :: tempComponents
-    integer                                    :: previousSize,listIndex,timesCount,historyCount,iHistory
+    integer                                    :: previousSize,listIndex,timesCount,iHistory
 
     listIndex=thisNode%componentIndex(componentIndex)
     if (listIndex /= -1) then

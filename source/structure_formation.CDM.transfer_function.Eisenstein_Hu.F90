@@ -127,8 +127,8 @@ contains
     double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
     integer,                                     intent(out)   :: transferFunctionNumberPoints
     integer                                                    :: iWavenumber
-    double precision                                           :: Gamma,qEH,wavenumber,Theta27,zeq,b1,b2,zd,yd,s,fv,Nv,fb&
-         &,fc,fcb,fvb,pc,pcb,alphav,Gammaeff,qeff,betac,L,C,Tsup,qv,Bk
+    double precision                                           :: qEH,wavenumber,Theta27,zeq,b1,b2,zd,yd,s,fv,Nv,fb ,fc,fcb,fvb&
+         &,pc,pcb,alphav,Gammaeff,qeff,betac,L,C,Tsup,qv,Bk
  
     ! Set wavenumber range and number of points in table.
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)

@@ -107,8 +107,6 @@ contains
     use Numerical_Constants_Physical
     use Satellite_Merging_Remnant_Sizes_Properties
     use Galactic_Structure_Rotation_Curves
-    use Numerical_Interpolation
-    use FGSL
     use Galacticus_Error
     use String_Handling
     use ISO_Varying_String
@@ -118,10 +116,6 @@ contains
     type(treeNode),                         pointer  :: hostNode
     double precision,        parameter               :: bindingEnergyFormFactor=0.5d+0
     double precision,        parameter               :: massTolerance          =1.0d-6
-    type(fgsl_interp),       save                    :: interpolationObject
-    type(fgsl_interp_accel), save                    :: interpolationAccelerator
-    !$omp threadprivate(interpolationObject,interpolationAccelerator)
-    logical                                          :: interpolationReset
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
          &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,hostSpheroidDarkMatterFactor,hostDiskDarkMatterFactor&
          &,satelliteSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor,darkMatterFactor,componentMass

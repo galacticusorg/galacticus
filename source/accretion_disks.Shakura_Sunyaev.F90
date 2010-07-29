@@ -150,7 +150,7 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
-    double precision                         :: accretionEfficiency,spinToMassRateOfChangeRatio
+    double precision                         :: spinToMassRateOfChangeRatio
 
     spinToMassRateOfChangeRatio=Black_Hole_ISCO_Specific_Angular_Momentum(thisNode,units=unitsGravitational,orbit=orbitPrograde)&
          &-2.0d0*Tree_Node_Black_Hole_Spin(thisNode)*Black_Hole_ISCO_Specific_Energy(thisNode,units=unitsGravitational,orbit&

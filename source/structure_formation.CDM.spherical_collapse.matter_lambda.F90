@@ -154,7 +154,6 @@ contains
     integer,                 intent(out)                              :: deltaTableNumberPoints
     double precision,        intent(inout), allocatable, dimension(:) :: deltaTableTime,deltaTableDelta
     integer,                 intent(in)                               :: calculationType
-    double precision,        target                                   :: rootParameter
     type(fgsl_function),     save                                     :: rootFunction
     type(fgsl_root_fsolver), save                                     :: rootFunctionSolver
     double precision,        parameter                                :: toleranceAbsolute=1.0d-9,toleranceRelative=1.0d-9
@@ -233,7 +232,6 @@ contains
     use Root_Finder
     implicit none
     double precision,        intent(in) :: epsilonPerturbation
-    double precision,        target     :: rootParameter
     type(fgsl_function),     save       :: rootFunction
     type(fgsl_root_fsolver), save       :: rootFunctionSolver
     double precision,        parameter  :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
@@ -277,7 +275,6 @@ contains
     type(fgsl_function),              save       :: integrandFunction
     type(fgsl_integration_workspace), save       :: integrationWorkspace
     logical,                          save       :: integrationReset=.true.
-    real(c_double),                   target     :: integrandParameter
     real(c_double),                   parameter  :: aMinimum=0.0d0
     real(c_double),                   parameter  :: numericalLimitEpsilon=1.0d-4
     type(c_ptr)                                  :: parameterPointer

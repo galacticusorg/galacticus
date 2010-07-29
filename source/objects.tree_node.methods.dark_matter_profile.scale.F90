@@ -211,7 +211,6 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     integer                                  :: thisIndex
-    double precision                         :: deltaTime
 
     ! Get component index for this node.
     thisIndex=Tree_Node_Profile_Scale_Index(thisNode)
@@ -230,8 +229,7 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
-    type(treeNode),  pointer                :: relatedNode
-    integer                                 :: thisIndex,relatedIndex
+    integer                                 :: thisIndex
     double precision                        :: concentration,deltaTime
 
     if (methodSelected) then
@@ -382,7 +380,6 @@ contains
   !# </mergerTreeStructureOutputTask>
   subroutine Tree_Node_Methods_Profile_Scale_Merger_Tree_Output(baseNode,nodeProperty,treeGroupID)
     !% Write the scale radius property to a full merger tree output.
-    use ISO_Varying_String
     use Galacticus_HDF5_Groups
     use Tree_Nodes
     implicit none
@@ -391,7 +388,6 @@ contains
     integer,          intent(in)                  :: treeGroupID
     type(treeNode),                  pointer      :: thisNode
     integer                                       :: nodeCount,structureDataID
-    type(varying_string)                          :: groupName,groupComment
 
     ! Check if scale radius is to be included in merger tree outputs.
     if (methodSelected.and.mergerTreeStructureOutputDarkMatterScaleRadius) then
