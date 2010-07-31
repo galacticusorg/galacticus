@@ -78,19 +78,56 @@ contains
     use HDF5
     use Galacticus_Error
     use Dates_and_Times
+    use File_Utilities
+    use FoX_dom
     implicit none
-    integer(kind=HID_T)                :: versionGroupID=0,versionMajorID=0,versionMinorID=0,versionRevisionID=0,runTimeID=0
+    include 'galacticus.output.version.revision.inc'
+    type(varying_string), dimension(1) :: runTime,textBufferVariable
+    type(Node),           pointer      :: doc,thisNode,nameNode,emailNode
+    type(NodeList),       pointer      :: nodesList
+    integer                            :: ioErr
+    integer(kind=HID_T)                :: versionGroupID=0,versionMajorID=0,versionMinorID=0,versionRevisionID=0,runTimeID=0&
+         &,nameID=0,emailID=0,bazaarRevisionID=0
     type(varying_string)               :: groupName,groupComment
-    type(varying_string), dimension(1) :: runTime
-
+    character(len=128)                 :: textBufferFixed
+  
+    ! Create a group for version information.
     groupName='Version'
     groupComment='Version and timestamp for this model.'
     versionGroupID=Galacticus_Output_Make_Group(groupName,groupComment)
-    call Galacticus_Output_Dataset(versionGroupID,versionMajorID   ,'versionMajor'   ,'Major version number',[0])
-    call Galacticus_Output_Dataset(versionGroupID,versionMinorID   ,'versionMinor'   ,'Minor version number',[9])
-    call Galacticus_Output_Dataset(versionGroupID,versionRevisionID,'versionRevision','Revision number'     ,[0])
+    call Galacticus_Output_Dataset(versionGroupID,versionMajorID   ,'versionMajor'   ,'Major version number'  ,[0]             )
+    call Galacticus_Output_Dataset(versionGroupID,versionMinorID   ,'versionMinor'   ,'Minor version number'  ,[9]             )
+    call Galacticus_Output_Dataset(versionGroupID,versionRevisionID,'versionRevision','Revision number'       ,[0]             )
+    call Galacticus_Output_Dataset(versionGroupID,bazaarRevisionID ,'bazaarRevision' ,'Bazaar revision number',[bazaarRevision])
     runTime(1)=Formatted_Date_and_Time()
     call Galacticus_Output_Dataset(versionGroupID,runTimeID        ,'runTime'        ,'Time at which model was run',runTime)
+
+    ! Check if a galacticusConfig.xml file exists.
+    if (File_Exists("galacticusConfig.xml")) then
+       !$omp critical (FoX_DOM_Access)
+       doc => parseFile("galacticusConfig.xml",iostat=ioErr)
+       if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Version_Output','Unable to parse config file')
+       nodesList => getElementsByTagname(doc,"contact")
+       if (getLength(nodesList) >= 0) then
+          thisNode => item(nodesList,0)
+          nodesList => getElementsByTagname(thisNode,"name")
+          if (getLength(nodesList) >= 0) then
+             nameNode => item(nodesList,0)
+             call extractDataContent(nameNode,textBufferFixed)
+             textBufferVariable(1)=trim(textBufferFixed)
+             call Galacticus_Output_Dataset(versionGroupID,nameID,'runByName','The name of whosoever ran this model',textBufferVariable)
+          end if
+          nodesList => getElementsByTagname(thisNode,"email")
+          if (getLength(nodesList) >= 0) then
+             emailNode => item(nodesList,0)
+             call extractDataContent(emailNode,textBufferFixed)
+             textBufferVariable(1)=trim(textBufferFixed)
+             call Galacticus_Output_Dataset(versionGroupID,emailID,'runByEmail','The e-mail address of whosoever ran this model',textBufferVariable)
+          end if
+       end if
+       call destroy(doc)
+       !$omp end critical (FoX_DOM_Access)
+    end if
     return
   end subroutine Galacticus_Version_Output
   

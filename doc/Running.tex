@@ -1,5 +1,18 @@
 \chapter{Running Galacticus}
 
+\section{Configuration File}\label{sec:ConfigFile}\index{galacticusConfig.xml@{\tt galacticusConfig.xml}}\index{configuration}
+
+The file {\tt galacticusConfig.xml}, is present, is used to configure \glc\ and provide useful information. It should have the following structure:
+\begin{verbatim}
+<config>
+  <contact>
+    <name>My Name</name>
+    <email>me@ivory.towers.edu</email>
+  </contact>
+</config>
+\end{verbatim}
+The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model.
+
 \section{Parameter Files}
 
 \glc\ requires a file of parameters to be given as a command line argument. (In fact, it technically doesn't as all of the parameters will be assigned default values if no file is given, but in most cases you want to change some parameters, in which case you must specify them in a file.) The parameter file is an XML file (which makes it easy to manipulate and construct these files from within many languages, e.g. Perl) with the following structure:
@@ -88,16 +101,7 @@ By default, each model is output into a sequentially numbered directory within t
 
 In addition to the {\tt galacticus.hdf5} output file, each model directory will contain a file {\tt newParameters.xml} which contains the parameters used to run the model and {\tt galacticus.log} which contains any output from \glc\ during the run.
 
-If present, the file {\tt runGalacticus.xml} is parsed for configuration options. It should have the following structure:
-\begin{verbatim}
-<config>
-  <errorReport>
-    <name>My Name</name>
-    <email>me@ivory.towers.edu</email>
-  </errorReport>
-</config>
-\end{verbatim}
-The {\tt errorReport} element contains the name and e-mail address of the person who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
+If present, the file {\tt galacticusConfig.xml}, described in \S\ref{sec:ConfigFile}, is parsed for configuration options. If the {\tt contact} element is present, the listed name and e-mail address will be used to determine who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
 
 \subsection{Analysis of Models}
 
