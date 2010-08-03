@@ -108,7 +108,7 @@ vpath %.F90 source
 
 # Rules for version routines.
 ./work/build/galacticus.output.version.revision.inc: $(wildcard .bzr/branch/*)
-	@if [ -d .bzr ] ; then bzr version-info --custom --template="integer, parameter :: bazaarRevision={revno}\n" > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: bazaarRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
+	@if [ -d .bzr ] ; then awk '{print "integer, parameter :: bazaarRevision="$$1}' .bzr/branch/last-revision > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: bazaarRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
 
 # Rules for cleaning up.
 clean: tidy
