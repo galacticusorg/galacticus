@@ -71,7 +71,7 @@ module Galactic_Structure_Radii_Adiabatic
   public :: Galactic_Structure_Radii_Adiabatic_Initialize
 
   ! Parameters of the adiabatic contraction algorithm.
-  double precision :: adiabaticContractionGnedinA,adiabaticContractionGnedinOmega
+  double precision :: adiabaticContractionGnedinA,adiabaticContractionGnedinOmega,inverseAdiabaticContractionGnedinOmegaMinusOne
 
   ! Module variables used to communicate current state of radius solver.
   integer          :: iterationCount,activeComponentCount
@@ -112,6 +112,8 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionGnedinOmega',adiabaticContractionGnedinOmega,defaultValue=0.77d0)
+       ! Store the exponent that we actually use in the equations.
+       inverseAdiabaticContractionGnedinOmegaMinusOne=1.0d0/adiabaticContractionGnedinOmega-1.0d0
     end if
     return
   end subroutine Galactic_Structure_Radii_Adiabatic_Initialize
@@ -176,8 +178,8 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: specificAngularMomentum
-    double precision                         :: radius,velocity,virialRadius,radiusPrimed,angularMomentumC,angularMomentumCPrimed&
-         &,radiusInitial,haloMassInitial,darkMatterMassFinal,darkMatterVelocitySquared,baryonicVelocitySquared,radiusNew&
+    double precision                         :: radius,velocity,virialRadius,angularMomentumC,angularMomentumCPrimed &
+         &,radiusInitial,haloMassInitial,darkMatterMassFinal,darkMatterVelocitySquared,baryonicVelocitySquared,radiusNew &
          &,specificAngularMomentumPrimed
 
     ! Count the number of active comonents.
@@ -203,15 +205,17 @@ contains
        ! Get the virial radius of the node.
        virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
 
-       ! Compute the primed radius.
-       radiusPrimed=virialRadius*((radius/virialRadius/adiabaticContractionGnedinA)**(1.0d0/adiabaticContractionGnedinOmega))
-
        ! Compute the angular momentum parameter, c.
        angularMomentumC=specificAngularMomentum**2/gravitationalConstantGalacticus
 
-       ! Compute the primed angular momentum parameter, c'.
-       angularMomentumCPrimed=angularMomentumC*((radiusPrimed/virialRadius)**(1.0d0-adiabaticContractionGnedinOmega))&
-            &/adiabaticContractionGnedinA
+       ! Compute the primed angular momentum parameter, c'. To do this, we need r':
+       !   r' = r_vir (r/r_vir/A)^(1/omega),
+       ! from which we get c' as:
+       !  c' = c (r'/r_vir)^(1-omega) / A.
+       ! This reduces to:
+       !  c' = (c/A) (r/r_vir/A)^(1/omega-1)
+       angularMomentumCPrimed=(angularMomentumC/adiabaticContractionGnedinA)*((radius/virialRadius/adiabaticContractionGnedinA)&
+            &**inverseAdiabaticContractionGnedinOmegaMinusOne)
 
        ! Solve for radius in halo with correct pseudo-specific angular momentum.
        specificAngularMomentumPrimed=dsqrt(angularMomentumCPrimed*gravitationalConstantGalacticus)

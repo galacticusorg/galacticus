@@ -219,9 +219,13 @@ contains
 
     !$omp critical (Dark_Matter_Profile_NFW_Inverse_AM)
     retabulate=.not.nfwInverseTableInitialized
-    if (present(specificAngularMomentum)) then
+    ! If the table has not yet been made, compute and store the specific angular momenta corresponding to the minimum and maximum
+    ! radii that will be tabulated by default.
+    if (retabulate) then
        specificAngularMomentumMinimum=Specific_Angular_Momentum_NFW_Scale_Free(radiusMinimum)
        specificAngularMomentumMaximum=Specific_Angular_Momentum_NFW_Scale_Free(radiusMaximum)
+    end if
+    if (present(specificAngularMomentum)) then
        do while (specificAngularMomentum < specificAngularMomentumMinimum)
           radiusMinimum=0.5d0*radiusMinimum
           specificAngularMomentumMinimum=Specific_Angular_Momentum_NFW_Scale_Free(radiusMinimum)
