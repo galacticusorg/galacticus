@@ -313,29 +313,34 @@ contains
     implicit none
     type(abundancesStructure), intent(in)           :: abundances
     integer,                   intent(in), optional :: metallicityType
-
+    integer                                         :: metallicityTypeActual
     ! Ensure module is initialized.
     call Abundances_Initialize
 
     Abundances_Get_Metallicity=abundances%metallicityValue
+
     if (present(metallicityType)) then
-       select case (metallicityType)
-       case (linearByMass)
-          ! Do nothing, this is what we compute by default.
-       case (logarithmicByMassSolar)
-          ! Convert to a logarithmic metallicity by mass relative to Solar.
-          if (Abundances_Get_Metallicity > 0.0d0) then
-             Abundances_Get_Metallicity=dlog10(Abundances_Get_Metallicity/metallicitySolar)
-          else
-             Abundances_Get_Metallicity=logMetallicityZero
-          end if
-       case (linearByMassSolar)
-          ! Convert to metallicity by mass relative to Solar.
-          Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
-       case default
-          call Galacticus_Error_Report('Abundances_Get_Metallicity','metallicity type not supported')
-       end select
+       metallicityTypeActual=metallicityType
+    else
+       metallicityTypeActual=linearByMass
     end if
+    
+    select case (metallicityTypeActual)
+    case (linearByMass)
+       ! Do nothing, this is what we compute by default.
+    case (logarithmicByMassSolar)
+       ! Convert to a logarithmic metallicity by mass relative to Solar.
+       if (Abundances_Get_Metallicity > 0.0d0) then
+          Abundances_Get_Metallicity=dlog10(Abundances_Get_Metallicity/metallicitySolar)
+       else
+          Abundances_Get_Metallicity=logMetallicityZero
+       end if
+    case (linearByMassSolar)
+       ! Convert to metallicity by mass relative to Solar.
+       Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
+    case default
+       call Galacticus_Error_Report('Abundances_Get_Metallicity','metallicity type not supported')
+    end select
     return
   end function Abundances_Get_Metallicity
 
