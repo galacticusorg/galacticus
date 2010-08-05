@@ -162,8 +162,9 @@ contains
     !$omp end critical(Halo_Mass_Function_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
-    Halo_Mass_Function_Differential=dexp(Interpolate(haloMassFunctionNumberPoints,haloMassFunctionLogMass&
-         &,haloMassFunctionLogAbundance,interpolationObject,interpolationAccelerator,logMass,reset=resetInterpolation))
+    Halo_Mass_Function_Differential=dexp(Interpolate(haloMassFunctionNumberPoints,haloMassFunctionLogMass &
+         &,haloMassFunctionLogAbundance,interpolationObject,interpolationAccelerator,logMass,reset=resetInterpolation&
+         &,interpolationType=fgsl_interp_cspline))
     return
   end function Halo_Mass_Function_Differential
 
