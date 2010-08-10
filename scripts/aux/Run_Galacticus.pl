@@ -46,6 +46,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
     ++$iModelSet;
 
     # Count up the number of models to run and the periodicity in each parameter.
+    undef(%modelsPeriod);
     $modelsCount = 1;
     foreach $parameter ( @{$parameterSet->{'parameter'}} ) {
 	$modelsPeriod{${$parameter->{'name'}}[0]} = $modelsCount;
@@ -54,6 +55,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
     
     # Generate an array of parameter hashes which specifies the parameter values for each model.
     for($iModel=0;$iModel<$modelsCount;++$iModel) {
+	undef(%{$models[$iModel]});
 	foreach $parameter ( @{$parameterSet->{'parameter'}} ) {
 	    $index = int($iModel/$modelsPeriod{${$parameter->{'name'}}[0]}) % ($#{$parameter->{'value'}}+1);
 	    ${$models[$iModel]}{${$parameter->{'name'}}[0]} = ${$parameter->{'value'}}[$index];
@@ -90,7 +92,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
 	    $parameterHash{'galacticusOutputFile'} = $galacticusOutputFile;
 
 	    # Set the random seed.
-	    $parameterHash{'randomSeed'} = $randomSeed;
+	    $parameterHash{'randomSeed'} = $randomSeed unless ( exists($parameterHash{'randomSeed'}) );
 
 	    # Set a state restore file.
 	    ($stateFile = $galacticusOutputFile) =~ s/\.hdf5//;
@@ -119,8 +121,8 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
 	    undef(%parameterHash);
 
  	    # Run Galacticus.
- 	    &SystemRedirect::tofile("ulimit -t unlimited; ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; time Galacticus.exe "
- 				    .$galacticusOutputDirectory."/newParameters.xml",$galacticusOutputDirectory."/galacticus.log");
+	    &SystemRedirect::tofile("ulimit -t unlimited; ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; time Galacticus.exe "
+				    .$galacticusOutputDirectory."/newParameters.xml",$galacticusOutputDirectory."/galacticus.log");
  	    if ( $? == 0 ) {
  		# Model finished successfully.
  		# Generate plots.
