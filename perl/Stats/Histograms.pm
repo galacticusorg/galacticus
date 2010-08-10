@@ -32,8 +32,8 @@ sub Histogram {
 	# Select properties in this bin.
 	$weightsSelected = where($weights,$xValues >= $binMinimum->index($iBin) & $xValues < $binMaximum->index($iBin) );
 
-        # Only compute results for cases where we have more than one entry.
-	if ( nelem($weightsSelected) > 1 ) {	
+        # Only compute results for cases where we have at least one entry.
+	if ( nelem($weightsSelected) >= 1 ) {	
 
 	    # Sum up the weights in the bin.
 	    $histogram->index($iBin) .= sum($weightsSelected);
