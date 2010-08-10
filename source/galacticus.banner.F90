@@ -81,7 +81,7 @@ contains
     write (0,*) ' #   #  #  #  #  #  # #     #    #  #     #  #    # '
     write (0,*) '  ####  #### ### ####  ###   ## ###  ###   #### ##  '
     write (0,*)
-    write (0,*) '          (c) 2009-2010 - Andrew Benson             '
+    write (0,*) '            © 2009-2010 - Andrew Benson             '
     write (0,*)
     return
   end subroutine Galacticus_Banner_Show
