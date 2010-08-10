@@ -6,6 +6,7 @@ use PDL::Basic;
 use Graphics::GnuplotIF;
 use Galacticus::HDF5;
 use XML::Simple;
+use Stats::Histograms;
 
 # Run a test of the progenitor mass function construction algorithms.
 # Andrew Benson (12-Feb-2010)
@@ -63,7 +64,8 @@ $treesCount = $#{$dataSet{'mergerTreesAvailable'}}+1;
 print "  -> Found ".$treesCount." trees: processing.......\n";
 
 # Loop through trees.
-for ($iTree=1;$iTree<=$treesCount;$iTree+=10) {
+#for ($iTree=1;$iTree<=$treesCount;$iTree+=1) {
+for ($iTree=2082;$iTree<=$treesCount;$iTree+=1) {
     $dataSet{'tree'} = $iTree;
     # Loop over outputs.
     for ($iOutput=$outputCount;$iOutput>0;--$iOutput) {
@@ -95,10 +97,11 @@ for ($iTree=1;$iTree<=$treesCount;$iTree+=10) {
 	    }
 	    if ( $rootBin >= 0 && $rootBin < $rootBinCount) {
 		# Build a histogram.
-		$hist = whist($isolatedNodeMass,$weight,$lgMmin,$lgMmax,$lgMstep);
+		($hist,$histErrors) = &Histograms::Histogram($lgMval,$isolatedNodeMass,$weight);
 		# Accumulate.
-		$progenitorMF->(($rootBin),($iOutput-1),:) += $hist*${$dataSets->{'volumeWeight'}};
-		$summedWeights->(($rootBin),($iOutput-1)) += ${$dataSets->{'volumeWeight'}};
+		$vWeight = ${$dataSets->{'volumeWeight'}}->index(0);
+		$progenitorMF->(($rootBin),($iOutput-1),:) += $hist*$vWeight;
+		$summedWeights->(($rootBin),($iOutput-1)) += $vWeight;
 	    }
 	}
 	delete($dataSets->{'volumeWeight'});
