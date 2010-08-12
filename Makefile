@@ -22,7 +22,7 @@ F03FLAGS += -g
 # A copy of the flags prior to any optimizations.
 F03FLAGS_NOOPT := $(F03FLAGS)
 # Optimization flags.
-#F03FLAGS += -O3 -fno-math-errno -funroll-loops -frounding-math -ffloat-store -ffinite-math-only
+#F03FLAGS += -O3 -ffinite-math-only -fno-math-errno
 ## Currently OpenMP seems to cause problems with procedure pointers in gfortran.
 ##F03FLAGS += -fopenmp # For OpenMP compilation.
 
