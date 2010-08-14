@@ -325,7 +325,7 @@ module Tree_Nodes
 
 contains
 
-  integer function Tree_Node_Unique_ID(thisNode)
+  integer(kind=kind_int8) function Tree_Node_Unique_ID(thisNode)
     !% Returns the unique ID of {\tt thisNode}.
     implicit none
     type(treeNode), intent(in), pointer :: thisNode
@@ -341,8 +341,8 @@ contains
   subroutine Tree_Node_Unique_ID_Set(thisNode,uniqueID)
     !% Set the index of {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout) :: thisNode
-    integer,        intent(in)    :: uniqueID
+    type(treeNode),          intent(inout) :: thisNode
+    integer(kind=kind_int8), intent(in)    :: uniqueID
 
     thisNode%nodeUniqueID=uniqueID
     return
