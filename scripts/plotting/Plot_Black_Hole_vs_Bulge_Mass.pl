@@ -47,6 +47,7 @@ $dataSet{'store'} = 0;
 $dataSet{'tree'} = "all";
 &HDF5::Get_Dataset(\%dataSet,['volumeWeight','spheroidStellarMass','blackHoleMass']);
 $dataSets         = \%{$dataSet{'dataSets'}};
+$volumeWeight     = where(${$dataSets->{'volumeWeight'}}       ,${$dataSets->{'spheroidStellarMass'}} > 3.0e8);
 $spheroidMass     = where(${$dataSets->{'spheroidStellarMass'}},${$dataSets->{'spheroidStellarMass'}} > 3.0e8);
 $blackHoleMass    = where(${$dataSets->{'blackHoleMass'}}      ,${$dataSets->{'spheroidStellarMass'}} > 3.0e8);
 unless (exists($dataSets->{'blackHoleMass'})) {
@@ -58,7 +59,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	print $xmlOutput->XMLout(\%fitData);
     }
 } else {
-    $weight           = ${$dataSets->{'volumeWeight'}};
+    $weight           = where($volumeWeight        ,$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     $logSpheroidMass  = where(log10($spheroidMass ),$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     $logBlackHoleMass = where(log10($blackHoleMass),$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     if ( nelem($logSpheroidMass) > 0 ) {
