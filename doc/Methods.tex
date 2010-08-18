@@ -502,7 +502,7 @@ Here, {\tt Cooling\_Function\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a 
     implicit none
     type(varying_string), intent(in) :: coolingFunctionMethods(:)
     
-    if (any(coolingFunctionMethod == 'myMethod')) then
+    if (any(coolingFunctionMethods == 'myMethod')) then
        .
        .
        .
@@ -531,7 +531,7 @@ and each should return the relevant quantity in {\tt coolingFunctionProperty}. T
 
 Currently defined cooling function methods are:
 \begin{description}
- \item [\hyperlink{cooling.cooling_function.CIE_file.F90:cooling_functions_cie_file:cooling_function_cie_file}{{\tt CIE from file}}] Reads a tabulated CIE cooling function from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
+ \item [\hyperlink{cooling.cooling_function.CIE_file.F90:cooling_functions_cie_file:cooling_function_cie_file}{{\tt CIE\_from\_file}}] Reads a tabulated CIE cooling function from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
  \begin{verbatim}
   <coolingFunctions>
   <coolingFunction>
@@ -584,8 +584,8 @@ Currently defined cooling function methods are:
   \item[{\tt power law}] The cooling function is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the cooling function is everywhere positive.
  \end{description}
  If the cooling function is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first cooling function is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and cooling function. Otherwise, interpolation is linear in these quantities. The cooling function is scaled assuming a quadratic dependence on hydrogen density.
- \item [{\tt atomic CIE Cloudy}] Uses the {\sc Cloudy} software to compute a cooling function for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the cooling function suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}. Figure~\ref{fig:atomicCIECloudyCoolingFunction} shows the cooling function from this method.
- \item [{\tt CMB Compton}] Computes the cooling function due to Compton scattering off of \CMB\ photons.
+ \item [{\tt atomic\_CIE\_Cloudy}] Uses the {\sc Cloudy} software to compute a cooling function for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the cooling function suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}. Figure~\ref{fig:atomicCIECloudyCoolingFunction} shows the cooling function from this method.
+ \item [{\tt CMB\_Compton}] Computes the cooling function due to Compton scattering off of \CMB\ photons.
 \end{description}
 
 \begin{figure}

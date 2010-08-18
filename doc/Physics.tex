@@ -132,19 +132,19 @@ The cooling of gas within dark matter halos is controlled by a number of differe
 
 \subsection{Cooling Function}\index{cooling function}\index{cooling!cooling function}
 
-The cooling function of gas, $\Lambda(\rho,T,{\bf Z})$, is implemented by the algorithm selected using the {\tt coolingFunctionMethod} parameter.
+The cooling function of gas, $\Lambda(\rho,T,{\bf Z})$, is implemented by the algorithm(s) selected using the {\tt coolingFunctionMethods} parameter. If more than one cooling function is specified, then the net cooling function is a sum over all of those selected.
 
 \subsubsection{Atomic Collisional Ionization Equilibrium Using {\sc Cloudy}}
 
-Selected using {\tt coolingFunctionMethod}$=${\tt atomic CIE Cloudy}, this method computes the cooling function using the {\sc Cloudy} code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use {\sc Cloudy}'s ``primordial'' metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\sc Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
+Selected using {\tt coolingFunctionMethods}$=${\tt atomic\_CIE\_Cloudy}, this method computes the cooling function using the {\sc Cloudy} code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use {\sc Cloudy}'s ``primordial'' metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\sc Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
 
 \subsubsection{Collisional Ionization Eqiulibrium From File}
 
-Selected using {\tt coolingFunctionMethod}$=${\tt CIE from file}, in this method the cooling function is read from a file specified by the {\tt coolingFunctionFile} parameter. The format of this file is specified in \S\ref{sec:CoolingFunctionMethods}. The cooling function is assumed to be computed under conditions of collisional ionization equilibrium and therefore to scale as $\rho^2$.
+Selected using {\tt coolingFunctionMethods}$=${\tt CIE\_from\_file}, in this method the cooling function is read from a file specified by the {\tt coolingFunctionFile} parameter. The format of this file is specified in \S\ref{sec:CoolingFunctionMethods}. The cooling function is assumed to be computed under conditions of collisional ionization equilibrium and therefore to scale as $\rho^2$.
 
 \subsubsection{CMB Compton Cooling}
 
-Selected using {\tt coolingFunctionMethod}$=${\tt CMB Compton}, this method computes the cooling function due to Compton scattering off of \CMB\ photons:
+Selected using {\tt coolingFunctionMethods}$=${\tt CMB\_Compton}, this method computes the cooling function due to Compton scattering off of \CMB\ photons:
 \begin{equation}
 \Lambda = {4 \sigma_{\rm T} {\rm a} {\rm k}_{\rm B} n_{\rm e } \over m_{\rm e} \clight} T_{\rm CMB}^4 \left( T - T_{\rm CMB} \right),
 \end{equation}
