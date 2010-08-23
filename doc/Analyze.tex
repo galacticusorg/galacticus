@@ -23,56 +23,70 @@ outputFile.hdf5
  |    |
  |    +-> Output1                             Group
  |    |    |
- |    |    +-> mergerTree1                    Group
+ |    |    +-> nodeData                       Group
  |    |    |     |
- |    |    |     +-> nodeProperty1            Dataset {1002/Inf}
- |    |    |     +-> ...                      Dataset {1002/Inf}
- |    |    |     +-> ...                      Dataset {1002/Inf}
- |    |    |     +-> ...                      Dataset {1002/Inf}
- |    |    |     +-> nodePropertyN            Dataset {1002/Inf}
+ |    |    |     +-> nodeProperty1            Dataset {<nodeCount>}
+ |    |    |     +-> ...                      Dataset {<nodeCount>}
+ |    |    |     +-> ...                      Dataset {<nodeCount>}
+ |    |    |     +-> ...                      Dataset {<nodeCount>}
+ |    |    |     +-> nodePropertyN            Dataset {<nodeCount>}
  |    |    |
- |    |    x-> ...                            Group
- |    |    x-> ...                            Group
- |    |    x-> ...                            Group
- |    |    x-> mergerTreeN                    Group
+ |    |    +-> mergerTreeCount                Dataset {<treeCount>}
  |    |    |
- |    |    +-> outputExpansionFactor          Dataset {1}
- |    |    +-> outputTime                     Dataset {1}
+ |    |    +-> mergerTreeStartIndex           Dataset {<treeCount>}
+ |    |    |
+ |    |    +-> mergerTreeWeight               Dataset {<treeCount>}
+ |    |    |
+ |    |    +-> mergerTree1                    Group              [optional]
+ |    |    |     |
+ |    |    |     +-> nodeProperty1            Reference
+ |    |    |     +-> ...                      Reference
+ |    |    |     +-> ...                      Reference
+ |    |    |     +-> ...                      Reference
+ |    |    |     +-> nodePropertyN            Reference
+ |    |    |
+ |    |    x-> ...                            Group              [optional]
+ |    |    x-> ...                            Group              [optional]
+ |    |    x-> ...                            Group              [optional]
+ |    |    x-> mergerTree<treeCount>          Group              [optional]
+ |    |    |
+ |    |    +-> outputExpansionFactor          Attribute {1}
+ |    |    +-> outputTime                     Attribute {1}
  |    |
  |    x-> Output2                             Group
  |
  +-> Parameters                               Group
  |    |
- |    +-> inputParameter1                     Dataset {1}
- |    +-> ...                                 Dataset {1}
- |    +-> ...                                 Dataset {1}
- |    +-> ...                                 Dataset {1}
- |    +-> inputParameterN                     Dataset {1}
+ |    +-> inputParameter1                     Attribute {}
+ |    +-> ...                                 Attribute {}
+ |    +-> ...                                 Attribute {}
+ |    +-> ...                                 Attribute {}
+ |    +-> inputParameterN                     Attribute {}
  |
  +-> Version                                  Group
  |    |
- |    +-> runTime                             Dataset {1}
- |    +-> versionMajor                        Dataset {1}
- |    +-> versionMinor                        Dataset {1}
- |    +-> versionRevision                     Dataset {1}
- |    +-> bazaarRevision                      Dataset {1}
- |    +-> runByName                           Dataset {1}
- |    +-> runByEmail                          Dataset {1}
+ |    +-> runTime                             Attribute {1}
+ |    +-> versionMajor                        Attribute {1}
+ |    +-> versionMinor                        Attribute {1}
+ |    +-> versionRevision                     Attribute {1}
+ |    +-> bazaarRevision                      Attribute {1}
+ |    +-> runByName                           Attribute {1}
+ |    +-> runByEmail                          Attribute {1}
  |
  +-> globalHistory                            Group
       |
-      +-> historyExpansion                    Dataset {30}
-      +-> historyStarFormationRate            Dataset {30}
-      +-> historyTime                         Dataset {30}
+      +-> historyExpansion                    Dataset {<historyCount>}
+      +-> historyStarFormationRate            Dataset {<historyCount>}
+      +-> historyTime                         Dataset {<historyCount>}
 \end{verbatim}
 \end{center}
-\caption{Structure of a \glc\ HDF5 output file.}
+\caption{Structure of a \glc\ HDF5 output file. {\tt <treeCount>} is the total number of merger trees present in a given output, and {\tt <nodeCount} is the total number of nodes (in all trees) present in an output.}
 \label{fig:glcOutputFileStructure}
 \end{figure}
 
 \subsection{Parameters}
 
-The {\tt Parameters} group contains a record of all parameter values (either input or default) that were used for this \glc\ run. The group contains a long list of datasets, each dataset named for the corresponding parameter and with a single entry giving the value of that parameter. The {\tt scripts/aux/Extract\_Parameter\_File.pl} script can be used to extract these parameter values to an XML file suitable for re-input into \glc.
+The {\tt Parameters} group contains a record of all parameter values (either input or default) that were used for this \glc\ run. The group contains a long list of attributes, each attribute named for the corresponding parameter and with a single entry giving the value of that parameter. The {\tt scripts/aux/Extract\_Parameter\_File.pl} script can be used to extract these parameter values to an XML file suitable for re-input into \glc.
 
 \subsection{Version}
 
@@ -94,14 +108,23 @@ The {\tt globalHistory} group stores volume averaged properties of the model uni
 
 The {\tt Outputs} group contains one or more sub-groups corresponding to the output times requested from \glc. Each sub-group contains the following information:
 \begin{description}
- \item[{\tt outputTime}] The cosmic time (in Gyr) at this output;
- \item[{\tt outputExpansionFactor}] The expansion factor at this output;
- \item[{\tt mergerTree} subgroups] A set of {\tt mergerTree} groups as described below.
+ \item[{\tt outputTime} \emph{(attribute)}] The cosmic time (in Gyr) at this output;
+ \item[{\tt outputExpansionFactor} \emph{(attribute)}] The expansion factor at this output;
+ \item[{\tt nodeData}] A group of node properties as described below.
+ \item[{\tt mergerTree} subgroups \emph{(optional)}] A set of {\tt mergerTree} groups as described below.
 \end{description}
 
-\subsubsection{mergerTree subgroups}
+\subsubsection{nodeData group}
 
-Each {\tt mergerTree} subgroup contains all data on a single merger tree. The group consists of a collection of datasets each of which lists a property of all nodes in the tree which exist at the output time. Additionally, the {\tt volumeWeight} dataset gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample.
+The {\tt nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, {\tt unitsInSI}, which gives the units of dataset in the SI system.
+
+\subsubsection{mergerTree datasets}
+
+To allow locating of nodes belonging to a given merger tree in the datasets in the {\tt nodeData} group, the {\tt mergerTreeStartIndex} and {\tt mergerTreeCount} datasets list the starting index of each tree's nodes in the {\tt nodeData} datasets, and the number of nodes belonging to each tree respectively. Additionally, the {\tt mergerTreeWeight} dataset lists the {\tt volumeWeight} property for each tree (see \S\ref{sec:mergerTreeSubgroups}) which gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample.
+
+\subsubsection{mergerTree subgroups}\label{sec:mergerTreeSubgroups}
+
+These subgroups will be present if the {\tt [mergerTreeOutputReferences]} parameter is set to true. Each {\tt mergerTree} subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the {\tt nodeData} group. Additionally, the {\tt volumeWeight} attribute of this group gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, {\tt volumeWeightUnitsInSI}, gives the units of {\tt volumeWeight} in the SI system.)
 
 \subsection{Optional Outputs}
 
@@ -142,7 +165,7 @@ Additional, optional, datasets can be added by setting appropriate input paramet
 
 \section{Perl Module for Data Extraction}
 
-A Perl module is provided that allows for easy extraction of datasets from the \glc\ output file together with a straightforward way to implement derived properties. To use this Perl module, add
+A Perl module is provided that allows for easy extraction of datasets from the \glc\ output file together with a straightforward way to implement derived properties. Currently, this module expects \glc\ to have been run with {\tt [mergerTreeOutputReferences]}$=${\tt true} such that the output file contains references to the nodes in each individual merger tree (see \S\ref{sec:mergerTreeSubgroups}). To use this Perl module, add
 \begin{verbatim}
  use lib "./perl";
  use PDL;

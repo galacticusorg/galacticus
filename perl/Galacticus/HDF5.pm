@@ -22,8 +22,8 @@ sub Get_Times {
     foreach $output ( @outputs ) {
 	if ( $output =~ m/Output(\d+)/ ) {$outputNumber = $1};
 	$outputNumbers   = $outputNumbers  ->append($outputNumber);
-	$times           = $times          ->append($HDFfile->group("Outputs/".$output)->dataset("outputTime")           ->get);
-	$expansionFactor = $expansionFactor->append($HDFfile->group("Outputs/".$output)->dataset("outputExpansionFactor")->get);
+	$times           = $times          ->append($HDFfile->group("Outputs/".$output)->attrGet("outputTime")           );
+	$expansionFactor = $expansionFactor->append($HDFfile->group("Outputs/".$output)->attrGet("outputExpansionFactor"));
     }
     ${${${$dataHash}{'outputs'}}{'outputNumber'}}    = $outputNumbers;
     ${${${$dataHash}{'outputs'}}{'time'}}            = $times;
@@ -64,10 +64,11 @@ sub Count_Trees {
     unless ( exists(${$dataHash}{'mergerTreesAvailable'}) ) {
 	$HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
 	@treesAvailable = $HDFfile->group("Outputs/Output1")->groups;
+	undef(@filteredTrees);
 	foreach $tree ( @treesAvailable) {
-	    $tree =~ s/mergerTree(\d+)/$1/;
+	    if ( $tree =~ m/mergerTree(\d+)/ ) {push(@filteredTrees,$1)};
 	}
-	@{${$dataHash}{'mergerTreesAvailable'}} = sort {$a <=> $b} @treesAvailable;
+	@{${$dataHash}{'mergerTreesAvailable'}} = sort {$a <=> $b} @filteredTrees;
     }
 }
 
@@ -75,13 +76,13 @@ sub Get_Parameters {
     my $dataHash = shift;
     unless ( exists(${$dataHash}{'parameters'}) ) {
 	$HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
-	@parameterNames = $HDFfile->group("Parameters")->datasets;
-	foreach $parameterName ( @parameterNames ) {
-	    $parameterValue = $HDFfile->group("Parameters")->dataset($parameterName)->get;
-	    if ( ref($parameterValue) eq "PDL::Char" ) {
-		${${$dataHash}{'parameters'}}{$parameterName} = $parameterValue->atstr(0);
+	@parameterNames = $HDFfile->group("Parameters")->attrs;
+	@parameterValues = $HDFfile->group("Parameters")->attrGet(@parameterNames);
+	for($iParameter=0;$iParameter<=$#parameterNames;++$iParameter) {
+	    if ( ref($parameterValues[$iParameter]) eq "PDL::Char" ) {
+		${${$dataHash}{'parameters'}}{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
 	    } else {
-		${${$dataHash}{'parameters'}}{$parameterName} = $parameterValue->index(0);
+		${${$dataHash}{'parameters'}}{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
 	    }
 	}
     }
@@ -134,26 +135,32 @@ sub Get_Dataset {
     
     foreach $dataSetName ( @dataNames ) {
 	unless ( exists(${${$dataHash}{'dataSets'}}{$dataSetName}) ) {
-	    if ( exists(${${$dataHash}{'dataSetsAvailable'}}{$dataSetName}) ) {
+	    if ( exists(${${$dataHash}{'dataSetsAvailable'}}{$dataSetName}) || $dataSetName eq "volumeWeight" ) {
 		# Dataset exists in the output file, so simply read it.
 		$data = pdl [];
 		$dataTree = pdl [];
 		foreach $mergerTree ( @mergerTrees ) {
 		    # Check that this tree contains some nodes at this output. If it does not, skip it.
 		    if ( $testID = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->IDget ) {
-			$thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset($dataSetName)->get;
 			if ( $dataSetName eq "volumeWeight" ) {
+                            # Get the volume weight.
+			    @volumeWeight = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->attrGet($dataSetName);
 			    # Append the volumeWeight property once for each galaxy in this tree.
-			    @galaxyCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->dims;
-			    $data = $data->append($thisTreeData*ones($galaxyCount[0]));
+			    $start = pdl [$mergerTree-1];
+			    $nodeCountPDL = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
+			    @nodeCount    = $nodeCountPDL->list;
+			    $data = $data->append($volumeWeight[0]*ones($nodeCount[0]));
 			} else {
+			    # Read the dataset.
+			    $thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset($dataSetName)->get;
 			    # Append the dataset.
 			    $data = $data->append($thisTreeData);
 			}
 			# Append the merger tree index.
 			unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
-			    @galaxyCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->dims;
-			    $dataTree = $dataTree->append($mergerTree*ones($galaxyCount[0]));	
+			    $start = pdl [$mergerTree-1];
+			    $nodeCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
+			    $dataTree = $dataTree->append($mergerTree*ones($nodeCount));	
 			}
 		    }
 		}
@@ -173,19 +180,19 @@ sub Get_Dataset {
 			&$getFunc(\%{$dataHash},$dataSetName);
 			if ( $storeDataSets == 1 ) {
 			    $dataSets = $dataHash->{'dataSets'};
+			    $nodeDataGroup = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/nodeData");
+			    $outputDataSet = new PDL::IO::HDF5::Dataset( name    => $dataSetName,
+									 parent  => $nodeDataGroup,
+									 fileObj => $HDFfile
+				);
+			    $outputDataSet->set(${$dataSets->{$dataSetName}});
 			    $dataIndexStart = 0;
 			    foreach $mergerTree ( @mergerTrees ) {
-				# Count up the number of entries in this tree. (We do this by counting the nodeIndex property.)
+				# Count up the number of entries in this tree.
 				$mergerTreeGroup = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree);
-				@galaxyCount = $mergerTreeGroup->dataset("nodeIndex")->dims;
-				$dataCount = $galaxyCount[0];
-				$dataIndexEnd = $dataIndexStart+$dataCount-1;
-				$dataSlice = ${$dataSets->{$dataSetName}}->($dataIndexStart:$dataIndexEnd);
-				$outputDataSet = new PDL::IO::HDF5::Dataset( name    => $dataSetName,
-									     parent  => $mergerTreeGroup,
-									     fileObj => $HDFfile
-									     );
-				$outputDataSet->set($dataSlice);
+				$start = pdl [$mergerTree-1];
+				$dataCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
+				$mergerTreeGroup->reference($outputDataSet,$dataSetName,[$dataIndexStart],[$dataCount]);
 				$dataIndexStart += $dataCount;
 			    }
 			}

@@ -23,6 +23,7 @@ while ( $fileName = readdir(dirHndl) ) {
 
     # Find Fortran 90 source files.
     if ( $fileName =~ m/\.F90$/ ) {
+
 	# Get a printable file name.
 	($fileNamePrint = $fileName) =~ s/_/\\_/g;
 

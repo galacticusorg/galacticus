@@ -86,17 +86,20 @@ contains
     use Tree_Nodes
     use Input_Parameters
     use Memory_Management
-    use Galacticus_HDF5_Groups
-    use HDF5
+    use IO_HDF5
+    use Galacticus_HDF5
     use ISO_Varying_String
     use String_Handling
+    use Numerical_Constants_Astronomical
     implicit none
     type(mergerTree), intent(in)                :: thisTree
     type(treeNode),   pointer                   :: thisNode
     integer,          allocatable, dimension(:) :: accretionHistoryNodeIndex
     double precision, allocatable, dimension(:) :: accretionHistoryNodeMass,accretionHistoryNodeTime
-    integer                                     :: accretionHistoryCount,accretionDataID,treeGroupID
-    type(varying_string)                        :: groupName,groupComment
+    type(hdf5Object), save                      :: accretionGroup
+    integer                                     :: accretionHistoryCount
+    type(varying_string)                        :: groupName
+    type(hdf5Object)                            :: treeGroup,accretionDataset
 
     ! Check if module is initialized.
     if (.not.accretionHistoryModuleInitialized) then
@@ -111,11 +114,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('massAccretionHistoryOutput',massAccretionHistoryOutput,defaultValue=.false.)
        ! Create an output group if necessary.
-       if (massAccretionHistoryOutput) then
-          groupName   ='massAccretionHistories'
-          groupComment='Mass accretion histories of main branches in merger trees.'
-          accretionGroupID=Galacticus_Output_Make_Group(groupName,groupComment)
-       end if
+       if (massAccretionHistoryOutput) accretionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'massAccretionHistories','Mass&
+            & accretion histories of main branches in merger trees.')
        ! Flag that module is initialized.
        accretionHistoryModuleInitialized=.true.
     end if
@@ -146,14 +146,15 @@ contains
        ! Output to HDF5 file.
        groupName   ='mergerTree'
        groupName   =groupName//thisTree%index
-       groupComment='Mass accretion history for main branch of merger tree.'
-       treeGroupID =Galacticus_Output_Make_Group(groupName,groupComment,accretionGroupID)
-       accretionDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,accretionDataID,'nodeIndex','Index of the node.'         ,accretionHistoryNodeIndex)
-       accretionDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,accretionDataID,'nodeTime' ,'Time at node [Gyr].'        ,accretionHistoryNodeTime )
-       accretionDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,accretionDataID,'nodeMass' ,'Mass of the node [M_Solar].',accretionHistoryNodeMass )
+       treeGroup=IO_HDF5_Open_Group(accretionGroup,char(groupName),'Mass accretion history for main branch of merger tree.')
+       call treeGroup%writeDataset(accretionHistoryNodeIndex,'nodeIndex','Index of the node.'         )
+       call treeGroup%writeDataset(accretionHistoryNodeTime ,'nodeTime' ,'Time at node [Gyr].'        ,datasetReturned=accretionDataset)
+       call accretionDataset%writeAttribute(gigaYear ,"unitsInSI")
+       call accretionDataset%close()
+       call treeGroup%writeDataset(accretionHistoryNodeMass ,'nodeMass' ,'Mass of the node [M_Solar].',datasetReturned=accretionDataset)
+       call accretionDataset%writeAttribute(massSolar,"unitsInSI")
+       call accretionDataset%close()
+       call treeGroup       %close()
        ! Deallocate storage space.
        call Dealloc_Array(accretionHistoryNodeIndex)
        call Dealloc_Array(accretionHistoryNodeTime )

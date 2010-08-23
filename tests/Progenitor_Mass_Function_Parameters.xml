@@ -60,7 +60,7 @@
     <value>0.0</value>
   </parameter>
   <parameter>
-    <name>galacticusOutputFile</name>
+    <name>galacticusOutputFileName</name>
     <value>progenitorMassFunctionTest.hdf5</value>
   </parameter>
   <parameter>

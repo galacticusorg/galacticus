@@ -281,18 +281,21 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Satellite_Orbit_Simple</sortName>
   !# </mergerTreeOutputNames>
   subroutine Galacticus_Output_Tree_Satellite_Orbit_Simple_Names(integerProperty,integerPropertyNames,integerPropertyComments&
-       &,doubleProperty,doublePropertyNames,doublePropertyComments,time)
+       &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of satellite orbit properties to be written to the \glc\ output file.
+    use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='timeToMerge'
        doublePropertyComments(doubleProperty)='Time until satellite merges.'
+       doublePropertyUnitsSI (doubleProperty)=gigaYear
     end if
     return
   end subroutine Galacticus_Output_Tree_Satellite_Orbit_Simple_Names

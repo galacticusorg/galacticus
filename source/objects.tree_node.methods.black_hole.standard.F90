@@ -640,23 +640,27 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Black_Hole_Standard_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Black_Hole_Standard</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Black_Hole_Standard_Names(integerProperty,integerPropertyNames,integerPropertyComments&
-       &,doubleProperty,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Black_Hole_Standard_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
+       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
+    use Numerical_Constants_Astronomical
     use ISO_Varying_String
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='blackHoleMass'
        doublePropertyComments(doubleProperty)='Mass of the black hole.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='blackHoleSpin'
        doublePropertyComments(doubleProperty)='Spin of the black hole.'
+       doublePropertyUnitsSI (doubleProperty)=0.0d0
      end if
     return
   end subroutine Galacticus_Output_Tree_Black_Hole_Standard_Names

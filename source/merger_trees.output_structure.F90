@@ -89,11 +89,13 @@ contains
     use Tree_Nodes
     use Input_Parameters
     use Memory_Management
-    use Galacticus_HDF5_Groups
-    use HDF5
+    use Galacticus_HDF5
+    use IO_HDF5
     use ISO_Varying_String
     use String_Handling
     use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Prefixes
     !# <include directive="mergerTreeStructureOutputTask" type="moduleUse">
     include 'merger_trees.output_structure.tasks.modules.inc'
     !# </include>
@@ -102,8 +104,10 @@ contains
     type(treeNode),   pointer                   :: thisNode
     integer,          allocatable, dimension(:) :: nodeIndex
     double precision, allocatable, dimension(:) :: nodeProperty
-    integer                                     :: nodeCount,structureDataID,treeGroupID
+    type(hdf5Object), save                      :: structureGroup
+    integer                                     :: nodeCount
     type(varying_string)                        :: groupName,groupComment
+    type(hdf5Object)                            :: treeGroup,nodeDataset
 
     ! Check if module is initialized.
     if (.not.structureOutputModuleInitialized) then
@@ -127,11 +131,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeStructureOutputVirialQuantities',mergerTreeStructureOutputVirialQuantities,defaultValue=.false.)
        ! Create an output group if necessary.
-       if (mergerTreeStructureOutput) then
-          groupName   ='mergerTreeStructures'
-          groupComment='Pre-evolution structures of merger trees.'
-          structureGroupID=Galacticus_Output_Make_Group(groupName,groupComment)
-       end if
+       if (mergerTreeStructureOutput) structureGroup=IO_HDF5_Open_Group(galacticusOutputFile,'mergerTreeStructures','Pre-evolution structures of merger trees.')
        ! Flag that module is initialized.
        structureOutputModuleInitialized=.true.
     end if
@@ -152,7 +152,7 @@ contains
        groupName   ='mergerTree'
        groupName   =groupName//thisTree%index
        groupComment='Pre-evolution structure of merger tree.'
-       treeGroupID =Galacticus_Output_Make_Group(groupName,groupComment,structureGroupID)
+       treeGroup   =IO_HDF5_Open_Group(structureGroup,char(groupName),'Pre-evolution structure of merger tree.')
 
        ! Extract node indices and output to file.
        nodeCount=0
@@ -162,8 +162,7 @@ contains
           nodeIndex(nodeCount)=thisNode%index()        
           call thisNode%walkTree()
        end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeIndex','Index of the node.',nodeIndex)
+       call treeGroup%writeDataset(nodeIndex,'nodeIndex','Index of the node.')
     
        ! Extract child node indices and output to file.
        nodeCount=0
@@ -173,8 +172,7 @@ contains
           nodeIndex(nodeCount)=thisNode%childNode%index()        
           call thisNode%walkTree()
        end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'childNodeIndex','Index of the child node.',nodeIndex)
+       call treeGroup%writeDataset(nodeIndex,'childNodeIndex','Index of the child node.')
     
        ! Extract parent node indices and output to file.
        nodeCount=0
@@ -184,8 +182,7 @@ contains
           nodeIndex(nodeCount)=thisNode%parentNode%index()        
           call thisNode%walkTree()
        end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'parentNodeIndex','Index of the parent node.',nodeIndex)
+       call treeGroup%writeDataset(nodeIndex,'parentNodeIndex','Index of the parent node.')
     
        ! Extract sibling node indices and output to file.
        nodeCount=0
@@ -195,8 +192,7 @@ contains
           nodeIndex(nodeCount)=thisNode%siblingNode%index()        
           call thisNode%walkTree()
        end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'siblingNodeIndex','Index of the sibling node.',nodeIndex)
+       call treeGroup%writeDataset(nodeIndex,'siblingNodeIndex','Index of the sibling node.')
     
        ! Extract node masses and output to file.
        nodeCount=0
@@ -206,8 +202,9 @@ contains
           nodeProperty(nodeCount)=Tree_Node_Mass(thisNode)
           call thisNode%walkTree()
        end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeMass','Mass of node.',nodeProperty)
+       call treeGroup%writeDataset(nodeProperty,'nodeMass','Mass of node.',datasetReturned=nodeDataset)
+       call nodeDataset%writeAttribute(massSolar,"unitsInSI")
+       call nodeDataset%close()
     
        ! Extract node times and output to file.
        nodeCount=0
@@ -217,8 +214,9 @@ contains
           nodeProperty(nodeCount)=Tree_Node_Time(thisNode)
           call thisNode%walkTree()
        end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeTime','Time at node.',nodeProperty)
+       call treeGroup%writeDataset(nodeProperty,'nodeTime','Time at node.',datasetReturned=nodeDataset)
+       call nodeDataset%writeAttribute(gigaYear,"unitsInSI")
+       call nodeDataset%close()
     
        ! Check whether output of virial quantities is required.
        if (mergerTreeStructureOutputVirialQuantities) then
@@ -231,8 +229,9 @@ contains
              nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Radius(thisNode)
              call thisNode%walkTree()
           end do
-          structureDataID=0
-          call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeVirialRadius','Virial radius of the node [Mpc].',nodeProperty)
+          call treeGroup%writeDataset(nodeProperty,'nodeVirialRadius','Virial radius of the node [Mpc].',datasetReturned=nodeDataset)
+          call nodeDataset%writeAttribute(megaParsec,"unitsInSI")
+          call nodeDataset%close()
           
           ! Extract node virial velocity and output to file.
           nodeCount=0
@@ -242,16 +241,20 @@ contains
              nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Velocity(thisNode)
              call thisNode%walkTree()
           end do
-          structureDataID=0
-          call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeVirialVelocity','Virial velocity of the node [km/s].',nodeProperty)
+          call treeGroup%writeDataset(nodeProperty,'nodeVirialVelocity','Virial velocity of the node [km/s].',datasetReturned=nodeDataset)
+          call nodeDataset%writeAttribute(kilo,"unitsInSI")
+          call nodeDataset%close()
     
        end if
        
        ! Call any subroutines that want to attach data to the merger tree output.
        !# <include directive="mergerTreeStructureOutputTask" type="code" action="subroutine">
-       !#  <subroutineArgs>thisTree%baseNode,nodeProperty,treeGroupID</subroutineArgs>
+       !#  <subroutineArgs>thisTree%baseNode,nodeProperty,treeGroup</subroutineArgs>
        include 'merger_trees.output_structure.tasks.inc'
        !# </include>
+
+       ! Close output group.
+       call treeGroup%close()
 
        ! Deallocate storage space.
        call Dealloc_Array(nodeIndex   )

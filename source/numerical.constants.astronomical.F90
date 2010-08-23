@@ -66,6 +66,8 @@ module Numerical_Constants_Astronomical
   use FGSL
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Atomic
+  use Numerical_Constants_Math
+  use Numerical_Constants_Units
   public
   
   ! Solar mass (in kg).
@@ -96,5 +98,15 @@ module Numerical_Constants_Astronomical
   ! Years and related quantities (in s).
   double precision, parameter :: year=31558149.8d0 ! Sidereal year.
   double precision, parameter :: gigaYear=giga*year
+
+  ! Conversion from Mpc/(km/s) to Gyr.
+  double precision, parameter :: Mpc_per_km_per_s_To_Gyr=megaParsec/kilo/gigaYear
+
+  ! AB magnitude system:
+  ! The AB magnitude system is defined such that:
+  !   m = -2.5log10(F_nu/[ergs/s/cm^2/Hz])-48.57
+  ! Computing the flux at 10pc gives us the zero point for the absolute magnitude scale (units of W/Hz).
+  double precision, parameter :: offsetAB=48.57d0
+  double precision, parameter :: luminosityZeroPointAB=(10.0d0**(-offsetAB/2.5d0))*4.0d0*Pi*((10.0d0*parsec*hecto)**2)*ergs
 
 end module Numerical_Constants_Astronomical

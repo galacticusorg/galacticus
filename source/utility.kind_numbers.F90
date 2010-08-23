@@ -64,6 +64,6 @@ module Kind_Numbers
   public
   
   ! Integer kinds.
-  integer, parameter :: kind_int4=SELECTED_INT_KIND(4)
-  integer, parameter :: kind_int8=SELECTED_INT_KIND(8)
+  integer, parameter :: kind_int4=SELECTED_INT_KIND( 9)
+  integer, parameter :: kind_int8=SELECTED_INT_KIND(18)
 end module Kind_Numbers

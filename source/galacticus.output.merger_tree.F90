@@ -69,33 +69,45 @@ module Galacticus_Output_Merger_Tree
   use Merger_Trees
   use Galacticus_Error
   use Galacticus_HDF5
-  use Galacticus_HDF5_Groups
+  use Kind_Numbers
   private
   public :: Galacticus_Merger_Tree_Output
 
   ! Output groups.
-  integer                                        :: outputGroupID
-  integer                                        :: outputGroupsCount=0
-  integer,             parameter                 :: outputGroupsIncrement=10
-  integer(kind=HID_T), dimension(:), allocatable :: outputGroupsIDs
+  type outputGroup
+     !% Type used for output group information.
+     logical                 :: opened,integerAttributesWritten,doubleAttributesWritten
+     type(hdf5Object)        :: hdf5Group,nodeDataGroup
+     integer(kind=kind_int8) :: length
+  end type outputGroup
+  type(hdf5Object)                                             :: outputsGroup
+  logical                                                      :: outputsGroupOpened=.false.
+  type(outputGroup),               dimension(:),   allocatable :: outputGroups
+  integer                                                      :: outputGroupsCount=0
+  integer,                         parameter                   :: outputGroupsIncrement=10
 
   ! Number of properties of each type.
-  integer                                        :: integerPropertyCount=-1, doublePropertyCount=-1
+  integer                                                      :: integerPropertyCount=-1, doublePropertyCount=-1
   !$omp threadprivate(integerPropertyCount,doublePropertyCount)
 
   ! Buffers for properties.
   integer                                                      :: integerPropertiesWritten=0, doublePropertiesWritten=0
-  integer                                                      :: integerBufferCount=0, doubleBufferCount=0
+  integer                                                      :: integerBufferCount      =0, doubleBufferCount      =0
   integer,                         parameter                   :: bufferSize=1024, nameLengthMax=256, commentLengthMax=256
   integer,                         dimension(:,:), allocatable :: integerBuffer
   double precision,                dimension(:,:), allocatable :: doubleBuffer
-  integer,                         dimension(:),   allocatable :: integerPropertyIDs,doublePropertyIDs
-  logical,                         dimension(:),   allocatable :: integerPropertyIsNew,doublePropertyIsNew
-  character(len=nameLengthMax),    dimension(:),   allocatable :: integerPropertyNames,doublePropertyNames
+  character(len=nameLengthMax),    dimension(:),   allocatable :: integerPropertyNames   ,doublePropertyNames
   character(len=commentLengthMax), dimension(:),   allocatable :: integerPropertyComments,doublePropertyComments
+  double precision,                dimension(:),   allocatable :: integerPropertyUnitsSI ,doublePropertyUnitsSI
   !$omp threadprivate(integerPropertiesWritten,doublePropertiesWritten,integerBufferCount,doubleBufferCount,integerBuffer)
-  !$omp threadprivate(doubleBuffer,integerPropertyIDs,doublePropertyIDs,integerPropertyNames,doublePropertyNames)
-  !$omp threadprivate(integerPropertyComments,doublePropertyComments,integerPropertyIsNew,doublePropertyIsNew)
+  !$omp threadprivate(doubleBuffer,integerPropertyNames,doublePropertyNames,integerPropertyUnitsSI,doublePropertyUnitsSI)
+  !$omp threadprivate(integerPropertyComments,doublePropertyComments)
+
+  ! Flag indicating if module is initialized.
+  logical                                                      :: mergerTreeOutputInitialized=.false.
+
+  ! Flag indicating if merger tree references are to be output.
+  logical                                                      :: mergerTreeOutputReferences
 
 contains
 
@@ -103,20 +115,42 @@ contains
     !% Write properties of nodes in {\tt thisTree} to the \glc\ output file.
     use Tree_Nodes
     use Galacticus_Output_Open
+    use Input_Parameters
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
     implicit none
-    type(mergerTree), intent(inout)          :: thisTree
-    integer,          intent(in)             :: iOutput
-    double precision, intent(in)             :: time
-    logical,          intent(in),   optional :: isLastOutput
-    type(treeNode),   pointer                :: thisNode
-    integer                                  :: integerProperty,doubleProperty
+    type(mergerTree),      intent(inout)          :: thisTree
+    integer,               intent(in)             :: iOutput
+    double precision,      intent(in)             :: time
+    logical,               intent(in),   optional :: isLastOutput
+    type(treeNode),        pointer                :: thisNode
+    integer(kind=HSIZE_T), dimension(1)           :: referenceStart,referenceLength
+    integer                                       :: integerProperty,doubleProperty,iProperty
+    type(hdf5Object)                              :: toDataset
 
-    ! Ensure file is open.
-    call Galacticus_Output_Open_File
+    ! Initialize if necessary.
+    if (.not.mergerTreeOutputInitialized) then
+       
+       ! Ensure file is open.
+       call Galacticus_Output_Open_File
 
+       ! Get input parameters.
+       !@ <inputParameter>
+       !@   <name>mergerTreeOutputReferences</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeOutputReferences',mergerTreeOutputReferences,defaultValue=.true.)
+
+       ! Flag that the module is now initialized.
+       mergerTreeOutputInitialized=.true.
+
+    end if
+    
     ! Create an output group.
     call Make_Output_Group(iOutput,time)
 
@@ -129,12 +163,9 @@ contains
     ! Get names for all properties to be output.
     call Establish_Property_Names(time)
 
-    ! Ensure that a group has been made for this merger tree.
-    call Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
-
     ! Loop over all nodes in the tree.
     integerPropertiesWritten=0
-    doublePropertiesWritten=0
+    doublePropertiesWritten =0
     thisNode => thisTree%baseNode
     do while (associated(thisNode))
        if (Tree_Node_Time(thisNode) == time) then
@@ -156,17 +187,53 @@ contains
           !# </include>
           
           ! If buffer is full, dump it to file.
-          if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(thisTree)
-          if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (thisTree)
+          if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(iOutput)
+          if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (iOutput)
        end if
        call thisNode%walkTreeWithSatellites()
     end do
-    if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(thisTree)
-    if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (thisTree)
+    if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(iOutput)
+    if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (iOutput)
 
-    ! Close the tree group.
-    call Galacticus_Output_Close_Group(thisTree%hdf5GroupID)
-      
+    ! Compute the start and length of regions to reference.
+    referenceLength(1)=max(integerPropertiesWritten,doublePropertiesWritten)
+    referenceStart (1)=outputGroups(iOutput)%length
+       
+    ! Create references to the datasets if requested.
+    if (mergerTreeOutputReferences) then
+
+       ! Ensure that a group has been made for this merger tree.
+       call Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
+       
+       ! Create references for this tree.
+       if (integerPropertyCount > 0) then
+          do iProperty=1,integerPropertyCount
+             toDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,integerPropertyNames(iProperty))
+             call thisTree%hdf5Group%createReference1D(toDataset,integerPropertyNames(iProperty),referenceStart+1,referenceLength)
+             call toDataset%close()
+          end do
+       end if
+       if (doublePropertyCount > 0) then
+          do iProperty=1,doublePropertyCount
+             toDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,doublePropertyNames(iProperty))
+             call thisTree%hdf5Group%createReference1D(toDataset,doublePropertyNames(iProperty),referenceStart+1,referenceLength)
+             call toDataset%close()
+          end do
+       end if
+       
+       ! Close the tree group.
+       call thisTree%hdf5Group%close()
+    
+    end if
+
+    ! Store the start position and length of the node data for this tree, along with its volume weight.
+    call outputGroups(iOutput)%hdf5Group%writeDataset(referenceStart         ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
+    call outputGroups(iOutput)%hdf5Group%writeDataset(referenceLength        ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
+    call outputGroups(iOutput)%hdf5Group%writeDataset([thisTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc^-3]."                       ,appendTo=.true.)
+
+    ! Increment the number of nodes written to this output group.
+    outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
+
     ! Close down if this is the final output.
     if (present(isLastOutput)) then
        if (isLastOutput) call Galacticus_Output_Close_File
@@ -176,17 +243,13 @@ contains
 
   subroutine Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
     !% Make an group in the \glc\ file in which to store {\tt thisTree}.
+    use Numerical_Constants_Astronomical
     use String_Handling
     implicit none
     type(mergerTree),      intent(inout) :: thisTree
     integer,               intent(in)    :: iOutput
     type(varying_string)                 :: groupName,commentText
-    integer(kind=HID_T)                  :: datasetID
-    double precision                     :: datasetValue(1)
 
-    ! Reset the group ID for this tree.
-    thisTree%hdf5GroupID=0
-    
     ! Create a name for the group.
     groupName='mergerTree'
     groupName=groupName//thisTree%index
@@ -196,51 +259,60 @@ contains
     commentText=commentText//thisTree%index
     
     ! Create a group for the tree.
-    thisTree%hdf5GroupID=Galacticus_Output_Make_Group(groupName,commentText,outputGroupsIDs(iOutput))
+    thisTree%hdf5Group=IO_HDF5_Open_Group(outputGroups(iOutput)%hdf5Group,char(groupName),char(commentText))
     
     ! Add the merger tree weight to the group.
-    datasetID=0
-    datasetValue=[thisTree%volumeWeight]
-    call Galacticus_Output_Dataset(thisTree%hdf5GroupID,datasetID,'volumeWeight','Number of trees per unit volume.'&
-         &,datasetValue)
+    call thisTree%hdf5Group%writeAttribute(thisTree%volumeWeight,"volumeWeight"         )
+    call thisTree%hdf5Group%writeAttribute(1.0d0/megaParsec**3  ,"volumeWeightUnitsInSI")
     return
   end subroutine Galacticus_Merger_Tree_Output_Make_Group
 
-  subroutine Integer_Buffer_Dump(thisTree)
+  subroutine Integer_Buffer_Dump(iOutput)
     !% Dump the contents of the integer properties buffer to the \glc\ output file.
-    use Galacticus_HDF5_Groups
     implicit none
-    type(mergerTree), intent(inout) :: thisTree
-    integer                         :: iProperty
+    integer,          intent(in) :: iOutput
+    integer                      :: iProperty
+    type(hdf5Object)             :: thisDataset
 
     ! Write integer data from the buffer.
     if (integerPropertyCount > 0) then
        do iProperty=1,integerPropertyCount
-          call Galacticus_Output_Dataset(thisTree%hdf5GroupID,integerPropertyIDs(iProperty),integerPropertyNames(iProperty) &
-               &,integerPropertyComments(iProperty),integerBuffer(1:integerBufferCount,iProperty),isExtendable=.true.,isNew&
-               &=integerPropertyIsNew(iProperty))
+          call outputGroups(iOutput)%nodeDataGroup%writeDataset(integerBuffer(1:integerBufferCount,iProperty),integerPropertyNames(iProperty) &
+               &,integerPropertyComments(iProperty),appendTo=.true.)
+          if (.not.outputGroups(iOutput)%integerAttributesWritten.and.integerPropertyUnitsSI(iProperty) /= 0.0d0) then
+             thisDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,integerPropertyNames(iProperty))
+             call thisDataset%writeAttribute(integerPropertyUnitsSI(iProperty),"unitsInSI")
+             call thisDataset%close()
+          end if
        end do
        integerPropertiesWritten=integerPropertiesWritten+integerBufferCount
        integerBufferCount=0
+       outputGroups(iOutput)%integerAttributesWritten=.true.
     end if
     return
   end subroutine Integer_Buffer_Dump
 
-  subroutine Double_Buffer_Dump(thisTree)
+  subroutine Double_Buffer_Dump(iOutput)
     !% Dump the contents of the double precision properties buffer to the \glc\ output file.
-    use Galacticus_HDF5_Groups
     implicit none
-    type(mergerTree),      intent(inout) :: thisTree
-    integer                              :: iProperty
+    integer,          intent(in) :: iOutput
+    integer                      :: iProperty
+    type(hdf5Object)             :: thisDataset
 
     ! Write double data from the buffer.
     if (doublePropertyCount > 0) then
        do iProperty=1,doublePropertyCount
-          call Galacticus_Output_Dataset(thisTree%hdf5GroupID,doublePropertyIDs(iProperty),doublePropertyNames(iProperty)&
-               &,doublePropertyComments(iProperty),doubleBuffer(1:doubleBufferCount,iProperty),isExtendable=.true.,isNew=doublePropertyIsNew(iProperty))
+          call outputGroups(iOutput)%nodeDataGroup%writeDataset(doubleBuffer(1:doubleBufferCount,iProperty),doublePropertyNames(iProperty) &
+               &,doublePropertyComments(iProperty),appendTo=.true.)
+          if (.not.outputGroups(iOutput)%doubleAttributesWritten.and.doublePropertyUnitsSI(iProperty) /= 0.0d0) then
+             thisDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,doublePropertyNames(iProperty))
+             call thisDataset%writeAttribute(doublePropertyUnitsSI(iProperty),"unitsInSI")
+             call thisDataset%close()
+          end if
        end do
        doublePropertiesWritten=doublePropertiesWritten+doubleBufferCount
        doubleBufferCount=0
+       outputGroups(iOutput)%doubleAttributesWritten=.true.
     end if
     return
   end subroutine Double_Buffer_Dump
@@ -267,38 +339,30 @@ contains
     use Memory_Management
     implicit none
 
-    if (integerPropertyCount > 0 .and. (.not.allocated(integerBuffer) .or. integerPropertyCount > size(integerPropertyIDs)) ) then
+    if (integerPropertyCount > 0 .and. (.not.allocated(integerBuffer) .or. integerPropertyCount > size(integerPropertyNames)) ) then
        if (allocated(integerBuffer)) then
           call Dealloc_Array(integerBuffer          )
-          call Dealloc_Array(integerPropertyIDs     )
-          call Dealloc_Array(integerPropertyIsNew   )
           call Dealloc_Array(integerPropertyNames   )
           call Dealloc_Array(integerPropertyComments)
+          call Dealloc_Array(integerPropertyUnitsSI )
        end if
        call Alloc_Array(integerBuffer          ,[bufferSize,integerPropertyCount])
-       call Alloc_Array(integerPropertyIDs                ,[integerPropertyCount])
-       call Alloc_Array(integerPropertyIsNew              ,[integerPropertyCount])
        call Alloc_Array(integerPropertyNames              ,[integerPropertyCount])
        call Alloc_Array(integerPropertyComments           ,[integerPropertyCount])
+       call Alloc_Array(integerPropertyUnitsSI            ,[integerPropertyCount])
     end if
-    integerPropertyIDs  =0
-    integerPropertyIsNew=.true.
-    if (doublePropertyCount  > 0 .and. (.not.allocated(doubleBuffer ) .or. doublePropertyCount  > size(doublePropertyIDs ))) then
+    if (doublePropertyCount  > 0 .and. (.not.allocated(doubleBuffer ) .or. doublePropertyCount  > size(doublePropertyNames ))) then
        if (allocated(doubleBuffer )) then
           call Dealloc_Array(doubleBuffer           )
-          call Dealloc_Array(doublePropertyIDs      )
-          call Dealloc_Array(doublePropertyIsNew    )
           call Dealloc_Array(doublePropertyNames    )
           call Dealloc_Array(doublePropertyComments )
+          call Dealloc_Array(doublePropertyUnitsSI  )
        end if
        call Alloc_Array(doubleBuffer           ,[bufferSize,doublePropertyCount])
-       call Alloc_Array(doublePropertyIDs                 ,[doublePropertyCount])
-       call Alloc_Array(doublePropertyIsNew               ,[doublePropertyCount])
        call Alloc_Array(doublePropertyNames               ,[doublePropertyCount])
        call Alloc_Array(doublePropertyComments            ,[doublePropertyCount])
+       call Alloc_Array(doublePropertyUnitsSI             ,[doublePropertyCount])
     end if
-    doublePropertyIDs  =0
-    doublePropertyIsNew=.true.
     return
   end subroutine Allocate_Buffers
 
@@ -314,7 +378,7 @@ contains
     integerProperty=0
     doubleProperty =0
     !# <include directive="mergerTreeOutputNames" type="code" action="subroutine">
-    !#  <subroutineArgs>integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty,doublePropertyNames,doublePropertyComments,time</subroutineArgs>
+    !#  <subroutineArgs>integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time</subroutineArgs>
     include 'galacticus.output.merger_tree.names.inc'
     !# </include>
 
@@ -326,49 +390,49 @@ contains
     use String_Handling
     use Cosmology_Functions
     use Memory_Management
+    use Numerical_Constants_Astronomical
     implicit none
-    integer,             intent(in)                :: iOutput      
-    double precision,    intent(in)                :: time
-    integer(kind=HID_T), dimension(:), allocatable :: outputGroupsIDsTemporary
-    type(varying_string)                           :: groupName,commentText
-    integer(kind=HID_T)                            :: datasetID
-    double precision                               :: datasetValue(1)
+    integer,              intent(in)                :: iOutput      
+    double precision,     intent(in)                :: time
+    type(outputGroup),    dimension(:), allocatable :: outputGroupsTemporary
+    type(varying_string)                            :: groupName,commentText
 
     !$omp critical (Outputs_Group_Create)
     ! Ensure group ID space is large enough.
     if (iOutput > outputGroupsCount) then
-       if (allocated(outputGroupsIDs)) then
-          call Move_Alloc(outputGroupsIDs,outputGroupsIDsTemporary)
+       if (allocated(outputGroups)) then
+          call Move_Alloc(outputGroups,outputGroupsTemporary)
+          outputGroupsCount=outputGroupsCount+outputGroupsIncrement
+          allocate(outputGroups(outputGroupsCount))
+          outputGroups(1:size(outputGroupsTemporary))%opened=outputGroupsTemporary%opened
+          outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%opened                  =.false.
+          outputGroups(1:size(outputGroupsTemporary))%integerAttributesWritten=outputGroupsTemporary%integerAttributesWritten
+          outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%integerAttributesWritten=.false.
+          outputGroups(1:size(outputGroupsTemporary))%doubleAttributesWritten=outputGroupsTemporary%doubleAttributesWritten
+          outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%doubleAttributesWritten =.false.
+          outputGroups(1:size(outputGroupsTemporary))%length=outputGroupsTemporary%length
+          outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%length=0
+          deallocate(outputGroupsTemporary)
+          call Memory_Usage_Record(sizeof(outputGroups(1)),blockCount=0)
+     else
           outputGroupsCount=outputGroupsIncrement
-          allocate(outputGroupsIDs(outputGroupsCount))
-          outputGroupsIDs(1:size(outputGroupsIDsTemporary))=outputGroupsIDsTemporary
-          outputGroupsIDs(size(outputGroupsIDsTemporary)+1:size(outputGroupsIDs))=0
-          deallocate(outputGroupsIDsTemporary)
-          call Memory_Usage_Record(sizeof(outputGroupsIDs(1)),blockCount=0)
-       else
-          outputGroupsCount=outputGroupsIncrement
-          allocate(outputGroupsIDs(outputGroupsCount))
-          call Memory_Usage_Record(sizeof(outputGroupsIDs))
-          outputGroupsIDs=0
+          allocate(outputGroups(outputGroupsCount))
+          outputGroups%opened                  =.false.
+          outputGroups%integerAttributesWritten=.false.
+          outputGroups%doubleAttributesWritten =.false.
+          outputGroups%length=0
+          call Memory_Usage_Record(sizeof(outputGroups))
        end if
     end if
 
     ! Make the enclosing group if it has not been created.
-    if (outputGroupID <= 0) then
-
-       ! Create a name for the group.
-       groupName='Outputs'
-
-       ! Create a comment for the group.
-       commentText='Contains all outputs from Galacticus.'
-
-       ! Create a group for the tree.
-       outputGroupID=Galacticus_Output_Make_Group(groupName,commentText,galacticusOutputID)
+    if (.not.outputsGroupOpened) then
+       outputsGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Outputs','Contains all outputs from Galacticus.')
+       outputsGroupOpened=.true.
     end if
 
     ! Create the group if it has not been created.
-    if (outputGroupsIDs(iOutput) <= 0) then
- 
+    if (.not.outputGroups(iOutput)%opened) then
        ! Create a name for the group.
        groupName='Output'
        groupName=groupName//iOutput
@@ -378,17 +442,16 @@ contains
        commentText=commentText//iOutput
 
        ! Create a group for the tree.
-       outputGroupsIDs(iOutput)=Galacticus_Output_Make_Group(groupName,commentText,outputGroupID)
+       outputGroups(iOutput)%hdf5Group    =IO_HDF5_Open_Group(outputsGroup,char(groupName),char(commentText))
+       outputGroups(iOutput)%nodeDataGroup=IO_HDF5_Open_Group(outputGroups(iOutput)%hdf5Group,"nodeData","Group containing data on all nodes at this output.")
+       outputGroups(iOutput)%opened                  =.true.
+       outputGroups(iOutput)%integerAttributesWritten=.false.
+       outputGroups(iOutput)%doubleAttributesWritten =.false.
 
        ! Add the time to this group.
-       datasetID=0
-       datasetValue=[time]
-       call Galacticus_Output_Dataset(outputGroupsIDs(iOutput),datasetID,'outputTime','Time for this output.'&
-            &,datasetValue)
-       datasetID=0
-       datasetValue=[Expansion_Factor(time)]
-       call Galacticus_Output_Dataset(outputGroupsIDs(iOutput),datasetID,'outputExpansionFactor','Expansion factor for this&
-            & output.',datasetValue)
+       call outputGroups(iOutput)%hdf5Group%writeAttribute(time                  ,'outputTime'           )
+       call outputGroups(iOutput)%hdf5Group%writeAttribute(gigaYear              ,'timeUnitInSI'         )
+       call outputGroups(iOutput)%hdf5Group%writeAttribute(Expansion_Factor(time),'outputExpansionFactor')
     end if
     !$omp end critical (Outputs_Group_Create)
     return

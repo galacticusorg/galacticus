@@ -70,10 +70,24 @@ contains
   !#  <unitName>Galacticus_Task_Start</unitName>
   !# </galacticusTask>
   logical function Galacticus_Task_Start()
+    use Input_Parameters
     implicit none
     logical, save :: doneStart=.false.
+    integer       :: verbosityLevel
 
     if (.not.doneStart) then
+       ! Get the verbosity level parameter.
+       !@ <inputParameter>
+       !@   <name>verbosityLevel</name>
+       !@   <defaultValue>1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The level of verbosity for \glc\ (higher values give more verbosity).
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+       call Galacticus_Verbosity_Level_Set(verbosityLevel)
+
        call Galacticus_Display_Indent('Starting task set')
        doneStart=.true.
     end if

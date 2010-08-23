@@ -105,15 +105,18 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Virial_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Virial</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Virial_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Virial_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+       &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of virial properties to be written to the \glc\ output file.
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Virial_Initialize
 
@@ -122,9 +125,11 @@ contains
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='nodeVirialRadius'
        doublePropertyComments(doubleProperty)='Virial radius of the node [Mpc].'
+       doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='nodeVirialVelocity'
        doublePropertyComments(doubleProperty)='Virial velocity of the node [km/s].'
+       doublePropertyUnitsSI (doubleProperty)=kilo
     end if
     return
   end subroutine Galacticus_Output_Tree_Virial_Names

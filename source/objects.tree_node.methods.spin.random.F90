@@ -245,19 +245,21 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Spin_Random_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Spin_Random</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Spin_Random_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Spin_Random_Names(integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of spin properties to be written to the \glc\ output file.
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='nodeSpin'
        doublePropertyComments(doubleProperty)='Spin parameter of the node.'
+       doublePropertyUnitsSI (doubleProperty)=0.0d0
     end if
     return
   end subroutine Galacticus_Output_Tree_Spin_Random_Names

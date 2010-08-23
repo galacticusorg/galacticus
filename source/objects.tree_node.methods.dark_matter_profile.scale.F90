@@ -303,19 +303,22 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Profile_Scale_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Profile_Scale</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Profile_Scale_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Profile_Scale_Names(integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of scale properties to be written to the \glc\ output file.
+    use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='darkMatterScaleRadius'
        doublePropertyComments(doubleProperty)='Scale radius of the dark matter profile [Mpc].'
+       doublePropertyUnitsSI (doubleProperty)=megaParsec
     end if
     return
   end subroutine Galacticus_Output_Tree_Profile_scale_Names
@@ -378,16 +381,18 @@ contains
   !# <mergerTreeStructureOutputTask>
   !#  <unitName>Tree_Node_Methods_Profile_Scale_Merger_Tree_Output</unitName>
   !# </mergerTreeStructureOutputTask>
-  subroutine Tree_Node_Methods_Profile_Scale_Merger_Tree_Output(baseNode,nodeProperty,treeGroupID)
+  subroutine Tree_Node_Methods_Profile_Scale_Merger_Tree_Output(baseNode,nodeProperty,treeGroup)
     !% Write the scale radius property to a full merger tree output.
-    use Galacticus_HDF5_Groups
+    use IO_HDF5
     use Tree_Nodes
+    use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),   intent(in),    pointer      :: baseNode
     double precision, intent(inout), dimension(:) :: nodeProperty
-    integer,          intent(in)                  :: treeGroupID
+    type(hdf5Object), intent(inout)               :: treeGroup
     type(treeNode),                  pointer      :: thisNode
-    integer                                       :: nodeCount,structureDataID
+    integer                                       :: nodeCount
+    type(hdf5Object)                              :: nodeDataset
 
     ! Check if scale radius is to be included in merger tree outputs.
     if (methodSelected.and.mergerTreeStructureOutputDarkMatterScaleRadius) then
@@ -400,9 +405,10 @@ contains
           nodeProperty(nodeCount)=Tree_Node_Dark_Matter_Profile_Scale_Scale(thisNode)
           call thisNode%walkTree()
        end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'darkMatterScaleRadius','Scale radius of the dark matter profile [Mpc].',nodeProperty)
-    
+       call treeGroup%writeDataset(nodeProperty,'darkMatterScaleRadius','Scale radius of the dark matter profile [Mpc].',datasetReturned=nodeDataset)
+       call nodeDataset%writeAttribute(megaParsec,"unitsInSI")
+       call nodeDataset%close()
+       
     end if
 
     return

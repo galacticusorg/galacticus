@@ -91,12 +91,11 @@ perl -MCPAN -e 'install Math::SigFigs'
 \begin{verbatim}
 perl -MCPAN -e 'force("install","Astro::Cosmology")'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~cerney/PDL-IO-HDF5-0.6/}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files. It is used by analysis scripts to extract data from \glc\ output files. Currently, it requires a patch to compile against recent HDF5 versions. Therefore, follow the following instructions (as root) to install this module:
+  \item [\href{http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files\footnote{This is a modified version of the  original \protect\href{http://search.cpan.org/~cerney/PDL-IO-HDF5-0.6/}{{\tt PDL::IO::HDF5}} module. It supports creation and automatic de-referencing of HDF5 region references and also supports reading of numerical attributes and 1-D attribute arrays.}. It is used by analysis scripts to extract data from \glc\ output files. Follow the following instructions (as root) to install this module:
 \begin{verbatim}
- wget http://search.cpan.org/CPAN/authors/id/C/CE/CERNEY/PDL-IO-HDF5-0.6.tar.gz
+ wget http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
  tar xvfz PDL-IO-HDF5-0.6.tar.gz
  cd PDL-IO-HDF5-0.6
- sed -i~ s/"\('CCFLAGS'\s*=>\s*\".*\)\""/'\1 -DH5_USE_16_API"'/g  Makefile.PL
  perl Makefile.PL
  make
  make test
@@ -215,18 +214,15 @@ perl -MCPAN -e "install MIME::Lite"
 perl -MCPAN -e 'install Text::Table'
 perl -MCPAN -e 'install IO::Compress::Bzip2'
 
-! Install PDL::IO::HDF5 (more complicated, because it won't install against recent HDF5 versions with some patching):
+! Install PDL::IO::HDF5:
 
-perl -MCPAN -e "install PDL::IO::HDF5::Dataset"
-! This will fail. After it does, locate the downloaded tarball, probably in $HOME/.cpan/sources/authors/id/C/CE/CERNEY:
-cd $HOME/.cpan/sources/authors/id/C/CE/CERNEY
+wget http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
 tar xvfz PDL-IO-HDF5-0.6.tar.gz
 cd PDL-IO-HDF5-0.6
-sed -i~ s/"\('CCFLAGS'\s*=>\s*\".*\)\""/'\1 -DH5_USE_16_API"'/g  Makefile.PL
-! Open Makefile.PL, locate the list of directories appearing before the comment "# Add new library paths here!!" and add "/your/install/path/lib" to it. Then locate the list of directories appearing before the comment "# Add new header paths here!!" and add "/your/install/path/include" to it. Then save the editted file.
-cd ..
-tar cvfz PDL-IO-HDF5-0.6.tar.gz PDL-IO-HDF5-0.6
-perl -MCPAN -e "install PDL::IO::HDF5::Dataset"
+perl Makefile.PL
+make
+make test
+make install
 
 ! Install GnuPlot:
 

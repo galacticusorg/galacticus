@@ -30,7 +30,7 @@ if ( exists($argument{"output"}) ) {
 
 # Build the SQL query.
 # Basic query.
-$sqlQuery = "http://www.g-vo.org/MyMillennium?action=doQuery&SQL=select node.treeId, node.haloId, node.descendantId, node.snapNum, node.redshift, node.m_tophat, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius from millimil..MPAHalo node, millimil..MPAHalo root where root.haloId = node.treeId";
+$sqlQuery = "http://www.g-vo.org/MyMillennium3?action=doQuery&SQL=select node.treeId, node.haloId, node.descendantId, node.snapNum, node.redshift, node.m_tophat, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius from millimil..MPAHalo node, millimil..MPAHalo root where root.haloId = node.treeId";
 # Append any required selection.
 $sqlQuery .= " and ".$selection unless ( $selection eq "" );
 # Add an order by statement.
@@ -60,6 +60,7 @@ $getCommand = "wget";
 $getCommand .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" );
 $getCommand .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 $getCommand .= " \"".$sqlQuery."\" -O - |";
+$totalNodes = 0;
 open(getHndl,$getCommand);
 while ( $line = <getHndl> ) {
     if ( $line =~ m/^\d/ ) {
@@ -127,6 +128,7 @@ while ( $line = <getHndl> ) {
 	    }
 	    # Get a list of nodes sorted by level order.
 	    @sortedIndices = sort {$treeData{$a}->{'level'} cmp $treeData{$b}->{'level'}} keys(%treeData);
+	    $totalNodes += $#sortedIndices;
 	    if ( $#sortedIndices >= 0 ) {
 		# Output tree index and volume weight.
 		open(dataHndl,">data.tmp");
@@ -190,6 +192,12 @@ while ( $line = <getHndl> ) {
 		    $nodeCount = $#sortedIndices+1;
 		    print configFile "DIMENSION-SIZES ".$nodeCount."\n";
 		    print configFile "OUTPUT-ARCHITECTURE NATIVE\n";
+		    $chunkSize = 10;
+		    if ( $nodeCount > $chunkSize ) {
+			print configFile "CHUNKED-DIMENSION-SIZES ".$chunkSize."\n";
+			print configFile "COMPRESSION-TYPE GZIP\n";
+			print configFile "COMPRESSION-PARAM 1\n";
+		    }
 		    close(configFile);
 		    system("h5import data.tmp -c config.tmp -o ".$outputFile);
 		    unlink("data.tmp","config.tmp");
@@ -205,5 +213,6 @@ while ( $line = <getHndl> ) {
     }
 }
 close(getHndl);
+print "Total number of nodes added = ".$totalNodes."\n";
 
 exit;

@@ -284,10 +284,7 @@ contains
           call Memory_Usage_Record(sizeof(spectra))
        end if
        imfLookupIndex=imfLookup(imfIndex)
-     
-       ! Initialize the HDF5 system.
-       call IO_HDF5_Initialize
-       
+            
        ! Open the HDF5 file.
        call h5fopen_f(char(stellarPopulationSpectraFileToRead),H5F_ACC_RDONLY_F,fileIndex,errorCode)
        
@@ -333,10 +330,7 @@ contains
        spectra(imfLookupIndex)%resetAge        =.true.
        spectra(imfLookupIndex)%resetWavelength =.true.
        spectra(imfLookupIndex)%resetMetallicity=.true.
-       
-       ! Uninitialize the HDF5 system.
-       call IO_HDF5_Uninitialize
-       
+              
     end if
 
     return

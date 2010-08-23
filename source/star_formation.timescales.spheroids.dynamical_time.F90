@@ -129,7 +129,7 @@ contains
     !% scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the
     !% half-mass radius and circular velocity at that radius.
     use Tree_Nodes
-    use Numerical_Constants_Units
+    use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, parameter              :: velocityZeroPoint=200.0d0 ! (km/s)

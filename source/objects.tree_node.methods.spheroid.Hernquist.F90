@@ -1386,48 +1386,59 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Spheroid_Hernquist_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Spheroid_Hernquist</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Spheroid_Hernquist_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Spheroid_Hernquist_Names(integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of Hernquist spheroid properties to be written to the \glc\ output file.
     use Abundances_Structure
     use ISO_Varying_String
     use Stellar_Population_Properties_Luminosities
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     integer                                       :: iAbundance,iLuminosity
 
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='spheroidGasMass'
        doublePropertyComments(doubleProperty)='Mass of gas in the Hernquist spheroid.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='spheroidStellarMass'
        doublePropertyComments(doubleProperty)='Mass of stars in the Hernquist spheroid at scale length.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='spheroidAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of the Hernquist spheroid.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='spheroidScaleLength'
        doublePropertyComments(doubleProperty)='Radial scale length in the Hernquist spheroid.'
+       doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='spheroidCircularVelocity'
        doublePropertyComments(doubleProperty)='Circular velocity of the Hernquist spheroid at scale length.'
+       doublePropertyUnitsSI (doubleProperty)=kilo
        do iAbundance=1,abundancesCount
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='spheroidGas'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Spheroid gas phase abundance property.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='spheroidStellar'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Spheroid stellar abundance property.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar
        end do
        do iLuminosity=1,luminositiesCount
           if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
              doubleProperty=doubleProperty+1
              doublePropertyNames   (doubleProperty)='spheroidStellar'//Stellar_Population_Luminosities_Name(iLuminosity)
              doublePropertyComments(doubleProperty)='Spheroid stellar luminosity property.'
+             doublePropertyUnitsSI (doubleProperty)=luminosityZeroPointAB
           end if
        end do
     end if

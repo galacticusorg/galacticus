@@ -66,7 +66,8 @@ module Galacticus_Display
   !$ use OMP_Lib
   use ISO_Varying_String
   private
-  public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level
+  public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
+       &,Galacticus_Verbosity_Level_Set
 
   integer                                      :: maxThreads
   integer,           allocatable, dimension(:) :: indentationLevel
@@ -74,7 +75,7 @@ module Galacticus_Display
   character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
 
   logical                                      :: displayInitialized=.false.
-  integer                                      :: verbosityLevel
+  integer                                      :: verbosityLevel=1
   integer,           parameter, public         :: verbosityWarn=2, verbosityInfo=3, verbosityDebug=4
 
   interface Galacticus_Display_Message
@@ -97,24 +98,21 @@ contains
     return
   end function Galacticus_Verbosity_Level
 
+  subroutine Galacticus_Verbosity_Level_Set(verbosityLevelNew)
+    !% Set the verbosity level.
+    implicit none
+    integer, intent(in) :: verbosityLevelNew
+
+    verbosityLevel=verbosityLevelNew
+    return
+  end subroutine Galacticus_Verbosity_Level_Set
+
   subroutine Initialize_Display
     !% Initialize the module by determining the requested verbosity level.
-    use Input_Parameters
     implicit none
 
     !$omp critical (Initialize_Display)
     if (.not.displayInitialized) then
-       ! Get the verbosity level parameter.
-       !@ <inputParameter>
-       !@   <name>verbosityLevel</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The level of verbosity for \glc\ (higher values give more verbosity).
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
-
        ! For OpenMP runs, create an array of indentation levels.
        maxThreads=1
        !$ maxThreads=omp_get_max_threads()

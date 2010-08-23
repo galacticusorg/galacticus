@@ -65,9 +65,9 @@ module Input_Parameters
   !% Implements reading of parameters from an XML data file.
   use FoX_dom
   use HDF5
+  use IO_HDF5
   use ISO_Varying_String
   use Galacticus_Error
-  use Galacticus_HDF5_Groups
   private
   public :: Input_Parameters_File_Open, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size, Write_Parameter
 
@@ -91,11 +91,16 @@ module Input_Parameters
   end interface
 
   ! Parameters group identifier in the output file.
-  integer(kind=HID_T) :: parametersGroupID=0
-  
+  logical                   ::  parametersGroupCreated=.false.
+  type(hdf5Object)          ::  parametersGroup
+
+  ! Local pointer to the main output file object.
+  logical                   :: haveOutputFile
+  type(hdf5Object), pointer :: outputFileObject
+
 contains
 
-  subroutine Input_Parameters_File_Open(parameterFile)
+  subroutine Input_Parameters_File_Open(parameterFile,outputFileObjectTarget)
     !% Open an XML data file containing parameter values and parse it. The file should be structured as follows:
     !% \begin{verbatim}
     !% <parameters>
@@ -113,8 +118,9 @@ contains
     !% </parameters>
     !% \end{verbatim}
     implicit none
-    type(varying_string), intent(in) :: parameterFile
-    integer                          :: ioErr
+    type(varying_string), intent(in)                   :: parameterFile
+    type(hdf5Object),     intent(in), target, optional :: outputFileObjectTarget
+    integer                                            :: ioErr
 
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
@@ -123,6 +129,14 @@ contains
     parameterList => getElementsByTagname(parameterDoc,"parameter")
     parameterCount=getLength(parameterList)
     !$omp end critical (FoX_DOM_Access)
+
+    ! Create a pointer to the output object if given.
+    if (present(outputFileObjectTarget)) then
+       outputFileObject => outputFileObjectTarget
+       haveOutputFile=.true.
+    else
+       haveOutputFile=.false.
+    end if
     return
   end subroutine Input_Parameters_File_Open
 
@@ -183,10 +197,8 @@ contains
     character(len=*),     intent(in), optional :: defaultValue
     logical,              intent(in), optional :: writeOutput
     type(Node),           pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                        :: datasetID
     integer                                    :: iParameter
     logical                                    :: foundMatch,writeOutputActual
-    character(len=len(parameterValue))         :: datasetChar(1)
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -223,13 +235,11 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
-       datasetChar=parameterValue
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',datasetChar)
+       call parametersGroup%writeAttribute(trim(parameterValue),trim(parameterName))
     end if
     return
   end subroutine Get_Input_Parameter_Char
@@ -246,7 +256,6 @@ contains
     character(len=*),     intent(in), optional :: defaultValue(:)
     logical,              intent(in), optional :: writeOutput
     type(Node),           pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                        :: datasetID
     integer                                    :: iParameter,nEntries
     logical                                    :: foundMatch,writeOutputActual
     type(varying_string)                       :: parameterText
@@ -292,12 +301,11 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',parameterValue)
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
     end if
     return
   end subroutine Get_Input_Parameter_Char_Array
@@ -313,10 +321,8 @@ contains
     character(len=*),     intent(in), optional :: defaultValue
     logical,              intent(in), optional :: writeOutput
     type(Node),           pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                        :: datasetID
     integer                                    :: iParameter
     logical                                    :: foundMatch,writeOutputActual
-    type(varying_string)                       :: datasetVarString(1)
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -353,13 +359,11 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
-       datasetVarString=parameterValue
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',datasetVarString)
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))    
     end if
     return
   end subroutine Get_Input_Parameter_VarString
@@ -376,7 +380,6 @@ contains
     character(len=*),     intent(in), optional :: defaultValue(:)
     logical,              intent(in), optional :: writeOutput
     type(Node),           pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                        :: datasetID
     integer                                    :: iParameter,nEntries
     logical                                    :: foundMatch,writeOutputActual
     type(varying_string)                       ::parameterText
@@ -422,12 +425,11 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',parameterValue)
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
     end if
     return
   end subroutine Get_Input_Parameter_VarString_Array
@@ -443,10 +445,8 @@ contains
     double precision, intent(in), optional :: defaultValue
     logical,          intent(in), optional :: writeOutput
     type(Node),       pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                    :: datasetID
     integer                                :: iParameter
     logical                                :: foundMatch,writeOutputActual
-    double precision                       :: datasetValue(1)
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -483,13 +483,11 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
-       datasetValue=[parameterValue]
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',datasetValue)
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
     end if
     return
   end subroutine Get_Input_Parameter_Double
@@ -505,7 +503,6 @@ contains
     double precision, intent(in), optional :: defaultValue(:)
     logical,          intent(in), optional :: writeOutput
     type(Node),       pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                    :: datasetID
     integer                                :: iParameter
     logical                                :: foundMatch,writeOutputActual
 
@@ -544,12 +541,11 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',parameterValue)
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
     end if
     return
   end subroutine Get_Input_Parameter_Double_Array
@@ -565,10 +561,8 @@ contains
     integer,          intent(in), optional :: defaultValue
     logical,          intent(in), optional :: writeOutput
     type(Node),       pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                    :: datasetID
     integer                                :: iParameter
     logical                                :: foundMatch,writeOutputActual
-    integer                                :: datasetValue(1)
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -605,13 +599,11 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
-       datasetValue=[parameterValue]
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',datasetValue)
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
     end if
     return
   end subroutine Get_Input_Parameter_Integer
@@ -627,7 +619,6 @@ contains
     integer,          intent(in), optional :: defaultValue(:)
     logical,          intent(in), optional :: writeOutput
     type(Node),       pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                    :: datasetID
     integer                                :: iParameter
     logical                                :: foundMatch,writeOutputActual
 
@@ -666,12 +657,11 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',parameterValue)
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
     end if
     return
   end subroutine Get_Input_Parameter_Integer_Array
@@ -687,10 +677,9 @@ contains
     logical,          intent(in), optional :: defaultValue
     logical,          intent(in), optional :: writeOutput
     type(Node),       pointer              :: thisParameter,nameElement,valueElement
-    integer(kind=HID_T)                    :: datasetID
     integer                                :: iParameter
     logical                                :: foundMatch,writeOutputActual
-    character(len=5)                       :: datasetValue(1)
+    character(len=5)                       :: datasetValue
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -727,19 +716,18 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
        select case (parameterValue)
        case (.false.)
-          datasetValue=['false']
+          datasetValue='false'
        case (.true.)
-          datasetValue=['true']
+          datasetValue='true'
        end select
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',datasetValue)
-    end if
+       call parametersGroup%writeAttribute(datasetValue,trim(parameterName))
+   end if
     return
   end subroutine Get_Input_Parameter_Logical
 
@@ -755,7 +743,6 @@ contains
     logical,          intent(in), optional :: writeOutput
     type(Node),       pointer              :: thisParameter,nameElement,valueElement
     character(len=5)                       :: datasetValue(size(parameterValue))
-    integer(kind=HID_T)                    :: datasetID
     integer                                :: iParameter
     logical                                :: foundMatch,writeOutputActual
 
@@ -794,17 +781,16 @@ contains
     if (present(writeOutput)) then
        writeOutputActual=writeOutput
     else
-       writeOutputActual=.true.
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
        call Make_Parameters_Group
-       datasetID=0
        where (parameterValue)
           datasetValue='true'
        elsewhere
           datasetValue='false'
        end where
-       call Galacticus_Output_Dataset(parametersGroupID,datasetID,parameterName,'',datasetValue)
+       call parametersGroup%writeAttribute(datasetValue,trim(parameterName))
     end if
     return
   end subroutine Get_Input_Parameter_Logical_Array
@@ -829,14 +815,11 @@ contains
 
   subroutine Make_Parameters_Group
     !% Create a group in the \glc\ output file in which to store parameters.
-    use ISO_Varying_String
     implicit none
-    type(varying_string) :: groupName,commentText
 
-    if (parametersGroupID == 0) then
-       groupName='Parameters'
-       commentText='Contains values for Galacticus parameters'
-       parametersGroupID=Galacticus_Output_Make_Group(groupName,commentText)
+    if (.not.parametersGroupCreated) then
+       parametersGroup=IO_HDF5_Open_Group(outputFileObject,'Parameters','Contains values for Galacticus parameters')
+       parametersGroupCreated=.true.
     end if
     return
   end subroutine Make_Parameters_Group

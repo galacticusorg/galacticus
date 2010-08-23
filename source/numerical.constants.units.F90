@@ -63,7 +63,6 @@
 
 module Numerical_Constants_Units
   !% Contains various useful unit conversions.
-  use Numerical_Constants_Astronomical
   use Numerical_Constants_Prefixes
   public
   
@@ -75,8 +74,5 @@ module Numerical_Constants_Units
 
   ! Angstroms in meters.
   double precision, parameter :: angstromsPerMeter=1.0d10
-
-  ! Conversion from Mpc/(km/s) to Gyr.
-  double precision, parameter :: Mpc_per_km_per_s_To_Gyr=megaParsec/kilo/gigaYear
 
 end module Numerical_Constants_Units

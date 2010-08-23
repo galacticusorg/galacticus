@@ -119,9 +119,6 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue='data/Stellar_Tracks_Padova.hdf5')
-
-       ! Initialize the HDF5 system.
-       call IO_HDF5_Initialize
        
        ! Open the HDF5 file.
        call h5fopen_f(char(stellarTracksFile),H5F_ACC_RDONLY_F,fileIndex,errorCode)
@@ -200,8 +197,6 @@ contains
        ! Close the file.
        call h5fclose_f(fileIndex,errorCode)       
 
-       ! Uninitialize the HDF5 system.
-       call IO_HDF5_Uninitialize
     end if
     return
   end subroutine Stellar_Tracks_Initialize_File

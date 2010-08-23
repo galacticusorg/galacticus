@@ -1055,14 +1055,15 @@ contains
     return
   end subroutine Hot_Halo_Create
 
-  
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Hot_Halo_Standard_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Hot_Halo_Standard</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Hot_Halo_Standard_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Hot_Halo_Standard_Names(integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of hot halo properties to be written to the \glc\ output file.
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
     use Abundances_Structure
     use ISO_Varying_String
     implicit none
@@ -1071,30 +1072,38 @@ contains
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
     integer                                       :: iAbundance
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='hotHaloMass'
        doublePropertyComments(doubleProperty)='Mass of gas in the hot halo.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='hotHaloUnaccretedMass'
        doublePropertyComments(doubleProperty)='Mass of gas that failed to accrete into the hot halo.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='hotHaloAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of gas in the hot halo.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='outflowedMass'
        doublePropertyComments(doubleProperty)='Mass of outflowed gas in the hot halo.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='outflowedAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of outflowed gas in the hot halo.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        do iAbundance=1,abundancesCount
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='hotHalo'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Hot halo abundance property.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='outflowed'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Outflowed gas abundance property.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar
        end do
      end if
     return

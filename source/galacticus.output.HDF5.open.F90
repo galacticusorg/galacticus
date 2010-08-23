@@ -72,7 +72,7 @@ module Galacticus_Output_Open
   public :: Galacticus_Output_Open_File, Galacticus_Output_Close_File
 
   ! Output file name.
-  type(varying_string) :: galacticusOutputFile
+  type(varying_string) :: galacticusOutputFileName
 
 contains
 
@@ -83,40 +83,37 @@ contains
     include 'galacticus.output.open.modules.inc'
     !# </include>
     implicit none
-    integer :: errorCode,chunkSize
+    integer :: chunkSize
     
-    if (galacticusOutputID < 0) then
-       ! Ensure HDF5 system is initialized.
-       call IO_HDF5_Initialize
+    if (.not.galacticusOutputFileIsOpen) then
        ! Get file name parameter.
        !@ <inputParameter>
-       !@   <name>galacticusOutputFile</name>
+       !@   <name>galacticusOutputFileName</name>
        !@   <defaultValue>galacticus.hdf5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the file to which \glc\ results will be written.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('galacticusOutputFile',galacticusOutputFile,defaultValue='galacticus.hdf5',writeOutput=.false.)
+       call Get_Input_Parameter('galacticusOutputFileName',galacticusOutputFileName,defaultValue='galacticus.hdf5',writeOutput=.false.)
        ! Open the file.
-       call h5fcreate_f(char(galacticusOutputFile),H5F_ACC_TRUNC_F,galacticusOutputID,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Open_File','failed to open output file')
+       call galacticusOutputFile%openFile(char(galacticusOutputFileName),overWrite=.true.,objectsOverwritable=.false.)
        ! Get file name parameter again and write it to the output file.
-       call Get_Input_Parameter('galacticusOutputFile',galacticusOutputFile,defaultValue='galacticus.hdf5')
+       call Get_Input_Parameter('galacticusOutputFileName',galacticusOutputFileName,defaultValue='galacticus.hdf5')
        ! Read parameters.
        !@ <inputParameter>
        !@   <name>hdf5ChunkSize</name>
-       !@   <defaultValue>100</defaultValue>
+       !@   <defaultValue>1024</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The chunk size used for outputting HDF5 datasets.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('hdf5ChunkSize',chunksize,defaultValue=100)
+       call Get_Input_Parameter('hdf5ChunkSize',chunksize,defaultValue=1024)
        hdf5ChunkSize=chunksize
        !@ <inputParameter>
        !@   <name>hdf5CompressionLevel</name>
-       !@   <defaultValue>100</defaultValue>
+       !@   <defaultValue>9</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The chunk size used for outputting HDF5 datasets.
@@ -124,11 +121,16 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('hdf5CompressionLevel',hdf5CompressionLevel,defaultValue=9)
 
+       ! Set default chunking and compression levels.
+       call IO_HDF5_Set_Defaults(hdf5ChunkSize,hdf5CompressionLevel)
+
        ! Call all routines that requested to output to the file on start up.
        !# <include directive="outputFileOpenTask" type="code" action="subroutine">
        include 'galacticus.output.open.inc'
        !# </include>
 
+       ! Flag that the file is now open.
+       galacticusOutputFileIsOpen=.true.
     end if
     return
   end subroutine Galacticus_Output_Open_File
@@ -139,16 +141,14 @@ contains
     include 'galacticus.output.HDF5.pre_close_tasks.moduleUse.inc'
     !# </include>
     implicit none
-    integer :: errorCode
 
     ! Perform any final tasks prior to shutdown.
     !# <include directive="hdfPreCloseTask" type="code" action="subroutine">
     include 'galacticus.output.HDF5.pre_close_tasks.inc'
     !# </include>
 
-    call h5fclose_f(galacticusOutputID,errorCode)
-    if (errorCode < 0) call Galacticus_Error_Report('Galacticus_Output_Close_File','failed to close output file')
-    call IO_HDF5_Uninitialize
+    ! Close the file.
+    call galacticusOutputFile%close()
     return
   end subroutine Galacticus_Output_Close_File
 

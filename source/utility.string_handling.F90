@@ -65,7 +65,8 @@ module String_Handling
   !% Implements various useful functionality for manipulating character strings.
   use ISO_Varying_String
   private
-  public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First
+  public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
+       & Convert_VarString_To_Char
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -88,17 +89,26 @@ module String_Handling
 
 contains
 
-  integer function String_Count_Words(inputString)
+  integer function String_Count_Words(inputString,separator)
     !% Return a count of the number of space separated words in {\tt inputString}.
     implicit none
-    character(len=*), intent(in) :: inputString
-    logical                      :: inWord
-    integer                      :: iCharacter
+    character(len=*), intent(in)           :: inputString
+    character(len=*), intent(in), optional :: separator
+    logical                                :: inWord
+    integer                                :: iCharacter
+    type(varying_string)                   :: separatorActual
+
+    ! Decide what separator to use.
+    if (present(separator)) then
+       separatorActual=separator
+    else
+       separatorActual=charactersWhiteSpace
+    end if
 
     String_Count_Words=0
     inWord=.false.
     do iCharacter=1,len_trim(inputString)
-       if (index(charactersWhiteSpace,inputString(iCharacter:iCharacter)) /= 0) then
+       if (index(separatorActual,inputString(iCharacter:iCharacter)) /= 0) then
           if (inWord) String_Count_Words=String_Count_Words+1
           inWord=.false.
        else
@@ -109,18 +119,27 @@ contains
     return
   end function String_Count_Words
 
-  subroutine String_Split_Words_VarString(words,inputString)
+  subroutine String_Split_Words_VarString(words,inputString,separator)
     !% Split {\tt inputString} into words and return as an array.
     implicit none
     type(varying_string), intent(out), dimension(:) :: words
     character(len=*),     intent(in)                :: inputString
+    character(len=*),     intent(in),  optional     :: separator
     logical                                         :: inWord
     integer                                         :: iCharacterStart,iCharacter,iWord
+    type(varying_string)                            :: separatorActual
+
+    ! Decide what separator to use.
+    if (present(separator)) then
+       separatorActual=separator
+    else
+       separatorActual=charactersWhiteSpace
+    end if
 
     inWord=.false.
     iWord=0
     do iCharacter=1,len_trim(inputString)
-       if (index(charactersWhiteSpace,inputString(iCharacter:iCharacter)) /= 0) then
+       if (index(separatorActual,inputString(iCharacter:iCharacter)) /= 0) then
           if (inWord) then
              iWord=iWord+1
              words(iWord)=inputString(iCharacterStart:iCharacter-1)
@@ -139,18 +158,27 @@ contains
     return
   end subroutine String_Split_Words_VarString
 
-  subroutine String_Split_Words_Char(words,inputString)
+  subroutine String_Split_Words_Char(words,inputString,separator)
     !% Split {\tt inputString} into words and return as an array.
     implicit none
     character(len=*), intent(out), dimension(:) :: words
     character(len=*), intent(in)                :: inputString
+    character(len=*), intent(in),  optional     :: separator
     logical                                     :: inWord
     integer                                     :: iCharacterStart,iCharacter,iWord
+    type(varying_string)                        :: separatorActual
+
+    ! Decide what separator to use.
+    if (present(separator)) then
+       separatorActual=separator
+    else
+       separatorActual=charactersWhiteSpace
+    end if
 
     inWord=.false.
     iWord=0
     do iCharacter=1,len_trim(inputString)
-       if (index(charactersWhiteSpace,inputString(iCharacter:iCharacter)) /= 0) then
+       if (index(separatorActual,inputString(iCharacter:iCharacter)) /= 0) then
           if (inWord) then
              iWord=iWord+1
              words(iWord)=inputString(iCharacterStart:iCharacter-1)
@@ -232,5 +260,18 @@ contains
     if (iCharacter /= 0) stringOutput(1:1)=charactersUpperCase(iCharacter:iCharacter)
     return
   end function String_Upper_Case_First
+
+  function Convert_VarString_To_Char(varStrings)
+    !% Convert an array of varying strings into an array of characters.
+    implicit none
+    type(varying_string),                   intent(in), dimension(:)                :: varStrings
+    character(len=maxval(len(varStrings))),             dimension(size(varStrings)) :: Convert_VarString_To_Char
+    integer                                                                         :: iString
+
+    do iString=1,size(varStrings)
+       Convert_VarString_To_Char(iString)=varStrings(iString)
+    end do
+    return
+  end function Convert_VarString_To_Char
 
 end module String_Handling

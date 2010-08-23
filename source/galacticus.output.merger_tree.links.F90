@@ -75,33 +75,40 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Links_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Links</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Links_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Links_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+       &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+
     integerProperty=integerProperty+1
     integerPropertyNames   (integerProperty)='nodeIndex'
     integerPropertyComments(integerProperty)='Tree-unique ID for this node.'
+    integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     integerPropertyNames   (integerProperty)='parentNode'
     integerPropertyComments(integerProperty)='ID of parent node.'
+    integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     integerPropertyNames   (integerProperty)='childNode'
     integerPropertyComments(integerProperty)='ID of primary child node.'
+    integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     integerPropertyNames   (integerProperty)='siblingNode'
     integerPropertyComments(integerProperty)='ID of sibling node.'
+    integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     integerPropertyNames   (integerProperty)='satelliteNode'
     integerPropertyComments(integerProperty)='ID of first satellite node.'
+    integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     integerPropertyNames   (integerProperty)='nodeIsIsolated'
     integerPropertyComments(integerProperty)='Is the node isolated (0|1)?'
+    integerPropertyUnitsSI (integerProperty)=0.0d0
     return
   end subroutine Galacticus_Output_Tree_Links_Names
 

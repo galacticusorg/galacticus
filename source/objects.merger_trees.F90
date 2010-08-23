@@ -68,7 +68,7 @@ module Merger_Trees
   use               Components
   use               FGSL
   use               Events_Interrupts
-  use               HDF5
+  use               IO_HDF5
   use               ISO_Varying_String
   use               Kind_Numbers
   !# <include directive="treeNodeCreateInitialize" type="moduleUse">
@@ -80,7 +80,7 @@ module Merger_Trees
   type mergerTree
      !% The merger tree object type.
      integer                   :: index
-     integer(kind=HID_T)       :: hdf5GroupID=-1
+     type(hdf5Object)          :: hdf5Group
      double precision          :: volumeWeight
      logical                   :: initialized
      type(treeNode),   pointer :: baseNode => null()

@@ -109,8 +109,6 @@ contains
        call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
 
        ! Read basic data from the merger tree file.
-       ! Ensure HDF5 system is initialized.
-       call IO_HDF5_Initialize
        ! Open the file.
        call h5fopen_f(char(mergerTreeReadFileName),H5F_ACC_RDONLY_F,mergerTreeFileID,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','failed to open input file')
@@ -157,8 +155,6 @@ contains
        ! Close the file.
        call h5fclose_f(mergerTreeFileID,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to close input file')
-       ! Uninitialize the HDF5 system.
-       call IO_HDF5_Uninitialize
        return
     else
        ! Increment the tree to read index.

@@ -371,22 +371,26 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Basic_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Basic</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Basic_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Basic_Names(integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of basic properties to be written to the \glc\ output file.
+    use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='nodeMass'
        doublePropertyComments(doubleProperty)='Total mass of the node, assuming univeral baryon fraction.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='nodeTimeLastIsolated'
        doublePropertyComments(doubleProperty)='Time at which node was last an isolated halo.'
+       doublePropertyUnitsSI (doubleProperty)=gigaYear
     end if
     return
   end subroutine Galacticus_Output_Tree_Basic_Names

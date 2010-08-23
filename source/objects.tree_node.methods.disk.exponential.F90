@@ -1315,53 +1315,63 @@ contains
     return
   end subroutine Exponential_Disk_Create
 
-  
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Disk_Exponential_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Disk_Exponential</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Disk_Exponential_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,time)
+  subroutine Galacticus_Output_Tree_Disk_Exponential_Names(integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of exponential disk properties to be written to the \glc\ output file.
     use Abundances_Structure
     use ISO_Varying_String
     use Stellar_Population_Properties_Luminosities
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     integer                                       :: iAbundance,iLuminosity
 
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='diskGasMass'
        doublePropertyComments(doubleProperty)='Mass of gas in the exponential disk.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='diskStellarMass'
        doublePropertyComments(doubleProperty)='Mass of stars in the exponential disk at scale length.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='diskAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of the exponential disk.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='diskScaleLength'
        doublePropertyComments(doubleProperty)='Radial scale length in the exponential disk.'
+       doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='diskCircularVelocity'
        doublePropertyComments(doubleProperty)='Circular velocity of the exponential disk at scale length.'
+       doublePropertyUnitsSI (doubleProperty)=kilo
        do iAbundance=1,abundancesCount
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='diskGas'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Disk gas phase abundance property.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='diskStellar'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Disk stellar abundance property.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar
        end do
        do iLuminosity=1,luminositiesCount
           if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
              doubleProperty=doubleProperty+1
              doublePropertyNames   (doubleProperty)='diskStellar'//Stellar_Population_Luminosities_Name(iLuminosity)
              doublePropertyComments(doubleProperty)='Disk stellar luminosity property.'
+             doublePropertyUnitsSI (doubleProperty)=luminosityZeroPointAB
           end if
        end do
     end if

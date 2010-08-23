@@ -67,6 +67,7 @@ program Galacticus
   use Galacticus_Banner
   use Galacticus_Error
   use Galacticus_Tasks
+  use Galacticus_HDF5
   use Galacticus_Output_Open
   use ISO_Varying_String
   use Memory_Management
@@ -88,7 +89,7 @@ program Galacticus
   parameterFile=parameterFileCharacter
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile)
+  call Input_Parameters_File_Open(parameterFile,galacticusOutputFile)
 
   ! Open the Galacticus output file.
   call Galacticus_Output_Open_File

@@ -292,13 +292,10 @@ contains
     real(c_double)              :: Filter_Luminosity_Integrand_AB
     real(c_double),   value     :: wavelength
     type(c_ptr),      value     :: parameterPointer
-    ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz. The AB magnitude system is defined such that:
-    !   m = -2.5log10(F_nu/[ergs/s/cm^2/Hz])-48.57
-    ! Computing the flux at 10pc gives us the zero point for the absolute magnitude scale.
-    double precision, parameter :: offsetAB=48.57d0
-    double precision, parameter :: zeroPointAB=(10.0d0**(-offsetAB/2.5d0))*4.0d0*Pi*((10.0d0*parsec*hecto)**2)*ergs/luminositySolar
+    ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
+    double precision, parameter :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
 
-    Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*zeroPointAB/wavelength
+    Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*luminosityZeroPointABSolar/wavelength
     return
   end function Filter_Luminosity_Integrand_AB
   

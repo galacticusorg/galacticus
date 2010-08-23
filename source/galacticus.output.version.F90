@@ -73,34 +73,30 @@ contains
   !# </outputFileOpenTask>
   subroutine Galacticus_Version_Output
     !% Output version information to the main output file.
-    use Galacticus_HDF5_Groups
+    use Galacticus_HDF5
+    use IO_HDF5
     use ISO_Varying_String
-    use HDF5
     use Galacticus_Error
     use Dates_and_Times
     use File_Utilities
     use FoX_dom
     implicit none
     include 'galacticus.output.version.revision.inc'
-    type(varying_string), dimension(1) :: runTime,textBufferVariable
     type(Node),           pointer      :: doc,thisNode,nameNode,emailNode
     type(NodeList),       pointer      :: nodesList
     integer                            :: ioErr
-    integer(kind=HID_T)                :: versionGroupID=0,versionMajorID=0,versionMinorID=0,versionRevisionID=0,runTimeID=0&
-         &,nameID=0,emailID=0,bazaarRevisionID=0
-    type(varying_string)               :: groupName,groupComment
     character(len=128)                 :: textBufferFixed
-  
+    type(hdf5Object)                   :: versionGroup
+    type(varying_string)               :: runTime
+
     ! Create a group for version information.
-    groupName='Version'
-    groupComment='Version and timestamp for this model.'
-    versionGroupID=Galacticus_Output_Make_Group(groupName,groupComment)
-    call Galacticus_Output_Dataset(versionGroupID,versionMajorID   ,'versionMajor'   ,'Major version number'  ,[0]             )
-    call Galacticus_Output_Dataset(versionGroupID,versionMinorID   ,'versionMinor'   ,'Minor version number'  ,[9]             )
-    call Galacticus_Output_Dataset(versionGroupID,versionRevisionID,'versionRevision','Revision number'       ,[0]             )
-    call Galacticus_Output_Dataset(versionGroupID,bazaarRevisionID ,'bazaarRevision' ,'Bazaar revision number',[bazaarRevision])
-    runTime(1)=Formatted_Date_and_Time()
-    call Galacticus_Output_Dataset(versionGroupID,runTimeID        ,'runTime'        ,'Time at which model was run',runTime)
+    versionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Version','Version and timestamp for this model.')
+    call versionGroup%writeAttribute(0             ,'versionMajor'   )
+    call versionGroup%writeAttribute(9             ,'versionMinor'   )
+    call versionGroup%writeAttribute(0             ,'versionRevision')
+    call versionGroup%writeAttribute(bazaarRevision,'bazaarRevision' )
+    runTime=Formatted_Date_and_Time()
+    call versionGroup%writeAttribute(runTime       ,'runTime'        )
 
     ! Check if a galacticusConfig.xml file exists.
     if (File_Exists("galacticusConfig.xml")) then
@@ -114,20 +110,21 @@ contains
           if (getLength(nodesList) >= 0) then
              nameNode => item(nodesList,0)
              call extractDataContent(nameNode,textBufferFixed)
-             textBufferVariable(1)=trim(textBufferFixed)
-             call Galacticus_Output_Dataset(versionGroupID,nameID,'runByName','The name of whosoever ran this model',textBufferVariable)
+             call versionGroup%writeAttribute(trim(textBufferFixed),'runByName')
           end if
           nodesList => getElementsByTagname(thisNode,"email")
           if (getLength(nodesList) >= 0) then
              emailNode => item(nodesList,0)
              call extractDataContent(emailNode,textBufferFixed)
-             textBufferVariable(1)=trim(textBufferFixed)
-             call Galacticus_Output_Dataset(versionGroupID,emailID,'runByEmail','The e-mail address of whosoever ran this model',textBufferVariable)
+             call versionGroup%writeAttribute(trim(textBufferFixed),'runByName')
           end if
        end if
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
     end if
+
+    ! Close the version group.
+    call versionGroup%close()
     return
   end subroutine Galacticus_Version_Output
   

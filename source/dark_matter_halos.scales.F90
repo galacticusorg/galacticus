@@ -89,7 +89,6 @@ contains
   !# </calculationResetTask>
   subroutine Dark_Matter_Halo_Scales_Reset(thisNode)
     !% Reset the cooling radius calculation.
-    use Tree_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

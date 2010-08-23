@@ -3168,12 +3168,14 @@ Additional outputs for merger trees can be added using three directives: {\tt me
   !#  <unitName>Galacticus_Output_Tree_Example_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Example</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Example_Names(integerProperty,integerPropertyNames,integerPropertyComments,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments)
+  subroutine Galacticus_Output_Tree_Example_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI &
+       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     implicit none
+    double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
+    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     .
     .
     .
@@ -3210,7 +3212,7 @@ Additional outputs for merger trees can be added using three directives: {\tt me
     return
   end subroutine Galacticus_Output_Tree_Example
 \end{verbatim}
-The {\tt mergerTreeOutputPropertyCount} subroutine must simply increment {\tt integerPropertyCount} and {\tt doublePropertyCount} by the number of integer and double precision properties that will be output respectively. The {\tt mergerTreeOutputNames} subroutine must store the dataset names and comments for each integer and double precision property in the supplied arrays. The value of {\tt integerProperty} and {\tt doubleProperty} should be incremented by 1 before each property name/comment is set---these then supply the position within the input arrays in which to store the name. The {\tt mergerTreeOutputTask} subroutine must similarly place the desired property values for {\tt thisNode} into the supplied arrays. The value of {\tt integerProperty} and {\tt doubleProperty} should be incremented by 1 before each property value is set. The value can then be stored in, for example, {\tt integerBuffer(integerBufferCount,integerProperty)}.
+The {\tt mergerTreeOutputPropertyCount} subroutine must simply increment {\tt integerPropertyCount} and {\tt doublePropertyCount} by the number of integer and double precision properties that will be output respectively. The {\tt mergerTreeOutputNames} subroutine must store the dataset names, comments and units in the SI system\footnote{For dimensionless quantities, the units may be set to zero. In such cases, the {\tt unitsInSI} attribute for the dataset will not be written to the \protect\glc\ output file.} for each integer and double precision property in the supplied arrays. The value of {\tt integerProperty} and {\tt doubleProperty} should be incremented by 1 before each property name/comment is set---these then supply the position within the input arrays in which to store the name. The {\tt mergerTreeOutputTask} subroutine must similarly place the desired property values for {\tt thisNode} into the supplied arrays. The value of {\tt integerProperty} and {\tt doubleProperty} should be incremented by 1 before each property value is set. The value can then be stored in, for example, {\tt integerBuffer(integerBufferCount,integerProperty)}.
 
 \subsubsection{Merger Tree Pre-Evolution Tasks}
 
@@ -3261,18 +3263,18 @@ Additional outputs for merger tree structure output can be added using the {\tt 
   !# <mergerTreeStructureOutputTask>
   !#  <unitName>Structure_Output_Task</unitName>
   !# </mergerTreeStructureOutputTask>
-  subroutine Structure_Output_Task(baseNode,nodeProperty,treeGroupID)
+  subroutine Structure_Output_Task(baseNode,nodeProperty,treeGroup)
     implicit none
     type(treeNode),   intent(in),    pointer      :: baseNode
     double precision, intent(inout), dimension(:) :: nodeProperty
-    integer,          intent(in)                  :: treeGroupID
+    type(hdf5Object), intent(inout)               :: treeGroup
     .
     .
     .
     return
   end subroutine Structure_Output_Task
 \end{verbatim}
-The subroutine must walk the merger tree beginning from the given {\tt baseNode} and store each property to output in the given {\tt nodeProperty} array. Once populated, this array can be written to the appropriate location, given by {\tt treeGroupID}, in the \glc\ output file.
+The subroutine must walk the merger tree beginning from the given {\tt baseNode} and store each property to output in the given {\tt nodeProperty} array. Once populated, this array can be written to the appropriate HDF5 group, given by {\tt treeGroup}, in the \glc\ output file.
 
 \subsubsection{Node Dump}
 
