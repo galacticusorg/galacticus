@@ -21,6 +21,7 @@ $degreesOfFreedomNet = 0.0;
 
 # Loop through all analyses and accumulate fit results.
 foreach $analysis ( @{$data->{'analysis'}} ) {
+    print "Running analysis script: ".$analysis->{'script'}."\n";
     $fitXML = "";
     $inXML = 0;
     open(pipeHndl,$analysis->{'script'}." ".$galacticusFile." ".$outputDirectory." showFit |");

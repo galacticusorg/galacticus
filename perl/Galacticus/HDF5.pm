@@ -135,6 +135,7 @@ sub Get_Dataset {
     foreach $dataSetName ( @dataNames ) {
 	unless ( exists(${${$dataHash}{'dataSets'}}{$dataSetName}) ) {
 	    if ( exists(${${$dataHash}{'dataSetsAvailable'}}{$dataSetName}) ) {
+		# Dataset exists in the output file, so simply read it.
 		$data = pdl [];
 		$dataTree = pdl [];
 		foreach $mergerTree ( @mergerTrees ) {
@@ -163,8 +164,11 @@ sub Get_Dataset {
 		    undef($dataTree);
 		}
 	    } else {
+		# Dataset is not present in the output file, search for a match to a derived property.
+		$foundMatch = 0;
 		foreach $regEx ( keys(%galacticusFunctions) ) {
 		    if ( $dataSetName =~ m/^$regEx$/ ) {
+			$foundMatch = 1;
 			$getFunc = $galacticusFunctions{$regEx};
 			&$getFunc(\%{$dataHash},$dataSetName);
 			if ( $storeDataSets == 1 ) {
@@ -186,7 +190,9 @@ sub Get_Dataset {
 			    }
 			}
 		    }
-		}
+		}	
+		# Exit if the dataset was not matched.
+		die("Dataset ".$dataSetName." was not found or match to any derived property") unless ( $foundMatch == 1 );		
 	    }
 	}
     }
