@@ -186,14 +186,21 @@ contains
     activeComponentCount=activeComponentCount+1
 
     if (iterationCount == 1) then
-       ! On first iteration, make a simple estimate of sizes of all components ignoring adiabatic contraction and self-gravity.
+       ! On first iteration, see if we have a previous radius set for this component.
+       radius=Radius_Get(thisNode)
+       if (radius <= 0.0d0) then
+          ! No previous radius was set, so make a simple estimate of sizes of all components ignoring adiabatic contraction and self-gravity.
 
-       ! Find the radius in the dark matter profile with the required specific angular momentum
-       radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(thisNode,specificAngularMomentum)
-       
-       ! Find the velocity at this radius.
-       velocity=Dark_Matter_Profile_Circular_Velocity(thisNode,radius)
-       
+          ! Find the radius in the dark matter profile with the required specific angular momentum
+          radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(thisNode,specificAngularMomentum)
+          
+          ! Find the velocity at this radius.
+          velocity=Dark_Matter_Profile_Circular_Velocity(thisNode,radius)
+       else
+          ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
+          velocity=Velocity_Get(thisNode)
+       end if
+
     else
        ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
 
