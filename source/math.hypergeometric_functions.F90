@@ -65,9 +65,18 @@ module Hypergeometric_Functions
   !% Implements hypergeometric functions.
   use FGSL
   private
-  public :: Hypergeometric_2F1
+  public :: Hypergeometric_1F1, Hypergeometric_2F1
   
 contains
+  
+  double precision function Hypergeometric_1F1(a,b,x)
+    !% Evaluate the $_1F_1(a_1;b_1;x)$ hypergeometric function.
+    implicit none
+    double precision, intent(in) :: a(1),b(1),x
+
+    Hypergeometric_1F1=FGSL_SF_Hyperg_1F1(a(1),b(1),x)
+    return
+  end function Hypergeometric_1F1
   
   double precision function Hypergeometric_2F1(a,b,x)
     !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
