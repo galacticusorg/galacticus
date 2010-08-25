@@ -63,10 +63,11 @@
 
 module Critical_Overdensity
   !% Implements the critical linear theory overdensity for halo collapse.
+  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   use FGSL
   private
-  public :: Critical_Overdensity_for_Collapse, Time_of_Collapse, Critical_Overdensity_State_Retrieve
+  public :: Critical_Overdensity_for_Collapse, Time_of_Collapse, Critical_Overdensity_State_Retrieve, Critical_Overdensity_Collapsing_Mass
 
   ! Flag to indicate if this module and tables have been initialized.
   logical                                        :: deltaCriticalInitialized=.false., tablesInitialized=.false.
@@ -81,6 +82,9 @@ module Critical_Overdensity
 
   ! Name of critical overdensity method used.
   type(varying_string)                           :: criticalOverdensityMethod
+
+  ! Global variable used in root finding.
+  double precision                               :: criticalOverdensity
 
   ! Pointer to the subroutine that tabulates the critical overdensity and template interface for that subroutine.
   procedure(Critical_Overdensity_Tabulate_Template), pointer :: Critical_Overdensity_Tabulate => null()
@@ -139,8 +143,52 @@ contains
     tablesInitialized       =.true.
     return
   end subroutine Critical_Overdensity_Initialize
-  
+
+  double precision function Critical_Overdensity_Collapsing_Mass(time,aExpansion,collapsing)
+    !% Return the mass scale just collapsing at the given cosmic time.
+    use Root_Finder
+    use FGSL
+    implicit none
+    double precision,        intent(in), optional :: aExpansion,time
+    logical,                 intent(in), optional :: collapsing
+    double precision,        parameter            :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,massGuess=1.0d13
+    type(fgsl_function),     save                 :: rootFunction
+    type(fgsl_root_fsolver), save                 :: rootFunctionSolver
+    !$omp threadprivate(rootFunction,rootFunctionSolver)
+    double precision                              :: massMinimum,massMaximum
+    type(c_ptr)                                   :: parameterPointer
+
+    ! Get the critical overdensity for collapse at this epoch.
+    criticalOverdensity=Critical_Overdensity_for_Collapse(time,aExpansion,collapsing)
+
+    ! Find mass at which the root-variance (sigma) equals this critical overdensity.
+    massMinimum=massGuess
+    do while (Collapsing_Mass_Root(massMinimum,parameterPointer) <= 0.0d0)
+       massMinimum=0.5d0*massMinimum
+    end do
+    massMaximum=massGuess
+    do while (Collapsing_Mass_Root(massMaximum,parameterPointer) >= 0.0d0)
+       massMaximum=2.0d0*massMaximum
+    end do
+    Critical_Overdensity_Collapsing_Mass=Root_Find(massMinimum,massMaximum,Collapsing_Mass_Root,parameterPointer,rootFunction&
+         &,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+    
+    return
+  end function Critical_Overdensity_Collapsing_Mass
+
+  function Collapsing_Mass_Root(mass,parameterPointer) bind(c)
+    !% Function used in finding the mass of halo just collapsing at a given cosmic epoch.
+    use CDM_Power_Spectrum
+    real(c_double)          :: Collapsing_Mass_Root
+    real(c_double), value   :: mass
+    type(c_ptr),    value   :: parameterPointer
+    
+    Collapsing_Mass_Root=sigma_CDM(mass)-criticalOverdensity
+    return
+  end function Collapsing_Mass_Root
+
   double precision function Critical_Overdensity_for_Collapse(time,aExpansion,collapsing)
+    !% Return the linear theory critical overdensity for collapse at the given cosmic time.
     use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
