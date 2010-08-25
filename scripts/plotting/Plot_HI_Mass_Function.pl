@@ -45,10 +45,11 @@ $x = pdl @{$columns->{'mass'}->{'data'}};
 $y = pdl @{$columns->{'massFunction'}->{'data'}};
 $errorUp = pdl @{$columns->{'upperError'}->{'data'}};
 $errorDown = pdl @{$columns->{'lowerError'}->{'data'}};
-$errorUp = (10.0**($y+$errorUp))*($columns->{'massFunction'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})**3;
-$errorDown = (10.0**($y-$errorDown))*($columns->{'massFunction'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})**3;
-$x = (10.0**$x)*($columns->{'mass'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})**2;
-$y = (10.0**$y)*($columns->{'massFunction'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})**3;
+$errorUp   = (10.0**($y+$errorUp)  )*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
+$errorDown = (10.0**($y-$errorDown))*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
+$x         = (10.0**$x             )*($dataSet{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2;
+$y         = (10.0**$y             )*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
+$xBins     = $xBins+log10(           ($dataSet{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2);
 
 # Read galaxy data and construct mass function.
 $yGalacticus = zeroes nelem($xBins);
@@ -70,7 +71,7 @@ delete($dataSet{'dataSets'});
 $chiSquared = sum(($yGalacticus-$y)**2/($errorGalacticus**2+(0.5*($errorUp-$errorDown))**2));
 $degreesOfFreedom = nelem($y);
 if ( $showFit == 1 ) {
-    $fitData{'name'} = "Zwaan et al. (2003) HI gas mass function";
+    $fitData{'name'} = "Zwaan et al. (2005) HI gas mass function";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'} = $fileName;
