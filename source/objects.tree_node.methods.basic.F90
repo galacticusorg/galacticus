@@ -286,10 +286,15 @@ contains
     if (methodSelected) then
        ! Get component index for this node.
        thisIndex=Tree_Node_Basic_Index(thisNode)
-       ! Compute the mass accretion rate for this node if it's the primary progenitor.
+       ! Compute the mass accretion rate for this node.
        if (thisNode%isPrimaryProgenitor()) then
+          ! For primary progenitors, compute the rate needed to bring them to the mass of their parent at the correct time.
           deltaTime=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
           if (deltaTime > 0.0d0) thisNode%components(thisIndex)%data(rateIndex)=Unresolved_Mass(thisNode%parentNode)/deltaTime
+       else if (.not.associated(thisNode%parentNode)) then
+          ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the progenitor.
+          deltaTime=Tree_Node_Time(thisNode)-Tree_Node_Time(thisNode%childNode)
+          if (deltaTime > 0.0d0) thisNode%components(thisIndex)%data(rateIndex)=Unresolved_Mass(thisNode)/deltaTime
        end if
     end if
     return
