@@ -3161,6 +3161,25 @@ The first routine should increment the {\tt imfAvailableCount} counter by 1 and 
 
 Each registered \IMF\ should supply a set of functions as described in \S\ref{sec:IMF_functions}.
 
+\subsubsection{Merger Tree Extra Output Tasks}
+
+Extra outputs for merger trees (i.e. those which do not involve output of a fixed number of properties for every node---examples might be star formation histories for a subset of galaxies) can be added using the directive: {\tt mergerTreeExtraOutputTask}. The directive should give the name of the subroutine to be called to perform the task. A template for this task is:
+\begin{verbatim}
+  !# <mergerTreeExtraOutputTask>
+  !#  <unitName>Galacticus_Extra_Output_Example</unitName>
+  !# </mergerTreeExtraOutputTask>
+  subroutine Galacticus_Extra_Output_Example(thisNode,iOutput,treeIndex)
+    implicit none
+    type(treeNode),      intent(inout), pointer     :: thisNode
+    integer,             intent(in)                 :: iOutput,treeIndex
+    .
+    .
+    .
+    return
+  end subroutine Galacticus_Extra_Output_Example
+\end{verbatim}
+The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to {\tt thisNode}. The index of the output and tree are provided as {\tt iOutput} and {\tt treeIndex} for reference, and may be used in organizing output.
+
 \subsubsection{Merger Tree Output Tasks}
 
 Additional outputs for merger trees can be added using three directives: {\tt mergerTreeOutputPropertyCount}, {\tt mergerTreeOutputNames} and {\tt mergerTreeOutputTask}. Each directive should give the name of the subroutine to be called to perform the task and, additionally, a name for sorting (this should be the same for all three directives and ensures that output tasks are always called in the correct order). Templates for these tasks are:

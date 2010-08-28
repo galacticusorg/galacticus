@@ -119,6 +119,9 @@ contains
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
+    !# <include directive="mergerTreeExtraOutputTask" type="moduleUse">
+    include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
+    !# </include>
     implicit none
     type(mergerTree),      intent(inout)          :: thisTree
     integer,               intent(in)             :: iOutput
@@ -189,6 +192,13 @@ contains
           ! If buffer is full, dump it to file.
           if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(iOutput)
           if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (iOutput)
+
+          ! Do any extra output tasks.
+          !# <include directive="mergerTreeExtraOutputTask" type="code" action="subroutine">
+          !#  <subroutineArgs>thisNode,iOutput,thisTree%index</subroutineArgs>
+          include 'galacticus.output.merger_tree.tasks.extra.inc'
+          !# </include>
+
        end if
        call thisNode%walkTreeWithSatellites()
     end do
@@ -198,7 +208,7 @@ contains
     ! Compute the start and length of regions to reference.
     referenceLength(1)=max(integerPropertiesWritten,doublePropertiesWritten)
     referenceStart (1)=outputGroups(iOutput)%length
-       
+
     ! Create references to the datasets if requested.
     if (mergerTreeOutputReferences) then
 
