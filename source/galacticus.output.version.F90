@@ -116,7 +116,7 @@ contains
           if (getLength(nodesList) >= 0) then
              emailNode => item(nodesList,0)
              call extractDataContent(emailNode,textBufferFixed)
-             call versionGroup%writeAttribute(trim(textBufferFixed),'runByName')
+             call versionGroup%writeAttribute(trim(textBufferFixed),'runByEmail')
           end if
        end if
        call destroy(doc)
