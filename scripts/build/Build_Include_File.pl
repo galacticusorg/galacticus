@@ -39,7 +39,10 @@ if ( $gotLocations == 1 ) {
     if ( isa($locations->{$instructions->{'directive'}}->{'file'},'ARRAY') ) {
 	@filesToScan    = @{$locations->{$instructions->{'directive'}}->{'file'}};
     } else {
-	$filesToScan[0] =   $locations->{$instructions->{'directive'}}->{'file'} ;
+
+	if (exists($locations->{$instructions->{'directive'}}->{'file'})) {
+	    $filesToScan[0] =   $locations->{$instructions->{'directive'}}->{'file'} ;
+	}
     }
 } else {
     foreach $srcdir ( @sourcedirs ) {
