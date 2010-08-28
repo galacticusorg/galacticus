@@ -623,15 +623,15 @@ contains
      use String_Handling
      use Galacticus_Error
      implicit none
-     type(hdf5Object)                                      :: groupObject
-     character(len=*),     intent(in)                      :: groupName
-     character(len=*),     intent(in),    optional         :: commentText
-     logical,              intent(in),    optional         :: objectsOverwritable
-     integer,              intent(in),    optional         :: chunkSize,compressionLevel
-     type(hdf5Object),     intent(inout), optional, target :: inObject
-     type(varying_string)                                  :: message,locationPath
-     integer                                               :: errorCode
-     integer(kind=HID_T)                                   :: locationID
+     type(hdf5Object)                           :: groupObject
+     character(len=*),     intent(in)           :: groupName
+     character(len=*),     intent(in), optional :: commentText
+     logical,              intent(in), optional :: objectsOverwritable
+     integer,              intent(in), optional :: chunkSize,compressionLevel
+     type(hdf5Object),     intent(in), target   :: inObject
+     type(varying_string)                       :: message,locationPath
+     integer                                    :: errorCode
+     integer(kind=HID_T)                        :: locationID
 
      ! Check that this module is initialized.
      call IO_HDF_Assert_Is_Initialized
