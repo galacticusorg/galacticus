@@ -314,6 +314,7 @@ contains
     type(abundancesStructure), intent(in)           :: abundances
     integer,                   intent(in), optional :: metallicityType
     integer                                         :: metallicityTypeActual
+
     ! Ensure module is initialized.
     call Abundances_Initialize
 
@@ -358,8 +359,15 @@ contains
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    ! Store the current metallicity.
-    metallicityPrevious        =abundances%metallicityValue
+    ! Determine how elements will be adjusted.
+    if (present(adjustElements)) then
+       adjustElementsActual=adjustElements
+    else
+       adjustElementsActual=adjustElementsNone
+    end if
+
+    ! Store the current metallicity if necessary.
+    if (elementsCount > 0 .and. adjustElementsActual == adjustElementsUpdate) metallicityPrevious=abundances%metallicityValue
 
     ! Update the metallicity.
     abundances%metallicityValue=metallicity
@@ -376,11 +384,6 @@ contains
 
     ! Determine what we're requested to do with any other elements.
     if (elementsCount > 0) then
-       if (present(adjustElements)) then
-          adjustElementsActual=adjustElements
-       else
-          adjustElementsActual=adjustElementsNone
-       end if
        select case (adjustElementsActual)
        case (adjustElementsNone)
           ! Do nothing to the elemental abundances in this case.
