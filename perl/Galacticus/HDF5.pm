@@ -159,8 +159,9 @@ sub Get_Dataset {
 			# Append the merger tree index.
 			unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
 			    $start = pdl [$mergerTree-1];
-			    $nodeCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
-			    $dataTree = $dataTree->append($mergerTree*ones($nodeCount));	
+			    $nodeCountPDL = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
+			    @nodeCount    = $nodeCountPDL->list;
+			    $dataTree = $dataTree->append($mergerTree*ones($nodeCount[0]));	
 			}
 		    }
 		}
