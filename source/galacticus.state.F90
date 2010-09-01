@@ -127,6 +127,9 @@ contains
        close(stateUnit)
        iError=FGSL_Close(fgslStateFile)
 
+       ! Flush standard output to ensure that any output log has a record of where the code reached at the last state store.
+       call Flush(0)
+
     end if
     return
   end subroutine Galacticus_State_Store
