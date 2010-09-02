@@ -209,15 +209,8 @@ contains
     logical,                 intent(inout) :: interrupt
     procedure(),    pointer, intent(inout) :: interruptProcedure
     
-    if (thisNode%componentExists(componentIndex)) then 
-       if (Tree_Node_Satellite_Merge_Time_Simple(thisNode) <= 0.0d0) then
-          ! Merger has happened - interrupt the evolution.
-          interrupt=.true.
-          interruptProcedure => Satellite_Merger_Process
-          return
-       end if
-       call Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,-1.0d0)
-    end if
+    if (thisNode%componentExists(componentIndex)) call Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple(thisNode,interrupt&
+         &,interruptProcedure,-1.0d0)
     return
   end subroutine Tree_Node_Satellite_Merge_Time_Rate_Compute_Simple
 
@@ -255,27 +248,6 @@ contains
     return
   end function Tree_Node_Satellite_Orbit_Index
 
-  subroutine Satellite_Merger_Process(thisNode)
-    !% Process a satellite node which has undergone a merger with its host node.
-    !# <include directive="satelliteMergerTask" type="moduleUse">
-    include 'objects.tree_node.methods.satellite_orbit.merger.process.moduleUse.inc'
-    !# </include>
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Allow arbitrary routines to process the merger.
-    !# <include directive="satelliteMergerTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode</subroutineArgs>
-    include 'objects.tree_node.methods.satellite_orbit.merger.process.inc'
-    !# </include>
-
-    ! Finally remove the satellite node from the host and destroy it.
-    call thisNode%removeFromHost()
-    call thisNode%destroy
-    return
-  end subroutine Satellite_Merger_Process
-  
-  
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Satellite_Orbit_Simple_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Satellite_Orbit_Simple</sortName>

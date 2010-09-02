@@ -67,7 +67,7 @@ module Merger_Trees_Evolve_Timesteps_Template
   use Tree_Nodes
   public
 
-  interface End_Of_Timestep_Task_Interface
+  abstract interface
      subroutine End_Of_Timestep_Task_Template(thisTree,thisNode)
        import mergerTree, treeNode
        type(mergerTree), intent(in)             :: thisTree
