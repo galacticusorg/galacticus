@@ -72,10 +72,11 @@ module CDM_Power_Spectrum
   ! Flag to indicate if the power spectrum has been normalized.  
   logical                     :: sigmaInitialized   =.false.
   logical                     :: sigmaNormalized    =.false.
-  double precision, parameter :: radiusNormalization=8.0d0 ! Radius for sigma(M) normalization in Mpc/h.
-  double precision            :: massNormalization         ! Mass for sigma(M) normalization in M_Solar.
-  double precision            :: sigmaNormalization =1.0d0 ! Normalization for sigma(M).
-  double precision            :: sigma_8                   ! Power spectrum normalization parameter.
+  logical                     :: normalizingSigma   =.false. ! Will be true during the normalization calculation.
+  double precision, parameter :: radiusNormalization=8.0d0   ! Radius for sigma(M) normalization in Mpc/h.
+  double precision            :: massNormalization           ! Mass for sigma(M) normalization in M_Solar.
+  double precision            :: sigmaNormalization =1.0d0   ! Normalization for sigma(M).
+  double precision            :: sigma_8                     ! Power spectrum normalization parameter.
 
   ! Variables to hold the tabulated sigma(M) data.
   integer                                        :: sigmaTableNPoints=-1
@@ -92,11 +93,25 @@ contains
     !% Return the CDM power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use CDM_Transfer_Function
     use CDM_Primordial_Power_Spectrum
+    use Numerical_Constants_Math
+    use Cosmological_Parameters
     implicit none
     double precision, intent(in) :: wavenumber
+    double precision             :: mass,logMass
 
+    ! If this function is called not via the sigma(M) normalization routines, then ensure that sigma has been initialized so that
+    ! we have the correct normalization.
+    if (.not.normalizingSigma) then
+       mass=(4.0d0*PI/3.0d0)*Omega_0()*Critical_Density()/waveNumber**3
+       logMass=dlog(mass)
+       call Initialize_Sigma(logMass)
+    end if
+    
     ! Compute the power spectrum.
     Power_Spectrum_CDM=(Transfer_Function_CDM(wavenumber)**2)*Primordial_Power_Spectrum_CDM(wavenumber)
+
+    ! If this is not part of the normalization calculation, then scale by the normalization factor.
+    if (.not.normalizingSigma) Power_Spectrum_CDM=Power_Spectrum_CDM*sigmaNormalization**2
 
     return
   end function Power_Spectrum_CDM
@@ -232,9 +247,11 @@ contains
     topHatRadius=((3.0d0/4.0d0/Pi)*mass/Omega_0()/Critical_Density())**(1.0d0/3.0d0)
     wavenumberMinimum=0.0d0/topHatRadius
     wavenumberMaximum=1.0d3/topHatRadius
+    normalizingSigma=.true.
     sigma_CDM_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,sigma_CDM_Integrand,parameterPointer,integrandFunction&
-         &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+         &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)/2.0d0/Pi**2
     call Integrate_Done(integrandFunction,integrationWorkspace)
+    normalizingSigma=.false.
     sigma_CDM_Integral=dsqrt(sigma_CDM_Integral)
     return
   end function sigma_CDM_Integral

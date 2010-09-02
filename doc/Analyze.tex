@@ -231,6 +231,23 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
  \item[{\tt \textasciicircum magnitude([\textasciicircum :]+):([\textasciicircum :]+):([\textasciicircum :]+):z([$\backslash$d$\backslash$.]+)(:dust[\textasciicircum :]+)?(:vega\textbar :AB)?}] Absolute magnitude corresponding to a stellar luminosity, in either Vega or AB systems. Provided by: {\tt Galacticus::Magnitudes}.
 \end{description}
 
+\subsection{Galaxy Clustering via the Halo Model}\label{sec:ClusteringHaloModel}\index{halo model}\index{clustering!halo model}
+
+Galaxy clustering calculations (currently real and redshift space power spectra and two-point correlation functions) can be computed using the {\tt Galacticus::HaloModel} Perl module. To use this module, \glc\ must be run with {\tt [outputHaloModelData]}$=${\tt true} (see \S\ref{sec:HaloModelOutput}) to output data on halo profiles and power spectra. To perform halo model calculations, simply use this module in a Perl script, initialize the data hash, {\tt \%dataHash}, used for the {\tt Galacticus::HDF5} module, and construct a PDL, {\tt \$selectedGalaxies}, which contains the indices (not the node indices, but the positions within the PDL arrays read in from the \glc\ output file) of galaxies for which the clustering is to be computed. A power spectrum can then be computed using:
+\begin{verbatim}
+($waveNumber,$linearPowerSpectrum,$galaxyPowerSpectrum) 
+    = &HaloModel::Compute_Power_Spectrum(\%dataHash,$selectedGalaxies,space => "redshift");
+\end{verbatim}
+The PDLs returned contain a list of comoving wavenumbers, the linear power spectrum of matter at the selected time and the (non-linear) power spectrum of the selected galaxies. If the {\tt space} option is set to {\tt redshift} then a redshift space power spectrum is computed, otherwise a real space power spectrum is computed.
+
+A two-point correlation function can be computed from the returned power spectrum using:
+\begin{verbatim}
+($separations,$galaxyCorrelationFunction) 
+    = &HaloModel::Compute_Correlation_Function($waveNumber,$galaxyPowerSpectrum
+        ,$separationMinimum,$separationMaximum,$separationPointsPerDecade);
+\end{verbatim}
+The first two PDLs are those returned by the power spectrum calculation. The final three give the minimum and maximum separations at which to compute the correlation function and the number of points per decade of separation at which to tabulate the correlation function. The returned PDLs give the comoving separtion (in Mpc) and correlation function corresponding to the input power spectrum.
+
 \section{Postprocessing Scripts}\label{sec:PostProcessingScripts}
 
 \subsection{Model Rating}\label{sec:ModelRating}

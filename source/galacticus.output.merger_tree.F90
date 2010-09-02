@@ -401,6 +401,9 @@ contains
     use Cosmology_Functions
     use Memory_Management
     use Numerical_Constants_Astronomical
+    !# <include directive="outputGroupOutputTask" type="moduleUse">
+    include 'galacticus.output.merger_tree.outputGroup.tasks.modules.inc'
+    !# </include>
     implicit none
     integer,              intent(in)                :: iOutput      
     double precision,     intent(in)                :: time
@@ -462,6 +465,13 @@ contains
        call outputGroups(iOutput)%hdf5Group%writeAttribute(time                  ,'outputTime'           )
        call outputGroups(iOutput)%hdf5Group%writeAttribute(gigaYear              ,'timeUnitInSI'         )
        call outputGroups(iOutput)%hdf5Group%writeAttribute(Expansion_Factor(time),'outputExpansionFactor')
+
+       ! Establish all other properties.
+       !# <include directive="outputGroupOutputTask" type="code" action="subroutine">
+       !#  <subroutineArgs>outputGroups(iOutput)%hdf5Group,time</subroutineArgs>
+       include 'galacticus.output.merger_tree.outputGroup.tasks.inc'
+       !# </include>
+  
     end if
     !$omp end critical (Outputs_Group_Create)
     return

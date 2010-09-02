@@ -991,12 +991,13 @@ Here, {\tt Dark\_Matter\_Profile\_NFW\_Initialize} is the name of a subroutine w
   subroutine Method_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get&
        & ,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get &
        & ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get&
-       & ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get)
+       & ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get)
     implicit none
     type(varying_string),          intent(in)    :: darkMatterProfileMethod
     procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get&
          &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
-         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get
+         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
+         &,Dark_Matter_Profile_kSpace_Get
     
     if (darkMatterProfileMethod == 'myMethod') then
        Dark_Matter_Profile_Energy_Get                                => My_Dark_Matter_Profile_Energy
@@ -1006,6 +1007,7 @@ Here, {\tt Dark\_Matter\_Profile\_NFW\_Initialize} is the name of a subroutine w
        Dark_Matter_Profile_Circular_Velocity_Get                     => My_Dark_Matter_Profile_Circular_Velocity
        Dark_Matter_Profile_Potential_Get                             => My_Dark_Matter_Profile_Potential
        Dark_Matter_Profile_Enclosed_Mass_Get                         => My_Dark_Matter_Profile_Enclosed_Mass
+       Dark_Matter_Profile_kSpace_Get                                => My_Dark_Matter_Profile_kSpace
        .
        .
        .
@@ -1056,9 +1058,24 @@ Finally, the radius from specific angular momentum functin must have the form:
 \end{verbatim}
 This function should compute and return the radius (in units of Mpc) in {\tt thisNode} at which a circular orbit would have the given {\tt specificAngularMomentum} (in units of km/s Mpc).
 
+The ``kSpace'' function must have the form:
+\begin{verbatim}
+  double precision function My_Dark_Matter_Profile_kSpace(thisNode,wavenumber)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: wavenumber
+    .
+    .
+    .
+    return
+  end function My_Dark_Matter_Profile_kSpace
+\end{verbatim}
+This function should compute and return the Fourier transform of the dark matter halo density profile (normalized to unity at small wavenumber---as defined in \citealt{cooray_halo_2002}) for {\tt thisNode} at the given {\tt wavenumber} (specified in Mpc$^{-1}$).
+
 Currently defined dark matter density profile methods are:
 \begin{description}
  \item [{\tt Isothermal}] The density profile is a singular isothermal sphere;
+ \item [{\tt NFW}] The density profile proposed by \cite{navarro_universal_1997}.
 \end{description}
 
 \subsubsection{Dark Matter Density Profile Concentration}
@@ -1323,6 +1340,47 @@ The function must return the temperature (in Kelvin) of the hot halo at the spec
 Currently defined hot halo density profile methods are:
 \begin{description}
  \item [\hyperlink{hot_halo.temperature_profile.virial.F90:hot_halo_temperature_profile_virial:hot_halo_temperature_virial_get}{{\tt virial}}] Implements an isothermal profile with temperature equal to the virial temperature.
+\end{description}
+
+\subsubsection{Halo Bias}
+
+Additional methods for the halo bias (i.e. the linear theory bias) can be added using the {\tt darkMatterHaloBiasMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Press-Schechter} method is described by a directive:
+\begin{verbatim}
+ !# <darkMatterHaloBiasMethod>
+ !#  <unitName>Dark_Matter_Halo_Bias_Press_Schechter_Initialize</unitName>
+ !# </darkMatterHaloBiasMethod>
+\end{verbatim}
+Here, {\tt Dark\_Matter\_Halo\_Bias\_Press\_Schechter\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: darkMatterHaloBiasMethod
+    procedure(),          pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
+    
+    if (darkMatterHaloBiasMethod == 'myMethod') Dark_Matter_Halo_Bias_Get => My_Method_Tabulate
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterHaloBiasMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Halo\_Bias\_Get} must be set to point to a subrouine which returns a tabulation of the halo mass function. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The halo bias function must have the form:
+\begin{verbatim}
+ double precision function Dark_Matter_Halo_Bias(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+ end function Dark_Matter_Halo_Bias
+\end{verbatim}
+The function should return the linear theory bias for {\tt thisNode}
+
+Currently defined halo bias methods are:
+\begin{description}
+ \item [\hyperlink{structure_formation.CDM.halo_bias.Press-Schechter.F90:dark_matter_halo_biases_press_schechter:dark_matter_halo_bias_press_schechter}{{\tt Press-Schechter}}] Implements the bias resulting from the Press-Schechter \citep{press_formation_1974} mass function \citep{mo_analytic_1996}.
+ \item [\hyperlink{structure_formation.CDM.halo_bias.SMT.F90:dark_matter_halo_biases_smt:dark_matter_halo_bias_smt}{{\tt SMT}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} bias.
+ \item [\hyperlink{structure_formation.CDM.halo_bias.Tinker2010.F90:dark_matter_halo_biases_tinker2010:dark_matter_halo_bias_tinker2010}{{\tt Tinker2010}}] Implements the bias described by \cite{tinker_large_2010}.
 \end{description}
 
 \subsubsection{Halo Mass Functions}
@@ -3315,6 +3373,25 @@ where {\tt Node\_Dump\_Procedure} is the name of a subroutine with the following
  end subroutine Node_Dump_Procedure
 \end{verbatim}
 If the node contains an active component, this subroutine should display all relevant properties of the component. If not, it can display a short message indicating that fact.
+
+\subsubsection{Output Group Output Tasks}\index{output groups}\index{tasks!output}
+
+Extra outputs for output groups (i.e. the groups which hold all merger tree data for a given output time) can be added using the directive: {\tt outputGroupOutputTask}. The directive should give the name of the subroutine to be called to perform the task. A template for this task is:
+\begin{verbatim}
+  !# <outputGroupOutputTask>
+  !#  <unitName>Galacticus_Output_Group_Output_Example</unitName>
+  !# </outputGroupOutputTask>
+  subroutine Galacticus_Output_Group_Output_Example(outputGroup,time)
+    implicit none
+    type(hdf5Object), intent(inout) :: outputGroup
+    double precision, intent(in)    :: time
+    .
+    .
+    .
+    return
+  end subroutine Galacticus_Output_Group_Output_Example
+\end{verbatim}
+The subroutine will be called for each output group created, and should perform whatever extra output it requires. The {\tt outputGroup} object and the corresponding output {\tt time} are provided as input parameters.
 
 \subsubsection{Pre-derivative Tasks}\index{pre-derivative task}\index{task, pre-derivative}
 

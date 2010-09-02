@@ -1,6 +1,10 @@
 <!-- Description of analysis scripts to be run to perform a Galacticus fitting analysis. -->
 <analyses>
   <analysis>
+    <script>scripts/plotting/Plot_2dFGRS_Correlation_Functions.pl</script>
+    <weight>0.5</weight>
+  </analysis>
+  <analysis>
     <script>scripts/plotting/Plot_HI_Mass_Function.pl</script>
     <weight>1.0</weight>
   </analysis>

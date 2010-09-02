@@ -110,6 +110,22 @@ Selected with {\tt virialDensityContrastMethod}$=${\tt Bryan + Norman} this meth
 
 Selected with {\tt virialDensityContrastMethod}$=${\tt spherical top hat} this method calculates virial density contrast using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
 
+\subsection{Halo Bias}\index{halo bias}\index{dark matter halos!bias}\index{bias!halo}
+
+The dark matter halo linear bias method is selected via the {\tt darkMatterHaloBiasMethod} parameter.
+
+\subsubsection{Press-Schechter}
+
+Selected with {\tt darkMatterHaloBiasMethod}$=${\tt Press-Schechter} this method uses a bias consistent with the halo mass function of \cite{press_formation_1974} (see \citep{mo_analytic_1996}).
+
+\subsubsection{Sheth-Tormen}
+
+Selected with {\tt darkMatterHaloBiasMethod}$=${\tt SMT} this method uses a bias consistent with the halo mass function of \cite{sheth_ellipsoidal_2001}.
+
+\subsubsection{Tinker}
+
+Selected with {\tt darkMatterHaloBiasMethod}$=${\tt Tinker2010} this method uses the functional form proposed by \cite{tinker_large_2010} to compute the halo bias. The bias is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
+
 \subsection{Halo Mass Function}\index{halo mass function}\index{dark matter halos!mass function}
 
 The dark matter halo mass function (i.e. the number of halos per unit volume per unit mass interval) is selected via the {\tt haloMassFunctionMethod} parameter.
@@ -124,7 +140,7 @@ Selected with {\tt haloMassFunctionMethod}$=${\tt Sheth-Tormen} this method uses
 
 \subsubsection{Tinker}
 
-Selected with {\tt haloMassFunctionMethod}$=${\tt Tinker2008} this method uses the functional form proposed by \cite{tinker_large_2010} to compute the halo mass function. The mass function is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
+Selected with {\tt haloMassFunctionMethod}$=${\tt Tinker2008} this method uses the functional form proposed by \cite{tinker_towardhalo_2008} to compute the halo mass function. The mass function is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
 
 \section{Cooling of Gas Inside Halos}\index{cooling}
 

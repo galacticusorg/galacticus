@@ -66,7 +66,7 @@ module Linear_Growth
   use ISO_Varying_String
   use FGSL
   private
-  public :: Linear_Growth_Factor, Linear_Growth_Initialize, Linear_Growth_State_Retrieve
+  public :: Linear_Growth_Factor, Linear_Growth_Factor_Logarithmic_Derivative, Linear_Growth_Initialize, Linear_Growth_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
   logical                                        :: linearGrowthInitialized=.false., tablesInitialized=.false.
@@ -211,6 +211,58 @@ contains
 
     return
   end function Linear_Growth_Factor
+
+  double precision function Linear_Growth_Factor_Logarithmic_Derivative(time,aExpansion,collapsing)
+    !% Return the logarithmic derivative of the linear growth factor with respect to expansion factor., $\d \ln D / \d \ln a$.
+    use Numerical_Interpolation
+    use Cosmology_Functions
+    use Galacticus_Error
+    implicit none
+    double precision, intent(in), optional :: aExpansion,time
+    logical,          intent(in), optional :: collapsing
+    logical                                :: collapsingActual,remakeTable
+    double precision                       :: timeActual,expansionFactor,linearGrowthFactor,linearGrowthFactorTimeDerivative
+
+    ! Determine which type of input we have.
+    if (present(time)) then
+       if (present(aExpansion)) then
+          call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','only one argument can be specified')
+       else
+          timeActual=time
+       end if
+    else
+       if (present(aExpansion)) then
+          if (present(collapsing)) then
+             collapsingActual=collapsing
+          else
+             collapsingActual=.false.
+          end if
+          timeActual=Cosmology_Age(aExpansion,collapsingActual)
+       else
+          call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','at least one argument must be given')
+       end if
+    end if
+
+    ! Validate the input.
+    if (.not.Cosmic_Time_Is_Valid(timeActual)) call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','cosmic time is&
+         & invalid')
+
+
+    ! Get the linear growth factor (this will automatically build the tabulation if necessary).
+    linearGrowthFactor=Linear_Growth_Factor(timeActual)
+
+    ! Interpolate to get the expansion factor.
+    linearGrowthFactorTimeDerivative=Interpolate_Derivative(linearGrowthTableNumberPoints,linearGrowthTableTime&
+         &,linearGrowthTableFactor ,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+
+    ! Get the expansion factor.
+    expansionFactor=Expansion_Factor(timeActual)
+    
+    ! Construct the logarithmic derivative with respect to expansion factor.
+    Linear_Growth_Factor_Logarithmic_Derivative=linearGrowthFactorTimeDerivative/linearGrowthFactor/Expansion_Rate(expansionFactor)
+
+    return
+  end function Linear_Growth_Factor_Logarithmic_Derivative
 
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Linear_Growth_State_Retrieve</unitName>
