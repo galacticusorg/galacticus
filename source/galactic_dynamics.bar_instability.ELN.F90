@@ -120,8 +120,11 @@ contains
     double precision, parameter              :: stabilityIsolatedDisk=0.6221297315d0
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision, parameter              :: velocityBoostFactor  =1.180023758d0
-    double precision                         :: stabilityEstimator,stabilityThreshold,dynamicalTime,gasFraction,diskMass
+    double precision, parameter              :: velocityBoostFactor          =1.180023758d0
+    ! Maximum timescale (in dynamical times) allowed.
+    double precision, parameter              :: timescaleDimensionlessMaximum=1.0d10
+    double precision                         :: stabilityEstimator,stabilityThreshold,dynamicalTime,gasFraction,diskMass&
+         &,timescaleDimensionless,stabilityIsolatedRelative,stabilityEstimatorRelative
 
     ! Assume infinite timescale (i.e. no instability) initially.
     Bar_Instability_Timescale_ELN=-1.0d0
@@ -156,8 +159,14 @@ contains
 
        ! Simple scaling which gives infinite timescale at the threshold, decreasing to dynamical time for a maximally unstable
        ! disk.
-       Bar_Instability_Timescale_ELN=dynamicalTime*(stabilityThreshold-stabilityIsolatedDisk)/(stabilityThreshold&
-            &-stabilityEstimator)
+       stabilityIsolatedRelative =stabilityThreshold-stabilityIsolatedDisk
+       stabilityEstimatorRelative=stabilityThreshold-stabilityEstimator
+       if (stabilityIsolatedRelative > timescaleDimensionlessMaximum*stabilityEstimatorRelative) then
+          timescaleDimensionless=timescaleDimensionlessMaximum
+       else
+          timescaleDimensionless=stabilityIsolatedRelative/stabilityEstimatorRelative
+       end if
+       Bar_Instability_Timescale_ELN=dynamicalTime*timescaleDimensionless
 
     end if
 
