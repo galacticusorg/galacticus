@@ -152,6 +152,7 @@ contains
     type(treeNode),                         pointer  :: hostNode
     double precision,        parameter               :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
     double precision,        parameter               :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
+    double precision,        parameter               :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
     type(fgsl_interp),       save                    :: interpolationObject
     type(fgsl_interp_accel), save                    :: interpolationAccelerator
     logical,                 save                    :: interpolationReset=.true.
@@ -176,6 +177,12 @@ contains
 
     ! Get the expansion factor.
     expansionFactor=Expansion_Factor(timeNode)
+
+    ! Limit the expansion factor to the smallest value considered by Wetzel.
+    if (expansionFactor < expansionFactorMinimum) then
+       expansionFactor=              expansionFactorMinimum
+       timeNode       =Cosmology_Age(expansionFactorMinimum)
+    end if
 
     ! Get the characteristic mass, M*.
     massCharacteristic=Critical_Overdensity_Collapsing_Mass(timeNode)
