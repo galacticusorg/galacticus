@@ -64,7 +64,7 @@
 module Histories
   !% Defines the history object type.
   private
-  public :: history, History_Set_Times
+  public :: history, History_Set_Times, operator(/)
 
   type history
      !% The history object type.
@@ -105,12 +105,22 @@ module Histories
 
   end type history
 
+  ! Operators for history object.
+  interface operator(/)
+     !% Interface to division operator applied to history objects.
+     module procedure History_Division_Double
+  end interface operator(/)
+
   ! A null history object.
-  type(history),    public :: nullHistory
+  type(history),    public            :: nullHistory
 
   ! Earliest and latest times for history storage.
-  double precision, public :: historyStorageEarliestTime= 0.1d0
-  double precision, public :: historyStorageLatestTime  =15.0d0
+  double precision, public            :: historyStorageEarliestTime= 0.1d0
+  double precision, public            :: historyStorageLatestTime  =15.0d0
+
+  ! Labels for targets when adding to histories.
+  integer,          public, parameter :: historyData =1
+  integer,          public, parameter :: historyRates=2
 
 contains
 
@@ -259,18 +269,19 @@ contains
     return
   end subroutine History_Trim
 
-  subroutine History_Add(thisHistory,addHistory)
+  subroutine History_Add(thisHistory,addHistory,addTo)
     !% Adds the data in {\tt addHistory} to that in {\tt thisHistory}.
     use FGSL
     use Numerical_Interpolation
     use Galacticus_Error
     implicit none
-    type(history),           intent(inout) :: thisHistory
-    type(history),           intent(in)    :: addHistory
-    integer                                :: addHistoryPointCount,iPoint,interpolationPoint,iHistory
-    double precision                       :: interpolationFactors(2)
-    type(fgsl_interp_accel)                :: interpolationAccelerator
-    logical                                :: interpolationReset
+    type(history),           intent(inout)          :: thisHistory
+    type(history),           intent(in)             :: addHistory
+    integer,                 intent(in),   optional :: addTo
+    integer                                         :: addHistoryPointCount,iPoint,interpolationPoint,iHistory,addToActual
+    double precision                                :: interpolationFactors(2)
+    type(fgsl_interp_accel)                         :: interpolationAccelerator
+    logical                                         :: interpolationReset
     
     ! Return if addHistory does not exist.
     if (.not.allocated(addHistory%time)) return
@@ -287,6 +298,14 @@ contains
     ! The two objects must contain the same number of histories.
     if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('History_Add','two objects contain differing numbers of histories')
 
+    ! Determine which part of the history object we are adding to.
+    if (present(addTo)) then
+       addToActual=addTo
+       if (addToActual /= historyData .and. addToActual /= historyRates) call Galacticus_Error_Report('History_Add','unrecognized addTo location')
+    else
+       addToActual=historyData
+    end if
+
     ! Loop over each entry in thisHistory.
     interpolationReset=.true.
     do iPoint=1,size(thisHistory%time)
@@ -301,16 +320,35 @@ contains
                &,thisHistory%time(iPoint))
 
           ! Add them.
-          forall(iHistory=1:size(thisHistory%data,dim=2))
-             thisHistory%data(iPoint,iHistory)=thisHistory%data(iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
+          select case (addToActual)
+          case (historyData )
+             forall(iHistory=1:size(thisHistory%data,dim=2))
+                thisHistory%data (iPoint,iHistory)=thisHistory%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
+                     &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
+             end forall
+          case (historyRates)
+             forall(iHistory=1:size(thisHistory%data,dim=2))
+                thisHistory%rates(iPoint,iHistory)=thisHistory%rates(iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
                   &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
-          end forall
-
+             end forall
+          end select          
        end if
 
     end do
 
     return
   end subroutine History_Add
+
+  function History_Division_Double(thisHistory,divisor)
+    !% Divides history data by a double precision {\tt divisor}.
+    implicit none
+    type(history)                :: History_Division_Double
+    type(history),    intent(in) :: thisHistory
+    double precision, intent(in) :: divisor
+    
+    History_Division_Double=thisHistory
+    if (allocated(History_Division_Double%data)) History_Division_Double%data=History_Division_Double%data/divisor
+    return
+  end function History_Division_Double
 
 end module Histories

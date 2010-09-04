@@ -253,7 +253,7 @@ contains
 
        Tree_Node_Spheroid_Stellar_Properties_History              => Tree_Node_Spheroid_Stellar_Properties_History_Hernquist
        Tree_Node_Spheroid_Stellar_Properties_History_Set          => Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist
-       Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust  => null()
+       Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust  => Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Hernquist
        Tree_Node_Spheroid_Stellar_Properties_History_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy
 
        ! Associate pipes with procedures.
@@ -880,6 +880,32 @@ contains
     thisNode%components(thisIndex)%histories(stellarHistoryIndex)=thisHistory
     return
   end subroutine Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist
+
+  subroutine Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustments)
+    !% Adjust the rates for the stellar properties history.
+    use Histories
+    implicit none
+    type(treeNode),  pointer, intent(inout) :: thisNode
+    logical,                  intent(inout) :: interrupt
+    procedure(),     pointer, intent(inout) :: interruptProcedure
+    type(history),            intent(in)    :: rateAdjustments
+    integer                                 :: thisIndex
+
+    ! If no Hernquist spheroid component currently exists and we have some non-zero rate into it then interrupt and create an Hernquist
+    ! spheroid.
+    if (.not.thisNode%componentExists(componentIndex)) then
+       if (any(rateAdjustments%data /= 0.0d0)) then
+          interrupt=.true.
+          interruptProcedure => Hernquist_Spheroid_Create
+       end if
+       return
+    end if
+    ! Get the index for this component.
+    thisIndex=thisNode%componentIndex(componentIndex)
+    ! Adjust the rate.
+    call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%add(rateAdjustments,addTo=historyRates)
+    return
+  end subroutine Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Hernquist
 
   !# <satelliteMergerTask>
   !#  <unitName>Hernquist_Spheroid_Satellite_Merging</unitName>

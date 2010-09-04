@@ -453,6 +453,7 @@ contains
          &,diskDynamicalTime
     type(abundancesStructure), save                         :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
+    type(history)                                           :: historyTransferRate
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
@@ -565,6 +566,12 @@ contains
           luminositiesTransferRate=max(0.0d0,luminosities)/barInstabilityTimescale
           call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,-luminositiesTransferRate)
           call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust          (thisNode,interrupt,interruptProcedure, luminositiesTransferRate)
+          ! Stellar properties history.
+          thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+          historyTransferRate=thisNode%components(thisIndex)%histories(stellarHistoryIndex)/barInstabilityTimescale
+          thisNode%components(thisIndex)%histories(stellarHistoryIndex)%rates&
+               &=thisNode%components(thisIndex)%histories(stellarHistoryIndex)%rates-historyTransferRate%data
+          call Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust    (thisNode,interrupt,interruptProcedure, historyTransferRate     )
        end if
 
     end if
