@@ -96,13 +96,17 @@ module Histories
      !@     <method>reset</method>
      !@     <description>Resets all entries in a history to zero.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>exists</method>
+     !@     <description>Returns true if the given history has been created.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create  => History_Create
      procedure :: destroy => History_Destroy
      procedure :: trim    => History_Trim
      procedure :: add     => History_Add
      procedure :: reset   => History_Reset
-
+     procedure :: exists  => History_Exists
   end type history
 
   ! Operators for history object.
@@ -201,6 +205,15 @@ contains
     end if
     return
   end subroutine History_Reset
+
+  logical function History_Exists(thisHistory)
+    !% Returns true if the history has been created.
+    implicit none
+    type(history), intent(in) :: thisHistory
+    
+    History_Exists=allocated(thisHistory%time)
+    return
+  end function History_Exists
 
   subroutine History_Trim(thisHistory,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all

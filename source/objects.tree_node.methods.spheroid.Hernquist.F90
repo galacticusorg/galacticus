@@ -553,26 +553,29 @@ contains
        ! Find the star formation timescale.
        starFormationRate=Hernquist_Spheroid_SFR(thisNode)
 
-       ! If rate is above minimum, then compute related rates. We ignore tiny rates (which can occur as gas is depleted towards
-       ! zero) as they can result in divergences in metallicity etc.
-       if (starFormationRate > starFormationRateMinimum) then
-          ! Get the available fuel mass.
-          fuelMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
-          
-          ! Find the metallicity of the fuel supply.
+       ! Get the available fuel mass.
+       fuelMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
+       
+       ! Find the metallicity of the fuel supply.
+       if (fuelMass > 0.0d0) then
           call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
           abundanceMasses=max(min(abundanceMasses/fuelMass,1.0d0),0.0d0)
-          call fuelAbundances%pack(abundanceMasses)
-          
-          ! Get the component index.
-          thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-
-          ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-          call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,thisNode&
-               &,thisNode%components(thisIndex)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates &
-               &,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
-          
-          ! Adjust rates.
+       else
+          abundanceMasses=0.0d0
+       end if
+       call fuelAbundances%pack(abundanceMasses)
+       
+       ! Get the component index.
+       thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
+       
+       ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
+       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,thisNode&
+            &,thisNode%components(thisIndex)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates &
+            &,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
+       
+       ! Adjust rates f rate is above minimum, then compute related rates. We ignore tiny rates (which can occur as gas is
+       ! depleted towards zero) as they can result in divergences in metallicity etc.
+       if (starFormationRate > starFormationRateMinimum) then
           call Tree_Node_Spheroid_Stellar_Mass_Rate_Adjust_Hernquist        (thisNode,interrupt,interruptProcedure&
                &,stellarMassRate)
           call Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist            (thisNode,interrupt,interruptProcedure,fuelMassRate &
