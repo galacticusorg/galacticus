@@ -534,7 +534,7 @@ contains
     double precision,          parameter                    :: starFormationRateMinimum=1.0d-10
     integer                                                 :: thisIndex
     double precision                                        :: starFormationRate,stellarMassRate ,fuelMassRate,fuelMass&
-         &,massOutflowRate,spheroidMass,angularMomentumOutflowRate,energyInputRate
+         &,massOutflowRate,spheroidMass,angularMomentumOutflowRate,energyInputRate,gasMass
     type(abundancesStructure), save                         :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
 
@@ -579,10 +579,11 @@ contains
           ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
           massOutflowRate=Star_Formation_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
           if (massOutflowRate > 0.0d0) then
-             spheroidMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
+             gasMass     =Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
+             spheroidMass=gasMass+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
              angularMomentumOutflowRate=massOutflowRate*Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode)/spheroidMass
              call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
-             abundancesOutflowRate=massOutflowRate*abundanceMasses/spheroidMass
+             abundancesOutflowRate=massOutflowRate*abundanceMasses/gasMass
              call Tree_Node_Hot_Halo_Outflow_Mass_To                     (thisNode,interrupt,interruptProcedure,&
                   & massOutflowRate           )
              call Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist        (thisNode,interrupt,interruptProcedure,&
