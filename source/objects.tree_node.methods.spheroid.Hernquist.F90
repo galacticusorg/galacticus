@@ -145,7 +145,7 @@ module Tree_Node_Methods_Hernquist_Spheroid
   logical          :: methodSelected=.false.
 
   ! Parameters controlling the physical implementation.
-  double precision :: spheroidEnergeticOutflowMassRate
+  double precision :: spheroidEnergeticOutflowMassRate,spheroidOutflowTimescaleMinimum
   double precision :: spheroidMassToleranceAbsolute
 
 contains
@@ -279,6 +279,15 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassToleranceAbsolute',spheroidMassToleranceAbsolute,defaultValue=1.0d-6)
+       !@ <inputParameter>
+       !@   <name>spheroidOutflowTimescaleMinimum</name>
+       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)
 
     end if
     return
@@ -525,6 +534,7 @@ contains
     use Cooling_Rates
     use Star_Formation_Feedback_Spheroids
     use Abundances_Structure
+    use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),            pointer, intent(inout)       :: thisNode
     logical,                            intent(inout)       :: interrupt
@@ -534,7 +544,7 @@ contains
     double precision,          parameter                    :: starFormationRateMinimum=1.0d-10
     integer                                                 :: thisIndex
     double precision                                        :: starFormationRate,stellarMassRate ,fuelMassRate,fuelMass&
-         &,massOutflowRate,spheroidMass,angularMomentumOutflowRate,energyInputRate,gasMass
+         &,massOutflowRate,spheroidMass,angularMomentumOutflowRate,energyInputRate,gasMass,spheroidDynamicalTime
     type(abundancesStructure), save                         :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
 
@@ -551,7 +561,7 @@ contains
           
           ! Find the metallicity of the fuel supply.
           call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
-          abundanceMasses=abundanceMasses/fuelMass
+          abundanceMasses=max(min(abundanceMasses/fuelMass,1.0d0),0.0d0)
           call fuelAbundances%pack(abundanceMasses)
           
           ! Get the component index.
@@ -575,30 +585,38 @@ contains
                &,abundanceMasses)
           call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure&
                &,stellarLuminositiesRates)
-
-          ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
-          massOutflowRate=Star_Formation_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
-          if (massOutflowRate > 0.0d0) then
-             gasMass     =Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
-             spheroidMass=gasMass+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
-             angularMomentumOutflowRate=massOutflowRate*Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode)/spheroidMass
-             call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
-             abundancesOutflowRate=massOutflowRate*abundanceMasses/gasMass
-             call Tree_Node_Hot_Halo_Outflow_Mass_To                     (thisNode,interrupt,interruptProcedure,&
-                  & massOutflowRate           )
-             call Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist        (thisNode,interrupt,interruptProcedure,&
-                  &-massOutflowRate           )
-             call Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To         (thisNode,interrupt,interruptProcedure,&
-                  & angularMomentumOutflowRate)
-             call Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,&
-                  &-angularMomentumOutflowRate)
-             call Tree_Node_Hot_Halo_Outflow_Abundances_To               (thisNode,interrupt,interruptProcedure,&
-                  & abundancesOutflowRate)
-             call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist  (thisNode,interrupt,interruptProcedure,&
-                  &-abundancesOutflowRate)
-          end if
-                
        end if
+       
+       ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
+       massOutflowRate=Star_Formation_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       if (massOutflowRate > 0.0d0) then
+          ! Get the masses of the spheroid.
+          gasMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
+          spheroidMass=gasMass+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
+          
+          ! Limit the outflow rate timescale to a multiple of the dynamical time.
+          spheroidDynamicalTime=Mpc_per_km_per_s_To_Gyr*Tree_Node_Spheroid_Radius(thisNode)/Tree_Node_Spheroid_Velocity(thisNode)             
+          massOutflowRate=min(massOutflowRate,gasMass/spheroidOutflowTimescaleMinimum/spheroidDynamicalTime)
+          
+          ! Compute the angular momentum outflow rate.
+          angularMomentumOutflowRate=massOutflowRate*Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode)/spheroidMass
+          call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
+          abundanceMasses=max(min(abundanceMasses/gasMass,1.0d0),0.0d0)
+          abundancesOutflowRate=massOutflowRate*abundanceMasses
+          call Tree_Node_Hot_Halo_Outflow_Mass_To                       (thisNode,interrupt,interruptProcedure,&
+               & massOutflowRate           )
+          call Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist        (thisNode,interrupt,interruptProcedure,&
+               &-massOutflowRate           )
+          call Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To           (thisNode,interrupt,interruptProcedure,&
+               & angularMomentumOutflowRate)
+          call Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,&
+               &-angularMomentumOutflowRate)
+          call Tree_Node_Hot_Halo_Outflow_Abundances_To                 (thisNode,interrupt,interruptProcedure,&
+               & abundancesOutflowRate)
+          call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist  (thisNode,interrupt,interruptProcedure,&
+               &-abundancesOutflowRate)
+       end if
+
     end if
     return
   end subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Compute_Hernquist
@@ -862,7 +880,6 @@ contains
     thisNode%components(thisIndex)%histories(stellarHistoryIndex)=thisHistory
     return
   end subroutine Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist
-
 
   !# <satelliteMergerTask>
   !#  <unitName>Hernquist_Spheroid_Satellite_Merging</unitName>

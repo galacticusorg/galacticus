@@ -188,7 +188,7 @@ where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the r
 \begin{equation}
  \dot{J}_{\rm disk} = \dot{J}_{\rm cooling} - \left[ \dot{M}_{\rm outflow, disk} + {M_{\rm disk, gas}  + M_{\rm disk, stars} \over \tau_{\rm bar}}\right] {J_{\rm disk} \over M_{\rm disk, gas} + M_{\rm disk, stars}}.
 \end{equation}
-The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}).
+The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}), but is not allowed to exceed $M_{\rm gas, disk}/ \alpha_{\rm outflow minimum, disk} \tau_{\rm disk, dynamical}$, where $\tau_{\rm disk, dynamical}=R_{\rm disk}/V_{\rm disk}$ is the dynamical time of the disk and $\alpha_{\rm outflow minimum, disk}=${\tt [diskOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the disk. This limit prevents the disk being depleted on arbitrarily short timescales.
 
 \subsubsection{Event Evolution}
 
@@ -258,7 +258,7 @@ where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the r
 \begin{equation}
  \dot{J}_{\rm spheroid} = \dot{M}_{\rm outflow, spheroid} {J_{\rm spheroid} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}}.
 \end{equation}
-The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}), with an additional contribution given by
+The outflow rate, $\dot{M}_{\rm outflow, spheroid}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}), and which is not allowed to exceed $M_{\rm gas, spheroid}/ \alpha_{\rm outflow minimum, spheroid} \tau_{\rm spheroid, dynamical}$, where $\tau_{\rm spheroid, dynamical}=r_{\rm spheroid}/V_{\rm spheroid}$ is the dynamical time of the spheroid and $\alpha_{\rm outflow minimum, spheroid}=${\tt [spheroidOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the spheroid (this limit prevents the spheroid being depleted on arbitrarily short timescales), with an additional contribution given by
 \begin{equation}
  \dot{M}_{\rm outflow, spheroid} = \beta_{\rm spheroid, energy} {\dot{E}_{\rm gas, spheroid} \over V_{\rm spheroid}^2}
 \end{equation}

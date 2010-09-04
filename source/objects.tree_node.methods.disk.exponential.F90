@@ -136,7 +136,7 @@ module Tree_Node_Methods_Exponential_Disk
   logical :: methodSelected=.false.
 
   ! Parameters controlling the physical implementation.
-  double precision :: diskMassToleranceAbsolute
+  double precision :: diskMassToleranceAbsolute,diskOutflowTimescaleMinimum
 
   ! Tabulation of the exponential disk rotation curve.
   integer,          parameter                 :: rotationCurvePointsPerDecade=10
@@ -282,6 +282,15 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('diskMassToleranceAbsolute',diskMassToleranceAbsolute,defaultValue=1.0d-6)
+       !@ <inputParameter>
+       !@   <name>diskOutflowTimescaleMinimum</name>
+       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The minimum timescale (in units of the disk dynamical time) on which outflows may deplete gas in the disk.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskOutflowTimescaleMinimum',diskOutflowTimescaleMinimum,defaultValue=1.0d-3)
 
     end if
     return
@@ -430,6 +439,7 @@ contains
     use Star_Formation_Feedback_Disks
     use Abundances_Structure
     use Galactic_Dynamics_Bar_Instabilities
+    use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),            pointer, intent(inout)       :: thisNode
     logical,                            intent(inout)       :: interrupt
@@ -438,8 +448,9 @@ contains
     double precision,          dimension(luminositiesCount) :: stellarLuminositiesRates,luminositiesTransferRate,luminosities
     double precision,          dimension(abundancesCount)   :: abundanceMasses,abundancesOutflowRate,abundancesTransferRate
     integer                                                 :: thisIndex 
-    double precision                                        :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass&
-         &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate
+    double precision                                        :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass &
+         &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate&
+         &,diskDynamicalTime
     type(abundancesStructure), save                         :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
 
@@ -462,7 +473,7 @@ contains
              
           ! Find the metallicity of the fuel supply.
           call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundanceMasses)
-          abundanceMasses=abundanceMasses/fuelMass
+          abundanceMasses=max(min(abundanceMasses/fuelMass,1.0d0),0.0d0)
           call fuelAbundances%pack(abundanceMasses)
 
           ! Get the component index.
@@ -486,33 +497,39 @@ contains
                &,abundanceMasses)
           call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure&
                &,stellarLuminositiesRates)
+       end if
 
-          ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-          massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
-          if (massOutflowRate > 0.0d0) then
-             gasMass =        Tree_Node_Disk_Gas_Mass_Exponential    (thisNode)
-             diskMass=gasMass+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
-             angularMomentumOutflowRate=massOutflowRate*Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)/diskMass
-             if (gasMass > 0.0d0) then
-                call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundanceMasses)
-                abundancesOutflowRate=massOutflowRate*abundanceMasses/gasMass
-             else
-                abundancesOutflowRate=0.0d0
-             end if
-             call Tree_Node_Hot_Halo_Outflow_Mass_To                     (thisNode,interrupt,interruptProcedure,&
-                  & massOutflowRate           )
-             call Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure,&
-                  &-massOutflowRate           )
-             call Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To         (thisNode,interrupt,interruptProcedure,&
-                  & angularMomentumOutflowRate)
-             call Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,&
-                  &-angularMomentumOutflowRate)
-             call Tree_Node_Hot_Halo_Outflow_Abundances_To               (thisNode,interrupt,interruptProcedure,&
-                  & abundancesOutflowRate)
-             call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,&
-                  &-abundancesOutflowRate)
+       ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
+       massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       if (massOutflowRate > 0.0d0) then
+          ! Get the masses of the disk.
+          gasMass =        Tree_Node_Disk_Gas_Mass_Exponential    (thisNode)
+          diskMass=gasMass+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
+          
+          ! Limit the outflow rate timescale to a multiple of the dynamical time.
+          diskDynamicalTime=Mpc_per_km_per_s_To_Gyr*Tree_Node_Disk_Radius(thisNode)/Tree_Node_Disk_Velocity(thisNode)             
+          massOutflowRate=min(massOutflowRate,gasMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
+          
+          ! Compute the angular momentum outflow rate.
+          angularMomentumOutflowRate=massOutflowRate*Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)/diskMass
+          if (gasMass > 0.0d0) then
+             call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundanceMasses)
+             abundancesOutflowRate=massOutflowRate*abundanceMasses/gasMass
+          else
+             abundancesOutflowRate=0.0d0
           end if
-
+          call Tree_Node_Hot_Halo_Outflow_Mass_To                     (thisNode,interrupt,interruptProcedure,&
+               & massOutflowRate           )
+          call Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure,&
+               &-massOutflowRate           )
+          call Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To         (thisNode,interrupt,interruptProcedure,&
+               & angularMomentumOutflowRate)
+          call Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,&
+               &-angularMomentumOutflowRate)
+          call Tree_Node_Hot_Halo_Outflow_Abundances_To               (thisNode,interrupt,interruptProcedure,&
+               & abundancesOutflowRate)
+          call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,&
+               &-abundancesOutflowRate)
        end if
 
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
@@ -548,7 +565,6 @@ contains
           luminositiesTransferRate=max(0.0d0,luminosities)/barInstabilityTimescale
           call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,-luminositiesTransferRate)
           call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust          (thisNode,interrupt,interruptProcedure, luminositiesTransferRate)
-
        end if
 
     end if
