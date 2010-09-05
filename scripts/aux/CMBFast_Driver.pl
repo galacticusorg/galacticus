@@ -108,6 +108,12 @@ unless ( -e $transferFunctionFile ) {
 	   "value" => $parameterHash->{$parameter}->{'value'}
 	   );
    }
+   # Add extrapolation data.
+   ${$transferFunction{'extrapolation'}->{'wavenumber'}}[0]->{'limit' } = "low";
+   ${$transferFunction{'extrapolation'}->{'wavenumber'}}[0]->{'method'} = "power law";
+   ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'limit' } = "high";
+   ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'method'} = "power law";
+   # Output the transfer function.
    $transferFunction = \%transferFunction;
    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"data");
    open(outHndl,">".$transferFunctionFile);

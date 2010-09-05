@@ -2074,7 +2074,7 @@ The functions must have the form:
 \end{verbatim}
 This function must return the cumulative energy (in $M_\odot$ (km/s)$^2$) from Population III supernovae resulting from a star with given {\tt initialMass} and {\tt metallicity} after a time {\tt age}.
 
-Currently defined transfer function methods are:
+Currently defined population III supernovae methods are:
 \begin{description}
  \item [{\tt Heger + Woosley}] Computes the energy input from the pair-instability results of \cite{heger_nucleosynthetic_2002}.
 \end{description}
@@ -2665,7 +2665,7 @@ The function must have the form:
 \end{verbatim}
 The function must return the cumulative energy input (in $M_\odot$ (km/s)$^2$ from stars of given {\tt initialMass} and {\tt metallicity} after a time {\tt age}.
 
-Currently defined transfer function methods are:
+Currently defined stellar feedback methods are:
 \begin{description}
  \item [{\tt standard}] This method assumes that the energy input has contributions from stellar winds, Type Ia, Type II and Population III supernovae. The minimum mass required for a star to produce a Type II supernova is specified via {\tt initialMassForSupernovaeTypeII} (in $M_\odot$), while the energy per Type II or Ia supernova is specified via {\tt supernovaEnergy} (in ergs).
 \end{description}
@@ -2755,7 +2755,7 @@ The functions must have the form:
 \end{verbatim}
 The mass loss function must return the rate of mass loss (in $M_\odot$/Gyr) from stars of given {\tt initialMass} and {\tt metallicity} after a time {\tt age}. The terminal velocity function should give the velocity (in km/s) at infinity of the wind for the same stars.
 
-Currently defined transfer function methods are:
+Currently defined stellar winds methods are:
 \begin{description}
  \item [{\tt Leitherer1992}] Computes wind properties using the fitting functions of \cite{leitherer_deposition_1992} and \glc\ stellar tracks.
 \end{description}
@@ -2814,7 +2814,7 @@ The cumulative yield function must have the form:
 \end{verbatim}
 and should return the yield of the element identified by {\tt atomIndex} (as returned by the \hyperlink{atomic.data.F90:atomic_data:atom_lookup}{{\tt Atom\_Lookup()}} function from the \hyperlink{atomic.data.F90:atomic_data}{{\tt Atomic\_Data}} module) if present, or total metal yield otherwise from Type Ia's resulting from stars defined in the same way as for the cumulative number function.
 
-Currently defined transfer function methods are:
+Currently defined type Ia supernovae methods are:
 \begin{description}
  \item [{\tt Nagashima}] Computes Type Ia properties using the methods described by \cite{nagashima_metal_2005}.
 \end{description}
@@ -2834,7 +2834,7 @@ Here, {\tt Transfer\_Function\_File\_Initialize} is the name of a subroutine whi
     type(varying_string),          intent(in)    :: transferFunctionMethod
     procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
     
-    if (transferFunctionMethod.eq.'myMethod') then
+    if (transferFunctionMethod == 'myMethod') then
        Transfer_Function_Tabulate => My_Do_Tabulate
        .
        .
@@ -2907,9 +2907,19 @@ The XML file format for transfer functions looks like:
     <name>Y_He</name>
     <value>0.24</value>
   </parameter>
+  <extrapolation>
+    <wavenumber>
+      <limit>low</limit>
+      <method>power law</method>
+    </wavenumber>
+    <wavenumber>
+      <limit>high</limit>
+      <method>power law</method>
+    </wavenumber>
+  </extrapolation>
 </data>
 \end{verbatim}
-The {\tt datum} elements give wavenumber (in Mpc$^{-1}$) and transfer function pairs. The {\tt column}, {\tt description} and {\tt parameter} elements are optional, but are encouraged to make the file easier to understand.
+The {\tt datum} elements give wavenumber (in Mpc$^{-1}$) and transfer function pairs. The {\tt extrapolation} element defines how the tabulated function should be extrapolated to lower and higher wavenumbers. The two options for the {\tt method} are ``fixed'', in which case the transfer function is extrapolated assuming that it remains constant, and ``power law'' in which case the extrapolation is performed assuming a fixed power-law relation between transfer function and wavenumber. The {\tt column}, {\tt description} and {\tt parameter} elements are optional, but are encouraged to make the file easier to understand.
 
 \subsection{Events}
 

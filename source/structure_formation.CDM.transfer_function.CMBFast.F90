@@ -152,8 +152,7 @@ contains
     if (.not.transferFunctionInitialized) then
        makeFile=.true.
     else
-       makeFile=(logWavenumber < transferFunctionLogWavenumber(1)) .or. (logWavenumber >&
-            & transferFunctionLogWavenumber(transferFunctionNumberPoints))
+       makeFile=min(logWavenumber,logWavenumberMaximumDefault) > transferFunctionLogWavenumber(transferFunctionNumberPoints)
        if (makeFile) then
           ! Remove the transfer function file so that a new one will be created.
           command='rm -f '//transferFunctionFile
@@ -167,13 +166,13 @@ contains
        command='./scripts/aux/CMBFast_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)
        call System_Command_Do(command)
 
-       ! Call routine to read in the tabulated data.
-       call Transfer_Function_Named_File_Read(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber &
-            &,transferFunctionLogT,transferFunctionFile)
-
        ! Flag that transfer function is now initialized.
        transferFunctionInitialized=.true.
     end if
+
+    ! Call routine to read in the tabulated data.
+    call Transfer_Function_Named_File_Read(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber &
+         &,transferFunctionLogT,transferFunctionFile)
 
     ! Remove the parameter file.
     command='rm -f '//parameterFile

@@ -73,6 +73,14 @@ module Transfer_Function_File
   ! File name for the transfer function data.
   type(varying_string) :: transferFunctionFile
 
+  ! Extrapolation methods.
+  integer, parameter :: extrapolateZero=0, extrapolateFixed=1, extrapolatePowerLaw=2
+  integer            :: extrapolateWavenumberLow,extrapolateWavenumberHigh
+
+  ! Number of points per decade to add per decade when extrapolating and the buffer in log wavenumber to use.
+  integer,         parameter :: extrapolatePointsPerDecade=10
+  double precision           :: extrapolateLogWavenumberBuffer=1.0d0
+
 contains
   
   !# <transferFunctionMethod>
@@ -127,15 +135,21 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use Cosmological_Parameters
+    use Numerical_Constants_Math
+    use Numerical_Ranges
     implicit none
     double precision,                            intent(in)    :: logWavenumber
     double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
     integer,                                     intent(out)   :: transferFunctionNumberPoints
-    type(Node),       pointer                                  :: doc,datum,thisParameter,nameElement,valueElement
-    type(NodeList),   pointer                                  :: datumList,parameterList
-    integer                                                    :: iDatum,ioErr,iParameter
+    type(Node),       pointer                                  :: doc,datum,thisParameter,nameElement,valueElement&
+         &,extrapolationElement ,extrapolation,limitElement,methodElement
+    type(NodeList),   pointer                                  :: datumList,parameterList,wavenumberExtrapolationList
+    double precision, allocatable, dimension(:)                :: wavenumberTemporary,transferFunctionTemporary
+    integer                                                    :: iDatum,ioErr,iParameter,addCount,iExtrapolation&
+         &,extrapolationMethod
     double precision                                           :: datumValues(2),parameterValue
-    
+    character(len=32)                                          :: limitType,methodType
+
     ! Read the file if this module has not been initialized.
     if (.not.transferFunctionInitialized) then
        ! Open and parse the data file.
@@ -167,6 +181,34 @@ contains
                   & function file does not match internal value')
           end select
        end do
+       ! Get extrapolation methods.
+       extrapolationElement        => item(getElementsByTagname(doc                 ,"extrapolation"),0)
+       wavenumberExtrapolationList =>      getElementsByTagname(extrapolationElement,"wavenumber"   )
+       do iExtrapolation=0,getLength(wavenumberExtrapolationList)-1
+          extrapolation => item(wavenumberExtrapolationList,iExtrapolation)
+          limitElement  => item(getElementsByTagname(extrapolation,"limit"),0)
+          call extractDataContent(limitElement,limitType)
+          methodElement  => item(getElementsByTagname(extrapolation,"method"),0)
+          call extractDataContent(methodElement,methodType)
+          select case (trim(methodType))
+          case ('zero')
+             call Galacticus_Error_Report('Transfer_Function_File_Read','zero extrapolation method is not allowed')
+          case ('fixed')
+             extrapolationMethod=extrapolateFixed
+          case ('power law')
+             extrapolationMethod=extrapolatePowerLaw
+          case default
+             call Galacticus_Error_Report('Transfer_Function_File_Read','unrecognized extrapolation method')
+          end select
+          select case (trim(limitType))
+          case ('low')
+             extrapolateWavenumberLow=extrapolationMethod
+          case ('high')
+             extrapolateWavenumberHigh=extrapolationMethod
+          case default
+             call Galacticus_Error_Report('Transfer_Function_File_Read','unrecognized extrapolation limit')
+          end select
+       end do
        ! Get list of datum elements.
        datumList => getElementsByTagname(doc,"datum")
        ! Allocate transfer function arrays.
@@ -190,10 +232,71 @@ contains
        ! Flag that transfer function is now initialized.
        transferFunctionInitialized=.true.
     end if
-    ! Check that the input wavenumber is within range.
-    if (logWavenumber < transferFunctionLogWavenumber(1) .or. logWavenumber >&
-         & transferFunctionLogWavenumber(transferFunctionNumberPoints)) call&
-         & Galacticus_Error_Report('Transfer_Function_File_Read','wavenumber is not within tabulated range') 
+    ! Check that the input wavenumber is within range, extend the range if possible.
+    if (logWavenumber < transferFunctionLogWavenumber(1)) then
+       ! Determine how many extra points to add.
+       addCount=int((transferFunctionLogWavenumber(1)-logWavenumber+extrapolateLogWavenumberBuffer)*dble(extrapolatePointsPerDecade)&
+            &/ln10)+1
+       ! Allocate temporary arrays.
+       call Alloc_Array(wavenumberTemporary      ,[size(transferFunctionLogWavenumber)+addCount])
+       call Alloc_Array(transferFunctionTemporary,[size(transferFunctionLogWavenumber)+addCount])
+       ! Create additional wavenumber range.
+       wavenumberTemporary(1:addCount+1)=Make_Range(logWavenumber-extrapolateLogWavenumberBuffer,transferFunctionLogWavenumber(1)&
+            &,addCount+1,rangeType=rangeTypeLinear)
+       ! Extrapolate as directed.
+       select case (extrapolateWavenumberLow)
+       case (extrapolateFixed   )
+          transferFunctionTemporary(1:addCount)=transferFunctionLogT(1)
+       case (extrapolatePowerLaw)
+          transferFunctionTemporary(1:addCount)=transferFunctionLogT(1)+(wavenumberTemporary(1:addCount)&
+               &-transferFunctionLogWavenumber(1))*(transferFunctionLogT(2)-transferFunctionLogT(1))&
+               &/(transferFunctionLogWavenumber(2)-transferFunctionLogWavenumber(1))
+       end select
+       ! Copy in original wavenumber and transfer function data.
+       wavenumberTemporary      (addCount+1:size(wavenumberTemporary))=transferFunctionLogWavenumber
+       transferFunctionTemporary(addCount+1:size(wavenumberTemporary))=transferFunctionLogT
+       ! Move the new tabulation into the output arrays.
+       call Dealloc_Array(                          transferFunctionLogWavenumber)
+       call Dealloc_Array(                          transferFunctionLogT         )
+       call Move_Alloc   (wavenumberTemporary      ,transferFunctionLogWavenumber)
+       call Move_Alloc   (transferFunctionTemporary,transferFunctionLogT         )
+       ! Reset the number of tabulated points.
+       transferFunctionNumberPoints=size(transferFunctionLogWavenumber)
+    end if
+    if (logWavenumber > transferFunctionLogWavenumber(transferFunctionNumberPoints)) then
+       ! Determine how many extra points to add.
+       addCount=int((logWavenumber-transferFunctionLogWavenumber(transferFunctionNumberPoints)+extrapolateLogWavenumberBuffer)&
+            &*dble(extrapolatePointsPerDecade)/ln10)+1
+       ! Allocate temporary arrays.
+       call Alloc_Array(wavenumberTemporary      ,[size(transferFunctionLogWavenumber)+addCount])
+       call Alloc_Array(transferFunctionTemporary,[size(transferFunctionLogWavenumber)+addCount])
+       ! Create additional wavenumber range.
+       wavenumberTemporary(transferFunctionNumberPoints:size(wavenumberTemporary))&
+            &=Make_Range(transferFunctionLogWavenumber(transferFunctionNumberPoints),logWavenumber+extrapolateLogWavenumberBuffer&
+            & ,addCount+1,rangeType=rangeTypeLinear)
+       ! Extrapolate as directed.
+       select case (extrapolateWavenumberLow)
+       case (extrapolateFixed   )
+          transferFunctionTemporary(transferFunctionNumberPoints+1:size(wavenumberTemporary))=transferFunctionLogT(transferFunctionNumberPoints)
+       case (extrapolatePowerLaw)
+          transferFunctionTemporary(transferFunctionNumberPoints+1:size(wavenumberTemporary))&
+               &=transferFunctionLogT(transferFunctionNumberPoints)+(wavenumberTemporary(transferFunctionNumberPoints&
+               &+1:size(wavenumberTemporary))-transferFunctionLogWavenumber(transferFunctionNumberPoints))&
+               &*(transferFunctionLogT(transferFunctionNumberPoints)-transferFunctionLogT(transferFunctionNumberPoints-1)) &
+               &/(transferFunctionLogWavenumber(transferFunctionNumberPoints)&
+               &-transferFunctionLogWavenumber(transferFunctionNumberPoints-1))
+       end select
+       ! Copy in original wavenumber and transfer function data.
+       wavenumberTemporary      (1:transferFunctionNumberPoints)=transferFunctionLogWavenumber
+       transferFunctionTemporary(1:transferFunctionNumberPoints)=transferFunctionLogT
+       ! Move the new tabulation into the output arrays.
+       call Dealloc_Array(                          transferFunctionLogWavenumber)
+       call Dealloc_Array(                          transferFunctionLogT         )
+       call Move_Alloc   (wavenumberTemporary      ,transferFunctionLogWavenumber)
+       call Move_Alloc   (transferFunctionTemporary,transferFunctionLogT         )
+       ! Reset the number of tabulated points.
+       transferFunctionNumberPoints=size(transferFunctionLogWavenumber)
+    end if
     return
   end subroutine Transfer_Function_File_Read
   

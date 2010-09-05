@@ -121,7 +121,7 @@ contains
 
     ! Interpolate in the tabulated function and return a value.
     Transfer_Function_CDM=dexp(Interpolate(transferFunctionNumberPoints,transferFunctionLogWavenumber,transferFunctionLogT &
-         &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation))
+         &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation,interpolationType=fgsl_interp_cspline))
 
     return
   end function Transfer_Function_CDM
