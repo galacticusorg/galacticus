@@ -67,6 +67,34 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install MIME::Lite'
 \end{verbatim}
+
+
+
+
+  \item [\href{http://search.cpan.org/~gbarr/TimeDate-1.20/lib/Date/Format.pm}{{\tt Date::Time}}] This module provides date/time formatting functionality in Perl. On Fedora the following (as root) will install {\tt Date::Time}:
+\begin{verbatim}
+yum install perl-DateTime
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Date::Format'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~cwest/Net-SMTP-SSL-1.01/lib/Net/SMTP/SSL.pm}{{\tt Net::SMTP::SSL}}] This module implements an SSL authenticated SMTP e-mail protocol in Perl. On Fedora the following (as root) will install {\tt Net::SMTP::SSL}:
+\begin{verbatim}
+yum install perl-Net-SMTP-SSL
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Net::SMTP::SSL'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~danberr/Net-DBus-0.33.6/lib/Net/DBus.pm}{{\tt Net::DBus}}] This module implements interaction with the \href{http://www.freedesktop.org/wiki/Software/dbus}{DBus} message bus system in Perl. On Fedora the following (as root) will install {\tt Net::DBus}:
+\begin{verbatim}
+yum install perl-Net-DBus
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Net::DBus'
+\end{verbatim}
   \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt PDL}}] Provides array math handling in Perl. It is used extensively by \glc\ for analysis of modles. On Fedora the following (as root) will install {\tt PDL}:
 \begin{verbatim}
 yum install perl-PDL
@@ -213,6 +241,9 @@ perl -MCPAN -e "install Term::ReadKey"
 perl -MCPAN -e "install MIME::Lite"
 perl -MCPAN -e 'install Text::Table'
 perl -MCPAN -e 'install IO::Compress::Bzip2'
+perl -MCPAN -e 'install Date::Format'
+perl -MCPAN -e 'install Net::SMTP::SSL'
+perl -MCPAN -e 'install Net::DBus'
 
 ! Install PDL::IO::HDF5:
 

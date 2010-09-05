@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Defines a set of Galacticus models which explore all available method options. -->
+<!-- Andrew Benson                                                                  -->
+<!-- 04-Sep-2010                                                                    -->
+<parameterGrid>
+  <emailReport>no</emailReport>
+  <doAnalysis>no</doAnalysis>
+  <modelRootDirectory>testSuite/outputs/test-methods</modelRootDirectory>
+  <baseParameters>testSuite/test-methods-base.xml</baseParameters>
+  <parameters>
+    <parameter>
+      <name>accretionDisksMethod</name>
+      <value>switched</value>
+      <value>Shakura-Sunyaev</value>
+      <value>ADAF</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>barInstabilityMethod</name>
+      <value>ELN</value>
+      <value>null</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>outputHaloModelData</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>darkMatterHaloBiasMethod</name>
+      <value>SMT</value>
+      <value>Press-Schechter</value>
+      <value>Tinker2010</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>darkMatterProfileMethod</name>
+      <value>NFW</value>
+      <value>isothermal</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>galacticStructureRadiusSolverMethod</name>
+      <value>adiabatic</value>
+      <value>simple</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>haloMassFunctionMethod</name>
+      <value>Sheth-Tormen</value>
+      <value>Tinker2008</value>
+      <value>Press-Schechter</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>haloSpinDistributionMethod</name>
+      <value>Bett2007</value>
+      <value>lognormal</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>ionizationStateFile</name>
+      <value>data/ionization_state_Atomic_CIE_Cloudy.xml</value>
+    </parameter>
+    <parameter>
+      <name>ionizationStateMethod</name>
+      <value>atomic_CIE_Cloudy</value>
+      <value>CIE_from_file</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>mergerTreeReadFileName</name>
+      <value>testSuite/test-MergerTrees.hdf5</value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeConstructMethod</name>
+      <value>smoothAccretion</value>
+      <value>build</value>
+<!-- Disabled until new N-body format is finished. -->
+<!--       <value>read</value> -->
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>satelliteMergingMethod</name>
+      <value>BoylanKolchin2008</value>
+      <value>Lacey-Cole</value>
+      <value>Jiang2008</value>
+    </parameter>
+  </parameters>
+  <parameters>
+<!-- Use fairly strict limits on the outflow timescales to avoid unstable evolution. -->
+    <parameter>
+      <name>diskOutflowTimescaleMinimum</name>
+      <value>0.1</value>
+    </parameter>
+    <parameter>
+      <name>spheroidOutflowTimescaleMinimum</name>
+      <value>0.1</value>
+    </parameter>
+    <parameter>
+      <name>stellarPopulationPropertiesMethod</name>
+      <value>instantaneous</value>
+      <value>noninstantaneous</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>stellarPopulationSpectraFile</name>
+      <value>data/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5</value>
+    </parameter>
+    <parameter>
+      <name>stellarPopulationSpectraMethod</name>
+      <value>Conroy, White &amp; Gunn</value>
+      <value>file</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>stellarPopulationSpectraPostprocessMethod</name>
+      <value>Meiksin2006</value>
+      <value>Madau1995</value>
+      <value>null</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <!-- <parameter> -->
+    <!--   <name>transferFunctionFile</name> -->
+    <!--   <value>??????</value> -->
+    <!-- </parameter> -->
+    <parameter>
+      <name>transferFunctionMethod</name>
+      <!-- <value>file</value> -->
+      <value>BBKS</value>
+      <value>CMBFast</value>
+      <value>Eisenstein + Hu</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>virialDensityContrastMethod</name>
+      <value>spherical top hat</value>
+      <value>Bryan + Norman</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>virialOrbitsMethod</name>
+      <value>Wetzel2010</value>
+      <value>Benson2005</value>
+    </parameter>
+  </parameters>
+</parameterGrid>

@@ -9,9 +9,22 @@ The file {\tt galacticusConfig.xml}, is present, is used to configure \glc\ and 
     <name>My Name</name>
     <email>me@ivory.towers.edu</email>
   </contact>
+  <email>
+    <host>
+      <name>myComputerHostName</name>
+      <method>smtp</method>
+      <host>smtp-server.ivory.towers.edu</host>
+      <user>myUserName</user>
+      <passwordFrom>kdewallet</passwordFrom>
+    </host>
+    <host>
+      <name>default</name>
+      <method>sendmail</method>
+    </host>
+  </email>
 </config>
 \end{verbatim}
-The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model.
+The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\tt email} section determines how e-mail will be sent. Within this section, you can place one or more {\tt host} elements, the {\tt name} element of which specifies the host name of the computer to which these rules apply (the {\tt default} host is used if no other match is found). For each host, the {\tt method} element specifies how e-mail should be sent, either by {\tt sendmail} or via {\tt smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\tt host} SMTP server, {\tt user} name. The {\tt passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\tt input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, setting {\tt passwordFrom} to {\tt kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
 
 \section{Parameter Files}
 
@@ -97,7 +110,11 @@ This will launch a single instance of the script. Multiple instances can be laun
 \end{verbatim}
 Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values.
 
-By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur.
+By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur. Additional options that may be present in the file (as elements within the {\tt parameterGrid} element) are:
+\begin{description}
+\item[{\tt doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be;
+\item[{\tt emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\tt galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.
+\end{description}
 
 In addition to the {\tt galacticus.hdf5} output file, each model directory will contain a file {\tt newParameters.xml} which contains the parameters used to run the model and {\tt galacticus.log} which contains any output from \glc\ during the run.
 
