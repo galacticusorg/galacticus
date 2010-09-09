@@ -85,30 +85,41 @@ You can easily write your own scripts to generate parameter files and run \glc\ 
 This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). The {\tt runFile} is an XML file with the following structure:
 \begin{verbatim}
 <parameterGrid>
-  <modelRootDirectory>models.new</modelRootDirectory>
-  <baseParameters>newBestParametersQuick.xml</baseParameters>
-  <parameters>
-   <parameter>
-    <name>stabilityThresholdStellar</name>
-    <value>1.1</value>
-    <value>0.9</value>
-   </parameter>
-  </parameters>
-  <parameters>
-   <parameter>
-    <name>stabilityThresholdGaseous</name>
-    <value>1.1</value>
-    <value>0.9</value>
-   </parameter>
-   <parameter>
-    <name>imfSalpeterYieldInstantaneous</name>
-    <value>0.02</value>
-    <value>0.04</value>
-   </parameter>
-  </parameters>
+ <modelRootDirectory>models.new</modelRootDirectory>
+ <baseParameters>newBestParametersQuick.xml</baseParameters>
+ <parameters>
+  <parameter>
+   <name>stabilityThresholdStellar</name>
+   <value>1.1</value>
+   <value>0.9</value>
+  </parameter>
+ </parameters>
+ <parameters>
+  <parameter>
+   <name>stabilityThresholdGaseous</name>
+   <value>1.1</value>
+   <value>0.9</value>
+  </parameter>
+  <parameter>
+   <name>imfSalpeterYieldInstantaneous</name>
+   <value>0.02</value>
+   <value>0.04</value>
+  </parameter>
+  <parameter>
+   <name>starFormationTimescaleDisksMethod</name>
+   <value>Kennicutt-Schmidt
+    <parameter>
+     <name>starFormationKennicuttSchmidtTruncate</name>
+     <value>true</value>
+     <value>false</value>
+    </parameter>
+   </value>
+   <value>dynamical time</value>
+  </parameter>
+ </parameters>
 </parameterGrid>
 \end{verbatim}
-Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values.
+Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values. Additionally, any {\tt value} element may contain further {\tt parameter} elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\tt [starFormationKennicuttSchmidtTruncate]}$=${\tt true} and {\tt false} only when {\tt [starFormationTimescaleDisksMethod]}$=${\tt Kennicutt-Schmidt} and not when {\tt [starFormationTimescaleDisksMethod]}$=${\tt dynamical time}.
 
 By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur. Additional options that may be present in the file (as elements within the {\tt parameterGrid} element) are:
 \begin{description}

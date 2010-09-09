@@ -2,6 +2,7 @@
 use lib "./perl";
 use XML::Simple;
 use Data::Dumper;
+use Data::Compare;
 use File::Copy;
 use System::Redirect;
 use MIME::Lite;
@@ -27,10 +28,10 @@ if ( -e "galacticusConfig.xml" ) {
 
 # Determine root directory for models.
 $rootDirectory = "models";
-if ( exists($modelsToRun->{'modelRootDirectory'}) ) {$rootDirectory = ${$modelsToRun->{'modelRootDirectory'}}[0]};
+if ( exists($modelsToRun->{'modelRootDirectory'}) ) {$rootDirectory  = ${$modelsToRun->{'modelRootDirectory'}}[0]};
 
 # Determine the base set of parameters to use.
-if ( exists($modelsToRun->{'baseParameters'}) ) {$baseParameters = ${$modelsToRun->{'baseParameters'}}[0]};
+if ( exists($modelsToRun->{'baseParameters'}    ) ) {$baseParameters = ${$modelsToRun->{'baseParameters'}    }[0]};
 
 # Record where we are running.
 $pwd = `pwd`;
@@ -45,25 +46,13 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
     # Increment model set counter.
     ++$iModelSet;
 
-    # Count up the number of models to run and the periodicity in each parameter.
-    undef(%modelsPeriod);
-    $modelsCount = 1;
-    foreach $parameter ( @{$parameterSet->{'parameter'}} ) {
-	$modelsPeriod{${$parameter->{'name'}}[0]} = $modelsCount;
-	$modelsCount *= $#{$parameter->{'value'}}+1;
-    }
-    
-    # Generate an array of parameter hashes which specifies the parameter values for each model.
-    for($iModel=0;$iModel<$modelsCount;++$iModel) {
-	undef(%{$models[$iModel]});
-	foreach $parameter ( @{$parameterSet->{'parameter'}} ) {
-	    $index = int($iModel/$modelsPeriod{${$parameter->{'name'}}[0]}) % ($#{$parameter->{'value'}}+1);
-	    ${$models[$iModel]}{${$parameter->{'name'}}[0]} = ${$parameter->{'value'}}[$index];
-	}
-    }
+    # Create an array of hashes giving the parameters for this parameter set.
+    @parameterHashes = &Create_Parameter_Hashes($parameterSet);
 
     # Loop over all models and run them.
-    for($iModel=0;$iModel<$modelsCount;++$iModel) {
+    $iModel = 0;
+    foreach $parameterHash ( @parameterHashes ) {
+	++$iModel;
 
 	# Increment random seed.
 	++$randomSeed;
@@ -89,7 +78,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
 	    }
 
 	    # Set the output file name.
-	    $parameterHash{'galacticusOutputFile'} = $galacticusOutputFile;
+	    $parameterHash{'galacticusOutputFileName'} = $galacticusOutputFile;
 
 	    # Set the random seed.
 	    $parameterHash{'randomSeed'} = $randomSeed unless ( exists($parameterHash{'randomSeed'}) );
@@ -99,8 +88,8 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
 	    $parameterHash{'stateFileRoot'}      = $stateFile;
 
 	    # Transfer parameters for this model from the array of model parameter hashes to the active hash.
-	    foreach $parameter ( keys(%{$models[$iModel]}) ) {
-		$parameterHash{$parameter} = ${$models[$iModel]}{$parameter};
+	    foreach $parameter ( keys(%{$parameterHash}) ) {
+		$parameterHash{$parameter} = ${$parameterHash}{$parameter};
 	    }
 	    
 	    # Transfer values from the active hash to an array suitable for XML output.
@@ -169,5 +158,125 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
     }
 }
 
-
 exit;
+
+sub Create_Parameter_Hashes {
+    # Create an array of hashes which give the parameter values for each model.
+
+    # Get the input parameters structure.
+    my $parameterSet = shift;
+
+    # Initalizes hash which record which parameter combinations have already been processed.
+    my %doneCases;
+
+    # Initalize array of hashes that we will return.
+    my @parameterHashes;
+
+    # Create a list of all parameters in the structure.
+    my @parameterPointer;
+    my $parameterID        = 0;
+    my $processedParameter = -1;
+
+    # Set the first parameter pointer to point to the input object.
+    $parameterPointer[0] = $parameterSet;
+    while ( $processedParameter < $#parameterPointer ) {
+	# Move to the next parameter to process.
+	++$processedParameter;
+	# Add the array of parameters to the list.
+	my @thisParameterArrays;
+	if ( exists($parameterPointer[$processedParameter]->{'parameter'}) ) {
+	    $thisParameterArrays[0] = $parameterPointer[$processedParameter]->{'parameter'};
+	} elsif ( exists($parameterPointer[$processedParameter]->{'value'}) ) {
+	    foreach my $valueElement ( @{$parameterPointer[$processedParameter]->{'value'}} ) {
+		if ( exists($valueElement->{'parameter'}) ) {
+		    $thisParameterArrays[++$#thisParameterArrays] = $valueElement->{'parameter'};
+		}
+	    }
+	}
+	if ( defined(@thisParameterArrays) ) {
+	    # Add any detected parameter arrays to the list.
+	    foreach my $thisParameterArray ( @thisParameterArrays ) {
+		# Loop over each parameter in the array.
+		foreach $parameter ( @{$thisParameterArray} ) {
+		    # Store a pointer to the parameter.
+		    $parameterPointer[++$#parameterPointer] = $parameter;
+		    # Set an index counter (for its <value> elements) to zero.
+		    $parameter->{'index'}  = 0;
+		    # Set a unique ID for this parameter.
+		    ++$parameterID;
+		    $parameter->{'ID'}     = $parameterID;
+		}
+	    }
+	}
+    }
+
+    # Step through parameter combinations until all have been done.
+    my $done = 0;
+    until ( $done == 1 ) {
+	# Build parameter hash.
+	my @currentParameterPointer;
+	my $currentProcessedParameter = -1;
+
+	# Build a list of currently active parameters (i.e. those which are defined at the base level or within a currently used <value> element).
+	$currentParameterPointer[0] = $parameterSet;
+	while ( $currentProcessedParameter < $#currentParameterPointer ) {
+	    ++$currentProcessedParameter;
+	    # Add the array of parameters to the list.
+	    my $thisParameterArray;
+	    if ( exists($currentParameterPointer[$currentProcessedParameter]->{'parameter'}) ) {
+		$thisParameterArray = $currentParameterPointer[$currentProcessedParameter]->{'parameter'};
+	    } elsif ( exists($currentParameterPointer[$currentProcessedParameter]->{'value'}) ) {
+		my $valueElement = ${$currentParameterPointer[$currentProcessedParameter]->{'value'}}[$currentParameterPointer[$currentProcessedParameter]->{'index'}];
+		if ( exists($valueElement->{'parameter'}) ) {
+		    $thisParameterArray = $valueElement->{'parameter'};
+		}
+	    }
+	    if ( defined($thisParameterArray) ) {
+		my $iParameter = -1;
+		foreach my $parameter ( @{$thisParameterArray} ) {
+		    ++$iParameter;
+		    $currentParameterPointer[++$#currentParameterPointer] = $parameter;
+		}
+	    }
+	}
+
+	# Build a parameter hash including only active parameters.
+	my %parameters;
+	my $label = "";
+	foreach $parameter ( @currentParameterPointer ) {
+	    if ( exists($parameter->{'name'}) ) {
+		if ( exists(${$parameter->{'value'}}[$parameter->{'index'}]->{'content'}) ) {
+		    $value = ${$parameter->{'value'}}[$parameter->{'index'}]->{'content'};
+		    $value =~ s/^\s*//;
+		    $value =~ s/\s*$//;
+		} else {
+		    $value = ${$parameter->{'value'}}[$parameter->{'index'}];
+		}
+		$parameters{${$parameter->{'name'}}[0]} = $value;
+		$label .= ":".$parameter->{'ID'}.".".$parameter->{'index'};
+	    }
+	}
+
+	# If the parameter set with this label has not yet been added, add it now.
+	unless ( exists($doneCases{$label}) ) {	   
+	    %{$parameterHashes[++$#parameterHashes]} = %parameters;
+	    $doneCases{$label} = 1;
+	}
+
+	# See if we find a parameter to increment.
+	$done = 1;
+	for($iParameter=$#parameterPointer;$iParameter>0;--$iParameter) {
+	    if ( $parameterPointer[$iParameter]->{'index'} < $#{$parameterPointer[$iParameter]->{'value'}} ) {
+		++$parameterPointer[$iParameter]->{'index'};
+		for($jParameter=$iParameter+1;$jParameter<=$#parameterPointer;++$jParameter) {
+		    $parameterPointer[$jParameter]->{'index'} = 0;
+		}
+		$done = 0;
+		last;
+	    }
+	}
+    }
+
+    # Return the array of parameter hashes.
+    return @parameterHashes;
+}
