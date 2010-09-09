@@ -471,14 +471,10 @@ contains
        fuelMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
        
        ! Find the metallicity of the fuel supply.
-       if (fuelMass > 0.0d0) then
-          call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundanceMasses)
-          abundanceMasses=max(min(abundanceMasses/fuelMass,1.0d0),0.0d0)
-       else
-          abundanceMasses=0.0d0
-       end if
+       call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundanceMasses)
        call fuelAbundances%pack(abundanceMasses)
-       
+       call fuelAbundances%massToMassFraction(fuelMass)
+
        ! Get the component index.
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
        

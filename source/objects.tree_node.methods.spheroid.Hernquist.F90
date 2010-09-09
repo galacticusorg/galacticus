@@ -557,14 +557,10 @@ contains
        fuelMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
        
        ! Find the metallicity of the fuel supply.
-       if (fuelMass > 0.0d0) then
-          call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
-          abundanceMasses=max(min(abundanceMasses/fuelMass,1.0d0),0.0d0)
-       else
-          abundanceMasses=0.0d0
-       end if
+       call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
        call fuelAbundances%pack(abundanceMasses)
-       
+       call fuelAbundances%massToMassFraction(fuelMass)
+
        ! Get the component index.
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
        
@@ -604,7 +600,7 @@ contains
           ! Compute the angular momentum outflow rate.
           angularMomentumOutflowRate=massOutflowRate*Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode)/spheroidMass
           call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
-          abundanceMasses=max(min(abundanceMasses/gasMass,1.0d0),0.0d0)
+          call Abundances_Mass_To_Mass_Fraction(abundanceMasses,gasMass)
           abundancesOutflowRate=massOutflowRate*abundanceMasses
           call Tree_Node_Hot_Halo_Outflow_Mass_To                       (thisNode,interrupt,interruptProcedure,&
                & massOutflowRate           )

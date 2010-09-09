@@ -190,9 +190,9 @@ contains
           
           ! Get the abundances for this node.
           call Tree_Node_Hot_Halo_Abundances(thisNode,abundancesMassFraction)
-          abundancesMassFraction=min(max(abundancesMassFraction/Tree_Node_Hot_Halo_Mass(thisNode),0.0d0),1.0d0)
           call abundances%pack(abundancesMassFraction)
-          
+          call abundances%massToMassFraction(Tree_Node_Hot_Halo_Mass(thisNode))
+
           ! Logarithmic slope of the cooling time-density relation.
           coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,abundances,radiation)
           
@@ -294,8 +294,8 @@ contains
  
     ! Get the abundances for this node.
     call Tree_Node_Hot_Halo_Abundances(activeNode,abundancesMassFraction)
-    abundancesMassFraction=min(max(abundancesMassFraction/Tree_Node_Hot_Halo_Mass(activeNode),0.0d0),1.0d0)
     call abundances%pack(abundancesMassFraction)
+    call abundances%massToMassFraction(Tree_Node_Hot_Halo_Mass(activeNode))
     ! Set the radiation field.
     call radiation%setCMB(Tree_Node_Time(activeNode))
     ! Compute the cooling time at the specified radius.

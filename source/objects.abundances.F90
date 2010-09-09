@@ -65,7 +65,8 @@ module Abundances_Structure
   !% Defines the abundances structure used for describing elemental abundances in \glc.
   use Numerical_Constants_Astronomical
   private
-  public :: abundancesStructure, Abundances_Names, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity
+  public :: abundancesStructure, Abundances_Names, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
+       &, Abundances_Mass_To_Mass_Fraction
   
   type abundancesStructure
      !% The abundances structure used for describing elemental abundances in \glc.
@@ -98,9 +99,14 @@ module Abundances_Structure
      !@     <method>metallicitySet(metallicity)</method>
      !@     <description>Sets the metallicity to {\tt metallicity}.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>massToMassFraction(mass)</method>
+     !@     <description>Converts abundance masses to mass fractions by dividing by the given {\tt mass} while ensuring that fractions are in the range 0--1.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure                 :: metallicity            => Abundances_Get_Metallicity
      procedure                 :: metallicitySet         => Abundances_Set_Metallicity
+     procedure                 :: massToMassFraction     => Abundances_Mass_To_Mass_Fraction_Packed
      ! Hydrogen/helium methods.
      !@ <objectMethods>
      !@   <object>abundancesStructure</object>
@@ -412,6 +418,54 @@ contains
     end if
     return
   end subroutine Abundances_Set_Metallicity
+
+  subroutine Abundances_Mass_To_Mass_Fraction_Packed(abundances,mass)
+    !% Convert abundance masses to mass fractions by dividing by {\tt mass} while ensuring that the fractions remain within the range 0--1.
+    implicit none
+    type(abundancesStructure), intent(inout) :: abundances
+    double precision,          intent(in)    :: mass
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    ! Scale metallicity first.
+    if      (abundances%metallicityValue >  mass ) then
+       abundances%metallicityValue=1.0d0
+    else if (abundances%metallicityValue <= 0.0d0) then
+       abundances%metallicityValue=0.0d0
+    else
+       abundances%metallicityValue=abundances%metallicityValue/mass
+    end if
+    
+    ! Scale elemental abundances.
+    if (elementsCount > 0) then
+       where     (abundances%elementalValue >  mass )
+          abundances%elementalValue=1.0d0
+       elsewhere (abundances%elementalValue <= 0.0d0)
+          abundances%elementalValue=0.0d0
+       elsewhere
+          abundances%elementalValue=abundances%elementalValue/mass
+       end where
+    end if
+    return
+  end subroutine Abundances_Mass_To_Mass_Fraction_Packed
+
+  subroutine Abundances_Mass_To_Mass_Fraction(abundances,mass)
+    !% Convert abundance masses to mass fractions by dividing by {\tt mass} while ensuring that the fractions remain within the range 0--1.
+    implicit none
+    double precision, intent(inout), dimension(:) :: abundances
+    double precision, intent(in)                  :: mass
+    
+    ! Scale abundances.
+    where     (abundances >  mass )
+       abundances=1.0d0
+    elsewhere (abundances <= 0.0d0)
+       abundances=0.0d0
+    elsewhere
+       abundances=abundances/mass
+    end where
+    return
+  end subroutine Abundances_Mass_To_Mass_Fraction
 
   double precision function Abundances_Hydrogen_Mass_Fraction(abundances)
     !% Returns the mass fraction of hydrogen.
