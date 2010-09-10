@@ -4,6 +4,7 @@ use XML::Simple;
 use Data::Dumper;
 use Data::Compare;
 use File::Copy;
+use File::Slurp qw( slurp );
 use System::Redirect;
 use MIME::Lite;
 use IO::Compress::Simple;
