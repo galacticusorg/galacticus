@@ -534,6 +534,8 @@ contains
           if (gasDensity > 0.0d0) then
              ! Get the Jeans length scale.
              jeansLength=Ideal_Gas_Jeans_Length(bondiHoyleAccretionTemperatureSpheroid,gasDensity)
+             ! Limit the smoothing scale to the scale of the spheroid.
+             jeansLength=min(jeansLength,Tree_Node_Spheroid_Radius(thisNode))
 
              ! If the Jeans length exceeds the Bondi-Hoyle-Lyttleton accretion radius, then recompute gas density for a larger
              ! radius, as the gas should be smoothly distributed on scales below the Jeans length.
