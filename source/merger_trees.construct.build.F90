@@ -82,7 +82,7 @@ module Merger_Tree_Build
   type(varying_string) :: mergerTreeBuildMethod
   ! Pointer to the subroutine that builds the merger tree.
   procedure(Merger_Tree_Builder_Template), pointer :: Merger_Tree_Builder => null()
-  interface Merger_Tree_Builder_Template
+  abstract interface
      subroutine Merger_Tree_Builder_Template(thisTree)
        import mergerTree
        type(mergerTree), intent(inout) :: thisTree
@@ -105,6 +105,7 @@ contains
     use Sort
     use Galacticus_Error
     use Numerical_Ranges
+    use ISO_Varying_String
     !# <include directive="mergerTreeBuildMethod" type="moduleUse">
     include 'merger_trees.build.modules.inc'
     !# </include>

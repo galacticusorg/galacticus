@@ -97,7 +97,9 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('galacticusOutputFileName',galacticusOutputFileName,defaultValue='galacticus.hdf5',writeOutput=.false.)
        ! Open the file.
+       !$omp critical(HDF5_Access)
        call galacticusOutputFile%openFile(char(galacticusOutputFileName),overWrite=.true.,objectsOverwritable=.false.)
+       !$omp end critical(HDF5_Access)
        ! Get file name parameter again and write it to the output file.
        call Get_Input_Parameter('galacticusOutputFileName',galacticusOutputFileName,defaultValue='galacticus.hdf5')
        ! Read parameters.
@@ -148,7 +150,9 @@ contains
     !# </include>
 
     ! Close the file.
+    !$omp critical(HDF5_Access)
     call galacticusOutputFile%close()
+    !$omp end critical(HDF5_Access)
     return
   end subroutine Galacticus_Output_Close_File
 

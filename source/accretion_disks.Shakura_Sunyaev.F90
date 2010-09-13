@@ -79,7 +79,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: accretionDisksMethod
-    procedure(),          pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get&
+    procedure(double precision), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get&
          &,Accretion_Disk_Jet_Power_Get
     
     if (accretionDisksMethod == 'Shakura-Sunyaev') then

@@ -81,8 +81,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: starFormationTimescaleSpheroidsMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_Timescale_Spheroid_Get
+    type(varying_string),                 intent(in)    :: starFormationTimescaleSpheroidsMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Spheroid_Get
     
     if (starFormationTimescaleSpheroidsMethod == 'dynamical time') then
        Star_Formation_Timescale_Spheroid_Get => Star_Formation_Timescale_Spheroid_Dynamical_Time
