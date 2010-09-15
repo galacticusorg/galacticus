@@ -127,7 +127,11 @@ contains
        haloMassFunctionLogAbundance(iMass)=(Omega_0()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0*nuPrime/Pi)*normalization&
             &*(1.0d0+1.0d0/nuPrime**p) *dexp(-0.5d0*nuPrime)
     end do
-    haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
+    where (haloMassFunctionLogAbundance > 0.0d0)
+       haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
+    elsewhere
+       haloMassFunctionLogAbundance=-1000.0d0
+    end where
     
     return
   end subroutine Halo_Mass_Function_Sheth_Tormen_Tabulate

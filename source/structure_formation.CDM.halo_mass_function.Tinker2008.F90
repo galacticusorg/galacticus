@@ -153,13 +153,14 @@ contains
     use Cosmology_Functions
     use FGSL
     use Numerical_Interpolation
+    use Linear_Growth
     implicit none
     double precision,                            intent(in)    :: time,logMass
     double precision, allocatable, dimension(:), intent(inout) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
     integer,                                     intent(out)   :: haloMassFunctionNumberPoints
     integer                                                    :: iMass
     double precision                                           :: mass,sigma,alpha,normalization,a,b,c,expansionFactor,Delta,a0&
-         &,b0,c0,alphaDelta,normalization0
+         &,b0,c0,alphaDelta,normalization0,growthFactor
     type(fgsl_interp),       save                              :: interpolationObject
     type(fgsl_interp_accel), save                              :: interpolationAccelerator
     logical,                 save                              :: resetInterpolation=.true.
@@ -181,6 +182,7 @@ contains
 
     expansionFactor=Expansion_Factor            (time)
     Delta          =Halo_Virial_Density_Contrast(time)
+    growthFactor   =Linear_Growth_Factor        (time)
 
     normalization0=Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableNormalization &
          &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation)   
@@ -202,13 +204,16 @@ contains
     haloMassFunctionLogMass=Make_Range(logMassMinimum,logMassMaximum,haloMassFunctionNumberPoints,rangeTypeLinear)
     do iMass=1,haloMassFunctionNumberPoints
        mass=dexp(haloMassFunctionLogMass(iMass))
-       sigma=sigma_CDM(mass)
+       sigma=sigma_CDM(mass)*growthFactor
        alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
        haloMassFunctionLogAbundance(iMass)=(Omega_0()*Critical_Density()/mass**2)*alpha*normalization*dexp(-c/sigma**2)*(1.0d0+(b&
             &/sigma)**a)
     end do
-    haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
-    
+    where (haloMassFunctionLogAbundance > 0.0d0)
+       haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
+    elsewhere
+       haloMassFunctionLogAbundance=-1000.0d0
+    end where
     return
   end subroutine Halo_Mass_Function_Tinker2008_Tabulate
   
