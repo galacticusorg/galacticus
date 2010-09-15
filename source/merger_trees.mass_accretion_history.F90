@@ -102,6 +102,7 @@ contains
     type(hdf5Object)                            :: treeGroup,accretionDataset
 
     ! Check if module is initialized.
+    !$omp critical(accretionHistoryModuleInitialize)
     if (.not.accretionHistoryModuleInitialized) then
        ! Get parameter specifying if output is required.
        !@ <inputParameter>
@@ -119,6 +120,7 @@ contains
        ! Flag that module is initialized.
        accretionHistoryModuleInitialized=.true.
     end if
+    !$omp end critical(accretionHistoryModuleInitialize)
 
     ! Output the mass accretion history.
     if (massAccretionHistoryOutput) then
