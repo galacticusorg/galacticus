@@ -511,4 +511,8 @@
     <name>zeroCoolingRateAboveVelocity</name>
     <value>10000</value>
   </parameter>
+  <parameter>
+    <name>mergerTreeBuildTreesProcessDescending</name>
+    <value>true</value>
+  </parameter>
 </parameters>

@@ -74,6 +74,9 @@ module Merger_Tree_Build
   integer              :: mergerTreeBuildTreesPerDecade,mergerTreeBuildTreesBeginAtTree
   type(varying_string) :: mergerTreeBuildTreesHaloMassDistribution
 
+  ! Direction in which to process trees.
+  logical              :: mergerTreeBuildTreesProcessDescending
+
   ! Array of halo masses to use.
   integer                                     :: treeCount,nextTreeIndex
   double precision, allocatable, dimension(:) :: treeHaloMass,treeWeight
@@ -186,12 +189,22 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesHaloMassExponent',mergerTreeBuildTreesHaloMassExponent,defaultValue=1.0d0)
+       !@ <inputParameter>
+       !@   <name>mergerTreeBuildTreesProcessDescending</name>
+       !@   <defaultValue>false</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     If true, causes merger trees to be processed in order of decreasing mass.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.false.)
+
        ! Generate a randomly sampled set of halo masses.
        treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
        call Alloc_Array(treeHaloMass,[treeCount])
        call Alloc_Array(treeWeight  ,[treeCount])
 
-      ! Create a distribution of halo masses.
+       ! Create a distribution of halo masses.
        select case (char(mergerTreeBuildTreesHaloMassDistribution))
        case ("quasi")
           ! Use a quasi-random sequence to generate halo masses.
@@ -257,6 +270,7 @@ contains
     implicit none
     type(mergerTree), intent(inout) :: thisTree
     logical,          intent(in)    :: skipTree
+    integer                         :: thisTreeIndex
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
@@ -267,14 +281,23 @@ contains
        ! Take a snapshot of the internal state and store it.
        call Galacticus_State_Snapshot
        call Galacticus_State_Store
+       ! Determine the index of the tree to process.
+       select case (mergerTreeBuildTreesProcessDescending)
+       case(.false.)
+          ! Processing trees in ascending order, to just use nextTreeIndex as the index of the tree to process.
+          thisTreeIndex=nextTreeIndex
+       case(.true. )
+          ! Processing trees in descending order, so begin from the final index and work back.
+          thisTreeIndex=treeCount+1-nextTreeIndex
+       end select
        ! Give the tree an index.
-       thisTree%index=nextTreeIndex
+       thisTree%index=thisTreeIndex
        ! Create the base node.
        call thisTree%createNode(thisTree%baseNode,1)
        ! Assign a weight to the tree.
-       thisTree%volumeWeight=treeWeight(nextTreeIndex)
+       thisTree%volumeWeight=treeWeight(thisTreeIndex)
        ! Assign a mass to it.
-       call Tree_Node_Mass_Set(thisTree%baseNode,treeHaloMass(nextTreeIndex))
+       call Tree_Node_Mass_Set(thisTree%baseNode,treeHaloMass(thisTreeIndex))
        ! Assign a time.
        call Tree_Node_Time_Set(thisTree%baseNode,mergerTreeBuildTreesBaseTime)
        ! Increment the tree index counter.
