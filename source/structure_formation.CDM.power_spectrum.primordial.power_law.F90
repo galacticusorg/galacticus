@@ -152,7 +152,7 @@ contains
     powerSpectrumLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,powerSpectrumNumberPoints,rangeTypeLinear)
     do iWavenumber=1,powerSpectrumNumberPoints
        wavenumber=dexp(powerSpectrumLogWavenumber(iWavenumber))
-       powerSpectrumLogP(iWavenumber)=(powerSpectrumIndex+powerSpectrumRunning*dlog(wavenumber&
+       powerSpectrumLogP(iWavenumber)=(powerSpectrumIndex+0.5d0*powerSpectrumRunning*dlog(wavenumber&
             &/powerSpectrumReferenceWavenumber))*powerSpectrumLogWavenumber(iWavenumber)
     end do
     

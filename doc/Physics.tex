@@ -58,7 +58,7 @@ Selected via {\tt powerSpectrumMethod}$=${\tt power law}, this method implements
 \end{equation}
 where
 \begin{equation}
- n_{\rm eff}(k) = n_{\rm s} + {\d n \over \d \ln k} {k \over k_{\rm ref}},
+ n_{\rm eff}(k) = n_{\rm s} + {1\over 2}{\d n \over \d \ln k} \ln \left( {k \over k_{\rm ref}} \right),
 \end{equation}
 where $n_{\rm s}=${\tt powerSpectrumIndex} is the power spectrum index at wavenumber $k_{\rm ref}=${\tt powerSpectrumReferenceWavenumber} and $\d n / \d \ln k=${\tt powerSpectrumRunning} describes the running of this index with wavenumber.
 
