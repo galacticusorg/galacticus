@@ -127,11 +127,13 @@ contains
     use Galactic_Structure_Options
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 parameter              :: iterationMaximum=100
-    double precision,        parameter              :: fitMeasureAcceptable=1.0d-2
-    logical                                         :: componentActive,galaxyIsPhysicallyPlausible
-    double precision                                :: specificAngularMomentum
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    integer,                           parameter              :: iterationMaximum=100
+    double precision,                  parameter              :: fitMeasureAcceptable=1.0d-2
+    procedure(Structure_Get_Template),                pointer :: Radius_Get => null(), Velocity_Get => null()
+    procedure(Structure_Set_Template),                pointer :: Radius_Set => null(), Velocity_Set => null()
+    logical                                                   :: componentActive,galaxyIsPhysicallyPlausible
+    double precision                                          :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
     galaxyIsPhysicallyPlausible=.true.
@@ -140,7 +142,7 @@ contains
        ! Initialize the solver state.
        iterationCount=0
        fitMeasure    =2.0d0*fitMeasureAcceptable
-       
+
        ! Compute fraction of mass distribution as the halo. Truncate this to zero: we can get negative values if the ODE solver is
        ! exploring regimes of high baryonic mass, and this would cause problems.
        haloFraction=max(1.0d0-Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)/Tree_Node_Mass(thisNode),0.0d0)
@@ -166,8 +168,8 @@ contains
     end if
     return
   end subroutine Galactic_Structure_Radii_Solve_Adiabatic
-  
-  subroutine Solve_For_Radius(thisNode,specificAngularMomentum)
+
+  subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Profiles
     use Dark_Matter_Halo_Scales
@@ -176,11 +178,13 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: specificAngularMomentum
-    double precision                         :: radius,velocity,virialRadius,angularMomentumC,angularMomentumCPrimed &
-         &,radiusInitial,haloMassInitial,darkMatterMassFinal,darkMatterVelocitySquared,baryonicVelocitySquared,radiusNew &
-         &,specificAngularMomentumPrimed
+    type(treeNode),                    pointer, intent(inout) :: thisNode
+    double precision,                           intent(in)    :: specificAngularMomentum
+    procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
+    procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
+    double precision                                          :: radius,velocity,virialRadius,angularMomentumC&
+         &,angularMomentumCPrimed ,radiusInitial,haloMassInitial,darkMatterMassFinal,darkMatterVelocitySquared&
+         &,baryonicVelocitySquared,radiusNew ,specificAngularMomentumPrimed
 
     ! Count the number of active comonents.
     activeComponentCount=activeComponentCount+1
@@ -188,6 +192,7 @@ contains
     if (iterationCount == 1) then
        ! On first iteration, see if we have a previous radius set for this component.
        radius=Radius_Get(thisNode)
+
        if (radius <= 0.0d0) then
           ! No previous radius was set, so make a simple estimate of sizes of all components ignoring adiabatic contraction and self-gravity.
 

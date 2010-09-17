@@ -82,7 +82,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: coolingRateMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Rate_Get
+    procedure(double precision), pointer, intent(inout) :: Cooling_Rate_Get
     
     if (coolingRateMethod == 'White + Frenk') then
        Cooling_Rate_Get => Cooling_Rate_White_Frenk

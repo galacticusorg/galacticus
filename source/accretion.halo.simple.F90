@@ -82,8 +82,8 @@ contains
     use Input_Parameters
     use Cosmology_Functions
     implicit none
-    type(varying_string),          intent(in)    :: accretionHalosMethod
-    procedure(),          pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get&
+    type(varying_string),                 intent(in)    :: accretionHalosMethod
+    procedure(double precision), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get&
          &,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get
     
     if (accretionHalosMethod == 'simple') then

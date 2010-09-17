@@ -93,15 +93,15 @@ contains
     use Input_Parameters
     use String_Handling
     implicit none
-    type(varying_string),          intent(in)    :: stellarTracksMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get
-    type(varying_string)                         :: stellarTracksFile,metallicityGroup,massGroup
-    integer                                      :: errorCode,groupCount,iGroup,objectType,initialMassCount&
+    type(varying_string),                 intent(in)    :: stellarTracksMethod
+    procedure(double precision), pointer, intent(inout) :: Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get
+    type(varying_string)                                :: stellarTracksFile,metallicityGroup,massGroup
+    integer                                             :: errorCode,groupCount,iGroup,objectType,initialMassCount &
          &,initialMassCountMaximum ,ageCountMaximum,iSubGroup,subGroupCount,subObjectType,typeClass,metallicityCountMaximum
-    integer(HSIZE_T)                             :: dimensions(1)
-    integer(HID_T)                               :: fileIndex
-    integer(SIZE_T)                              :: typeSize
-    character(len=128)                           :: objectName,subObjectName
+    integer(HSIZE_T)                                    :: dimensions(1)
+    integer(HID_T)                                      :: fileIndex
+    integer(SIZE_T)                                     :: typeSize
+    character(len=128)                                  :: objectName,subObjectName
 
     ! Check if our method is selected.
     if (stellarTracksMethod == 'file') then
@@ -121,6 +121,7 @@ contains
        call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue='data/Stellar_Tracks_Padova.hdf5')
        
        ! Open the HDF5 file.
+       !$omp critical(HDF5_Access)
        call h5fopen_f(char(stellarTracksFile),H5F_ACC_RDONLY_F,fileIndex,errorCode)
        
        ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
@@ -140,7 +141,7 @@ contains
                    initialMassCount=initialMassCount+1
                    call h5ltget_dataset_info_f(fileIndex,"./"//trim(objectName)//"/"//trim(subObjectName)//"/age",dimensions&
                         &,typeClass,typeSize,errorCode)
-                   ageCountMaximum=max(ageCountMaximum,dimensions(1))
+                   ageCountMaximum=max(ageCountMaximum,int(dimensions(1)))
                 end if
              end do
              initialMassCountMaximum=max(initialMassCountMaximum,initialMassCount)
@@ -181,7 +182,7 @@ contains
                   &,stellarTrackInitialMasses(initialMassCount:initialMassCount,stellarTrackMetallicityCount),dimensions,errorCode)          
              ! Read tracks.
              call h5ltget_dataset_info_f(fileIndex,char(massGroup)//"/age",dimensions,typeClass,typeSize,errorCode)
-             stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount)=dimensions(1)
+             stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount)=int(dimensions(1))
              call h5ltread_dataset_double_f(fileIndex,char(massGroup//"/age"                 ),stellarTrackAges       &
                   & (1:dimensions(1),initialMassCount ,stellarTrackMetallicityCount),dimensions,errorCode)
              call h5ltread_dataset_double_f(fileIndex,char(massGroup//"/luminosity"          )&
@@ -196,6 +197,7 @@ contains
 
        ! Close the file.
        call h5fclose_f(fileIndex,errorCode)       
+       !$omp end critical(HDF5_Access)
 
     end if
     return

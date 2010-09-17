@@ -184,12 +184,12 @@ module IO_HDF5
      procedure :: IO_HDF5_Write_Dataset_Double_4D
      procedure :: IO_HDF5_Write_Dataset_Double_5D
      generic   :: writeDataset        => IO_HDF5_Write_Dataset_Integer_1D        , &
-     &                                   IO_HDF5_Write_Dataset_Integer8_1D       , &
-     &                                   IO_HDF5_Write_Dataset_Double_1D         , &
-     &                                   IO_HDF5_Write_Dataset_Double_2D         , &
-     &                                   IO_HDF5_Write_Dataset_Double_3D         , &
-     &                                   IO_HDF5_Write_Dataset_Double_4D         , &
-     &                                   IO_HDF5_Write_Dataset_Double_5D
+          &                                   IO_HDF5_Write_Dataset_Integer8_1D       , &
+          &                                   IO_HDF5_Write_Dataset_Double_1D         , &
+          &                                   IO_HDF5_Write_Dataset_Double_2D         , &
+          &                                   IO_HDF5_Write_Dataset_Double_3D         , &
+          &                                   IO_HDF5_Write_Dataset_Double_4D         , &
+          &                                   IO_HDF5_Write_Dataset_Double_5D
      ! Read methods.
      !@ <objectMethods>
      !@   <object>hdf5Object</object>
@@ -268,7 +268,7 @@ module IO_HDF5
           &                              IO_HDF5_Read_Dataset_Double_3D_Array_Static          , &
           &                              IO_HDF5_Read_Dataset_Double_4D_Array_Static          , &
           &                              IO_HDF5_Read_Dataset_Double_5D_Array_Static
-    ! Check methods.
+     ! Check methods.
      !@ <objectMethods>
      !@   <object>hdf5Object</object>
      !@   <objectMethod>
@@ -367,7 +367,7 @@ module IO_HDF5
        integer(c_int), value :: dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id
        type(c_ptr),    value :: buf
      end function H5Dread
- end interface
+  end interface
 
 contains
 
@@ -409,7 +409,7 @@ contains
     !% Check if this module has been initialized.
     use Galacticus_Error
     implicit none
-    
+
     if (.not.hdf5IsInitalized) call Galacticus_Error_Report('IO_HDF_Assert_Is_Initialized','HDF5 IO module has not been initialized')
     return
   end subroutine IO_HDF_Assert_Is_Initialized
@@ -420,7 +420,8 @@ contains
     implicit none
     integer(kind=HSIZE_T), intent(in), optional :: chunkSize
     integer,               intent(in), optional :: compressionLevel
-    
+
+    !$omp critical(HDF5_Access)
     if (present(chunkSize)) then
        if (chunkSize        ==  0                         ) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','zero chunksize is invalid'                )
        if (chunkSize        <  -1                         ) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','chunksize less than -1 is invalid'        )
@@ -431,6 +432,7 @@ contains
        if (compressionLevel <  1 .or. compressionLevel > 9) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','compression level less than -1 is invalid')
        hdf5CompressionLevel=compressionLevel
     end if
+    !$omp end critical(HDF5_Access)
     return
   end subroutine IO_HDF5_Set_Defaults
 
@@ -439,7 +441,11 @@ contains
   logical function IO_HDF5_Is_Open(thisObject)
     !% Returns true if {\tt thisObject} is open.
     implicit none
-    type(hdf5Object), intent(in) :: thisObject
+#ifdef GCC45
+    class(hdf5Object), intent(in) :: thisObject
+#else
+    type(hdf5Object),  intent(in) :: thisObject
+#endif
 
     IO_HDF5_Is_Open=thisObject%isOpenValue
     return
@@ -448,7 +454,11 @@ contains
   function IO_HDF5_Path_To(thisObject) result (pathToObject)
     !% Returns the path to {\tt thisObject}.
     implicit none
+#ifdef GCC45
+    class(hdf5Object),   intent(in) :: thisObject
+#else
     type(hdf5Object),    intent(in) :: thisObject
+#endif
     type(varying_string)            :: pathToObject
 
     pathToObject=thisObject%objectLocation//"/"//thisObject%objectName
@@ -460,9 +470,13 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    type(hdf5Object),    intent(inout) :: thisObject
-    integer                            :: errorCode
-    type(varying_string)               :: message
+#ifdef GCC45
+    class(hdf5Object),      intent(inout) :: thisObject
+#else
+    type(hdf5Object),       intent(inout) :: thisObject
+#endif
+    integer                               :: errorCode
+    type(varying_string)                  :: message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -503,7 +517,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Close',message)
        end if
     end select
-    
+
     ! Mark that the object is now closed.
     thisObject%isOpenValue=.false.
 
@@ -520,21 +534,26 @@ contains
     use Galacticus_Error
     use File_Utilities
     implicit none
+#ifdef GCC45
+    class(hdf5Object),              intent(inout) :: fileObject
+#else
     type(hdf5Object),               intent(inout) :: fileObject
+#endif
     character(len=*),     optional, intent(in)    :: fileName
     logical,              optional, intent(in)    :: overWrite,readOnly,objectsOverwritable
     integer,              optional, intent(in)    :: chunkSize,compressionLevel
     integer                                       :: errorCode,fileAccess
     logical                                       :: overWriteActual
     type(varying_string)                          :: message
-  
+
     ! Initialize the HDF5 library.
     call IO_HDF5_Initialize
 
     ! Store the location and name of this object.
     fileObject%objectLocation=""
     if (present(fileName)) then
-       fileObject%objectName=trim(fileName)
+       fileObject%objectLocation="."
+       fileObject%objectName    =trim(fileName)
     else
        if (len(fileObject%objectName) == 0) call Galacticus_Error_Report('IO_HDF5_Open_File','object has no predefined file name')
     end if
@@ -617,61 +636,79 @@ contains
   !! Group routines.
 
   function IO_HDF5_Open_Group(inObject,groupName,commentText,objectsOverwritable,chunkSize,compressionLevel) result (groupObject)
-     !% Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
-     !% not provided, will be taken from the stored object name in {\tt groupObject}. The location at which to open the group is
-     !% taken from either {\tt inObject} or {\tt inPath}.
-     use String_Handling
-     use Galacticus_Error
-     implicit none
-     type(hdf5Object)                           :: groupObject
-     character(len=*),     intent(in)           :: groupName
-     character(len=*),     intent(in), optional :: commentText
-     logical,              intent(in), optional :: objectsOverwritable
-     integer,              intent(in), optional :: chunkSize,compressionLevel
-     type(hdf5Object),     intent(in), target   :: inObject
-     type(varying_string)                       :: message,locationPath
-     integer                                    :: errorCode
-     integer(kind=HID_T)                        :: locationID
+    !% Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
+    !% not provided, will be taken from the stored object name in {\tt groupObject}. The location at which to open the group is
+    !% taken from either {\tt inObject} or {\tt inPath}.
+    use String_Handling
+    use Galacticus_Error
+    implicit none
+    type(hdf5Object)                             :: groupObject
+    character(len=*),     intent(in)             :: groupName
+    character(len=*),     intent(in),   optional :: commentText
+    logical,              intent(in),   optional :: objectsOverwritable
+    integer,              intent(in),   optional :: chunkSize,compressionLevel
+#ifdef GCC45
+    class(hdf5Object),    intent(in),   target   :: inObject
+#else
+    type(hdf5Object),     intent(in),   target   :: inObject
+#endif
+    ! <HDF5> Why are "message" and "locationPath" saved? Because if they aren't then they get dynamically allocated on the stack, which results
+    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
+    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
+    ! deallocated. This isn't an elegant solution, but it works.
+    type(varying_string), save                   :: message,locationPath
+    integer                                      :: errorCode
+    integer(kind=HID_T)                          :: locationID
 
-     ! Check that this module is initialized.
-     call IO_HDF_Assert_Is_Initialized
-     
-     ! Decide where to open the group.
-     if (.not.inObject%isOpenValue) then
-        message="attempt to open group '"//trim(groupName)//"' in unopen object '"//inObject%objectName//"'"
-        call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
-     end if
-     locationID  =inObject%objectID
-     locationPath=inObject%pathTo()
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
 
-     ! Set the parent for the group.
-     groupObject%parentObject => inObject
-     
-     ! Check if the group exists.
-     if (inObject%hasGroup(groupName)) then
-        ! Open the group.
-        call h5gopen_f(locationID,trim(groupName),groupObject%objectID,errorCode)
-        if (errorCode /= 0) then
-           message="failed to open group '"//trim(groupName)//"' at "//locationPath
-           call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
-        end if
-     else
-        ! Create a group.
-        call h5gcreate_f(locationID,trim(groupName),groupObject%objectID,errorCode)
-        if (errorCode < 0) then
-           message="failed to make group '"//trim(groupName)//"' at "//locationPath
-           call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
-        end if
+    ! Decide where to open the group.
+    if (.not.inObject%isOpenValue) then
+       message="attempt to open group '"//trim(groupName)//"' in unopen object '"//inObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
+    end if
+    locationID  =inObject%objectID
+    ! <gfortran 4.6> seems to require the non-type-bound version below.
+    locationPath=IO_HDF5_Path_To(inObject)
+
+    ! Set the parent for the group.
+#ifdef GCC45
+       select type (inObject)
+       type is (hdf5Object)
+#endif
+       groupObject%parentObject => inObject
+#ifdef GCC45
+    end select
+#endif
+
+    ! Check if the group exists.
+    ! <gfortran 4.6> Use the non-type-bound version here to avoid seg faults.
+    if (IO_HDF5_Has_Group(inObject,groupName)) then
+!    if (inObject%hasGroup(groupName)) then
+       ! Open the group.
+       call h5gopen_f(locationID,trim(groupName),groupObject%objectID,errorCode)
+       if (errorCode /= 0) then
+          message="failed to open group '"//trim(groupName)//"' at "//locationPath
+          call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
+       end if
+    else
+       ! Create a group.
+       call h5gcreate_f(locationID,trim(groupName),groupObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="failed to make group '"//trim(groupName)//"' at "//locationPath
+          call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
+       end if
     end if
 
-     ! Set the comment for this group.
-     if (present(commentText)) then
-        call h5gset_comment_f(groupObject%objectID,'.',trim(commentText),errorCode)
-        if (errorCode < 0) then
-           message="failed to set comment for group '"//trim(groupName)//"'"
-           call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
-        end if
-     end if
+    ! Set the comment for this group.
+    if (present(commentText)) then
+       call h5gset_comment_f(groupObject%objectID,'.',trim(commentText),errorCode)
+       if (errorCode < 0) then
+          message="failed to set comment for group '"//trim(groupName)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
+       end if
+    end if
 
     ! Mark this object as open.
     groupObject%isOpenValue=.true.
@@ -729,7 +766,11 @@ contains
     !% Check if {\tt thisObject} has a group with the given {\tt groupName}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),   intent(in) :: thisObject
+#else
     type(hdf5Object),    intent(in) :: thisObject
+#endif
     character(len=*),    intent(in) :: groupName
     integer                         :: errorCode,storageType,linkCount,creationOrderMaximum
     type(varying_string)            :: message
@@ -766,18 +807,22 @@ contains
     !% Open an attribute in {\tt inObject}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),     intent(in),   target                 :: inObject
+#else
+    type(hdf5Object),      intent(in),   target                 :: inObject
+#endif
     type(hdf5Object)                                            :: attributeObject
     character(len=*),      intent(in)                           :: attributeName
     integer,               intent(in),   optional               :: attributeDataType
     integer(kind=HSIZE_T), intent(in),   optional, dimension(:) :: attributeDimensions
     logical,               intent(in),   optional               :: isOverwritable
     integer(kind=HID_T),   intent(in),   optional               :: useDataType
-    type(hdf5Object),      intent(in),   target                 :: inObject
     integer                                                     :: errorCode,attributeRank
     integer(kind=HID_T)                                         :: locationID,dataTypeID,dataSpaceID
     integer(kind=HSIZE_T),                         dimension(7) :: attributeDimensionsActual
     type(varying_string)                                        :: message,locationPath
-     
+
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -785,7 +830,14 @@ contains
     if (inObject%isOpenValue) then
        locationID  =inObject%objectID
        locationPath=inObject%objectLocation//"/"//inObject%objectName
+#ifdef GCC45
+       select type (inObject)
+       type is (hdf5Object)
+#endif
        attributeObject%parentObject => inObject
+#ifdef GCC45
+    end select
+#endif
     else
        message="attempt to open attribute '"//trim(attributeName)//"' in unopen object '"//inObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Open_Attribute',message)
@@ -806,7 +858,7 @@ contains
     end if
 
     ! Check if the attribute exists.
-    if (inObject%hasAttribute(attributeName)) then
+    if (.false.) then !inObject%hasAttribute(attributeName)) then
        ! Open the attribute.
        call h5aopen_f(locationID,trim(attributeName),attributeObject%objectID,errorCode)
        if (errorCode /= 0) then
@@ -853,7 +905,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Open_Attribute',message)
        end if
     end if
-    
+
     ! Mark this object as open.
     attributeObject%isOpenValue=.true.
 
@@ -882,7 +934,11 @@ contains
     !% Open and write an integer scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
     type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional :: attributeName
     integer,               intent(in)              :: attributeValue
     integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
@@ -917,7 +973,15 @@ contains
           ! Check that the object is a scalar integer.
           call thisObject%assertAttributeType(H5T_NATIVE_INTEGER,0)
        end if
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+       attributeNameActual=thisObject%objectName
     else
        ! Check that an attribute name was supplied.
        if (.not.present(attributeName)) then
@@ -954,7 +1018,11 @@ contains
     !% Open and write an integer 1-D array attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target       :: thisObject
+#else
     type(hdf5Object),      intent(inout), target       :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: attributeName
     integer,               intent(in),    dimension(:) :: attributeValue
     integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions
@@ -989,7 +1057,14 @@ contains
           ! Check that the object is a 1D integer.
           call thisObject%assertAttributeType(H5T_NATIVE_INTEGER,1)
        end if
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        attributeNameActual=thisObject%objectName
     else
        ! Check that an attribute name was supplied.
@@ -1031,7 +1106,11 @@ contains
     use Galacticus_Error
     use Kind_Numbers
     implicit none
+#ifdef GCC45
+    class(hdf5Object),       intent(inout), target   :: thisObject
+#else
     type(hdf5Object),        intent(inout), target   :: thisObject
+#endif
     character(len=*),        intent(in),    optional :: attributeName
     integer(kind=kind_int8), intent(in),    target   :: attributeValue
     integer                                          :: errorCode
@@ -1066,7 +1145,14 @@ contains
           ! Check that the object is a scalar integer.
           call thisObject%assertAttributeType(H5T_NATIVE_INTEGER_8,0)
        end if
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        attributeNameActual=thisObject%objectName
     else
        ! Check that an attribute name was supplied.
@@ -1109,7 +1195,11 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
+#ifdef GCC45
+    class(hdf5Object),       intent(inout), target                :: thisObject
+#else
     type(hdf5Object),        intent(inout), target                :: thisObject
+#endif
     character(len=*),        intent(in),    optional              :: attributeName
     integer(kind=kind_int8), intent(in),             dimension(:) :: attributeValue
     integer(kind=HSIZE_T),                           dimension(1) :: attributeDimensions
@@ -1146,7 +1236,14 @@ contains
           ! Check that the object is a 1D long integer.
           call thisObject%assertAttributeType(H5T_NATIVE_INTEGER_8,1)
        end if
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        attributeNameActual=thisObject%objectName
     else
        ! Check that an attribute name was supplied.
@@ -1195,7 +1292,11 @@ contains
     !% Open and write an double scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
     type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional :: attributeName
     double precision,      intent(in)              :: attributeValue
     integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
@@ -1230,7 +1331,14 @@ contains
           ! Check that the object is a scalar double.
           call thisObject%assertAttributeType(H5T_NATIVE_DOUBLE,0)
        end if
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        attributeNameActual=thisObject%objectName
     else
        ! Check that an attribute name was supplied.
@@ -1241,7 +1349,8 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Double_Scalar',message)
        end if
        ! Record if attribute already exists.
-       preExisted=thisObject%hasAttribute(attributeName)
+       ! <gfortran 4.6> The following should be called via the type-bound procedure, but seems to cause weird problems {gcc version 4.6.0 20100813} if we do that.
+       preExisted=IO_HDF5_Has_Attribute(thisObject,attributeName)
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeDouble)
        ! Check that pre-existing object is a scalar double.
@@ -1270,7 +1379,11 @@ contains
     !% Open and write an double 1-D array attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: attributeName
     double precision,      intent(in),    dimension(:) :: attributeValue
     integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions
@@ -1305,7 +1418,14 @@ contains
           ! Check that the object is a 1D double.
           call thisObject%assertAttributeType(H5T_NATIVE_DOUBLE,1)
        end if
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        attributeNameActual=thisObject%objectName
     else
        ! Check that an attribute name was supplied.
@@ -1346,7 +1466,11 @@ contains
     !% Open and write an character scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
     type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional :: attributeName
     character(len=*),      intent(in)              :: attributeValue
     integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
@@ -1394,7 +1518,14 @@ contains
           ! Check that the object is a scalar character.
           call thisObject%assertAttributeType(dataTypeID,0)
        end if
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        attributeNameActual=thisObject%objectName
     else
        ! Check that an attribute name was supplied.
@@ -1405,7 +1536,8 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
        end if
        ! Record if attribute already exists.
-       preExisted=thisObject%hasAttribute(attributeName)
+       ! <gfortran 4.6> The following should be called via the type-bound procedure, but seems to cause weird problems {gcc version 4.6.0 20100813} if we do that.
+       preExisted=IO_HDF5_Has_Attribute(thisObject,attributeName)
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeCharacter,useDataType=dataTypeID)
        ! Check that pre-existing object is a scalar character.
@@ -1441,7 +1573,11 @@ contains
     !% Open and write an character 1-D array attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: attributeName
     character(len=*),      intent(in),    dimension(:) :: attributeValue
     integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions
@@ -1489,7 +1625,14 @@ contains
           ! Check that the object is a 1D character.
           call thisObject%assertAttributeType(dataTypeID,1)
        end if
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        attributeNameActual=thisObject%objectName
     else
        ! Check that an attribute name was supplied.
@@ -1530,10 +1673,14 @@ contains
     !% Open and write a varying string scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
     type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional :: attributeName
     type(varying_string),  intent(in)              :: attributeValue
-  
+
     ! Call the character version of this routine to perform the write.
     call IO_HDF5_Write_Attribute_Character_Scalar(thisObject,char(attributeValue),attributeName)
 
@@ -1544,22 +1691,30 @@ contains
     !% Open and write a varying string 1-D array attribute in {\tt thisObject}.
     use String_Handling
     implicit none
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: attributeName
     type(varying_string),  intent(in),    dimension(:) :: attributeValue
-  
+
     ! Call the character version of this routine to perform the write.
     call IO_HDF5_Write_Attribute_Character_1D(thisObject,Convert_VarString_To_Char(attributeValue),attributeName)
 
     return
   end subroutine IO_HDF5_Write_Attribute_VarString_1D
-  
+
   subroutine IO_HDF5_Read_Attribute_Integer_Scalar(thisObject,attributeName,attributeValue)
     !% Open and read an integer scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
     integer,               intent(out)             :: attributeValue
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
     type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional :: attributeName
     integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
     integer                                        :: errorCode
@@ -1585,7 +1740,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -1629,7 +1791,11 @@ contains
     use Memory_Management
     implicit none
     integer,               intent(out),   allocatable, dimension(:) :: attributeValue
-    type(hdf5Object),      intent(inout), target                    :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional                  :: attributeName
     integer(kind=HSIZE_T), dimension(1)                             :: attributeDimensions,attributeMaximumDimensions
     integer                                                         :: errorCode
@@ -1656,7 +1822,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -1692,7 +1865,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable',message)
     end if
@@ -1721,7 +1894,11 @@ contains
     use Memory_Management
     implicit none
     integer,               intent(out),   dimension(:) :: attributeValue
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: attributeName
     integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions,attributeMaximumDimensions
     integer                                            :: errorCode
@@ -1748,7 +1925,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -1784,7 +1968,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_1D_Array_Static',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_1D_Array_Static',message)
     end if
@@ -1815,7 +1999,15 @@ contains
     use Galacticus_Error
     implicit none
     integer(kind=kind_int8), intent(out),   target   :: attributeValue
-    type(hdf5Object),        intent(inout), target   :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout), target   :: thisObject
+#else
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
+#endif
     character(len=*),        intent(in),    optional :: attributeName
     integer                                          :: errorCode
     type(hdf5Object)                                 :: attributeObject
@@ -1841,7 +2033,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -1886,7 +2085,11 @@ contains
     use Kind_Numbers
     implicit none
     integer(kind=kind_int8), intent(out),   target,  allocatable, dimension(:) :: attributeValue
-    type(hdf5Object),        intent(inout), target                             :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),        intent(in),    optional                           :: attributeName
     integer(kind=HSIZE_T),                                        dimension(1) :: attributeDimensions,attributeMaximumDimensions
     integer                                                                    :: errorCode
@@ -1914,7 +2117,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -1950,7 +2160,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable',message)
     end if
@@ -1972,7 +2182,7 @@ contains
 
     return
   end subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable
-  
+
   subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an integer scalar attribute in {\tt thisObject}.
     use Galacticus_Error
@@ -1980,7 +2190,11 @@ contains
     use Kind_Numbers
     implicit none
     integer(kind=kind_int8), intent(out),             dimension(:) :: attributeValue
-    type(hdf5Object),        intent(inout), target                 :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),        intent(in),    optional               :: attributeName
     integer(kind=HSIZE_T),   dimension(1)                          :: attributeDimensions,attributeMaximumDimensions
     integer(kind=kind_int8), allocatable,   target,   dimension(:) :: attributeValueContiguous
@@ -2009,7 +2223,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2045,7 +2266,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_1D_Array_Static',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_1D_Array_Static',message)
     end if
@@ -2081,7 +2302,11 @@ contains
     use Galacticus_Error
     implicit none
     double precision,      intent(out)             :: attributeValue
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
     type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional :: attributeName
     integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
     integer                                        :: errorCode
@@ -2107,7 +2332,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2151,7 +2383,11 @@ contains
     use Memory_Management
     implicit none
     double precision,      intent(out),   allocatable, dimension(:) :: attributeValue
-    type(hdf5Object),      intent(inout), target                    :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional                  :: attributeName
     integer(kind=HSIZE_T), dimension(1)                             :: attributeDimensions,attributeMaximumDimensions
     integer                                                         :: errorCode
@@ -2178,7 +2414,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2214,7 +2457,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable',message)
     end if
@@ -2243,7 +2486,11 @@ contains
     use Memory_Management
     implicit none
     double precision,      intent(out),   dimension(:) :: attributeValue
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: attributeName
     integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions,attributeMaximumDimensions
     integer                                            :: errorCode
@@ -2270,7 +2517,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2306,7 +2560,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_1D_Array_Static',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_1D_Array_Static',message)
     end if
@@ -2336,7 +2590,11 @@ contains
     use Galacticus_Error
     implicit none
     character(len=*),      intent(out)             :: attributeValue
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
     type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional :: attributeName
     integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
     integer(kind=HID_T)                            :: dataTypeID
@@ -2375,7 +2633,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2426,7 +2691,11 @@ contains
     use Memory_Management
     implicit none
     character(len=*),      intent(out),   allocatable, dimension(:) :: attributeValue
-    type(hdf5Object),      intent(inout), target                    :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional                  :: attributeName
     integer(kind=HSIZE_T), dimension(1)                             :: attributeDimensions,attributeMaximumDimensions
     integer                                                         :: errorCode
@@ -2465,7 +2734,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2501,7 +2777,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable',message)
     end if
@@ -2537,7 +2813,11 @@ contains
     use Memory_Management
     implicit none
     character(len=*),      intent(out),   dimension(:) :: attributeValue
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: attributeName
     integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions,attributeMaximumDimensions
     integer                                            :: errorCode
@@ -2576,7 +2856,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2612,7 +2899,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_1D_Array_Static',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_1D_Array_Static',message)
     end if
@@ -2649,7 +2936,11 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),  intent(out)             :: attributeValue
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
     type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional :: attributeName
     integer(kind=HID_T)                            :: dataTypeID
     integer(kind=SIZE_T)                           :: dataTypeSize
@@ -2676,7 +2967,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2729,7 +3027,11 @@ contains
     !% which it can be read.
     implicit none
     type(varying_string),       intent(out)             :: attributeValue
-    type(hdf5Object),           intent(inout), target   :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),           intent(in),    optional :: attributeName
     integer(kind=SIZE_T),       intent(in)              :: dataTypeSize
     character(len=dataTypeSize)                         :: temporaryBuffer
@@ -2748,7 +3050,11 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),  intent(out),   allocatable, dimension(:) :: attributeValue
-    type(hdf5Object),      intent(inout), target                    :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional                  :: attributeName
     integer(kind=HID_T)                                             :: dataTypeID
     integer(kind=SIZE_T)                                            :: dataTypeSize
@@ -2775,7 +3081,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2829,7 +3142,11 @@ contains
     use Memory_Management
     implicit none
     type(varying_string),        intent(out),   allocatable, dimension(:) :: attributeValue
-    type(hdf5Object),            intent(inout), target                    :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),            intent(in),    optional                  :: attributeName
     integer(kind=SIZE_T),        intent(in)                               :: dataTypeSize
     character(len=dataTypeSize),                allocatable, dimension(:) :: temporaryBuffer
@@ -2851,7 +3168,11 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),  intent(out),   dimension(:) :: attributeValue
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: attributeName
     integer(kind=HID_T)                                :: dataTypeID
     integer(kind=SIZE_T)                               :: dataTypeSize
@@ -2878,7 +3199,14 @@ contains
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
        attributeObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
@@ -2932,7 +3260,11 @@ contains
     use Memory_Management
     implicit none
     type(varying_string),        intent(out),   dimension(:)                    :: attributeValue
+#ifdef GCC45
+    class(hdf5Object),           intent(inout), target                          :: thisObject
+#else
     type(hdf5Object),            intent(inout), target                          :: thisObject
+#endif
     character(len=*),            intent(in),    optional                        :: attributeName
     integer(kind=SIZE_T),        intent(in)                                     :: dataTypeSize
     character(len=dataTypeSize),                dimension(size(attributeValue)) :: temporaryBuffer
@@ -2950,7 +3282,11 @@ contains
     !% Check if {\tt thisObject} has an attribute with the given {\tt attributeName}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),   intent(in) :: thisObject
+#else
     type(hdf5Object),    intent(in) :: thisObject
+#endif
     character(len=*),    intent(in) :: attributeName
     integer                         :: errorCode
     type(varying_string)            :: message
@@ -2977,7 +3313,11 @@ contains
     !% Asserts that an attribute is of a certain type and rank.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),   intent(in) :: attributeObject
+#else
     type(hdf5Object),    intent(in) :: attributeObject
+#endif
     integer,             intent(in) :: attributeAssertedRank
     integer(kind=HID_T), intent(in) :: attributeAssertedType
     integer                         :: errorCode,attributeRank
@@ -3022,7 +3362,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
     end if
@@ -3044,9 +3384,14 @@ contains
     integer(kind=HSIZE_T), intent(in),   optional, dimension(:) :: datasetDimensions
     logical,               intent(in),   optional               :: isOverwritable,appendTo
     integer(kind=HID_T),   intent(in),   optional               :: useDataType
+#ifdef GCC45
+    class(hdf5Object),     intent(in),   target                 :: inObject
+#else
     type(hdf5Object),      intent(in),   target                 :: inObject
+#endif
     integer(kind=HSIZE_T),                         dimension(7) :: datasetDimensionsActual,datasetDimensionsMaximum,chunkDimensions
-    integer                                                     :: errorCode,datasetRank,chunkSizeActual,compressionLevelActual
+    integer(kind=HSIZE_T)                                       :: chunkSizeActual
+    integer                                                     :: errorCode,datasetRank,compressionLevelActual
     integer(kind=HID_T)                                         :: locationID,dataTypeID,dataSpaceID,propertyList
     logical                                                     :: appendToActual
     type(varying_string)                                        :: message,locationPath
@@ -3058,7 +3403,14 @@ contains
     if (inObject%isOpenValue) then
        locationID  =inObject%objectID
        locationPath=inObject%objectLocation//"/"//inObject%objectName
+#ifdef GCC45
+       select type (inObject)
+       type is (hdf5Object)
+#endif
        datasetObject%parentObject => inObject
+#ifdef GCC45
+    end select
+#endif
     else
        message="attempt to open dataset '"//trim(datasetName)//"' in unopen object '"//inObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Open_Dataset',message)
@@ -3086,7 +3438,8 @@ contains
     end if
 
     ! Check if the dataset exists.
-    if (inObject%hasDataset(datasetName)) then
+    ! <gfortran 4.6> Object oriented version below does not work.
+    if (IO_HDF5_Has_Dataset(inObject,datasetName)) then
        ! Open the dataset.
        call h5dopen_f(locationID,trim(datasetName),datasetObject%objectID,errorCode)
        if (errorCode /= 0) then
@@ -3216,7 +3569,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Open_Dataset',message)
        end if
     end if
-    
+
     ! Set the comment for this dataset.
     if (present(commentText)) then
        call h5gset_comment_f(datasetObject%objectID,'.',trim(commentText),errorCode)
@@ -3225,7 +3578,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Open_Dataset',message)
        end if
     end if
-    
+
     ! Mark this object as open.
     datasetObject%isOpenValue=.true.
 
@@ -3255,7 +3608,11 @@ contains
     !% Check if {\tt thisObject} has a dataset with the given {\tt datasetName}.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),   intent(in) :: thisObject
+#else
     type(hdf5Object),    intent(in) :: thisObject
+#endif
     character(len=*),    intent(in) :: datasetName
     integer                         :: errorCode
     integer(kind=HID_T)             :: datasetID
@@ -3297,7 +3654,11 @@ contains
     !% Asserts that an dataset is of a certain type and rank.
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(hdf5Object),   intent(in) :: datasetObject
+#else
     type(hdf5Object),    intent(in) :: datasetObject
+#endif
     integer,             intent(in) :: datasetAssertedRank
     integer(kind=HID_T), intent(in) :: datasetAssertedType
     integer                         :: errorCode,datasetRank
@@ -3342,7 +3703,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Assert_Dataset_Type',message)
     end if
     call h5sclose_f(datasetDataspaceID,errorCode)
-     if (errorCode /= 0) then
+    if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Assert_Dataset_Type',message)
     end if
@@ -3354,7 +3715,11 @@ contains
     !% Open and write an integer 1-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: datasetName,commentText
     integer,               intent(in),    dimension(:) :: datasetValue
     logical,               intent(in),    optional     :: appendTo
@@ -3401,7 +3766,14 @@ contains
           ! Check that the object is a 1D integer.
           call thisObject%assertDatasetType(H5T_NATIVE_INTEGER,1)
        end if
-       datasetObject    =thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        datasetNameActual=thisObject%objectName
        preExisted       =.true.
     else
@@ -3504,7 +3876,7 @@ contains
        ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
        if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
-    
+
     return
   end subroutine IO_HDF5_Write_Dataset_Integer_1D
 
@@ -3514,7 +3886,11 @@ contains
     use Memory_Management
     implicit none
     integer,                 intent(out),             dimension(:) :: datasetValue
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
     type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional               :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional, dimension(1) :: readBegin,readCount
     integer(kind=HSIZE_T),                            dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -3564,7 +3940,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -3621,7 +4005,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer_1D_Array_Static',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -3631,10 +4015,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer_1D_Array_Static',message)
        end if
     end if
-    
+
     ! Check that the object is a 1D integer array.
     call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER,1)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -3738,7 +4122,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -3776,7 +4160,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -3795,7 +4179,11 @@ contains
     use Memory_Management
     implicit none
     integer,                 intent(out),   allocatable, dimension(:) :: datasetValue
-    type(hdf5Object),        intent(inout)                            :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                  :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional,    dimension(1) :: readBegin,readCount 
     integer(kind=HSIZE_T),                               dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -3845,7 +4233,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -3902,7 +4298,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -3912,10 +4308,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable',message)
        end if
     end if
-    
+
     ! Check that the object is a 1D integer array.
     call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER,1)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -4019,7 +4415,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Allocate the array to the appropriate size.
     if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
     call Alloc_Array(datasetValue,int(datasetDimensions))
@@ -4054,7 +4450,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -4074,7 +4470,11 @@ contains
     use Kind_Numbers
     use Memory_Management
     implicit none
-    type(hdf5Object),        intent(inout),               target :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),        intent(in),    optional             :: datasetName,commentText
     integer(kind=kind_int8), intent(in),    dimension(:)         :: datasetValue
     logical,                 intent(in),    optional             :: appendTo
@@ -4123,7 +4523,14 @@ contains
           ! Check that the object is a 1D long integer.
           call thisObject%assertDatasetType(H5T_NATIVE_INTEGER_8,1)
        end if
-       datasetObject    =thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        datasetNameActual=thisObject%objectName
        preExisted       =.true.
     else
@@ -4230,7 +4637,7 @@ contains
        ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
        if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
-    
+
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_1D
 
@@ -4241,7 +4648,11 @@ contains
     use Memory_Management
     implicit none
     integer(kind=kind_int8), intent(out),             dimension(:) :: datasetValue
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
     type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional               :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional, dimension(1) :: readBegin,readCount !&& 
     integer(kind=HSIZE_T),   dimension(1)                          :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -4292,7 +4703,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -4349,7 +4768,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer8_1D_Array_Static',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -4359,10 +4778,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer8_1D_Array_Static',message)
        end if
     end if
-    
+
     ! Check that the object is a 1D integer8 array.
     call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8,1)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -4466,7 +4885,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -4507,7 +4926,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -4527,7 +4946,11 @@ contains
     use Memory_Management
     implicit none
     integer(kind=kind_int8), intent(out),   allocatable, dimension(:), target :: datasetValue
-    type(hdf5Object),        intent(inout)                                    :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                          :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional,    dimension(1)         :: readBegin,readCount 
     integer(kind=HSIZE_T),   dimension(1)                                     :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -4577,7 +5000,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -4634,7 +5065,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -4644,10 +5075,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable',message)
        end if
     end if
-    
+
     ! Check that the object is a 1D long integer array.
     call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8,1)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -4751,7 +5182,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Allocate the array to the appropriate size.
     if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
     call Alloc_Array(datasetValue,int(datasetDimensions))
@@ -4787,7 +5218,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -4804,7 +5235,11 @@ contains
     !% Open and write a double 1-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target       :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional     :: datasetName,commentText
     double precision,      intent(in),    dimension(:) :: datasetValue
     logical,               intent(in),    optional     :: appendTo
@@ -4851,7 +5286,14 @@ contains
           ! Check that the object is a 1D double.
           call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,1)
        end if
-       datasetObject    =thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        datasetNameActual=thisObject%objectName
        preExisted       =.true.
     else
@@ -4861,7 +5303,8 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_1D',message)
        end if
        ! Record if dataset already exists.
-       preExisted=thisObject%hasDataset(datasetName)
+       ! <gfortran 4.6> Object oriented version below does not work.
+       preExisted=IO_HDF5_Has_Dataset(thisObject,datasetName)
        ! Open the dataset.
        datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
@@ -4954,7 +5397,7 @@ contains
        ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
        if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
-    
+
     return
   end subroutine IO_HDF5_Write_Dataset_Double_1D
 
@@ -4964,7 +5407,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),             dimension(:) :: datasetValue
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
     type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional               :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional, dimension(1) :: readBegin,readCount
     integer(kind=HSIZE_T),                            dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -5013,7 +5460,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -5070,7 +5525,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_1D_Array_Static',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -5080,10 +5535,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_1D_Array_Static',message)
        end if
     end if
-    
+
     ! Check that the object is a 1D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,1)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -5187,7 +5642,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -5225,7 +5680,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -5244,7 +5699,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),   allocatable, dimension(:) :: datasetValue
-    type(hdf5Object),        intent(inout)                            :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                  :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional,    dimension(1) :: readBegin,readCount
     integer(kind=HSIZE_T),                               dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -5300,7 +5759,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -5357,7 +5824,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -5367,10 +5834,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable',message)
        end if
     end if
-    
+
     ! Check that the object is a 1D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,1)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -5474,7 +5941,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Allocate the array to the appropriate size.
     if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
     call Alloc_Array(datasetValue,int(datasetDimensions))
@@ -5510,7 +5977,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -5527,7 +5994,11 @@ contains
     !% Open and write a double 2-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target         :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional       :: datasetName,commentText
     double precision,      intent(in),    dimension(:,:) :: datasetValue
     logical,               intent(in),    optional       :: appendTo
@@ -5574,7 +6045,14 @@ contains
           ! Check that the object is a 2D double.
           call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,2)
        end if
-       datasetObject    =thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        datasetNameActual=thisObject%objectName
        preExisted       =.true.
     else
@@ -5684,7 +6162,7 @@ contains
        ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
        if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
-    
+
     return
   end subroutine IO_HDF5_Write_Dataset_Double_2D
 
@@ -5694,7 +6172,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),             dimension(:,:) :: datasetValue
-    type(hdf5Object),        intent(inout)                           :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                 :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional, dimension(2)   :: readBegin,readCount 
     integer(kind=HSIZE_T),                            dimension(2)   :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -5744,7 +6226,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -5801,7 +6291,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_2D_Array_Static',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -5811,10 +6301,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_2D_Array_Static',message)
        end if
     end if
-    
+
     ! Check that the object is a 2D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,2)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -5918,7 +6408,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -5956,7 +6446,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -5975,7 +6465,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),   allocatable, dimension(:,:) :: datasetValue
-    type(hdf5Object),        intent(inout)                              :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                    :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional,    dimension(2)   :: readBegin,readCount
     integer(kind=HSIZE_T),                               dimension(2)   :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -6025,7 +6519,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -6082,7 +6584,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -6092,10 +6594,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable',message)
        end if
     end if
-    
+
     ! Check that the object is a 2D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,2)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -6199,7 +6701,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Allocate the array to the appropriate size.
     if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
     call Alloc_Array(datasetValue,int(datasetDimensions))
@@ -6235,7 +6737,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -6252,7 +6754,11 @@ contains
     !% Open and write a double 3-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target           :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional         :: datasetName,commentText
     double precision,      intent(in),    dimension(:,:,:) :: datasetValue
     logical,               intent(in),    optional         :: appendTo
@@ -6299,7 +6805,14 @@ contains
           ! Check that the object is a 3D double.
           call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,3)
        end if
-       datasetObject    =thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        datasetNameActual=thisObject%objectName
        preExisted       =.true.
     else
@@ -6409,7 +6922,7 @@ contains
        ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
        if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
-    
+
     return
   end subroutine IO_HDF5_Write_Dataset_Double_3D
 
@@ -6419,7 +6932,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),             dimension(:,:,:) :: datasetValue
-    type(hdf5Object),        intent(inout)                             :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                   :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional, dimension(3)     :: readBegin,readCount
     integer(kind=HSIZE_T),                            dimension(3)     :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -6469,7 +6986,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -6526,7 +7051,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_3D_Array_Static',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -6536,10 +7061,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_3D_Array_Static',message)
        end if
     end if
-    
+
     ! Check that the object is a 3D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,3)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -6643,7 +7168,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -6681,7 +7206,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -6700,7 +7225,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),   allocatable, dimension(:,:,:) :: datasetValue
-    type(hdf5Object),        intent(inout)                                :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                      :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional,    dimension(3)     :: readBegin,readCount
     integer(kind=HSIZE_T),                               dimension(3)     :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -6750,7 +7279,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -6807,7 +7344,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -6817,10 +7354,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable',message)
        end if
     end if
-    
+
     ! Check that the object is a 3D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,3)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -6924,7 +7461,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Allocate the array to the appropriate size.
     if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
     call Alloc_Array(datasetValue,int(datasetDimensions))
@@ -6960,7 +7497,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -6977,7 +7514,11 @@ contains
     !% Open and write a double 4-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target             :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional           :: datasetName,commentText
     double precision,      intent(in),    dimension(:,:,:,:) :: datasetValue
     logical,               intent(in),    optional           :: appendTo
@@ -7024,7 +7565,14 @@ contains
           ! Check that the object is a 4D double.
           call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,4)
        end if
-       datasetObject    =thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        datasetNameActual=thisObject%objectName
        preExisted       =.true.
     else
@@ -7134,7 +7682,7 @@ contains
        ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
        if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
-    
+
     return
   end subroutine IO_HDF5_Write_Dataset_Double_4D
 
@@ -7144,7 +7692,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),             dimension(:,:,:,:) :: datasetValue
-    type(hdf5Object),        intent(inout)                               :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                     :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional, dimension(4)       :: readBegin,readCount
     integer(kind=HSIZE_T),                            dimension(4)       :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -7194,7 +7746,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -7251,7 +7811,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_4D_Array_Static',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -7261,10 +7821,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_4D_Array_Static',message)
        end if
     end if
-    
+
     ! Check that the object is a 4D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,4)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -7368,7 +7928,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -7406,7 +7966,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -7425,7 +7985,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),   allocatable, dimension(:,:,:,:) :: datasetValue
-    type(hdf5Object),        intent(inout)                                  :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                        :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional,    dimension(4)       :: readBegin,readCount 
     integer(kind=HSIZE_T),                               dimension(4)       :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -7475,7 +8039,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -7532,7 +8104,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -7542,10 +8114,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable',message)
        end if
     end if
-    
+
     ! Check that the object is a 4D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,4)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -7649,7 +8221,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Allocate the array to the appropriate size.
     if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
     call Alloc_Array(datasetValue,int(datasetDimensions))
@@ -7685,7 +8257,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -7702,7 +8274,11 @@ contains
     !% Open and write a double 5-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target               :: thisObject
+#ifdef GCC45
+    class(hdf5Object),     intent(inout), target   :: thisObject
+#else
+    type(hdf5Object),      intent(inout), target   :: thisObject
+#endif
     character(len=*),      intent(in),    optional             :: datasetName,commentText
     double precision,      intent(in),    dimension(:,:,:,:,:) :: datasetValue
     logical,               intent(in),    optional             :: appendTo
@@ -7749,7 +8325,14 @@ contains
           ! Check that the object is a 5D double.
           call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,5)
        end if
-       datasetObject    =thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        datasetNameActual=thisObject%objectName
        preExisted       =.true.
     else
@@ -7859,7 +8442,7 @@ contains
        ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
        if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
     end if
-    
+
     return
   end subroutine IO_HDF5_Write_Dataset_Double_5D
 
@@ -7869,7 +8452,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),             dimension(:,:,:,:,:) :: datasetValue
-    type(hdf5Object),        intent(inout)                                 :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                       :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional, dimension(5)         :: readBegin,readCount !&& 
     integer(kind=HSIZE_T),                            dimension(5)         :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -7919,7 +8506,15 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
+
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -7976,7 +8571,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_5D_Array_Static',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -7986,10 +8581,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_5D_Array_Static',message)
        end if
     end if
-    
+
     ! Check that the object is a 5D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,5)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -8093,7 +8688,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -8131,7 +8726,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -8150,7 +8745,11 @@ contains
     use Memory_Management
     implicit none
     double precision,        intent(out),   allocatable, dimension(:,:,:,:,:) :: datasetValue
-    type(hdf5Object),        intent(inout)                                    :: thisObject
+#ifdef GCC45
+    class(hdf5Object),       intent(inout)                         :: thisObject
+#else
+    type(hdf5Object),        intent(inout)                         :: thisObject
+#endif
     character(len=*),        intent(in),    optional                          :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional,    dimension(5)         :: readBegin,readCount
     integer(kind=HSIZE_T),                               dimension(5)         :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -8200,7 +8799,14 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+#ifdef GCC45
+       select type (thisObject)
+       type is (hdf5Object)
+#endif
+          datasetObject=thisObject
+#ifdef GCC45
+       end select
+#endif
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -8257,7 +8863,7 @@ contains
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable',message)
        end if
-   else
+    else
        ! Mark as not reference.
        isReference=.false.
        ! Not a reference, so simply get the dataspace.
@@ -8267,10 +8873,10 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable',message)
        end if
     end if
-    
+
     ! Check that the object is a 5D double array.
     call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,5)
-    
+
     ! Get the dimensions of the array to be read.
     if (isReference) then
        ! This is a reference, so get the extent of the referenced region.
@@ -8374,7 +8980,7 @@ contains
           memorySpaceID=H5S_ALL_F          
        end if
     end if
- 
+
     ! Allocate the array to the appropriate size.
     if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
     call Alloc_Array(datasetValue,int(datasetDimensions))
@@ -8410,7 +9016,7 @@ contains
     else
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
+          ! It was, so close the referenced dataset.
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
@@ -8424,12 +9030,17 @@ contains
   end subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable
 
   !! Reference routines.
-  
+
   subroutine IO_HDF5_Create_Reference_Scalar_To_1D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !% Create a scalar reference to the 1-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    type(hdf5Object),        intent(inout), target       :: fromGroup,toDataset
+#ifdef GCC45
+    class(hdf5Object),       intent(inout), target       :: fromGroup
+#else
+    type(hdf5Object),        intent(inout), target       :: fromGroup
+#endif
+    type(hdf5Object),        intent(inout), target       :: toDataset
     character(len=*),        intent(in)                  :: referenceName
     integer(kind=HSIZE_T),   intent(in),    dimension(1) :: referenceStart,referenceCount
     integer(kind=HSIZE_T),                  dimension(1) :: datasetDimensions,hyperslabStart,hyperslabCount
@@ -8541,7 +9152,12 @@ contains
     !% Create a scalar reference to the 2-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    type(hdf5Object),        intent(inout), target       :: fromGroup,toDataset
+#ifdef GCC45
+    class(hdf5Object),       intent(inout), target       :: fromGroup
+#else
+    type(hdf5Object),        intent(inout), target       :: fromGroup
+#endif
+    type(hdf5Object),        intent(inout), target       :: toDataset
     character(len=*),        intent(in)                  :: referenceName
     integer(kind=HSIZE_T),   intent(in),    dimension(2) :: referenceStart,referenceCount
     integer(kind=HSIZE_T),                  dimension(2) :: datasetDimensions,hyperslabStart,hyperslabCount
@@ -8653,7 +9269,12 @@ contains
     !% Create a scalar reference to the 3-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    type(hdf5Object),        intent(inout), target       :: fromGroup,toDataset
+#ifdef GCC45
+    class(hdf5Object),       intent(inout), target       :: fromGroup
+#else
+    type(hdf5Object),        intent(inout), target       :: fromGroup
+#endif
+    type(hdf5Object),        intent(inout), target       :: toDataset
     character(len=*),        intent(in)                  :: referenceName
     integer(kind=HSIZE_T),   intent(in),    dimension(3) :: referenceStart,referenceCount
     integer(kind=HSIZE_T),                  dimension(3) :: datasetDimensions,hyperslabStart,hyperslabCount
@@ -8765,7 +9386,12 @@ contains
     !% Create a scalar reference to the 4-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    type(hdf5Object),        intent(inout), target       :: fromGroup,toDataset
+#ifdef GCC45
+    class(hdf5Object),       intent(inout), target       :: fromGroup
+#else
+    type(hdf5Object),        intent(inout), target       :: fromGroup
+#endif
+    type(hdf5Object),        intent(inout), target       :: toDataset
     character(len=*),        intent(in)                  :: referenceName
     integer(kind=HSIZE_T),   intent(in),    dimension(4) :: referenceStart,referenceCount
     integer(kind=HSIZE_T),                  dimension(4) :: datasetDimensions,hyperslabStart,hyperslabCount
@@ -8877,7 +9503,12 @@ contains
     !% Create a scalar reference to the 5-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    type(hdf5Object),        intent(inout), target       :: fromGroup,toDataset
+#ifdef GCC45
+    class(hdf5Object),       intent(inout), target       :: fromGroup
+#else
+    type(hdf5Object),        intent(inout), target       :: fromGroup
+#endif
+    type(hdf5Object),        intent(inout), target       :: toDataset
     character(len=*),        intent(in)                  :: referenceName
     integer(kind=HSIZE_T),   intent(in),    dimension(5) :: referenceStart,referenceCount
     integer(kind=HSIZE_T),                  dimension(5) :: datasetDimensions,hyperslabStart,hyperslabCount
@@ -8989,10 +9620,14 @@ contains
     !% Return true if the input dataset is a scalar reference.
     use Galacticus_Error
     implicit none
-    type(hdf5Object), intent(in) :: thisDataset
-    integer                      :: errorCode
-    integer(kind=HID_T)          :: dataTypeID
-    type(varying_string)         :: message
+#ifdef GCC45
+    class(hdf5Object),   intent(in) :: thisDataset
+#else
+    type(hdf5Object),    intent(in) :: thisDataset
+#endif
+    integer                         :: errorCode
+    integer(kind=HID_T)             :: dataTypeID
+    type(varying_string)            :: message
 
     ! Ensure that the dataset is open.    
     if (.not.thisDataset%isOpenValue) then
