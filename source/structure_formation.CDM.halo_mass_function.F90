@@ -64,7 +64,7 @@ module Halo_Mass_Function
   use FGSL
   use, intrinsic :: ISO_C_Binding                             
   private
-  public :: Halo_Mass_Function_Differential, Halo_Mass_Function_Integrated
+  public :: Halo_Mass_Function_Differential, Halo_Mass_Function_Integrated, Halo_Mass_Fraction_Integrated
 
   ! Flag to indicate if this module has been initialized.  
   logical                                        :: haloMassFunctionInitialized=.false.
@@ -82,7 +82,7 @@ module Halo_Mass_Function
 
   ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
   procedure(Halo_Mass_Function_Tabulate_Template), pointer :: Halo_Mass_Function_Tabulate => null()
-  interface Halo_Mass_Function_Tabulate_Template
+  abstract interface
      subroutine Halo_Mass_Function_Tabulate_Template(time,logMass,haloMassFunctionNumberPoints,haloMassFunctionLogMass &
           &,haloMassFunctionLogAbundance)
     double precision,                            intent(in)    :: time,logMass
@@ -130,6 +130,49 @@ contains
     Halo_Mass_Function_Integrand=Halo_Mass_Function_Differential(time,mass)*mass
     return
   end function Halo_Mass_Function_Integrand
+
+  double precision function Halo_Mass_Fraction_Integrated(time,massLow,massHigh)
+    !% Return the halo mass fraction integrated between {\tt massLow} and {\tt massHigh}.
+    use Numerical_Integration
+    use Cosmological_Parameters
+    implicit none
+    double precision,                intent(in) :: time,massLow,massHigh
+    double precision,                target     :: timeTarget
+    double precision                            :: logMassLow,logMassHigh
+    type(c_ptr)                                 :: parameterPointer
+    type(fgsl_function)                         :: integrandFunction
+    type(fgsl_integration_workspace)            :: integrationWorkspace
+
+    parameterPointer=c_loc(timeTarget)
+    timeTarget=time
+    logMassLow =dlog(massLow )
+    logMassHigh=dlog(massHigh)
+    Halo_Mass_Fraction_Integrated=Integrate(logMassLow,logMassHigh,Halo_Mass_Fraction_Integrand,parameterPointer &
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-8)
+    call Integrate_Done(integrandFunction,integrationWorkspace)
+    ! Convert to a mass fraction.
+    Halo_Mass_Fraction_Integrated=Halo_Mass_Fraction_Integrated/Critical_Density()/Omega_0()
+    return
+  end function Halo_Mass_Fraction_Integrated
+
+  function Halo_Mass_Fraction_Integrand(logMass,parameterPointer) bind(c)
+    !% Integrand function used in computing the halo mass fraction.
+    implicit none
+    real(c_double)          :: Halo_Mass_Fraction_Integrand
+    real(c_double), value   :: logMass
+    type(c_ptr),    value   :: parameterPointer
+    real(c_double), pointer :: time
+    real(c_double)          :: mass
+
+    ! Extract integrand parameters.
+    call c_f_pointer(parameterPointer,time)
+    mass=dexp(logMass)
+
+    ! Return the differential mass function multiplied by mass since we are integrating over log(mass) and by mass again to get
+    ! the mass fraction.
+    Halo_Mass_Fraction_Integrand=Halo_Mass_Function_Differential(time,mass)*(mass**2)
+    return
+  end function Halo_Mass_Fraction_Integrand
 
   double precision function Halo_Mass_Function_Differential(time,mass)
     !% Return the differential halo mass function for {\tt mass} [$M_\odot$] at {\tt time}.

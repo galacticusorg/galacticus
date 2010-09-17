@@ -186,3 +186,94 @@ where {\tt N} is the total number of workers to be used and {\tt i} is the numbe
 ./scripts/aux/Merge_Models.pl <model1> <model2> .... <modelOutput>
 \end{verbatim}
 where {\tt model1} etc. are the names of the various output files and {\tt modelOutput} is the file into which the combined results should be placed. The {\tt Merge\_Models.pl} script will combine all merger trees into the output file and will additionally cumulate any data in the {\tt globalHistory} groups in these files.
+
+\section{Additional Codes}
+
+The \glc\ code base can be used for other calculations. Some examples of such usage (and which are sufficiently useful in their own right) are included and are detailed in this section.
+
+\subsection{{\tt Halo\_Mass\_Functions}}
+
+The {\tt Halo\_Mass\_Functions} code will generate an HDF5 output file which contains a variety of measures of the dark matter halo mass function tabulated as a function of mass and at a variety of redshifts. The code is built and run as follows:
+\begin{verbatim}
+make Halo_Mass_Function.exe
+Halo_Mass_Function.exe <parameterFile> <outputFile>
+\end{verbatim}
+where {\tt parameterFile} is a file of parameters in \glc's usual XML format and {\tt outputFile} is the name of the file to which the halo mass function data will be written. The parameter file can specify any parameters needed for computing the mass function (they will be set to default values in cases where a paramter is not included). The redshifts at which to output halo mass functions are given by the {\tt [outputRedshifts]} parameter. In addition to the usual \glc\ parameters three additional parameters control behavior:
+\begin{description}
+\item [{\tt [haloMassFunctionsMassMinimum]}] The lowest mass halo (in units of $M_\odot$) at which to tabulate;
+\item [{\tt [haloMassFunctionsMassMaximum]}] The highest mass halo (in units of $M_\odot$) at which to tabulate;
+\item [{\tt [haloMassFunctionsPointsPerDecade]}] The number of points per decade of halo mass at which to tabulate.
+\end{description}
+The output file has the following structure:
+\begin{verbatim}
++-> Outputs
+|   |
+|   +-> outputCharacteristicMass      [dataset]
+|   |
+|   +-> outputCriticalOverdensities   [dataset]
+|   |
+|   +-> outputExpansionFactor         [dataset]
+|   |
+|   +-> outputGrowthFactors           [dataset]
+|   |
+|   +-> outputRedshift                [dataset]
+|   |
+|   +-> outputTime                    [dataset]
+|   |
+|   +-> outputVirialDensityContrast   [dataset]
+|    
++-> Parameters
+|   |
+|   +-> parameter1                    [attribute]
+|   |
+|   +-> parameterN                    [attribute]
+|    
++-> haloMassFunctions
+    |
+    +-> haloBias                      [dataset]
+    |
+    +-> haloMass                      [dataset]
+    |
+    +-> haloMassFractionCumulative    [dataset]
+    |
+    +-> haloMassFunctionCumulative    [dataset]
+    |
+    +-> haloMassFunctionLnM           [dataset]
+    |
+    +-> haloMassFunctionM             [dataset]
+    |
+    +-> haloNu                        [dataset]
+    |
+    +-> haloSigma                     [dataset]
+    |
+    +-> haloVirialRadius              [dataset]
+    |
+    +-> haloVirialTemperature         [dataset]
+    |
+    +-> haloVirialVelocity            [dataset]
+\end{verbatim}
+The {\tt Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\tt Outputs} group contains datasets which give global properties at each requested output time as follows:
+\begin{description}
+\item [{\tt outputCharacteristicMass}] The characteristic mass scale (in units of $M_\odot$), $M_*$, at which $\sigma(M)=\delta_{\rm c}(z)$;
+\item [{\tt outputCriticalOverdensities}] The critical overdensity for collapse of halos, $\delta_{\rm c}$;
+\item [{\tt outputExpansionFactor}] The expansion factor;
+\item [{\tt outputGrowthFactors}] The linear growth factor;
+\item [{\tt outputRedshift}] The redshift;
+\item [{\tt outputTime}] The cosmic time (in units of Gyr);
+\item [{\tt outputVirialDensityContrast}] The virial density contrast of halos.
+\end{description}
+The {\tt haloMassFunctions} group contains datasets which list the properties of halos as a function of mass at each requested output time as follows:
+\begin{description}
+\item [{\tt haloBias}] The large scale linear theory bias of the halo;
+\item [{\tt haloMass}] The mass of the halo (in $M_\odot$);
+\item [{\tt haloMassFractionCumulative}] The mass fraction in halos above the current halo mass;
+\item [{\tt haloMassFunctionCumulative}] The cumulative number of halos per unit volume above the current halo mass (in units of Mpc$^{-3}$);
+\item [{\tt haloMassFunctionLnM}] The halo mass function per logarithmic halo mass (in units of Mpc$^{-3}$);
+\item [{\tt haloMassFunctionM}] The halo mass function per logarithmic halo mass (in units of Mpc$^{-3} M_\odot^{-1}$);
+\item [{\tt haloNu}] The peak height of the halo, $\nu = \delta_{\rm c}/\sigma(M)$;
+\item [{\tt haloSigma}] The root-variance of the mass field smoothed in top-hat spheres;
+\item [{\tt haloVirialRadius}] The virial radius (in units of Mpc) of the current halo mass;
+\item [{\tt haloVirialTemperature}] The virial temperature (in units of Kelvin) of the current halo mass;
+\item [{\tt haloVirialVelocity}] The virial velocity (in units of km/s) of the current halo mass;
+\end{description}
+Dimensionful datasets have an {\tt unitsInSI} attribute that gives their units in the SI system.

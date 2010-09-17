@@ -232,6 +232,7 @@ contains
   end subroutine Initialize_Sigma
 
   double precision function sigma_CDM_Integral(mass)
+    !% Compute the root-variance of mass in (real space) top-hat spheres enclosing the given {\tt mass} from the power spectrum.
     use Numerical_Constants_Math
     use Numerical_Integration
     use Cosmological_Parameters
@@ -257,6 +258,7 @@ contains
   end function sigma_CDM_Integral
 
   function sigma_CDM_Integrand(wavenumber,parameterPointer) bind(c)
+    !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
     implicit none
     real(c_double)          :: sigma_CDM_Integrand
     real(c_double), value   :: wavenumber
@@ -275,12 +277,22 @@ contains
     !% Top hat in real space window function Fourier transformed into $k$-space.
     implicit none
     double precision, intent(in) :: wavenumber,topHatRadius
-    double precision             :: x
+    double precision, parameter  :: xSeriesMaximum=1.0d-3
+    double precision             :: x,xSquared
 
     x=wavenumber*topHatRadius
-    if (x<=0.0d0) then
+    if      (x <= 0.0d0) then
        Window_Function_RealSpaceTopHat=0.0d0
+    else if (x <= xSeriesMaximum) then 
+       ! Use a series expansion of the window function for small x.
+       xSquared=x**2
+       Window_Function_RealSpaceTopHat=1.0d0 &
+            & +xSquared*(-1.0d0/   10.0d0    &
+            & +xSquared*(+1.0d0/  280.0d0    &
+            & +xSquared*(-1.0d0/15120d0      &
+            &           )))
     else
+       ! For larger x, use the full expression.
        Window_Function_RealSpaceTopHat=3.0d0*(dsin(x)-x*dcos(x))/(x**3)
     end if
     return
