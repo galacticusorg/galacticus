@@ -168,9 +168,9 @@ where the {\tt showFit} argument can be 0 or 1 and, if set to 1, the script shou
 \end{verbatim}
 where {\tt chiSquared} and {\tt degreesOfFreedom} are the fitting results. All such data returned from fitting scripts will be collated by {\tt Galacticus\_Compute\_Fit.pl}, augmented with the weight value and the net goodness of fit determined. All of this information is then output to {\tt galacticusFits.xml} in the selected output directory.
 
-\subsection{Running Models in Parallel}
+\subsection{Running Models in ``Embarrassingly Parallel'' Mode}
 
-Currently, \glc\ is not parallelized\footnote{This is planned for future releases, but awaits the fixing of bugs in {\sc GFortran}.}. However, it is possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:
+While \glc\ is parallelized via OpenMP it is also possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:
 \begin{verbatim}
   <parameter>
     <name>treeEvolveWorkerCount</name>
