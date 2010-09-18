@@ -84,7 +84,7 @@ module Tree_Node_Methods_Satellite_Orbit
 
   ! Procedure pointer for function that will be called to assign merging times to satellites.
   procedure(Satellite_Time_Until_Merging_Template), pointer :: Satellite_Time_Until_Merging => null()
-  interface Satellite_Time_Until_Merging_Template
+  abstract interface
      double precision function Satellite_Time_Until_Merging_Template(thisNode)
        import treeNode
        type(treeNode), pointer, intent(in) :: thisNode
@@ -229,7 +229,7 @@ contains
 
     if (methodSelected) then
        ! Create a satellite orbit component and assign a time until merging.
-      call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
+       call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
        mergeTime=Satellite_Time_Until_Merging(thisNode)
        call Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime)
     end if
