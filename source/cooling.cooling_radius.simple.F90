@@ -105,7 +105,7 @@ contains
     use Abundances_Structure
     implicit none
     type(varying_string),          intent(in)    :: coolingRadiusMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
+    procedure(double precision), pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
     
     if (coolingRadiusMethod == 'simple') then
        Cooling_Radius_Get => Cooling_Radius_Simple

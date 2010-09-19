@@ -87,27 +87,53 @@ contains
   double precision function Radiation_Get_CMB_Temperature(radiation)
     !% Get the CMB temperature in a radiation structure.
     use Cosmology_Functions
-    type(radiationStructure), intent(in) :: radiation
-    
+#ifdef GCC45
+    class(radiationStructure), intent(in) :: radiation
+#else
+    type(radiationStructure),  intent(in) :: radiation
+#endif
+
+#ifdef GCC45
+    select type (radiation)
+    type is (radiationStructure)
+#endif
     Radiation_Get_CMB_Temperature=radiation%temperatureCosmicMicrowaveBackground
+#ifdef GCC45
+    end select
+#endif
     return
   end function Radiation_Get_CMB_Temperature
 
   subroutine Radiation_Set_CMB_Temperature(radiation,cosmicTime)
     !% Set the CMB temperature in a radiation structure.
     use Cosmology_Functions
-    type(radiationStructure), intent(inout)          :: radiation
-    double precision,         intent(in)             :: cosmicTime
+#ifdef GCC45
+    class(radiationStructure), intent(inout) :: radiation
+#else
+    type(radiationStructure),  intent(inout) :: radiation
+#endif
+    double precision,          intent(in)    :: cosmicTime
     
+#ifdef GCC45
+    select type (radiation)
+    type is (radiationStructure)
+#endif
     radiation%temperatureCosmicMicrowaveBackground=CMB_Temperature(cosmicTime)
+#ifdef GCC45
+    end select
+#endif
     return
   end subroutine Radiation_Set_CMB_Temperature
 
   subroutine Radiation_Set(radiation,setOption)
     !% Set the {\tt radiation} field as specified.
     implicit none
-    type(radiationStructure), intent(inout)          :: radiation
-    integer,                  intent(in),   optional :: setOption
+#ifdef GCC45
+    class(radiationStructure), intent(inout)          :: radiation
+#else
+    type(radiationStructure),  intent(inout)          :: radiation
+#endif
+    integer,                   intent(in),   optional :: setOption
 
     ! AJB:: Currently does nothing as we don't support radiation structures yet.
 

@@ -101,7 +101,8 @@ contains
     !% Initializes the ``stellar population spectra from file'' module.
     implicit none
     type(varying_string),          intent(in)    :: stellarPopulationSpectraMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Spectra_Get,Stellar_Population_Spectrum_Tabulation_Get
+    procedure(double precision), pointer, intent(inout) :: Stellar_Population_Spectra_Get
+    procedure(),                 pointer, intent(inout) :: Stellar_Population_Spectrum_Tabulation_Get
     
     if (stellarPopulationSpectraMethod == 'file') then
        Stellar_Population_Spectra_Get             => Stellar_Population_Spectra_File_Get
@@ -285,6 +286,7 @@ contains
        end if
        imfLookupIndex=imfLookup(imfIndex)
             
+       !$omp critical(HDF5_Access)
        ! Open the HDF5 file.
        call h5fopen_f(char(stellarPopulationSpectraFileToRead),H5F_ACC_RDONLY_F,fileIndex,errorCode)
        
@@ -325,6 +327,7 @@ contains
        
        ! Close the HDF5 file. 
        call h5fclose_f(fileIndex,errorCode)       
+       !$omp end critical(HDF5_Access)
 
        ! Force interpolation accelerators to be reset.
        spectra(imfLookupIndex)%resetAge        =.true.

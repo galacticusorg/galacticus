@@ -82,7 +82,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: starFormationFeedbackSpheroidsMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get
     
     if (starFormationFeedbackSpheroidsMethod == 'power law') then
        Star_Formation_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law

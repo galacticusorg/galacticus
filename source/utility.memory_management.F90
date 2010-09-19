@@ -276,10 +276,10 @@ contains
     else
        blockCountActual=1
     end if
-    !$omp atomic
+    !$omp critical(Memory_Management_Usage)
     usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+elementsUsed*addRemoveActual
-    !$omp atomic
     usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sign(blockCountActual,addRemoveActual)*allocationOverhead
+    !$omp end critical(Memory_Management_Usage)
     return
   end subroutine Memory_Usage_Record
 
