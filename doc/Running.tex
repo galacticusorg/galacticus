@@ -44,6 +44,13 @@ Each {\tt parameter} element contains {\tt name} and {\tt value} elements which 
 
 All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\tt Parameters} group within the \glc\ output file. The script {\tt scripts/aux/Extract\_Parameter\_File.pl} will, if given a \glc\ output file, extract the parameters from it and output them into an XML file suitable for re-input into \glc.
 
+\subsection{Generating Parameter Files}\index{parameters!generating}
+
+Some scripts are provided which assist in the generation of parameter files. These are located in the {\tt scripts/parameters/} folder and are detailed below:
+\begin{description}
+\item [{\tt cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-7 constraints \cite{komatsu_seven-year_2010}. It uses the covariance matrix (currently defined in {\tt data/Cosmological\_Parameters\_WMAP-7.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-7 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\end{description}
+
 \section{Running Galacticus}
 
 \glc\ is running using

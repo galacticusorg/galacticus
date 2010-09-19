@@ -67,10 +67,6 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install MIME::Lite'
 \end{verbatim}
-
-
-
-
   \item [\href{http://search.cpan.org/~gbarr/TimeDate-1.20/lib/Date/Format.pm}{{\tt Date::Time}}] This module provides date/time formatting functionality in Perl. On Fedora the following (as root) will install {\tt Date::Time}:
 \begin{verbatim}
 yum install perl-DateTime
@@ -95,13 +91,25 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Net::DBus'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt PDL}}] Provides array math handling in Perl. It is used extensively by \glc\ for analysis of modles. On Fedora the following (as root) will install {\tt PDL}:
+  \item [\href{http://pdl.perl.org/}{{\tt PDL}}] Provides array math handling in Perl. It is used extensively by \glc\ for analysis of models. On Fedora the following (as root) will install {\tt PDL}:
 \begin{verbatim}
 yum install perl-PDL
 \end{verbatim}
 Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install PDL'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/dist/PDL-NiceSlice/NiceSlice.pm}{{\tt PDL::NiceSlice}}] Provides convenient array slicing for PDL. {\tt PDL::NiceSlice} can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install PDL::NiceSlice'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~chm/PDL-2.4.7/Basic/MatrixOps/matrixops.pd}{{\tt PDL::MatrixOps}}] Provides matrix operators for PDL. It is used when generating Monte Carlo samples of parameters from covariance matrices. {\tt PDL::MatrixOps} can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install PDL::MatrixOps'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~ellipse/PDL-LinearAlgebra-0.06/LinearAlgebra.pm}{{\tt PDL::LinearAlgebra}}] Provides linear algebra algorithms for PDL. It is used for Cholesky decomposition when generating Monte Carlo samples of parameters from covariance matrices. {\tt PDL::LinearAlgebra} can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install PDL::LinearAlgebra'
 \end{verbatim}
   \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
 \begin{verbatim}
@@ -244,6 +252,10 @@ perl -MCPAN -e 'install IO::Compress::Bzip2'
 perl -MCPAN -e 'install Date::Format'
 perl -MCPAN -e 'install Net::SMTP::SSL'
 perl -MCPAN -e 'install Net::DBus'
+perl -MCPAN -e 'install PDL'
+perl -MCPAN -e 'install PDL::LinearAlgebra'
+perl -MCPAN -e 'install PDL::MatrixOps'
+perl -MCPAN -e 'install PDL::NiceSlice'
 
 ! Install PDL::IO::HDF5:
 
