@@ -858,7 +858,7 @@ contains
     end if
 
     ! Check if the attribute exists.
-    if (.false.) then !inObject%hasAttribute(attributeName)) then
+    if (IO_HDF5_Has_Attribute(inObject,attributeName)) then
        ! Open the attribute.
        call h5aopen_f(locationID,trim(attributeName),attributeObject%objectID,errorCode)
        if (errorCode /= 0) then
