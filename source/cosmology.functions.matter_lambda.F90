@@ -87,7 +87,7 @@ module Cosmology_Functions_Matter_Lambda
   logical                                     :: ageTableInitialized=.false.
   integer                                     :: ageTableNumberPoints
   double precision                            :: ageTableTimeMinimum=1.0d-4, ageTableTimeMaximum=20.0d0
-  integer,          parameter                 :: ageTableNPointsPerDecade=100
+  integer,          parameter                 :: ageTableNPointsPerDecade=300
   double precision, allocatable, dimension(:) :: ageTableTime, ageTableExpansionFactor
   type(fgsl_interp)                           :: interpolationObject
   type(fgsl_interp_accel)                     :: interpolationAccelerator
