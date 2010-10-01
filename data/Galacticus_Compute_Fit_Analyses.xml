@@ -44,4 +44,8 @@
     <script>scripts/plotting/Plot_SDSS_Gas_Metallicity.pl</script>
     <weight>0.0</weight>
   </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_Morphological_Luminosity_Function.pl</script>
+    <weight>0.0</weight>
+  </analysis>
 </analyses>
