@@ -507,6 +507,7 @@ contains
     use Hot_Halo_Temperature_Profile
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision, parameter              :: gasDensityMinimum=1.0d0 ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
     double precision                         :: blackHoleMass,gasDensity,relativeVelocity,accretionRadius,jeansLength&
          &,radiativeEfficiency, position(3),hotHaloTemperature
 
@@ -530,8 +531,9 @@ contains
           gasDensity=Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemSpherical,massType&
                &=massTypeGaseous,componentType=componentTypeSpheroid)
           
-          ! Check if we have a non-zero gas density.
-          if (gasDensity > 0.0d0) then
+          ! Check if we have a non-negligible gas density.
+          if (gasDensity > gasDensityMinimum) then
+
              ! Get the Jeans length scale.
              jeansLength=Ideal_Gas_Jeans_Length(bondiHoyleAccretionTemperatureSpheroid,gasDensity)
              ! Limit the smoothing scale to the scale of the spheroid.
@@ -578,7 +580,7 @@ contains
                &=massTypeGaseous,componentType=componentTypeHotHalo)
 
           ! Check if we have a non-zero gas density.
-          if (gasDensity > 0.0d0) then
+          if (gasDensity > gasDensityMinimum) then
              
              ! Compute the accretion rate.
              accretionRateHotHalo=bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass,gasDensity&
