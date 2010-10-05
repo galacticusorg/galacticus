@@ -77,7 +77,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: hotHaloTemperatureMethod
-    procedure(),          pointer, intent(inout) :: Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get
+    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get
     
     if (hotHaloTemperatureMethod == 'virial') then
        Hot_Halo_Temperature_Get => Hot_Halo_Temperature_Virial_Get

@@ -63,9 +63,6 @@
 
 module Galactic_Structure_Densities
   !% Implements calculations of the density at a specific position.
-  use ISO_Varying_String
-  use Tree_Nodes
-  use Galactic_Structure_Options
   private
   public :: Galactic_Structure_Density
 
@@ -74,6 +71,9 @@ contains
   double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,massType,componentType)
     !% Compute the density (of given {\tt massType}) at the specified {\tt position}. Assumes that galactic structure has already
     !% been computed.
+    use Tree_Nodes
+    use Galactic_Structure_Options
+    use ISO_Varying_String
     use Galacticus_Error
     use Input_Parameters
     use Coordinate_Systems
