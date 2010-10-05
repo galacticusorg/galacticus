@@ -63,6 +63,7 @@
 
 module Tree_Node_Methods_Exponential_Disk
   !% Implement exponential disk tree node methods.
+  use Tree_Node_Methods_Disk_Exponential_Data
   use Tree_Nodes
   use Histories
   use Components
@@ -71,13 +72,10 @@ module Tree_Node_Methods_Exponential_Disk
   public :: Tree_Node_Methods_Exponential_Disk_Initialize, Exponential_Disk_Satellite_Merging,&
        & Galacticus_Output_Tree_Disk_Exponential, Galacticus_Output_Tree_Disk_Exponential_Property_Count,&
        & Galacticus_Output_Tree_Disk_Exponential_Names, Exponential_Disk_Radius_Solver, Exponential_Disk_Enclosed_Mass,&
-       & Exponential_Disk_Density, Exponential_Disk_Rotation_Curve, Tree_Node_Disk_Post_Evolve_Exponential,&
-       & Tree_Node_Methods_Exponential_Disk_Dump, Exponential_Disk_Radius_Solver_Plausibility,&
-       & Tree_Node_Methods_Exponential_Disk_State_Store, Tree_Node_Methods_Exponential_Disk_State_Retrieve
+       & Exponential_Disk_Rotation_Curve, Tree_Node_Disk_Post_Evolve_Exponential, Tree_Node_Methods_Exponential_Disk_Dump,&
+       & Exponential_Disk_Radius_Solver_Plausibility, Tree_Node_Methods_Exponential_Disk_State_Store,&
+       & Tree_Node_Methods_Exponential_Disk_State_Retrieve
   
-  ! The index used as a reference for this component.
-  integer :: componentIndex=-1
-
   ! Internal count of abundances.
   integer :: abundancesCount
 
@@ -131,9 +129,6 @@ module Tree_Node_Methods_Exponential_Disk
   !# <treeNodeMethodsPointer type="history">
   !#  <methodName>Tree_Node_Disk_Stellar_Properties_History</methodName>
   !# </treeNodeMethodsPointer>
-
-  ! Flag to indicate if this method is selected.
-  logical :: methodSelected=.false.
 
   ! Parameters controlling the physical implementation.
   double precision :: diskMassToleranceAbsolute,diskOutflowTimescaleMinimum
@@ -1097,45 +1092,6 @@ contains
 
     return
   end function Exponential_Disk_Rotation_Curve_Bessel_Factors
-
-  !# <densityTask>
-  !#  <unitName>Exponential_Disk_Density</unitName>
-  !# </densityTask>
-  subroutine Exponential_Disk_Density(thisNode,positionSpherical,massType,componentType,componentDensity)
-    !% Computes the mass within a given radius for an exponential disk.
-    use Galactic_Structure_Options
-    use Numerical_Constants_Math
-    use Coordinate_Systems
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType
-    double precision, intent(in)             :: positionSpherical(3)
-    double precision, intent(out)            :: componentDensity
-    double precision, parameter              :: diskHeightToRadiusRatio=0.1d0
-    double precision                         :: fractionalRadius,fractionalHeight,positionCylindrical(3)
-    
-    componentDensity=0.0d0
-    if (.not.methodSelected                           ) return
-    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-    if (.not.thisNode%componentExists(componentIndex)) return
-    select case (massType)
-    case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-       componentDensity=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
-    case (massTypeGaseous)
-       componentDensity=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
-    case (massTypeStellar)
-       componentDensity=Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
-    end select
-    ! Return if no density.
-    if (componentDensity <= 0.0d0) return
-    ! Compute the actual density.
-    positionCylindrical=Coordinates_Spherical_To_Cylindrical(positionSpherical)
-    fractionalRadius=positionCylindrical(1)/Exponential_Disk_Radius(thisNode)
-    fractionalHeight=positionCylindrical(2)/(diskHeightToRadiusRatio*Exponential_Disk_Radius(thisNode))
-    componentDensity=componentDensity*dexp(-fractionalRadius)/cosh(0.5d0*fractionalHeight)**2/4.0d0/Pi&
-         &/Exponential_Disk_Radius(thisNode)**3/diskHeightToRadiusRatio
-    return
-  end subroutine Exponential_Disk_Density
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Exponential_Disk_Radius_Solver_Plausibility</unitName>

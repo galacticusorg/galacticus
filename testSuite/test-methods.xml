@@ -157,4 +157,25 @@
       <value>Benson2005</value>
     </parameter>
   </parameters>
+  <parameters>
+    <parameter>
+      <name>starFormationTimescaleDisksMethod</name>
+      <value>Kennicutt-Schmidt
+        <parameter>
+	  <name>starFormationKennicuttSchmidtTruncate</name>
+	  <value>true</value>
+	  <value>false</value>
+        </parameter>
+      </value>
+      <value>dynamical time</value>
+      <value>Blitz-Rosolowsky</value>
+      <value>KMT09
+        <parameter>
+	  <name>molecularFractionFastKMT09</name>
+	  <value>false</value>
+	  <value>true</value>
+        </parameter>
+      </value>
+    </parameter>
+  </parameters>
 </parameterGrid>
