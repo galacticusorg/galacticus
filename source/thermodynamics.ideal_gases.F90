@@ -74,7 +74,7 @@ contains
     implicit none
     double precision, intent(in) :: temperature,density
 
-    Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/dsqrt(gravitationalConstantGalacticus*density)
+    Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/dsqrt(gravitationalConstantGalacticus)/dsqrt(density)
     return
   end function Ideal_Gas_Jeans_Length
 
