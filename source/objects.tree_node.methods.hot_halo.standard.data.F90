@@ -69,6 +69,6 @@ module Tree_Node_Methods_Hot_Halo_Data
   integer :: componentIndex=-1
 
   ! Flag to indicate if this method is selected.
-  logical          :: methodSelected=.false.
+  logical :: methodSelected=.false.
 
 end module Tree_Node_Methods_Hot_Halo_Data
