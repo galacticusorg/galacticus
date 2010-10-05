@@ -89,7 +89,7 @@ contains
           include 'merger_trees.initialize.tasks.inc'
           !# </include>
 
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
        thisTree%initialized=.true.
     end if

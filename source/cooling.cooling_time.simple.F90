@@ -81,7 +81,7 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),          intent(in)    :: coolingTimeMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Time_Get,Cooling_Time_Density_Log_Slope_Get&
+    procedure(double precision), pointer, intent(inout) :: Cooling_Time_Get,Cooling_Time_Density_Log_Slope_Get&
          &,Cooling_Time_Temperature_Log_Slope_Get
     
     if (coolingTimeMethod == 'simple') then

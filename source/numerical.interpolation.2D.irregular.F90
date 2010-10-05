@@ -147,10 +147,10 @@ contains
     end if
 
     ! Call the subroutine that does the interpolation.
-    !$omp critical (2D_Irregular_Interpolation)
+    !$omp critical(TwoD_Irregular_Interpolation)
     call idbvip(resetFlag,numberComputePointsActual,dataPointCount,dataX,dataY,dataZ,interpolatedPointCount,interpolateX&
          &,interpolateY,Interpolate_2D_Irregular_Array,workspace%integerWork,workspace%realWork)
-    !$omp end critical (2D_Irregular_Interpolation)
+    !$omp end critical(TwoD_Irregular_Interpolation)
     
     return
   end function Interpolate_2D_Irregular_Array

@@ -85,11 +85,11 @@ contains
     use FoX_dom
     use Memory_Management
     implicit none
-    type(varying_string), intent(in) :: supernovaePopIIIMethod
-    procedure(),          pointer    :: SNePopIII_Cumulative_Energy_Get
-    type(Node),           pointer    :: doc,massElement,energyElement,thisDatum
-    type(NodeList),       pointer    :: massList,energyList,massDataList,energyDataList
-    integer                          :: ioErr,iSupernovae
+    type(varying_string),                 intent(in)    :: supernovaePopIIIMethod
+    procedure(double precision), pointer, intent(inout) :: SNePopIII_Cumulative_Energy_Get
+    type(Node),                  pointer                :: doc,massElement,energyElement,thisDatum
+    type(NodeList),              pointer                :: massList,energyList,massDataList,energyDataList
+    integer                                             :: ioErr,iSupernovae
 
     if (supernovaePopIIIMethod == 'Heger + Woosley') then
        ! Set up pointers to our procedures.

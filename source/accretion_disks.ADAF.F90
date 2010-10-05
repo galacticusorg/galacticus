@@ -108,8 +108,8 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: accretionDisksMethod
-    procedure(),          pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get&
+    type(varying_string),                 intent(in)    :: accretionDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get&
          &,Accretion_Disk_Jet_Power_Get
 
     if (accretionDisksMethod == 'ADAF') then
@@ -127,6 +127,7 @@ contains
     use Galacticus_Error
     implicit none
 
+    !$omp critical(adafInitalize)
     if (.not.adafInitialized) then
        !@ <inputParameter>
        !@   <name>adafRadiativeEfficiency</name>
@@ -196,6 +197,7 @@ contains
        end select
        adafInitialized=.true.
     end if
+    !$omp end critical(adafInitalize)
     return
   end subroutine Accretion_Disks_ADAF_Get_Parameters
 
@@ -234,6 +236,7 @@ contains
     call Accretion_Disks_ADAF_Get_Parameters
 
     ! Tabulate the jet power as a function of spin.
+    !$omp critical(ADAF_Jet_Power_Tabulate)
     if (.not.jetPowerFunctionTabulated) then
        call Alloc_Array(jetPowerSpinParameterTable,[jetPowerTableCount])
        call Alloc_Array(jetPowerTable             ,[jetPowerTableCount])
@@ -261,6 +264,7 @@ contains
        end do
        jetPowerFunctionTabulated=.true.
     end if
+    !$omp end critical(ADAF_Jet_Power_Tabulate)
 
     ! Get the black hole spin.
     blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
@@ -295,6 +299,7 @@ contains
     call Accretion_Disks_ADAF_Get_Parameters
     
     ! Tabulate the spin up rate as a function of spin parameter.
+    !$omp critical(spinUpFunctionTabulate)
     if (.not.spinUpFunctionTabulated) then
        call Alloc_Array(spinUpSpinParameterTable,[spinUpTableCount])
        call Alloc_Array(spinUpTable             ,[spinUpTableCount])
@@ -332,6 +337,7 @@ contains
        end do
        spinUpFunctionTabulated=.true.
     end if
+    !$omp end critical(spinUpFunctionTabulate)
 
     ! Get the black hole spin.
     blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
@@ -653,7 +659,7 @@ contains
     implicit none
     double precision, intent(in) :: radius,blackHoleSpin,adafViscosityAlpha
     double precision, save       :: radiusPrevious,blackHoleSpinPrevious=2.0d0,adafViscosityAlphaPrevious,temperaturePrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,enthalpyAngularMomentumPrevious)
+    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,temperaturePrevious)
     double precision             :: logarithmAlpha,radiusISCO,t1,t2,t3,t4,t5
 
     ! Check if we are being called with the same arguments as the previous call.

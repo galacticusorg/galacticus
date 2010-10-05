@@ -222,7 +222,8 @@ contains
        end if
 
        ! Walk to the next node.
-       call thisNode%walkTreeConstruction()
+       ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
+       call thisNode%walkTreeConstruction(thisNode)
 
     end do
 
@@ -231,7 +232,8 @@ contains
     do while (associated(thisNode))
        collapseTime=Time_of_Collapse(Tree_Node_Time(thisNode))
        call Tree_Node_Time_Set(thisNode,collapseTime)
-       call thisNode%walkTree()
+       ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
+       call thisNode%walkTree(thisNode)
     end do
 
     return
