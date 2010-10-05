@@ -471,12 +471,13 @@ contains
     !% Returns the mass fraction of hydrogen.
     implicit none
     type(abundancesStructure), intent(in) :: abundances
+    double precision,          parameter  :: massFractionMinimum=0.7d0
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    Abundances_Hydrogen_Mass_Fraction=(abundances%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
-         &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial
+    Abundances_Hydrogen_Mass_Fraction=max((abundances%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
+         &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial,massFractionMinimum)
     return
   end function Abundances_Hydrogen_Mass_Fraction
 
