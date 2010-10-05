@@ -198,17 +198,20 @@ module Tree_Nodes
      !@   </objectMethod>
      !@ </objectMethods>
      procedure                                  ::                           Merger_Tree_Walk_Tree
-     procedure                                  ::                           Merger_Tree_Walk_Tree_Same_Node
-     generic                                    :: walkTree               => Merger_Tree_Walk_Tree,&
-          &                                                                  Merger_Tree_Walk_Tree_Same_Node
+! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
+!     procedure                                  ::                           Merger_Tree_Walk_Tree_Same_Node
+     generic                                    :: walkTree               => Merger_Tree_Walk_Tree!,&
+!          &                                                                  Merger_Tree_Walk_Tree_Same_Node
      procedure                                  ::                           Merger_Tree_Walk_Tree_With_Satellites
-     procedure                                  ::                           Merger_Tree_Walk_Tree_With_Satellites_Same_Node
-     generic                                    :: walkTreeWithSatellites => Merger_Tree_Walk_Tree_With_Satellites,&
-          &                                                                  Merger_Tree_Walk_Tree_With_Satellites_Same_Node
+! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
+!     procedure                                  ::                           Merger_Tree_Walk_Tree_With_Satellites_Same_Node
+     generic                                    :: walkTreeWithSatellites => Merger_Tree_Walk_Tree_With_Satellites!,&
+!          &                                                                  Merger_Tree_Walk_Tree_With_Satellites_Same_Node
      procedure                                  ::                           Merger_Tree_Construction_Walk
-     procedure                                  ::                           Merger_Tree_Construction_Walk_Same_Node
-     generic                                    :: walkTreeConstruction   => Merger_Tree_Construction_Walk,&
-          &                                                                  Merger_Tree_Construction_Walk_Same_Node
+! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
+!     procedure                                  ::                           Merger_Tree_Construction_Walk_Same_Node
+     generic                                    :: walkTreeConstruction   => Merger_Tree_Construction_Walk!,&
+!          &                                                                  Merger_Tree_Construction_Walk_Same_Node
      procedure                                  :: walkBranch             => Merger_Tree_Walk_Branch
      ! Satellite methods.
      !@ <objectMethods>
@@ -328,10 +331,23 @@ contains
   integer(kind=kind_int8) function Tree_Node_Unique_ID(thisNode)
     !% Returns the unique ID of {\tt thisNode}.
     implicit none
-    type(treeNode), intent(in), pointer :: thisNode
+#ifdef GCC45
+    class(treeNode), intent(in), target  :: thisNode
+#else
+    type(treeNode),  intent(in), pointer :: thisNode
+#endif
+    type(treeNode),              pointer :: workNode
 
-    if (associated(thisNode)) then
-       Tree_Node_Unique_ID=thisNode%nodeUniqueID
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
+    if (associated(workNode)) then
+       Tree_Node_Unique_ID=workNode%nodeUniqueID
     else
        Tree_Node_Unique_ID=-1
     end if
@@ -341,7 +357,11 @@ contains
   subroutine Tree_Node_Unique_ID_Set(thisNode,uniqueID)
     !% Set the index of {\tt thisNode}.
     implicit none
+#ifdef GCC45
+    class(treeNode),         intent(inout) :: thisNode
+#else
     type(treeNode),          intent(inout) :: thisNode
+#endif
     integer(kind=kind_int8), intent(in)    :: uniqueID
 
     thisNode%nodeUniqueID=uniqueID
@@ -351,10 +371,23 @@ contains
   integer function Tree_Node_Index(thisNode)
     !% Returns the index of {\tt thisNode}.
     implicit none
-    type(treeNode), intent(in), pointer :: thisNode
+#ifdef GCC45
+    class(treeNode), intent(in), target  :: thisNode
+#else
+    type(treeNode),  intent(in), pointer :: thisNode
+#endif
+    type(treeNode),              pointer :: workNode
 
-    if (associated(thisNode)) then
-       Tree_Node_Index=thisNode%nodeIndex
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
+    if (associated(workNode)) then
+       Tree_Node_Index=workNode%nodeIndex
     else
        Tree_Node_Index=-1
     end if
@@ -364,8 +397,12 @@ contains
   subroutine Tree_Node_Index_Set(thisNode,index)
     !% Set the index of {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout) :: thisNode
-    integer,        intent(in)    :: index
+#ifdef GCC45
+    class(treeNode), intent(inout) :: thisNode
+#else
+    type(treeNode),  intent(inout) :: thisNode
+#endif
+    integer,         intent(in)    :: index
 
     thisNode%nodeIndex=index
     return
@@ -375,45 +412,65 @@ contains
     !% Destroy a node in the tree, along with all components.
     use Memory_Management
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: iComponent
+#ifdef GCC45
+    class(treeNode), target,  intent(inout) :: thisNode
+#else
+    type(treeNode),  pointer, intent(inout) :: thisNode
+#endif
+    integer                                 :: iComponent
+    type(treeNode),  pointer                :: workNode
+
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
 
     ! Deallocate list of component indices.
-    if (allocated(thisNode%componentIndex)) then
-       call Memory_Usage_Record(sizeof(thisNode%componentIndex),addRemove=-1,memoryType=memoryTypeNodes)
-       deallocate(thisNode%componentIndex)
+    if (allocated(workNode%componentIndex)) then
+       call Memory_Usage_Record(sizeof(workNode%componentIndex),addRemove=-1,memoryType=memoryTypeNodes)
+       deallocate(workNode%componentIndex)
     end if
 
     ! Deallocate components.
-    if (allocated(thisNode%components)) then
-       do iComponent=1,size(thisNode%components)
-          if (allocated(thisNode%components(iComponent)%properties)) then
-             call Memory_Usage_Record(sizeof(thisNode%components(iComponent)%properties),addRemove=-1,memoryType=memoryTypeNodes)
-             deallocate(thisNode%components(iComponent)%properties)
+    if (allocated(workNode%components)) then
+       do iComponent=1,size(workNode%components)
+          if (allocated(workNode%components(iComponent)%properties)) then
+             call Memory_Usage_Record(sizeof(workNode%components(iComponent)%properties),addRemove=-1,memoryType=memoryTypeNodes)
+             deallocate(workNode%components(iComponent)%properties)
           end if
-          if (allocated(thisNode%components(iComponent)%data)) then
-             call Memory_Usage_Record(sizeof(thisNode%components(iComponent)%data),addRemove=-1,memoryType=memoryTypeNodes)
-             deallocate(thisNode%components(iComponent)%data)
+          if (allocated(workNode%components(iComponent)%data)) then
+             call Memory_Usage_Record(sizeof(workNode%components(iComponent)%data),addRemove=-1,memoryType=memoryTypeNodes)
+             deallocate(workNode%components(iComponent)%data)
           end if
        end do
-       deallocate(thisNode%components)
-       call Memory_Usage_Record(sizeof(thisNode%components),addRemove=-1,memoryType=memoryTypeNodes)
+       deallocate(workNode%components)
+       call Memory_Usage_Record(sizeof(workNode%components),addRemove=-1,memoryType=memoryTypeNodes)
     end if
 
     ! Deallocate the tree node object.
-    call Memory_Usage_Record(sizeof(thisNode),addRemove=-1,memoryType=memoryTypeNodes)
-    deallocate(thisNode)
-    thisNode => null()
+    call Memory_Usage_Record(sizeof(workNode),addRemove=-1,memoryType=memoryTypeNodes)
+    deallocate(workNode)
+#ifndef GCC45
+    ! <gfortran 4.6> This next line does not do anything under gFortran 4.6 since the input object is not a pointer (merely a target).
+    workNode => null()
+#endif
 
     return
   end subroutine Tree_Node_Destroy
 
-
   logical function Tree_Node_Component_Exists(thisNode,componentIndex)
     !% Return true if {\tt thisNode} already has a component with index {\tt componentIndex}.
     implicit none
-    type(treeNode), pointer, intent(in) :: thisNode
-    integer,                 intent(in) :: componentIndex
+#ifdef GCC45
+    class(treeNode), intent(in)          :: thisNode
+#else
+    type(treeNode),  intent(in), pointer :: thisNode
+#endif
+    integer,         intent(in)          :: componentIndex
 
     Tree_Node_Component_Exists=(thisNode%componentIndex(componentIndex) > 0)
     return
@@ -423,10 +480,14 @@ contains
     !% Ensure that the component array is allocated with sufficient size.
     use Memory_Management
     implicit none
-    integer,         intent(in)                :: componentIndex,propertyCount,dataCount,historyCount
-    type(treeNode),  intent(inout)             :: thisNode
-    type(component), allocatable, dimension(:) :: tempComponents
-    integer                                    :: previousSize,thisIndex
+    integer,          intent(in)                :: componentIndex,propertyCount,dataCount,historyCount
+#ifdef GCC45
+    class(treeNode),  intent(inout)             :: thisNode
+#else
+    type(treeNode),   intent(inout)             :: thisNode
+#endif
+    type(component),  allocatable, dimension(:) :: tempComponents
+    integer                                     :: previousSize,thisIndex
 
     if (thisNode%componentIndex(componentIndex) == -1) then
        if (allocated(thisNode%components)) then
@@ -469,7 +530,11 @@ contains
     use Memory_Management
     implicit none
     integer,         intent(in)                :: componentIndex,propertyCount,dataCount
+#ifdef GCC45
+    class(treeNode), intent(inout)             :: thisNode
+#else
     type(treeNode),  intent(inout)             :: thisNode
+#endif
     type(component), allocatable, dimension(:) :: tempComponents
     integer                                    :: previousSize,listIndex,timesCount,iHistory
 
@@ -511,7 +576,11 @@ contains
     !% Ensure that all components of {\tt thisNode} are deallocated.
     use Memory_Management
     implicit none
+#ifdef GCC45
+    class(treeNode), intent(inout)             :: thisNode
+#else
     type(treeNode),  intent(inout)             :: thisNode
+#endif
     integer                                    :: listIndex,thisIndex,iHistory
 
     ! Deallocate each component and record the memory usage change.
@@ -545,25 +614,47 @@ contains
   logical function Tree_Node_Is_Primary_Progenitor(thisNode)
     !% Returns true if {\tt thisNode} is the primary progenitor of its parent node.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+#ifdef GCC45
+    class(treeNode), intent(inout), target  :: thisNode
+#else
+    type(treeNode),  intent(inout), pointer :: thisNode
+#endif
 
-    if (associated(thisNode%parentNode)) then
-       Tree_Node_Is_Primary_Progenitor=associated(thisNode%parentNode%childNode,thisNode)
-    else
-       Tree_Node_Is_Primary_Progenitor=.false.
-    end if
+#ifdef GCC45
+    select type(thisNode)
+    type is (treeNode)
+#endif
+       if (associated(thisNode%parentNode)) then
+          Tree_Node_Is_Primary_Progenitor=associated(thisNode%parentNode%childNode,thisNode)
+       else
+          Tree_Node_Is_Primary_Progenitor=.false.
+       end if
+#ifdef GCC45
+    end select
+#endif
     return
   end function Tree_Node_Is_Primary_Progenitor
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(thisNode,targetNodeIndex)
     !% Return true if {\tt thisNode} is a progenitor of the node with index {\tt targetNodeIndex}.
     implicit none
-    type(treeNode), intent(in), pointer :: thisNode
-    integer,        intent(in)          :: targetNodeIndex
-    type(treeNode),             pointer :: workNode
+#ifdef GCC45
+    class(treeNode), intent(in), target :: thisNode
+#else
+    type(treeNode),  intent(in), pointer :: thisNode
+#endif
+    integer,         intent(in)          :: targetNodeIndex
+    type(treeNode),              pointer :: workNode
 
     Tree_Node_Is_Primary_Progenitor_Of_Index=.false.
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
           Tree_Node_Is_Primary_Progenitor_Of_Index=.true.
@@ -578,11 +669,23 @@ contains
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(thisNode,targetNode)
     !% Return true if {\tt thisNode} is a progenitor of {\tt targetNode}.
     implicit none
-    type(treeNode), intent(in), pointer :: thisNode,targetNode
-    type(treeNode),             pointer :: workNode
+#ifdef GCC45
+    class(treeNode), intent(in), target  :: thisNode
+#else
+    type(treeNode),  intent(in), pointer :: thisNode
+#endif
+    type(treeNode),  intent(in), pointer :: targetNode
+    type(treeNode),              pointer :: workNode
 
     Tree_Node_Is_Primary_Progenitor_Of_Node=.false.
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
           Tree_Node_Is_Primary_Progenitor_Of_Node=.true.
@@ -597,12 +700,23 @@ contains
   logical function Tree_Node_Is_Progenitor_Of_Index(thisNode,targetNodeIndex)
     !% Return true if {\tt thisNode} is a progenitor of the node with index {\tt targetNodeIndex}.
     implicit none
-    type(treeNode), intent(in), pointer :: thisNode
-    integer,        intent(in)          :: targetNodeIndex
-    type(treeNode),             pointer :: workNode
+#ifdef GCC45
+    class(treeNode), intent(in), target  :: thisNode
+#else
+    type(treeNode),  intent(in), pointer :: thisNode
+#endif
+    integer,         intent(in)          :: targetNodeIndex
+    type(treeNode),              pointer :: workNode
 
     Tree_Node_Is_Progenitor_Of_Index=.false.
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
           Tree_Node_Is_Progenitor_Of_Index=.true.
@@ -616,11 +730,23 @@ contains
   logical function Tree_Node_Is_Progenitor_Of_Node(thisNode,targetNode)
     !% Return true if {\tt thisNode} is a progenitor of {\tt targetNode}.
     implicit none
-    type(treeNode), intent(in), pointer :: thisNode,targetNode
-    type(treeNode),             pointer :: workNode
+#ifdef GCC45
+    class(treeNode), intent(in), target  :: thisNode
+#else
+    type(treeNode),  intent(in), pointer :: thisNode
+#endif
+    type(treeNode),  intent(in), pointer :: targetNode
+    type(treeNode),              pointer :: workNode
 
     Tree_Node_Is_Progenitor_Of_Node=.false.
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
           Tree_Node_Is_Progenitor_Of_Node=.true.
@@ -634,11 +760,22 @@ contains
   logical function Tree_Node_Is_On_Main_Branch(thisNode)
     !% Returns true if {\tt thisNode} is on the main branch.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(treeNode),                pointer :: workNode
+#ifdef GCC45
+    class(treeNode), intent(inout), target  :: thisNode
+#else
+    type(treeNode),  intent(inout), pointer :: thisNode
+#endif
+    type(treeNode),                 pointer :: workNode
 
     Tree_Node_Is_On_Main_Branch=.not.associated(thisNode%parentNode)
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
     do while (associated(workNode%parentNode))
        if (.not.workNode%isPrimaryProgenitor()) return
        workNode => workNode%parentNode
@@ -651,10 +788,22 @@ contains
   logical function Tree_Node_Is_Satellite(thisNode)
     !% Returns true if {\tt thisNode} is a satellite.
     implicit none
-    type(treeNode), pointer, intent(in) :: thisNode
-    type(treeNode), pointer             :: parentNode,childNode
+#ifdef GCC45
+    class(treeNode), target, intent(in)  :: thisNode
+#else
+    type(treeNode),  pointer, intent(in) :: thisNode
+#endif
+    type(treeNode),  pointer             :: parentNode,childNode,thisNodeActual
 
-    parentNode => thisNode%parentNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       thisnodeActual => thisNode
+#ifdef GCC45
+    end select
+#endif
+    parentNode => thisNodeActual%parentNode
     select case (associated(parentNode))
     case (.false.)
        Tree_Node_Is_Satellite=.false.
@@ -663,7 +812,7 @@ contains
        childNode => parentNode%childNode
        Tree_Node_Is_Satellite=.true.
        do while (associated(childNode))
-          if (associated(childNode,thisNode)) then
+          if (associated(childNode,thisNodeActual)) then
              Tree_Node_Is_Satellite=.false.
              exit
           end if
@@ -679,22 +828,35 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
+#ifdef GCC45
+    class(treeNode),     target,  intent(in) :: satelliteNode
+#else
     type(treeNode),      pointer, intent(in) :: satelliteNode
-    type(treeNode),      pointer             :: hostNode,thisNode,previousNode
+#endif
+    type(treeNode),      pointer             :: hostNode,thisNode,previousNode,satelliteNodeActual
     type(varying_string)                     :: message
 
-    hostNode => satelliteNode%parentNode
+#ifdef GCC45
+    select type (satelliteNode)
+    type is (treeNode)
+#endif
+       satelliteNodeActual => satelliteNode
+#ifdef GCC45
+    end select
+#endif
+
+    hostNode => satelliteNodeActual%parentNode
     message='Satellite node ['
-    message=message//satelliteNode%index()//'] being removed from host node ['//hostNode%index()//']'
+    message=message//satelliteNodeActual%index()//'] being removed from host node ['//hostNode%index()//']'
     call Galacticus_Display_Message(message,verbosityInfo)
-    if (associated(hostNode%satelliteNode,satelliteNode)) then
+    if (associated(hostNode%satelliteNode,satelliteNodeActual)) then
        ! This is the first satellite, unlink it, and link to any sibling.
-       hostNode%satelliteNode => satelliteNode%siblingNode
+       hostNode%satelliteNode => satelliteNodeActual%siblingNode
     else
        thisNode     => hostNode%satelliteNode
        previousNode => null()
        do while (associated(thisNode))
-          if (associated(thisNode,satelliteNode)) then
+          if (associated(thisNode,satelliteNodeActual)) then
              ! Found our node, link its older sibling to its younger sibling.
              previousNode%siblingNode => thisNode%siblingNode
              exit
@@ -709,8 +871,12 @@ contains
   subroutine Get_Last_Satellite(thisNode,satelliteNode)
     !% Returns a pointer to the final satellite node associated with {\tt thisNode}.
     implicit none
-    type(treeNode), intent(in),    pointer :: thisNode
-    type(treeNode), intent(inout), pointer :: satelliteNode
+#ifdef GCC45
+    class(treeNode), intent(in)              :: thisNode
+#else
+    type(treeNode),  intent(in),     pointer :: thisNode
+#endif
+    type(treeNode),  intent(inout),  pointer :: satelliteNode
 
     satelliteNode => thisNode%satelliteNode
     do while (associated(satelliteNode%siblingNode))
@@ -719,17 +885,30 @@ contains
     return
   end subroutine Get_Last_Satellite
 
+! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
+!   subroutine Merger_Tree_Walk_Tree_Same_Node(thisNode)
+!     !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_walk_tree}{{\tt
+!     !% Merger\_Tree\_Walk\_Tree()}} subroutine that does the walk in place, i.e. by updating the input tree node pointer to point
+!     !% to the next node.
+!     implicit none
+! #ifdef GCC45
+!     class (treeNode), target , intent(inout) :: thisNode
+! #else
+!     type (treeNode),  pointer, intent(inout) :: thisNode
+! #endif
+!     type (treeNode),  pointer                :: thisNodeActual
 
-  subroutine Merger_Tree_Walk_Tree_Same_Node(thisNode)
-    !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_walk_tree}{{\tt
-    !% Merger\_Tree\_Walk\_Tree()}} subroutine that does the walk in place, i.e. by updating the input tree node pointer to point
-    !% to the next node.
-    implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode
-
-    call Merger_Tree_Walk_Tree(thisNode,thisNode)
-    return
-  end subroutine Merger_Tree_Walk_Tree_Same_Node
+! #ifdef GCC45
+!     select type (thisNode)
+!     type is (treeNode)
+! #endif
+!        thisNodeActual => thisNode
+! #ifdef GCC45
+!     end select
+! #endif
+!     call Merger_Tree_Walk_Tree(thisNode,thisNodeActual)
+!     return
+!   end subroutine Merger_Tree_Walk_Tree_Same_Node
 
   subroutine Merger_Tree_Walk_Tree(thisNode,nextNode)
     !% This function provides a mechanism for walking through an entire merger tree. Given a pointer {\tt thisNode}
@@ -738,17 +917,30 @@ contains
     !% of the tree. Once the entire tree has been walked, a {\tt null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the tree is walked in this way.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode,nextNode
-    type(treeNode), pointer                :: workNode
+#ifdef GCC45
+    class(treeNode), target,  intent(inout) :: thisNode
+#else
+    type(treeNode),  pointer, intent(inout) :: thisNode
+#endif
+    type(treeNode),  pointer, intent(inout) :: nextNode
+    type(treeNode),  pointer                :: workNode,thisNodeActual
 
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       thisNodeActual => thisNode
+#ifdef GCC45
+    end select
+#endif
+    workNode => thisNodeActual
 
     if (.not.associated(workNode%parentNode)) then
        ! This is the base of the merger tree.
        do while (associated(workNode%childNode))
           workNode => workNode%childNode
        end do
-       if (associated(workNode,thisNode)) nullify(workNode)
+       if (associated(workNode,thisNodeActual)) nullify(workNode)
     else
        if (associated(workNode%siblingNode)) then
           workNode => workNode%siblingNode
@@ -764,24 +956,52 @@ contains
     return
   end subroutine Merger_Tree_Walk_Tree
 
-  subroutine Merger_Tree_Walk_Tree_With_Satellites_Same_Node(thisNode)
-    !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_walk_tree_with_satellites}{{\tt
-    !% Merger\_Tree\_Walk\_Tree\_With \_Satelites()}} subroutine that does the walk in place, i.e. by updating the input tree node
-    !% pointer to point to the next node.
-    implicit none
-    type (treeNode), pointer :: thisNode
+! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
+!   subroutine Merger_Tree_Walk_Tree_With_Satellites_Same_Node(thisNode)
+!     !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_walk_tree_with_satellites}{{\tt
+!     !% Merger\_Tree\_Walk\_Tree\_With \_Satelites()}} subroutine that does the walk in place, i.e. by updating the input tree node
+!     !% pointer to point to the next node.
+!     implicit none
+! #ifdef GCC45
+!     class (treeNode), intent(inout)          :: thisNode
+! #else
+!     type (treeNode),  intent(inout), pointer :: thisNode
+! #endif
+!     type (treeNode),                 pointer :: thisNodeActual
 
-    call Merger_Tree_Walk_Tree_With_Satellites(thisNode,thisNode)
-    return
-  end subroutine Merger_Tree_Walk_Tree_With_Satellites_Same_Node
+! #ifdef GCC45
+!     select type (thisNode)
+!     type is (treeNode)
+! #endif
+!        thisNodeActual => thisNode
+! #ifdef GCC45
+!     end select
+! #endif
+!     call Merger_Tree_Walk_Tree_With_Satellites(thisNode,thisNodeActual)
+!     return
+!   end subroutine Merger_Tree_Walk_Tree_With_Satellites_Same_Node
 
   subroutine Merger_Tree_Walk_Tree_With_Satellites(thisNode,nextNode)
     !% Merger tree walk function which also descends through satellite nodes.
     implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode,nextNode
-    type (treeNode), pointer                :: workNode
+#ifdef GCC45
+    class (treeNode), target , intent(inout) :: thisNode
+#else
+    type (treeNode),  pointer, intent(inout) :: thisNode
+#endif
+    type (treeNode),  pointer, intent(inout) :: nextNode
+    type (treeNode),  pointer                :: workNode,thisNodeActual
 
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       thisNodeActual => thisNode
+#ifdef GCC45
+    end select
+#endif
+    workNode => thisNodeActual
+
     if (.not.associated(workNode%parentNode)) then
        ! This is the base of the merger tree.
        do while (associated(workNode%childNode))
@@ -791,7 +1011,7 @@ contains
        do while (associated(workNode%satelliteNode))
           workNode => workNode%satelliteNode
        end do
-       if (associated(workNode,thisNode)) nullify(workNode)
+       if (associated(workNode,thisNodeActual)) nullify(workNode)
     else
        if (associated(workNode%siblingNode)) then
           workNode => workNode%siblingNode
@@ -818,16 +1038,29 @@ contains
     !% of the branch. Once the entire branch has been walked, a {\tt null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
     implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode,startNode,nextNode
-    type (treeNode), pointer                :: workNode
+#ifdef GCC45
+    class (treeNode), target,  intent(inout) :: thisNode
+#else
+    type (treeNode),  pointer, intent(inout) :: thisNode
+#endif
+    type (treeNode),  pointer, intent(inout) :: startNode,nextNode
+    type (treeNode),  pointer                :: workNode,thisNodeActual
 
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       thisNodeActual => thisNode
+#ifdef GCC45
+    end select
+#endif
+       workNode => thisNodeActual
 
-    if (associated(thisNode,startNode)) then
+    if (associated(thisNodeActual,startNode)) then
        do while (associated(workNode%childNode))
           workNode => workNode%childNode
        end do
-       if (associated(workNode,thisNode)) nullify(workNode)
+       if (associated(workNode,thisNodeActual)) nullify(workNode)
     else
        if (associated(workNode%siblingNode)) then
           workNode => workNode%siblingNode
@@ -843,23 +1076,50 @@ contains
     return
   end subroutine Merger_Tree_Walk_Branch
 
-  subroutine Merger_Tree_Construction_Walk_Same_Node(thisNode)
-    !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_construction_walk}{{\tt Merger\_Tree\_Construction\_Walk()}} subroutine
-    !% that does the walk in place, i.e. by updating the input tree node pointer to point to the next node.
-    implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode
+! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
+!   subroutine Merger_Tree_Construction_Walk_Same_Node(thisNode)
+!     !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_construction_walk}{{\tt Merger\_Tree\_Construction\_Walk()}} subroutine
+!     !% that does the walk in place, i.e. by updating the input tree node pointer to point to the next node.
+!     implicit none
+! #ifdef GCC45
+!     class (treeNode), target,  intent(inout) :: thisNode
+! #else
+!     type (treeNode),  pointer, intent(inout) :: thisNode
+! #endif
+!     type (treeNode),  pointer                :: thisNodeActual
 
-    call Merger_Tree_Construction_Walk(thisNode,thisNode)
-    return
-  end subroutine Merger_Tree_Construction_Walk_Same_Node
+! #ifdef GCC45
+!     select type (thisNode)
+!     type is (treeNode)
+! #endif
+!        thisNodeActual => thisNode
+! #ifdef GCC45
+!     end select
+! #endif
+
+!     call Merger_Tree_Construction_Walk(thisNode,thisNodeActual)
+!     return
+!   end subroutine Merger_Tree_Construction_Walk_Same_Node
 
   subroutine Merger_Tree_Construction_Walk(thisNode,nextNode)
     !% This function provides a mechanism for walking through a merger tree that is being built.
     implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode,nextNode
-    type (treeNode), pointer                :: workNode
+#ifdef GCC45
+    class (treeNode), target,  intent(inout) :: thisNode
+#else
+    type (treeNode),  pointer, intent(inout) :: thisNode
+#endif
+    type (treeNode),  pointer, intent(inout) :: nextNode
+    type (treeNode),  pointer                :: workNode
 
-    workNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       workNode => thisNode
+#ifdef GCC45
+    end select
+#endif
 
     if (associated(workNode%childNode)) then
        ! Move to the primary child if one exists.

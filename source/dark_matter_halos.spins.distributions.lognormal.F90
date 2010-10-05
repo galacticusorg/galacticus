@@ -87,8 +87,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: haloSpinDistributionMethod
-    procedure(),          pointer, intent(inout) :: Halo_Spin_Sample_Get
+    type(varying_string),                 intent(in)    :: haloSpinDistributionMethod
+    procedure(double precision), pointer, intent(inout) :: Halo_Spin_Sample_Get
     
     if (haloSpinDistributionMethod == 'lognormal') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Lognormal

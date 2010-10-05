@@ -133,6 +133,7 @@ contains
     type(hdf5Object)                              :: toDataset
 
     ! Initialize if necessary.
+    !$omp critical(Merger_Tree_Output_Initialize)
     if (.not.mergerTreeOutputInitialized) then
        
        ! Ensure file is open.
@@ -153,6 +154,7 @@ contains
        mergerTreeOutputInitialized=.true.
 
     end if
+    !$omp end critical(Merger_Tree_Output_Initialize)
     
     ! Create an output group.
     call Make_Output_Group(iOutput,time)
@@ -200,7 +202,7 @@ contains
           !# </include>
 
        end if
-       call thisNode%walkTreeWithSatellites()
+       call thisNode%walkTreeWithSatellites(thisNode)
     end do
     if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(iOutput)
     if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (iOutput)
@@ -211,7 +213,8 @@ contains
 
     ! Create references to the datasets if requested.
     if (mergerTreeOutputReferences) then
-
+       !$omp critical(HDF5_Access)
+       
        ! Ensure that a group has been made for this merger tree.
        call Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
        
@@ -233,13 +236,16 @@ contains
        
        ! Close the tree group.
        call thisTree%hdf5Group%close()
-    
-    end if
+       !$omp end critical(HDF5_Access)
 
+    end if
+    
     ! Store the start position and length of the node data for this tree, along with its volume weight.
+    !$omp critical(HDF5_Access)
     call outputGroups(iOutput)%hdf5Group%writeDataset(referenceStart         ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
     call outputGroups(iOutput)%hdf5Group%writeDataset(referenceLength        ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
     call outputGroups(iOutput)%hdf5Group%writeDataset([thisTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc^-3]."                       ,appendTo=.true.)
+    !$omp end critical(HDF5_Access)
 
     ! Increment the number of nodes written to this output group.
     outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
@@ -286,6 +292,7 @@ contains
 
     ! Write integer data from the buffer.
     if (integerPropertyCount > 0) then
+       !$omp critical(HDF5_Access)
        do iProperty=1,integerPropertyCount
           call outputGroups(iOutput)%nodeDataGroup%writeDataset(integerBuffer(1:integerBufferCount,iProperty),integerPropertyNames(iProperty) &
                &,integerPropertyComments(iProperty),appendTo=.true.)
@@ -295,6 +302,7 @@ contains
              call thisDataset%close()
           end if
        end do
+       !$omp end critical(HDF5_Access)
        integerPropertiesWritten=integerPropertiesWritten+integerBufferCount
        integerBufferCount=0
        outputGroups(iOutput)%integerAttributesWritten=.true.
@@ -311,6 +319,7 @@ contains
 
     ! Write double data from the buffer.
     if (doublePropertyCount > 0) then
+       !$omp critical(HDF5_Access)
        do iProperty=1,doublePropertyCount
           call outputGroups(iOutput)%nodeDataGroup%writeDataset(doubleBuffer(1:doubleBufferCount,iProperty),doublePropertyNames(iProperty) &
                &,doublePropertyComments(iProperty),appendTo=.true.)
@@ -320,6 +329,7 @@ contains
              call thisDataset%close()
           end if
        end do
+       !$omp end critical(HDF5_Access)
        doublePropertiesWritten=doublePropertiesWritten+doubleBufferCount
        doubleBufferCount=0
        outputGroups(iOutput)%doubleAttributesWritten=.true.
@@ -440,7 +450,9 @@ contains
 
     ! Make the enclosing group if it has not been created.
     if (.not.outputsGroupOpened) then
+       !$omp critical(HDF5_Access)
        outputsGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Outputs','Contains all outputs from Galacticus.')
+       !$omp end critical(HDF5_Access)
        outputsGroupOpened=.true.
     end if
 
@@ -454,6 +466,7 @@ contains
        commentText='Data for output number '
        commentText=commentText//iOutput
 
+       !$omp critical(HDF5_Access)
        ! Create a group for the tree.
        outputGroups(iOutput)%hdf5Group    =IO_HDF5_Open_Group(outputsGroup,char(groupName),char(commentText))
        outputGroups(iOutput)%nodeDataGroup=IO_HDF5_Open_Group(outputGroups(iOutput)%hdf5Group,"nodeData","Group containing data on all nodes at this output.")
@@ -471,7 +484,8 @@ contains
        !#  <subroutineArgs>outputGroups(iOutput)%hdf5Group,time</subroutineArgs>
        include 'galacticus.output.merger_tree.outputGroup.tasks.inc'
        !# </include>
-  
+       !$omp end critical(HDF5_Access)
+
     end if
     !$omp end critical (Outputs_Group_Create)
     return

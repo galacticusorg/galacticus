@@ -75,8 +75,8 @@ contains
   subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
     !% Initializes the ``Meiksin2006'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string),          intent(in)    :: stellarPopulationSpectraPostprocessMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
+    type(varying_string),                 intent(in)    :: stellarPopulationSpectraPostprocessMethod
+    procedure(double precision), pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
     
     if (stellarPopulationSpectraPostprocessMethod == 'Meiksin2006') Stellar_Population_Spectra_Postprocess_Get =>&
          & Stellar_Population_Spectra_Postprocess_Meiksin2006_Get

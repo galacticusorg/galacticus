@@ -348,7 +348,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -374,7 +374,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
 
     ! No need to do anything here - the hot halo will pipe a cooling rate to us.
     return
@@ -413,7 +413,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -618,7 +618,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustments(:)
     integer                                  :: thisIndex
     
@@ -673,7 +673,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustments(:)
     integer                                  :: thisIndex
     
@@ -728,7 +728,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustments(:)
     integer                                  :: thisIndex
     
@@ -784,7 +784,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -810,7 +810,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
 
     ! No need to do anything here - the hot halo will pipe a cooling rate to us.
     return
@@ -1165,12 +1165,12 @@ contains
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     implicit none
-    type(treeNode),          pointer, intent(inout) :: thisNode
-    logical,                          intent(out)   :: componentActive
-    double precision,                 intent(out)   :: specificAngularMomentum
-    procedure(),             pointer, intent(out)   :: Radius_Get,Velocity_Get
-    procedure(),             pointer, intent(out)   :: Radius_Set,Velocity_Set
-    double precision                                :: specificAngularMomentumMean,angularMomentum,diskMass
+    type(treeNode),              pointer, intent(inout) :: thisNode
+    logical,                              intent(out)   :: componentActive
+    double precision,                     intent(out)   :: specificAngularMomentum
+    procedure(double precision), pointer, intent(out)   :: Radius_Get,Velocity_Get
+    procedure(),                 pointer, intent(out)   :: Radius_Set,Velocity_Set
+    double precision                                    :: specificAngularMomentumMean,angularMomentum,diskMass
 
     ! Determine if thisNode has an active disk component supported by this module.    
     componentActive=methodSelected

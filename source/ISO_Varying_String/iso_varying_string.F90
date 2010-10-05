@@ -441,7 +441,7 @@ contains
 
     ALLOCATE(concat_string%chars(len_string_a+len(string_b)))
 
-    concat_string%chars(:len_string_a) = string_a%chars
+    if (len_string_a > 0) concat_string%chars(:len_string_a) = string_a%chars
     concat_string%chars(len_string_a+1:) = string_b%chars
 
 ! Finish

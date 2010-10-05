@@ -77,7 +77,7 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),          intent(in)    :: darkMatterConcentrationMethod
-    procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
     
     if (darkMatterConcentrationMethod == 'Gao 2008') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Gao2008
   

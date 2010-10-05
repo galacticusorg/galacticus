@@ -173,7 +173,7 @@ contains
                    if (associated(End_Of_Timestep_Task)) call End_Of_Timestep_Task(thisTree,thisNode)
                 end if
              end do
- 
+
              ! If this halo has reached its parent halo, decide how to handle it.
              if (associated(thisNode)) then
                 if (Tree_Node_Time(thisNode) >= Tree_Node_Time(thisNode%parentNode)) then
@@ -182,7 +182,7 @@ contains
                    case (.false.)
                       ! It is not the major progenitor, so this could be a halo merger event unless the halo is already a
                       ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging event.
-                      if (.not.thisNode%isSatellite()) call thisTree%mergeNode(thisNode) !call Events_Node_Merger(thisNode)
+                      if (.not.thisNode%isSatellite()) call thisTree%mergeNode(thisNode)
                    case (.true.)
                       ! This is the major progenitor, so promote the node to its parent as it is the main progenitor providing
                       ! that the node has no siblings - this ensures that any siblings have already been evolved and become

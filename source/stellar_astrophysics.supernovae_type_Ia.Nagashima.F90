@@ -90,12 +90,12 @@ contains
     use Atomic_Data
     use Memory_Management
     implicit none
-    type(varying_string), intent(in) :: supernovaeIaMethod
-    procedure(),          pointer    :: SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get
-    type(Node),           pointer    :: doc,thisIsotope,thisYield,thisAtom
-    type(NodeList),       pointer    :: isotopesList,propertyList
-    integer                          :: iIsotope,ioErr,atomicNumber,atomicIndex
-    double precision                 :: isotopeYield
+    type(varying_string),                 intent(in)    :: supernovaeIaMethod
+    procedure(double precision), pointer, intent(inout) :: SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get
+    type(Node),                  pointer                :: doc,thisIsotope,thisYield,thisAtom
+    type(NodeList),              pointer                :: isotopesList,propertyList
+    integer                                             :: iIsotope,ioErr,atomicNumber,atomicIndex
+    double precision                                    :: isotopeYield
 
     if (supernovaeIaMethod == 'Nagashima') then
        ! Set up pointers to our procedures.
