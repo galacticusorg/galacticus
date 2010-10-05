@@ -2382,6 +2382,9 @@ Currently defined star formation timescale methods are:
  \tau_\star = \epsilon_\star^{-1} \tau_{\rm dynamical, [disk|spheroid]} \left( {V_{\rm [disk|spheroid]} \over 200\hbox{km/s}} \right)^{\alpha_\star},
 \end{equation}
 where $\epsilon_\star$(={\tt starFormation[Disk|Spheroid]Efficiency}) is a star formation efficiency and $\alpha_\star$(={\tt starFormation[Disk|Spheroid]VelocityExponent}) controls the scaling with velocity. Note that $\tau_{\rm dynamical,[disk|spheroid]}=R_{\rm [disk|spheroid]}/V_{\rm [disk|spheroid]}$ where the radius and velocity are whatever characteristic values returned by the disk/spheroid method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the half-mass radius and circular velocity at that radius.
+ \item [\hyperlink{star_formation.timescales.disks.Kennicutt-Schmidt.F90:star_formation_timescale_disks_kennicutt_schmidt:star_formation_timescale_disk_kennicutt_schmidt}{{\tt Kennicutt-Schmidt}}] The timescale is given by the Kennicutt-Schmidt law (\citealt{schmidt_rate_1959,kennicutt_global_1998}; see \S\ref{sec:StarFormationKennicuttSchmidt}).
+ \item [\hyperlink{star_formation.timescales.disks.Blitz-Rosolowsky.F90:star_formation_timescale_disks_blitz_rosolowsky:star_formation_timescale_disk_blitz_rosolowsky}{{\tt Blitz-Rosolowsky}}] The timescale is given by the Blitz-Rosolowsky rule (\citealt{blitz_role_2006}; see \S\ref{sec:StarFormationBlitzRosolowsky}).
+ \item [\hyperlink{star_formation.timescales.disks.KMT09.F90:star_formation_timescale_disks_kmt09:star_formation_timescale_disk_kmt09}{{\tt KMT09}}] The timescale is given by the Krumholz-McKee-Tumlinson (\citealt{krumholz_star_2009}; see \S\ref{sec:StarFormationKMT09}).
 \end{description}
 
 \subsubsection{Stellar Astrophysics}
@@ -3048,7 +3051,7 @@ This subroutine should compute a suitable timestep for {\tt thisNode} and, if it
 
 The function {\tt Galactic\_Structure\_Density()} computes the density of material at a given position within a node. To have their density counted, each component must register a task using:
 \begin{verbatim}
- !# densityTask>
+ !# <densityTask>
  !#  <unitName>Density_Procedure</unitName>
  !# </densityTask>
 \end{verbatim}
@@ -3160,6 +3163,49 @@ If {\tt componentType} is a match to the component then the procedure should ret
  \item [{\tt massTypeGalactic}] Only galactic mass is included.
  \item [{\tt massTypeGaseous}] Only gaseous mass is included.
  \item [{\tt massTypeStellar}] Only stellar mass is included.
+\end{description}
+
+\subsubsection{Galactic Component Surface Density}
+
+The function {\tt Galactic\_Structure\_Surface\_Density()} computes the surface density of material at a given position within a node. Note that while a 3-D position is specified the routine should return the surface density corresponding to integrating the component density through the minor axis (typically the $z$-axis). To have their surface density counted, each component must register a task using:
+\begin{verbatim}
+ !# <surfaceDensityTask>
+ !#  <unitName>Surface_Density_Procedure</unitName>
+ !# </surfaceDensityTask>
+\end{verbatim}
+where {\tt Surface\_Density\_Procedure} is the name of a subroutine with the following template
+\begin{verbatim}
+ subroutine Surface_Density_Procedure(thisNode,position,coordinateSystem,massType,componentType,componentSurfaceDensity)
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,coordinateSystem,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentSurfaceDensity
+    .
+    .
+    .
+    return
+ end subroutine Surface_Density_Procedure
+\end{verbatim}
+If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentSurfaceDensity}, the surface density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} can take on the following values:
+\begin{description}
+ \item [{\tt componentTypeAll}] All components are matched;
+ \item [{\tt componentTypeDisk}] Only disk components are matched;
+ \item [{\tt componentTypeSpheroid}] Only spheroid components are matched.
+\end{description}
+{\tt massType} can take one of the following values:
+\begin{description}
+ \item [{\tt massTypeAll}] All mass is included;
+ \item [{\tt massTypeDark}] Only dark matter is included;
+ \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
+ \item [{\tt massTypeGalactic}] Only galactic mass is included.
+ \item [{\tt massTypeGaseous}] Only gaseous mass is included.
+ \item [{\tt massTypeStellar}] Only stellar mass is included.
+\end{description}
+The coordinate system in which {\tt position} is specified is given by {\tt coordinateSystem} which can take on the following values:
+\begin{description}
+ \item [{\tt coordinateSystemCartesian}] Cartesian $(x,y,z)$;
+ \item [{\tt coordinateSystemSpherical}] Spherical $(r,\theta,\phi)$;
+ \item [{\tt coordinateSystemCylindrical}] Cylindrical $(R,\phi,z)$.
 \end{description}
 
 \subsubsection{HDF5 File Close}
