@@ -236,7 +236,8 @@ contains
     
     end if
 
-    ! Store the start position and length of the node data for this tree, along with its volume weight.
+    ! Store the start position and length of the node data for this tree, along with its index and volume weight.
+    call outputGroups(iOutput)%hdf5Group%writeDataset([thisTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
     call outputGroups(iOutput)%hdf5Group%writeDataset(referenceStart         ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
     call outputGroups(iOutput)%hdf5Group%writeDataset(referenceLength        ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
     call outputGroups(iOutput)%hdf5Group%writeDataset([thisTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc^-3]."                       ,appendTo=.true.)
