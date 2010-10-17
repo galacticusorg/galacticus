@@ -181,7 +181,7 @@ contains
 
     Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum&
          &,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
-         &,toleranceRelative=1.0d-6)
+         &,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
   end function Modified_Press_Schechter_Branch_Mass_Root
@@ -226,8 +226,9 @@ contains
        call Compute_Common_Factors
        massMinimum=massResolution
        massMaximum=0.5d0*parentHaloMass
-       Modified_Press_Schechter_Branching_Probability=Integrate(massMinimum,massMaximum,Branching_Probability_Integrand&
-            &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+       Modified_Press_Schechter_Branching_Probability=Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
+            &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3&
+            &,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else
        Modified_Press_Schechter_Branching_Probability=0.0d0
