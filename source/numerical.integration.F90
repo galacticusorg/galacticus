@@ -70,7 +70,7 @@ module Numerical_Integration
 contains
 
   recursive double precision function Integrate(lowerLimit,upperLimit,integrand,parameterPointer,integrandFunction&
-       &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,reset)
+       &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset)
     !% Integrates the supplied {\tt integrand} function.
     use, intrinsic :: ISO_C_Binding                             
     implicit none
@@ -79,13 +79,13 @@ contains
     type(c_ptr),                      intent(in)              :: parameterPointer
     type(fgsl_function),              intent(inout)           :: integrandFunction
     type(fgsl_integration_workspace), intent(inout)           :: integrationWorkspace
-    integer,                          intent(in),    optional :: maxIntervals
+    integer,                          intent(in),    optional :: maxIntervals,integrationRule
     double precision,                 intent(in),    optional :: toleranceAbsolute,toleranceRelative
     logical,                          intent(in),    optional :: hasSingularities
     logical,                          intent(inout), optional :: reset
     integer,                          parameter               :: maxIntervalsDefault=1000
     double precision,                 parameter               :: toleranceAbsoluteDefault=1.0d-10,toleranceRelativeDefault=1.0d-10
-    integer                                                   :: status
+    integer                                                   :: status,integrationRuleActual
     integer(c_size_t)                                         :: maxIntervalsActual
     double precision                                          :: toleranceAbsoluteActual,toleranceRelativeActual,integrationValue&
          &,integrationError
@@ -112,6 +112,11 @@ contains
     else
        hasSingularitiesActual=.false.
     end if
+    if (present(integrationRule)) then
+       integrationRuleActual=integrationRule
+    else
+       integrationRuleActual=FGSL_Integ_Gauss61
+    end if
     if (present(reset)) then
        resetActual=reset
        reset=.false.
@@ -129,7 +134,7 @@ contains
     select case (hasSingularitiesActual)
     case (.false.)
        status=FGSL_Integration_QAG(integrandFunction,lowerLimit,upperLimit,toleranceAbsoluteActual,toleranceRelativeActual &
-            &,maxIntervalsActual,FGSL_INTEG_GAUSS61,integrationWorkspace,integrationValue,integrationError)
+            &,maxIntervalsActual,integrationRuleActual,integrationWorkspace,integrationValue,integrationError)
     case (.true.)
        status=FGSL_Integration_QAGS(integrandFunction,lowerLimit,upperLimit,toleranceAbsoluteActual,toleranceRelativeActual &
             &,maxIntervalsActual,integrationWorkspace,integrationValue,integrationError)
