@@ -202,10 +202,10 @@ contains
           sNormalization                    =dlog(1.0d0+0.6d0*chi+0.01d0*chi**2)/(0.04d0*metallicityRelativeToSolar)
        end if
 
-       ! Compute the star formation rate.
+       ! Compute the star formation rate. A low order integration rule works best here as the integrand can be discontinuous.
        starFormationRate=2.0d0*Pi*hydrogenMassFraction*starFormationFrequencyKMT09*Integrate(radiusInner,radiusOuter &
             &,Star_Formation_Rate_Integrand_KMT09,parameterPointer ,integrandFunction,integrationWorkspace,toleranceAbsolute &
-            &=0.0d0,toleranceRelative=1.0d-3)
+            &=0.0d0,toleranceRelative=1.0d-3,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
 
        ! Infer the star formation timescale.
