@@ -226,9 +226,9 @@ contains
        radiusInner=diskScaleRadius*radiusInnerDimensionless
        radiusOuter=diskScaleRadius*radiusOuterDimensionless
 
-       ! Compute the star formation rate.
-       starFormationRate=Integrate(radiusInner,radiusOuter,Star_Formation_Rate_Integrand_BR,parameterPointer&
-            &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+       ! Compute the star formation rate. A low order integration rule works best here as the integrand can be discontinuous.
+       starFormationRate=Integrate(radiusInner,radiusOuter,Star_Formation_Rate_Integrand_BR,parameterPointer ,integrandFunction&
+            &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
 
        ! Infer the star formation timescale.

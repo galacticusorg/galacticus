@@ -222,10 +222,12 @@ contains
        radiusInner=diskScaleRadius*radiusInnerDimensionless
        radiusOuter=diskScaleRadius*radiusOuterDimensionless
 
-       ! Compute the star formation rate.
+       ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here, particularly when a
+       ! truncation surface density is used (since that truncation introduces a discontinuity in the integrand).
        starFormationRate=2.0d0*Pi*starFormationKennicuttSchmidtNormalization*(mega**2)*((hydrogenMassFraction/mega**2)&
             &**starFormationKennicuttSchmidtExponent)*Integrate(radiusInner,radiusOuter,Star_Formation_Rate_Integrand_KS&
-            &,parameterPointer ,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+            &,parameterPointer ,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3&
+            &,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
 
        ! Compute the star formation timescale.
