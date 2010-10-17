@@ -98,7 +98,7 @@ contains
     use Gamma_Functions
     implicit none
     type(varying_string),          intent(in)    :: haloSpinDistributionMethod
-    procedure(),          pointer, intent(inout) :: Halo_Spin_Sample_Get
+    procedure(double precision), pointer, intent(inout) :: Halo_Spin_Sample_Get
     integer                                      :: iSpin
 
     if (haloSpinDistributionMethod == 'Bett2007') then

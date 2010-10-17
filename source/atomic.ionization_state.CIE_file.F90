@@ -104,7 +104,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: ionizationStateMethod
-    procedure(),          pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get&
+    procedure(double precision), pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get&
          &,Electron_Density_Density_Log_Slope_Get
 
     if (ionizationStateMethod == 'CIE_from_file') then

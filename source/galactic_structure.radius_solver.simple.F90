@@ -95,9 +95,11 @@ contains
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     !# </include>
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    logical                                         :: componentActive,galaxyIsPhysicallyPlausible
-    double precision                                :: specificAngularMomentum
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    procedure(Structure_Get_Template),                pointer :: Radius_Get => null(), Velocity_Get => null()
+    procedure(Structure_Set_Template),                pointer :: Radius_Set => null(), Velocity_Set => null()
+    logical                                                   :: componentActive,galaxyIsPhysicallyPlausible
+    double precision                                          :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. In this simple solver, we don't act on this.
     galaxyIsPhysicallyPlausible=.true.
@@ -108,21 +110,23 @@ contains
 
     !# <include directive="radiusSolverTask" type="code" action="subroutine">
     !#  <subroutineArgs>thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</subroutineArgs>
-    !#  <subroutineAction>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum)</subroutineAction>
+    !#  <subroutineAction>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</subroutineAction>
     include 'galactic_structure.radius_solver.tasks.inc'
     !# </include>
 
     return
   end subroutine Galactic_Structure_Radii_Solve_Simple
   
-  subroutine Solve_For_Radius(thisNode,specificAngularMomentum)
+  subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Profiles
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: specificAngularMomentum
-    double precision                         :: radius,velocity
-
+    type(treeNode),                    pointer, intent(inout) :: thisNode
+    double precision,                           intent(in)    :: specificAngularMomentum
+    procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
+    procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
+    double precision                                          :: radius,velocity
+    
     ! Find the radius in the dark matter profile with the required specific angular momentum
     radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(thisNode,specificAngularMomentum)
 

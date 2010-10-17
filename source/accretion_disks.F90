@@ -112,7 +112,7 @@ contains
        ! Flag that the module is now initialized.
        accretionDisksInitialized=.true.
     end if
-    !$omp end critical(accretionDisksInitialized)
+    !$omp end critical(accretionDisksInitialize)
 
     return
   end subroutine Accretion_Disks_Initialize

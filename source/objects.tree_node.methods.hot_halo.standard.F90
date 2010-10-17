@@ -339,7 +339,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     double precision                         :: gasMass
@@ -378,7 +378,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -421,7 +421,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -437,7 +437,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
     double precision                       :: massAccretionRate,failedMassAccretionRate
 
@@ -502,7 +502,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -521,7 +521,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
     double precision                       :: massAccretionRate,angularMomentumAccretionRate,angularMomentumCoolingRate
 
@@ -593,7 +593,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment(:)
     integer                                  :: thisIndex
     
@@ -611,7 +611,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     logical,                   intent(inout)     :: interrupt
-    procedure(),      pointer, intent(inout)     :: interruptProcedure
+    procedure(), pointer, intent(inout)     :: interruptProcedure
     procedure(),      pointer                    :: interruptProcedurePassed
     double precision, dimension(abundancesCount) :: abundances,abundancesCoolingRate
 
@@ -662,7 +662,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -678,7 +678,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
     double precision                       :: massReturnRate
 
@@ -725,7 +725,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -741,7 +741,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
     double precision                       :: angularMomentumReturnRate
 
@@ -790,7 +790,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment(:)
     integer                                  :: thisIndex
     
@@ -807,7 +807,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     logical,                   intent(inout)     :: interrupt
-    procedure(),      pointer, intent(inout)     :: interruptProcedure
+    procedure(), pointer, intent(inout)     :: interruptProcedure
     procedure(),      pointer                    :: interruptProcedurePassed
     double precision, dimension(abundancesCount) :: abundances,abundancesReturnRate    
 

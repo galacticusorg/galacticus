@@ -104,7 +104,7 @@ contains
     type(treeNode), intent(inout), pointer  :: thisNode
     integer,        intent(out)             :: gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo
 
-    !$omp critical(satelliteMergingMassMovementsInitialized)
+    !$omp critical(satelliteMergingMassMovementsInitialize)
     if (.not.satelliteMergingMassMovementsInitialized) then
        ! Get the satellite merging mass movement method parameter.
        !@ <inputParameter>

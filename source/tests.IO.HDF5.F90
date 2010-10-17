@@ -102,12 +102,12 @@ program Tests_IO_HDF5
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("HDF5 IO")
-
+ 
   ! Open an HDF5 file.
   call fileObject%openFile("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.)
 
   ! Open an HDF5 group.
-  groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024&
+  groupObject=IO_HDF5_Open_Group(fileObject,"myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024&
        &,compressionLevel=9)
 
   ! Write a scalar integer attribute to the group.
