@@ -252,6 +252,19 @@ foreach $history ( @histories ) {
 					      );
     $newDataset->set($newDataValues);
 }
+# Non-cumulative history datasets.
+@histories = ( "historyExpansion", "historyTime" );
+$newHistoryGroup = $outputFile->group("globalHistory");
+foreach $history ( @histories ) {
+    # Copy dataset from first file to merge.
+    $newDataValues = $mergeFiles[0]->dataset("globalHistory/".$history)->get;
+    # Store in output file.
+    $newDataset = new PDL::IO::HDF5::Dataset( name    => $history,
+					      parent  => $newHistoryGroup,
+					      fileObj => $outputFile
+					      );
+    $newDataset->set($newDataValues);
+}
 
 # Write completion messsage.
 print "-> Done\n";
