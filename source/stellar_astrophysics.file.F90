@@ -96,16 +96,16 @@ contains
     use Input_Parameters
     use Atomic_Data
     implicit none
-    type(varying_string),          intent(in)    :: stellarAstrophysicsMethod
-    procedure(),          pointer, intent(inout) :: Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get&
+    type(varying_string),                 intent(in)    :: stellarAstrophysicsMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get &
          &,Star_Lifetime_Get
-    type(Node),           pointer                :: doc,thisStar,thisDatum
-    type(NodeList),       pointer                :: starList,propertyList
-    type(varying_string)                         :: stellarPropertiesFile
-    integer                                      :: ioErr,iStar,lifetimeCount,ejectedMassCount,metalYieldCount,iElement&
+    type(Node),                  pointer                :: doc,thisStar,thisDatum
+    type(NodeList),              pointer                :: starList,propertyList
+    type(varying_string)                                :: stellarPropertiesFile
+    integer                                             :: ioErr,iStar,lifetimeCount,ejectedMassCount,metalYieldCount,iElement &
          &,elementCount,elementYieldCountMaximum,mapToIndex
-    double precision                             :: initialMass,metallicity
-    logical                                      :: starHasElements
+    double precision                                    :: initialMass,metallicity
+    logical                                             :: starHasElements
 
     ! Check if our method is selected.
     if (stellarAstrophysicsMethod == 'file') then

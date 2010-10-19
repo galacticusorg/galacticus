@@ -122,7 +122,7 @@ contains
        ! Flag that the module is now initialized.
        accretionHalosInitialized=.true.
     end if
-    !$omp end critical(accretionHalosInitialized)
+    !$omp end critical(accretionHalosInitialize)
 
     return
   end subroutine Accretion_Halos_Initialize

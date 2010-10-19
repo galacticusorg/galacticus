@@ -83,7 +83,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: hotHaloDensityMethod
-    procedure(),          pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get
+    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get
     
     if (hotHaloDensityMethod == 'cored isothermal') then
        Hot_Halo_Density_Get => Hot_Halo_Density_Cored_Isothermal_Get

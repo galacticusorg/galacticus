@@ -75,8 +75,8 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: darkMatterHaloBiasMethod
-    procedure(),          pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
+    type(varying_string),                 intent(in)    :: darkMatterHaloBiasMethod
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
 
     if (darkMatterHaloBiasMethod == 'SMT') Dark_Matter_Halo_Bias_Get => Dark_Matter_Halo_Bias_SMT
     return

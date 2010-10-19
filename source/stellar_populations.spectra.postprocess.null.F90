@@ -75,8 +75,8 @@ contains
   subroutine Stellar_Population_Spectra_Postprocess_Null_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
     !% Initializes the ``Null'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string),          intent(in)    :: stellarPopulationSpectraPostprocessMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
+    type(varying_string),                 intent(in)    :: stellarPopulationSpectraPostprocessMethod
+    procedure(double precision), pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
     
     if (stellarPopulationSpectraPostprocessMethod == 'null') Stellar_Population_Spectra_Postprocess_Get =>&
          & Stellar_Population_Spectra_Postprocess_Null_Get

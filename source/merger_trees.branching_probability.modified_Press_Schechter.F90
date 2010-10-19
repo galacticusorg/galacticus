@@ -95,7 +95,7 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),          intent(in)    :: treeBranchingMethod
-    procedure(),          pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass&
+    procedure(double precision), pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass&
          &,Tree_Maximum_Step
     
     if (treeBranchingMethod.eq.'modified Press-Schechter') then

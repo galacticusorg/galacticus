@@ -75,7 +75,7 @@ module Merger_Tree_Construction
   type(varying_string) :: mergerTreeConstructMethod
   ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
   procedure(Merger_Tree_Construct_Template), pointer :: Merger_Tree_Construct => null()
-  interface Merger_Tree_Construct_Template
+  abstract interface
      subroutine Merger_Tree_Construct_Template(thisTree,skipTree)
        import mergerTree
        type(mergerTree), intent(inout) :: thisTree
@@ -123,6 +123,7 @@ contains
     ! Create the object.
     allocate(thisTree)
     call Memory_Usage_Record(sizeof(thisTree))
+    thisTree%baseNode => null()
 
     ! Call the routine to construct the merger tree.
     call Merger_Tree_Construct(thisTree,skipTree)
