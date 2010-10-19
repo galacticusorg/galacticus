@@ -2585,6 +2585,18 @@ Currently defined stellar population properties methods are:
 \end{verbatim}
 where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
 \end{description}
+Currently, the following pre-computed stellar spectra files are provided with \glc:
+\begin{description}
+ \item [{\tt data/SSP\_Spectra\_Conroy-et-al\_v2.0\_imfSalpeter.hdf5}] Corresponds to a Salpeter IMF computed using v2.0 of the {\tt FSPS} code;
+ \item [{\tt data/SSP\_Spectra\_Conroy-et-al\_v2.1\_imfSalpeter.hdf5}]  Corresponds to a Salpeter IMF computed using v2.1 of the {\tt FSPS} code;
+ \item [{\tt data/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfKroupa.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Kroupa IMF and a red horizontal branch morphology;
+ \item [{\tt data/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfSalpeter.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Salpeter IMF and a red horizontal branch morphology; 
+ \item [{\tt data/SSP\_Spectra\_BC2003\_highResolution\_imfChabrier.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
+ \item [{\tt data/SSP\_Spectra\_BC2003\_highResolution\_imfSalpeter.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks.
+ \item [{\tt data/SSP\_Spectra\_BC2003\_lowResolution\_imfChabrier.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
+ \item [{\tt data/SSP\_Spectra\_BC2003\_lowResolution\_imfSalpeter.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks.
+\end{description}
+Note that the high resolution spectra from \cite{bruzual_stellar_2003} may require you to adjust the {\tt [stellarPopulationLuminosityIntegrationToleranceRelative]} parameter to a larger value. The sharp features in these high resolution spectra can be difficult to integrate. Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's format are provided in the {\tt scripts/ssps} folder.
 
 \subsubsection{Stellar Population Spectra Postprocessing}
 

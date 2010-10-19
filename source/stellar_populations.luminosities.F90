@@ -89,6 +89,12 @@ module Stellar_Population_Luminosities
   type(abundancesStructure) :: abundancesTabulate
   !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate)
 
+  ! Flag indicating if this module has been initialized yet.
+  logical                   :: moduleInitialized=.false.
+  
+  ! Tolerance used in integrations.
+  double precision          :: stellarPopulationLuminosityIntegrationToleranceRelative
+
 contains
   
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,imfIndex,abundances,age,redshift)
@@ -102,6 +108,7 @@ contains
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     use Galacticus_Error
+    use Input_Parameters
     implicit none
     integer,                   intent(in)                                    :: luminosityIndex(:),filterIndex(:),imfIndex
     double precision,          intent(in)                                    :: age(:),redshift(:)
@@ -121,6 +128,22 @@ contains
 
     ! Determine if we have created space for this IMF yet.
     !$omp critical (Luminosity_Tables_Initialize)
+    if (.not.moduleInitialized) then
+       ! Read the parameter controlling integration tolerance.
+       !@ <inputParameter>
+       !@   <name>stellarPopulationLuminosityIntegrationToleranceRelative</name>
+       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The relative tolerance used when integrating the flux of stellar populations through filters.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=1.0d-3)
+
+       ! Flag that this module is now initialized.
+       moduleInitialized=.true.
+    end if
+
     if (allocated(luminosityTables)) then
        if (size(luminosityTables) < imfIndex) then
           call Move_Alloc(luminosityTables,luminosityTablesTemporary)
@@ -185,20 +208,23 @@ contains
              do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
                 call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
                      &,metallicityType=logarithmicByMassSolar)
-                luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge,iMetallicity)&
-                     &=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand,parameterPointer&
-                     &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+                luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge,iMetallicity) &
+                     &=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand,parameterPointer &
+                     &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
+                     &=stellarPopulationLuminosityIntegrationToleranceRelative,integrationRule =FGSL_Integ_Gauss15,maxIntervals&
+                     &=10000)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do
           end do
           
           ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
           normalization=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB,parameterPointer &
-               &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+               &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
+               &=stellarPopulationLuminosityIntegrationToleranceRelative)
           call Integrate_Done(integrandFunction,integrationWorkspace)
           
           ! Normalize the luminosity.
-          luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)&
+          luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:) &
                &=luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)/normalization
           
           ! Flag that calculations have been performed for this filter.
