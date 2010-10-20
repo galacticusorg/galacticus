@@ -51,10 +51,10 @@ sub Get_BulgeToTotal {
 	# Construct the name of the corresponding luminosity properties.
 	$luminosityDataset[0] = "diskStellarLuminosity:"    .$filter.":".$frame.":z".$redshift.$dustExtension;
 	$luminosityDataset[1] = "spheroidStellarLuminosity:".$filter.":".$frame.":z".$redshift.$dustExtension;
-	$nonluminous          = which(${$dataSets->{$luminosityDataset[0]}}+${$dataSets->{$luminosityDataset[1]}} <= 0.0);
 	&HDF5::Get_Dataset($dataSet,\@luminosityDataset);
 	$dataSets = \%{${$dataSet}{'dataSets'}};
 	${$dataSets->{$dataSetName}} = ${$dataSets->{$luminosityDataset[1]}}/(${$dataSets->{$luminosityDataset[0]}}+${$dataSets->{$luminosityDataset[1]}});
+	$nonluminous                 = which(${$dataSets->{$luminosityDataset[0]}}+${$dataSets->{$luminosityDataset[1]}} <= 0.0);
 	${$dataSets->{$dataSetName}}->index($nonluminous) .= 0.0;
     } else {
 	die("Get_Luminosity(): unable to parse data set: ".$dataSetName);
