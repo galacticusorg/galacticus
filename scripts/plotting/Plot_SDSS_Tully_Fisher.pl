@@ -10,6 +10,8 @@ use Galacticus::Luminosities;
 use Math::SigFigs;
 use Stats::Means;
 use Data::Dumper;
+use Carp 'verbose';
+$SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Tully_Fisher.pl <galacticusFile> <outputDir/File> [<showFit>]")};
