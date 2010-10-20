@@ -91,10 +91,10 @@ contains
 
     ! Create a group for version information.
     versionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Version','Version and timestamp for this model.')
-    call versionGroup%writeAttribute(0             ,'versionMajor'   )
-    call versionGroup%writeAttribute(9             ,'versionMinor'   )
-    call versionGroup%writeAttribute(0             ,'versionRevision')
-    call versionGroup%writeAttribute(bazaarRevision,'bazaarRevision' )
+!    call versionGroup%writeAttribute(0             ,'versionMajor'   )
+!    call versionGroup%writeAttribute(9             ,'versionMinor'   )
+!    call versionGroup%writeAttribute(0             ,'versionRevision')
+!    call versionGroup%writeAttribute(bazaarRevision,'bazaarRevision' )
     runTime=Formatted_Date_and_Time()
     call versionGroup%writeAttribute(runTime       ,'runTime'        )
 

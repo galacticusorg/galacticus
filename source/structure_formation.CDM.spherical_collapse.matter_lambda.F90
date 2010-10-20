@@ -72,7 +72,7 @@ module Spherical_Collapse_Matter_Lambda
 
   ! Variables to hold the tabulated critical overdensity data.
   double precision               :: deltaTableTimeMinimum=1.0d0, deltaTableTimeMaximum=20.0d0
-  integer,             parameter :: deltaTableNPointsPerDecade=100
+  integer,             parameter :: deltaTableNPointsPerDecade=300
 
   ! Variables used in root finding.
   double precision               :: OmegaDE,OmegaM,tNow,hubbleParameterInvGyr,epsilonPerturbationShared

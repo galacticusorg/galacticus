@@ -80,8 +80,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: starFormationTimescaleDisksMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
+    type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
     
     if (starFormationTimescaleDisksMethod == 'dynamical time') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Dynamical_Time
