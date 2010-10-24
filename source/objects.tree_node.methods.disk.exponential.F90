@@ -457,7 +457,7 @@ contains
     if (thisNode%componentExists(componentIndex)) then
 
        ! Check for a realistic disk, return immediately if disk is unphysical.
-       if (Tree_Node_Disk_Angular_Momentum(thisNode) < 0.0d0 .or. Tree_Node_Disk_Radius(thisNode) < 0.0d0) return
+       if (Tree_Node_Disk_Angular_Momentum(thisNode) < 0.0d0 .or. Tree_Node_Disk_Radius(thisNode) < 0.0d0 .or. Tree_Node_Disk_Gas_Mass(thisNode) < 0.0d0) return
 
        ! Compute the star formation rate.
        starFormationRate=Exponential_Disk_SFR(thisNode)
@@ -477,22 +477,15 @@ contains
        call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,thisNode&
             &,thisNode%components(thisIndex)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates&
             &,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
-       
+
        ! Adjust rates.
-       if (starFormationRate > 0.0d0) then
-          call Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure&
-               &,stellarMassRate)
-          call Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential            (thisNode,interrupt,interruptProcedure,fuelMassRate &
-               &  )
-          call stellarAbundancesRates%unpack(abundanceMasses)
-          call Tree_Node_Disk_Stellar_Abundances_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure&
-               &,abundanceMasses)
-          call fuelAbundancesRates%unpack(abundanceMasses)
-          call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential      (thisNode,interrupt,interruptProcedure&
-               &,abundanceMasses)
-          call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure&
-               &,stellarLuminositiesRates)
-       end if
+       call Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure,stellarMassRate         )
+       call Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential            (thisNode,interrupt,interruptProcedure,fuelMassRate            )
+       call stellarAbundancesRates%unpack(abundanceMasses)
+       call Tree_Node_Disk_Stellar_Abundances_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,abundanceMasses         )
+       call fuelAbundancesRates%unpack(abundanceMasses)
+       call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential      (thisNode,interrupt,interruptProcedure,abundanceMasses         )
+       call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,stellarLuminositiesRates)
 
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
        massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
@@ -1003,35 +996,39 @@ contains
 
     ! Set to zero by default.
     componentVelocity=0.0d0
-    
-    ! Get the mass of the disk.
-    call Exponential_Disk_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,componentMass)
-    if (componentMass <= 0.0d0) return
 
-    ! Compute the actual velocity.
-    diskRadius=Exponential_Disk_Radius(thisNode)
-    if (diskRadius > 0.0d0) then
-       fractionalRadius=radius/diskRadius
-       if (fractionalRadius > fractionalRadiusMaximum) then
-          ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
-          ! very large arguments.
-          componentVelocity=dsqrt(gravitationalConstantGalacticus*componentMass/radius)
-       else
-          ! We are often called at precisely one scale length. Use pre-computed factors in that case.
-          if (fractionalRadius == 1.0d0) then
-             !$omp critical (ExponentialDiskFactorCompute)
-             if (.not.scaleLengthFactorSet) then
-                halfRadius          =0.5d0
-                scaleLengthFactor   =Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
-                scaleLengthFactorSet=.true.
-             end if
-             !$omp end critical (ExponentialDiskFactorCompute)
-             fractionalRadiusFactor=scaleLengthFactor
+    ! Compute if a disk is present.
+    if (methodSelected .and. thisNode%componentExists(componentIndex)) then
+       
+       ! Get the mass of the disk.
+       call Exponential_Disk_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,componentMass)
+       if (componentMass <= 0.0d0) return
+       
+       ! Compute the actual velocity.
+       diskRadius=Exponential_Disk_Radius(thisNode)
+       if (diskRadius > 0.0d0) then
+          fractionalRadius=radius/diskRadius
+          if (fractionalRadius > fractionalRadiusMaximum) then
+             ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
+             ! very large arguments.
+             componentVelocity=dsqrt(gravitationalConstantGalacticus*componentMass/radius)
           else
-             halfRadius=0.5d0*fractionalRadius
-             fractionalRadiusFactor=Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
+             ! We are often called at precisely one scale length. Use pre-computed factors in that case.
+             if (fractionalRadius == 1.0d0) then
+                !$omp critical (ExponentialDiskFactorCompute)
+                if (.not.scaleLengthFactorSet) then
+                   halfRadius          =0.5d0
+                   scaleLengthFactor   =Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
+                   scaleLengthFactorSet=.true.
+                end if
+                !$omp end critical (ExponentialDiskFactorCompute)
+                fractionalRadiusFactor=scaleLengthFactor
+             else
+                halfRadius=0.5d0*fractionalRadius
+                fractionalRadiusFactor=Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
+             end if
+             componentVelocity=dsqrt(2.0d0*(gravitationalConstantGalacticus*componentMass/diskRadius)*fractionalRadiusFactor)
           end if
-          componentVelocity=dsqrt(2.0d0*(gravitationalConstantGalacticus*componentMass/diskRadius)*fractionalRadiusFactor)
        end if
     end if
     return
