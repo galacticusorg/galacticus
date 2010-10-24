@@ -212,6 +212,7 @@ The {\tt Makefile} contains a few options that you may want to adjust:
  \item[{\tt MODULETYPE}] A label identifying the structure of modules built by the compiler. This is used to detected when module interfaces have been changed (requiring a recompile of all dependent code) and when only the module internals have changed. When the {\sc GFortran} compiler is used {\tt GCC-f95-on-LINUX} should be used here. Look in {\tt ./scripts/build/Compare\_Module\_Files.pl} for other possibilities (if your compiler isn't listed you'll need to either edit that script or deal with longer recompiles if you edit the code).
  \item[{\tt F03FLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
 \end{description}
+Additionally, you can add compiler options to the {\tt GALACTICUS\_FLAGS} environment variable. This is useful to add machine-specific options.
 
 \subsection{Compiling with OpenMP Parallelism}\index{OpenMP}\index{parallel}
 
