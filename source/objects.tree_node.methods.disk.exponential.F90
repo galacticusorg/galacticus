@@ -141,6 +141,8 @@ module Tree_Node_Methods_Exponential_Disk
   double precision                            :: rotationCurveHalfRadiusMinimum=rotationCurveHalfRadiusMinimumDefault&
        &,rotationCurveHalfRadiusMaximum=rotationCurveHalfRadiusMaximumDefault
   double precision, allocatable, dimension(:) :: rotationCurveHalfRadius,rotationCurveBesselFactors
+  double precision                            :: scaleLengthFactor
+  logical                                     :: scaleLengthFactorSet=.false.
 
 contains
 
@@ -457,7 +459,16 @@ contains
     if (thisNode%componentExists(componentIndex)) then
 
        ! Check for a realistic disk, return immediately if disk is unphysical.
-       if (Tree_Node_Disk_Angular_Momentum(thisNode) < 0.0d0 .or. Tree_Node_Disk_Radius(thisNode) < 0.0d0 .or. Tree_Node_Disk_Gas_Mass(thisNode) < 0.0d0) return
+       if     (    Tree_Node_Disk_Angular_Momentum    (thisNode) < 0.0d0 &
+            & .or. Tree_Node_Disk_Radius              (thisNode) < 0.0d0 &
+            & .or. Tree_Node_Disk_Gas_Mass            (thisNode) < 0.0d0 &
+            & ) return
+       ! Check for a realistic spheroid, return immediately if disk is unphysical.
+       if     (    Tree_Node_Spheroid_Angular_Momentum(thisNode) < 0.0d0 &
+            & .or. Tree_Node_Spheroid_Radius          (thisNode) < 0.0d0 &
+            & .or. Tree_Node_Spheroid_Gas_Mass        (thisNode) < 0.0d0 &
+            & .or. Tree_Node_Spheroid_Stellar_Mass    (thisNode) < 0.0d0 &
+            & ) return
 
        ! Compute the star formation rate.
        starFormationRate=Exponential_Disk_SFR(thisNode)
@@ -560,6 +571,7 @@ contains
              thisNode                    %components(thisIndex)%histories(stellarHistoryIndex)%rates                          &
                   &             =thisNode%components(thisIndex)%histories(stellarHistoryIndex)%rates-historyTransferRate%data
              call Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust (thisNode,interrupt,interruptProcedure, historyTransferRate     )
+             call historyTransferRate%destroy()
           end if
        end if
 
@@ -849,8 +861,8 @@ contains
     type(treeNode),   pointer                      :: hostNode
     double precision, dimension(abundancesCount)   :: thisAbundances,hostAbundances
     double precision, dimension(luminositiesCount) :: thisLuminosities,hostLuminosities
-    double precision                               :: specificAngularMomentum
     type(history)                                  :: thisHistory,hostHistory
+    double precision                               :: specificAngularMomentum
 
     ! Check that method is selected.
     if (methodSelected) then
@@ -910,6 +922,8 @@ contains
           call Tree_Node_Disk_Stellar_Properties_History_Set(hostNode,hostHistory)
           call thisHistory%reset()
           call Tree_Node_Disk_Stellar_Properties_History_Set(thisNode,thisHistory)
+          call thisHistory%destroy()
+          call hostHistory%destroy()
        case (movesToSpheroid)
           call Tree_Node_Spheroid_Stellar_Mass_Set                (hostNode, Tree_Node_Spheroid_Stellar_Mass        (hostNode)     &
                &                                                            +Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)    )
@@ -926,6 +940,8 @@ contains
           call Tree_Node_Spheroid_Stellar_Properties_History_Set(hostNode,hostHistory)
           call thisHistory%reset()
           call Tree_Node_Disk_Stellar_Properties_History_Set    (thisNode,thisHistory)
+          call thisHistory%destroy()
+          call hostHistory%destroy()
        case default
           call Galacticus_Error_Report('Exponential_Disk_Satellite_Merging','unrecognized movesTo descriptor')
        end select
@@ -990,8 +1006,6 @@ contains
     double precision, intent(in)             :: radius
     double precision, intent(out)            :: componentVelocity
     double precision, parameter              :: fractionalRadiusMaximum=30.0d0
-    double precision, save                   :: scaleLengthFactor
-    logical,          save                   :: scaleLengthFactorSet=.false.
     double precision                         :: fractionalRadius,fractionalRadiusFactor,diskRadius,componentMass,halfRadius
 
     ! Set to zero by default.
@@ -1470,7 +1484,7 @@ contains
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
 
-    write (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum
+    write (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,scaleLengthFactor,scaleLengthFactorSet
     return
   end subroutine Tree_Node_Methods_Exponential_Disk_State_Store
   
@@ -1485,7 +1499,7 @@ contains
     type(fgsl_file), intent(in) :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
-    read (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum
+    read (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,scaleLengthFactor,scaleLengthFactorSet
     ! Flag that the table is now uninitialized.
     rotationCurveInitialized=.false.
     return
