@@ -203,7 +203,7 @@ To build \glc\ (after installing all required libraries) ensure that you are in 
 \begin{verbatim}
  make Galacticus.exe
 \end{verbatim}
-This will create the {\tt Galactticus.exe} executable. The build takes some time, you'll see a set of XML files get created first which \glc\ uses to figure out how modules link in to the \glc\ code. After that, the Fortran files are compiled. We regularly build \glc\ using a parallel make without any problems.
+This will create the {\tt Galacticus.exe} executable. The build takes some time, you'll see a set of XML files get created first which \glc\ uses to figure out how modules link in to the \glc\ code. After that, the Fortran files are compiled. We regularly build \glc\ using a parallel make without any problems.
 
 The {\tt Makefile} contains a few options that you may want to adjust:
 \begin{description}
@@ -213,6 +213,24 @@ The {\tt Makefile} contains a few options that you may want to adjust:
  \item[{\tt F03FLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
 \end{description}
 Additionally, you can add compiler options to the {\tt GALACTICUS\_FLAGS} environment variable. This is useful to add machine-specific options.
+
+\subsection{Compiling with OpenMP Parallelism}\index{OpenMP}\index{parallel}
+
+By default, \glc\ will be compiled to run in parallel on machine with multiple CPUs using \href{http://openmp.org/wp/}{OpenMP}. To disable this simply remove (or comment out the)
+\begin{verbatim}
+F03FLAGS += -fopenmp
+\end{verbatim}
+line in the Makefile. When running \glc\ in parallel using OpenMP it may be necessary to increase the stack size allocated to each thread (since \glc\ calls some procedures recursively this can result in large numbers of local variables being allocated on the stack). To do this, use
+\begin{verbatim}
+setenv KMP_STACKSIZE 16777216
+\end{verbatim}
+in {\tt csh} and variants or
+\begin{verbatim}
+export KMP_STACKSIZE=16777216
+\end{verbatim}
+in {\tt bash} and variants. If you get stack overflows while running \glc\ in parallel, try increasing this value further.
+
+\glc\ currently implements parallel calculations at the tree level---that is, each parallel thread works on a separate merger tree. This means that you need sufficient memory to hold multiple merger trees at once. The advantage of this approach is that it is highly scalable (assuming no need for communication between trees), and \glc\ can achieve close to optimal speed-up in many cases. The limit to the speed-up is usually determined by the workload balance between the trees. If one tree requires significantly more time to run that all other trees combined then one thread will be left working on that tree while all others have finished. To limit this problem, it is recommended that parallel runs which use {\tt mergerTreeConstructMethod}$=${\tt build} (see \S{sec:MergerTreeConstruction}) be conducted with the {\tt [mergerTreeBuildTreesProcessDescending]}$=${\tt true} parameter set to true. This will cause the most massive merger trees (i.e. those which take longest to process) to be processed first.
 
 \section{Installing Without Root Access}
 

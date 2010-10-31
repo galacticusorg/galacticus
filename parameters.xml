@@ -225,7 +225,7 @@
   </parameter>
   <parameter>
     <name>mergerTreeBuildHaloMassMaximum</name>
-    <value>1e+12</value>
+    <value>1e+15</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildHaloMassMinimum</name>
@@ -510,5 +510,9 @@
   <parameter>
     <name>zeroCoolingRateAboveVelocity</name>
     <value>10000</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildTreesProcessDescending</name>
+    <value>true</value>
   </parameter>
 </parameters>

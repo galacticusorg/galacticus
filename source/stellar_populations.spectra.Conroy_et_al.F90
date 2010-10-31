@@ -79,8 +79,9 @@ contains
        &,Stellar_Population_Spectrum_Tabulation_Get)
     !% Initializes the ``Conroy, White \& Gunn'' module.
     implicit none
-    type(varying_string),          intent(in)    :: stellarPopulationSpectraMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Spectra_Get,Stellar_Population_Spectrum_Tabulation_Get
+    type(varying_string),                 intent(in)    :: stellarPopulationSpectraMethod
+    procedure(double precision), pointer, intent(inout) :: Stellar_Population_Spectra_Get
+    procedure(),                 pointer, intent(inout) :: Stellar_Population_Spectrum_Tabulation_Get
     
     if (stellarPopulationSpectraMethod == 'Conroy, White & Gunn') then
        Stellar_Population_Spectra_Get             => Stellar_Population_Spectra_Conroy_Get

@@ -176,6 +176,7 @@ contains
     double precision                :: expansionFactor,mergerTreeBaseTime,expansionFactorBase,nodeMass,nodeTime
 
     ! Build the merger tree.
+    !$omp critical (Merger_Tree_Build_Do)
     if (.not.treeWasBuilt) then
        ! Give the tree an index.
        thisTree%index=1
@@ -221,6 +222,8 @@ contains
        ! Flag that the tree is now built.
        treeWasBuilt=.true.
     end if
+    !$omp end critical (Merger_Tree_Build_Do)
+
     return
   end subroutine Merger_Tree_Smooth_Accretion_Do
   

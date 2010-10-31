@@ -23,8 +23,10 @@ F03FLAGS += -g
 F03FLAGS_NOOPT := $(F03FLAGS)
 # Optimization flags.
 #F03FLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
-## Currently OpenMP seems to cause problems with procedure pointers in gfortran.
-##F03FLAGS += -fopenmp # For OpenMP compilation.
+# For OpenMP compilation.
+F03FLAGS += -fopenmp
+# Use gFortran >v4.5.0 functionality.
+F03FLAGS += -DGCC45 -fintrinsic-modules-path /usr/local/include
 
 # Libraries:
 LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5 -lhdf5_fortran -lhdf5_hl -lhdf5hl_fortran

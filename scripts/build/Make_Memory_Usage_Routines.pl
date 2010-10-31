@@ -99,8 +99,9 @@ foreach $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $postBlocks{"deallocCode"} .= "  else\n";
     $postBlocks{"deallocCode"} .= "     memoryTypeActual=memoryTypeMisc\n";
     $postBlocks{"deallocCode"} .= "  end if\n";
-    $postBlocks{"deallocCode"} .= "  !\$omp atomic\n";
+    $postBlocks{"deallocCode"} .= "  !\$omp critical(Memory_Management_Usage)\n";
     $postBlocks{"deallocCode"} .= "  usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage-sizeof(thisArray)-allocationOverhead\n";
+    $postBlocks{"deallocCode"} .= "  !\$omp end critical(Memory_Management_Usage)\n";
     $postBlocks{"deallocCode"} .= "  deallocate(thisArray)\n";
     $postBlocks{"deallocCode"} .= "  return\n";
     $postBlocks{"deallocCode"} .= "end subroutine Dealloc_Array_".$typeLabel."\n\n";
@@ -132,8 +133,9 @@ foreach $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $postBlocks{"allocCode"} .= "     memoryTypeActual=memoryTypeMisc\n";
     $postBlocks{"allocCode"} .= "  end if\n";
     $postBlocks{"allocCode"} .= "\n";
-    $postBlocks{"allocCode"} .= "  !\$omp atomic\n";
+    $postBlocks{"allocCode"} .= "  !\$omp critical(Memory_Management_Usage)\n";
     $postBlocks{"allocCode"} .= "  usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sizeof(thisArray)+allocationOverhead\n";
+    $postBlocks{"allocCode"} .= "  !\$omp end critical(Memory_Management_Usage)\n";
     $postBlocks{"allocCode"} .= "  call Memory_Usage_Report\n";
     $postBlocks{"allocCode"} .= "  return\n";
     $postBlocks{"allocCode"} .= "end subroutine Alloc_Array_".$typeLabel."\n\n";
