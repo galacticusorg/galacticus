@@ -146,7 +146,7 @@ contains
     use FGSL
     implicit none
     double precision,          intent(out)                             :: stellarMassRate,fuelMassRate,energyInputRate
-    type(abundancesStructure), intent(out)                             :: stellarAbundancesRates,fuelAbundancesRates
+    type(abundancesStructure), intent(inout)                           :: stellarAbundancesRates,fuelAbundancesRates
     double precision,          intent(out),   dimension(:)             :: stellarLuminositiesRates
     double precision,          intent(in)                              :: starFormationRate
     type(abundancesStructure), intent(in)                              :: fuelAbundances
@@ -167,6 +167,7 @@ contains
     interpolationReset=.true.
     iHistory      =Interpolate_Locate                 (size(thisHistory%time),thisHistory%time,interpolationAccelerator,currentTime,interpolationReset)
     historyFactors=Interpolate_Linear_Generate_Factors(size(thisHistory%time),thisHistory%time,iHistory                ,currentTime                   )
+    call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
 
     ! Interpolate to get recycling rate.
     recyclingRate  =Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,recycledRateIndex    ),iHistory,historyFactors)
@@ -263,6 +264,7 @@ contains
 
     ! Create the history.
     call thisHistory%create(historyCount,noninstantHistoryTimesCount,timeBegin,timeEnd,rangeTypeLogarithmic)
+
     return
   end subroutine Stellar_Population_Properties_History_Create_Noninstantaneous
 

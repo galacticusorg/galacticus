@@ -87,7 +87,7 @@ module Stellar_Population_Properties
           &,stellarMassRate,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
        import treeNode, abundancesStructure, history
        double precision,          intent(out)                 :: stellarMassRate,fuelMassRate,energyInputRate
-       type(abundancesStructure), intent(out)                 :: stellarAbundancesRates,fuelAbundancesRates
+       type(abundancesStructure), intent(inout)               :: stellarAbundancesRates,fuelAbundancesRates
        double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
        double precision,          intent(in)                  :: starFormationRate
        type(abundancesStructure), intent(in)                  :: fuelAbundances
@@ -156,7 +156,7 @@ contains
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     implicit none
     double precision,          intent(out)                 :: stellarMassRate,fuelMassRate,energyInputRate
-    type(abundancesStructure), intent(out)                 :: stellarAbundancesRates,fuelAbundancesRates
+    type(abundancesStructure), intent(inout)               :: stellarAbundancesRates,fuelAbundancesRates
     double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
     double precision,          intent(in)                  :: starFormationRate
     type(abundancesStructure), intent(in)                  :: fuelAbundances
