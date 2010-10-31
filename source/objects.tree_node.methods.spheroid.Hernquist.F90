@@ -919,9 +919,9 @@ contains
     double precision, parameter                    :: spheroidAngularMomentumRatio=0.5595552243d0 ! Ratio of specific angular
                                                                                                   ! momentum at half-mass radius to
                                                                                                   ! global mean.
+    type(history)                                  :: historyDisk,historySpheroid,thisHistory
     double precision                               :: spheroidSpecificAngularMomentum,diskSpecificAngularMomentum,angularMomentum&
          &,spheroidMass
-    type(history)                                  :: historyDisk,historySpheroid,thisHistory
 
     ! Check that method is selected.
     if (methodSelected) then
@@ -1002,6 +1002,8 @@ contains
           call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,historyDisk    )
           call historySpheroid%reset()
           call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,historySpheroid)
+          call historyDisk%destroy()
+          call historySpheroid%destroy()
        case (movesToSpheroid)
           call Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist        (hostNode, Tree_Node_Spheroid_Stellar_Mass_Hernquist(hostNode) &
                &                                                              +Tree_Node_Disk_Stellar_Mass              (hostNode))
@@ -1025,6 +1027,8 @@ contains
           call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,historySpheroid)
           call historyDisk%reset()
           call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,historyDisk    )
+          call historyDisk%destroy()
+          call historySpheroid%destroy()
        case (doesNotMove)
           ! Do nothing.
        case default
@@ -1079,6 +1083,8 @@ contains
              call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,thisHistory    )
              call historySpheroid%reset()
              call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (thisNode,historySpheroid)
+             call thisHistory%destroy()
+             call historySpheroid%destroy()
          case (movesToSpheroid)
              call Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist        (hostNode, Tree_Node_Spheroid_Stellar_Mass_Hernquist(hostNode) &
                   &                                                              +Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode))
@@ -1095,6 +1101,8 @@ contains
              call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,thisHistory    )
              call historySpheroid%reset()
              call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (thisNode,historySpheroid)
+             call thisHistory%destroy()
+             call historySpheroid%destroy()
           case default
              call Galacticus_Error_Report('Hernquist_Spheroid_Satellite_Merging','unrecognized movesTo descriptor')
           end select
