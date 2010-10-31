@@ -81,7 +81,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: starFormationFeedbackDisksMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
     
     if (starFormationFeedbackDisksMethod == 'power law') then
        Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law

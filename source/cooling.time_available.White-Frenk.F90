@@ -83,7 +83,7 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: coolingTimeAvailableMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get
+    procedure(double precision), pointer, intent(inout) :: Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get
     
     if (coolingTimeAvailableMethod.eq.'White-Frenk') then
        Cooling_Time_Available_Get => Cooling_Time_Available_WF

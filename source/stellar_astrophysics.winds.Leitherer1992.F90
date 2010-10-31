@@ -80,8 +80,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string), intent(in) :: stellarWindsMethod
-    procedure(),          pointer    :: Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get
+    type(varying_string),                 intent(in)    :: stellarWindsMethod
+    procedure(double precision), pointer, intent(inout) :: Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get
 
     if (stellarWindsMethod == 'Leitherer1992') then
        ! Set procedure pointers.

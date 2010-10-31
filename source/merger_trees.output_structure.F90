@@ -110,6 +110,7 @@ contains
     type(hdf5Object)                            :: treeGroup,nodeDataset
 
     ! Check if module is initialized.
+    !$omp critical(structureOutputModuleInitialize)
     if (.not.structureOutputModuleInitialized) then
        ! Get parameter specifying if output is required.
        !@ <inputParameter>
@@ -131,10 +132,13 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeStructureOutputVirialQuantities',mergerTreeStructureOutputVirialQuantities,defaultValue=.false.)
        ! Create an output group if necessary.
+       !$omp critical(HDF5_Access)
        if (mergerTreeStructureOutput) structureGroup=IO_HDF5_Open_Group(galacticusOutputFile,'mergerTreeStructures','Pre-evolution structures of merger trees.')
+       !$omp end critical(HDF5_Access)
        ! Flag that module is initialized.
        structureOutputModuleInitialized=.true.
     end if
+    !$omp end critical(structureOutputModuleInitialize)
 
     ! Output the tree structure history.
     if (mergerTreeStructureOutput) then
@@ -143,7 +147,7 @@ contains
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
        ! Allocate storage space.
        call Alloc_Array(nodeIndex   ,[nodeCount])
@@ -152,7 +156,9 @@ contains
        groupName   ='mergerTree'
        groupName   =groupName//thisTree%index
        groupComment='Pre-evolution structure of merger tree.'
+       !$omp critical(HDF5_Access)
        treeGroup   =IO_HDF5_Open_Group(structureGroup,char(groupName),'Pre-evolution structure of merger tree.')
+       !$omp end critical(HDF5_Access)
 
        ! Extract node indices and output to file.
        nodeCount=0
@@ -160,64 +166,76 @@ contains
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeIndex(nodeCount)=thisNode%index()        
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
+       !$omp critical(HDF5_Access)
        call treeGroup%writeDataset(nodeIndex,'nodeIndex','Index of the node.')
-    
+       !$omp end critical(HDF5_Access)
+       
        ! Extract child node indices and output to file.
        nodeCount=0
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeIndex(nodeCount)=thisNode%childNode%index()        
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
+       !$omp critical(HDF5_Access)
        call treeGroup%writeDataset(nodeIndex,'childNodeIndex','Index of the child node.')
-    
+       !$omp end critical(HDF5_Access)
+       
        ! Extract parent node indices and output to file.
        nodeCount=0
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeIndex(nodeCount)=thisNode%parentNode%index()        
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
+       !$omp critical(HDF5_Access)
        call treeGroup%writeDataset(nodeIndex,'parentNodeIndex','Index of the parent node.')
-    
+       !$omp end critical(HDF5_Access)
+       
        ! Extract sibling node indices and output to file.
        nodeCount=0
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeIndex(nodeCount)=thisNode%siblingNode%index()        
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
+       !$omp critical(HDF5_Access)
        call treeGroup%writeDataset(nodeIndex,'siblingNodeIndex','Index of the sibling node.')
-    
+       !$omp end critical(HDF5_Access)
+       
        ! Extract node masses and output to file.
        nodeCount=0
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeProperty(nodeCount)=Tree_Node_Mass(thisNode)
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
+       !$omp critical(HDF5_Access)
        call treeGroup%writeDataset(nodeProperty,'nodeMass','Mass of node.',datasetReturned=nodeDataset)
        call nodeDataset%writeAttribute(massSolar,"unitsInSI")
        call nodeDataset%close()
-    
+       !$omp end critical(HDF5_Access)
+       
        ! Extract node times and output to file.
        nodeCount=0
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeProperty(nodeCount)=Tree_Node_Time(thisNode)
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
+       !$omp critical(HDF5_Access)
        call treeGroup%writeDataset(nodeProperty,'nodeTime','Time at node.',datasetReturned=nodeDataset)
        call nodeDataset%writeAttribute(gigaYear,"unitsInSI")
        call nodeDataset%close()
-    
+       !$omp end critical(HDF5_Access)
+       
        ! Check whether output of virial quantities is required.
        if (mergerTreeStructureOutputVirialQuantities) then
           
@@ -227,11 +245,13 @@ contains
           do while (associated(thisNode))
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Radius(thisNode)
-             call thisNode%walkTree()
+             call thisNode%walkTree(thisNode)
           end do
+          !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeProperty,'nodeVirialRadius','Virial radius of the node [Mpc].',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(megaParsec,"unitsInSI")
           call nodeDataset%close()
+          !$omp end critical(HDF5_Access)
           
           ! Extract node virial velocity and output to file.
           nodeCount=0
@@ -239,28 +259,32 @@ contains
           do while (associated(thisNode))
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Velocity(thisNode)
-             call thisNode%walkTree()
+             call thisNode%walkTree(thisNode)
           end do
+          !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeProperty,'nodeVirialVelocity','Virial velocity of the node [km/s].',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(kilo,"unitsInSI")
           call nodeDataset%close()
-    
+          !$omp end critical(HDF5_Access)
+          
        end if
        
+       !$omp critical(HDF5_Access)
        ! Call any subroutines that want to attach data to the merger tree output.
        !# <include directive="mergerTreeStructureOutputTask" type="code" action="subroutine">
        !#  <subroutineArgs>thisTree%baseNode,nodeProperty,treeGroup</subroutineArgs>
        include 'merger_trees.output_structure.tasks.inc'
        !# </include>
-
+       
        ! Close output group.
        call treeGroup%close()
-
+       !$omp end critical(HDF5_Access)
+       
        ! Deallocate storage space.
        call Dealloc_Array(nodeIndex   )
        call Dealloc_Array(nodeProperty)
     end if
-
+    
     return
   end subroutine Merger_Tree_Structure_Output
   

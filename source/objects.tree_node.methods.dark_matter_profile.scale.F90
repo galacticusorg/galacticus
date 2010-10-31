@@ -180,7 +180,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
 
@@ -196,7 +196,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     integer                                :: thisIndex
     double precision                       :: growthRate
 
@@ -403,7 +403,8 @@ contains
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeProperty(nodeCount)=Tree_Node_Dark_Matter_Profile_Scale_Scale(thisNode)
-          call thisNode%walkTree()
+          ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
+          call thisNode%walkTree(thisNode)
        end do
        call treeGroup%writeDataset(nodeProperty,'darkMatterScaleRadius','Scale radius of the dark matter profile [Mpc].',datasetReturned=nodeDataset)
        call nodeDataset%writeAttribute(megaParsec,"unitsInSI")

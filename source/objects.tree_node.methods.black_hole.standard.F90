@@ -257,7 +257,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -389,7 +389,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -405,7 +405,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
     double precision                       :: massAccretionRate,spinUpRate
 

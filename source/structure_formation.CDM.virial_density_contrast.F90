@@ -121,11 +121,12 @@ contains
        !# </include>
        if (.not.associated(Virial_Density_Contrast_Tabulate)) call Galacticus_Error_Report('Virial_Density_Contrast_Initialize','method ' &
             &//char(virialDensityContrastMethod)//' is unrecognized')
-       ! Call routine to initialize the virial overdensity table.
-       call Virial_Density_Contrast_Tabulate(time,deltaVirialTableNumberPoints,deltaVirialTableTime,deltaVirialTableDeltaVirial)
        ! Flag that the module is now initialized.
        deltaVirialInitialized=.true.
     end if
+
+    ! Call routine to initialize the virial overdensity table.
+    call Virial_Density_Contrast_Tabulate(time,deltaVirialTableNumberPoints,deltaVirialTableTime,deltaVirialTableDeltaVirial)
     return
   end subroutine Virial_Density_Contrast_Initialize
   
@@ -186,8 +187,10 @@ contains
     call Virial_Density_Contrast_Retabulate(timeActual)
 
     ! Interpolate to get the expansion factor.
+    !$omp critical(Halo_Virial_Density_Contrast_Interpolate)
     Halo_Virial_Density_Contrast=Interpolate(deltaVirialTableNumberPoints,deltaVirialTableTime,deltaVirialTableDeltaVirial &
          &,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    !$omp end critical(Halo_Virial_Density_Contrast_Interpolate)
     return
   end function Halo_Virial_Density_Contrast
 
@@ -226,8 +229,10 @@ contains
     call Virial_Density_Contrast_Retabulate(timeActual)
 
     ! Interpolate to get the expansion factor.
+    !$omp critical(Halo_Virial_Density_Contrast_Interpolate)
     Halo_Virial_Density_Contrast_Rate_of_Change=Interpolate_Derivative(deltaVirialTableNumberPoints,deltaVirialTableTime&
          &,deltaVirialTableDeltaVirial ,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    !$omp end critical(Halo_Virial_Density_Contrast_Interpolate)
     return
   end function Halo_Virial_Density_Contrast_Rate_of_Change
 
