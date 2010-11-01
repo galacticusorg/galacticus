@@ -138,7 +138,7 @@ A mass accretion history (i.e. mass as a function of time) for the main branch i
 \begin{description}
  \item [{\tt nodeIndex}] The index of the node in the tree;
  \item [{\tt nodeTime}] The time at this point in the tree (in Gyr);
- \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$).
+ \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$). The {\tt nodeMass} property is defined to be the total mass of each node in a merger tree. Therefore, it includes both dark and baryonic mass. Additionally, the mass of a node includes the mass of any satellite nodes that it may contain. The mean density of the node depends on the method selected by the {\tt virialDensityContrastMethod} parameter.
 \end{description}
 
 \subsubsection{Pre-Evolution Merger Trees}
@@ -150,7 +150,7 @@ A mass accretion history (i.e. mass as a function of time) for the main branch i
  \item [{\tt parentNodeIndex}] The index of this node's parent node;
  \item [{\tt siblingNodeIndex}] The index of this node's sibling node;
  \item [{\tt nodeTime}] The time at this point in the tree (in Gyr);
- \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$).
+ \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$). The {\tt nodeMass} property is defined to be the total mass of each node in a merger tree. Therefore, it includes both dark and baryonic mass. Additionally, the mass of a node includes the mass of any satellite nodes that it may contain. The mean density of the node depends on the method selected by the {\tt virialDensityContrastMethod} parameter.
 \end{description}
 Additional, optional, datasets can be added by setting appropriate input parameters. Currently these include:
 \begin{itemize}
