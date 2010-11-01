@@ -462,6 +462,7 @@ contains
        if     (    Tree_Node_Disk_Angular_Momentum    (thisNode) < 0.0d0 &
             & .or. Tree_Node_Disk_Radius              (thisNode) < 0.0d0 &
             & .or. Tree_Node_Disk_Gas_Mass            (thisNode) < 0.0d0 &
+            & .or. Tree_Node_Disk_Stellar_Mass        (thisNode) < 0.0d0 &
             & ) return
        ! Check for a realistic spheroid, return immediately if disk is unphysical.
        if     (    Tree_Node_Spheroid_Angular_Momentum(thisNode) < 0.0d0 &
@@ -506,7 +507,7 @@ contains
           diskMass=gasMass+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
           
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          diskDynamicalTime=Mpc_per_km_per_s_To_Gyr*Tree_Node_Disk_Radius(thisNode)/Tree_Node_Disk_Velocity(thisNode)             
+          diskDynamicalTime=Mpc_per_km_per_s_To_Gyr*Tree_Node_Disk_Radius(thisNode)/Tree_Node_Disk_Velocity(thisNode)   
           massOutflowRate=min(massOutflowRate,gasMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
           
           ! Compute the angular momentum outflow rate.

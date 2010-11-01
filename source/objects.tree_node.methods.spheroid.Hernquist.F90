@@ -554,6 +554,7 @@ contains
        if     (    Tree_Node_Spheroid_Angular_Momentum(thisNode) < 0.0d0 &
             & .or. Tree_Node_Spheroid_Radius          (thisNode) < 0.0d0 &
             & .or. Tree_Node_Spheroid_Gas_Mass        (thisNode) < 0.0d0 &
+            & .or. Tree_Node_Spheroid_Stellar_Mass    (thisNode) < 0.0d0 &
             & ) return
        ! Check for a realistic disk, return immediately if disk is unphysical.
        if     (    Tree_Node_Disk_Angular_Momentum    (thisNode) < 0.0d0 &
