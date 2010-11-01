@@ -82,9 +82,9 @@ contains
     use Atomic_Data
     implicit none
     type(varying_string),          intent(in)    :: stellarPopulationPropertiesMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get&
-         &,Stellar_Population_Properties_History_Count_Get,Stellar_Population_Properties_History_Create_Do
-    
+    procedure(integer),   pointer, intent(inout) :: Stellar_Population_Properties_History_Count_Get
+    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_History_Create_Do,Stellar_Population_Properties_Rates_Get
+
     if (stellarPopulationPropertiesMethod == 'instantaneous') then
        Stellar_Population_Properties_Rates_Get         =>  Stellar_Population_Properties_Rates_Instantaneous    
        Stellar_Population_Properties_History_Count_Get =>  Stellar_Population_Properties_History_Count_Instantaneous    

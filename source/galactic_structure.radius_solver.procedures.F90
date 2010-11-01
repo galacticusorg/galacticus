@@ -64,13 +64,7 @@
 module Galactic_Structure_Radius_Solver_Procedures
   !% Holds procedure pointers used by the galactic structure radii solver subsystem.
   use Tree_Nodes
-  private
-  public :: Radius_Get, Radius_Set, Velocity_Get, Velocity_Set
-
-  ! Pointers to get and set procedures.
-  procedure(Structure_Get_Template), pointer :: Radius_Get => null(), Velocity_Get => null()
-  procedure(Structure_Set_Template), pointer :: Radius_Set => null(), Velocity_Set => null()
-  !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+  public
 
   abstract interface
      double precision function Structure_Get_Template(thisNode)

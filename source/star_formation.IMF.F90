@@ -395,6 +395,7 @@ contains
     ! Select which IMF to use.
     imfSelected=IMF_Select(starFormationRate,fuelAbundances)
 
+    !$omp critical(IMF_Recycling_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
     if (.not.allocated(recycledFractionTabulated)) then
        call Alloc_Array(recycledFractionTabulated,[imfSelected])
@@ -580,10 +581,11 @@ contains
           call xml_EndElement(recycledFractionDoc,"stellarPopulation")
           call xml_Close(recycledFractionDoc)
        end if
-       
+
        ! Flag that this IMF has now been tabulated.
        recycledFractionTabulated(imfSelected)=.true.
     end if
+    !$omp end critical(IMF_Recycling_Rate_NonInstantaneous_Initialize)
 
     ! Get the index where this IMF is stored in the table.
     tableIndex=recycledFractionIndex(imfSelected)
@@ -705,6 +707,7 @@ contains
     ! Select which IMF to use.
     imfSelected=IMF_Select(starFormationRate,fuelAbundances)
 
+    !$omp critical(IMF_Metal_Yield_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
     if (.not.allocated(metalYieldTabulated)) then
        call Alloc_Array(metalYieldTabulated,[imfSelected])
@@ -942,6 +945,7 @@ contains
        ! Flag that this IMF has now been tabulated.
        metalYieldTabulated(imfSelected)=.true.
     end if
+    !$omp end critical(IMF_Metal_Yield_Rate_NonInstantaneous_Initialize)
 
     ! Get the index where this IMF is stored in the table.
     tableIndex=metalYieldIndex(imfSelected)
@@ -1092,6 +1096,7 @@ contains
     ! Select which IMF to use.
     imfSelected=IMF_Select(starFormationRate,fuelAbundances)
 
+    !$omp critical(IMF_Energy_Input_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
     if (.not.allocated(energyInputTabulated)) then
        call Alloc_Array(energyInputTabulated,[imfSelected])
@@ -1276,6 +1281,7 @@ contains
        ! Flag that this IMF has now been tabulated.
        energyInputTabulated(imfSelected)=.true.
     end if
+    !$omp end critical(IMF_Energy_Input_Rate_NonInstantaneous_Initialize)
 
     ! Get the index where this IMF is stored in the table.
     tableIndex=energyInputIndex(imfSelected)

@@ -96,7 +96,7 @@ contains
     type(varying_string),          intent(in)    :: linearGrowthMethod
     procedure(),          pointer, intent(inout) :: Linear_Growth_Tabulate
     
-    if (linearGrowthMethod.eq.'simple') Linear_Growth_Tabulate => Linear_Growth_Factor_Simple_Tabulate
+    if (linearGrowthMethod == 'simple') Linear_Growth_Tabulate => Linear_Growth_Factor_Simple_Tabulate
     return
   end subroutine Growth_Factor_Simple_Initialize
 

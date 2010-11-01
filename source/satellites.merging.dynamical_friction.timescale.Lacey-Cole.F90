@@ -79,7 +79,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string), intent(in)    :: satelliteMergingMethod
-    procedure(), pointer, intent(inout) :: Satellite_Time_Until_Merging
+    procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
 
     if (satelliteMergingMethod == 'Lacey-Cole') then
        Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Lacey_Cole

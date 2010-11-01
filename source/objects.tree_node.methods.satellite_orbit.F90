@@ -192,7 +192,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
 
@@ -207,7 +207,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     
     if (thisNode%componentExists(componentIndex)) call Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple(thisNode,interrupt&
          &,interruptProcedure,-1.0d0)

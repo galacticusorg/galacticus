@@ -144,7 +144,11 @@ contains
     use Numerical_Ranges
     use Galacticus_Error
     implicit none
+#ifdef GCC45
+    class(history),   intent(inout)        :: thisHistory
+#else
     type(history),    intent(inout)        :: thisHistory
+#endif
     integer,          intent(in)           :: historyCount,timesCount
     double precision, intent(in), optional :: timeBegin,timeEnd
     integer,          intent(in), optional :: rangeType
@@ -179,8 +183,12 @@ contains
     !% Destroy a history.
     use Memory_Management
     implicit none
-    type(history), intent(inout) :: thisHistory
-    integer                      :: timesCount,historyCount
+#ifdef GCC45
+    class(history), intent(inout) :: thisHistory
+#else
+    type(history),  intent(inout) :: thisHistory
+#endif
+    integer                       :: timesCount,historyCount
     
     if (allocated(thisHistory%time)) then
        timesCount  =size(thisHistory%time      )
@@ -197,7 +205,11 @@ contains
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     use Memory_Management
     implicit none
-    type(history), intent(inout) :: thisHistory
+#ifdef GCC45
+    class(history), intent(inout) :: thisHistory
+#else
+    type(history),  intent(inout) :: thisHistory
+#endif
     
     if (allocated(thisHistory%time)) then
        thisHistory%data =0.0d0
@@ -209,7 +221,11 @@ contains
   logical function History_Exists(thisHistory)
     !% Returns true if the history has been created.
     implicit none
-    type(history), intent(in) :: thisHistory
+#ifdef GCC45
+    class(history), intent(in) :: thisHistory
+#else
+    type(history),  intent(in) :: thisHistory
+#endif
     
     History_Exists=allocated(thisHistory%time)
     return
@@ -224,7 +240,11 @@ contains
     use Memory_Management
     use, intrinsic :: ISO_C_Binding 
     implicit none
+#ifdef GCC45
+    class(history),   intent(inout)        :: thisHistory
+#else
     type(history),    intent(inout)        :: thisHistory
+#endif
     double precision, intent(in)           :: currentTime
     integer,          intent(in), optional :: minimumPointsToRemove
     type(history)                          :: temporaryHistory
@@ -288,13 +308,17 @@ contains
     use Numerical_Interpolation
     use Galacticus_Error
     implicit none
-    type(history),           intent(inout)          :: thisHistory
-    type(history),           intent(in)             :: addHistory
-    integer,                 intent(in),   optional :: addTo
-    integer                                         :: addHistoryPointCount,iPoint,interpolationPoint,iHistory,addToActual
-    double precision                                :: interpolationFactors(2)
-    type(fgsl_interp_accel)                         :: interpolationAccelerator
-    logical                                         :: interpolationReset
+#ifdef GCC45
+    class(history),          intent(inout)           :: thisHistory
+#else
+    type(history),           intent(inout)           :: thisHistory
+#endif
+    type(history),           intent(in)              :: addHistory
+    integer,                 intent(in),    optional :: addTo
+    integer                                          :: addHistoryPointCount,iPoint,interpolationPoint,iHistory,addToActual
+    double precision                                 :: interpolationFactors(2)
+    type(fgsl_interp_accel)                          :: interpolationAccelerator
+    logical                                          :: interpolationReset
     
     ! Return if addHistory does not exist.
     if (.not.allocated(addHistory%time)) return

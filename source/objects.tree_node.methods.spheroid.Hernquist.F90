@@ -470,7 +470,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
 
     ! Do nothing here - work will be done elsewhere.
     return
@@ -509,7 +509,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(), pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     integer                                  :: thisIndex
     
@@ -538,7 +538,7 @@ contains
     implicit none
     type(treeNode),            pointer, intent(inout)       :: thisNode
     logical,                            intent(inout)       :: interrupt
-    procedure(),               pointer, intent(inout)       :: interruptProcedure
+    procedure(), pointer, intent(inout)       :: interruptProcedure
     double precision,          dimension(luminositiesCount) :: stellarLuminositiesRates
     double precision,          dimension(abundancesCount)   :: abundanceMasses,abundancesOutflowRate
     integer                                                 :: thisIndex
@@ -1263,15 +1263,15 @@ contains
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     implicit none
-    type(treeNode),          pointer, intent(inout) :: thisNode
-    logical,                          intent(out)   :: componentActive
-    double precision,                 intent(out)   :: specificAngularMomentum
-    procedure(),             pointer, intent(out)   :: Radius_Get,Velocity_Get
-    procedure(),             pointer, intent(out)   :: Radius_Set,Velocity_Set
-    double precision,        parameter              :: spheroidAngularMomentumRatio=0.2546479089d0 ! Ratio of specific angular
-                                                                                                   ! momentum at scale radius to
-                                                                                                   ! global mean.
-    double precision                                :: specificAngularMomentumMean,angularMomentum,spheroidMass
+    type(treeNode),              pointer, intent(inout) :: thisNode
+    logical,                              intent(out)   :: componentActive
+    double precision,                     intent(out)   :: specificAngularMomentum
+    procedure(),                 pointer, intent(out)   :: Radius_Set,Velocity_Set
+    procedure(double precision), pointer, intent(out)   :: Radius_Get,Velocity_Get
+    double precision,            parameter              :: spheroidAngularMomentumRatio=0.2546479089d0 ! Ratio of specific angular
+                                                                                                       ! momentum at scale radius to
+                                                                                                       ! global mean.
+    double precision                                    :: specificAngularMomentumMean,angularMomentum,spheroidMass
 
     ! Determine if thisNode has an active spheroid component supported by this module.    
     componentActive=methodSelected

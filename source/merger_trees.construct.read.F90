@@ -140,7 +140,7 @@ contains
     integer                                          :: errorCode,datasetTypeClass,nodeCount,iNode,jNode,treeIndex(1)
     double precision                                 :: volumeWeight(1)
     type(varying_string)                             :: datasetName,message
-    logical                                          :: foundParent,foundChild,foundSibling
+    logical                                          :: foundParent,foundChild,foundSibling,haveTree
 
     !$omp critical(mergerTreeReadTree)
     ! Open the merger tree group.
@@ -155,161 +155,169 @@ contains
        ! Close the file.
        call h5fclose_f(mergerTreeFileID,errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to close input file')
-       return
+       ! Flag that we have no tree.
+       haveTree=.false.
     else
        ! Increment the tree to read index.
        nextTreeToRead=nextTreeToRead+1
+       ! Flag that we have a tree.
+       haveTree=.true.
     end if
 
-    ! If the tree is to be skipped, do not read it.
-    if (skipTree) then
-       ! Simply allocate a base node to indicate that the tree exists.
-       call thisTree%createNode(thisTree%baseNode)
-    else
+    ! Continue only if we have a tree.
+    if (haveTree) then
 
-       ! Get the dimensions of the dataset.
-       call h5ltget_dataset_info_f(mergerTreeGroupID,"nodeIndex",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on nodeIndex dataset')
-       nodeCount=datasetDimensions(1)
+       ! If the tree is to be skipped, do not read it.
+       if (skipTree) then
+          ! Simply allocate a base node to indicate that the tree exists.
+          call thisTree%createNode(thisTree%baseNode)
+       else
 
-       ! Allocate temporary arrays to hold the merger tree data.
-       call Alloc_Array(nodeIndex   ,[nodeCount])
-       call Alloc_Array(childNode   ,[nodeCount])
-       call Alloc_Array(parentNode  ,[nodeCount])
-       call Alloc_Array(siblingNode ,[nodeCount])
-       call Alloc_Array(nodeMass    ,[nodeCount])
-       call Alloc_Array(nodeRedshift,[nodeCount])
-       call Alloc_Array(nodeTime    ,[nodeCount])
-       allocate(thisNodeList(nodeCount))
-       call Memory_Usage_Record(sizeof(thisNodeList))
+          ! Get the dimensions of the dataset.
+          call h5ltget_dataset_info_f(mergerTreeGroupID,"nodeIndex",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on nodeIndex dataset')
+          nodeCount=int(datasetDimensions(1))
 
-       ! Read data from the file.
-       ! nodeIndex
-       call h5ltget_dataset_info_f(mergerTreeGroupID,"nodeIndex",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on nodeIndex dataset')
-       if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','nodeIndex dataset has incorrect dimension')
-       call h5ltread_dataset_int_f(mergerTreeGroupID,"nodeIndex",nodeIndex,datasetDimensions,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read nodeIndex dataset')
-       ! childNode
-       call h5ltget_dataset_info_f(mergerTreeGroupID,"childNode",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on childNode dataset')
-       if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','childNode dataset has incorrect dimension')
-       call h5ltread_dataset_int_f(mergerTreeGroupID,"childNode",childNode,datasetDimensions,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read childNode dataset')
-       ! parentNode
-       call h5ltget_dataset_info_f(mergerTreeGroupID,"parentNode",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on parentNode dataset')
-       if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','parentNode dataset has incorrect dimension')
-       call h5ltread_dataset_int_f(mergerTreeGroupID,"parentNode",parentNode,datasetDimensions,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read parentNode dataset')
-       ! siblingNode
-       call h5ltget_dataset_info_f(mergerTreeGroupID,"siblingNode",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on siblingNode dataset')
-       if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','siblingNode dataset has incorrect dimension')
-       call h5ltread_dataset_int_f(mergerTreeGroupID,"siblingNode",siblingNode,datasetDimensions,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read siblingNode dataset')
-       ! nodeMass
-       call h5ltget_dataset_info_f(mergerTreeGroupID,"nodeMass",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on nodeMass dataset')
-       if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','nodeMass dataset has incorrect dimension')
-       call h5ltread_dataset_double_f(mergerTreeGroupID,"nodeMass",nodeMass,datasetDimensions,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read nodeMass dataset')
-       ! nodeRedshift
-       call h5ltget_dataset_info_f(mergerTreeGroupID,"nodeRedshift",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on nodeRedshift dataset')
-       if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','nodeRedshift dataset has incorrect dimension')
-       call h5ltread_dataset_double_f(mergerTreeGroupID,"nodeRedshift",nodeRedshift,datasetDimensions,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read nodeRedshift dataset')
-       ! treeIndex
-       datasetDimensions(1)=1
-       call h5ltread_dataset_int_f(mergerTreeGroupID,"treeIndex",treeIndex,datasetDimensions,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read treeIndex dataset')
-       thisTree%index=treeIndex(1)
-       ! volumeWeight
-       datasetDimensions(1)=1
-       call h5ltread_dataset_double_f(mergerTreeGroupID,"volumeWeight",volumeWeight,datasetDimensions,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read volumeWeight dataset')
-       thisTree%volumeWeight=volumeWeight(1)
+          ! Allocate temporary arrays to hold the merger tree data.
+          call Alloc_Array(nodeIndex   ,[nodeCount])
+          call Alloc_Array(childNode   ,[nodeCount])
+          call Alloc_Array(parentNode  ,[nodeCount])
+          call Alloc_Array(siblingNode ,[nodeCount])
+          call Alloc_Array(nodeMass    ,[nodeCount])
+          call Alloc_Array(nodeRedshift,[nodeCount])
+          call Alloc_Array(nodeTime    ,[nodeCount])
+          allocate(thisNodeList(nodeCount))
+          call Memory_Usage_Record(sizeof(thisNodeList))
 
-       ! Allocate tree node objects in our list.
-       do iNode=1,nodeCount
-          ! Create the node.
-          call thisTree%createNode(thisNodeList(iNode)%node)
-          ! Translate parent/child/sibling indices into array positions.
-          foundParent =(parentNode (iNode) < 0)
-          foundSibling=(siblingNode(iNode) < 0)
-          foundChild  =(childNode  (iNode) < 0)
-          do jNode=1,nodeCount
-             if (nodeIndex(jNode) == parentNode (iNode)) then
-                parentNode (iNode)=jNode
-                foundParent       =.true.
+          ! Read data from the file.
+          ! nodeIndex
+          call h5ltget_dataset_info_f(mergerTreeGroupID,"nodeIndex",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on nodeIndex dataset')
+          if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','nodeIndex dataset has incorrect dimension')
+          call h5ltread_dataset_int_f(mergerTreeGroupID,"nodeIndex",nodeIndex,datasetDimensions,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read nodeIndex dataset')
+          ! childNode
+          call h5ltget_dataset_info_f(mergerTreeGroupID,"childNode",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on childNode dataset')
+          if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','childNode dataset has incorrect dimension')
+          call h5ltread_dataset_int_f(mergerTreeGroupID,"childNode",childNode,datasetDimensions,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read childNode dataset')
+          ! parentNode
+          call h5ltget_dataset_info_f(mergerTreeGroupID,"parentNode",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on parentNode dataset')
+          if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','parentNode dataset has incorrect dimension')
+          call h5ltread_dataset_int_f(mergerTreeGroupID,"parentNode",parentNode,datasetDimensions,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read parentNode dataset')
+          ! siblingNode
+          call h5ltget_dataset_info_f(mergerTreeGroupID,"siblingNode",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on siblingNode dataset')
+          if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','siblingNode dataset has incorrect dimension')
+          call h5ltread_dataset_int_f(mergerTreeGroupID,"siblingNode",siblingNode,datasetDimensions,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read siblingNode dataset')
+          ! nodeMass
+          call h5ltget_dataset_info_f(mergerTreeGroupID,"nodeMass",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on nodeMass dataset')
+          if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','nodeMass dataset has incorrect dimension')
+          call h5ltread_dataset_double_f(mergerTreeGroupID,"nodeMass",nodeMass,datasetDimensions,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read nodeMass dataset')
+          ! nodeRedshift
+          call h5ltget_dataset_info_f(mergerTreeGroupID,"nodeRedshift",datasetDimensions,datasetTypeClass,datasetTypeSize,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','could not get info on nodeRedshift dataset')
+          if (datasetDimensions(1) /= nodeCount) call Galacticus_Error_Report('Merger_Tree_Read_Do','nodeRedshift dataset has incorrect dimension')
+          call h5ltread_dataset_double_f(mergerTreeGroupID,"nodeRedshift",nodeRedshift,datasetDimensions,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read nodeRedshift dataset')
+          ! treeIndex
+          datasetDimensions(1)=1
+          call h5ltread_dataset_int_f(mergerTreeGroupID,"treeIndex",treeIndex,datasetDimensions,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read treeIndex dataset')
+          thisTree%index=treeIndex(1)
+          ! volumeWeight
+          datasetDimensions(1)=1
+          call h5ltread_dataset_double_f(mergerTreeGroupID,"volumeWeight",volumeWeight,datasetDimensions,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to read volumeWeight dataset')
+          thisTree%volumeWeight=volumeWeight(1)
+
+          ! Allocate tree node objects in our list.
+          do iNode=1,nodeCount
+             ! Create the node.
+             call thisTree%createNode(thisNodeList(iNode)%node)
+             ! Translate parent/child/sibling indices into array positions.
+             foundParent =(parentNode (iNode) < 0)
+             foundSibling=(siblingNode(iNode) < 0)
+             foundChild  =(childNode  (iNode) < 0)
+             do jNode=1,nodeCount
+                if (nodeIndex(jNode) == parentNode (iNode)) then
+                   parentNode (iNode)=jNode
+                   foundParent       =.true.
+                end if
+                if (nodeIndex(jNode) == siblingNode(iNode)) then
+                   siblingNode(iNode)=jNode
+                   foundSibling      =.true.
+                end if
+                if (nodeIndex(jNode) == childNode  (iNode)) then
+                   childNode  (iNode)=jNode
+                   foundChild        =.true.
+                end if
+             end do
+             if (.not.foundParent)  then
+                message='failed to find parent node: '
+                message=message//parentNode(iNode)//' at '//iNode
+                call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
              end if
-             if (nodeIndex(jNode) == siblingNode(iNode)) then
-                siblingNode(iNode)=jNode
-                foundSibling      =.true.
+             if (.not.foundSibling) then
+                message='failed to find sibling node: '
+                message=message//siblingNode(iNode)//' at '//iNode
+                call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
              end if
-             if (nodeIndex(jNode) == childNode  (iNode)) then
-                childNode  (iNode)=jNode
-                foundChild        =.true.
+             if (.not.foundChild)   then
+                message='failed to find child node: '
+                message=message//childNode(iNode)//' at '//iNode
+                call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
              end if
           end do
-          if (.not.foundParent)  then
-             message='failed to find parent node: '
-             message=message//parentNode(iNode)//' at '//iNode
-             call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
-          end if
-          if (.not.foundSibling) then
-             message='failed to find sibling node: '
-             message=message//siblingNode(iNode)//' at '//iNode
-             call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
-          end if
-          if (.not.foundChild)   then
-             message='failed to find child node: '
-             message=message//childNode(iNode)//' at '//iNode
-             call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
-          end if
-       end do
 
-       ! Set pointers and properties of the nodes.
-       do iNode=1,nodeCount
-          call thisNodeList(iNode)%node%indexSet(nodeIndex(iNode))
-          if (parentNode(iNode) > 0) then
-             thisNodeList(iNode)%node%parentNode  => thisNodeList(parentNode(iNode))%node
-          else
-             thisNodeList(iNode)%node%parentNode  => null()
-             thisTree%baseNode => thisNodeList(iNode)%node
-          end if
-          if (siblingNode(iNode) > 0) then
-             thisNodeList(iNode)%node%siblingNode => thisNodeList(siblingNode(iNode))%node
-          else
-             thisNodeList(iNode)%node%siblingNode => null()
-          end if
-          if (childNode(iNode) > 0) then
-             thisNodeList(iNode)%node%childNode   => thisNodeList(childNode(iNode))%node
-          else
-             thisNodeList(iNode)%node%childNode   => null()
-          end if
-          call Tree_Node_Mass_Set(thisNodeList(iNode)%node,                                             nodeMass    (iNode)  )
-          call Tree_Node_Time_Set(thisNodeList(iNode)%node,Cosmology_Age(Expansion_Factor_from_Redshift(nodeRedshift(iNode))))       
-       end do
+          ! Set pointers and properties of the nodes.
+          do iNode=1,nodeCount
+             call thisNodeList(iNode)%node%indexSet(nodeIndex(iNode))
+             if (parentNode(iNode) > 0) then
+                thisNodeList(iNode)%node%parentNode  => thisNodeList(parentNode(iNode))%node
+             else
+                thisNodeList(iNode)%node%parentNode  => null()
+                thisTree%baseNode => thisNodeList(iNode)%node
+             end if
+             if (siblingNode(iNode) > 0) then
+                thisNodeList(iNode)%node%siblingNode => thisNodeList(siblingNode(iNode))%node
+             else
+                thisNodeList(iNode)%node%siblingNode => null()
+             end if
+             if (childNode(iNode) > 0) then
+                thisNodeList(iNode)%node%childNode   => thisNodeList(childNode(iNode))%node
+             else
+                thisNodeList(iNode)%node%childNode   => null()
+             end if
+             call Tree_Node_Mass_Set(thisNodeList(iNode)%node,                                             nodeMass    (iNode)  )
+             call Tree_Node_Time_Set(thisNodeList(iNode)%node,Cosmology_Age(Expansion_Factor_from_Redshift(nodeRedshift(iNode))))       
+          end do
 
-       ! Deallocate the temporary arrays.
-       call Dealloc_Array(nodeIndex   )
-       call Dealloc_Array(childNode   )
-       call Dealloc_Array(parentNode  )
-       call Dealloc_Array(siblingNode )
-       call Dealloc_Array(nodeMass    )
-       call Dealloc_Array(nodeRedshift)
-       call Dealloc_Array(nodeTime    )
-       deallocate(thisNodeList)
-       call Memory_Usage_Record(sizeof(thisNodeList),addRemove=-1)
+          ! Deallocate the temporary arrays.
+          call Dealloc_Array(nodeIndex   )
+          call Dealloc_Array(childNode   )
+          call Dealloc_Array(parentNode  )
+          call Dealloc_Array(siblingNode )
+          call Dealloc_Array(nodeMass    )
+          call Dealloc_Array(nodeRedshift)
+          call Dealloc_Array(nodeTime    )
+          deallocate(thisNodeList)
+          call Memory_Usage_Record(sizeof(thisNodeList),addRemove=-1)
 
-       ! Close the merger tree group.
-       call h5gclose_f(mergerTreeGroupID,errorCode)
-       if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to close mergerTree group')
-       !$omp end critical(mergerTreeReadTree)
+          ! Close the merger tree group.
+          call h5gclose_f(mergerTreeGroupID,errorCode)
+          if (errorCode < 0) call Galacticus_Error_Report('Merger_Tree_Read_Do','failed to close mergerTree group')
+
+       end if
 
     end if
+    !$omp end critical(mergerTreeReadTree)
 
     return
   end subroutine Merger_Tree_Read_Do

@@ -88,8 +88,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string), intent(in) :: stellarFeedbackMethod
-    procedure(),          pointer    :: Stellar_Feedback_Cumulative_Energy_Input_Get
+    type(varying_string),                 intent(in)    :: stellarFeedbackMethod
+    procedure(double precision), pointer, intent(inout) :: Stellar_Feedback_Cumulative_Energy_Input_Get
 
     if (stellarFeedbackMethod == 'standard') then
        ! Set procedure pointers.
