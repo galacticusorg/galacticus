@@ -235,8 +235,10 @@ contains
     !$omp end critical(DeltaCrit_Factor_Initialize)
 
     ! Interpolate to get the expansion factor.
+    !$omp critical(Critical_Overdensity_for_Collapse_Interp)
     Critical_Overdensity_for_Collapse=Interpolate(deltaCritTableNumberPoints,deltaCritTableTime,deltaCritTableDeltaCrit&
          &,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    !$omp end critical(Critical_Overdensity_for_Collapse_Interp)
     return
   end function Critical_Overdensity_for_Collapse
 
@@ -270,8 +272,10 @@ contains
     !$omp end critical(DeltaCrit_Factor_Initialize)
     
     ! Interpolate to get the expansion factor.
+    !$omp critical(Time_of_Collapse_Interp)	
     Time_of_Collapse=Interpolate(deltaCritTableNumberPoints,deltaCritReverseTableDeltaCrit,deltaCritReverseTableTime &
          &,reverseInterpolationObject,reverseInterpolationAccelerator,criticalOverdensity,reset=reverseResetInterpolation)
+    !$omp end critical(Time_of_Collapse_Interp)	
 
     return
   end function Time_of_Collapse
