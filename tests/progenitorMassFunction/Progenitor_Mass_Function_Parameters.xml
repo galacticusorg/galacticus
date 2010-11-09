@@ -61,7 +61,7 @@
   </parameter>
   <parameter>
     <name>galacticusOutputFileName</name>
-    <value>progenitorMassFunctionTest.hdf5</value>
+    <value>tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5</value>
   </parameter>
   <parameter>
     <name>haloMassFunctionMethod</name>
