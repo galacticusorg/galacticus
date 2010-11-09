@@ -135,18 +135,21 @@ module Tree_Node_Methods_Hot_Halo
   !# <treeNodePipePointer>
   !#  <pipeName>Tree_Node_Hot_Halo_Hot_Gas_Sink</pipeName>
   !# </treeNodePipePointer>
+  ! Pointer to procedure for heat input to the hot halo.
+  !# <treeNodePipePointer>
+  !#  <pipeName>Tree_Node_Hot_Halo_Heat_Input</pipeName>
+  !# </treeNodePipePointer>
 
   ! Configuration variables.
   logical          :: starveSatellites
   double precision :: hotHaloOutflowReturnRate
 
   ! Quantities stored to avoid repeated computation.
-  logical          :: gotCoolingRate=.false.
-  double precision :: coolingRate
-  !$omp threadprivate(gotCoolingRate,coolingRate)
+  logical          :: gotCoolingRate=.false., gotCoolingConversions=.false.
+  double precision :: coolingRate,massHeatingRateRemaining,angularMomentumCoolingConversion
+  !$omp threadprivate(gotCoolingRate,coolingRate,massHeatingRateRemaining,gotCoolingConversions,angularMomentumCoolingConversion)
 
 contains
-
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Hot_Halo_Initialize</unitName>
@@ -189,26 +192,25 @@ contains
        propertyCount              =outflowedAbundancesIndexEnd
 
        ! Set up procedure pointers.
-       Tree_Node_Hot_Halo_Mass                          => Tree_Node_Hot_Halo_Mass_Standard
-       Tree_Node_Hot_Halo_Mass_Set                      => Tree_Node_Hot_Halo_Mass_Set_Standard
-       Tree_Node_Hot_Halo_Mass_Rate_Adjust              => Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard
-       Tree_Node_Hot_Halo_Mass_Rate_Compute             => Tree_Node_Hot_Halo_Mass_Rate_Compute_Standard
-       Tree_Node_Hot_Halo_Unaccreted_Mass               => Tree_Node_Hot_Halo_Unaccreted_Mass_Standard
-       Tree_Node_Hot_Halo_Unaccreted_Mass_Set           => Tree_Node_Hot_Halo_Unaccreted_Mass_Set_Standard
-       Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust   => Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust_Standard
-       Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Compute  => Tree_Node_Rate_Rate_Compute_Dummy
-       Tree_Node_Hot_Halo_Mass_Set                      => Tree_Node_Hot_Halo_Mass_Set_Standard
-       Tree_Node_Hot_Halo_Mass_Rate_Adjust              => Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard
-       Tree_Node_Hot_Halo_Mass_Rate_Compute             => Tree_Node_Hot_Halo_Mass_Rate_Compute_Standard
-       Tree_Node_Hot_Halo_Angular_Momentum              => Tree_Node_Hot_Halo_Angular_Momentum_Standard
-       Tree_Node_Hot_Halo_Angular_Momentum_Set          => Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard
-       Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust  => Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard
-       Tree_Node_Hot_Halo_Angular_Momentum_Rate_Compute => Tree_Node_Hot_Halo_Angular_Momentum_Rate_Compute_Standard
-       Tree_Node_Hot_Halo_Abundances                    => Tree_Node_Hot_Halo_Abundances_Standard
-       Tree_Node_Hot_Halo_Abundances_Set                => Tree_Node_Hot_Halo_Abundances_Set_Standard
-       Tree_Node_Hot_Halo_Abundances_Rate_Adjust        => Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard
-       Tree_Node_Hot_Halo_Abundances_Rate_Compute       => Tree_Node_Hot_Halo_Abundances_Rate_Compute_Standard
-
+       Tree_Node_Hot_Halo_Mass                              => Tree_Node_Hot_Halo_Mass_Standard
+       Tree_Node_Hot_Halo_Mass_Set                          => Tree_Node_Hot_Halo_Mass_Set_Standard
+       Tree_Node_Hot_Halo_Mass_Rate_Adjust                  => Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Mass_Rate_Compute                 => Tree_Node_Hot_Halo_Mass_Rate_Compute_Standard
+       Tree_Node_Hot_Halo_Unaccreted_Mass                   => Tree_Node_Hot_Halo_Unaccreted_Mass_Standard
+       Tree_Node_Hot_Halo_Unaccreted_Mass_Set               => Tree_Node_Hot_Halo_Unaccreted_Mass_Set_Standard
+       Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust       => Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Compute      => Tree_Node_Rate_Rate_Compute_Dummy
+       Tree_Node_Hot_Halo_Mass_Set                          => Tree_Node_Hot_Halo_Mass_Set_Standard
+       Tree_Node_Hot_Halo_Mass_Rate_Adjust                  => Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Mass_Rate_Compute                 => Tree_Node_Hot_Halo_Mass_Rate_Compute_Standard
+       Tree_Node_Hot_Halo_Angular_Momentum                  => Tree_Node_Hot_Halo_Angular_Momentum_Standard
+       Tree_Node_Hot_Halo_Angular_Momentum_Set              => Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard
+       Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust      => Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Angular_Momentum_Rate_Compute     => Tree_Node_Hot_Halo_Angular_Momentum_Rate_Compute_Standard
+       Tree_Node_Hot_Halo_Abundances                        => Tree_Node_Hot_Halo_Abundances_Standard
+       Tree_Node_Hot_Halo_Abundances_Set                    => Tree_Node_Hot_Halo_Abundances_Set_Standard
+       Tree_Node_Hot_Halo_Abundances_Rate_Adjust            => Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Abundances_Rate_Compute           => Tree_Node_Rate_Rate_Compute_Dummy
        Tree_Node_Hot_Halo_Outflowed_Mass                    => Tree_Node_Hot_Halo_Outflowed_Mass_Standard
        Tree_Node_Hot_Halo_Outflowed_Mass_Set                => Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard
        Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust        => Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard
@@ -233,8 +235,8 @@ contains
        Tree_Node_Hot_Halo_Outflow_Mass_To             => Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard
        Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To => Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Rate_Adjust_Standard
        Tree_Node_Hot_Halo_Outflow_Abundances_To       => Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Adjust_Standard
-
-       Tree_Node_Hot_Halo_Hot_Gas_Sink => Tree_Node_Hot_Halo_Hot_Gas_Sink_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Hot_Gas_Sink                => Tree_Node_Hot_Halo_Hot_Gas_Sink_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Heat_Input                  => Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard
 
        ! Determine whether satellite nodes will be starved of gas.
        !@ <inputParameter>
@@ -271,7 +273,8 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
 
-    gotCoolingRate=.false.
+    gotCoolingRate       =.false.
+    gotCoolingConversions=.false.
     return
   end subroutine Tree_Node_Hot_Halo_Reset_Standard
 
@@ -372,6 +375,102 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Hot_Gas_Sink_Rate_Adjust_Standard
 
+  subroutine Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+    !% An incoming pipe that for sources of heating to the hot halo.
+    use Galacticus_Error
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(),      pointer                :: interruptProcedurePassed
+    double precision,          intent(in)    :: rateAdjustment
+    integer                                  :: thisIndex
+    double precision                         :: massHeatingRate
+    
+    ! Trap cases where an attempt is made to remove energy via this input function.
+    if (rateAdjustment < 0.0d0) call Galacticus_Error_Report('Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard','attempt to remove energy via heat input pipe in hot halo')
+
+    ! Get a local copy of the interrupt procedure.
+    interruptProcedurePassed => interruptProcedure
+
+    ! Get the index of the component.
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)    
+
+    ! Ensure that the cooling rate has been computed.
+    call Get_Cooling_Rate(thisNode)
+
+    ! Compute mass heating rate from energy heating rate, but don't allow it to exceed the remaining budget.
+    massHeatingRate=min(rateAdjustment/Dark_Matter_Halo_Virial_Velocity(thisNode)**2,massHeatingRateRemaining)
+    
+    ! Update the remaining budget of allowed mass heating rate.
+    massHeatingRateRemaining=max(massHeatingRateRemaining-massHeatingRate,0.0d0)
+
+    ! Call routine to apply this mass heating rate to all hot halo cooling pipes.
+    call Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,interrupt,interruptProcedurePassed,-massHeatingRate)
+
+    ! Return our local copy of the interrupt procedure.
+    interruptProcedure => interruptProcedurePassed
+
+    return
+  end subroutine Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard
+
+  subroutine Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,interrupt,interruptProcedure,massRate)
+    !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
+    use Dark_Matter_Halo_Spins
+    use Cooling_Radii
+    use Dark_Matter_Profiles
+    implicit none
+    type(treeNode),   pointer, intent(inout)     :: thisNode
+    logical,                   intent(inout)     :: interrupt
+    procedure(),      pointer, intent(inout)     :: interruptProcedure
+    double precision,          intent(in)        :: massRate
+    procedure(),      pointer                    :: interruptProcedurePassed
+    double precision, dimension(abundancesCount) :: abundances,abundancesCoolingRate
+    double precision                             :: angularMomentumCoolingRate
+
+    ! Ignore zero rates.
+    if (massRate /= 0.0d0) then
+       
+       ! Get a local copy of the interrupt procedure.
+       interruptProcedurePassed => interruptProcedure
+
+       ! Remove mass from the hot component.
+       call Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,-massRate)
+       ! Pipe the mass rate to whatever component claimed it.
+       if (associated(Tree_Node_Hot_Halo_Cooling_Mass_To)) call Tree_Node_Hot_Halo_Cooling_Mass_To(thisNode,interrupt &
+            &,interruptProcedurePassed,massRate)
+       
+       ! Get the corresponding rate of change of angular momentum.
+       if (.not.gotCoolingConversions) then
+          angularMomentumCoolingConversion=Cooling_Radius(thisNode)*Dark_Matter_Profile_Rotation_Normalization(thisNode)&
+               &*Tree_Node_Hot_Halo_Angular_Momentum(thisNode)/Tree_Node_Hot_Halo_Mass(thisNode)
+          
+          ! Flag that cooling conversion factors have now been computed.
+          gotCoolingConversions=.true.
+       end if
+       angularMomentumCoolingRate=massRate*angularMomentumCoolingConversion
+       call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, &
+            &-angularMomentumCoolingRate)
+       ! Pipe the cooling rate to which ever component claimed it.
+       if (associated(Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To)) call&
+            & Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To(thisNode,interrupt,interruptProcedurePassed,angularMomentumCoolingRate)
+       
+       ! Get the rate of change of abundances.
+       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundances)
+       abundancesCoolingRate=massRate*abundances/Tree_Node_Hot_Halo_Mass(thisNode)
+       call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,-abundancesCoolingRate)
+       ! Pipe the cooling rate to which ever component claimed it.
+       if (associated(Tree_Node_Hot_Halo_Cooling_Abundances_To)) call Tree_Node_Hot_Halo_Cooling_Abundances_To(thisNode,interrupt&
+            & ,interruptProcedurePassed,abundancesCoolingRate)
+       
+       ! Return our local copy of the interrupt procedure.
+       interruptProcedure => interruptProcedurePassed
+
+    end if
+    return
+  end subroutine Hot_Halo_Standard_Push_To_Cooling_Pipes
+
   subroutine Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
     !% Return the node hot halo mass rate of change.
     use Cosmological_Parameters
@@ -453,17 +552,16 @@ contains
        end if
        return
     end if
-    call Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard           (thisNode,interrupt,interruptProcedure,massAccretionRate      )
-    call Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,failedMassAccretionRate)
+    
+    call Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard           (thisNode,interrupt,interruptProcedurePassed,massAccretionRate      )
+    call Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,failedMassAccretionRate)
+
     ! Next compute the cooling rate in this halo.
     call Get_Cooling_Rate(thisNode)
-    call Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,-coolingRate)
-
     ! Pipe the cooling rate to which ever component claimed it.
-    if (associated(Tree_Node_Hot_Halo_Cooling_Mass_To)) call Tree_Node_Hot_Halo_Cooling_Mass_To(thisNode,interrupt&
-         &,interruptProcedurePassed,coolingRate)
+    call Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,interrupt,interruptProcedurePassed,coolingRate)
 
-    ! Point the interrupt procedure that is returned to our internal one.
+    ! Return a copy of our local interrupt pointer.
     interruptProcedure => interruptProcedurePassed
 
     return
@@ -513,7 +611,8 @@ contains
   end subroutine Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard
 
   subroutine Tree_Node_Hot_Halo_Angular_Momentum_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
-    !% Compute the hot halo node mass rate of change.
+    !% Compute the hot halo node angular momentum rate of change. Note that the rate of change due to cooling is not included here
+    !% as it is handled elsewhere.
     use Dark_Matter_Halo_Spins
     use Cooling_Radii
     use Dark_Matter_Profiles
@@ -541,20 +640,6 @@ contains
             &/Tree_Node_Mass_Accretion_Rate(thisNode))
        call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure &
             &,angularMomentumAccretionRate)
-    end if
-    call Get_Cooling_Rate(thisNode)
-    if (coolingRate > 0.0d0) then
-       angularMomentumCoolingRate=coolingRate*Cooling_Radius(thisNode)*Dark_Matter_Profile_Rotation_Normalization(thisNode)&
-            &*Tree_Node_Hot_Halo_Angular_Momentum(thisNode)/Tree_Node_Hot_Halo_Mass(thisNode)
-       call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure &
-            &,-angularMomentumCoolingRate)
-       ! Pipe the cooling rate to which ever component claimed it.
-       if (associated(Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To)) call&
-            & Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To(thisNode,interrupt,interruptProcedurePassed&
-            &,angularMomentumCoolingRate)
-
-       ! Point the interrupt procedure that is returned to our internal one.
-       interruptProcedure => interruptProcedurePassed
     end if
     return
   end subroutine Tree_Node_Hot_Halo_Angular_Momentum_Rate_Compute_Standard
@@ -602,33 +687,6 @@ contains
          &=thisNode%components(thisIndex)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard
-
-  subroutine Tree_Node_Hot_Halo_Abundances_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
-    !% Compute the hot halo node mass rate of change.
-    use Dark_Matter_Halo_Spins
-    use Cooling_Radii
-    use Dark_Matter_Profiles
-    implicit none
-    type(treeNode),   pointer, intent(inout)     :: thisNode
-    logical,                   intent(inout)     :: interrupt
-    procedure(), pointer, intent(inout)     :: interruptProcedure
-    procedure(),      pointer                    :: interruptProcedurePassed
-    double precision, dimension(abundancesCount) :: abundances,abundancesCoolingRate
-
-    call Get_Cooling_Rate(thisNode)
-    if (coolingRate > 0.0d0) then
-       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundances)
-       abundancesCoolingRate=coolingRate*abundances/Tree_Node_Hot_Halo_Mass(thisNode)
-       call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,-abundancesCoolingRate)
-       ! Pipe the cooling rate to which ever component claimed it.
-       if (associated(Tree_Node_Hot_Halo_Cooling_Abundances_To)) call Tree_Node_Hot_Halo_Cooling_Abundances_To(thisNode,interrupt&
-            &,interruptProcedurePassed,abundancesCoolingRate)
-
-       ! Point the interrupt procedure that is returned to our internal one.
-       interruptProcedure => interruptProcedurePassed
-    end if
-    return
-  end subroutine Tree_Node_Hot_Halo_Abundances_Rate_Compute_Standard
 
   double precision function Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)
     !% Return the node hot halo mass.
@@ -987,41 +1045,26 @@ contains
     end if
     return
   end subroutine Tree_Node_Hot_Halo_Promote
-  
 
   subroutine Get_Cooling_Rate(thisNode)
     !% Get and store the cooling rate for {\tt thisNode}.
     use Cooling_Rates
-    use Dark_Matter_Halo_Scales
-    !# <include directive="hotHaloHeatingTask" type="moduleUse">
-    include 'objects.tree_node.methods.hot_halo.heating.modules.inc'
-    !# </include>
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision                         :: heatingRate,heatingRateTotal,massHeatingRate
+    type(treeNode), pointer, intent(inout) :: thisNode
 
     if (.not.gotCoolingRate) then
        if (Tree_Node_Hot_Halo_Mass_Standard(thisNode) > 0.0d0) then
           ! Get the cooling time.
           coolingRate=Cooling_Rate(thisNode)
-
-          ! Get any heating inputs to the hot halo.
-          heatingRateTotal=0.0d0
-          !# <include directive="hotHaloHeatingTask" type="code" action="subroutine">
-          !#  <subroutineArgs>thisNode,heatingRate</subroutineArgs>
-          !#  <subroutineAction>heatingRateTotal=heatingRateTotal+heatingRate</subroutineAction>
-          include 'objects.tree_node.methods.hot_halo.heating.inc'
-          !# </include>
-          
-          ! Compute mass heating rate from energy heating rate.
-          massHeatingRate=heatingRateTotal/Dark_Matter_Halo_Virial_Velocity(thisNode)**2
-
-          ! Adjust cooling rate by subtracting heating rate.
-          coolingRate=max(coolingRate-massHeatingRate,0.0d0)
-
        else
           coolingRate=0.0d0
        end if
+
+       ! Store a copy of this cooling rate as the remaining mass heating rate budget. This is used to ensure that we never heat
+       ! gas at a rate greater than it is cooling.
+       massHeatingRateRemaining=coolingRate
+       
+       ! Flag that cooling rate has now been computed.
        gotCoolingRate=.true.
     end if
     return

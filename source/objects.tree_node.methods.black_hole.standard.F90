@@ -68,8 +68,7 @@ module Tree_Node_Methods_Black_Hole
   private
   public :: Tree_Node_Methods_Black_Hole_Initialize, Galacticus_Output_Tree_Black_Hole_Standard,&
        & Galacticus_Output_Tree_Black_Hole_Standard_Property_Count, Galacticus_Output_Tree_Black_Hole_Standard_Names,&
-       & Tree_Node_Black_Hole_Reset_Standard, Black_Hole_Satellite_Merging, Black_Hole_Hot_Halo_Heating,&
-       & Tree_Node_Methods_Black_Hole_Standard_Dump
+       & Tree_Node_Black_Hole_Reset_Standard, Black_Hole_Satellite_Merging, Tree_Node_Methods_Black_Hole_Standard_Dump
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -270,6 +269,8 @@ contains
   subroutine Tree_Node_Black_Hole_Mass_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
     !% Compute the black hole node mass rate of change.
     use Accretion_Disks
+    use Cooling_Radii
+    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Math
@@ -284,7 +285,10 @@ contains
     double precision, parameter              :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0&
          &/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
     double precision                         :: restMassAccretionRate,massAccretionRate,radiativeEfficiency,energyInputRate &
-         &,spheroidDensity,spheroidGasMass,spheroidRadius,criticalDensity,windFraction,spheroidDensityOverCriticalDensity
+         &,spheroidDensity,spheroidGasMass,spheroidRadius,criticalDensity,windFraction,spheroidDensityOverCriticalDensity,heatingRate
+
+    ! Get a local copy of the interrupt procedure.
+    interruptProcedurePassed => interruptProcedure
 
     ! Find the rate of rest mass accretion onto the black hole.
     restMassAccretionRate=Mass_Accretion_Rate(thisNode)
@@ -306,13 +310,22 @@ contains
        end if
        return
     end if
-    call Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure, massAccretionRate   )
+    call Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, massAccretionRate   )
 
     ! Remove the accreted mass from the spheroid component.
-    call Tree_Node_Spheroid_Gas_Sink                   (thisNode,interrupt,interruptProcedure,-accretionRate       )
+    call Tree_Node_Spheroid_Gas_Sink                   (thisNode,interrupt,interruptProcedurePassed,-accretionRate       )
 
     ! Remove the accreted mass from the hot halo component.
-    call Tree_Node_Hot_Halo_Hot_Gas_Sink               (thisNode,interrupt,interruptProcedure,-accretionRateHotHalo)
+    call Tree_Node_Hot_Halo_Hot_Gas_Sink               (thisNode,interrupt,interruptProcedurePassed,-accretionRateHotHalo)
+
+    ! Add heating to the hot halo component.
+    if (Cooling_Radius(thisNode) < Dark_Matter_Halo_Virial_Radius(thisNode)) then
+       ! Halo is cooling quasistatically, assume heating can occur as jet can couple to halo gas.
+       ! Get jet power.
+       heatingRate=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)
+       ! Pipe this power to the hot halo.
+       call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
+    end if
 
     ! Add energy to the spheroid component.
     if (blackHoleWindEfficiency > 0.0d0) then
@@ -338,10 +351,14 @@ contains
              
              ! Compute the energy input and send it down the spheroid gas energy input pipe.
              energyInputRate=windFraction*blackHoleWindEfficiency*restMassAccretionRate*(speedLight/kilo)**2
-             call Tree_Node_Spheroid_Gas_Energy_Input(thisNode,interrupt,interruptProcedure,energyInputRate)
+             call Tree_Node_Spheroid_Gas_Energy_Input(thisNode,interrupt,interruptProcedurePassed,energyInputRate)
           end if
        end if
     end if
+
+    ! Return our local copy of the interrupt procedure.
+    interruptProcedure => interruptProcedurePassed
+
     return
   end subroutine Tree_Node_Black_Hole_Mass_Rate_Compute_Standard
 
@@ -427,40 +444,6 @@ contains
 
     return
   end subroutine Tree_Node_Black_Hole_Spin_Rate_Compute_Standard
-
-
-  !# <hotHaloHeatingTask>
-  !#  <unitName>Black_Hole_Hot_Halo_Heating</unitName>
-  !# </hotHaloHeatingTask>
-  subroutine Black_Hole_Hot_Halo_Heating(thisNode,heatingRate)
-    !% Compute the heating rate of the hot halo due to jets launched from the black hole.
-    use Tree_Nodes
-    use Accretion_Disks
-    use Cooling_Radii
-    use Dark_Matter_Halo_Scales
-    implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(out)   :: heatingRate
-    double precision                         :: massAccretionRate
-
-    ! Check if halo is cooling sufficiently slowly that jet can couple to it.
-    if (.not.methodSelected .or. Cooling_Radius(thisNode) >= Dark_Matter_Halo_Virial_Radius(thisNode)) then
-
-       ! Halo is cooling rapidly, assume no heating can occur as jet cannot couple to halo gas.
-       heatingRate=0.0d0
-       
-    else
-       
-       ! Find the rate of gas mass accretion onto the halo.
-       massAccretionRate=Mass_Accretion_Rate(thisNode)
-       
-       ! Get jet power.
-       heatingRate=Accretion_Disk_Jet_Power(thisNode,massAccretionRate)
-
-    end if
-
-    return
-  end subroutine Black_Hole_Hot_Halo_Heating
 
   !# <satelliteMergerTask>
   !#  <unitName>Black_Hole_Satellite_Merging</unitName>
