@@ -70,6 +70,7 @@ module String_Handling
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
+     module procedure Concatenate_VarStr_Integer8
   end interface
 
   interface String_Split_Words
@@ -78,7 +79,8 @@ module String_Handling
   end interface
 
   ! Maximum length of string needed to hold integer values.
-  integer, parameter  :: maxIntegerSize=20
+  integer,          parameter :: maxIntegerSize  =   20
+  character(len=5), parameter :: maxIntegerFormat='(i20)'
 
   ! Character strings used in converting upper to lower case and vice-versa.
   character(len=*), parameter :: charactersLowerCase='abcdefghijklmnopqrstuvwxyz'
@@ -205,10 +207,24 @@ contains
     type(varying_string)                     :: Concatenate_VarStr_Integer
     character(len=maxIntegerSize)            :: intString
 
-    write (intString,*) intVariable
+    write (intString,maxIntegerFormat) intVariable
     Concatenate_VarStr_Integer=varStrVariable//trim(adjustl(intString))
     return
   end function Concatenate_VarStr_Integer
+
+  function Concatenate_VarStr_Integer8(varStrVariable,intVariable)
+    !% Provides a concatenation operator to append an integer number to a {\tt varying\_string}.
+    use Kind_Numbers
+    implicit none
+    type(varying_string),         intent(in) :: varStrVariable
+    integer(kind=kind_int8),      intent(in) :: intVariable
+    type(varying_string)                     :: Concatenate_VarStr_Integer8
+    character(len=maxIntegerSize)            :: intString
+
+    write (intString,maxIntegerFormat) intVariable
+    Concatenate_VarStr_Integer8=varStrVariable//trim(adjustl(intString))
+    return
+  end function Concatenate_VarStr_Integer8
 
   function String_Upper_Case(stringInput) result (stringOutput)
     !% Converts an input string to upper case.
