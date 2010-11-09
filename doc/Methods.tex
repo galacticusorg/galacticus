@@ -3230,28 +3230,6 @@ Tasks to be performed just prior to closing the \glc\ output HDF5 file (typicall
 \end{verbatim}
 The contents of {\tt <unitName>} should give the name of the subroutine to be called prior to HDF5 file closure. The subroutine should have no arguments.
 
-\subsubsection{Hot Halo Heating}
-
-New hot halo heating tasks can be added via the {\tt hotHaloHeatingTask} directive. For example, the standard black hole component adds a heating task using:
-\begin{verbatim}
- !# <hotHaloHeatingTask>
- !#  <unitName>Black_Hole_Hot_Halo_Heating</unitName>
- !# </hotHaloHeatingTask>
-\end{verbatim}
-The {\tt unitName} tag specifies the subroutine that is called to compute the heating rate. The subroutine should have the form:
-\begin{verbatim}
- subroutine Hot_Halo_Heating_Task(thisNode,heatingRate)
-   implicit none
-   type(treeNode),   pointer, intent(inout) :: thisNode
-   double precision,          intent(out)   :: heatingRate
-   .
-   .
-   .
-   return
- end subroutine Hot_Halo_Heating_Task
-\end{verbatim}
-and should return (in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$) the rate of energy input into the hot halo of {\tt thisNode}.
-
 \subsubsection{Initial Mass Functions}
 
 New \IMF s can be added using the {\tt imfRegister} and {\tt imfRegister} task directives. For example, the {\tt Salpeter} \IMF\ is registered using the directives:
