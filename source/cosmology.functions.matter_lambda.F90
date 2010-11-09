@@ -88,6 +88,9 @@ module Cosmology_Functions_Matter_Lambda
   integer                                     :: ageTableNumberPoints
   double precision                            :: ageTableTimeMinimum=1.0d-4, ageTableTimeMaximum=20.0d0
   integer,          parameter                 :: ageTableNPointsPerDecade=300
+  double precision, parameter                 :: ageTableNPointsPerOctave=dble(ageTableNPointsPerDecade)*dlog(2.0d0)/dlog(10.0d0)
+  double precision, parameter                 :: ageTableIncrementFactor =dexp(int(ageTableNPointsPerOctave+1.0d0)*dlog(10.0d0)&
+       &/dble(ageTableNPointsPerDecade))
   double precision, allocatable, dimension(:) :: ageTableTime, ageTableExpansionFactor
   type(fgsl_interp)                           :: interpolationObject
   type(fgsl_interp_accel)                     :: interpolationAccelerator
@@ -266,17 +269,17 @@ contains
     if (collapsingPhaseActual) then
        ! In collapsing phase just ensure that a sufficiently large expansion factor has been reached.
        do while (ageTableExpansionFactor(ageTableNumberPoints)<aExpansion)
-          ageTableTimeMaximum=min(2.0d0*ageTableTimeMaximum,tCosmologicalTurnaround)
+          ageTableTimeMaximum=min(ageTableTimeMaximum*ageTableIncrementFactor,tCosmologicalTurnaround)
           call Make_Expansion_Factor_Table
        end do
     else
        ! In expanding phase ensure that sufficiently small and large expansion factors have been reached.
        do while (ageTableExpansionFactor(1)>aExpansion)
-          ageTableTimeMinimum=0.5d0*ageTableTimeMinimum
+          ageTableTimeMinimum=ageTableTimeMinimum/ageTableIncrementFactor
           call Make_Expansion_Factor_Table
        end do
        do while (ageTableExpansionFactor(iTableTurnaround)<aExpansion)
-          ageTableTimeMaximum=max(2.0d0*ageTableTimeMaximum,tCosmologicalTurnaround)
+          ageTableTimeMaximum=max(ageTableTimeMaximum*ageTableIncrementFactor,tCosmologicalTurnaround)
           call Make_Expansion_Factor_Table
        end do
     end if
@@ -343,13 +346,14 @@ contains
     use ODE_Solver
     use Memory_Management
     use Array_Utilities
-    implicit none
-    double precision, intent(in), optional :: tCosmological
-    double precision, parameter            :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
-    integer                                :: iTime
-    double precision                       :: densityPower,aDominant,Omega_Dominant,tDominant,time,aExpansion(1)
-    type(c_ptr)                            :: parameterPointer
-    
+    implicit none    
+    double precision, intent(in),  optional     :: tCosmological
+    double precision, parameter                 :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
+    double precision, allocatable, dimension(:) :: ageTableTimeTemporary,ageTableExpansionFactorTemporary
+    integer                                     :: iTime,prefixPointCount
+    double precision                            :: densityPower,aDominant,Omega_Dominant,tDominant,time,aExpansion(1)
+    type(c_ptr)                                 :: parameterPointer
+
     !$omp critical(Cosmology_Functions_Interpolate)
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call Early_Time_Density_Scaling_Matter_Lambda(dominateFactor,densityPower,aDominant,Omega_Dominant)
@@ -359,43 +363,76 @@ contains
     
     ! Find minimum and maximum times to tabulate.
     if (present(tCosmological)) then
-       ageTableTimeMinimum=min(ageTableTimeMinimum,min(tCosmological,tDominant)/2.0d0)
-       ageTableTimeMaximum=max(ageTableTimeMaximum,max(tCosmological,tDominant)*2.0d0)
+       time=tCosmological
+       do while (ageTableTimeMinimum > min(time,tDominant)/2.0d0)
+          ageTableTimeMinimum=ageTableTimeMinimum/ageTableIncrementFactor
+       end do
+       do while (ageTableTimeMaximum < max(time,tDominant)*2.0d0)
+          ageTableTimeMaximum=ageTableTimeMaximum*ageTableIncrementFactor
+       end do
     else
-       ageTableTimeMinimum=min(ageTableTimeMinimum,tDominant/2.0d0)
-       ageTableTimeMaximum=max(ageTableTimeMaximum,tDominant*2.0d0)
+       do while (ageTableTimeMinimum > tDominant/2.0d0)
+          ageTableTimeMinimum=ageTableTimeMinimum/ageTableIncrementFactor
+       end do
+       do while (ageTableTimeMaximum < tDominant*2.0d0)
+          ageTableTimeMaximum=ageTableTimeMaximum*ageTableIncrementFactor
+       end do
     end if
     if (collapsingUniverse) ageTableTimeMaximum=min(ageTableTimeMaximum,tCosmologicalTurnaround)
 
     ! Determine number of points to tabulate.
-    ageTableNumberPoints=int(dlog10(ageTableTimeMaximum/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade))
-    
+    ageTableNumberPoints=int(dlog10(ageTableTimeMaximum/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade))+1
+    ageTableTimeMaximum=ageTableTimeMinimum*10.0d0**(dble(ageTableNumberPoints)/dble(ageTableNPointsPerDecade))
+    if (collapsingUniverse) ageTableTimeMaximum=min(ageTableTimeMaximum,tCosmologicalTurnaround)
+
     ! Deallocate arrays if currently allocated.
-    if (allocated(ageTableTime))            call Dealloc_Array(ageTableTime)
-    if (allocated(ageTableExpansionFactor)) call Dealloc_Array(ageTableExpansionFactor)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(ageTableTime,           [ageTableNumberPoints])
-    call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
-    
-    ! Create set of grid points in time variable.
-    ageTableTime=Make_Range(ageTableTimeMinimum,ageTableTimeMaximum,ageTableNumberPoints,rangeTypeLogarithmic)
+    if (allocated(ageTableTime)) then
+       ! Determine number of points that are being added at the start of the array.
+       prefixPointCount=int(dlog10(ageTableTime(1)/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
+       call Move_Alloc(ageTableTime           ,ageTableTimeTemporary           )
+       call Move_Alloc(ageTableExpansionFactor,ageTableExpansionFactorTemporary)
+       ! Allocate the arrays to current required size.
+       call Alloc_Array(ageTableTime,           [ageTableNumberPoints])
+       call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
+       ! Create set of grid points in time variable.
+       ageTableTime=Make_Range(ageTableTimeMinimum,ageTableTimeMaximum,ageTableNumberPoints,rangeTypeLogarithmic)
+       ! Set the expansion factors to a negative value to indicate they are not yet computed.
+       ageTableExpansionFactor=-1.0d0
+       ! Paste in the previously computed regions.
+       ageTableTime           (prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableTimeTemporary
+       ageTableExpansionFactor(prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableExpansionFactorTemporary
+       ! Deallocate the temporary arrays.
+       call Dealloc_Array(ageTableTimeTemporary           )
+       call Dealloc_Array(ageTableExpansionFactorTemporary)
+    else    
+       ! Allocate the arrays to current required size.
+       call Alloc_Array(ageTableTime,           [ageTableNumberPoints])
+       call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
+       ! Create set of grid points in time variable.
+       ageTableTime=Make_Range(ageTableTimeMinimum,ageTableTimeMaximum,ageTableNumberPoints,rangeTypeLogarithmic)
+       ! Set the expansion factors to a negative value to indicate they are not yet computed.
+       ageTableExpansionFactor=-1.0d0
+    end if
     
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
-    ageTableExpansionFactor(1)=(-0.5d0*densityPower*ageTableTime(1)*H_0_invGyr()*dsqrt(Omega_Dominant))**(-2.0d0&
-         &/densityPower)
-    
+    if (ageTableExpansionFactor(1) < 0.0d0) ageTableExpansionFactor(1)=(-0.5d0*densityPower*ageTableTime(1)*H_0_invGyr()&
+         &*dsqrt(Omega_Dominant))**(-2.0d0 /densityPower)
+
     ! Solve ODE to get corresponding expansion factors.
     iTableTurnaround=ageTableNumberPoints
     do iTime=2,ageTableNumberPoints
        ! Find the position in the table corresponding to turn around if we have a collapsing Universe.
        if (collapsingUniverse.and.ageTableTime(iTime-1)<tCosmologicalTurnaround.and.ageTableTime(iTime)&
             &>=tCosmologicalTurnaround) iTableTurnaround=iTime
-       time=ageTableTime(iTime-1)
-       aExpansion(1)=ageTableExpansionFactor(iTime-1)
-       call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,time,ageTableTime(iTime),1,aExpansion&
-            &,ageTableODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,odeReset)
-       ageTableExpansionFactor(iTime)=aExpansion(1)
+       ! Compute the expansion factor if it is not already computed.
+       if (ageTableExpansionFactor(iTime) < 0.0d0) then
+          time=ageTableTime(iTime-1)
+          aExpansion(1)=ageTableExpansionFactor(iTime-1)
+          call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,time,ageTableTime(iTime),1,aExpansion&
+               &,ageTableODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,odeReset)
+          ageTableExpansionFactor(iTime)=aExpansion(1)
+       end if
     end do
     call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
     resetInterpolation=.true.
