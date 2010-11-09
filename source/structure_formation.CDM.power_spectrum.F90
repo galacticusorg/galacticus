@@ -66,7 +66,7 @@ module CDM_Power_Spectrum
   use FGSL
   use, intrinsic :: ISO_C_Binding                             
   private
-  public :: Power_Spectrum_CDM, sigma_CDM, sigma_CDM_Logarithmic_Derivative, sigma_CDM_Plus_Logarithmic_Derivative,&
+  public :: Power_Spectrum_CDM, sigma_CDM, sigma_8, sigma_CDM_Logarithmic_Derivative, sigma_CDM_Plus_Logarithmic_Derivative,&
        & CDM_Power_Spectrum_State_Store, CDM_Power_Spectrum_State_Retrieve
 
   ! Flag to indicate if the power spectrum has been normalized.  
@@ -76,7 +76,7 @@ module CDM_Power_Spectrum
   double precision, parameter :: radiusNormalization=8.0d0   ! Radius for sigma(M) normalization in Mpc/h.
   double precision            :: massNormalization           ! Mass for sigma(M) normalization in M_Solar.
   double precision            :: sigmaNormalization =1.0d0   ! Normalization for sigma(M).
-  double precision            :: sigma_8                     ! Power spectrum normalization parameter.
+  double precision            :: sigma_8_Value               ! Power spectrum normalization parameter.
 
   ! Variables to hold the tabulated sigma(M) data.
   integer                                        :: sigmaTableNPoints=-1
@@ -174,6 +174,17 @@ contains
     return
   end subroutine sigma_CDM_Plus_Logarithmic_Derivative
 
+  double precision function sigma_8()
+    !% Return the value of $\sigma_8$.
+    implicit none
+
+    ! Ensure the module has been initialized.
+    call Initialize_Sigma(sigmaTableLogMassMinimum)
+
+    sigma_8=sigma_8_Value
+    return
+  end function sigma_8
+
   subroutine Initialize_Sigma(logMass)
     !% Ensure that $\sigma(M)$ is tabulated over a range that includes {\tt logMass}. The default normalization, $\sigma_9=0.807$,
     !% is taken from \cite{komatsu_seven-year_2010}.
@@ -200,9 +211,9 @@ contains
           !@     The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.
           !@   </description>
           !@ </inputParameter>
-          call Get_Input_Parameter('sigma_8',sigma_8,defaultValue=0.807d0)
+          call Get_Input_Parameter('sigma_8',sigma_8_Value,defaultValue=0.807d0)
           massNormalization=(4.0d0*PI/3.0d0)*Omega_0()*Critical_Density()*(radiusNormalization/Little_H_0())**3
-          sigmaNormalization=sigma_8/sigma_CDM_Integral(massNormalization)
+          sigmaNormalization=sigma_8_Value/sigma_CDM_Integral(massNormalization)
           sigmaNormalized=.true.
        end if
        ! Find suitable range of masses to tabulate.
