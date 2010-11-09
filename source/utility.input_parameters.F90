@@ -86,17 +86,22 @@ module Input_Parameters
      module procedure Get_Input_Parameter_Double_Array
      module procedure Get_Input_Parameter_Integer
      module procedure Get_Input_Parameter_Integer_Array
+     module procedure Get_Input_Parameter_Integer_Long
+     module procedure Get_Input_Parameter_Integer_Long_Array
      module procedure Get_Input_Parameter_Logical
      module procedure Get_Input_Parameter_Logical_Array
   end interface
 
+  ! Maximum length for parameters that must be extracted as text.
+  integer,          parameter :: parameterLengthMaximum=1024
+
   ! Parameters group identifier in the output file.
-  logical                   ::  parametersGroupCreated=.false.
-  type(hdf5Object)          ::  parametersGroup
+  logical                     ::  parametersGroupCreated=.false.
+  type(hdf5Object)            ::  parametersGroup
 
   ! Local pointer to the main output file object.
-  logical                   :: haveOutputFile
-  type(hdf5Object), pointer :: outputFileObject
+  logical                     :: haveOutputFile
+  type(hdf5Object), pointer   :: outputFileObject
 
 contains
 
@@ -814,6 +819,128 @@ contains
     end if
     return
   end subroutine Get_Input_Parameter_Logical_Array
+
+  subroutine Get_Input_Parameter_Integer_Long(parameterName,parameterValue,defaultValue,writeOutput)
+    !% Read a long {\tt integer} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
+    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    use Kind_Numbers
+    implicit none
+    character(len=*),        intent(in)           :: parameterName
+    integer(kind=kind_int8), intent(out)          :: parameterValue
+    integer,                 intent(in), optional :: defaultValue
+    logical,                 intent(in), optional :: writeOutput
+    type(Node),              pointer              :: thisParameter,nameElement,valueElement
+    integer                                       :: iParameter
+    logical                                       :: foundMatch,writeOutputActual
+    character(len=parameterLengthMaximum)         :: parameterText
+
+    ! If no parameter file has been read, either return the default or stop with an error message.
+    if (.not.associated(parameterDoc)) then
+       if (present(defaultValue)) then
+          parameterValue=defaultValue
+       else
+          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Long','parameter file has not been parsed.')
+       end if
+    end if
+
+    !$omp critical (FoX_DOM_Access)
+    iParameter=0
+    foundMatch=.false.
+    do while (.not.foundMatch.and.iParameter<parameterCount)
+       thisParameter => item(parameterList, iParameter)
+       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       if (parameterName == getTextContent(nameElement)) then
+          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          parameterText=getTextContent(valueElement)
+          read (parameterText,*) parameterValue
+          foundMatch=.true.
+       end if
+       iParameter=iParameter+1
+    end do
+    !$omp end critical (FoX_DOM_Access)
+    if (.not.foundMatch) then
+       if (present(defaultValue)) then
+          parameterValue=defaultValue
+       else
+          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Long','parameter '//trim(parameterName)//' can not be found')
+       end if
+    end if
+
+    ! Write the parameter to the output file.
+    if (present(writeOutput)) then
+       writeOutputActual=writeOutput
+    else
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
+    end if
+    if (writeOutputActual) then
+       call Make_Parameters_Group
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
+    end if
+    return
+  end subroutine Get_Input_Parameter_Integer_Long
+
+  subroutine Get_Input_Parameter_Integer_Long_Array(parameterName,parameterValue,defaultValue,writeOutput)
+    !% Read a long {\tt integer} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
+    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    use Kind_Numbers
+    implicit none
+    character(len=*),        intent(in)           :: parameterName
+    integer(kind=kind_int8), intent(out)          :: parameterValue(:)
+    integer,                 intent(in), optional :: defaultValue(:)
+    logical,                 intent(in), optional :: writeOutput
+    type(Node),              pointer              :: thisParameter,nameElement,valueElement
+    integer                                       :: iParameter
+    logical                                       :: foundMatch,writeOutputActual
+    character(len=parameterLengthMaximum)         :: parameterText
+    
+    ! If no parameter file has been read, either return the default or stop with an error message.
+    if (.not.associated(parameterDoc)) then
+       if (present(defaultValue)) then
+          parameterValue=defaultValue
+       else
+          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Long_Array','parameter file has not been parsed.')
+       end if
+    end if
+
+    !$omp critical (FoX_DOM_Access)
+    iParameter=0
+    foundMatch=.false.
+    do while (.not.foundMatch.and.iParameter<parameterCount)
+       thisParameter => item(parameterList, iParameter)
+       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       if (parameterName == getTextContent(nameElement)) then
+          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          parameterText=getTextContent(valueElement)
+          read (parameterText,*) parameterValue
+          foundMatch=.true.
+       end if
+       iParameter=iParameter+1
+    end do
+    !$omp end critical (FoX_DOM_Access)
+    if (.not.foundMatch) then
+       if (present(defaultValue)) then
+          parameterValue=defaultValue
+       else
+          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Long_Array','parameter '//trim(parameterName)//' can not be found')
+       end if
+    end if
+
+    ! Write the parameter to the output file.
+    if (present(writeOutput)) then
+       writeOutputActual=writeOutput
+    else
+       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
+    end if
+    if (writeOutputActual) then
+       call Make_Parameters_Group
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
+    end if
+    return
+  end subroutine Get_Input_Parameter_Integer_Long_Array
 
   subroutine Write_Parameter(parameterDoc,parameterName,parameterValue)
     !% Add a parameter to the specified XML file.
