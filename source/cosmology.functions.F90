@@ -361,7 +361,7 @@ contains
      return
    end function Epoch_of_Matter_Curvature_Equality
 
-   double precision function Expansion_Factor_from_Redshift(redshift)
+   elemental double precision function Expansion_Factor_from_Redshift(redshift)
      !% Returns expansion factor given a redshift.
      implicit none
      double precision, intent(in) :: redshift
