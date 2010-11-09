@@ -66,7 +66,10 @@ sub Count_Trees {
 	@treesAvailable = $HDFfile->group("Outputs/Output1")->groups;
 	undef(@filteredTrees);
 	foreach $tree ( @treesAvailable) {
-	    if ( $tree =~ m/mergerTree(\d+)/ ) {push(@filteredTrees,$1)};
+	    if ( $tree =~ m/mergerTree(\d+)/ ) {
+		@dataSets = $HDFfile->group("Outputs/Output1")->group($tree)->datasets;
+		push(@filteredTrees,$1) if ( $#dataSets >= 0);
+	    }
 	}
 	@{${$dataHash}{'mergerTreesAvailable'}} = sort {$a <=> $b} @filteredTrees;
     }
@@ -146,10 +149,10 @@ sub Get_Dataset {
                             # Get the volume weight.
 			    @volumeWeight = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->attrGet($dataSetName);
 			    # Append the volumeWeight property once for each galaxy in this tree.
-			    $start = pdl [$mergerTree-1];
-			    $nodeCountPDL = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
-			    @nodeCount    = $nodeCountPDL->list;
-			    $data = $data->append($volumeWeight[0]*ones($nodeCount[0]));
+			    $dataSetTemporary = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->get;
+			    $nodeCount = nelem($dataSetTemporary);
+			    undef($dataSetTemporary);
+			    $data = $data->append($volumeWeight[0]*ones($nodeCount));
 			} else {
 			    # Read the dataset.
 			    $thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset($dataSetName)->get;
@@ -158,10 +161,10 @@ sub Get_Dataset {
 			}
 			# Append the merger tree index.
 			unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
-			    $start = pdl [$mergerTree-1];
-			    $nodeCountPDL = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
-			    @nodeCount    = $nodeCountPDL->list;
-			    $dataTree = $dataTree->append($mergerTree*ones($nodeCount[0]));	
+			    $dataSetTemporary = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->get;
+			    $nodeCount = nelem($dataSetTemporary);
+			    undef($dataSetTemporary);			   
+			    $dataTree = $dataTree->append($mergerTree*ones($nodeCount));	
 			}
 		    }
 		}
