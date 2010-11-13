@@ -178,4 +178,11 @@
       </value>
     </parameter>
   </parameters>
+  <parameters>
+    <parameter>
+      <name>satelliteMergingRemnantSizeMethod</name>
+      <value>Cole2000</value>
+      <value>Covington2008</value>
+    </parameter>
+  </parameters>
 </parameterGrid>

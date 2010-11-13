@@ -59,22 +59,25 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements the \cite{cole_hierarchical_2000} algorithm for merger remnant sizes.
+!% Contains a module which implements the \cite{covington_predicting_2008} algorithm for merger remnant sizes.
 
-module Satellite_Merging_Remnant_Sizes_Cole2000
-  !% Implements the \cite{cole_hierarchical_2000} algorithm for merger remnant sizes.
+module Satellite_Merging_Remnant_Sizes_Covington2008
+  !% Implements the \cite{covington_predicting_2008} algorithm for merger remnant sizes.
   private
-  public :: Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
+  public :: Satellite_Merging_Remnant_Sizes_Covington2008_Initialize
 
   ! Parameter controlling the orbital energy used in the calculation.
   double precision :: mergerRemnantSizeOrbitalEnergy
 
+  ! Parameter controlling the radiative efficiency used in the calculation.
+  double precision :: mergerRemnantRadiativeEfficiency
+
 contains
 
   !# <satelliteMergingRemnantSizeMethod>
-  !#  <unitName>Satellite_Merging_Remnant_Sizes_Cole2000_Initialize</unitName>
+  !#  <unitName>Satellite_Merging_Remnant_Sizes_Covington2008_Initialize</unitName>
   !# </satelliteMergingRemnantSizeMethod>
-  subroutine Satellite_Merging_Remnant_Sizes_Cole2000_Initialize(satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do)
+  subroutine Satellite_Merging_Remnant_Sizes_Covington2008_Initialize(satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     use Input_Parameters
@@ -82,23 +85,32 @@ contains
     type(varying_string),          intent(in)    :: satelliteMergingRemnantSizeMethod
     procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Size_Do
     
-    if (satelliteMergingRemnantSizeMethod == 'Cole2000') then
-       Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Cole2000
+    if (satelliteMergingRemnantSizeMethod == 'Covington2008') then
+       Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Covington2008
        !@ <inputParameter>
        !@   <name>mergerRemnantSizeOrbitalEnergy</name>
        !@   <defaultValue>1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The orbital energy used in the ``Cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.
+       !@     The orbital energy used in the ``Covington2008'' merger remnant sizes calculation in units of the characteristic orbital energy.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter("mergerRemnantSizeOrbitalEnergy",mergerRemnantSizeOrbitalEnergy,defaultValue=1.0d0)
+       !@ <inputParameter>
+       !@   <name>mergerRemnantRadiativeEfficiency</name>
+       !@   <defaultValue>2.75 \citep{covington_predicting_2008}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The coefficient, $C_{\rm rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("mergerRemnantRadiativeEfficiency",mergerRemnantRadiativeEfficiency,defaultValue=2.75d0)
     end if
     return
-  end subroutine Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
+  end subroutine Satellite_Merging_Remnant_Sizes_Covington2008_Initialize
 
-  subroutine Satellite_Merging_Remnant_Size_Cole2000(thisNode)
-    !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{cole_hierarchical_2000} algorithm.
+  subroutine Satellite_Merging_Remnant_Size_Covington2008(thisNode)
+    !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{covington_predicting_2008} algorithm.
     use Tree_Nodes
     use Numerical_Constants_Physical
     use Numerical_Comparison
@@ -115,8 +127,8 @@ contains
     double precision,        parameter               :: absoluteMassTolerance  =1.0d-6
     double precision,        parameter               :: relativeMassTolerance  =1.0d-9
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
-         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,darkMatterFactor,remnantSpheroidGasMass &
-         &,remnantSpheroidMass
+         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,darkMatterFactor,remnantSpheroidGasMass&
+         &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy
     character(len= 2)                                :: joinString
     character(len=40)                                :: dataString
     type(varying_string)                             :: message
@@ -179,15 +191,22 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','error condition detected')
+       if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008','error condition detected')
        ! Check if host has finite mass.
        if (hostMass > 0.0d0) then
-          ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
-          progenitorsEnergy= satelliteSpheroidMass*satelliteMass/satelliteRadius &
-               &            +hostSpheroidMass     *hostMass     /hostRadius      &
-               &            +mergerRemnantSizeOrbitalEnergy*satelliteSpheroidMass*hostSpheroidMass/(satelliteRadius+hostRadius)&
+          ! Apply the Covington et al. (2008) algorithm to compute the size of the new remnant.
+          ! First calculate the energy of the progenitors.
+          progenitorsEnergy= satelliteSpheroidMass*satelliteMass/satelliteRadius                                                &
+               &            +hostSpheroidMass     *hostMass     /hostRadius                                                     &
+               &            +mergerRemnantSizeOrbitalEnergy*satelliteSpheroidMass*hostSpheroidMass/(satelliteRadius+hostRadius) &
                &                                                                                  /bindingEnergyFormFactor
-          remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/progenitorsEnergy
+          ! Compute the gas fraction in the remnant.
+          gasFractionInitial=remnantSpheroidGasMass/remnantSpheroidMass
+          ! Compute the energy lost through radiation.
+          radiatedEnergy=mergerRemnantRadiativeEfficiency*gasFractionInitial*progenitorsEnergy
+
+          ! Compute the remnant radius.
+          remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/(progenitorsEnergy+radiatedEnergy)
        else
           remnantRadius=satelliteRadius
        end if
@@ -197,6 +216,6 @@ contains
        remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*darkMatterFactor
     end if
     return
-  end subroutine Satellite_Merging_Remnant_Size_Cole2000
+  end subroutine Satellite_Merging_Remnant_Size_Covington2008
 
-end module Satellite_Merging_Remnant_Sizes_Cole2000
+end module Satellite_Merging_Remnant_Sizes_Covington2008
