@@ -122,8 +122,8 @@ contains
     type(varying_string)                             :: message
     logical                                          :: errorCondition
 
-    ! Get the host node.
-    hostNode => thisNode%parentNode
+    ! Find the node to merge with.
+    call thisNode%mergesWith(hostNode)
 
     ! Get properties of the merging systems.
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &

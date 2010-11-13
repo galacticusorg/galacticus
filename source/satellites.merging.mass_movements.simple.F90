@@ -131,8 +131,8 @@ contains
     type(treeNode),                pointer  :: hostNode
     double precision                        :: satelliteMass,hostMass
 
-    ! Get the host node.
-    hostNode => thisNode%parentNode
+    ! Find the node to merge with.
+    call thisNode%mergesWith(hostNode)
 
     ! Find the baryonic masses of the two galaxies.
     satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)

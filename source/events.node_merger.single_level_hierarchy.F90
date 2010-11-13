@@ -78,7 +78,7 @@ contains
     type(varying_string),          intent(in)    :: nodeMergersMethod
     procedure(),          pointer, intent(inout) :: Events_Node_Merger_Do
 
-    if (nodeMergersMethod.eq.'single level hierarchy') Events_Node_Merger_Do => Events_Node_Merger_Do_SLH
+    if (nodeMergersMethod == 'single level hierarchy') Events_Node_Merger_Do => Events_Node_Merger_Do_SLH
 
     return
   end subroutine Events_Node_Merger_Initialize_SLH

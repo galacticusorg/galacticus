@@ -2004,7 +2004,7 @@ Here, {\tt Merger\_Tree\_Build\_Initialize} is the name of a subroutine which wi
     type(varying_string),          intent(in)    :: mergerTreeConstructMethod
     procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
     
-    if (mergerTreeConstructMethod.eq.'myMethod') then
+    if (mergerTreeConstructMethod == 'myMethod') then
        Merger_Tree_Construct => My_Do_Tabulate
        .
        .
@@ -2254,6 +2254,7 @@ Currently defined satellite virial orbit methods are:
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole.F90:dynamical_friction_lacey_cole:satellite_time_until_merging_lacey_cole}{{\tt Lacey-Cole}}] Computes the merging timescale using the method of \cite{lacey_merger_1993}.
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Jiang2008.F90:dynamical_friction_jiang2008:satellite_time_until_merging_jiang2008}{{\tt Jiang2008}}] Computes the merging timescale using the method of \cite{jiang_fitting_2008}.
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Boylan-Kolchin2008.F90:dynamical_friction_boylankolchin2008:satellite_time_until_merging_boylankolchin2008}{{\tt BoylanKolchin2008}}] Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008}.
+ \item [\hyperlink{satellites.merging.preset.F90:satellite_merging_times_preset:satellite_time_until_merging_preset}{{\tt preset}}] This method assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time.
 \end{description}
 
 \subsubsection{Satellite Virial Orbits}
@@ -3275,8 +3276,9 @@ Extra outputs for merger trees (i.e. those which do not involve output of a fixe
   !# </mergerTreeExtraOutputTask>
   subroutine Galacticus_Extra_Output_Example(thisNode,iOutput,treeIndex)
     implicit none
-    type(treeNode),      intent(inout), pointer     :: thisNode
-    integer,             intent(in)                 :: iOutput,treeIndex
+    type(treeNode),          intent(inout), pointer :: thisNode
+    integer,                 intent(in)             :: iOutput
+    integer(kind=kind_int8), intent(in)             :: treeIndex
     .
     .
     .

@@ -931,8 +931,8 @@ contains
     ! Check that method is selected.
     if (methodSelected) then
        
-       ! Find the host node.
-       hostNode => thisNode%parentNode
+       ! Find the node to merge with.
+       call thisNode%mergesWith(hostNode)
 
        ! Get specific angular momentum of the host spheroid and disk material.
        if (Tree_Node_Spheroid_Gas_Mass_Hernquist(hostNode)+Tree_Node_Spheroid_Stellar_Mass_Hernquist(hostNode) > 0.0d0) then

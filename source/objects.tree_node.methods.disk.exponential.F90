@@ -863,8 +863,8 @@ contains
     ! Check that method is selected.
     if (methodSelected) then
        
-       ! Find the host node.
-       hostNode => thisNode%parentNode
+       ! Find the node to merge with.
+       call thisNode%mergesWith(hostNode)
        
        ! Get specific angular momentum of the disk material.
 

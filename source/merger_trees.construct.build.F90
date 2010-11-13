@@ -267,10 +267,11 @@ contains
     !% Build a merger tree.
     use Tree_Nodes
     use Galacticus_State
+    use Kind_Numbers
     implicit none
-    type(mergerTree), intent(inout) :: thisTree
-    logical,          intent(in)    :: skipTree
-    integer                         :: thisTreeIndex
+    type(mergerTree),        intent(inout) :: thisTree
+    logical,                 intent(in)    :: skipTree
+    integer(kind=kind_int8), parameter     :: baseNodeIndex=1
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
@@ -293,7 +294,7 @@ contains
        ! Give the tree an index.
        thisTree%index=thisTreeIndex
        ! Create the base node.
-       call thisTree%createNode(thisTree%baseNode,1)
+       call thisTree%createNode(thisTree%baseNode,baseNodeIndex)
        ! Assign a weight to the tree.
        thisTree%volumeWeight=treeWeight(thisTreeIndex)
        ! Assign a mass to it.
