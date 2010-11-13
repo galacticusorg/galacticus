@@ -840,8 +840,22 @@ contains
   subroutine Tree_Node_Merge_Node(thisNode,mergesWith)
     !% Returns a pointer to the node with which {\tt thisNode} will merge.
     implicit none
-    type(treeNode), pointer, intent(in)    :: thisNode
-    type(treeNode), pointer, intent(inout) :: mergesWith
+#ifdef GCC45
+    class(treeNode), target,  intent(in)    :: thisNode
+#else
+    type(treeNode),  pointer, intent(in)    :: thisNode
+#endif
+    type(treeNode),  pointer, intent(inout) :: mergesWith
+    type(treeNode),  pointer                :: thisNodeActual
+
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       thisNodeActual => thisNode
+#ifdef GCC45
+    end select
+#endif
 
     ! Check if a specific merge node has been set.
     if (associated(thisNode%mergeNode)) then
@@ -907,24 +921,37 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
+#ifdef GCC45
+    class(treeNode),     target,  intent(in) :: mergeeNode
+#else
     type(treeNode),      pointer, intent(in) :: mergeeNode
-    type(treeNode),      pointer             :: hostNode,thisNode,previousNode
+#endif
+    type(treeNode),      pointer             :: hostNode,thisNode,previousNode,mergeeNodeActual
     type(varying_string)                     :: message
 
+#ifdef GCC45
+    select type (mergeeNode)
+    type is (treeNode)
+#endif
+       mergeeNodeActual => mergeeNode
+#ifdef GCC45
+    end select
+#endif
+
     ! Remove from the mergee list of any merge target.
-    if (associated(mergeeNode%mergeNode)) then
-       hostNode => mergeeNode%mergeNode
-       message='Satellite node ['
-       message=message//mergeeNode%index()//'] being removed from merge target ['//hostNode%index()//']'
+    if (associated(mergeeNodeActual%mergeNode)) then
+       hostNode => mergeeNodeActual%mergeNode
+       message='Mergee node ['
+       message=message//mergeeNodeActual%index()//'] being removed from merge target ['//hostNode%index()//']'
        call Galacticus_Display_Message(message,verbosityInfo)
-       if (associated(hostNode%mergeeNode,mergeeNode)) then
+       if (associated(hostNode%mergeeNode,mergeeNodeActual)) then
           ! This is the first mergee, unlink it, and link to any sibling.
-          hostNode%mergeeNode => mergeeNode%nextMergee
+          hostNode%mergeeNode => mergeeNodeActual%nextMergee
        else
           thisNode     => hostNode%mergeeNode
           previousNode => null()
           do while (associated(thisNode))
-             if (associated(thisNode,mergeeNode)) then
+             if (associated(thisNode,mergeeNodeActual)) then
                 ! Found our node, link its older sibling to its younger sibling.
                 previousNode%nextMergee => thisNode%nextMergee
                 exit
@@ -982,11 +1009,25 @@ contains
   subroutine Get_Earliest_Progenitor(thisNode,progenitorNode)
     !% Returns a pointer to the earliest progenitor of with {\tt thisNode}.
     implicit none
-    type(treeNode), intent(in),    pointer :: thisNode
-    type(treeNode), intent(inout), pointer :: progenitorNode
+#ifdef GCC45
+    class(treeNode), target,  intent(inout) :: thisNode
+#else
+    type(treeNode),  pointer, intent(inout) :: thisNode
+#endif
+    type(treeNode),  pointer, intent(inout) :: progenitorNode
+    type(treeNode),  pointer                :: thisNodeActual
 
 
-    progenitorNode => thisNode
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       thisNodeActual => thisNode
+#ifdef GCC45
+    end select
+#endif
+
+    progenitorNode => thisNodeActual
     do while (associated(progenitorNode%childNode))
        progenitorNode => progenitorNode%childNode
     end do
