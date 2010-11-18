@@ -68,7 +68,8 @@ module Tree_Node_Methods_Satellite_Orbit
   private
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize, Satellite_Orbit_Create_Simple,&
        & Galacticus_Output_Tree_Satellite_Orbit_Simple, Galacticus_Output_Tree_Satellite_Orbit_Simple_Property_Count,&
-       & Galacticus_Output_Tree_Satellite_Orbit_Simple_Names, Tree_Node_Methods_Satellite_Orbit_Simple_Dump
+       & Galacticus_Output_Tree_Satellite_Orbit_Simple_Names, Tree_Node_Methods_Satellite_Orbit_Simple_Dump,&
+       & Satellite_Orbit_Standard_Scale_Set
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -213,6 +214,27 @@ contains
          & Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,-1.0d0)
     return
   end subroutine Tree_Node_Satellite_Merge_Time_Rate_Compute_Simple
+
+  !# <scaleSetTask>
+  !#  <unitName>Satellite_Orbit_Standard_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Satellite_Orbit_Standard_Scale_Set(thisNode)
+    !% Set scales for properties of {\tt thisNode}.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision, parameter              :: timeScale=1.0d-3
+    integer                                  :: thisIndex
+ 
+    ! Determine if method is active and a satellite orbit component exists.
+    if (methodSelected.and.thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+
+       ! Set scale for time.
+       thisNode%components(thisIndex)%properties(mergeTimeIndex,propertyScale)=timeScale
+
+    end if
+    return
+  end subroutine Satellite_Orbit_Standard_Scale_Set
 
   !# <nodeMergerTask>
   !#  <unitName>Satellite_Orbit_Create_Simple</unitName>

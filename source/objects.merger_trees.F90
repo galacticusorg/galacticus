@@ -156,8 +156,8 @@ module Merger_Trees
 
   ! Arrays that point to node properties and their derivatives.
   integer                                     :: nPropertiesMax=0, nProperties
-  double precision, allocatable, dimension(:) :: propertyValues
-  !$omp threadprivate(nPropertiesMax,nProperties,propertyValues)
+  double precision, allocatable, dimension(:) :: propertyValues,propertyScales
+  !$omp threadprivate(nPropertiesMax,nProperties,propertyValues,propertyScales)
 
   ! Module global pointer to the node being processed.
   type(treeNode),   pointer                   :: activeNode
@@ -442,14 +442,26 @@ contains
        if (allocated(propertyValues)) then
           call Memory_Usage_Record(sizeof(propertyValues),addRemove=-1)
           deallocate(propertyValues)
+          call Memory_Usage_Record(sizeof(propertyScales),addRemove=-1)
+          deallocate(propertyScales)
        end if
        allocate(propertyValues(nProperties))
        call Memory_Usage_Record(sizeof(propertyValues))
+       allocate(propertyScales(nProperties))
+       call Memory_Usage_Record(sizeof(propertyScales))
        nPropertiesMax=nProperties
     end if
 
     ! Assign pointers to node variables.
-    call Map_Properties_To_ODE_Array(thisNode,propertyValues,propertyValue)
+    call Map_Properties_To_ODE_Array(thisNode,propertyValues,labelValue)
+
+    ! Compute scales for all properties and extract from the node.
+    call Initialize_Scales_to_Unity(thisNode)
+    !# <include directive="scaleSetTask" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode</subroutineArgs>
+    include 'objects.tree_node.set_scale.inc'
+    !# </include>
+    call Map_Properties_To_ODE_Array(thisNode,propertyScales,labelScale)
 
     ! Assign module global pointer to this node.
     activeNode => thisNode
@@ -466,7 +478,7 @@ contains
     startTimeThisNode=Tree_Node_Time(thisNode)
     odeReset=.true.
     call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,startTimeThisNode,endTime,nProperties,propertyValues,Tree_Node_ODEs&
-         & ,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,odeReset)
+         & ,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,propertyScales,reset=odeReset)
     call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
 
     ! Extract values.
@@ -535,7 +547,7 @@ contains
        select case (interrupt)
        case (.false.)
           ! No interrupt - place derivatives into ODE arrays.
-          call Map_Properties_To_ODE_Array(activeNode,dydt,propertyDerivative)
+          call Map_Properties_To_ODE_Array(activeNode,dydt,labelDerivative)
        case (.true.)
           ! Interrupt requested - freeze evolution and store the interrupt if it is the earliest one to occur.
           dydt=0.0d0
@@ -550,6 +562,7 @@ contains
           end if
        end select
     end if
+
     ! Return success.
     Tree_Node_ODEs=FGSL_Success
     return
@@ -585,6 +598,36 @@ contains
     return
   end subroutine Initialize_Derivatives_to_Zero
 
+  subroutine Initialize_Scales_to_Unity(thisNode)
+    !% Initialize the scale of all properties of {\tt thisNode} to unity.
+    implicit none
+    type(treeNode),  intent(inout) :: thisNode
+    type(component), pointer       :: thisComponent
+    integer                        :: iComponent,iHistory
+
+    do iComponent=1,size(thisNode%components)
+       if (allocated(thisNode%components(iComponent)%properties)) thisNode%components(iComponent)%properties(:&
+            &,propertyScale)=1.0d0
+       if (allocated(thisNode%components(iComponent)%histories )) then
+          do iHistory=1,size(thisNode%components(iComponent)%histories)
+             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time))&
+                  & thisNode%components(iComponent)%histories(iHistory)%scales(:,:)=1.0d0
+          end do
+       end if
+       thisComponent => thisNode%components(iComponent)%nextComponentOfType
+       do while (associated(thisComponent))
+          if (allocated(thisComponent%properties)) thisComponent%properties(:,propertyScale)=1.0d0
+          if (allocated(thisComponent%histories )) then
+             do iHistory=1,size(thisComponent%histories)
+                if (allocated(thisComponent%histories(iHistory)%time)) thisComponent%histories(iHistory)%scales(:,:)=1.0d0
+             end do
+          end if
+          thisComponent => thisComponent%nextComponentOfType
+       end do
+    end do
+    return
+  end subroutine Initialize_Scales_to_Unity
+
   integer function Count_Properties(thisNode)
     !% Determine the number of active properties for {\tt thisNode}.
     implicit none
@@ -618,20 +661,29 @@ contains
     return
   end function Count_Properties
 
-  subroutine Map_Properties_To_ODE_Array(thisNode,propertyValuesODE,propertyType)
+  subroutine Map_Properties_To_ODE_Array(thisNode,propertyValuesODE,labelType)
     !% Copies values of properties from {\tt thisNode} to a single array for use in the ODE solver routines.
     implicit none
     double precision, intent(out)          :: propertyValuesODE(:)
     type(treeNode),   intent(in)           :: thisNode
-    integer,          intent(in), optional :: propertyType
+    integer,          intent(in), optional :: labelType
     type(component),  pointer              :: thisComponent
-    integer                                :: propertyCounter,iComponent,iProperty,propertyTypeActual,iHistory,iTime,iValue
+    integer                                :: propertyCounter,iComponent,iProperty,labelTypeActual,propertyTypeActual,iHistory,iTime,iValue
     
     ! Find which type of property (value or derivative) is required.
-    if (present(propertyType)) then
-       propertyTypeActual=propertyType
+    if (present(labelType)) then
+       select case (labelType)
+       case (labelValue     )
+          propertyTypeActual=propertyValue
+       case (labelDerivative)
+          propertyTypeActual=propertyDerivative
+       case (labelScale     )
+          propertyTypeActual=propertyScale
+       end select
+       labelTypeActual   =labelType
     else
        propertyTypeActual=propertyValue
+       labelTypeActual   =labelValue
     end if
 
     propertyCounter=0
@@ -648,11 +700,13 @@ contains
                 do iValue=1,size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
                    do iTime=1,size(thisNode%components(iComponent)%histories(iHistory)%time)
                       propertyCounter=propertyCounter+1
-                      select case (propertyTypeActual)
-                      case (propertyValue)
-                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%data (iTime,iValue)
-                      case (propertyDerivative)
-                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%rates(iTime,iValue)
+                      select case (labelTypeActual)
+                      case (labelValue     )
+                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%data  (iTime,iValue)
+                      case (labelDerivative)
+                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%rates (iTime,iValue)
+                      case (labelScale     )
+                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%scales(iTime,iValue)
                       end select
                    end do
                 end do
@@ -673,11 +727,13 @@ contains
                    do iValue=1,size(thisComponent%histories(iHistory)%data,dim=2)
                       do iTime=1,size(thisComponent%histories(iHistory)%time)
                          propertyCounter=propertyCounter+1
-                         select case (propertyTypeActual)
-                         case (propertyValue)
-                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%data (iTime,iValue)
-                         case (propertyDerivative)
-                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%rates(iTime,iValue)
+                         select case (labelTypeActual)
+                         case (labelValue     )
+                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%data  (iTime,iValue)
+                         case (labelDerivative)
+                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%rates (iTime,iValue)
+                         case (labelScale     )
+                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%scales(iTime,iValue)
                          end select
                       end do
                    end do

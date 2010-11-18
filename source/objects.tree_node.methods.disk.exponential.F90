@@ -74,7 +74,7 @@ module Tree_Node_Methods_Exponential_Disk
        & Galacticus_Output_Tree_Disk_Exponential_Names, Exponential_Disk_Radius_Solver, Exponential_Disk_Enclosed_Mass,&
        & Exponential_Disk_Rotation_Curve, Tree_Node_Disk_Post_Evolve_Exponential, Tree_Node_Methods_Exponential_Disk_Dump,&
        & Exponential_Disk_Radius_Solver_Plausibility, Tree_Node_Methods_Exponential_Disk_State_Store,&
-       & Tree_Node_Methods_Exponential_Disk_State_Retrieve
+       & Tree_Node_Methods_Exponential_Disk_State_Retrieve, Exponential_Disk_Scale_Set
   
   ! Internal count of abundances.
   integer :: abundancesCount
@@ -842,6 +842,61 @@ contains
     return
   end subroutine Tree_Node_Disk_Stellar_Properties_History_Set_Exponential
 
+  !# <scaleSetTask>
+  !#  <unitName>Exponential_Disk_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Exponential_Disk_Scale_Set(thisNode)
+    !% Set scales for properties of {\tt thisNode}.
+    implicit none
+    type(treeNode),   pointer, intent(inout)       :: thisNode
+    double precision, parameter                    :: massMinimum           =1.0d0
+    double precision, parameter                    :: angularMomentumMinimum=0.1d0
+    double precision, parameter                    :: luminosityMinimum     =1.0d0
+    double precision, dimension(abundancesCount)   :: abundancesDisk,abundancesSpheroid
+    double precision, dimension(luminositiesCount) :: luminositiesDisk,luminositiesSpheroid
+    integer                                        :: thisIndex
+    double precision                               :: mass,angularMomentum
+
+    ! Determine if method is active and a disk component exists.
+    if (methodSelected.and.thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+
+       ! Set scale for angular momentum.
+       angularMomentum=Tree_Node_Spheroid_Angular_Momentum(thisNode)+Tree_Node_Disk_Angular_Momentum(thisNode)
+       thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyScale)=max(angularMomentum,angularMomentumMinimum)
+
+       ! Set scale for gas mass.
+       mass=Tree_Node_Spheroid_Gas_Mass(thisNode)+Tree_Node_Disk_Gas_Mass(thisNode)
+       thisNode%components(thisIndex)%properties(gasMassIndex,propertyScale)=max(mass,massMinimum)
+
+       ! Set scale for stellar mass.
+       mass=Tree_Node_Spheroid_Stellar_Mass(thisNode)+Tree_Node_Disk_Stellar_Mass(thisNode)
+       thisNode%components(thisIndex)%properties(stellarMassIndex,propertyScale)=max(mass,massMinimum)
+
+       ! Set scales for abundances if necessary.
+       if (abundancesCount > 0) then
+          ! Set scale for gas abundances.
+          call Tree_Node_Spheroid_Gas_Abundances(thisNode,abundancesSpheroid)
+          call Tree_Node_Disk_Gas_Abundances    (thisNode,abundancesDisk    )
+          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
+          
+          ! Set scale for stellar abundances.
+          call Tree_Node_Spheroid_Stellar_Abundances(thisNode,abundancesSpheroid)
+          call Tree_Node_Disk_Stellar_Abundances    (thisNode,abundancesDisk    )
+          thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
+       end if
+
+       ! Set scales for stellar luminosities if necessary.
+       if (luminositiesCount > 0) then        
+          ! Set scale for stellar luminosities.
+          call Tree_Node_Spheroid_Stellar_Luminosities(thisNode,luminositiesSpheroid)
+          call Tree_Node_Disk_Stellar_Luminosities    (thisNode,luminositiesDisk    )
+          thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyScale)=max(luminositiesDisk+luminositiesSpheroid,luminosityMinimum)
+       end if
+
+    end if
+    return
+  end subroutine Exponential_Disk_Scale_Set
 
   !# <satelliteMergerTask>
   !#  <unitName>Exponential_Disk_Satellite_Merging</unitName>

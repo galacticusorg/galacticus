@@ -66,7 +66,7 @@ module Tree_Node_Methods_Positions_Preset
   use Tree_Nodes
   use Components
   private
-  public :: Tree_Node_Methods_Position_Initialize_Preset, Position_Create_Preset, Galacticus_Output_Tree_Position_Preset,&
+  public :: Tree_Node_Methods_Position_Initialize_Preset, Galacticus_Output_Tree_Position_Preset,&
        & Galacticus_Output_Tree_Position_Preset_Property_Count, Galacticus_Output_Tree_Position_Preset_Names,&
        & Tree_Node_Methods_Position_Preset_Dump, Tree_Node_Position_Preset_Promote
   

@@ -161,7 +161,7 @@ contains
        growthFactorODEVariables(1)=growthTableGrowthFactor(iTime-1)
        growthFactorODEVariables(2)=growthFactorDerivative
        call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,timeNow,growthTableTime(iTime),2,growthFactorODEVariables &
-            &,growthTableODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,odeReset)
+            &,growthTableODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
        growthTableGrowthFactor(iTime)=growthFactorODEVariables(1)
        growthFactorDerivative        =growthFactorODEVariables(2)
     end do

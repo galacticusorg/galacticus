@@ -68,11 +68,11 @@ module Stellar_Population_Properties
   use Abundances_Structure
   use Histories
   private
-  public :: Stellar_Population_Properties_Rates, Stellar_Population_Properties_History_Count,&
-       & Stellar_Population_Properties_History_Create
+  public :: Stellar_Population_Properties_Rates, Stellar_Population_Properties_Scales,&
+       & Stellar_Population_Properties_History_Count, Stellar_Population_Properties_History_Create
 
   ! Flag indicating whether this module has been initialized.
-  logical :: stellarPopulationPropertiesInitialized=.false.
+  logical              :: stellarPopulationPropertiesInitialized=.false.
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: starFormationTimescaleDisksInitialized=.false.
@@ -94,6 +94,17 @@ module Stellar_Population_Properties
        type(treeNode),            intent(inout), pointer      :: thisNode
        type(history),             intent(inout)               :: thisHistory
      end subroutine Stellar_Population_Properties_Rates_Template
+  end interface
+
+  ! Pointer to the function that sets scale factors for error control of stellar population properties.
+  procedure(Stellar_Population_Properties_Scales_Template), pointer :: Stellar_Population_Properties_Scales_Get => null()
+  abstract interface
+     subroutine Stellar_Population_Properties_Scales_Template(thisHistory,stellarMass,stellarAbundances)
+       import abundancesStructure, history
+       double precision,          intent(in)                  :: stellarMass
+       type(abundancesStructure), intent(in)                  :: stellarAbundances
+       type(history),             intent(inout)               :: thisHistory
+     end subroutine Stellar_Population_Properties_Scales_Template
   end interface
 
   ! Pointer to the function that returns the size of any history required for stellar population properties.
@@ -139,10 +150,10 @@ contains
        call Get_Input_Parameter('stellarPopulationPropertiesMethod',stellarPopulationPropertiesMethod,defaultValue='instantaneous')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="stellarPopulationPropertiesMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_History_Count_Get,Stellar_Population_Properties_History_Create_Do</subroutineArgs>
+       !#  <subroutineArgs>stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get,Stellar_Population_Properties_History_Count_Get,Stellar_Population_Properties_History_Create_Do</subroutineArgs>
        include 'stellar_populations.properties.inc'
        !# </include>
-       if (.not.(associated(Stellar_Population_Properties_Rates_Get).and.associated(Stellar_Population_Properties_History_Count_Get).and.associated(Stellar_Population_Properties_History_Create_Do))) call Galacticus_Error_Report('Stellar_Population_Properties_Rates'&
+       if (.not.(associated(Stellar_Population_Properties_Rates_Get).and.associated(Stellar_Population_Properties_Scales_Get).and.associated(Stellar_Population_Properties_History_Count_Get).and.associated(Stellar_Population_Properties_History_Create_Do))) call Galacticus_Error_Report('Stellar_Population_Properties_Rates'&
             &,'method '//char(stellarPopulationPropertiesMethod)//' is unrecognized')
        stellarPopulationPropertiesInitialized=.true.
     end if
@@ -171,6 +182,21 @@ contains
          &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     return
   end subroutine Stellar_Population_Properties_Rates
+
+  subroutine Stellar_Population_Properties_Scales(thisHistory,stellarMass,stellarAbundances)
+    !% Set the scaling factors for error control on the absolute value of stellar population properties.
+    implicit none
+    double precision,          intent(in)    :: stellarMass
+    type(abundancesStructure), intent(in)    :: stellarAbundances
+    type(history),             intent(inout) :: thisHistory
+    
+    ! Ensure module is initialized.
+    call Stellar_Population_Properties_Rates_Initialize
+
+    ! Simply call the subroutine which does the actual work.
+    call Stellar_Population_Properties_Scales_Get(thisHistory,stellarMass,stellarAbundances)
+    return
+  end subroutine Stellar_Population_Properties_Scales
 
   integer function Stellar_Population_Properties_History_Count()
     !% Return a count of the number of histories which must be stored for the selected stellar populations method.

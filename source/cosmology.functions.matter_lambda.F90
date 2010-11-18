@@ -200,7 +200,7 @@ contains
           ! Solve Friedmann equation to get time at turnaround.
           odeReset=.true.
           call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,aDominant,aExpansionMax*(1.0d0-1.0d-4),1,timeMaximum&
-               &,collapseODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,odeReset)
+               &,collapseODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
           call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
           odeReset=.true.
           ! Extract turnaround time from ODE variables and set maximum time to twice turnaround time.
@@ -430,7 +430,7 @@ contains
           time=ageTableTime(iTime-1)
           aExpansion(1)=ageTableExpansionFactor(iTime-1)
           call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,time,ageTableTime(iTime),1,aExpansion&
-               &,ageTableODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,odeReset)
+               &,ageTableODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
           ageTableExpansionFactor(iTime)=aExpansion(1)
        end if
     end do

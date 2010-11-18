@@ -254,7 +254,8 @@ contains
     real(c_double)          :: Circularity_Root
     real(c_double), value   :: circularity
     type(c_ptr),    value   :: parameterPointer
-    
+    real(c_double)          :: cumulativeProbability
+
     cumulativeProbability=Circularity_Cumulative_Probability(circularity)
     Circularity_Root=cumulativeProbability-uniformDeviate
     return

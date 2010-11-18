@@ -69,7 +69,7 @@ module Tree_Node_Methods_Dark_Matter_Profile_Scales
   public :: Tree_Node_Methods_Profile_Scale_Initialize, Tree_Node_Methods_Profile_Scale_Initialize_Scale,&
        & Galacticus_Output_Tree_Profile_Scale, Galacticus_Output_Tree_Profile_Scale_Property_Count,&
        & Galacticus_Output_Tree_Profile_Scale_Names, Tree_Node_Methods_Profile_Scale_Dump,&
-       & Tree_Node_Dark_Matter_Profile_Scale_Promote, Tree_Node_Methods_Profile_Scale_Merger_Tree_Output
+       & Tree_Node_Dark_Matter_Profile_Scale_Promote, Tree_Node_Methods_Profile_Scale_Merger_Tree_Output, Profile_Scale_Scale_Set
   
   ! The index used as a reference for this component.
   integer            :: componentIndex=-1
@@ -298,6 +298,25 @@ contains
     return
   end function Tree_Node_Profile_Scale_Index
 
+  !# <scaleSetTask>
+  !#  <unitName>Profile_Scale_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Profile_Scale_Scale_Set(thisNode)
+    !% Set scales for properties of {\tt thisNode}.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    integer                                  :: thisIndex
+ 
+    ! Determine if method is active and a black hole component exists.
+    if (methodSelected.and.thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Profile_Scale_Index(thisNode)
+
+       ! Set scale for the scale radius.
+       thisNode%components(thisIndex)%properties(scaleIndex,propertyScale)=thisNode%components(thisIndex)%properties(scaleIndex,propertyValue)
+
+    end if
+    return
+  end subroutine Profile_Scale_Scale_Set
   
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Profile_Scale_Names</unitName>

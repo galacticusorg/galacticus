@@ -72,7 +72,7 @@ module Tree_Node_Methods_Hernquist_Spheroid
        & Galacticus_Output_Tree_Spheroid_Hernquist, Galacticus_Output_Tree_Spheroid_Hernquist_Property_Count,&
        & Galacticus_Output_Tree_Spheroid_Hernquist_Names, Hernquist_Spheroid_Radius_Solver, Hernquist_Spheroid_Enclosed_Mass,&
        & Hernquist_Spheroid_Density, Hernquist_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Hernquist,&
-       & Tree_Node_Methods_Hernquist_Spheroid_Dump, Hernquist_Spheroid_Radius_Solver_Plausibility
+       & Tree_Node_Methods_Hernquist_Spheroid_Dump, Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -908,6 +908,71 @@ contains
     call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%add(rateAdjustments,addTo=historyRates)
     return
   end subroutine Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Hernquist
+
+  !# <scaleSetTask>
+  !#  <unitName>Hernquist_Spheroid_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Hernquist_Spheroid_Scale_Set(thisNode)
+    !% Set scales for properties of {\tt thisNode}. Note that gas masses get an additional scaling down since they can approach
+    !% zero and we'd like to prevent them from becoming negative.
+    use Abundances_Structure
+    implicit none
+    type(treeNode),            pointer, intent(inout)       :: thisNode
+    double precision,          parameter                    :: massMinimum           =1.0d0
+    double precision,          parameter                    :: angularMomentumMinimum=0.1d0
+    double precision,          parameter                    :: luminosityMinimum     =1.0d0
+    double precision,          parameter                    :: gasMassScaling        =0.1d0
+    double precision,          dimension(abundancesCount)   :: abundancesDisk,abundancesSpheroid
+    double precision,          dimension(luminositiesCount) :: luminositiesDisk,luminositiesSpheroid
+    type(abundancesStructure), save                         :: stellarAbundances
+    !$omp threadprivate(stellarAbundances)
+    integer                                                 :: thisIndex
+    double precision                                        :: mass,angularMomentum
+
+    ! Determine if method is active and a spheroid component exists.
+    if (methodSelected.and.thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
+
+       ! Set scale for angular momentum.
+       angularMomentum=Tree_Node_Spheroid_Angular_Momentum(thisNode)+Tree_Node_Disk_Angular_Momentum(thisNode)
+       thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyScale)=max(angularMomentum,angularMomentumMinimum)
+
+       ! Set scale for gas mass.
+       mass=Tree_Node_Spheroid_Gas_Mass(thisNode)+Tree_Node_Disk_Gas_Mass(thisNode)
+       thisNode%components(thisIndex)%properties(gasMassIndex,propertyScale)=gasMassScaling*max(mass,massMinimum)
+
+       ! Set scale for stellar mass.
+       mass=Tree_Node_Spheroid_Stellar_Mass(thisNode)+Tree_Node_Disk_Stellar_Mass(thisNode)
+       thisNode%components(thisIndex)%properties(stellarMassIndex,propertyScale)=max(mass,massMinimum)
+
+       ! Set scales for abundances if necessary.
+       if (abundancesCount > 0) then
+          ! Set scale for gas abundances.
+          call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundancesSpheroid)
+          call Tree_Node_Disk_Gas_Abundances              (thisNode,abundancesDisk    )
+          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyScale)=gasMassScaling*max(abundancesDisk+abundancesSpheroid,massMinimum)
+          
+          ! Set scale for stellar abundances.
+          call Tree_Node_Spheroid_Stellar_Abundances_Hernquist(thisNode,abundancesSpheroid)
+          call Tree_Node_Disk_Stellar_Abundances              (thisNode,abundancesDisk    )
+          thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
+       end if
+
+       ! Set scales for stellar luminosities if necessary.
+       if (luminositiesCount > 0) then        
+          ! Set scale for stellar luminosities.
+          call Tree_Node_Spheroid_Stellar_Luminosities_Hernquist(thisNode,luminositiesSpheroid)
+          call Tree_Node_Disk_Stellar_Luminosities              (thisNode,luminositiesDisk    )
+          thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyScale)=max(luminositiesDisk+luminositiesSpheroid,luminosityMinimum)
+       end if
+
+       ! Set scales for stellar population properties history.
+       call Tree_Node_Spheroid_Stellar_Abundances_Hernquist(thisNode,abundancesSpheroid)
+       call stellarAbundances%pack(abundancesSpheroid)
+       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%histories(stellarHistoryIndex),Tree_Node_Spheroid_Stellar_Mass(thisNode),stellarAbundances)
+    end if
+    return
+  end subroutine Hernquist_Spheroid_Scale_Set
 
   !# <satelliteMergerTask>
   !#  <unitName>Hernquist_Spheroid_Satellite_Merging</unitName>

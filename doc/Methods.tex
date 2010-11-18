@@ -187,7 +187,7 @@ Here, we first get the index of our component in the node (which will cause the 
 
 Note that both of these procedures can be left {\tt null()}. Any attempt to call them will then cause the code to crash. Alternatively, an unsettable property could simply refuse to honor a request to set its value, either ignoring it, or exiting with an error message.
 
-\subsubsection{Component Evolution}\index{evolution}\index{components!evolution}
+\subsubsection{Component Evolution}\label{sec:ComponentEvolution}\index{evolution}\index{components!evolution}
 
 All component properties are included in \glc's ODE solver as the node is evolved forward in time. \glc\ will create two pointers that permit the rate of change of a property to be computed and adjusted. These pointers should be associated with actual implementations during component initialization. For example, in the exponential disk component the stellar mass property pointers are set using:
 \begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
@@ -237,6 +237,32 @@ The ``rate compute'' subroutine should simply perform any calculations necessary
   end subroutine Tree_Node_Disk_Stellar_Mass_Rate_Compute_Exponential
 \end{lstlisting}
 Here, we simply check that the component exists and, if it does, compute the rates of change for one or more properties and then adjust their rates appropriately.
+
+When evolving ODEs the ODE solver aims to keep the error on property $i$ below
+\begin{equation}
+ D_i = \epsilon_{\rm abs} s_i + \epsilon_{\rm rel} |y_i|,
+\end{equation}
+where $epsilon_{\rm abs}=${\tt [odeToleranceAbsolute]}, $epsilon_{\rm rel}=${\tt [odeToleranceRelative]}, $y_i$ is the value of property $i$ and $s_i$ is a scaling factor which controls the absolute tolerance for this property. By default, $s_i=1$, but this can be changed by a component utilizing the {\tt scaleSetTask} directive. This allows a subroutine to be called in which the component sets suitable scale factors for each of its properties prior to any ODE evolution being carried out. This can be very useful, for example, in cases where two components are coupled. Consider a case where a disk is transferring material to a spheroid via a bar instability. If the disk is orders of magnitude more massive that the spheroid then the rate of mass transfer can be very high (i.e. $\dot{y}/y$ for the spheroid will be large). With just a relative tolerance (i.e. the $\epsilon_{\rm rel} |y_i|$ term) this would require very short timesteps for the spheroid. However, in such cases we don't care about such tiny tolerances for the spheroid (since it will grow to be substantially more massive). Therefore, it may be appropriate to set $s_i$ to be equal to the sum of the disk and spheroid properties for example. The scale set directive and associated subroutine should follow this template:
+\begin{verbatim}
+  !# <scaleSetTask>
+  !#  <unitName>Component_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Component_Disk_Scale_Set(thisNode)
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+
+    ! Check that a component of this type is active, otherwise exit.
+
+    ! Set the scale factor for each property, e.g.:
+    thisNode%components(thisIndex)%properties(massIndex,propertyScale)=massScale
+
+    ! Set scale factors for history properties, e.g.:
+    thisHistory%scales(:,massIndex)=massScale
+
+    return
+  end subroutine Component_Disk_Scale_Set
+\end{verbatim}
+where {\tt thisIndex} is the location of the component in the {\tt components()} array, {\tt massIndex} is the internal index in the this of properties refering to some mass property and {\tt massScale} is the value of $s_i$ for that property. The label {\tt propertyScale} is used to ensure that the scale factor is stored in the correct element of the {\tt properties()} array. Sensible choices for the $s_i$ factors can significantly speed-up execution of \glc.
 
 \subsubsection{Component Pipes}\index{pipes}\index{components!pipes}
 
@@ -2470,19 +2496,25 @@ Additional methods for computing properties of stellar populations can be added 
 \end{verbatim}
 Here, {\tt Stellar\_Population\_Properties\_Instantaneous\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_History_Count_Get)
+  subroutine Method_Initialize(stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get &
+ & ,Stellar_Population_Properties_Scales_Get,Stellar_Population_Properties_History_Count_Get             &
+ & ,Stellar_Population_Properties_History_Create_Do)
     implicit none
     type(varying_string),          intent(in)    :: stellarPopulationPropertiesMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_History_Count_Get
+    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get  &
+ & ,Stellar_Population_Properties_Scales_Get,Stellar_Population_Properties_History_Count_Get &
+ & ,Stellar_Population_Properties_History_Create_Do
     
     if (stellarPopulationPropertiesMethod == 'myMethod') then
        Stellar_Population_Properties_Rates_Get         => My_Method_Rates_Get_Procedure
+       Stellar_Population_Properties_Scales_Get        => My_Method_Scales_Procedure
        Stellar_Population_Properties_History_Count_Get => My_Method_History_Count_Get_Procedure
+       Stellar_Population_Properties_History_Create_Do => My_Method_History_Create_Procedure
     end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt stellarPopulationPropertiesMethod} input parameter. The procedure pointer {\tt Stellar\_Population\_Properties\_Rates\_Get} must be set to point to a subroutine which returns properties of a stellar population as described below, while the {\tt My\_Method\_History\_Count\_Get\_Procedure} procedure pointer must be set to point to a function which returns the number of histories that will be required by this method. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt stellarPopulationPropertiesMethod} input parameter. The procedure pointers {\tt Stellar\_Population\_Properties\_Rates\_Get} and {\tt Stellar\_Population\_Properties\_Scales\_Get} must be set to point to subroutines which return properties of a stellar population and set scaling factors for ODE error control as described below, while the {\tt Stellar\_Population\_Properties\_History\_Count\_Get} and {\tt Stellar\_Population\_Properties\_History\_Create\_Do} procedure pointers must be set to point to functions which return the number of histories that will be required by this method and create a suitable history object respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The stellar populations properties subroutine must have the form:
 \begin{verbatim}
@@ -2505,7 +2537,22 @@ The stellar populations properties subroutine must have the form:
 \end{verbatim}
 The subroutine is given the {\tt starFormationRate} (in $M_\odot$ Gyr$^{-1}$) in {\tt thisNode}. Any history information required by this method must be passed in via the {\tt history} argument. Stars are forming from fuel material with composition specified by {\tt fuelAbundances}. The subroutine must return the rates of change of stellar and fuel mass (in $M_\odot$ Gyr$^{-1}$) in {\tt stellarMassRate} and {\tt fuelMassRate} respectively, and the corresponding rates (also in $M_\odot$ Gyr$^{-1}$) of abundance change in {\tt stellarAbundancesRates} and {\tt fuelAbundancesRates} respectively. Finally, it should return rates of change (in $L_{\rm AB}$ Gyr$^{-1}$) of stellar luminosities for all requested output bands in {\tt stellarLuminositiesRates}. Additionally, the rate of energy input from stellar populations must be returned in {\tt energyInputRate}.
 
-The history function function must have the form
+The scales procedure should have the form:
+\begin{verbatim}
+  subroutine Stellar_Population_Properties_Scales_Noninstantaneous(thisHistory,stellarMass,stellarAbundances)
+   implicit none
+   double precision,          intent(in)    :: stellarMass
+   type(abundancesStructure), intent(in)    :: stellarAbundances
+   type(history),             intent(inout) :: thisHistory
+   .
+   .
+   .
+   return
+ end subroutine Stellar_Population_Properties_Scales_Noninstantaneous
+\end{verbatim}
+and should set scale factors for ODE error control (see \S\ref{sec:ComponentEvolution}) in the stellar population properties history {\tt thisHistory}. The {\tt stellarMass} and {\tt stellarAbundances} (both in $M_\odot$) are provided as input as they are often useful in choosing appropriate scale factors.
+
+The history count function must have the form
 \begin{verbatim}
  integer function Stellar_Population_Properties_History_Count()
     implicit none
@@ -2514,7 +2561,18 @@ The history function function must have the form
     return
  end function Stellar_Population_Properties_History_Count
 \end{verbatim}
-and should return the number of histories that will be required by this method.
+and should return the number of histories that will be required by this method. The history create function must have the form
+\begin{verbatim}
+  subroutine Stellar_Population_Properties_History_Create(thisNode,thisHistory)
+   type(treeNode),  intent(inout), pointer :: thisNode
+   type(history),   intent(inout)          :: thisHistory
+   .
+   .
+   .
+   return
+ end subroutine Stellar_Population_Properties_History_Create
+\end{verbatim}
+and should create {\tt thisHistory} with a suitable set of time steps for {\tt thisNode}.
 
 Currently defined stellar population properties methods are:
 \begin{description}

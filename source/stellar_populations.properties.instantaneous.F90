@@ -75,19 +75,21 @@ contains
   !#  <unitName>Stellar_Population_Properties_Instantaneous_Initialize</unitName>
   !# </stellarPopulationPropertiesMethod>
   subroutine Stellar_Population_Properties_Instantaneous_Initialize(stellarPopulationPropertiesMethod &
-       &,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_History_Count_Get&
-       &,Stellar_Population_Properties_History_Create_Do)
+       &,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get&
+       &,Stellar_Population_Properties_History_Count_Get ,Stellar_Population_Properties_History_Create_Do)
     !% Initializes the instantaneous recycling approximation stellar population properties module.
     use ISO_Varying_String
     use Atomic_Data
     implicit none
     type(varying_string),          intent(in)    :: stellarPopulationPropertiesMethod
     procedure(integer),   pointer, intent(inout) :: Stellar_Population_Properties_History_Count_Get
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_History_Create_Do,Stellar_Population_Properties_Rates_Get
+    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_History_Create_Do&
+         &,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get
 
     if (stellarPopulationPropertiesMethod == 'instantaneous') then
-       Stellar_Population_Properties_Rates_Get         =>  Stellar_Population_Properties_Rates_Instantaneous    
-       Stellar_Population_Properties_History_Count_Get =>  Stellar_Population_Properties_History_Count_Instantaneous    
+       Stellar_Population_Properties_Rates_Get         => Stellar_Population_Properties_Rates_Instantaneous    
+       Stellar_Population_Properties_Scales_Get        => Stellar_Population_Properties_Scales_Instantaneous    
+       Stellar_Population_Properties_History_Count_Get => Stellar_Population_Properties_History_Count_Instantaneous    
        Stellar_Population_Properties_History_Create_Do => Stellar_Population_Properties_History_Create_Instantaneous
 
        ! Get index of abundance pattern to use.
@@ -161,13 +163,29 @@ contains
     return
   end subroutine Stellar_Population_Properties_Rates_Instantaneous
 
+  subroutine Stellar_Population_Properties_Scales_Instantaneous(thisHistory,stellarMass,stellarAbundances)
+    !% Set the scalings for error control on the absolute values of stellar population properties. The instantaneous method
+    !% requires none, so just return.
+    use Histories
+    use Abundances_Structure
+    implicit none
+    double precision,          intent(in)    :: stellarMass
+    type(abundancesStructure), intent(in)    :: stellarAbundances
+    type(history),             intent(inout) :: thisHistory
+
+    ! No history is used in this case, so simply return.
+
+    return
+  end subroutine Stellar_Population_Properties_Scales_Instantaneous
+
   subroutine Stellar_Population_Properties_History_Create_Instantaneous(thisNode,thisHistory)
-    !% Create any history required for storing stellar population properties. The instantaneous method requires none, so just return.
+    !% Create any history required for storing stellar population properties. The instantaneous method requires none, so just
+    !% return.
     use Tree_Nodes
     use Histories
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
-    type(history),  intent(inout) :: thisHistory
+    type(history),  intent(inout)          :: thisHistory
   
     return
   end subroutine Stellar_Population_Properties_History_Create_Instantaneous
