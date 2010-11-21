@@ -3,16 +3,16 @@ t
 
 \section{Required Libraries and Tools}
 
-We run \glc\ on \href{http://fedoraproject.org/}{Fedora} Linux primarily. Installation instructions below are general, but we give some examples that are specific to Fedora (they probably work on other \href{http://yum.baseurl.org/}{{\tt yum}}-based Linux distributions though). For other distributions/OSs you'll need to figure out how to install pre-built packages or else install from source.
+We run \glc\ on \href{http://fedoraproject.org/}{Fedora} Linux primarily. Installation instructions below are general, but we give some examples that are specific to Fedora (they probably work on other \href{http://yum.baseurl.org/}{{\tt yum}}-based Linux distributions though). For other distributions/OSs you'll need to figure out how to install pre-built packages or else install from source. Items marked with a ``$\star$'' are required to compile and run \glc. Others are only needed for some of the analysis and post-processing scripts so can be ignored it you don't want to use those.
 
 \begin{description}
- \item [Perl] The Perl language is a part of every Linux distribution that we know of, so use whatever method your distribution prefers to install it if you don't already have it. On Fedora the following (as root) will install Perl:
+ \item [Perl] $\star$ The Perl language is a part of every Linux distribution that we know of, so use whatever method your distribution prefers to install it if you don't already have it. On Fedora the following (as root) will install Perl:
 \begin{verbatim}
 yum install perl perl-CPAN
 \end{verbatim}
  If you need to install from source visit \href{http://www.perl.org/}{\tt http://www.perl.org/} and follow the instructions given there. We currently use Perl v5.10.0. \glc\ requires some Perl modules which probably are not installed by default. We recommend that you install these via \href{http://www.cpan.org/}{CPAN} (which probably is installed by default). The following modules should be installed.
  \begin{description}
-  \item [\href{http://search.cpan.org/~kstephens/Data-Match-0.06/lib/Sort/Topological.pm}{{\tt Sort::Topological }}] This module implements dependency based sort and is used by the \glc\ build system to ensure that tasks are performed in the correct order. It can be installed using
+  \item [\href{http://search.cpan.org/~kstephens/Data-Match-0.06/lib/Sort/Topological.pm}{{\tt Sort::Topological }}] $\star$ This module implements dependency based sort and is used by the \glc\ build system to ensure that tasks are performed in the correct order. It can be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install Sort::Topological'
 \end{verbatim}
@@ -112,7 +112,7 @@ perl -MCPAN -e 'install PDL::MatrixOps'
 \begin{verbatim}
 perl -MCPAN -e 'install PDL::LinearAlgebra'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
+  \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] $\star$ Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
 \begin{verbatim}
 yum install perl-XML-Simple
 \end{verbatim}
@@ -155,27 +155,27 @@ Alternatively, GraphViz can be installed from source, following the online instr
 perl -MCPAN -e 'install GraphViz'
 \end{verbatim}
 
- \item [GNU Scientific Library] The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.13 or v1.14 of GSL---other versions may or may not work. On Fedora the following (as root) will install GSL:
+ \item [GNU Scientific Library] The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} $\star$ (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.13 or v1.14 of GSL---other versions may or may not work. On Fedora the following (as root) will install GSL:
 \begin{verbatim}
 yum install gsl gsl-devel
 \end{verbatim}
 Alternatively, GSL can be downloaded and installed from source as described online.
 
- \item [GNU Make] \glc\ uses \href{http://www.gnu.org/software/make/}{GNU Make} to build executables. Other implementations of {\tt make} may work, but we make no guarantees. On Fedora the following (as root) will install GNU Make:
+ \item [GNU Make] \glc\ uses \href{http://www.gnu.org/software/make/}{GNU Make} $\star$ to build executables. Other implementations of {\tt make} may work, but we make no guarantees. On Fedora the following (as root) will install GNU Make:
 \begin{verbatim}
 yum install make
 \end{verbatim}
 Alternatively, GNU Make can be downloaded and installed from source as described online.
 
- \item [GFortran] \glc\ is written in Fortran using various aspects of the Fortran 2003 specification. We use \href{http://gcc.gnu.org/fortran/}{GNU Fortran} to compile \glc. You can use other Fortran compilers, but we make no claims as to whether they will support all required features of the Fortran language, or that they will produce correctly working code. On Fedora the following (as root) will install GNU Fortran:
+ \item [GFortran] $\star$ \glc\ is written in Fortran using various aspects of the Fortran 2003 specification. We use \href{http://gcc.gnu.org/fortran/}{GNU Fortran} to compile \glc. You can use other Fortran compilers, but we make no claims as to whether they will support all required features of the Fortran language, or that they will produce correctly working code. On Fedora the following (as root) will install GNU Fortran:
 \begin{verbatim}
 yum install gcc-gfortran
 \end{verbatim}
 Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.4 or higher of {\tt gcc-gfortran}. On some systems (e.g. RHEL5) this is available in package {\tt gcc44-gfortran}.
 
- \item [FoX] \href{http://uszla.me.uk/space/software/FoX/}{FoX} is an XML parser for Fortran. The source can be downloaded from the link above\footnote{Alternatively, the source can be downloaded from \href{http://www.ctcp.caltech.edu/galacticus/tools/FoX-4.0.4-full.tar.gz}{\tt http://www.ctcp.caltech.edu/galacticus/tools/FoX-4.0.4-full.tar.gz}, since the FoX website is frequently down.}. We recommend following the instructions provided with the download for install. We use FoX v4.0.4.
+ \item [FoX] $\star$ \href{http://uszla.me.uk/space/software/FoX/}{FoX} is an XML parser for Fortran. The source can be downloaded from the link above\footnote{Alternatively, the source can be downloaded from \href{http://www.ctcp.caltech.edu/galacticus/tools/FoX-4.0.4-full.tar.gz}{\tt http://www.ctcp.caltech.edu/galacticus/tools/FoX-4.0.4-full.tar.gz}, since the FoX website is frequently down.}. We recommend following the instructions provided with the download for install. We use FoX v4.0.4.
 
- \item [HDF5] The \href{http://hdf4.org/HDF5/}{HDF5} specification is used for storing output data from \glc. We currently use HDF5 v1.8.3. On Fedora the following (as root) will install the HDF5 libraries:
+ \item [HDF5] $\star$ The \href{http://hdf4.org/HDF5/}{HDF5} specification is used for storing output data from \glc. We currently use HDF5 v1.8.3. On Fedora the following (as root) will install the HDF5 libraries:
 \begin{verbatim}
 yum install hdf5 hdf5-devel
 \end{verbatim}
@@ -189,7 +189,7 @@ Alternatively, HDF5 can be downloaded and installed from source. If this is done
  make install
 \end{verbatim}
 
- \item [FGSL] \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL} is a Fortran interface to the GNU Scientific Library and is used extensively by \glc. It can be downloaded from the link above. We use FGSL v0.9.2\footnote{Note that if you use v1.14 of the GNU Scientific Library you should used FGSL v0.9.3 instead.} and recommend the following build sequence. 
+ \item [FGSL] $\star$ \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL} is a Fortran interface to the GNU Scientific Library and is used extensively by \glc. It can be downloaded from the link above. We use FGSL v0.9.2\footnote{Note that if you use v1.14 of the GNU Scientific Library you should used FGSL v0.9.3 instead.} and recommend the following build sequence. 
 \begin{verbatim}
  ./configure --f90 gfortran
  make
