@@ -52,8 +52,8 @@ foreach $outputGroupName ( @outputGroups ) {
 print "-> Modifying parameter attributes of base file\n";
 $group = $outputFile->group("Parameters");
 $group->attrSet(
-		"treeEvolveWorkerNumber" => 1,
-		"treeEvolveWorkerCount" => 1
+		"treeEvolveWorkerNumber" => pdl 1,
+		"treeEvolveWorkerCount" => pdl 1
 		);
 
 # Combine the datasets in the nodeData group.
