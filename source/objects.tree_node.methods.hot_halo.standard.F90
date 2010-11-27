@@ -74,7 +74,9 @@ module Tree_Node_Methods_Hot_Halo
        & Hot_Halo_Scale_Set
   
   ! Internal count of abundances.
-  integer :: abundancesCount
+  integer                                     :: abundancesCount
+  double precision, allocatable, dimension(:) :: abundancesWork,abundancesParent,abundancesCoolingRate,abundancesReturnRate,abundancesHost
+  !$omp threadprivate(abundancesWork,abundancesParent,abundancesCoolingRate,abundancesReturnRate,abundancesHost)
 
   ! Property indices.
   integer, parameter :: propertyCountBase=5, dataCount=0, historyCount=0
@@ -162,6 +164,7 @@ contains
     use String_Handling
     use Galacticus_Display
     use Abundances_Structure
+    use Memory_Management
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
@@ -183,6 +186,14 @@ contains
 
        ! Get number of abundance properties.
        abundancesCount=Abundances_Property_Count()
+
+       ! Allocate work arrays for abundances.
+       !$omp parallel
+       call Alloc_Array(abundancesWork       ,[abundancesCount])
+       call Alloc_Array(abundancesParent     ,[abundancesCount])
+       call Alloc_Array(abundancesCoolingRate,[abundancesCount])
+       call Alloc_Array(abundancesReturnRate ,[abundancesCount])
+       !$omp end parallel
 
        ! Assign indices to properties.
        hotAbundancesIndex         =propertyCountBase                       +1
@@ -286,7 +297,6 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: parentNode
-    double precision, dimension(abundancesCount) :: abundances,abundancesParent
 
     if (thisNode%isSatellite().and.starveSatellites) then
        ! Transfer any outflowed gas to the hot halo of the parent node.
@@ -301,10 +311,10 @@ contains
             &,Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode)+Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode))
        call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,0.0d0)
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(parentNode,abundancesParent)
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode  ,abundances      )
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(parentNode,abundances+abundancesParent)
-       abundances(:)=0.0d0
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundances)
+       call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode  ,abundancesWork  )
+       call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(parentNode,abundancesWork+abundancesParent)
+       abundancesWork(:)=0.0d0
+       call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundancesWork)
     end if
     return
   end subroutine Tree_Node_Hot_Halo_Post_Evolve_Standard
@@ -421,13 +431,12 @@ contains
     use Cooling_Radii
     use Dark_Matter_Profiles
     implicit none
-    type(treeNode),   pointer, intent(inout)     :: thisNode
-    logical,                   intent(inout)     :: interrupt
-    procedure(),      pointer, intent(inout)     :: interruptProcedure
-    double precision,          intent(in)        :: massRate
-    procedure(),      pointer                    :: interruptProcedurePassed
-    double precision, dimension(abundancesCount) :: abundances,abundancesCoolingRate
-    double precision                             :: angularMomentumCoolingRate
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    double precision,          intent(in)    :: massRate
+    procedure(),      pointer                :: interruptProcedurePassed
+    double precision                         :: angularMomentumCoolingRate
 
     ! Ignore zero rates.
     if (massRate /= 0.0d0) then
@@ -457,8 +466,8 @@ contains
             & Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To(thisNode,interrupt,interruptProcedurePassed,angularMomentumCoolingRate)
        
        ! Get the rate of change of abundances.
-       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundances)
-       abundancesCoolingRate=massRate*abundances/Tree_Node_Hot_Halo_Mass(thisNode)
+       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundancesWork)
+       abundancesCoolingRate=massRate*abundancesWork/Tree_Node_Hot_Halo_Mass(thisNode)
        call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,-abundancesCoolingRate)
        ! Pipe the cooling rate to which ever component claimed it.
        if (associated(Tree_Node_Hot_Halo_Cooling_Abundances_To)) call Tree_Node_Hot_Halo_Cooling_Abundances_To(thisNode,interrupt&
@@ -863,16 +872,15 @@ contains
     !% Compute the hot halo node mass rate of change.
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   pointer, intent(inout)     :: thisNode
-    logical,                   intent(inout)     :: interrupt
-    procedure(), pointer, intent(inout)     :: interruptProcedure
-    procedure(),      pointer                    :: interruptProcedurePassed
-    double precision, dimension(abundancesCount) :: abundances,abundancesReturnRate    
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(),      pointer                :: interruptProcedurePassed
 
     ! If a hot halo exists, compute rate of return of outflowed gas angular momentum to the hot gas reservoir.
     if (thisNode%componentExists(componentIndex).and.(.not.starveSatellites.or..not.thisNode%isSatellite())) then
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode,abundances)
-       abundancesReturnRate=hotHaloOutflowReturnRate*abundances/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+       call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode,abundancesWork)
+       abundancesReturnRate=hotHaloOutflowReturnRate*abundancesWork/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure, &
             &-abundancesReturnRate)
        call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,abundancesReturnRate)
@@ -940,9 +948,8 @@ contains
   subroutine Hot_Halo_Starve(thisNode)
     !% Starve {\tt thisNode} by transferring its hot halo to its parent.
     implicit none
-    type(treeNode),   pointer, intent(inout)     :: thisNode
-    type(treeNode),   pointer                    :: parentNode
-    double precision, dimension(abundancesCount) :: abundances,abundancesParent
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),   pointer                :: parentNode
 
     ! Determine if method is active and a hot halo component exists.
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
@@ -973,17 +980,17 @@ contains
           call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard (thisNode,0.0d0)
           call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard   (thisNode,0.0d0)
           call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,0.0d0)
-          call Tree_Node_Hot_Halo_Abundances_Standard(thisNode  ,abundances      )
+          call Tree_Node_Hot_Halo_Abundances_Standard(thisNode  ,abundancesWork  )
           call Tree_Node_Hot_Halo_Abundances_Standard(parentNode,abundancesParent)
-          abundancesParent=abundancesParent+abundances
-          abundances      =0.0d0
-          call Tree_Node_Hot_Halo_Abundances_Set_Standard(thisNode  ,abundances      )
+          abundancesParent=abundancesParent+abundancesWork
+          abundancesWork  =0.0d0
+          call Tree_Node_Hot_Halo_Abundances_Set_Standard(thisNode  ,abundancesWork  )
           call Tree_Node_Hot_Halo_Abundances_Set_Standard(parentNode,abundancesParent)
-          call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode  ,abundances      )
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode  ,abundancesWork      )
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(parentNode,abundancesParent)
-          abundancesParent=abundancesParent+abundances
-          abundances      =0.0d0
-          call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode  ,abundances      )
+          abundancesParent=abundancesParent+abundancesWork
+          abundancesWork  =0.0d0
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode  ,abundancesWork  )
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(parentNode,abundancesParent)
        end if
     end if
@@ -996,9 +1003,8 @@ contains
   subroutine Hot_Halo_Remove_Before_Satellite_Merging(thisNode)
     !% Remove any hot halo associated with {\tt thisNode} before it merges with its host halo.
     implicit none
-    type(treeNode),   pointer, intent(inout)     :: thisNode
-    type(treeNode),   pointer                    :: hostNode
-    double precision, dimension(abundancesCount) :: abundances,abundancesHost
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),   pointer                :: hostNode
 
     ! Determine if starvation is to be applied.
     if (methodSelected.and..not.starveSatellites.and.thisNode%componentExists(componentIndex)) then
@@ -1020,17 +1026,17 @@ contains
        call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(thisNode,0.0d0)
        call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,0.0d0)
        call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,0.0d0)
-       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundances    )
+       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundancesWork)
        call Tree_Node_Hot_Halo_Abundances_Standard(hostNode,abundancesHost)
-       abundancesHost=abundancesHost+abundances
-       abundances    =0.0d0
-       call Tree_Node_Hot_Halo_Abundances_Set_Standard(thisNode,abundances    )
+       abundancesHost=abundancesHost+abundancesWork
+       abundancesWork=0.0d0
+       call Tree_Node_Hot_Halo_Abundances_Set_Standard(thisNode,abundancesWork)
        call Tree_Node_Hot_Halo_Abundances_Set_Standard(hostNode,abundancesHost)
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode,abundances    )
+       call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode,abundancesWork)
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(hostNode,abundancesHost)
-       abundancesHost=abundancesHost+abundances
-       abundances    =0.0d0
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundances    )
+       abundancesHost=abundancesHost+abundancesWork
+       abundancesWork=0.0d0
+       call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundancesWork)
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(hostNode,abundancesHost)
     end if
     return
@@ -1044,10 +1050,9 @@ contains
     !% thisNode} to account for any hot halo already in the parent.
     use Galacticus_Error
     implicit none
-    type(treeNode),   pointer, intent(inout)     :: thisNode
-    type(treeNode),   pointer                    :: parentNode
-    double precision, dimension(abundancesCount) :: abundances,abundancesParent
-    double precision                             :: hotHaloMass,angularMomentum
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),   pointer                :: parentNode
+    double precision                         :: hotHaloMass,angularMomentum
 
     if (methodSelected) then
        parentNode => thisNode%parentNode
@@ -1061,14 +1066,14 @@ contains
           angularMomentum=Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode)&
                &+Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode)
           call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,angularMomentum)
-          call Tree_Node_Hot_Halo_Abundances_Standard(thisNode  ,abundances      )
+          call Tree_Node_Hot_Halo_Abundances_Standard(thisNode  ,abundancesWork  )
           call Tree_Node_Hot_Halo_Abundances_Standard(parentNode,abundancesParent)
-          abundances=abundancesParent+abundances
-          call Tree_Node_Hot_Halo_Abundances_Set_Standard(thisNode,abundances)
-          call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode  ,abundances      )
+          abundancesWork=abundancesParent+abundancesWork
+          call Tree_Node_Hot_Halo_Abundances_Set_Standard(thisNode,abundancesWork)
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode  ,abundancesWork  )
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(parentNode,abundancesParent)
-          abundances=abundancesParent+abundances
-          call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundances)
+          abundancesWork=abundancesParent+abundancesWork
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundancesWork)
        end if
     end if
     return
