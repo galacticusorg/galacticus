@@ -78,11 +78,15 @@ module Tree_Node_Methods_Hernquist_Spheroid
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
 
-  ! Internal count of abundances.
-  integer :: abundancesCount
+  ! Internal count of abundances and work arrays.
+  integer                                     :: abundancesCount
+  double precision, allocatable, dimension(:) :: abundancesOutflowRate,abundancesValue,abundancesDisk,abundancesSpheroid
+  !$omp threadprivate(abundancesOutflowRate,abundancesValue,abundancesDisk,abundancesSpheroid)
 
-  ! Internal count of luminosities.
-  integer :: luminositiesCount
+  ! Internal count of luminosities and work arrays.
+  integer                                     :: luminositiesCount
+  double precision, allocatable, dimension(:) :: stellarLuminositiesRates,luminositiesDisk,luminositiesSpheroid
+  !$omp threadprivate(stellarLuminositiesRates,luminositiesDisk,luminositiesSpheroid)
 
   ! Property indices.
   integer, parameter :: propertyCountBase=3, dataCountBase=2, historyCount=1
@@ -164,6 +168,7 @@ contains
     use Galacticus_Error
     use Stellar_Population_Properties_Luminosities
     use Abundances_Structure
+    use Memory_Management
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
@@ -188,6 +193,21 @@ contains
 
        ! Get number of luminosity properties.
        luminositiesCount=Stellar_Population_Luminosities_Count()
+
+       ! Allocate work arrays for abundances.
+       !$omp parallel
+       call Alloc_Array(abundancesOutflowRate,[abundancesCount])
+       call Alloc_Array(abundancesValue      ,[abundancesCount])
+       call Alloc_Array(abundancesDisk       ,[abundancesCount])
+       call Alloc_Array(abundancesSpheroid   ,[abundancesCount])
+       !$omp end parallel
+
+       ! Allocate work arrays for luminosities.
+       !$omp parallel
+       call Alloc_Array(stellarLuminositiesRates,[luminositiesCount])
+       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
+       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
+       !$omp end parallel
 
        ! Determine number of properties needed, including those for stars etc.
        propertyCount=propertyCountBase+2*abundancesCount+luminositiesCount
@@ -537,15 +557,13 @@ contains
     use Abundances_Structure
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),            pointer, intent(inout)       :: thisNode
-    logical,                            intent(inout)       :: interrupt
-    procedure(), pointer, intent(inout)       :: interruptProcedure
-    double precision,          dimension(luminositiesCount) :: stellarLuminositiesRates
-    double precision,          dimension(abundancesCount)   :: abundanceMasses,abundancesOutflowRate
-    integer                                                 :: thisIndex
-    double precision                                        :: starFormationRate,stellarMassRate ,fuelMassRate,fuelMass&
+    type(treeNode),            pointer, intent(inout) :: thisNode
+    logical,                            intent(inout) :: interrupt
+    procedure(),               pointer, intent(inout) :: interruptProcedure
+    integer                                           :: thisIndex
+    double precision                                  :: starFormationRate,stellarMassRate ,fuelMassRate,fuelMass&
          &,massOutflowRate,spheroidMass,angularMomentumOutflowRate,energyInputRate,gasMass,spheroidDynamicalTime
-    type(abundancesStructure), save                         :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
+    type(abundancesStructure), save                   :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
 
     ! Compute star formation rate if this node has a spheroid.
@@ -564,8 +582,8 @@ contains
        fuelMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
        
        ! Find the metallicity of the fuel supply.
-       call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
-       call fuelAbundances%pack(abundanceMasses)
+       call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundancesValue)
+       call fuelAbundances%pack(abundancesValue)
        call fuelAbundances%massToMassFraction(fuelMass)
 
        ! Get the component index.
@@ -579,10 +597,10 @@ contains
        ! Adjust rates.
        call Tree_Node_Spheroid_Stellar_Mass_Rate_Adjust_Hernquist        (thisNode,interrupt,interruptProcedure,stellarMassRate         )
        call Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist            (thisNode,interrupt,interruptProcedure,fuelMassRate            )
-       call stellarAbundancesRates%unpack(abundanceMasses)
-       call Tree_Node_Spheroid_Stellar_Abundances_Rate_Adjust_Hernquist  (thisNode,interrupt,interruptProcedure,abundanceMasses         )
-       call fuelAbundancesRates%unpack(abundanceMasses)
-       call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist      (thisNode,interrupt,interruptProcedure,abundanceMasses         )
+       call stellarAbundancesRates%unpack(abundancesValue)
+       call Tree_Node_Spheroid_Stellar_Abundances_Rate_Adjust_Hernquist  (thisNode,interrupt,interruptProcedure,abundancesValue         )
+       call fuelAbundancesRates%unpack(abundancesValue)
+       call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist      (thisNode,interrupt,interruptProcedure,abundancesValue         )
        call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,stellarLuminositiesRates)
        
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
@@ -611,9 +629,9 @@ contains
           end if
           
           ! Compute the abundances outflow rate.
-          call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundanceMasses)
-          call Abundances_Mass_To_Mass_Fraction(abundanceMasses,gasMass)
-          abundancesOutflowRate=massOutflowRate*abundanceMasses
+          call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundancesValue)
+          call Abundances_Mass_To_Mass_Fraction(abundancesValue,gasMass)
+          abundancesOutflowRate=massOutflowRate*abundancesValue
           call Tree_Node_Hot_Halo_Outflow_Abundances_To                 (thisNode,interrupt,interruptProcedure,&
                & abundancesOutflowRate)
           call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist  (thisNode,interrupt,interruptProcedure,&
@@ -918,17 +936,15 @@ contains
     !% zero and we'd like to prevent them from becoming negative.
     use Abundances_Structure
     implicit none
-    type(treeNode),            pointer, intent(inout)       :: thisNode
-    double precision,          parameter                    :: massMinimum           =1.0d0
-    double precision,          parameter                    :: angularMomentumMinimum=0.1d0
-    double precision,          parameter                    :: luminosityMinimum     =1.0d0
-    double precision,          parameter                    :: gasMassScaling        =0.1d0
-    double precision,          dimension(abundancesCount)   :: abundancesDisk,abundancesSpheroid
-    double precision,          dimension(luminositiesCount) :: luminositiesDisk,luminositiesSpheroid
-    type(abundancesStructure), save                         :: stellarAbundances
+    type(treeNode),            pointer, intent(inout) :: thisNode
+    double precision,          parameter              :: massMinimum           =1.0d0
+    double precision,          parameter              :: angularMomentumMinimum=0.1d0
+    double precision,          parameter              :: luminosityMinimum     =1.0d0
+    double precision,          parameter              :: gasMassScaling        =0.1d0
+    type(abundancesStructure), save                   :: stellarAbundances
     !$omp threadprivate(stellarAbundances)
-    integer                                                 :: thisIndex
-    double precision                                        :: mass,angularMomentum
+    integer                                           :: thisIndex
+    double precision                                  :: mass,angularMomentum
 
     ! Determine if method is active and a spheroid component exists.
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
