@@ -271,10 +271,11 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
-    double precision                         :: radiusOverScaleRadius,virialRadiusOverScaleRadius
+    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius
 
-    radiusOverScaleRadius      =radius                                  /Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    radiusOverScaleRadius      =radius                                  /scaleRadius
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
     Dark_Matter_Profile_Enclosed_Mass_NFW=Enclosed_Mass_NFW_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
          &*Tree_Node_Mass(thisNode)
     return
@@ -490,10 +491,14 @@ contains
     double precision, parameter  :: minimumRadiusForExactSolution=1.0d-7
     ! Precomputed NFW normalization factor for unit concentration.
     double precision, parameter  :: nfwNormalizationFactorUnitConcentration=1.0d0/(dlog(2.0d0)-0.5d0)
+    ! Precomputed NFW normalization factor for unit radius.
+    double precision, parameter  :: nfwNormalizationFactorUnitRadius       =dlog(2.0d0)-0.5d0
     double precision, save       :: concentrationPrevious=-1.0d0,nfwNormalizationFactorPrevious
     !$omp threadprivate(concentrationPrevious,nfwNormalizationFactorPrevious)
 
-    if (radius >= minimumRadiusForExactSolution) then
+    if (radius == 1.0d0) then
+       Enclosed_Mass_NFW_Scale_Free=nfwNormalizationFactorUnitRadius
+    else if (radius >= minimumRadiusForExactSolution) then
        Enclosed_Mass_NFW_Scale_Free=(dlog(1.0d0+radius)-radius/(1.0d0+radius))
     else
        Enclosed_Mass_NFW_Scale_Free=(radius**2)*(0.5d0+radius*(-2.0d0/3.0d0+radius*(0.75d0+radius*(-0.8d0))))
