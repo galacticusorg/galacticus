@@ -531,7 +531,8 @@ contains
           angularMomentumOutflowRate=massOutflowRate*Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)/diskMass
           if (gasMass > 0.0d0) then
              call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundancesValue)
-             abundancesOutflowRate=massOutflowRate*abundancesValue/gasMass
+             call Abundances_Mass_To_Mass_Fraction(abundancesValue,gasMass)
+             abundancesOutflowRate=massOutflowRate*abundancesValue
           else
              abundancesOutflowRate=0.0d0
           end if
