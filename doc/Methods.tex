@@ -3399,7 +3399,7 @@ Additional outputs for merger trees can be added using three directives: {\tt me
 \end{verbatim}
 The {\tt mergerTreeOutputPropertyCount} subroutine must simply increment {\tt integerPropertyCount} and {\tt doublePropertyCount} by the number of integer and double precision properties that will be output respectively. The {\tt mergerTreeOutputNames} subroutine must store the dataset names, comments and units in the SI system\footnote{For dimensionless quantities, the units may be set to zero. In such cases, the {\tt unitsInSI} attribute for the dataset will not be written to the \protect\glc\ output file.} for each integer and double precision property in the supplied arrays. The value of {\tt integerProperty} and {\tt doubleProperty} should be incremented by 1 before each property name/comment is set---these then supply the position within the input arrays in which to store the name. The {\tt mergerTreeOutputTask} subroutine must similarly place the desired property values for {\tt thisNode} into the supplied arrays. The value of {\tt integerProperty} and {\tt doubleProperty} should be incremented by 1 before each property value is set. The value can then be stored in, for example, {\tt integerBuffer(integerBufferCount,integerProperty)}.
 
-\subsubsection{Merger Tree Pre-Evolution Tasks}
+\subsubsection{Merger Tree Pre-Evolution Tasks}\label{sec:MergerTreePreEvolveTask}
 
 Additional tasks to be performed on merger trees prior to their evolution can be added using the {\tt mergerTreePreEvolveTaskerger} directive. For example, the mass accretion history task uses this directive as follows:
 \begin{verbatim}

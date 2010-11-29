@@ -514,6 +514,17 @@ Selected with {\tt mergerTreeBuildMethod}$=${\tt Cole2000}, this method uses the
 
 Selected with {\tt mergerTreeConstructMethod}$=${\tt smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the fitting formula of \cite{wechsler_concentrations_2002}. The tree has a final mass of {\tt mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\tt mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\tt mergerTreeHaloMassDeclineFactor} at each new node until a specified {\tt mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached. The fitting formula of \cite{wechsler_concentrations_2002} has one free parameter, the formation redshift. If {\tt mergerTreeFormationRedshiftCompute} is set to true, then this formation redshift is computed automatically using the method of \cite{bullock_profiles_2001}, otherwise it is read from {\tt mergerTreeFormationRedshift}.
 
+\section{Merger Tree Pre-evolution Processing}
+
+Arbitrary processing of merger trees prior to their evolution can be carried out using the {\tt mergerTreePreEvolveTask} directive (see \S\ref{sec:MergerTreePreEvolveTask}). Currently defined tasks are defined below.
+
+\subsection{Mass Accretion History Output}\index{merger tree!mass accretion history}
+
+Output of the mass accretion history (i.e. the mass of the node on the primary branch as a function of time) for each merger tree can be requested by setting {\tt [massAccretionHistoryOutput]}$=${\tt true}. If requested, an additional group, {\tt massAccretionHistories}, is made in the \glc\ output file. This group will contain a subgroup for each merger tree ({\tt mergerTreeN} where {\tt N} is the merger tree index) within which three datasets, {\tt nodeIndex}, {\tt nodeTime} and {\tt nodeMass}, can be found. These give the index, time and mass of the node on the primary branch of the tree at all times for which the tree is defined.
+
+\subsection{Tree Pruning}\index{merger tree!pruning}
+
+This task allows for branches of merger trees to be pruned---i.e. nodes below a specified mass limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. To prune branches set {\tt [mergerTreePruneBranches]}$=${\tt true} and set {\tt [mergerTreePruningMassThreshold]} to the desired mass threshold below which nodes will be pruned.
 
 \section{Star Formation Timescales}\index{star formation!timescale}
 
