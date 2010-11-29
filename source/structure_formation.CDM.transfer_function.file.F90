@@ -74,8 +74,7 @@ module Transfer_Function_File
   type(varying_string) :: transferFunctionFile
 
   ! Extrapolation methods.
-  integer, parameter :: extrapolateZero=0, extrapolateFixed=1, extrapolatePowerLaw=2
-  integer            :: extrapolateWavenumberLow,extrapolateWavenumberHigh
+  integer              :: extrapolateWavenumberLow,extrapolateWavenumberHigh
 
   ! Number of points per decade to add per decade when extrapolating and the buffer in log wavenumber to use.
   integer,         parameter :: extrapolatePointsPerDecade=10
@@ -137,18 +136,19 @@ contains
     use Cosmological_Parameters
     use Numerical_Constants_Math
     use Numerical_Ranges
+    use IO_XML
     implicit none
     double precision,                            intent(in)    :: logWavenumber
     double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
     integer,                                     intent(out)   :: transferFunctionNumberPoints
     type(Node),       pointer                                  :: doc,datum,thisParameter,nameElement,valueElement&
-         &,extrapolationElement ,extrapolation,limitElement,methodElement
+         &,extrapolationElement,extrapolation
     type(NodeList),   pointer                                  :: datumList,parameterList,wavenumberExtrapolationList
     double precision, allocatable, dimension(:)                :: wavenumberTemporary,transferFunctionTemporary
     integer                                                    :: iDatum,ioErr,iParameter,addCount,iExtrapolation&
          &,extrapolationMethod
     double precision                                           :: datumValues(2),parameterValue
-    character(len=32)                                          :: limitType,methodType
+    character(len=32)                                          :: limitType
 
     ! Read the file if this module has not been initialized.
     if (.not.transferFunctionInitialized) then
@@ -186,20 +186,7 @@ contains
        wavenumberExtrapolationList =>      getElementsByTagname(extrapolationElement,"wavenumber"   )
        do iExtrapolation=0,getLength(wavenumberExtrapolationList)-1
           extrapolation => item(wavenumberExtrapolationList,iExtrapolation)
-          limitElement  => item(getElementsByTagname(extrapolation,"limit"),0)
-          call extractDataContent(limitElement,limitType)
-          methodElement  => item(getElementsByTagname(extrapolation,"method"),0)
-          call extractDataContent(methodElement,methodType)
-          select case (trim(methodType))
-          case ('zero')
-             call Galacticus_Error_Report('Transfer_Function_File_Read','zero extrapolation method is not allowed')
-          case ('fixed')
-             extrapolationMethod=extrapolateFixed
-          case ('power law')
-             extrapolationMethod=extrapolatePowerLaw
-          case default
-             call Galacticus_Error_Report('Transfer_Function_File_Read','unrecognized extrapolation method')
-          end select
+          call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolateFixed,extrapolatePowerLaw])
           select case (trim(limitType))
           case ('low')
              extrapolateWavenumberLow=extrapolationMethod
