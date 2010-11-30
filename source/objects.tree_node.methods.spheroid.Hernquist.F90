@@ -1710,7 +1710,7 @@ contains
     character(len=20)                        :: valueString
     type(varying_string)                     :: message
 
-    if (Tree_Node_Spheroid_Gas_Mass(thisNode) < 0.0d0) then
+    if (methodSelected .and. Tree_Node_Spheroid_Gas_Mass(thisNode) < 0.0d0) then
        ! Get the index of the spheroid component.
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
 
