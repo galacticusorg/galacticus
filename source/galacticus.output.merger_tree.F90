@@ -94,7 +94,7 @@ module Galacticus_Output_Merger_Tree
   integer                                                      :: integerPropertiesWritten=0, doublePropertiesWritten=0
   integer                                                      :: integerBufferCount      =0, doubleBufferCount      =0
   integer,                         parameter                   :: bufferSize=1024, nameLengthMax=256, commentLengthMax=256
-  integer,                         dimension(:,:), allocatable :: integerBuffer
+  integer(kind=kind_int8),         dimension(:,:), allocatable :: integerBuffer
   double precision,                dimension(:,:), allocatable :: doubleBuffer
   character(len=nameLengthMax),    dimension(:),   allocatable :: integerPropertyNames   ,doublePropertyNames
   character(len=commentLengthMax), dimension(:),   allocatable :: integerPropertyComments,doublePropertyComments

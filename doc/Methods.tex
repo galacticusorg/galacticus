@@ -3387,10 +3387,10 @@ Additional outputs for merger trees can be added using three directives: {\tt me
   subroutine Galacticus_Output_Tree_Example(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer)
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer,          intent(inout)          :: integerBuffer(:,:)
-    double precision, intent(inout)          :: doubleBuffer(:,:)
+    type(treeNode),          intent(inout), pointer :: thisNode
+    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
+    integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
+    double precision,        intent(inout)          :: doubleBuffer(:,:)
     .
     .
     .

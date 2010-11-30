@@ -314,12 +314,13 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store satellite orbit properties in the \glc\ output file buffers.
     use Tree_Nodes
+    use Kind_Numbers
     implicit none
-    double precision, intent(in)             :: time
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer,          intent(inout)          :: integerBuffer(:,:)
-    double precision, intent(inout)          :: doubleBuffer(:,:)
+    double precision,        intent(in)             :: time
+    type(treeNode),          intent(inout), pointer :: thisNode
+    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
+    integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
+    double precision,        intent(inout)          :: doubleBuffer(:,:)
 
     if (methodSelected) then
        doubleProperty=doubleProperty+1

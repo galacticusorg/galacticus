@@ -205,13 +205,14 @@ contains
     !% Store halo model properties in the \glc\ output file buffers.
     use Tree_Nodes
     use Dark_Matter_Halo_Biases
+    use Kind_Numbers
     implicit none
-    double precision, intent(in)             :: time
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer,          intent(inout)          :: integerBuffer(:,:)
-    double precision, intent(inout)          :: doubleBuffer(:,:)
-    type(treeNode),   pointer                :: isolatedNode
+    double precision,        intent(in)             :: time
+    type(treeNode),          intent(inout), pointer :: thisNode
+    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
+    integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
+    double precision,        intent(inout)          :: doubleBuffer(:,:)
+    type(treeNode),          pointer                :: isolatedNode
     
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
