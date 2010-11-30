@@ -70,7 +70,7 @@ module Merger_Tree_Timesteps_History
 
   ! Variable inidicating if module is initialized and active.
   logical          :: timestepHistoryInitialized=.false.
-  logical          :: timestepHistoryActive,diskActive,spheroidActive
+  logical          :: diskActive,spheroidActive
 
   ! Variables which control the distribution of timesteps.
   integer          :: timestepHistorySteps
@@ -110,76 +110,70 @@ contains
        ! Determine if we have active components that can provide star formation rates.
        diskActive           =associated(Tree_Node_Disk_SFR)
        spheroidActive       =associated(Tree_Node_Spheroid_SFR)
-       timestepHistoryActive=diskActive.or.spheroidActive
-       if (timestepHistoryActive) then
-          ! Get time at present day.
-          time=Cosmology_Age(aExpansion=0.999d0)
-          ! Get module parameters.
-          !@ <inputParameter>
-          !@   <name>timestepHistoryBegin</name>
-          !@   <defaultValue>5\% of the age of the Universe</defaultValue>       
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepHistoryBegin',timestepHistoryBegin,defaultValue=0.05d0*time)
-          !@ <inputParameter>
-          !@   <name>timestepHistoryEnd</name>
-          !@   <defaultValue>The age of the Universe</defaultValue>       
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepHistoryEnd'  ,timestepHistoryEnd  ,defaultValue=       time)
-          !@ <inputParameter>
-          !@   <name>timestepHistorySteps</name>
-          !@   <defaultValue>30</defaultValue>       
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
-          ! Allocate storage arrays.
-          call Alloc_Array(historyTime             ,[timestepHistorySteps])
-          call Alloc_Array(historyExpansion        ,[timestepHistorySteps])
-          call Alloc_Array(historyStarFormationRate,[timestepHistorySteps])
-          call Alloc_Array(historyStellarDensity   ,[timestepHistorySteps])
-          call Alloc_Array(historyGasDensity       ,[timestepHistorySteps])
-          call Alloc_Array(historyNodeDensity      ,[timestepHistorySteps])
-          ! Initialize arrays.
-          historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
-          do timeIndex=1,timestepHistorySteps
-             historyExpansion(timeIndex)=Expansion_Factor(historyTime(timeIndex))
-          end do
-          historyStarFormationRate=0.0d0
-          historyStellarDensity   =0.0d0
-          historyGasDensity       =0.0d0
-          historyNodeDensity      =0.0d0
-       end if
+       ! Get time at present day.
+       time=Cosmology_Age(aExpansion=0.999d0)
+       ! Get module parameters.
+       !@ <inputParameter>
+       !@   <name>timestepHistoryBegin</name>
+       !@   <defaultValue>5\% of the age of the Universe</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('timestepHistoryBegin',timestepHistoryBegin,defaultValue=0.05d0*time)
+       !@ <inputParameter>
+       !@   <name>timestepHistoryEnd</name>
+       !@   <defaultValue>The age of the Universe</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('timestepHistoryEnd'  ,timestepHistoryEnd  ,defaultValue=       time)
+       !@ <inputParameter>
+       !@   <name>timestepHistorySteps</name>
+       !@   <defaultValue>30</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
+       ! Allocate storage arrays.
+       call Alloc_Array(historyTime             ,[timestepHistorySteps])
+       call Alloc_Array(historyExpansion        ,[timestepHistorySteps])
+       call Alloc_Array(historyStarFormationRate,[timestepHistorySteps])
+       call Alloc_Array(historyStellarDensity   ,[timestepHistorySteps])
+       call Alloc_Array(historyGasDensity       ,[timestepHistorySteps])
+       call Alloc_Array(historyNodeDensity      ,[timestepHistorySteps])
+       ! Initialize arrays.
+       historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
+       do timeIndex=1,timestepHistorySteps
+          historyExpansion(timeIndex)=Expansion_Factor(historyTime(timeIndex))
+       end do
+       historyStarFormationRate=0.0d0
+       historyStellarDensity   =0.0d0
+       historyGasDensity       =0.0d0
+       historyNodeDensity      =0.0d0
        timestepHistoryInitialized=.true.
     end if
     !$omp end critical (timestepHistoryInitialize)
 
-    ! Adjust timestep if this module is active.
-    if (timestepHistoryActive) then
+    ! Adjust timestep.
+    ! Get current cosmic time.
+    time=Tree_Node_Time(thisNode)
+    
+    ! Determine how long until next available timestep.
+    timeIndex=Interpolate_Locate(timestepHistorySteps,historyTime,interpolationAccelerator,time)
+    if (time < historyTime(timeIndex+1)) then
+       ! Find next time for storage.
+       ourTimeStep=historyTime(timeIndex+1)-time
        
-       ! Get current cosmic time.
-       time=Tree_Node_Time(thisNode)
-       
-       ! Determine how long until next available timestep.
-       timeIndex=Interpolate_Locate(timestepHistorySteps,historyTime,interpolationAccelerator,time)
-       if (time < historyTime(timeIndex+1)) then
-          ! Find next time for storage.
-          ourTimeStep=historyTime(timeIndex+1)-time
-          
-          ! Set return value if our timestep is smaller than current one.
-          if (ourTimeStep <= timeStep) then
-             timeStep=ourTimeStep
-             End_Of_Timestep_Task => Merger_Tree_History_Store
-          end if
+       ! Set return value if our timestep is smaller than current one.
+       if (ourTimeStep <= timeStep) then
+          timeStep=ourTimeStep
+          End_Of_Timestep_Task => Merger_Tree_History_Store
        end if
     end if
     return
@@ -240,33 +234,31 @@ contains
     implicit none
     type(hdf5Object) :: historyGroup,historyDataset
 
-    if (timestepHistoryActive) then
-       historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,'globalHistory','Global (volume averaged) history for this model.')
-
-       call historyGroup%writeDataset(historyTime             ,"historyTime"             ,"Time [Gyr]"                          ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI")
-       call historyDataset%close()
-
-       call historyGroup%writeDataset(historyExpansion        ,"historyExpansion"        ,"Expansion factor []"                                                )
-
-       call historyGroup%writeDataset(historyStarFormationRate,"historyStarFormationRate","Star formation rate [Msun/Gyr/Mpc^3]",datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
-       call historyDataset%close()
-
-       call historyGroup%writeDataset(historyStellarDensity   ,"historyStellarDensity"   ,"Stellar mass density [Msun/Mpc^3]"   ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
-       call historyDataset%close()
-
-       call historyGroup%writeDataset(historyGasDensity       ,"historyGasDensity"       ,"Gas mass density [Msun/Mpc^3]"       ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
-       call historyDataset%close()
-
-       call historyGroup%writeDataset(historyNodeDensity      ,"historyNodeDensity"      ,"Node mass density [Msun/Mpc^3]"      ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
-       call historyDataset%close()
-
-       call historyGroup%close()
-    end if
+    historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,'globalHistory','Global (volume averaged) history for this model.')
+    
+    call historyGroup%writeDataset(historyTime             ,"historyTime"             ,"Time [Gyr]"                          ,datasetReturned=historyDataset)
+    call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI")
+    call historyDataset%close()
+    
+    call historyGroup%writeDataset(historyExpansion        ,"historyExpansion"        ,"Expansion factor []"                                                )
+    
+    call historyGroup%writeDataset(historyStarFormationRate,"historyStarFormationRate","Star formation rate [Msun/Gyr/Mpc^3]",datasetReturned=historyDataset)
+    call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
+    call historyDataset%close()
+    
+    call historyGroup%writeDataset(historyStellarDensity   ,"historyStellarDensity"   ,"Stellar mass density [Msun/Mpc^3]"   ,datasetReturned=historyDataset)
+    call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+    call historyDataset%close()
+    
+    call historyGroup%writeDataset(historyGasDensity       ,"historyGasDensity"       ,"Gas mass density [Msun/Mpc^3]"       ,datasetReturned=historyDataset)
+    call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+    call historyDataset%close()
+    
+    call historyGroup%writeDataset(historyNodeDensity      ,"historyNodeDensity"      ,"Node mass density [Msun/Mpc^3]"      ,datasetReturned=historyDataset)
+    call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+    call historyDataset%close()
+    
+    call historyGroup%close()
     return
   end subroutine Merger_Tree_History_Write
 
