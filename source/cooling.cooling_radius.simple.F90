@@ -79,8 +79,8 @@ module Cooling_Radii_Simple
   type(treeNode), pointer :: activeNode
   !$omp threadprivate(activeNode)
 
-  ! Internal record of the number of abundance properties.
-  integer :: abundancesCount
+  ! Internal record of the number of abundance and molecule properties.
+  integer :: abundancesCount,moleculesCount
 
   ! Record of unique ID of node which we last computed results for.
   integer(kind=kind_int8) :: lastUniqueID=-1
@@ -103,6 +103,7 @@ contains
     !% Initializes the ``simple'' cooling radius module.
     use ISO_Varying_String
     use Abundances_Structure
+    use Molecular_Abundances_Structure
     implicit none
     type(varying_string),          intent(in)    :: coolingRadiusMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
@@ -110,8 +111,9 @@ contains
     if (coolingRadiusMethod == 'simple') then
        Cooling_Radius_Get => Cooling_Radius_Simple
        Cooling_Radius_Growth_Rate_Get => Cooling_Radius_Growth_Rate_Simple
-       ! Get a count of the number of abundances properties.
+       ! Get a count of the number of abundances and molecules properties.
        abundancesCount=Abundances_Property_Count()
+       moleculesCount =Molecules_Property_Count ()
     end if
     return
   end subroutine Cooling_Radius_Simple_Initialize
@@ -139,17 +141,24 @@ contains
     use Hot_Halo_Density_Profile
     use Cooling_Times
     use Abundances_Structure
+    use Molecular_Abundances_Structure
     use Radiation_Structure
     use Cooling_Times_Available
+    use Numerical_Constants_Math
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),            intent(inout), pointer     :: thisNode
-    double precision,          dimension(abundancesCount) :: abundancesMassFraction
-    double precision                                      :: virialRadius,coolingRadius,coolingTimeAvailable &
+    type(treeNode),                     intent(inout), pointer     :: thisNode
+    double precision,                   dimension(abundancesCount) :: abundancesMassFraction
+    double precision,                   dimension(moleculesCount ) :: moleculesMasses
+    double precision                                               :: virialRadius,coolingRadius,coolingTimeAvailable &
          &,coolingTimeAvailableIncreaseRate,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope &
-         &,coolingTimeTemperatureLogSlope
-    type(abundancesStructure), save                       :: abundances
+         &,coolingTimeTemperatureLogSlope,massToDensityConversion
+    type(abundancesStructure),          save                       :: abundances
     !$omp threadprivate(abundances)
-    type(radiationStructure)                              :: radiation
+    type(radiationStructure)                                       :: radiation
+    type(molecularAbundancesStructure), save                       :: molecularMasses,molecularDensities
+    !$omp threadprivate(molecularMasses,molecularDensities)
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -192,12 +201,24 @@ contains
           call Tree_Node_Hot_Halo_Abundances(thisNode,abundancesMassFraction)
           call abundances%pack(abundancesMassFraction)
           call abundances%massToMassFraction(Tree_Node_Hot_Halo_Mass(thisNode))
+          
+          ! Get the molecules for this node.
+          if (moleculesCount > 0) then
+             call Tree_Node_Hot_Halo_Molecules(thisNode,moleculesMasses)
+             call molecularMasses%pack(moleculesMasses)
+             ! Scale all molecular masses by their mass in atomic mass units to get a number density.
+             call molecularMasses%massToNumber(molecularDensities)
+             ! Compute factor converting mass of molecules in (M_Solar/M_Atomic) to number density in cm^-3.
+             massToDensityConversion=3.0d0*massSolar/atomicMassUnit/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(thisNode))**3
+             ! Convert to number density.
+             call molecularDensities%multiply(massToDensityConversion)
+          end if
 
           ! Logarithmic slope of the cooling time-density relation.
-          coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,abundances,radiation)
+          coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,abundances,molecularDensities,radiation)
           
           ! Logarithmic slope of the cooling time-temperature relation.
-          coolingTimeTemperatureLogSlope=Cooling_Time_Temperature_Log_Slope(temperature,density,abundances,radiation)
+          coolingTimeTemperatureLogSlope=Cooling_Time_Temperature_Log_Slope(temperature,density,abundances,molecularDensities,radiation)
           
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
@@ -278,15 +299,23 @@ contains
     use Radiation_Structure
     use Hot_Halo_Density_Profile
     use Hot_Halo_Temperature_Profile
+    use Molecular_Abundances_Structure
+    use Numerical_Constants_Math
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
+    use Dark_Matter_Halo_Scales
     implicit none
-    real(c_double)                                        :: Cooling_Radius_Root
-    real(c_double),            value                      :: radius
-    type(c_ptr),               value                      :: parameterPointer
-    double precision,          dimension(abundancesCount) :: abundancesMassFraction
-    double precision                                      :: coolingTime,density,temperature
-    type(abundancesStructure), save                       :: abundances
+    real(c_double)                                                 :: Cooling_Radius_Root
+    real(c_double),                     value                      :: radius
+    type(c_ptr),                        value                      :: parameterPointer
+    double precision,                   dimension(abundancesCount) :: abundancesMassFraction
+    double precision,                   dimension(moleculesCount ) :: moleculesMasses
+    double precision                                               :: coolingTime,density,temperature,massToDensityConversion
+    type(abundancesStructure),          save                       :: abundances
     !$omp threadprivate(abundances)
-    type(radiationStructure)                              :: radiation
+    type(radiationStructure)                                       :: radiation
+    type(molecularAbundancesStructure), save                       :: molecularMasses,molecularDensities
+    !$omp threadprivate(molecularMasses,molecularDensities)
 
     ! Compute density, temperature and abundances.
     density    =Hot_Halo_Density    (activeNode,radius)
@@ -296,10 +325,25 @@ contains
     call Tree_Node_Hot_Halo_Abundances(activeNode,abundancesMassFraction)
     call abundances%pack(abundancesMassFraction)
     call abundances%massToMassFraction(Tree_Node_Hot_Halo_Mass(activeNode))
+    
+    ! Get the molecules for this node.
+    if (moleculesCount > 0) then
+       call Tree_Node_Hot_Halo_Molecules(activeNode,moleculesMasses)
+       call molecularMasses%pack(moleculesMasses)
+       ! Scale all molecular masses by their mass in atomic mass units to get a number density.
+       call molecularMasses%massToNumber(molecularDensities)
+       ! Compute factor converting mass of molecules in (M_Solar/M_Atomic) to number density in cm^-3.
+       massToDensityConversion=3.0d0*massSolar/atomicMassUnit/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(activeNode))**3
+       ! Convert to number density.
+       call molecularDensities%multiply(massToDensityConversion)
+    end if
+
     ! Set the radiation field.
     call radiation%setCMB(Tree_Node_Time(activeNode))
+
     ! Compute the cooling time at the specified radius.
-    coolingTime=Cooling_Time(temperature,density,abundances,radiation)
+    coolingTime=Cooling_Time(temperature,density,abundances,molecularDensities,radiation)
+
     ! Return the difference between cooling time and time available.
     Cooling_Radius_Root=coolingTime-coolingTimeAvailable
 

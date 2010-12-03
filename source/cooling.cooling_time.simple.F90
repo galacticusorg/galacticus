@@ -101,7 +101,7 @@ contains
     return
   end subroutine Cooling_Time_Simple_Initialize
 
-  double precision function Cooling_Time_Simple(temperature,density,abundances,radiation)
+  double precision function Cooling_Time_Simple(temperature,density,abundances,molecularDensities,radiation)
     !% Compute the cooling time (in Gyr) for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\tt abundances} and experiencing a radiation field as described by {\tt radiation}.
     use Numerical_Constants_Atomic
@@ -110,15 +110,17 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Units
     use Abundances_Structure
+    use Molecular_Abundances_Structure
     use Radiation_Structure
     use Cooling_Functions
     implicit none
-    double precision,          intent(in) :: temperature,density
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
+    double precision,                   intent(in) :: temperature,density
+    type(abundancesStructure),          intent(in) :: abundances
+    type(molecularAbundancesStructure), intent(in) :: molecularDensities
+    type(radiationStructure),           intent(in) :: radiation
     ! Effectively infinite time (for arbitrarily long cooling times).
-    double precision,          parameter  :: largeTime=1.0d10
-    double precision                      :: numberDensityHydrogen,numberDensityAllSpecies,coolingFunction,energyDensityThermal
+    double precision,                   parameter  :: largeTime=1.0d10
+    double precision                               :: numberDensityHydrogen,numberDensityAllSpecies,coolingFunction,energyDensityThermal
 
     ! Compute number density of hydrogen (in cm^-3).
     numberDensityHydrogen=density*abundances%hydrogenMassFraction()*massSolar/massHydrogenAtom/(hecto*megaParsec)**3
@@ -127,7 +129,7 @@ contains
     numberDensityAllSpecies=numberDensityHydrogen/abundances%hydrogenNumberFraction()
 
     ! Get the cooling function (in ergs cm^-3 s^-1).
-    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,abundances,radiation)
+    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
 
     ! Determine the thermal energy density of the gas (in ergs cm^-3).
     energyDensityThermal=(coolingTimeSimpleDegreesOfFreedom/2.0d0)*boltzmannsConstant*temperature*numberDensityAllSpecies/ergs
@@ -141,33 +143,37 @@ contains
     return
   end function Cooling_Time_Simple
   
-  double precision function Cooling_Time_Density_Log_Slope_Simple(temperature,density,abundances,radiation)
+  double precision function Cooling_Time_Density_Log_Slope_Simple(temperature,density,abundances,molecularDensities,radiation)
     !% Return $\d\ln t_{\rm cool}/\d\ln \rho$ for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\tt abundances} and experiencing a radiation field as described by {\tt radiation}.
     use Abundances_Structure
+    use Molecular_Abundances_Structure
     use Radiation_Structure
     use Cooling_Functions
     implicit none
-    double precision,          intent(in) :: temperature,density
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
+    double precision,                   intent(in) :: temperature,density
+    type(abundancesStructure),          intent(in) :: abundances
+    type(molecularAbundancesStructure), intent(in) :: molecularDensities
+    type(radiationStructure),           intent(in) :: radiation
 
-    Cooling_Time_Density_Log_Slope_Simple=1.0d0-Cooling_Function_Density_Log_Slope(temperature,density,abundances,radiation)
+    Cooling_Time_Density_Log_Slope_Simple=1.0d0-Cooling_Function_Density_Log_Slope(temperature,density,abundances,molecularDensities,radiation)
     return
   end function Cooling_Time_Density_Log_Slope_Simple
   
-  double precision function Cooling_Time_Temperature_Log_Slope_Simple(temperature,density,abundances,radiation)
+  double precision function Cooling_Time_Temperature_Log_Slope_Simple(temperature,density,abundances,molecularDensities,radiation)
     !% Return $\d\ln t_{\rm cool}/\d\ln T$ for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\tt abundances} and experiencing a radiation field as described by {\tt radiation}.
     use Abundances_Structure
+    use Molecular_Abundances_Structure
     use Radiation_Structure
     use Cooling_Functions
     implicit none
-    double precision,          intent(in) :: temperature,density
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
+    double precision,                   intent(in) :: temperature,density
+    type(abundancesStructure),          intent(in) :: abundances
+    type(molecularAbundancesStructure), intent(in) :: molecularDensities
+    type(radiationStructure),           intent(in) :: radiation
 
-    Cooling_Time_Temperature_Log_Slope_Simple=-Cooling_Function_Temperature_Log_Slope(temperature,density,abundances,radiation)
+    Cooling_Time_Temperature_Log_Slope_Simple=-Cooling_Function_Temperature_Log_Slope(temperature,density,abundances,molecularDensities,radiation)
     return
   end function Cooling_Time_Temperature_Log_Slope_Simple
   

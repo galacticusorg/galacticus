@@ -389,23 +389,33 @@ Additional methods for accretion of baryons onto halos can be added using the {\
 \end{verbatim}
 Here, {\tt Accretion\_Halos\_Simple\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get)
+  subroutine Method_Initialize(accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get &
+   & ,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get &
+   & ,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accreted_Abundances_Get, &
+   & ,Halo_Baryonic_Accretion_Rate_Molecules_Get,Halo_Baryonic_Accreted_Molecules_Get)
     implicit none
     type(varying_string),          intent(in)    :: accretionHalosMethod
-    procedure(),          pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get
+    procedure(),          pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get &
+   & ,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get &
+   & ,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Molecules_Get &
+   & ,Halo_Baryonic_Accreted_Molecules_Get
     
     if (accretionHalosMethod == 'myMethod') then
-       Halo_Baryonic_Accretion_Rate_Get        => My_Accretion_Rate_Simple_Get
-       Halo_Baryonic_Accreted_Mass_Get         => My_Accreted_Mass_Simple_Get
-       Halo_Baryonic_Failed_Accretion_Rate_Get => My_Failed_Accretion_Rate_Simple_Get
-       Halo_Baryonic_Failed_Accreted_Mass_Get  => My_Failed_Accreted_Mass_Simple_Get
+       Halo_Baryonic_Accretion_Rate_Get            => My_Accretion_Rate_Get
+       Halo_Baryonic_Accreted_Mass_Get             => My_Accreted_Mass_Get
+       Halo_Baryonic_Failed_Accretion_Rate_Get     => My_Failed_Accretion_Rat_Get
+       Halo_Baryonic_Failed_Accreted_Mass_Get      => My_Failed_Accreted_Mass_Get
+       Halo_Baryonic_Accretion_Rate_Abundances_Get => My_Accretion_Rate_Abundances_Get
+       Halo_Baryonic_Accreted_Abundances_Get       => My_Accreted_Abundances_Get
+       Halo_Baryonic_Accretion_Rate_Molecules_Get  => My_Accretion_Rate_Molecules_Get
+       Halo_Baryonic_Accreted_Molecules_Get        => My_Accreted_Molecules_Get
     end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt accretionHalosMethod} input parameter. The procedure pointers {\tt Halo\_Baryonic\_Accretion\_Rate\_Get}, {\tt Halo\_Baryonic\_Accreted\_Mass\_Get}, {\tt Halo\_Baryonic\_Failed\_Accretion\_Rate\_Get} and {\tt Halo\_Baryonic\_Failed\_Accreted\_Mass\_Get} must be set to point to functions which return accretion rate, total accreted mass (assuming no progenitors), failed accretion rate and total failed accreted mass (assuming no progenitors) respectively as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt accretionHalosMethod} input parameter. The procedure pointers {\tt Halo\_Baryonic\_Accretion\_Rate\_Get}, {\tt Halo\_Baryonic\_Accreted\_Mass\_Get}, {\tt Halo\_Baryonic\_Failed\_Accretion\_Rate\_Get} and {\tt Halo\_Baryonic\_Failed\_Accreted\_Mass\_Get} must be set to point to functions which return accretion rate, total accreted mass (assuming no progenitors), failed accretion rate and total failed accreted mass (assuming no progenitors) respectively as described below. The procedure pointers {\tt Halo\_Baryonic\_Accretion\_Rate\_Abundances\_Get}, {\tt Halo\_Baryonic\_Accreted\_Abundances\_Get}, {\tt Halo\_Baryonic\_Accretion\_Rate\_Molecules\_Get}, {\tt Halo\_Baryonic\_Accreted\_Molecules\_Get} must be set to point to functions which return the accretion rates nad masses (assuming no progenitors) of heavy element abundances and molecules respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The functions must have the form:
+The mass functions must have the form:
 \begin{verbatim}
  double precision function My_Accretion_Get(thisNode)
     implicit none
@@ -422,9 +432,111 @@ In the case of the accretion rate functions, the function must return the accret
 \end{equation}
 where $\dot{M}$ is the growth rate of total halo mass and $\dot{M}_{\rm accreted}$ is the accretion rate of baryons onto the halo. If desired, this failed mass can be transferred back into the accreted component once the halo is deemed able to accrete, by simply adjusting the accretion rates returned appropriately.
 
+For abundances and molecules, the subroutines should have the form:
+\begin{verbatim}
+ subroutine My_Abundances_Get(thisNode,accretionAbundances)
+    implicit none
+    type(treeNode),            intent(inout), pointer :: thisNode
+    type(abundancesStructure), intent(inout)          :: accretionAbundances
+
+    return
+  end subroutine My_Abundances_Get
+\end{verbatim}
+and
+\begin{verbatim}
+ subroutine My_Molecules_Get(thisNode,accretionMolecules)
+    implicit none
+    type(treeNode),                     intent(inout), pointer :: thisNode
+    type(molecularAbundancesStructure), intent(inout)          :: accretionMolecules
+
+    return
+  end subroutine My_Molecules_Get
+\end{verbatim}
+respectively.
+
 Currently defined accretion disk methods are:
 \begin{description}
- \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$.
+ \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \IGM\ (i.e. abundances are always zero) and molecules are computed using the atomic ionization state functions (see \S\ref{sec:IonizationStateMethods}).
+\end{description}
+
+\subsubsection{Atomic Collisional Ionization Rates}
+
+Additional methods for atomic collisional ionization rate calculations can be added using the {\tt atomicCollisionalIonizationMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Verner} method is described by a directive:
+\begin{verbatim}
+ !# <atomicCollisionalIonizationMethod>
+ !#  <unitName>Atomic_Rate_Ionization_Collisional_Verner_Initialize</unitName>
+ !# </atomicCollisionalIonizationMethod>
+\end{verbatim}
+Here, {\tt Atomic\_Rate\_Ionization\_Collisional\_Verner\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(atomicCollisionalIonizationMethod,Atomic_Rate_Ionization_Collisional_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: atomicCollisionalIonizationMethod
+    procedure(),          pointer, intent(inout) :: Atomic_Rate_Ionization_Collisional_Get
+    
+    if (atomicCollisionalIonizationMethod == 'myMethod') Atomic_Rate_Ionization_Collisional_Get => My_Method_Get_Procedure
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt atomicCollisionalIonizationMethod} input parameter. The procedure pointer {\tt Atomic\_Rate\_Ionization\_Collisional\_Get} must be set to point to a function which returns the rate coefficient of atomic collisional ionization under given physical conditions. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The collisional ionization rate function must have the form:
+\begin{verbatim}
+ double precision function My_Method_Get_Procedure(atomicNumber,ionizationState,temperature)
+    implicit none
+    integer,          intent(in) :: atomicNumber,ionizationState
+    double precision, intent(in) :: temperature
+    .
+    .
+    .
+    return
+ end function My_Method_Get_Procedure
+\end{verbatim}
+The function must return the collisional ionization rate coefficient (in units of cm$^3$ s$^{-1}$) of ions of the given {\tt atomicNumber}, {\tt ionizationState} (where ionization state is the atomic number plus 1 minus the number of electrons) and {\tt temperature}.
+
+Currently defined collisional ionization rate methods are:
+\begin{description}
+ \item [{\tt Verner}]  Computes the rate coefficient of direct collisional ionization by use of the fits from \citeauthor{voronov_practical_1997}~(\citeyear{voronov_practical_1997}; Version 2, March 24, 1997).
+\end{description}
+
+\subsubsection{Atomic Radiative Recombination Rates}
+
+Additional methods for atomic radiative recombination rate calculations can be added using the {\tt atomicRadiativeRecombinationMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Verner} method is described by a directive:
+\begin{verbatim}
+ !# <atomicRadiativeRecombinationMethod>
+ !#  <unitName>Atomic_Rate_Recombination_Radiative_Verner_Initialize</unitName>
+ !# </atomicRadiativeRecombinationMethod>
+\end{verbatim}
+Here, {\tt Atomic\_Rate\_Recombination\_Radiative\_Verner\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(atomicRadiativeRecombinationMethod,Atomic_Rate_Recombination_Radiative_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: atomicRadiativeRecombinationMethod
+    procedure(),          pointer, intent(inout) :: Atomic_Rate_Recombination_Radiative_Get
+    
+    if (atomicRadiativeRecombinationMethod == 'myMethod') Atomic_Rate_Recombination_Radiative_Get => My_Method_Get_Procedure
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt atomicRadiativeRecombinationMethod} input parameter. The procedure pointer {\tt Atomic\_Rate\_Recombination\_Radiative\_Get} must be set to point to a function which returns the rate coefficient of atomic radiative recombination under given physical conditions. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The radiative recombination rate function must have the form:
+\begin{verbatim}
+ double precision function My_Method_Get_Procedure(atomicNumber,ionizationState,temperature)
+    implicit none
+    integer,          intent(in) :: atomicNumber,ionizationState
+    double precision, intent(in) :: temperature
+    .
+    .
+    .
+    return
+ end function My_Method_Get_Procedure
+\end{verbatim}
+The function must return the radiative recombination rate coefficient (in units of cm$^3$ s$^{-1}$) to ions of the given {\tt atomicNumber}, {\tt ionizationState} (where ionization state is the atomic number plus 1 minus the number of electrons) and {\tt temperature}.
+
+Currently defined radiative recombination rate methods are:
+\begin{description}
+ \item [{\tt Verner}]  Computes the rate coefficient of radiative recombination using the compilation of results from Dima Verner as originally encapsulated in \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{{\tt rrfit.f}}.
 \end{description}
 
 \subsubsection{Black Hole Binary Mergers}\label{sec:BlackHoleBinaryMergers}
@@ -541,12 +653,13 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 The other directives should specify subroutines with the following template:
 \begin{verbatim}
   subroutine Cooling_Function_PropertyCompute(coolingFunctionProperty,temperature,numberDensityHydrogen,abundances&
-       &,radiation)
+       &,molecularDensities,radiation)
     implicit none
-    double precision,          intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in)  :: abundances
-    type(radiationStructure),  intent(in)  :: radiation
-    double precision,          intent(out) :: coolingFunctionProperty
+    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),          intent(in)  :: abundances
+    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
+    type(radiationStructure),           intent(in)  :: radiation
+    double precision,                   intent(out) :: coolingFunctionProperty
     .
     .
     .
@@ -612,6 +725,7 @@ Currently defined cooling function methods are:
  If the cooling function is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first cooling function is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and cooling function. Otherwise, interpolation is linear in these quantities. The cooling function is scaled assuming a quadratic dependence on hydrogen density.
  \item [{\tt atomic\_CIE\_Cloudy}] Uses the {\sc Cloudy} software to compute a cooling function for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the cooling function suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}. Figure~\ref{fig:atomicCIECloudyCoolingFunction} shows the cooling function from this method.
  \item [{\tt CMB\_Compton}] Computes the cooling function due to Compton scattering off of \CMB\ photons.
+ \item [{\tt molecularHydrogenGalliPalla}] Implements the molecular hydrogen cooling function from \cite{galli_chemistry_1998}.
 \end{description}
 
 \begin{figure}
@@ -728,7 +842,7 @@ Here, {\tt Cooling\_Time\_Simple\_Initialize} is the name of a subroutine which 
     
     if (coolingTimeMethod == 'myMethod') then
        Cooling_Time_Get => My_Method_Get_Procedure
-       Cooling_Time_Density_Log_Slope_Get => My_Method_Density_Log_Slope_Procedure
+       Cooling_Time_Density_Log_Slope_Get     => My_Method_Density_Log_Slope_Procedure
        Cooling_Time_Temperature_Log_Slope_Get => My_Method_Temperature_Log_Slope_Procedure
     end if
     return
@@ -738,18 +852,19 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The cooling radius function must have the form:
 \begin{verbatim}
- double precision function Cooling_Time_Get(temperature,density,abundances,radiation)
+ double precision function Cooling_Time_Get(temperature,density,abundances,molecularDensities,radiation)
     implicit none
-    double precision,          intent(in) :: temperature,density
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
+    double precision,                   intent(in) :: temperature,density
+    type(abundancesStructure),          intent(in) :: abundances
+    type(molecularAbundancesStructure), intent(in) :: molecularDensities
+    type(radiationStructure),           intent(in) :: radiation
     .
     .
     .
     return
  end function Cooling_Time_Get
 \end{verbatim}
-The function must return the cooling time (in units of Gyr) for at the specified {\tt temperature}, {\tt density} and for composition and radiation field as specified by the {\tt abundances} and {\tt radiation} structures. The logarithmic slope functions should have the same template, but return the logarithmic slope of the cooling time with respect to the appropriate variable instead.
+The function must return the cooling time (in units of Gyr) for at the specified {\tt temperature}, {\tt density} and for composition and radiation field as specified by the {\tt abundances}, {\tt molecularDensities} and {\tt radiation} structures. The logarithmic slope functions should have the same template, but return the logarithmic slope of the cooling time with respect to the appropriate variable instead.
 
 Currently defined cooling time methods are:
 \begin{description}
@@ -1764,7 +1879,7 @@ Additional methods for ionization states can be added using the {\tt ionizationS
 \end{verbatim}
 Here, {\tt Ionization\_State\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(ionizationStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get)
+  subroutine Method_Initialize(ionizationStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get)
     implicit none
     type(varying_string),          intent(in)    :: ionizationStateMethod
     procedure(),          pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get
@@ -1773,11 +1888,12 @@ Here, {\tt Ionization\_State\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a 
       Electron_Density_Get                       => My_Method_Procedure
       Electron_Density_Temperature_Log_Slope_Get => My_Method_Temperature_Log_Slope_Procedure
       Electron_Density_Density_Log_Slope_Get     => My_Method_Density_Log_Slope_Procedure
+      Molecular_Densities_Get                    => My_Method_Molecular_Densities_Procedure
     end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt ionizationStateMethod} input parameter. The procedure pointer {\tt Electron\_Density\_Get} must be set to point to a function which returns the electron density as described below. The other two procedure points should point to functions which return the logarithmic gradients of the electron density with respect to temperature and density respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt ionizationStateMethod} input parameter. The procedure pointer {\tt Electron\_Density\_Get} must be set to point to a function which returns the electron density as described below. The other two electron density procedure pointers should point to functions which return the logarithmic gradients of the electron density with respect to temperature and density respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.). The {\tt Molecular\_Densities\_Get} pointer should be set to point to a subroutine that returns the densities of all ``molecules'' active in the molecular subsystem (see \S\ref{sec:MolecularSubsystem}).
 
 The electron density function must have the form:
 \begin{verbatim}
@@ -1793,6 +1909,22 @@ The electron density function must have the form:
  end function Electron_Density_Get
 \end{verbatim}
 The function must return the electron density (in units of cm$^{-3}$) for gas at the given {\tt temperature} (in Kelvin), with hydrogen number density {\tt numberDensityHydrogen} (in cm$^{-3}$), composition as described by the {\tt abundances} structure and in the presence of a radiation field described by the {\tt radiation} structure. The logarithmic slope functions should have the same template, but return the appropriate logarithmic slope instead.
+
+The molecular densities subroutine must have the form:
+\begin{verbatim}
+ subroutine Molecular_Densities_Get(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    implicit none
+    type(molecularAbundancesStructure), intent(inout) :: theseAbundances
+    double precision,                   intent(in)    :: temperature,numberDensityHydrogen
+    type(abundancesStructure),          intent(in)    :: abundances
+    type(radiationStructure),           intent(in)    :: radiation
+    .
+    .
+    .
+    return
+ end subroutine Molecular_Densities_Get
+\end{verbatim}
+The function must return the density (in units of cm$^{-3}$) of each molecular species for gas at the given {\tt temperature} (in Kelvin), with hydrogen number density {\tt numberDensityHydrogen} (in cm$^{-3}$), composition as described by the {\tt abundances} structure and in the presence of a radiation field described by the {\tt radiation} structure.
 
 Currently defined ionization state methods are:
 \begin{description}
@@ -1814,6 +1946,20 @@ Currently defined ionization state methods are:
       .
       .
     </electronDensity>
+    <hiDensity>
+      <datum>0.966495864314214</datum>
+      <datum>0.965828463162061</datum>
+      .
+      .
+      .
+    </hiDensity>
+    <hiiDensity>
+      <datum>0.033504135685786</datum>
+      <datum>0.0341715368379391</datum>
+      .
+      .
+      .
+    </hiiDensity>
     <metallicity>-4.0</metallicity>
   </ionizationState>
   <ionizationState>
@@ -1842,7 +1988,7 @@ Currently defined ionization state methods are:
   </extrapolation>
  </ionizationStates>
  \end{verbatim}
- Each {\tt ionizationState} element should contain two lists (inside {\tt temperature} and {\tt electronDensity} tags) of {\tt datum} elements which specify temperature (in Kelvin) and electron density (by number, relative to hydrogen) respectively, and a {\tt metallicity} element which gives the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero metallicity). Any number of {\tt coolingFunction} elements may appear, but they must be in order of increasing metallicity and must all contain the same set of temperatures. The {\tt extrapolation} element defines how the table is to be extrapolated in the {\tt low} and {\tt high} limits of {\tt temperature} and {\tt metallicity}. The {\tt method} elements can take the following values:
+ Each {\tt ionizationState} element should contain two lists (inside {\tt temperature} and {\tt electronDensity} tags) of {\tt datum} elements which specify temperature (in Kelvin) and electron density (by number, relative to hydrogen) respectively, and a {\tt metallicity} element which gives the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero metallicity). Optionally, {\tt hiDensity} and {\tt hiiDensity} elements may be added containing lists of H{\sc i} and H{\sc ii} densities (by number, relative to hydrogen) respectively. Any number of {\tt coolingFunction} elements may appear, but they must be in order of increasing metallicity and must all contain the same set of temperatures. The {\tt extrapolation} element defines how the table is to be extrapolated in the {\tt low} and {\tt high} limits of {\tt temperature} and {\tt metallicity}. The {\tt method} elements can take the following values:
  \begin{description}
   \item[{\tt zero}] The electron density is set to zero beyond the relevant limit.
   \item[{\tt fixed}] The electron density is held fixed at the value at the relevant limit.
@@ -2059,6 +2205,64 @@ Currently defined merger tree building methods are:
  \item [{\tt build}] Generates a set of halo masses distributed between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} (with {\tt mergerTreeBuildTreesPerDecade} halos per decade of mass) at redshift {\tt mergerTreeBuildTreesBaseRedshift} and then uses the selected merger tree build method (see \S\ref{sec:MergerTreeBuildMethod}) to build trees from these base nodes;
  \item [{\tt read}] Reads merger tree data from an HDF5 file (see \S\ref{sec:MergerTreeFiles}). The file to read is specified by the {\tt [mergerTreeReadFileName]} parameter.
  \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history based on the fitting formula of \cite{wechsler_concentrations_2002}. See \S\ref{sec:SmoothAccretion} for details.
+\end{description}
+
+\subsubsection{Molecular Reaction Rates}
+
+Additional methods for molecular species reaction rates can be added using the {\tt molecularReactionRatesMethods} directive. Note that more than one method can be specified in which cases rates are cumulative over all selected methods. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt hydrogenNetwork} method is described by a directive:
+\begin{verbatim}
+  !# <molecularReactionRatesMethods>
+  !#  <unitName>Molecular_Hydrogen_Rates_Initialize</unitName>
+  !# </molecularReactionRatesMethods>
+\end{verbatim}
+Here, {\tt Molecular\_Hydrogen\_Rates\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(molecularReactionRatesMethods)
+    implicit none
+    type(varying_string), intent(in) :: molecularReactionRatesMethods
+    
+    if (molecularReactionRatesMethods == 'myMethod') then
+       ratesSelected = .true.
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt molecularReactionRatesMethods} input parameter. The {\tt ratesSelected} variable is set to true if the method is active and will be checked on all subsequent calls to the module such that rates are computed only if {\tt ratesSelected} is true. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The method must provide a subroutine to compute the molecular reaction rates. This subroutine is specified by the {\tt molecularRatesCompute} directive. The directive should contain a single argument, giving the name of a subroutine to be called to compute rates. For example, the {\tt hydrogenNetwork} method uses:
+\begin{verbatim}
+  !# <molecularRatesCompute>
+  !#  <unitName>Molecular_Hydrogen_Rates_Compute</unitName>
+  !# </molecularRatesCompute> 
+\end{verbatim}
+Here, {\tt Molecular\_Hydrogen\_Rates\_Compute} is the name of a subroutine which will be called to compute the rates. The rates subroutine must have the following form:
+\begin{verbatim}
+  subroutine Compute_Rates(temperature,moleculeDensity,radiation,moleculeRates)
+    implicit none
+    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
+    double precision,                   intent(in)    :: temperature
+    type(radiationStructure),           intent(in)    :: radiation
+    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+
+    ! Exit immediately if this method is not active.
+    if (.not.ratesSelected) return
+
+    ! Compute rates for all species present.
+    .
+    .
+    .
+    return
+  end subroutine Compute_Rates
+\end{verbatim}
+Here, {\tt temperature} is the temperature of the gas, {\tt moleculeDensity} provides the densities (in cm$^{-3}$) of all molecules, the radiation field is described by the {\tt radiation} object and any reaction rates should be \emph{added to} the {\tt moleculeRates} object in units of cm$^{-3}$ s$^{-1}$.
+
+Currently defined molecular reaction rate methods are:
+\begin{description}
+ \item [{\tt null}] A null method which does not affect any rates.
+ \item [{\tt hydrogenNetwork}] Computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.
 \end{description}
 
 \subsubsection{Population III Supernovae}
@@ -3613,3 +3817,60 @@ Here, {\tt Satellite\_Merger\_Task} is the name of a subroutine which will be ca
 \end{verbatim}
 where {\tt thisNode} is the node about to merge with {\tt thisNode\%parentNode}.
 
+\section{Subsystems}
+
+This section describes some of the subsystems within \glc\ that support various physical entities or processes.
+
+\subsection{Molecules}\label{sec:MolecularSubsystem}
+
+The molecules subsystem provides both a interface to a database of known molecules (allowing their physical properties to be queried) and a structure to store abundances/masses/etc. of the set of molecules being tracked in \glc. The name ``molecules'' is used somewhat loosely here\footnote{This name is likely to change in a later revision of the code.} to denote any chemical species that might be involved in reactions, including molecules, atoms, atomic and molecular ions and electrons.
+
+\subsubsection{Molecular Database}
+
+The file {\tt data/Molecular\_Database.cml} contains a database of molecules that can currently be used by \glc. It uses a simplified version of the \href{http://www.xml-cml.org}{Chemical Markup Language} to describe molecules. An excerpt from the database is shown below:
+\begin{verbatim}
+ <list>
+  <molecule>
+   <id>MolecularHydrogenAnion</id>
+   <formalCharge>-1</formalCharge>
+   <atomArray>
+     <atom>
+      <id>1</id>
+      <elementType>H</elementType>
+     </atom>
+     <atom>
+      <id>2</id>
+      <elementType>H</elementType>
+     </atom>
+   </atomArray>
+   <bondArray>
+     <bond>
+      <atomRefs2>1 2</atomRefs2>
+      <order>1</order>
+     </bond>
+   </bondArray>
+  </molecule>
+  .
+  .
+  .
+ </list>
+\end{verbatim}
+The database contains a {\tt list} of molecules, each contained within a {\tt molecule} element. The {\tt id} element provides a label for the molecule (usually a descriptive name with no white space). The {\tt formalCharge} element gives the charge of the molecule in units of the elementary charge. The molecule is then describe by a list of atoms and bonds inside {\tt atomArray} and {\tt bondArray} elements respectively. The {\tt atomArray} can contain any number of {\tt atom} elements, which should describe each atom in the molecule giving it a unique {\tt id} number and an {\tt elementType}, which is the short one or two letter label for the element (e.g. H, Ni, etc.). The {\tt bondArray} should contain a {\tt bond} entry for each atomic bond, which itself contains a {\tt atomRefs2} element giving the IDs of the two atoms participating in the bond and an {\tt order} element which gives the order of the bond (e.g. ``1'' for a single bond).
+
+\subsubsection{Molecule Structure}
+
+Within \glc\ a molecule is represeted using the {\tt molecularStructure} type which is provided by the {\tt Molecular\_Structures} module. A {\tt molecularStructure} object can be assigned a particular molecule by retrieving that molecule from the database using:
+\begin{verbatim}
+ call myMolecule%retrieve("moleculeID")
+\end{verbatim}
+where {\tt moleculeID} is the ID of the molecule in the databse. Any molecule can be exported to a CML file using
+\begin{verbatim}
+ call myMolecule%export(fileName)
+\end{verbatim}
+where {\tt fileName} gives the name of the file to which to export.
+
+Once assigned a molecule, basic properties such as mass and charge (in atomic units) can be accessed using {\tt myMolecule\%mass} and {\tt myMolecule\%charge} respectively. The mass is computed from the known atomic masses of the constituent atoms of the molecule.
+
+\subsubsection{Molecular Abundances}
+
+Within \glc\ a set of abundances (or masses, or densities\ldots) for all molecules being tracked, as specified by the {\tt [moleculesToTrack]} input parameter, is stored within a {\tt molecularAbundancesStructure} type, as provided by the {\tt Molecular\_Abundances\_Structure} module. The structure provides interfaces for setting and retrieving the abundance of a given molecular species, to pack/unpack all molecules to/from an array, to convert from mass-weighted to number-weigted quantities and to multiplty and divide the molecules abundances by a given amount. Additionally, the {\tt Molecular\_Abundances\_Structure} module provides functions which provide a count of the number of molecules tracked, to look up the index of a molecule array represetation from its name, and to retrieve the name of a given molecule.

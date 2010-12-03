@@ -65,9 +65,10 @@ module Ionization_States
   !% Implements calculations of the ionization state.
   use Abundances_Structure
   use Radiation_Structure
+  use Molecular_Abundances_Structure
   use ISO_Varying_String 
   private
-  public :: Electron_Density, Electron_Density_Temperature_Log_Slope, Electron_Density_Density_Log_Slope
+  public :: Electron_Density, Electron_Density_Temperature_Log_Slope, Electron_Density_Density_Log_Slope, Molecular_Densities
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: ionizationStateInitialized=.false.
@@ -76,9 +77,10 @@ module Ionization_States
   type(varying_string) :: ionizationStateMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Electron_Density_Get_Template), pointer :: Electron_Density_Get                       => null()
-  procedure(Electron_Density_Get_Template), pointer :: Electron_Density_Temperature_Log_Slope_Get => null()
-  procedure(Electron_Density_Get_Template), pointer :: Electron_Density_Density_Log_Slope_Get     => null()
+  procedure(Electron_Density_Get_Template   ), pointer :: Electron_Density_Get                       => null()
+  procedure(Electron_Density_Get_Template   ), pointer :: Electron_Density_Temperature_Log_Slope_Get => null()
+  procedure(Electron_Density_Get_Template   ), pointer :: Electron_Density_Density_Log_Slope_Get     => null()
+  procedure(Molecular_Densities_Get_Template), pointer :: Molecular_Densities_Get                    => null()
   abstract interface
      double precision function Electron_Density_Get_Template(temperature,numberDensityHydrogen,abundances,radiation)
        import abundancesStructure,radiationStructure
@@ -86,6 +88,15 @@ module Ionization_States
        type(abundancesStructure), intent(in) :: abundances
        type(radiationStructure),  intent(in) :: radiation
      end function Electron_Density_Get_Template
+  end interface
+  abstract interface
+     subroutine Molecular_Densities_Get_Template(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+       import abundancesStructure,radiationStructure,molecularAbundancesStructure
+       type(molecularAbundancesStructure), intent(inout) :: theseAbundances
+       double precision,                   intent(in)    :: temperature,numberDensityHydrogen
+       type(abundancesStructure),          intent(in)    :: abundances
+       type(radiationStructure),           intent(in)    :: radiation
+     end subroutine Molecular_Densities_Get_Template
   end interface
   
 contains
@@ -116,11 +127,11 @@ contains
 
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="ionizationStateMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>ionizationStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get</subroutineArgs>
+       !#  <subroutineArgs>ionizationStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get</subroutineArgs>
        include 'atomic.ionization_state.inc'
        !# </include>
        if (.not.(associated(Electron_Density_Get).and.associated(Electron_Density_Temperature_Log_Slope_Get) &
-            & .and.associated(Electron_Density_Density_Log_Slope_Get))) call&
+            & .and.associated(Electron_Density_Density_Log_Slope_Get).and.associated(Molecular_Densities_Get))) call&
             & Galacticus_Error_Report('Ionization_State_Initialize','method '//char(ionizationStateMethod)//' is unrecognized')
        ionizationStateInitialized=.true.
     end if
@@ -180,5 +191,23 @@ contains
     
     return
   end function Electron_Density_Density_Log_Slope
+
+  subroutine Molecular_Densities(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    !% Return the densities of molecular species at the given temperature and hydrogen density for the specified set of abundances
+    !% and radiation field. Units of the returned electron density are cm$^-3$.
+    implicit none
+    type(molecularAbundancesStructure), intent(inout) :: theseAbundances
+    double precision,                   intent(in)    :: temperature,numberDensityHydrogen
+    type(abundancesStructure),          intent(in)    :: abundances
+    type(radiationStructure),           intent(in)    :: radiation
+
+    ! Initialize the module.
+    call Ionization_State_Initialize
+
+    ! Call the routine to do the calculation.
+    call Molecular_Densities_Get(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+
+    return
+  end subroutine Molecular_Densities
 
 end module Ionization_States

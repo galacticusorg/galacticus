@@ -64,11 +64,21 @@
 
 module Accretion_Halos_Simple
   !% Implements calculations of baryonic accretion onto halos using a simple truncation to mimic reionization.
+  use Abundances_Structure
   private
   public :: Accretion_Halos_Simple_Initialize
 
   ! Parameters controlling when accretion is suppressed.
   double precision :: reionizationSuppressionRedshift,reionizationSuppressionTime,reionizationSuppressionVelocity
+
+  ! Index of Solar abundance pattern.
+  integer          :: abundanceIndexSolar
+
+  ! Internal record of the number of molecules being tracked.
+  integer          :: moleculesCount
+
+  ! Zero abundance structure.
+  type(abundancesStructure) :: zeroAbundances
 
 contains
 
@@ -76,21 +86,39 @@ contains
   !#  <unitName>Accretion_Halos_Simple_Initialize</unitName>
   !# </accretionHalosMethod>
   subroutine Accretion_Halos_Simple_Initialize(accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get &
-       &,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get)
+       &,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get &
+       &,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accreted_Abundances_Get&
+       &,Halo_Baryonic_Accretion_Rate_Molecules_Get,Halo_Baryonic_Accreted_Molecules_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     use Input_Parameters
     use Cosmology_Functions
+    use Atomic_Data
+    use Molecular_Abundances_Structure
     implicit none
     type(varying_string),                 intent(in)    :: accretionHalosMethod
     procedure(double precision), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get&
-         &,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get
-    
+         &,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get&
+         &,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accreted_Abundances_Get &
+         &,Halo_Baryonic_Accretion_Rate_Molecules_Get,Halo_Baryonic_Accreted_Molecules_Get
+   
     if (accretionHalosMethod == 'simple') then
-       Halo_Baryonic_Accretion_Rate_Get        => Halo_Baryonic_Accretion_Rate_Simple_Get
-       Halo_Baryonic_Accreted_Mass_Get         => Halo_Baryonic_Accreted_Mass_Simple_Get
-       Halo_Baryonic_Failed_Accretion_Rate_Get => Halo_Baryonic_Failed_Accretion_Rate_Simple_Get
-       Halo_Baryonic_Failed_Accreted_Mass_Get  => Halo_Baryonic_Failed_Accreted_Mass_Simple_Get
+       ! Set pointers to our implementations of accretion functions.
+       Halo_Baryonic_Accretion_Rate_Get            => Halo_Baryonic_Accretion_Rate_Simple_Get
+       Halo_Baryonic_Accreted_Mass_Get             => Halo_Baryonic_Accreted_Mass_Simple_Get
+       Halo_Baryonic_Failed_Accretion_Rate_Get     => Halo_Baryonic_Failed_Accretion_Rate_Simple_Get
+       Halo_Baryonic_Failed_Accreted_Mass_Get      => Halo_Baryonic_Failed_Accreted_Mass_Simple_Get
+       Halo_Baryonic_Accretion_Rate_Abundances_Get => Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get
+       Halo_Baryonic_Accreted_Abundances_Get       => Halo_Baryonic_Accreted_Abundances_Simple_Get
+       Halo_Baryonic_Accretion_Rate_Molecules_Get  => Halo_Baryonic_Accretion_Rate_Molecules_Simple_Get
+       Halo_Baryonic_Accreted_Molecules_Get        => Halo_Baryonic_Accreted_Molecules_Simple_Get
+       ! Get the index of the solar composition abundance pattern.
+       abundanceIndexSolar=Abundance_Pattern_Lookup(abundanceName="solar")
+       ! Get a count of the number of molecules being tracked.
+       moleculesCount=Molecules_Property_Count()
+       ! Create a structure with zero abundances.
+       call zeroAbundances%metallicitySet(0.0d0,adjustElements=adjustElementsReset,abundanceIndex=abundanceIndexSolar)
+       ! Read parameters.
        !@ <inputParameter>
        !@   <name>reionizationSuppressionRedshift</name>
        !@   <defaultValue>9.0</defaultValue>
@@ -202,5 +230,123 @@ contains
     end if
     return
   end function Halo_Baryonic_Failed_Accreted_Mass_Simple_Get
+
+  subroutine Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get(thisNode,accretionRateAbundances)
+    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium.
+    use Tree_Nodes
+    implicit none
+    type(treeNode),            intent(inout), pointer :: thisNode
+    type(abundancesStructure), intent(inout)          :: accretionRateAbundances
+
+    ! Assume zero metallicity.
+    accretionRateAbundances=zeroAbundances
+    return
+  end subroutine Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get
   
+  subroutine Halo_Baryonic_Accreted_Abundances_Simple_Get(thisNode,accretedAbundances)
+    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+    use Tree_Nodes
+    implicit none
+    type(treeNode),            intent(inout), pointer :: thisNode
+    type(abundancesStructure), intent(inout)          :: accretedAbundances
+
+    ! Assume zero metallicity.
+    accretedAbundances=zeroAbundances
+    return
+  end subroutine Halo_Baryonic_Accreted_Abundances_Simple_Get
+  
+  subroutine Halo_Baryonic_Accretion_Rate_Molecules_Simple_Get(thisNode,accretionRateMolecules)
+    !% Computes the rate of mass of molecules accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium. Assumes a
+    !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
+    !% temperature.
+    use Tree_Nodes
+    use Molecular_Abundances_Structure
+    implicit none
+    type(treeNode),                     intent(inout), pointer :: thisNode
+    type(molecularAbundancesStructure), intent(inout)          :: accretionRateMolecules
+    double precision                                           :: massAccretionRate
+
+    ! Return immediately if no molecules are being tracked.
+    if (moleculesCount == 0) return
+
+    ! Ensure that molecules are reset to zero.
+    call accretionRateMolecules%reset()
+
+    ! Get the total mass accretion rate onto the halo.
+    massAccretionRate=Halo_Baryonic_Accretion_Rate_Simple_Get(thisNode)
+    
+    ! Get the mass accretion rates.
+    call Get_Molecular_Masses(thisNode,massAccretionRate,accretionRateMolecules)
+
+    return
+  end subroutine Halo_Baryonic_Accretion_Rate_Molecules_Simple_Get
+  
+  subroutine Halo_Baryonic_Accreted_Molecules_Simple_Get(thisNode,accretedMolecules)
+    !% Computes the mass of molecules accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+    use Tree_Nodes
+    use Molecular_Abundances_Structure
+    implicit none
+    type(treeNode),                     intent(inout), pointer :: thisNode
+    type(molecularAbundancesStructure), intent(inout)          :: accretedMolecules
+    double precision                                           :: massAccreted
+
+    ! Return immediately if no molecules are being tracked.
+    if (moleculesCount == 0) return
+
+    ! Ensure that molecules are reset to zero.
+    call accretedMolecules%reset()
+
+    ! Total mass of material accreted.
+    massAccreted=Halo_Baryonic_Accreted_Mass_Simple_Get(thisNode)
+
+    ! Get the masses of molecules accreted.
+    call Get_Molecular_Masses(thisNode,massAccreted,accretedMolecules)
+
+    return
+  end subroutine Halo_Baryonic_Accreted_Molecules_Simple_Get
+  
+  subroutine Get_Molecular_Masses(thisNode,massAccreted,molecularMasses)
+    !% Compute the masses of molecules accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+    use Tree_Nodes
+    use Radiation_Structure
+    use Cosmological_Parameters
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Atomic
+    use Numerical_Constants_Math
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Physical
+    use Ionization_States
+    use Molecular_Abundances_Structure
+    implicit none
+    type(treeNode),                     intent(inout), pointer :: thisNode
+    double precision,                   intent(in)             :: massAccreted
+    type(molecularAbundancesStructure), intent(out)            :: molecularMasses
+    double precision                                           :: massToDensityConversion,temperature,numberDensityHydrogen&
+         &,electronsDensity ,hydrogensAtomicDensity,hydrogensCationDensity
+    type(radiationStructure)                                   :: radiation
+    type(molecularAbundancesStructure), save                   :: molecularDensities
+    !$omp threadprivate(molecularDensities)
+
+    ! Compute coefficient in conversion of mass to density for this node.
+    massToDensityConversion=massSolar/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(thisNode))**3
+    
+    ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
+    ! overdensity is one third of the mean overdensity of the halo.
+    temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
+    numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_0())*Tree_Node_Mass(thisNode)*massToDensityConversion/atomicMassUnit/atomicMassHydrogen
+    
+    ! Set the radiation field.
+    call radiation%setCMB(Tree_Node_Time(thisNode))
+
+    ! Get the molecule densities.
+    call Molecular_Densities(molecularDensities,temperature,numberDensityHydrogen,zeroAbundances,radiation)
+
+    ! Convert from densities to masses.
+    call molecularDensities%numberToMass(molecularMasses)
+    call molecularMasses%multiply(massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen)
+
+    return
+  end subroutine Get_Molecular_Masses
+
 end module Accretion_Halos_Simple

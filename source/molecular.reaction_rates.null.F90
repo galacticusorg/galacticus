@@ -59,24 +59,42 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module of useful unit conversions.
+!% Contains a module which implements a null calculation of molecular reaction rates.
 
-module Numerical_Constants_Units
-  !% Contains various useful unit conversions.
-  use FGSL
-  use Numerical_Constants_Prefixes
-  public
-  
-  ! Ergs in Joules.
-  double precision, parameter :: ergs=1.0d-7
+module Molecular_Reaction_Rates_Null
+  !% Implements a null calculation of molecular reaction rates.
+  private
+  public :: Molecular_Reaction_Rates_Null_Initialize, Molecular_Reaction_Rates_Null_Compute
 
-  ! Angstroms in microns.
-  double precision, parameter :: angstromsPerMicron=1.0d4
+contains
 
-  ! Angstroms in meters.
-  double precision, parameter :: angstromsPerMeter=1.0d10
+  !# <molecularReactionRates>
+  !#  <unitName>Molecular_Reaction_Rates_Null_Initialize</unitName>
+  !# </molecularReactionRates>
+  subroutine Molecular_Reaction_Rates_Null_Initialize(molecularReactionRatesMethods)
+    !% Initializes the null molecular reaction network module.
+    use ISO_Varying_String
+    implicit none
+    type(varying_string), intent(in) :: molecularReactionRatesMethods(:)
 
-  ! Electron volt (in units of Joules).
-  double precision, parameter :: electronVolt=FGSL_CONST_MKSA_ELECTRON_VOLT
+    return
+  end subroutine Molecular_Reaction_Rates_Null_Initialize
 
-end module Numerical_Constants_Units
+  !# <molecularRatesCompute>
+  !#  <unitName>Molecular_Reaction_Rates_Null_Compute</unitName>
+  !# </molecularRatesCompute>
+  subroutine Molecular_Reaction_Rates_Null_Compute(temperature,moleculeDensity,radiation,moleculeRates)
+    !% Compute rates of change of molecular abundances due to reactions involving molecular hydrogen species.
+    use Abundances_Structure
+    use Molecular_Abundances_Structure
+    use Radiation_Structure
+    implicit none
+    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
+    double precision,                   intent(in)    :: temperature
+    type(radiationStructure),           intent(in)    :: radiation
+    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    
+    return
+  end subroutine Molecular_Reaction_Rates_Null_Compute
+
+end module Molecular_Reaction_Rates_Null

@@ -91,21 +91,23 @@ contains
   !# <coolingFunctionCompute>
   !#   <unitName>Cooling_Function_CMB_Compton</unitName>
   !# </coolingFunctionCompute>
-  subroutine Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
+  subroutine Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
     !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Ionization_States
     use Abundances_Structure
+    use Molecular_Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision,          intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in)  :: abundances
-    type(radiationStructure),  intent(in)  :: radiation
-    double precision,          intent(out) :: coolingFunction
-    double precision,          parameter   :: comptonRateNormalization=4.0d0*thomsonCrossSection*radiationConstant&
+    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),          intent(in)  :: abundances
+    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
+    type(radiationStructure),           intent(in)  :: radiation
+    double precision,                   intent(out) :: coolingFunction
+    double precision,                   parameter   :: comptonRateNormalization=4.0d0*thomsonCrossSection*radiationConstant&
          &*boltzmannsConstant/electronMass/speedLight/ergs
-    double precision                       :: electronDensity
+    double precision                                :: electronDensity
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
@@ -130,23 +132,25 @@ contains
   !#   <unitName>Cooling_Function_Density_Slope_CMB_Compton</unitName>
   !# </coolingFunctionDensitySlopeCompute>
   subroutine Cooling_Function_Density_Slope_CMB_Compton(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,abundances&
-       &,radiation)
+       &,molecularDensities ,radiation)
     !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Ionization_States
     use Abundances_Structure
+    use Molecular_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,          intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in)  :: abundances
-    type(radiationStructure),  intent(in)  :: radiation
-    double precision,          intent(out) :: coolingFunctionDensitySlope
-    double precision                       :: coolingFunction,electronDensityDensityLogSlope
+    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),          intent(in)  :: abundances
+    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
+    type(radiationStructure),           intent(in)  :: radiation
+    double precision,                   intent(out) :: coolingFunctionDensitySlope
+    double precision                                :: coolingFunction,electronDensityDensityLogSlope
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
        
        ! Get the cooling function.
-       call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
+       call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
        
        ! Get logarithmic slope of electron density with density.
        electronDensityDensityLogSlope=Electron_Density_Density_Log_Slope(temperature,numberDensityHydrogen,abundances&
@@ -169,23 +173,25 @@ contains
   !#   <unitName>Cooling_Function_Temperature_Slope_CMB_Compton</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
   subroutine Cooling_Function_Temperature_Slope_CMB_Compton(coolingFunctionTemperatureSlope,temperature,numberDensityHydrogen&
-       &,abundances,radiation)
+       &,abundances,molecularDensities,radiation)
     !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Ionization_States
     use Abundances_Structure
+    use Molecular_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,          intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in)  :: abundances
-    type(radiationStructure),  intent(in)  :: radiation
-    double precision,          intent(out) :: coolingFunctionTemperatureSlope
-    double precision                       :: coolingFunction,electronDensityTemperatureLogSlope
+    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),          intent(in)  :: abundances
+    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
+    type(radiationStructure),           intent(in)  :: radiation
+    double precision,                   intent(out) :: coolingFunctionTemperatureSlope
+    double precision                                :: coolingFunction,electronDensityTemperatureLogSlope
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
               
        ! Get the cooling function.
-       call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
+       call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
        
        ! Get logarithmic slope of electron density with temperature.
        electronDensityTemperatureLogSlope=Electron_Density_Temperature_Log_Slope(temperature,numberDensityHydrogen,abundances&

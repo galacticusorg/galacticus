@@ -89,20 +89,21 @@ contains
   !# <ionizationStateMethod>
   !#  <unitName>Ionization_State_Atomic_CIE_Cloudy_Initialize</unitName>
   !# </ionizationStateMethod>
-  subroutine Ionization_State_Atomic_CIE_Cloudy_Initialize(ionizationStateMethod,Electron_Density_Get&
-       &,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get)
+  subroutine Ionization_State_Atomic_CIE_Cloudy_Initialize(ionizationStateMethod,Electron_Density_Get &
+       &,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get)
     !% Initializes the ``atomic CIE ionization state from {\sc Cloudy}'' module.
     implicit none
-    type(varying_string),          intent(in)    :: ionizationStateMethod
+    type(varying_string),                 intent(in)    :: ionizationStateMethod
     procedure(double precision), pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get&
-         &,Electron_Density_Density_Log_Slope_Get
+         &,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get
  
     ! Check if this ionization state has been selected.
     if (ionizationStateMethod == 'atomic_CIE_Cloudy') then
        Electron_Density_Get                       => Electron_Density_Atomic_CIE_Cloudy
        Electron_Density_Temperature_Log_Slope_Get => Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy
        Electron_Density_Density_Log_Slope_Get     => Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy
-    end if
+       Molecular_Densities_Get                    => Molecular_Densities_Atomic_CIE_Cloudy
+   end if
 
     return
   end subroutine Ionization_State_Atomic_CIE_Cloudy_Initialize
@@ -218,5 +219,27 @@ contains
  
     return
   end function Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy
+
+  subroutine Molecular_Densities_Atomic_CIE_Cloudy(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    !% Return the densities of molecular species at the given temperature and hydrogen density for the specified set of abundances
+    !% and radiation field. Units of the returned electron density are cm$^-3$.
+    use Ionization_States_CIE_File
+    use Abundances_Structure
+    use Radiation_Structure
+    use Molecular_Abundances_Structure
+    implicit none
+    type(molecularAbundancesStructure), intent(inout) :: theseAbundances
+    double precision,                   intent(in)    :: temperature,numberDensityHydrogen
+    type(abundancesStructure),          intent(in)    :: abundances
+    type(radiationStructure),           intent(in)    :: radiation
+
+    ! Create the ionization state.
+    call Ionization_State_Atomic_CIE_Cloudy_Create(abundances)
+    
+    ! Call routine to interpolate in the tabulated function.
+    call Molecular_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+ 
+    return
+  end subroutine Molecular_Densities_Atomic_CIE_Cloudy
       
 end module Ionization_States_Atomic_CIE_Cloudy

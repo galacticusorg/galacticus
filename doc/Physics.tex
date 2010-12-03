@@ -10,7 +10,7 @@ Currently the only option, and selected using {\tt accretionHalosMethod}$=${\tt 
 \begin{equation}
  \dot{M}_{\rm accretion} = \left\{ \begin{array}{ll} (\Omega_{\rm b}/\Omega_0) \dot{M}_{\rm halo} & \hbox{ if } V_{\rm virial} > V_{\rm reionization} \hbox{ or } z > z_{\rm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
 \end{equation}
-where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\rm reionization}=${\tt [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\rm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the ``failed'' reservoir times the specific growth rate of the halo.
+where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\rm reionization}=${\tt [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\rm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the ``failed'' reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine \IGM\ and so has zero abundances. Molecular abundances are computed from the atomic ionization state functions (see \S\ref{sec:IonizationStateMethod}).
 
 \section{Background Cosmology}\index{cosmology}
 
@@ -165,6 +165,32 @@ Selected using {\tt coolingFunctionMethods}$=${\tt CMB\_Compton}, this method co
 \Lambda = {4 \sigma_{\rm T} {\rm a} {\rm k}_{\rm B} n_{\rm e } \over m_{\rm e} \clight} T_{\rm CMB}^4 \left( T - T_{\rm CMB} \right),
 \end{equation}
 where $\sigma_{\rm T}$ is the Thompson cross-section, $a$ is the radiation constant, ${\rm k}_{\rm B}$ is Boltzmann's constant, $n_{\rm e}$ is the number density of electrons, $m_{\rm e}$ is the electron mass, $\clight$ is the speed of light, $T_{\rm CMB}$ is the \CMB\ temperature at the current cosmic epoch and $T$ is the temperature of the gas. The electron density is computed from the selected ionization state method (see \S\ref{sec:IonizationStateMethod}).
+
+\subsubsection{Molecular Hydrogen (Galli-Palla)}
+
+Selected using {\tt coolingFunctionMethods}$=${\tt molecularHydrogenGalliPalla}, this method computes the cooling function due to molecular hydrogen using the results of \cite{galli_chemistry_1998}. For the H--H$_2$ cooling function, the fitting functions from \cite{galli_chemistry_1998} are used. For the H$_2^+$--e$^-$ and H--H$_2^+$ cooling functions fitting functions to the results plotted in  \cite{suchkov_cooling_1978} are used:
+\begin{equation}
+\log_{10}\left({\Lambda(T) \over \hbox{erg s}^{-1} \hbox{cm}^3}\right) = C_0 + C_1 \log_{10} \left({T\over\hbox{K}}\right) + C_2 \left[\log_{10} \left({T\over\hbox{K}}\right)\right]^2,
+\label{eq:H2CoolingFunction}
+\end{equation}
+where the coefficients $C_{0-2}$ are given in Table~\ref{tb:H2CoolingFunctionCoefficients}.
+
+\begin{table}
+ \begin{center}
+  \caption{Coefficients of H$_2^+$ cooling functions as appearing in the fitting function, eq.~\protect\ref{eq:H2CoolingFunction}.}
+  \label{tb:H2CoolingFunctionCoefficients}
+  \begin{tabular}{lrrr}
+   \hline
+   & \multicolumn{3}{c}{{\bf Coefficient}} \\
+   {\bf Interaction} & \boldmath{$C_0$} & \boldmath{$C_1$} & \boldmath{$C_2$} \\
+   \hline
+   H$_2^+$--e$^-$ & -33.33 & 5.565 & -0.4675 \\
+   H--H$_2^+$ & -35.28 & 5.862 & -0.5124 \\
+   \hline
+  \end{tabular}
+ \end{center}
+\end{table}
+
 
 \subsection{Cooling Rate}\label{sec:CoolingRate}\index{cooling!rate}
 
@@ -467,7 +493,7 @@ Selected using {\tt ionizatonStateMethod}$=${\tt atomic\_CIE\_Cloudy}, this meth
 
 \subsection{Collisional Ionization Eqiulibruim From File}
 
-Selected using {\tt ionizatonStateMethod}$=${\tt CIE\_from\_file}, in this method the ionization state is read from a file specified by the {\tt ionizationStateFile} parameter. The format of this file is specified in \S\ref{sec:IonizationStateMethods}. The ionization state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$.
+Selected using {\tt ionizatonStateMethod}$=${\tt CIE\_from\_file}, in this method the ionization state is read from a file specified by the {\tt ionizationStateFile} parameter. The format of this file is specified in \S\ref{sec:IonizationStateMethods}. The ionization state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$. Optional H{\sc i} and H{\sc ii} densities, if present in the file, will be read and used when returning the densities of ``molecular'' species.
 
 \section{Merger Tree Construction}\index{merger trees}
 
@@ -525,6 +551,18 @@ Output of the mass accretion history (i.e. the mass of the node on the primary b
 \subsection{Tree Pruning}\index{merger tree!pruning}
 
 This task allows for branches of merger trees to be pruned---i.e. nodes below a specified mass limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. To prune branches set {\tt [mergerTreePruneBranches]}$=${\tt true} and set {\tt [mergerTreePruningMassThreshold]} to the desired mass threshold below which nodes will be pruned.
+
+\section{Molecular Reaction Rates}\index{molecules!reaction rates}\index{reaction rates!molecular}\label{sec:MolecularReactionRates}
+
+Methods for computing molecular reaction rates are selected via the {\tt [molecularReactionRatesMethods]} parameter. Multiple methods can be selected---their rates are cumulated.
+
+\subsection{Null}
+
+Selected with {\tt molecularReactionRatesMethods}$=${\tt null} this is a null method which does not set any rates.
+
+\subsection{Hydrogen Network}\index{hydrogen!molecular}
+
+Selected with {\tt molecularReactionRatesMethods}$=${\tt hydrogenNetwork} this method computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\tt [hydrogenNetworkFast]} controls the approximations made. If set {\tt true} then H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
 
 \section{Star Formation Timescales}\index{star formation!timescale}
 

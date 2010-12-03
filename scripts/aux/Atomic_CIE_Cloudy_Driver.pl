@@ -63,7 +63,7 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     # Download the code.
     unless ( -e "aux/c08.00.tar.gz" ) {
 	print "Cloudy_Driver.pl: downloading Cloudy code.\n";
-	system("wget ftp://gradj.pa.uky.edu/gary/cloudy_gold/c08.00.tar.gz -O aux/c08.00.tar.gz");
+	system("wget \"http://viewvc.nublado.org/index.cgi/tags/release/c08.00.tar.gz?root=cloudy&view=tar\" -O aux/c08.00.tar.gz");
 	die("Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e "aux/c08.00.tar.gz" );
     }
     
@@ -97,9 +97,14 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	++$iIonizationState;
 	
 	# Destroy the previous cooling function data.
-	undef(@temperatures);
-	undef(@coolingRates);
+	undef(@temperatures     );
+	undef(@coolingRates     );
 	undef(@electronDensities);
+	undef(@hiDensities      );
+	undef(@hiiDensities     );
+	undef(@heiDensities     );
+	undef(@heiiDensities    );
+	undef(@heiiDensities    );
 	
 	# Store the metallicity for this cooling function and ionization state.
 	${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'metallicity'} = $logMetallicity;
@@ -144,7 +149,7 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	    $coolingRate = $dataColumns[3];
 	    $coolingRates[++$#coolingRates] = $coolingRate;
 
-	    # Extract the electron density.
+	    # Extract the electron and hydrogen density.
 	    open(overviewHandle,$overviewTempFile);
 	    $headerLine = <overviewHandle>;
 	    $dataLine   = <overviewHandle>;
@@ -153,6 +158,10 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	    @dataColumns = split(/\s+/,$dataLine);
 	    $electronDensity = 10.0**$dataColumns[4];
 	    $electronDensities[++$#electronDensities] = $electronDensity;
+	    $hiDensity       = 10.0**$dataColumns[6];
+	    $hiDensities      [++$#hiDensities      ] = $hiDensity;
+	    $hiiDensity      = 10.0**$dataColumns[7];
+	    $hiiDensities     [++$#hiiDensities     ] = $hiiDensity;
 
 	}
 	
@@ -162,7 +171,9 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 
 	# Store ionization state data.
 	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'electronDensity'}->{'datum'}} = @electronDensities;
-	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'temperature'}->{'datum'}}     = @temperatures;
+	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'hiDensity'      }->{'datum'}} = @hiDensities;
+	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'hiiDensity'     }->{'datum'}} = @hiiDensities;
+	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'temperature'    }->{'datum'}} = @temperatures;
 	
     }
     
