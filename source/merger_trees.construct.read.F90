@@ -518,6 +518,11 @@ contains
                      & Galacticus_Error_Report('Merger_Tree_Read_Do','presetting positions requires a component that supports&
                      & position and velocity setting')
              end if
+             if (mergerTreeReadPresetMergerTimes) then
+                ! Time of merging property is required.
+                if (.not.associated(Tree_Node_Satellite_Time_of_Merging_Set)) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
+                     & 'presetting merging times requires a component that supports setting of merging times')
+             end if
              
              ! Assign isolated node indices to subhalos.
              call Assign_Isolated_Node_Indices(nodes,thisNodeList)
@@ -660,12 +665,12 @@ contains
        nodes(iNode)%descendentNode => null()
        nodes(iNode)%hostNode       => null()
        do jNode=1,size(nodes)
-          if (nodes(iNode)%descendentIndex > 0 .and. nodes(jNode)%nodeIndex == nodes(iNode)%descendentIndex) &
+          if (nodes(iNode)%descendentIndex >= 0 .and. nodes(jNode)%nodeIndex == nodes(iNode)%descendentIndex) &
                & nodes(iNode)%descendentNode => nodes(jNode)
           if (                                       nodes(jNode)%nodeIndex == nodes(iNode)%hostIndex      ) &
                & nodes(iNode)%hostNode       => nodes(jNode)
        end do
-       if (nodes(iNode)%descendentIndex > 0 .and. .not.associated(nodes(iNode)%descendentNode)) then
+       if (nodes(iNode)%descendentIndex >= 0 .and. .not.associated(nodes(iNode)%descendentNode)) then
           message='failed to find descendent node: '
           message=message//nodes(iNode)%descendentIndex//' of '//nodes(iNode)%nodeIndex
           call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
