@@ -752,7 +752,7 @@ contains
     double precision, intent(in)           :: propertyValuesODE(:)
     type(treeNode),   intent(inout)        :: thisNode
     type(component),  pointer              :: thisComponent
-    integer                                :: propertyCounter,iComponent,iProperty,iHistory,iTime,iValue
+    integer                                :: propertyCounter,iComponent,iProperty,iHistory,iTime,iValue,entryCount
     
     propertyCounter=0
     do iComponent=1,size(thisNode%components)
@@ -766,10 +766,9 @@ contains
           do iHistory=1,size(thisNode%components(iComponent)%histories)
              if (allocated(thisNode%components(iComponent)%histories(iHistory)%time)) then
                 do iValue=1,size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
-                   do iTime=1,size(thisNode%components(iComponent)%histories(iHistory)%time)
-                      propertyCounter=propertyCounter+1
-                      thisNode%components(iComponent)%histories(iHistory)%data(iTime,iValue)=propertyValuesODE(propertyCounter)
-                   end do
+                   entryCount=size(thisNode%components(iComponent)%histories(iHistory)%time)
+                   thisNode%components(iComponent)%histories(iHistory)%data(:,iValue)=propertyValuesODE(propertyCounter+1:propertyCounter+entryCount)
+                   propertyCounter=propertyCounter+entryCount
                 end do
              end if
           end do
