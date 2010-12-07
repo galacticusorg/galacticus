@@ -64,13 +64,27 @@
 module Array_Utilities
   !% Contains routines which implement useful operations on arrays.
   private
-  public :: Array_Reverse
+  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic
 
   interface Array_Reverse
      !% Interface to generic routines which reverse the direction of an array.
      module procedure Array_Reverse_Real
      module procedure Array_Reverse_Double
   end interface
+
+  interface Array_Cumulate
+     !% Interface to generic routines which cumulate values in an array.
+     module procedure Array_Cumulate_Double
+  end interface
+
+  interface Array_Is_Monotonic
+     !% Interface to generic routines which check if an array is monotonic.
+     module procedure Array_Is_Monotonic_Double
+  end interface
+
+  ! Types of direction for monotonic arrays.
+  integer, parameter, public :: directionDecreasing=-1
+  integer, parameter, public :: directionIncreasing= 1
 
 contains
 
@@ -99,5 +113,80 @@ contains
     end forall
     return
   end function Array_Reverse_Double
+
+  function Array_Cumulate_Double(array) result (cumulatedArray)
+    !% Cumulates values in a double precision array.
+    implicit none
+    double precision, intent(in)             :: array(:)
+    double precision, dimension(size(array)) :: cumulatedArray
+    integer                                  :: i
+    
+    cumulatedArray(1)=array(1)
+    if (size(array) > 1) then
+       do i=2,size(array)
+          cumulatedArray(i)=cumulatedArray(i-1)+array(i)
+       end do
+    end if
+    return
+  end function Array_Cumulate_Double
+
+  logical function Array_Is_Monotonic_Double(array,direction,allowEqual)
+    !% Checks if a double precision array is monotonic.
+    implicit none
+    double precision, intent(in)           :: array(:)
+    integer,          intent(in), optional :: direction
+    logical,          intent(in), optional :: allowEqual
+    integer                                :: i
+    logical                                :: isIncreasing,allowEqualActual
+
+    ! Single element arrays count as monotonic.
+    if (size(array) <= 1) then
+       Array_Is_Monotonic_Double=.true.
+       return
+    end if
+
+    ! Determine if equal points are allowed.
+    if (present(allowEqual)) then
+       allowEqualActual=allowEqual
+    else
+       allowEqualActual=.false.
+    end if
+
+    ! Determine if the array is increasing of decreasing in the first two elements.
+    isIncreasing=array(size(array)) > array(1)
+
+    ! Check direction is correct if this was specified.
+    if (present(direction)) then
+       if (   (direction == directionIncreasing .and. .not.isIncreasing) .or.        &
+            & (direction == directionDecreasing .and.      isIncreasing)      ) then
+          Array_Is_Monotonic_Double=.false.
+          return
+       end if
+    end if
+
+    ! Check elements are monotonic. We will exit immediately on finding any non-monotonicity, so set the result to false.
+    Array_Is_Monotonic_Double=.false.
+    do i=2,size(array)
+       select case (isIncreasing)
+       case (.true.)
+          select case (allowEqualActual)
+          case (.false.)
+             if (array(i) <= array(i-1)) return
+          case (.true.)
+             if (array(i) <  array(i-1)) return
+          end select
+       case (.false.)
+          select case (allowEqualActual)
+          case (.false.)
+             if (array(i) >= array(i-1)) return
+          case (.true.)
+             if (array(i) >  array(i-1)) return
+          end select
+     end select
+    end do
+    ! No elements failed the test, so the array must be monotonic.
+    Array_Is_Monotonic_Double=.true.
+    return
+  end function Array_Is_Monotonic_Double
 
 end module Array_Utilities
