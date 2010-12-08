@@ -106,6 +106,8 @@ module IO_HDF5
      logical                   :: chunkSizeSet,compressionLevelSet
      type(hdf5Object), pointer :: parentObject
    contains
+procedure :: destroy => IO_HDF5_Destroy
+
      ! Location methods.
      !@ <objectMethod>
      !@   <object>hdf5Object</object>
@@ -437,6 +439,16 @@ contains
   end subroutine IO_HDF5_Set_Defaults
 
   !! Utility routines.
+
+  subroutine IO_HDF5_Destroy(thisObject)
+    !% Destroy an HDF5 object by destroying its associated varying string objects.
+    implicit none
+    type(hdf5Object), intent(inout) :: thisObject
+
+    call thisObject%objectLocation%destroy()
+    call thisObject%objectName    %destroy()
+    return
+  end subroutine IO_HDF5_Destroy
 
   logical function IO_HDF5_Is_Open(thisObject)
     !% Returns true if {\tt thisObject} is open.

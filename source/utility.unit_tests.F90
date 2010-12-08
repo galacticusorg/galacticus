@@ -840,6 +840,7 @@ contains
     thisResult => firstResult%nextResult
     do while (associated(thisResult))
        nextResult => thisResult%nextResult
+       call thisResult%label%destroy()
        deallocate(thisResult)
        call Memory_Usage_Record(sizeof(thisResult),addRemove=-1)
        thisResult => nextResult

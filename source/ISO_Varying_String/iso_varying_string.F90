@@ -52,6 +52,13 @@ module iso_varying_string
   type, public :: varying_string
      private
      character(LEN=1), dimension(:), allocatable :: chars
+   contains
+     !@ <objectMethod>
+     !@   <object>varying_string</object>
+     !@   <method>destroy</method>
+     !@   <description>Destroys the object by deallocating internal storage.</description>
+     !@ </objectMethod>
+     procedure :: destroy => destroy_VS
   end type varying_string
 
 ! Interface blocks
@@ -1472,6 +1479,7 @@ contains
 
     length = LEN(char)
 
+
     ALLOCATE(string%chars(length))
 
     forall(i_char = 1:length)
@@ -2629,5 +2637,13 @@ contains
 
   end subroutine split_CH
 
+  subroutine destroy_VS (string)
+    !% Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
+    type(varying_string), intent(inout) :: string
+
+    if (allocated(string%chars)) deallocate(string%chars)
+    return
+  end subroutine destroy_VS
+  
 end module iso_varying_string
 
