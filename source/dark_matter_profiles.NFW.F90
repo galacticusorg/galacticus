@@ -165,6 +165,7 @@ contains
     !% Tabulate properties of the NFW halo profile which must be computed numerically.
     use Numerical_Ranges
     use Memory_Management
+    use Numerical_Interpolation
     implicit none
     double precision, intent(in), optional :: concentration
     integer                                :: iConcentration
@@ -202,6 +203,7 @@ contains
                &/Angular_Momentum_NFW_Scale_Free(nfwConcentration(iConcentration))
        end do
        ! Ensure interpolations get reset.
+       call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
        interpolationReset=.true.
        ! Specify that tabulation has been made.
        nfwTableInitialized=.true.
@@ -214,6 +216,7 @@ contains
     !% Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.
     use Numerical_Ranges
     use Memory_Management
+    use Numerical_Interpolation
     implicit none
     double precision, intent(in), optional :: specificAngularMomentum
     integer                                :: iRadius
@@ -255,6 +258,7 @@ contains
           nfwSpecificAngularMomentum(iRadius)=Specific_Angular_Momentum_NFW_Scale_Free(nfwRadius(iRadius))
        end do
        ! Ensure interpolations get reset.
+       call Interpolate_Done(interpolationInverseObject,interpolationInverseAccelerator,interpolationInverseReset)
        interpolationInverseReset=.true.
        ! Specify that tabulation has been made.
        nfwInverseTableInitialized=.true.
