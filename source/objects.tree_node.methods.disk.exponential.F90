@@ -1167,6 +1167,7 @@ contains
        end do
 
        ! Reset the interpolations.
+       call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
        interpolationReset=.true.
 
        ! Flag that the rotation curve is now initialized.
