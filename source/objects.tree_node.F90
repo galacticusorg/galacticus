@@ -201,23 +201,28 @@ module Tree_Nodes
      !@     <method>walkBranch(startNode,nextNode)</method>
      !@     <description>Walks to the next node in the branch rooted at {\tt startNode}, returning the pointer in {\tt nextNode} if given, otherwise moving the target node to the new node.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>walkBranchWithSatellites(startNode,nextNode)</method>
+     !@     <description>Walks to the next node in the branch rooted at {\tt startNode}, recursing through satellite nodes, returning the pointer in {\tt nextNode} if given, otherwise moving the target node to the new node.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure                                  ::                           Merger_Tree_Walk_Tree
+     procedure                                  ::                             Merger_Tree_Walk_Tree
 ! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!     procedure                                  ::                           Merger_Tree_Walk_Tree_Same_Node
-     generic                                    :: walkTree               => Merger_Tree_Walk_Tree!,&
-!          &                                                                  Merger_Tree_Walk_Tree_Same_Node
-     procedure                                  ::                           Merger_Tree_Walk_Tree_With_Satellites
+!     procedure                                  ::                             Merger_Tree_Walk_Tree_Same_Node
+     generic                                    :: walkTree                 => Merger_Tree_Walk_Tree!,&
+!          &                                                                    Merger_Tree_Walk_Tree_Same_Node
+     procedure                                  ::                             Merger_Tree_Walk_Tree_With_Satellites
 ! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!     procedure                                  ::                           Merger_Tree_Walk_Tree_With_Satellites_Same_Node
-     generic                                    :: walkTreeWithSatellites => Merger_Tree_Walk_Tree_With_Satellites!,&
-!          &                                                                  Merger_Tree_Walk_Tree_With_Satellites_Same_Node
-     procedure                                  ::                           Merger_Tree_Construction_Walk
+!     procedure                                  ::                             Merger_Tree_Walk_Tree_With_Satellites_Same_Node
+     generic                                    :: walkTreeWithSatellites   => Merger_Tree_Walk_Tree_With_Satellites!,&
+!          &                                                                    Merger_Tree_Walk_Tree_With_Satellites_Same_Node
+     procedure                                  ::                             Merger_Tree_Construction_Walk
 ! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!     procedure                                  ::                           Merger_Tree_Construction_Walk_Same_Node
-     generic                                    :: walkTreeConstruction   => Merger_Tree_Construction_Walk!,&
-!          &                                                                  Merger_Tree_Construction_Walk_Same_Node
-     procedure                                  :: walkBranch             => Merger_Tree_Walk_Branch
+!     procedure                                  ::                             Merger_Tree_Construction_Walk_Same_Node
+     generic                                    :: walkTreeConstruction     => Merger_Tree_Construction_Walk!,&
+!          &                                                                    Merger_Tree_Construction_Walk_Same_Node
+     procedure                                  :: walkBranch               => Merger_Tree_Walk_Branch
+     procedure                                  :: walkBranchWithSatellites => Merger_Tree_Walk_Branch_With_Satellites
      ! Satellite methods.
      !@ <objectMethods>
      !@   <object>treeNode</object>
@@ -1147,7 +1152,22 @@ contains
              workNode => workNode%satelliteNode
           end do
        else
-          workNode => workNode%parentNode
+          ! About to move back up the tree. Check if the node we're moving up from is a satellite.
+          if (workNode%isSatellite()) then
+             ! It is a satellite, so all satellites and children of the parent must have been processed. Therefore, move to the
+             ! parent.
+             workNode => workNode%parentNode
+          else
+             ! It is not a satellite. Therefore, the parent may have satellites that have yet to be visited. Check if the parent
+             ! has satellites.
+             if (associated(workNode%parentNode%satelliteNode)) then
+                ! Parent does have satellites, so move to the first one.
+                workNode => workNode%parentNode%satelliteNode
+             else
+                ! Parent has no satellites, so move to the parent.
+                workNode => workNode%parentNode
+             end if
+          end if
           if (.not.associated(workNode%parentNode)) workNode => null() ! Terminate when back at tree base.
        end if
     end if
@@ -1178,7 +1198,7 @@ contains
 #ifdef GCC45
     end select
 #endif
-       workNode => thisNodeActual
+    workNode => thisNodeActual
 
     if (associated(thisNodeActual,startNode)) then
        do while (associated(workNode%childNode))
@@ -1199,6 +1219,75 @@ contains
     nextNode => workNode
     return
   end subroutine Merger_Tree_Walk_Branch
+
+  subroutine Merger_Tree_Walk_Branch_With_Satellites(thisNode,startNode,nextNode)
+    !% This function provides a mechanism for walking through the branches of the merger tree. Given a pointer {\tt thisNode}
+    !% to a branch of the tree, it will return the next node that should be visited in the tree. Thus, if {\tt thisNode} is
+    !% initially set to the base of the merger tree and {\tt Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node
+    !% of the branch. Once the entire branch has been walked, a {\tt null()} pointer will be returned, indicating that there
+    !% are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
+    implicit none
+#ifdef GCC45
+    class (treeNode), target,  intent(inout) :: thisNode
+#else
+    type (treeNode),  pointer, intent(inout) :: thisNode
+#endif
+    type (treeNode),  pointer, intent(inout) :: startNode,nextNode
+    type (treeNode),  pointer                :: workNode,thisNodeActual
+
+#ifdef GCC45
+    select type (thisNode)
+    type is (treeNode)
+#endif
+       thisNodeActual => thisNode
+#ifdef GCC45
+    end select
+#endif
+    workNode => thisNode
+    
+    if (associated(thisNode,startNode)) then
+       ! Descend to any children.
+       do while (associated(workNode%childNode))
+          workNode => workNode%childNode
+       end do
+       ! Descend through any satellite nodes.
+       do while (associated(workNode%satelliteNode))
+          workNode => workNode%satelliteNode
+       end do
+       if (associated(workNode,thisNode)) nullify(workNode)
+    else
+       if (associated(workNode%siblingNode)) then
+          workNode => workNode%siblingNode
+          do while (associated(workNode%childNode))
+             workNode => workNode%childNode
+          end do
+          ! Descend through any satellite nodes.
+          do while (associated(workNode%satelliteNode))
+             workNode => workNode%satelliteNode
+          end do
+       else
+          ! About to move back up the tree. Check if the node we're moving up from is a satellite.
+          if (workNode%isSatellite()) then
+             ! It is a satellite, so all satellites and children of the parent must have been processed. Therefore, move to the
+             ! parent.
+             workNode => workNode%parentNode
+          else
+             ! It is not a satellite. Therefore, the parent may have satellites that have yet to be visited. Check if the parent
+             ! has satellites.
+             if (associated(workNode%parentNode%satelliteNode)) then
+                ! Parent does have satellites, so move to the first one.
+                workNode => workNode%parentNode%satelliteNode
+             else
+                ! Parent has no satellites, so move to the parent.
+                workNode => workNode%parentNode
+             end if
+          end if
+          if (associated(workNode,startNode)) workNode => null() ! Terminate when back at starting node.
+       end if
+    end if
+    nextNode => workNode
+    return
+  end subroutine Merger_Tree_Walk_Branch_With_Satellites
 
 ! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
 !   subroutine Merger_Tree_Construction_Walk_Same_Node(thisNode)
@@ -1224,6 +1313,7 @@ contains
 !     call Merger_Tree_Construction_Walk(thisNode,thisNodeActual)
 !     return
 !   end subroutine Merger_Tree_Construction_Walk_Same_Node
+
 
   subroutine Merger_Tree_Construction_Walk(thisNode,nextNode)
     !% This function provides a mechanism for walking through a merger tree that is being built.

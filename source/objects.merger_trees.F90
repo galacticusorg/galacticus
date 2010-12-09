@@ -230,7 +230,7 @@ contains
     nextNode => thisNode
     do while (associated(nextNode))
        destroyNode => nextNode
-       call destroyNode%walkBranch(thisNode,nextNode)
+       call destroyNode%walkBranchWithSatellites(thisNode,nextNode)
        call destroyNode%destroy
     end do
     return
