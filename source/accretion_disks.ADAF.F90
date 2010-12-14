@@ -85,6 +85,11 @@ module Accretion_Disks_ADAF
   integer                        :: adafViscosity
   double precision               :: adafViscosityFixedAlpha
 
+  ! Options for the field-enhancing shear.
+  type(varying_string)           :: adafFieldEnhanceType
+  integer,             parameter :: adafFieldEnhanceExponential=0, adafFieldEnhanceLinear=1
+  integer                        :: adafFieldEnhance
+
   ! Variable determining whether ADAF energy is 1 or E_ISCO.
   type(varying_string)           :: adafEnergyOption
   integer,             parameter :: adafEnergyIsco=0, adafEnergy1=1
@@ -126,6 +131,7 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
+    double precision :: adafAdiabaticIndexDefault
 
     !$omp critical(adafInitalize)
     if (.not.adafInitialized) then
@@ -158,8 +164,29 @@ contains
           call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafEnergyType')
        end select
        !@ <inputParameter>
+       !@   <name>adafFieldEnhanceType</name>
+       !@   <defaultValue>exponential</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Controls how the field enhancing shear is determined. {\tt exponential} will cause the form $g=\exp(\omega t)$ \pcite{benson_maximum_2009}
+       !@    to be used, while {\tt linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
+       !@    to achieve a sensible spin-up function in each case.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("adafFieldEnhanceType",adafFieldEnhanceType,defaultValue="exponential")
+       select case (char(adafFieldEnhanceType))
+       case ("exponential")
+          adafFieldEnhance         =adafFieldEnhanceExponential
+          adafAdiabaticIndexDefault=1.444d0
+       case ("linear")
+          adafFieldEnhance         =adafFieldEnhanceLinear
+          adafAdiabaticIndexDefault=1.333d0
+       case default
+          call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafFieldEnhanceType')
+       end select
+       !@ <inputParameter>
        !@   <name>adafAdiabaticIndex</name>
-       !@   <defaultValue>1.444</defaultValue>
+       !@   <defaultValue>1.444 (for exponential form of field-enhancing shear) or 1.333 (for linear form)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies the effective adiabatic index of gas in an ADAF.
@@ -193,7 +220,7 @@ contains
        case ("fit")
           adafViscosity=adafViscosityFit
        case default
-          call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafEnergyType')
+          call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafViscosityOption')
        end select
        adafInitialized=.true.
     end if
@@ -463,7 +490,12 @@ contains
        tauR  =radius*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)/dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius))&
             &/ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)
        tau=min(tauPhi,tauR)
-       fieldEnhancementPrevious  =dexp(Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau)
+       select case (adafFieldEnhance)
+       case (adafFieldEnhanceExponential)
+          fieldEnhancementPrevious= dexp(Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau)
+       case (adafFieldEnhanceLinear     )
+          fieldEnhancementPrevious=1.0d0+Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau
+       end select
        radiusPrevious            =radius
        blackHoleSpinPrevious     =blackHoleSpin
        adafViscosityAlphaPrevious=adafViscosityAlpha
@@ -509,11 +541,21 @@ contains
     if (blackHoleSpin /= blackHoleSpinPrevious) then
        select case (adafEnergy)
        case (adafEnergyISCO)
-          alphaPrevious=0.025d0+0.400d0*blackHoleSpin**4
-       case (adafEnergy1)
-          alphaPrevious=0.025d0+0.055d0*blackHoleSpin**2
+          select case (adafFieldEnhance)
+          case (adafFieldEnhanceExponential)
+             alphaPrevious=0.015d0+0.02d0*blackHoleSpin**4
+          case (adafFieldEnhanceLinear     )
+             alphaPrevious=0.025d0+0.08d0*blackHoleSpin**4
+          end select
+       case (adafEnergy1   )
+          select case (adafFieldEnhance)
+          case (adafFieldEnhanceExponential)
+             alphaPrevious=0.010d0
+          case (adafFieldEnhanceLinear     )
+             alphaPrevious=0.025d0+0.02d0*blackHoleSpin**4
+          end select
        end select
-       blackHoleSpinPrevious     =blackHoleSpin
+       blackHoleSpinPrevious=blackHoleSpin
     end if
     ADAF_alpha=alphaPrevious
     return
