@@ -1136,18 +1136,8 @@ contains
 
     if (.not.associated(workNode%parentNode)) then
        ! This is the base of the merger tree.
-       ! Descend through any satellite nodes.
-       do while (associated(workNode%satelliteNode))
-          workNode => workNode%satelliteNode
-       end do
-       ! Descend through any child nodes.
-       do while (associated(workNode%childNode))
-          workNode => workNode%childNode
-       end do
-       if (associated(workNode,thisNodeActual)) nullify(workNode)
-    else
-       if (associated(workNode%siblingNode)) then
-          workNode => workNode%siblingNode
+       ! Descend through satellites and children.
+       do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
           ! Descend through any satellite nodes.
           do while (associated(workNode%satelliteNode))
              workNode => workNode%satelliteNode
@@ -1155,6 +1145,38 @@ contains
           ! Descend through any child nodes.
           do while (associated(workNode%childNode))
              workNode => workNode%childNode
+          end do
+       end do
+       if (associated(workNode,thisNodeActual)) nullify(workNode)
+    else
+       if (associated(workNode%siblingNode)) then
+          workNode => workNode%siblingNode
+          ! Descend through satellites and children.
+          do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
+             ! Descend through any satellite nodes.
+             do while (associated(workNode%satelliteNode))
+                workNode => workNode%satelliteNode
+             end do
+             ! Descend through any child nodes.
+             do while (associated(workNode%childNode))
+                workNode => workNode%childNode
+             end do
+          end do
+       end do
+       if (associated(workNode,thisNode)) nullify(workNode)
+    else
+       if (associated(workNode%siblingNode)) then
+          workNode => workNode%siblingNode
+          ! Descend through satellites and children.
+          do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
+             ! Descend through any satellite nodes.
+             do while (associated(workNode%satelliteNode))
+                workNode => workNode%satelliteNode
+             end do
+             ! Descend through any child nodes.
+             do while (associated(workNode%childNode))
+                workNode => workNode%childNode
+             end do
           end do
        else
           ! About to move back up the tree. Check if the node we're moving up from is a satellite.
@@ -1164,6 +1186,17 @@ contains
              if (associated(workNode%parentNode%childNode)) then
                 ! Parent does have children, so move to the first one.
                 workNode => workNode%parentNode%childNode
+                ! Descend through satellites and children.
+                do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
+                   ! Descend through any satellite nodes.
+                   do while (associated(workNode%satelliteNode))
+                      workNode => workNode%satelliteNode
+                   end do
+                   ! Descend through any child nodes.
+                   do while (associated(workNode%childNode))
+                      workNode => workNode%childNode
+                   end do
+                end do
              else
                 ! Parent has no children, so move to the parent.
                 workNode => workNode%parentNode
@@ -1251,20 +1284,10 @@ contains
     end select
 #endif
     workNode => thisNode
-    
+
     if (associated(thisNode,startNode)) then
-       ! Descend through any satellite nodes.
-       do while (associated(workNode%satelliteNode))
-          workNode => workNode%satelliteNode
-       end do
-       ! Descend to any children.
-       do while (associated(workNode%childNode))
-          workNode => workNode%childNode
-       end do
-       if (associated(workNode,thisNode)) nullify(workNode)
-    else
-       if (associated(workNode%siblingNode)) then
-          workNode => workNode%siblingNode
+       ! Descend through satellites and children.
+       do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
           ! Descend through any satellite nodes.
           do while (associated(workNode%satelliteNode))
              workNode => workNode%satelliteNode
@@ -1273,14 +1296,41 @@ contains
           do while (associated(workNode%childNode))
              workNode => workNode%childNode
           end do
+       end do
+       if (associated(workNode,thisNode)) nullify(workNode)
+    else
+       if (associated(workNode%siblingNode)) then
+          workNode => workNode%siblingNode
+          ! Descend through satellites and children.
+          do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
+             ! Descend through any satellite nodes.
+             do while (associated(workNode%satelliteNode))
+                workNode => workNode%satelliteNode
+             end do
+             ! Descend to any children.
+             do while (associated(workNode%childNode))
+                workNode => workNode%childNode
+             end do
+          end do
        else
           ! About to move back up the tree. Check if the node we're moving up from is a satellite.
           if (workNode%isSatellite()) then
              ! It is a satellite. Therefore, the parent may have children that have yet to be visited. Check if the parent
-             ! has childern.
+             ! has children.
              if (associated(workNode%parentNode%childNode)) then
                 ! Parent does have children, so move to the first one.
                 workNode => workNode%parentNode%childNode
+                ! Descend through satellites and children.
+                do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
+                   ! Descend through any satellite nodes.
+                   do while (associated(workNode%satelliteNode))
+                      workNode => workNode%satelliteNode
+                   end do
+                   ! Descend through any child nodes.
+                   do while (associated(workNode%childNode))
+                      workNode => workNode%childNode
+                   end do
+                end do
              else
                 ! Parent has no satellites, so move to the parent.
                 workNode => workNode%parentNode
