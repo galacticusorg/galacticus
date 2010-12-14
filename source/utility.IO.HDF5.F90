@@ -3519,7 +3519,7 @@ contains
              chunkDimensions(1)=chunkSizeActual
           else
              ! Fixed dimension array, use smaller of chunk size and actual size.
-             chunkDimensions=min(datasetDimensionsActual,chunkSizeActual)
+             chunkDimensions(1:datasetRank)=min(datasetDimensionsActual(1:datasetRank),chunkSizeActual)
           end if
           call h5pset_chunk_f(propertyList,datasetRank,chunkDimensions,errorCode) 
           if (errorCode < 0) then
