@@ -216,11 +216,15 @@ contains
     use FoX_dom
     use String_Handling
     implicit none
-    type(molecularStructure), intent(in) :: thisMolecule
-    character(len=*),         intent(in) :: outputFile
-    type(xmlf_t)                         :: exportedMoleculeDoc
-    character(len=10)                    :: label
-    integer                              :: iAtom,iBond
+#ifdef GCC45
+    class(molecularStructure), intent(in) :: thisMolecule
+#else
+    type(molecularStructure),  intent(in) :: thisMolecule
+#endif
+    character(len=*),          intent(in) :: outputFile
+    type(xmlf_t)                          :: exportedMoleculeDoc
+    character(len=10)                     :: label
+    integer                               :: iAtom,iBond
 
     ! Create the output file.
     call xml_OpenFile(outputFile,exportedMoleculeDoc)
@@ -309,10 +313,22 @@ contains
     !% Find a molecule in the database and return it.
     use Galacticus_Error
     implicit none
-    type(molecularStructure), intent(inout) :: thisMolecule
+#ifdef GCC45
+    class(molecularStructure), intent(inout) :: thisMolecule
+#else
+    type(molecularStructure),  intent(inout) :: thisMolecule
+#endif
+
     character(len=*),         intent(in)    :: moleculeName
 
-    thisMolecule=molecules(Molecular_Database_Get_Index(moleculeName))
+#ifdef GCC45
+    select type (thisMolecule)
+    type is (molecularStructure)
+#endif
+       thisMolecule=molecules(Molecular_Database_Get_Index(moleculeName))
+#ifdef GCC45
+    end select
+#endif
     return
   end subroutine Molecular_Database_Get
 
@@ -320,7 +336,11 @@ contains
     !% Return the charge on a molecule.
     use Galacticus_Error
     implicit none
-    type(molecularStructure), intent(in) :: thisMolecule
+#ifdef GCC45
+    class(molecularStructure), intent(in) :: thisMolecule
+#else
+    type(molecularStructure),  intent(in) :: thisMolecule
+#endif
 
     Molecular_Structure_Charge=thisMolecule%chargeValue
     return
@@ -330,7 +350,11 @@ contains
     !% Return the mass of a molecule.
     use Galacticus_Error
     implicit none
-    type(molecularStructure), intent(in) :: thisMolecule
+#ifdef GCC45
+    class(molecularStructure), intent(in) :: thisMolecule
+#else
+    type(molecularStructure),  intent(in) :: thisMolecule
+#endif
 
     Molecular_Structure_Mass=thisMolecule%massValue
     return

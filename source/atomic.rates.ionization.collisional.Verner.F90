@@ -490,8 +490,8 @@ contains
     !% Initializes the ``Verner'' atomic collisional ionization rate module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: atomicCollisionalIonizationMethod
-    procedure(),          pointer, intent(inout) :: Atomic_Rate_Ionization_Collisional_Get
+    type(varying_string),                 intent(in)    :: atomicCollisionalIonizationMethod
+    procedure(double precision), pointer, intent(inout) :: Atomic_Rate_Ionization_Collisional_Get
  
     ! Check if this atomic collisional ionization rate method has been selected.
     if (atomicCollisionalIonizationMethod == 'Verner') Atomic_Rate_Ionization_Collisional_Get => Atomic_Rate_Ionization_Collisional_Verner

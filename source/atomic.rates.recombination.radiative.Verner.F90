@@ -575,8 +575,8 @@ contains
     !% Initializes the ``Verner'' atomic collisional ionization rate module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: atomicRadiativeRecombinationMethod
-    procedure(),          pointer, intent(inout) :: Atomic_Rate_Recombination_Radiative_Get
+    type(varying_string),                 intent(in)    :: atomicRadiativeRecombinationMethod
+    procedure(double precision), pointer, intent(inout) :: Atomic_Rate_Recombination_Radiative_Get
  
     ! Check if this atomic collisional ionization rate method has been selected.
     if (atomicRadiativeRecombinationMethod == 'Verner') Atomic_Rate_Recombination_Radiative_Get => Atomic_Rate_Recombination_Radiative_Verner
