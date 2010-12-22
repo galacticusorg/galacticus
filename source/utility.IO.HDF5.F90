@@ -106,7 +106,6 @@ module IO_HDF5
      logical                   :: chunkSizeSet,compressionLevelSet
      type(hdf5Object), pointer :: parentObject
    contains
-procedure :: destroy => IO_HDF5_Destroy
 
      ! Location methods.
      !@ <objectMethod>
@@ -337,6 +336,12 @@ procedure :: destroy => IO_HDF5_Destroy
      procedure :: createReference3D   => IO_HDF5_Create_Reference_Scalar_To_3D
      procedure :: createReference4D   => IO_HDF5_Create_Reference_Scalar_To_4D
      procedure :: createReference5D   => IO_HDF5_Create_Reference_Scalar_To_5D
+     !@ <objectMethod>
+     !@   <object>hdf5Object</object>
+     !@   <method>destroy</method>
+     !@   <description>Destroy an HDF5 object.</description>
+     !@ </objectMethod>
+     procedure :: destroy             => IO_HDF5_Destroy
   end type hdf5Object
 
   ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API.
@@ -443,7 +448,11 @@ contains
   subroutine IO_HDF5_Destroy(thisObject)
     !% Destroy an HDF5 object by destroying its associated varying string objects.
     implicit none
-    type(hdf5Object), intent(inout) :: thisObject
+#ifdef GCC45
+    class(hdf5Object), intent(inout) :: thisObject
+#else
+    type(hdf5Object),  intent(inout) :: thisObject
+#endif
 
     call thisObject%objectLocation%destroy()
     call thisObject%objectName    %destroy()

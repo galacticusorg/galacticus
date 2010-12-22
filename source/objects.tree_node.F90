@@ -1133,51 +1133,16 @@ contains
     end select
 #endif
     workNode => thisNodeActual
-
     if (.not.associated(workNode%parentNode)) then
        ! This is the base of the merger tree.
        ! Descend through satellites and children.
-       do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
-          ! Descend through any satellite nodes.
-          do while (associated(workNode%satelliteNode))
-             workNode => workNode%satelliteNode
-          end do
-          ! Descend through any child nodes.
-          do while (associated(workNode%childNode))
-             workNode => workNode%childNode
-          end do
-       end do
+       workNode => Merger_Tree_Walk_Descend_to_Progenitors(workNode)
        if (associated(workNode,thisNodeActual)) nullify(workNode)
     else
        if (associated(workNode%siblingNode)) then
           workNode => workNode%siblingNode
           ! Descend through satellites and children.
-          do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
-             ! Descend through any satellite nodes.
-             do while (associated(workNode%satelliteNode))
-                workNode => workNode%satelliteNode
-             end do
-             ! Descend through any child nodes.
-             do while (associated(workNode%childNode))
-                workNode => workNode%childNode
-             end do
-          end do
-       end do
-       if (associated(workNode,thisNode)) nullify(workNode)
-    else
-       if (associated(workNode%siblingNode)) then
-          workNode => workNode%siblingNode
-          ! Descend through satellites and children.
-          do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
-             ! Descend through any satellite nodes.
-             do while (associated(workNode%satelliteNode))
-                workNode => workNode%satelliteNode
-             end do
-             ! Descend through any child nodes.
-             do while (associated(workNode%childNode))
-                workNode => workNode%childNode
-             end do
-          end do
+          workNode => Merger_Tree_Walk_Descend_to_Progenitors(workNode)
        else
           ! About to move back up the tree. Check if the node we're moving up from is a satellite.
           if (workNode%isSatellite()) then
@@ -1187,16 +1152,7 @@ contains
                 ! Parent does have children, so move to the first one.
                 workNode => workNode%parentNode%childNode
                 ! Descend through satellites and children.
-                do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
-                   ! Descend through any satellite nodes.
-                   do while (associated(workNode%satelliteNode))
-                      workNode => workNode%satelliteNode
-                   end do
-                   ! Descend through any child nodes.
-                   do while (associated(workNode%childNode))
-                      workNode => workNode%childNode
-                   end do
-                end do
+                workNode => Merger_Tree_Walk_Descend_to_Progenitors(workNode)
              else
                 ! Parent has no children, so move to the parent.
                 workNode => workNode%parentNode
@@ -1283,35 +1239,17 @@ contains
 #ifdef GCC45
     end select
 #endif
-    workNode => thisNode
+    workNode => thisNodeActual
 
-    if (associated(thisNode,startNode)) then
+    if (associated(thisNodeActual,startNode)) then
        ! Descend through satellites and children.
-       do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
-          ! Descend through any satellite nodes.
-          do while (associated(workNode%satelliteNode))
-             workNode => workNode%satelliteNode
-          end do
-          ! Descend to any children.
-          do while (associated(workNode%childNode))
-             workNode => workNode%childNode
-          end do
-       end do
-       if (associated(workNode,thisNode)) nullify(workNode)
+       workNode => Merger_Tree_Walk_Descend_to_Progenitors(workNode)
+       if (associated(workNode,thisNodeActual)) nullify(workNode)
     else
        if (associated(workNode%siblingNode)) then
           workNode => workNode%siblingNode
           ! Descend through satellites and children.
-          do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
-             ! Descend through any satellite nodes.
-             do while (associated(workNode%satelliteNode))
-                workNode => workNode%satelliteNode
-             end do
-             ! Descend to any children.
-             do while (associated(workNode%childNode))
-                workNode => workNode%childNode
-             end do
-          end do
+          workNode => Merger_Tree_Walk_Descend_to_Progenitors(workNode)
        else
           ! About to move back up the tree. Check if the node we're moving up from is a satellite.
           if (workNode%isSatellite()) then
@@ -1321,23 +1259,14 @@ contains
                 ! Parent does have children, so move to the first one.
                 workNode => workNode%parentNode%childNode
                 ! Descend through satellites and children.
-                do while (associated(workNode%satelliteNode).or.associated(workNode%childNode))
-                   ! Descend through any satellite nodes.
-                   do while (associated(workNode%satelliteNode))
-                      workNode => workNode%satelliteNode
-                   end do
-                   ! Descend through any child nodes.
-                   do while (associated(workNode%childNode))
-                      workNode => workNode%childNode
-                   end do
-                end do
+                workNode => Merger_Tree_Walk_Descend_to_Progenitors(workNode)
              else
                 ! Parent has no satellites, so move to the parent.
                 workNode => workNode%parentNode
              end if
           else
-             ! It is not a satellite, so all satellites and children of the parent must have been processed. Therefore, move to the
-             ! parent.
+             ! It is not a satellite, so all satellites and children of the parent must have been processed. Therefore, move to
+             ! the parent.
              workNode => workNode%parentNode
           end if
           if (associated(workNode,startNode)) workNode => null() ! Terminate when back at starting node.
@@ -1372,6 +1301,28 @@ contains
 !     return
 !   end subroutine Merger_Tree_Construction_Walk_Same_Node
 
+  function Merger_Tree_Walk_Descend_to_Progenitors(thisNode) result (progenitorNode)
+    !% Descend to the deepest progenitor (satellites and children) of {\tt thisNode}.
+    implicit none
+    type(treeNode), intent(in), pointer :: thisNode
+    type(treeNode),             pointer :: progenitorNode
+
+    ! Begin at the input node.
+    progenitorNode => thisNode
+    
+    ! Descend through satellites and children.
+    do while (associated(progenitorNode%satelliteNode).or.associated(progenitorNode%childNode))
+       ! Descend through any satellite nodes.
+       do while (associated(progenitorNode%satelliteNode))
+          progenitorNode => progenitorNode%satelliteNode
+       end do
+       ! Descend through any child nodes.
+       do while (associated(progenitorNode%childNode))
+          progenitorNode => progenitorNode%childNode
+       end do
+    end do
+    return
+  end function Merger_Tree_Walk_Descend_to_Progenitors
 
   subroutine Merger_Tree_Construction_Walk(thisNode,nextNode)
     !% This function provides a mechanism for walking through a merger tree that is being built.
