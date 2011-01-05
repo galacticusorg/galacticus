@@ -91,15 +91,16 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Numerical_Constants_Astronomical
+    use Kind_Numbers
     implicit none
-    type(mergerTree), intent(in)                :: thisTree
-    type(treeNode),   pointer                   :: thisNode
-    integer,          allocatable, dimension(:) :: accretionHistoryNodeIndex
-    double precision, allocatable, dimension(:) :: accretionHistoryNodeMass,accretionHistoryNodeTime
-    type(hdf5Object), save                      :: accretionGroup
-    integer                                     :: accretionHistoryCount
-    type(varying_string)                        :: groupName
-    type(hdf5Object)                            :: treeGroup,accretionDataset
+    type(mergerTree),        intent(in)                :: thisTree
+    type(treeNode),          pointer                   :: thisNode
+    integer(kind=kind_int8), allocatable, dimension(:) :: accretionHistoryNodeIndex
+    double precision,        allocatable, dimension(:) :: accretionHistoryNodeMass,accretionHistoryNodeTime
+    type(hdf5Object),        save                      :: accretionGroup
+    integer(kind=kind_int8)                            :: accretionHistoryCount
+    type(varying_string)                               :: groupName
+    type(hdf5Object)                                   :: treeGroup,accretionDataset
 
     ! Check if module is initialized.
     !$omp critical(accretionHistoryModuleInitialize)
@@ -132,9 +133,9 @@ contains
           thisNode => thisNode%childNode
        end do
        ! Allocate storage space.
-       call Alloc_Array(accretionHistoryNodeIndex,[accretionHistoryCount])
-       call Alloc_Array(accretionHistoryNodeTime ,[accretionHistoryCount])
-       call Alloc_Array(accretionHistoryNodeMass ,[accretionHistoryCount])
+       call Alloc_Array(accretionHistoryNodeIndex,[int(accretionHistoryCount)])
+       call Alloc_Array(accretionHistoryNodeTime ,[int(accretionHistoryCount)])
+       call Alloc_Array(accretionHistoryNodeMass ,[int(accretionHistoryCount)])
        ! Extract accretion history.
        accretionHistoryCount=0
        thisNode => thisTree%baseNode

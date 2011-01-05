@@ -96,18 +96,19 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
+    use Kind_Numbers
     !# <include directive="mergerTreeStructureOutputTask" type="moduleUse">
     include 'merger_trees.output_structure.tasks.modules.inc'
     !# </include>
     implicit none
-    type(mergerTree), intent(in)                :: thisTree
-    type(treeNode),   pointer                   :: thisNode
-    integer,          allocatable, dimension(:) :: nodeIndex
-    double precision, allocatable, dimension(:) :: nodeProperty
-    type(hdf5Object), save                      :: structureGroup
-    integer                                     :: nodeCount
-    type(varying_string)                        :: groupName,groupComment
-    type(hdf5Object)                            :: treeGroup,nodeDataset
+    type(mergerTree),        intent(in)                :: thisTree
+    type(treeNode),          pointer                   :: thisNode
+    integer(kind=kind_int8), allocatable, dimension(:) :: nodeIndex
+    double precision,        allocatable, dimension(:) :: nodeProperty
+    type(hdf5Object),        save                      :: structureGroup
+    integer                                            :: nodeCount
+    type(varying_string)                               :: groupName,groupComment
+    type(hdf5Object)                                   :: treeGroup,nodeDataset
 
     ! Check if module is initialized.
     !$omp critical(structureOutputModuleInitialize)
