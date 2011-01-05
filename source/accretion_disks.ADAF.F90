@@ -168,7 +168,7 @@ contains
        !@   <defaultValue>exponential</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    Controls how the field enhancing shear is determined. {\tt exponential} will cause the form $g=\exp(\omega t)$ \pcite{benson_maximum_2009}
+       !@    Controls how the field enhancing shear is determined. {\tt exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
        !@    to be used, while {\tt linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
        !@    to achieve a sensible spin-up function in each case.
        !@   </description>
