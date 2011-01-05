@@ -139,7 +139,7 @@ contains
        endif
 
        ! Walk the tree, including satellite nodes.
-       call thisNode%walkTreeWithSatellites()
+       call thisNode%walkTreeWithSatellites(thisNode)
 
     end do
 

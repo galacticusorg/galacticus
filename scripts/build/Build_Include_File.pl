@@ -148,7 +148,7 @@ foreach $fullname ( @filesToScan ) {
 			$inserts{$data->{'methodName'}} = &Get_Type($data);
 		    }
 		    # Process option names associated with component implementations.
-		    case ( "optionNames" ) {
+		    case ( [ "optionNames", "optionDefinitions" ] ) {
 			if ( exists($data->{'optionName'}) ) {
 			    if ( exists($data->{'optionName'}->{'content'}) ) {
 				$content = $data->{'optionName'}->{'content'};
@@ -220,12 +220,15 @@ foreach $BlockName ( keys(%inserts) ) {
 # Open the output file.
 open(includeFile,">".$instructions->{'fileName'});
 switch ( $instructions->{'type'} ) {
-    # For option names, output code to read in the values from the parameter file.
-    case ( "optionNames" ) {
+    # For option defintions, output code to define the variables.
+    case ( "optionDefinitions" ) {
 	# Create variables.
 	foreach $optionName ( @SortedBlocks ) {
 	    print includeFile "type(varying_string) :: $optionName\n";
 	}
+    }
+    # For option names, output code to read in the values from the parameter file.
+    case ( "optionNames" ) {
 	# Read in parameter value.
 	foreach $optionName ( @SortedBlocks ) {
 	    print includeFile "call Get_Input_Parameter('".$optionName."',".$optionName;

@@ -95,7 +95,8 @@ contains
     implicit none
     type(varying_string),                 intent(in)    :: ionizationStateMethod
     procedure(double precision), pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get&
-         &,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get
+         &,Electron_Density_Density_Log_Slope_Get
+    procedure(),                 pointer, intent(inout) :: Molecular_Densities_Get
  
     ! Check if this ionization state has been selected.
     if (ionizationStateMethod == 'atomic_CIE_Cloudy') then

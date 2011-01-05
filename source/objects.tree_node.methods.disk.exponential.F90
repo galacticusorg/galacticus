@@ -69,10 +69,11 @@ module Tree_Node_Methods_Exponential_Disk
   use Components
   use Stellar_Population_Properties
   private
-  public :: Tree_Node_Methods_Exponential_Disk_Initialize, Exponential_Disk_Satellite_Merging,&
-       & Galacticus_Output_Tree_Disk_Exponential, Galacticus_Output_Tree_Disk_Exponential_Property_Count,&
-       & Galacticus_Output_Tree_Disk_Exponential_Names, Exponential_Disk_Radius_Solver, Exponential_Disk_Enclosed_Mass,&
-       & Exponential_Disk_Rotation_Curve, Tree_Node_Disk_Post_Evolve_Exponential, Tree_Node_Methods_Exponential_Disk_Dump,&
+  public :: Tree_Node_Methods_Exponential_Disk_Initialize, Tree_Node_Methods_Exponential_Disk_Thread_Initialize,&
+       & Exponential_Disk_Satellite_Merging, Galacticus_Output_Tree_Disk_Exponential,&
+       & Galacticus_Output_Tree_Disk_Exponential_Property_Count, Galacticus_Output_Tree_Disk_Exponential_Names,&
+       & Exponential_Disk_Radius_Solver, Exponential_Disk_Enclosed_Mass, Exponential_Disk_Rotation_Curve,&
+       & Tree_Node_Disk_Post_Evolve_Exponential, Tree_Node_Methods_Exponential_Disk_Dump,&
        & Exponential_Disk_Radius_Solver_Plausibility, Tree_Node_Methods_Exponential_Disk_State_Store,&
        & Tree_Node_Methods_Exponential_Disk_State_Retrieve, Exponential_Disk_Scale_Set
   
@@ -190,24 +191,6 @@ contains
        ! Get number of luminosity properties.
        luminositiesCount=Stellar_Population_Luminosities_Count()
 
-       ! Allocate work arrays for abundances.
-       !$omp parallel
-       call Alloc_Array(abundancesTransferRate,[abundancesCount])
-       call Alloc_Array(abundancesOutflowRate ,[abundancesCount])
-       call Alloc_Array(abundancesValue       ,[abundancesCount])
-       call Alloc_Array(abundancesDisk        ,[abundancesCount])
-       call Alloc_Array(abundancesSpheroid    ,[abundancesCount])
-       !$omp end parallel
-
-       ! Allocate work arrays for luminosities.
-       !$omp parallel
-       call Alloc_Array(stellarLuminositiesRates,[luminositiesCount])
-       call Alloc_Array(luminositiesTransferRate,[luminositiesCount])
-       call Alloc_Array(luminositiesValue       ,[luminositiesCount])
-       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
-       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
-       !$omp end parallel
-
        ! Determine number of properties needed, including those for stars etc.
        propertyCount=propertyCountBase+2*abundancesCount+luminositiesCount
        dataCount    =dataCountBase
@@ -318,6 +301,35 @@ contains
   end subroutine Tree_Node_Methods_Exponential_Disk_Initialize
   
   
+  !# <treeNodeCreateThreadInitialize>
+  !#  <unitName>Tree_Node_Methods_Exponential_Disk_Thread_Initialize</unitName>
+  !# </treeNodeCreateThreadInitialize>
+  subroutine Tree_Node_Methods_Exponential_Disk_Thread_Initialize
+    !% Initializes each thread for the tree node exponential disk methods module.
+    use Memory_Management
+    implicit none
+
+    ! Check if this implementation is selected.
+    if (methodSelected.and..not.allocated(abundancesTransferRate)) then
+
+       ! Allocate work arrays for abundances.
+       call Alloc_Array(abundancesTransferRate,[abundancesCount])
+       call Alloc_Array(abundancesOutflowRate ,[abundancesCount])
+       call Alloc_Array(abundancesValue       ,[abundancesCount])
+       call Alloc_Array(abundancesDisk        ,[abundancesCount])
+       call Alloc_Array(abundancesSpheroid    ,[abundancesCount])
+
+       ! Allocate work arrays for luminosities.
+       call Alloc_Array(stellarLuminositiesRates,[luminositiesCount])
+       call Alloc_Array(luminositiesTransferRate,[luminositiesCount])
+       call Alloc_Array(luminositiesValue       ,[luminositiesCount])
+       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
+       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
+
+    end if
+    return
+  end subroutine Tree_Node_Methods_Exponential_Disk_Thread_Initialize
+    
   !# <postEvolveTask>
   !# <unitName>Tree_Node_Disk_Post_Evolve_Exponential</unitName>
   !# </postEvolveTask>
@@ -473,7 +485,7 @@ contains
          &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate &
          &,diskDynamicalTime
     type(abundancesStructure), save                   :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
-    !$omp threadprivate(fuelAbundances,stellarAbundans,fuelAbundancesRates)
+    !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
     type(history)                                     :: historyTransferRate
 
     ! Get a local copy of the interrupt procedure.
@@ -1474,7 +1486,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store exponential disk properties in the \glc\ output file buffers.
     use Stellar_Population_Properties_Luminosities
-    use Tree_Nodes
     use Kind_Numbers
     implicit none
     double precision,        intent(in)                   :: time

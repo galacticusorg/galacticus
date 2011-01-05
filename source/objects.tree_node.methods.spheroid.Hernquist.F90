@@ -68,12 +68,12 @@ module Tree_Node_Methods_Hernquist_Spheroid
   use Components
   use Stellar_Population_Properties
   private
-  public :: Tree_Node_Methods_Hernquist_Spheroid_Initialize, Hernquist_Spheroid_Satellite_Merging,&
-       & Galacticus_Output_Tree_Spheroid_Hernquist, Galacticus_Output_Tree_Spheroid_Hernquist_Property_Count,&
-       & Galacticus_Output_Tree_Spheroid_Hernquist_Names, Hernquist_Spheroid_Radius_Solver, Hernquist_Spheroid_Enclosed_Mass,&
-       & Hernquist_Spheroid_Density, Hernquist_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Hernquist,&
-       & Tree_Node_Methods_Hernquist_Spheroid_Dump, Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set,&
-       & Hernquist_Spheroid_Post_Evolve
+  public :: Tree_Node_Methods_Hernquist_Spheroid_Initialize, Tree_Node_Methods_Hernquist_Spheroid_Thread_Initialize,&
+       & Hernquist_Spheroid_Satellite_Merging, Galacticus_Output_Tree_Spheroid_Hernquist,&
+       & Galacticus_Output_Tree_Spheroid_Hernquist_Property_Count, Galacticus_Output_Tree_Spheroid_Hernquist_Names,&
+       & Hernquist_Spheroid_Radius_Solver, Hernquist_Spheroid_Enclosed_Mass, Hernquist_Spheroid_Density,&
+       & Hernquist_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Hernquist, Tree_Node_Methods_Hernquist_Spheroid_Dump,&
+       & Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set, Hernquist_Spheroid_Post_Evolve
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -194,21 +194,6 @@ contains
        ! Get number of luminosity properties.
        luminositiesCount=Stellar_Population_Luminosities_Count()
 
-       ! Allocate work arrays for abundances.
-       !$omp parallel
-       call Alloc_Array(abundancesOutflowRate,[abundancesCount])
-       call Alloc_Array(abundancesValue      ,[abundancesCount])
-       call Alloc_Array(abundancesDisk       ,[abundancesCount])
-       call Alloc_Array(abundancesSpheroid   ,[abundancesCount])
-       !$omp end parallel
-
-       ! Allocate work arrays for luminosities.
-       !$omp parallel
-       call Alloc_Array(stellarLuminositiesRates,[luminositiesCount])
-       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
-       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
-       !$omp end parallel
-
        ! Determine number of properties needed, including those for stars etc.
        propertyCount=propertyCountBase+2*abundancesCount+luminositiesCount
        dataCount    =dataCountBase
@@ -314,6 +299,31 @@ contains
     return
   end subroutine Tree_Node_Methods_Hernquist_Spheroid_Initialize
   
+  !# <treeNodeCreateThreadInitialize>
+  !#  <unitName>Tree_Node_Methods_Hernquist_Spheroid_Thread_Initialize</unitName>
+  !# </treeNodeCreateThreadInitialize>
+  subroutine Tree_Node_Methods_Hernquist_Spheroid_Thread_Initialize
+    !% Initializes each thread for the tree node Hernquist spheroid methods module.
+    use Memory_Management
+    implicit none
+
+    ! Check if this implementation is selected.
+    if (methodSelected.and..not.allocated(abundancesOutflowRate)) then
+
+       ! Allocate work arrays for abundances.
+       call Alloc_Array(abundancesOutflowRate,[abundancesCount])
+       call Alloc_Array(abundancesValue      ,[abundancesCount])
+       call Alloc_Array(abundancesDisk       ,[abundancesCount])
+       call Alloc_Array(abundancesSpheroid   ,[abundancesCount])
+
+       ! Allocate work arrays for luminosities.
+       call Alloc_Array(stellarLuminositiesRates,[luminositiesCount])
+       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
+       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
+
+    end if
+    return
+  end subroutine Tree_Node_Methods_Hernquist_Spheroid_Thread_Initialize
   
   !# <postEvolveTask>
   !# <unitName>Tree_Node_Spheroid_Post_Evolve_Hernquist</unitName>

@@ -63,7 +63,6 @@
 
 module Star_Formation_Timescale_Disks_Dynamical_Time
   !% Implements a a dynamical time-based star formation timescale for galactic disks.
-  use Tree_Nodes
   private
   public :: Star_Formation_Timescale_Disks_Dynamical_Time_Initialize
 

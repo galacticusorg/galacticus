@@ -103,6 +103,8 @@ When \glc\ starts, it initializes all available components. To be included in th
   end subroutine Tree_Node_Methods_Exponential_Disk_Initialize
 \end{lstlisting}
 
+Optionally, a component may include a {\tt treeNodeCreateThreadInitialize} directive, which gives the name of a subroutine in its {\tt unitName} element. Unlike the routine specified by {\tt treeNodeCreateInitialize}, which is called only once even when \glc\ is running in parallel under OpenMP, the routine specified by {\tt treeNodeCreateThreadInitialize} is called by all threads, and can therefore be used to perform any ``per thread'' initialization. Note that this routine will be called many times during a given \glc\ run---it is the responsibility of the routine to ensure that it performs any initialization only once.
+
 \subsubsection{Component Creation and Destruction}\index{components!creation}\index{components!destruction}
 
 When a node is created, it initially contains no components. A component must therefore create itself on the fly as needed. Typically, a component is first created when an attempt is made to set a property value, or to adjust the rate of change of a property value or in response to some event (e.g. a satellite component may be created in response to a node merging with a larger node). Requests for property values frequently \emph{do not} require that the component exist, as a zero value can often be returned instead. In such cases, it is useful to be able to check whether or not a component exists in a given node. This is done using {\tt thisNode\%componentExists(componentIndex)} where {\tt componentIndex} is the index stored during initialization.

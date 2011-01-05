@@ -175,6 +175,7 @@ contains
     ! Begin looping through available trees.
     finished=.false.
     iTree=0
+
     !$omp parallel copyin(finished)
     do while (.not.finished)
        ! Increment the tree number.

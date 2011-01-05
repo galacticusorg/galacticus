@@ -251,9 +251,7 @@ contains
     integer                                                :: allocErr
 
     ! Initialize tree node methods if necessary.
-    !$omp critical (Tree_Node_Create_Initialize)
-    if (.not.treeNodeCreateInitialized) call Tree_Node_Create_Initialize
-    !$omp end critical (Tree_Node_Create_Initialize)
+    call Tree_Node_Create_Initialize
 
     ! Allocate the object.
     allocate(thisNode,stat=allocErr)
@@ -284,24 +282,40 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    ! Read all parameters needed by methods.
-    !# <include directive="treeNodeCreateInitialize" type="optionNames">
-    include 'objects.tree_node.create.parameters.inc'
-    !# </include>
-
-    ! Initialize rate adjust and compute pointers to dummy implementations.
-    !# <include directive="treeNodeMethodsPointer" type="initializeMethods">
-    include 'objects.tree_node.initializeMethods.inc'
-    !# </include>
-
-    ! Call all routines to initialize tree node create.
-    !# <include directive="treeNodeCreateInitialize" type="code" action="subroutine">
-    !#  <subroutineArgs>componentTypesCount</subroutineArgs>
-    include 'objects.tree_node.create.initialize.inc'
+    !# <include directive="treeNodeCreateInitialize" type="optionDefinitions">
+    include 'objects.tree_node.create.definitions.inc'
     !# </include>
     
-    ! Flag that tree node methods are now initialized.
-    treeNodeCreateInitialized=.true.
+    !$omp critical (Tree_Node_Create_Initialize)
+    if (.not.treeNodeCreateInitialized) then
+       
+       ! Read all parameters needed by methods.
+       !# <include directive="treeNodeCreateInitialize" type="optionNames">
+       include 'objects.tree_node.create.parameters.inc'
+       !# </include>
+       
+       ! Initialize rate adjust and compute pointers to dummy implementations.
+       !# <include directive="treeNodeMethodsPointer" type="initializeMethods">
+       include 'objects.tree_node.initializeMethods.inc'
+       !# </include>
+       
+       ! Call all routines to initialize tree node create.
+       !# <include directive="treeNodeCreateInitialize" type="code" action="subroutine">
+       !#  <subroutineArgs>componentTypesCount</subroutineArgs>
+       include 'objects.tree_node.create.initialize.inc'
+       !# </include>
+       
+       ! Flag that tree node methods are now initialized.
+       treeNodeCreateInitialized=.true.
+       
+    end if
+    !$omp end critical (Tree_Node_Create_Initialize)
+
+    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    !# <include directive="treeNodeCreateThreadInitialize" type="code" action="subroutine">
+    include 'objects.tree_node.create.thread_initialize.inc'
+    !# </include>
+
     return
   end subroutine Tree_Node_Create_Initialize
 

@@ -67,11 +67,11 @@ module Tree_Node_Methods_Hot_Halo
   use Components
   use Tree_Node_Methods_Hot_Halo_Data
   private
-  public :: Tree_Node_Methods_Hot_Halo_Initialize, Hot_Halo_Starve, Hot_Halo_Remove_Before_Satellite_Merging,&
-       & Tree_Node_Hot_Halo_Promote, Hot_Halo_Subresolution_Initialize, Galacticus_Output_Tree_Hot_Halo_Standard,&
-       & Galacticus_Output_Tree_Hot_Halo_Standard_Property_Count, Galacticus_Output_Tree_Hot_Halo_Standard_Names,&
-       & Tree_Node_Hot_Halo_Reset_Standard, Tree_Node_Hot_Halo_Post_Evolve_Standard, Tree_Node_Methods_Hot_Halo_Standard_Dump,&
-       & Hot_Halo_Scale_Set
+  public :: Tree_Node_Methods_Hot_Halo_Initialize, Tree_Node_Methods_Hot_Halo_Thread_Initialize, Hot_Halo_Starve,&
+       & Hot_Halo_Remove_Before_Satellite_Merging, Tree_Node_Hot_Halo_Promote, Hot_Halo_Subresolution_Initialize,&
+       & Galacticus_Output_Tree_Hot_Halo_Standard, Galacticus_Output_Tree_Hot_Halo_Standard_Property_Count,&
+       & Galacticus_Output_Tree_Hot_Halo_Standard_Names, Tree_Node_Hot_Halo_Reset_Standard,&
+       & Tree_Node_Hot_Halo_Post_Evolve_Standard, Tree_Node_Methods_Hot_Halo_Standard_Dump, Hot_Halo_Scale_Set
   
   ! Internal count of abundances and molecules.
   integer                                     :: abundancesCount,moleculesCount
@@ -195,22 +195,6 @@ contains
        abundancesCount=Abundances_Property_Count()
        moleculesCount =Molecules_Property_Count ()
 
-       ! Allocate work arrays for abundances.
-       !$omp parallel
-       call Alloc_Array(abundancesWork       ,[abundancesCount])
-       call Alloc_Array(abundancesParent     ,[abundancesCount])
-       call Alloc_Array(abundancesCoolingRate,[abundancesCount])
-       call Alloc_Array(abundancesReturnRate ,[abundancesCount])
-       !$omp end parallel
-
-       ! Allocate work arrays for molecules.
-       !$omp parallel
-       call Alloc_Array(moleculesValue        ,[moleculesCount])
-       call Alloc_Array(moleculesCoolingRate  ,[moleculesCount])
-       call Alloc_Array(moleculesAccretionRate,[moleculesCount])
-       call Alloc_Array(moleculesChemicalRates,[moleculesCount])
-       !$omp end parallel
-
        ! Assign indices to properties.
        hotAbundancesIndex         =propertyCountBase                          +1
        hotAbundancesIndexEnd      =hotAbundancesIndex         +abundancesCount-1
@@ -298,6 +282,46 @@ contains
     return
   end subroutine Tree_Node_Methods_Hot_Halo_Initialize
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+  !# <treeNodeCreateThreadInitialize>
+  !#  <unitName>Tree_Node_Methods_Hot_Halo_Thread_Initialize</unitName>
+  !# </treeNodeCreateThreadInitialize>
+  subroutine Tree_Node_Methods_Hot_Halo_Thread_Initialize
+    !% Initializes the tree node hot halo methods module.
+    use Memory_Management
+    implicit none
+    
+    ! Check if this implementation is selected.
+    if (methodSelected.and..not.allocated(abundancesWork)) then
+
+       ! Allocate work arrays for abundances.
+       call Alloc_Array(abundancesWork       ,[abundancesCount])
+       call Alloc_Array(abundancesParent     ,[abundancesCount])
+       call Alloc_Array(abundancesCoolingRate,[abundancesCount])
+       call Alloc_Array(abundancesReturnRate ,[abundancesCount])
+
+       ! Allocate work arrays for molecules.
+       call Alloc_Array(moleculesValue        ,[moleculesCount])
+       call Alloc_Array(moleculesCoolingRate  ,[moleculesCount])
+       call Alloc_Array(moleculesAccretionRate,[moleculesCount])
+       call Alloc_Array(moleculesChemicalRates,[moleculesCount])
+
+    end if
+    return
+  end subroutine Tree_Node_Methods_Hot_Halo_Thread_Initialize
+  
   !# <calculationResetTask>
   !# <unitName>Tree_Node_Hot_Halo_Reset_Standard</unitName>
   !# </calculationResetTask>
@@ -374,7 +398,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
-    procedure(), pointer, intent(inout) :: interruptProcedure
+    procedure(),      pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
     
     ! If no hot halo component currently exists and we have some sink from then there is a problem.
@@ -854,7 +878,7 @@ contains
     procedure(),                        pointer, intent(inout) :: interruptProcedure
     type(molecularAbundancesStructure), save                   :: accretionRateMolecules,molecularMasses,molecularDensities&
          &,molecularDensitiesRates,molecularMassesRates
-    !$omp threadprivate(accretionRateMolecules,molecularMasseslecularDensities,molecularDensitiesRates,molecularMassesRates)
+    !$omp threadprivate(accretionRateMolecules,molecularMasses,molecularDensities,molecularDensitiesRates,molecularMassesRates)
     double precision                                           :: massToDensityConversion,temperature
     type(radiationStructure)                                   :: radiation
 
