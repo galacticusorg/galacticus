@@ -119,7 +119,17 @@ if ( $showFit == 1 ) {
 
 # Make the plot.
 open(pHndl,"|gnuplot");
-print pHndl "set table 'contour.dat'\n";
+
+# Check which version of GnuPlot we're using.
+$gnuPlotVersionString = `gnuplot -V`;
+unless ( $gnuPlotVersionString =~ m/^gnuplot\s+(\d)+\.(\d)+\s+patchlevel\s+(\d+)/ ) {die ("Plot_SDSS_Colors_Distribution.pl: unable to determine GnuPlot version")};
+@gnuPlotVersion = ( $1, $2, $3 );
+if ( $gnuPlotVersion[0] < 4 || $gnuPlotVersion[0] == 4 && $gnuPlotVersion[1] <= 2 ) {
+    print pHndl "set terminal table\n";
+    print pHndl "set output 'contour.dat'\n";
+} else {
+    print pHndl "set table 'contour.dat'\n";
+}
 print pHndl "unset surface\n";
 print pHndl "set contour base; set cntrparam level 10\n";
 print pHndl "splot '-'\n";
