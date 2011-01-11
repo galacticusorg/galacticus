@@ -66,78 +66,261 @@ module Radiation_Structure
   !% Defines the radiation structure data type, used to describe radiation fields. (Currently only includes
   !% CMB radiation temperature.)
   private
-  public :: radiationStructure
+  public :: radiationStructure, Radiation_Temperature, Radiation_Flux
+
+  ! Include auto-generated labels for different radiation types.
+  !# <include directive="radiationLabel" type="label" prefix="radiationType">
+  include 'objects.radiation.labels.inc'
+  !# </include>
+
+  type radiationData
+     !% A structure used to store data for components of radiation objects.
+     double precision, allocatable, dimension(:) :: properties
+  end type radiationData
 
   type radiationStructure
-     !% The radiation structure data type, used to describe radiation fields. (Currently only includes
-     !% CMB radiation temperature.)
+     !% The radiation structure data type, used to describe radiation fields.
      private
-     double precision :: temperatureCosmicMicrowaveBackground
+     double precision                               :: temperatureCosmicMicrowaveBackground
+     integer,             allocatable, dimension(:) :: radiationType
+     type(radiationData), allocatable, dimension(:) :: components
    contains
-     procedure        :: set            => Radiation_Set
-     procedure        :: setCMB         => Radiation_Set_CMB_Temperature
-     procedure        :: temperatureCMB => Radiation_Get_CMB_Temperature
+     !@ <objectMethods>
+     !@   <object>radiationStructure</object>
+     !@   <objectMethod>
+     !@     <method>define</method>
+     !@     <description>Define the radiation components active in a given radiation object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isDefined</method>
+     !@     <description>Return true if the radiation component is defined, false otherwise.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>set</method>
+     !@     <description>Set the radiation components in the radiation object.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: isDefined      => Radiation_Is_Defined
+     procedure :: define         => Radiation_Define
+     procedure :: set            => Radiation_Set
+     !@ <objectMethods>
+     !@   <object>radiationStructure</object>
+     !@   <objectMethod>
+     !@     <method>temperature</method>
+     !@     <description>Return the temperature (in units of Kelvin) of the given radiation structure.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>flux</method>
+     !@     <description>Return the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>integrateOverCrossSection</method>
+     !@     <description>
+     !@       Integrates the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between
+     !@       the wavelengths given in {\tt wavelengthRange} over a cross section specified by the function {\tt crossSectionFunction}.
+     !@     </description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: temperature               => Radiation_Temperature
+     procedure :: flux                      => Radiation_Flux
+     procedure :: integrateOverCrossSection => Radiation_Integrate_Over_Cross_Section
   end type radiationStructure
 
-  ! Option labels.
-  integer, public, parameter :: noRadiation=0
+  ! Module global variables for use in integrand routines.
+  type(radiationStructure)             :: radiationGlobal
+  procedure(double precision), pointer :: crossSectionFunctionGlobal
+  !$omp threadprivate(radiationGlobal,crossSectionFunctionGlobal)
 
 contains
 
-  double precision function Radiation_Get_CMB_Temperature(radiation)
-    !% Get the CMB temperature in a radiation structure.
-    use Cosmology_Functions
+  logical function Radiation_Is_Defined(radiation)
+    !% Return true if the radiation object has been defined, false otherwise.
+    implicit none
 #ifdef GCC45
     class(radiationStructure), intent(in) :: radiation
 #else
     type(radiationStructure),  intent(in) :: radiation
 #endif
 
-#ifdef GCC45
-    select type (radiation)
-    type is (radiationStructure)
-#endif
-    Radiation_Get_CMB_Temperature=radiation%temperatureCosmicMicrowaveBackground
-#ifdef GCC45
-    end select
-#endif
+    Radiation_Is_Defined=allocated(radiation%radiationType)
     return
-  end function Radiation_Get_CMB_Temperature
+  end function Radiation_Is_Defined
 
-  subroutine Radiation_Set_CMB_Temperature(radiation,cosmicTime)
-    !% Set the CMB temperature in a radiation structure.
-    use Cosmology_Functions
+  subroutine Radiation_Define(radiation,radiationTypes)
+    !% Define which radiation fields are active in this {\tt radiation} object.
+    use Memory_Management
+    implicit none
 #ifdef GCC45
-    class(radiationStructure), intent(inout) :: radiation
+    class(radiationStructure), intent(inout)              :: radiation
 #else
-    type(radiationStructure),  intent(inout) :: radiation
+    type(radiationStructure),  intent(inout)              :: radiation
 #endif
-    double precision,          intent(in)    :: cosmicTime
-    
-#ifdef GCC45
-    select type (radiation)
-    type is (radiationStructure)
-#endif
-    radiation%temperatureCosmicMicrowaveBackground=CMB_Temperature(cosmicTime)
-#ifdef GCC45
-    end select
-#endif
-    return
-  end subroutine Radiation_Set_CMB_Temperature
+    integer,                   intent(in),   dimension(:) :: radiationTypes
 
-  subroutine Radiation_Set(radiation,setOption)
+    ! Allocate the array of radiation types to the correct size.
+    if (allocated(radiation%radiationType)) call Dealloc_Array(radiation%radiationType)
+    if (allocated(radiation%components   )) then
+       deallocate(radiation%components)
+       call Memory_Usage_Record(sizeof(radiation%components),addRemove=-1)
+    end if
+    call Alloc_Array(radiation%radiationType,shape(radiationTypes))
+    allocate(radiation%components(size(radiationTypes)))
+    call Memory_Usage_Record(sizeof(radiation%components))
+
+    ! Populate the array of radiation types.
+    radiation%radiationType=radiationTypes
+    return
+  end subroutine Radiation_Define
+
+  subroutine Radiation_Set(radiation,thisNode)
     !% Set the {\tt radiation} field as specified.
+    !# <include directive="radiationSet" type="moduleUse">
+    include 'objects.radiation.set.modules.inc'
+    !# </include>
+    use Tree_Nodes
     implicit none
 #ifdef GCC45
     class(radiationStructure), intent(inout)          :: radiation
 #else
     type(radiationStructure),  intent(inout)          :: radiation
 #endif
-    integer,                   intent(in),   optional :: setOption
+    type(treeNode),            intent(inout), pointer :: thisNode         
+    integer                                           :: iComponent
 
-    ! AJB:: Currently does nothing as we don't support radiation structures yet.
+    ! For an unallocated radiation object, return immediately.
+    if (.not.allocated(radiation%radiationType)) return
 
+    ! Loop over all radiation components.
+    do iComponent=1,size(radiation%radiationType)
+       ! Call the appropriate routine to set the component.
+       !# <include directive="radiationSet" type="code" action="subroutine">
+       !#  <subroutineArgs>radiation%radiationType(iComponent)==radiationType#label,thisNode,radiation%components(iComponent)%properties</subroutineArgs>
+       include 'objects.radiation.set.inc'
+       !# </include>
+    end do
     return
   end subroutine Radiation_Set
+
+  double precision function Radiation_Temperature(radiation,radiationType)
+    !% Return the temperature of the {\tt radiation} object.
+    !# <include directive="radiationTemperature" type="moduleUse">
+    include 'objects.radiation.temperature.modules.inc'
+    !# </include>
+    implicit none
+#ifdef GCC45
+    class(radiationStructure), intent(in)                         :: radiation
+#else
+    type(radiationStructure),  intent(in)                         :: radiation
+#endif
+    integer,                   intent(in), optional, dimension(:) :: radiationType
+    integer                                                       :: iComponent
+
+    ! Loop over all radiation components.
+    Radiation_Temperature=0.0d0
+    do iComponent=1,size(radiation%radiationType)
+       ! Call the appropriate routine to get the temperature.
+       !# <include directive="radiationTemperature" type="code" action="subroutine">
+       !#  <subroutineArgs>radiation%radiationType(iComponent),radiationType#label,radiation%components(iComponent)%properties,Radiation_Temperature,radiationType</subroutineArgs>
+       include 'objects.radiation.temperature.inc'
+       !# </include>
+    end do
+    return
+  end function Radiation_Temperature
+
+  double precision function Radiation_Flux(radiation,wavelength,radiationType)
+    !% Return the flux of the {\tt radiation} object in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$ at the specified {\tt
+    !% wavelength} (in \AA).
+    !# <include directive="radiationFlux" type="moduleUse">
+    include 'objects.radiation.flux.modules.inc'
+    !# </include>
+    implicit none
+#ifdef GCC45
+    class(radiationStructure), intent(in)                        :: radiation
+#else
+    type(radiationStructure),  intent(in)                        :: radiation
+#endif
+    double precision,         intent(in)                         :: wavelength
+    integer,                  intent(in), optional, dimension(:) :: radiationType
+    integer                                                      :: iComponent
+
+    ! Loop over all radiation components.
+    Radiation_Flux=0.0d0
+    do iComponent=1,size(radiation%radiationType)
+       ! Call the appropriate routine to get the flux.
+       !# <include directive="radiationFlux" type="code" action="subroutine">
+       !#  <subroutineArgs>radiation%radiationType(iComponent),radiationType#label,radiation%components(iComponent)%properties,wavelength,Radiation_Flux,radiationType</subroutineArgs>
+       include 'objects.radiation.flux.inc'
+       !# </include>
+    end do
+    return
+  end function Radiation_Flux
+
+  double precision function Radiation_Integrate_Over_Cross_Section(radiation,crossSectionFunction,wavelengthRange)
+    !% Integrate the photon number of the radiation field over a given cross-section function (which should return the cross
+    !% section in units of cm$^2$), i.e.:
+    !% \begin{equation}
+    !% {4 \pi \over {\rm h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {{\rm d}\lambda \over \lambda},
+    !% \end{equation}
+    !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
+    use, intrinsic :: ISO_C_Binding                             
+    use Numerical_Integration
+    use FGSL
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Math
+    implicit none
+#ifdef GCC45
+    class(radiationStructure), intent(in)              :: radiation
+#else
+    type(radiationStructure),  intent(in)              :: radiation
+#endif
+    double precision,         intent(in), dimension(2) :: wavelengthRange
+    double precision,         external                 :: crossSectionFunction
+    type(c_ptr)                                        :: parameterPointer
+    type(fgsl_function)                                :: integrandFunction
+    type(fgsl_integration_workspace)                   :: integrationWorkspace
+
+    ! Copy the radiation object to a module global copy for use in the integrand routine.
+#ifdef GCC45
+    select type (radiation)
+    type is (radiationStructure)
+#endif
+       radiationGlobal=radiation
+#ifdef GCC45
+    end select
+#endif
+
+    ! Copy the procedure pointer to a module global copy for use in the integrand routine.
+    crossSectionFunctionGlobal => crossSectionFunction
+    
+    ! Perform the integration.
+    Radiation_Integrate_Over_Cross_Section=Integrate( wavelengthRange(1),wavelengthRange(2)            &
+         &                                           ,Cross_Section_Integrand,parameterPointer         &
+         &                                           ,integrandFunction,integrationWorkspace           &
+         &                                           ,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 &
+         &                                           ,integrationRule =FGSL_Integ_Gauss15&
+         &                                          )
+    call Integrate_Done(integrandFunction,integrationWorkspace)
+
+    ! Scale result by multiplicative prefactors to give answer in units of inverse seconds.
+    Radiation_Integrate_Over_Cross_Section=Radiation_Integrate_Over_Cross_Section*4.0d0*Pi*ergs/plancksConstant
+
+    return
+  end function Radiation_Integrate_Over_Cross_Section
+
+  function Cross_Section_Integrand(wavelength,parameterPointer) bind(c)
+    !% Integrand function use in integrating a radiation field over a cross section function.
+    use, intrinsic :: ISO_C_Binding                             
+    real(c_double)        :: Cross_Section_Integrand
+    real(c_double), value :: wavelength
+    type(c_ptr),    value :: parameterPointer
+
+    if (wavelength > 0.0d0) then
+       Cross_Section_Integrand=crossSectionFunctionGlobal(wavelength)*Radiation_Flux(radiationGlobal,wavelength)/wavelength
+    else
+       Cross_Section_Integrand=0.0d0
+    end if
+    return
+  end function Cross_Section_Integrand
 
 end module Radiation_Structure

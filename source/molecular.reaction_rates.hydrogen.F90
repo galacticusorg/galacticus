@@ -76,6 +76,9 @@ module Molecular_Hydrogen_Rates
   ! Flag indicating whether fast rate calculations should be used.
   logical          :: hydrogenNetworkFast
 
+  ! Flag indicating whether to use CMB only when computing rates for some radiative processes.
+  logical          :: hydrogenNetworkCMBOnly
+
   ! Indices of molecules.
   integer          :: atomicHydrogenIndex,atomicHydrogenCationIndex,electronIndex,atomicHydrogenAnionIndex
 
@@ -107,10 +110,21 @@ contains
        !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    Specifies whether or not to use simplifying assumptions to speed the hydrogen network calculation. If true, H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
+       !@    Specifies whether or not to use simplifying assumptions to speed the hydrogen network calculation. If true, H$^-$
+       !@    is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see
+       !@    \citealt{abel_modeling_1997}).
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('hydrogenNetworkFast',hydrogenNetworkFast,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>hydrogenNetworkCMBOnly</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not to use the cosmic microwave background only when computed certain radiative rates.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hydrogenNetworkCMBOnly',hydrogenNetworkCMBOnly,defaultValue=.true.)
 
        ! Get indices for molecules as necessary.
        if (hydrogenNetworkFast) then
@@ -175,7 +189,7 @@ contains
     end if
 
     ! Compute rates. References after each call refer to the rate coefficient in Tegmark et al. (1997) and the equation number in
-    ! Abel et al. () respectively.
+    ! Abel et al. (1997) respectively.
     call Molecular_Hydrogen_Rate_H_Electron_to_Hplus_2Electron  (temperature,radiation,moleculeDensity,moleculeRates) !    ;  1
     call Molecular_Hydrogen_Rate_Hplus_Electron_to_H_Photon     (temperature,radiation,moleculeDensity,moleculeRates) ! k_1;  2
     call Molecular_Hydrogen_Rate_H_Electron_to_Hminus_Photon    (temperature,radiation,moleculeDensity,moleculeRates) ! k_2;  7
@@ -191,9 +205,13 @@ contains
     call Molecular_Hydrogen_Rate_Hminus_Hplus_to_H2plus_Electron(temperature,radiation,moleculeDensity,moleculeRates) !    ; 17
     call Molecular_Hydrogen_Rate_H2plus_Electron_to_2H          (temperature,radiation,moleculeDensity,moleculeRates) !    ; 18
     call Molecular_Hydrogen_Rate_H2plus_Hminus_to_H2_H          (temperature,radiation,moleculeDensity,moleculeRates) !    ; 19
-    call Molecular_Hydrogen_Rate_Hminus_CMB_to_H_Electron       (temperature,radiation,moleculeDensity,moleculeRates) ! k_4; 23
-    call Molecular_Hydrogen_Rate_H2plus_CMB_to_H_Hplus          (temperature,radiation,moleculeDensity,moleculeRates) ! k_7; 25
-    
+    call Molecular_Hydrogen_Rate_H_Gamma_to_Hplus_Electron      (temperature,radiation,moleculeDensity,moleculeRates) !    ; 20
+    call Molecular_Hydrogen_Rate_Hminus_Gamma_to_H_Electron     (temperature,radiation,moleculeDensity,moleculeRates) ! k_4; 23
+    call Molecular_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron    (temperature,radiation,moleculeDensity,moleculeRates) !    ; 24
+    call Molecular_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus        (temperature,radiation,moleculeDensity,moleculeRates) ! k_7; 25
+    call Molecular_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron(temperature,radiation,moleculeDensity,moleculeRates) !    ; 26
+    call Molecular_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H       (temperature,radiation,moleculeDensity,moleculeRates) !    ; 27
+    call Molecular_Hydrogen_Rate_H2_Gamma_to_2H                 (temperature,radiation,moleculeDensity,moleculeRates) !    ; 28
     return
   end subroutine Molecular_Hydrogen_Rates_Compute
 
@@ -1173,21 +1191,28 @@ contains
     return
   end subroutine Molecular_Hydrogen_Rate_H2plus_Hminus_to_H2_H
 
-  subroutine Molecular_Hydrogen_Rate_Hminus_CMB_to_H_Electron(temperature,radiation,moleculeDensity,moleculeRates)
-    !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma_{\rm CMB} \rightarrow \hbox{H} + \hbox{e}^-$.
+  subroutine Molecular_Hydrogen_Rate_Hminus_Gamma_to_H_Electron(temperature,radiation,moleculeDensity,moleculeRates)
+    !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$.
     use Radiation_Structure
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
     implicit none
     double precision,                   intent(in)    :: temperature
     type(radiationStructure),           intent(in)    :: radiation
     type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
     type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    ! Energy range for the cross-section.
+    double precision,                   parameter     :: crossSectionEnergyLow     =0.755d0
+    ! Wavelength range for the cross-section.
+    double precision,                   parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEnergyLow
     logical,                            save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                            save          :: atomicHydrogenAnionMoleculeIndex,electronMoleculeIndex&
          &,atomicHydrogenMoleculeIndex
     double precision                                  :: rate,rateCoefficient
 
     ! Check if this reaction needs initializing.
-    !$omp critical(Molecular_Hydrogen_Rate_Hminus_CMB_to_H_Electron)
+    !$omp critical(Molecular_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
     if (.not.reactionInitialized) then
        ! Find the molecules in this reaction.
        atomicHydrogenAnionMoleculeIndex=Molecules_Index("AtomicHydrogenAnion")
@@ -1198,13 +1223,21 @@ contains
        ! Flag that the reaction is now initialized.
        reactionInitialized=.true.
     end if
-    !$omp end critical(Molecular_Hydrogen_Rate_Hminus_CMB_to_H_Electron)
+    !$omp end critical(Molecular_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
 
     ! Do calculation if this reaction is active.
     if (reactionActive) then
 
        ! Compute rate coefficient.
-       rateCoefficient=0.144d0*(radiation%temperatureCMB()**2.13d0)*dexp(-8650.0d0/radiation%temperatureCMB())
+       if (hydrogenNetworkCMBOnly) then
+          ! <gfortran 4.6> Would like to use the radiation%temperature() type-bound procedure form here, but type-bound procedures
+          ! with optional arguments are buggy under gfortran 4.4
+          rateCoefficient=0.144d0*(Radiation_Temperature(radiation,[radiationTypeCMB])**2.13d0)*dexp(-8650.0d0&
+               &/Radiation_Temperature(radiation,[radiationTypeCMB]))
+       else
+          rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_Hminus_Gamma_to_H_Electron,[0.0d0&
+               &,crossSectionWavelengthHigh])
+       end if
 
        ! Compute rate.
        rate=rateCoefficient*moleculeDensity%abundance(atomicHydrogenAnionMoleculeIndex)
@@ -1219,25 +1252,60 @@ contains
        call   moleculeRates%abundanceSet(electronMoleculeIndex           , &
             & moleculeRates%abundance   (electronMoleculeIndex           ) &
             & +rate                     )
+
     end if
     return
-  end subroutine Molecular_Hydrogen_Rate_Hminus_CMB_to_H_Electron
+  end subroutine Molecular_Hydrogen_Rate_Hminus_Gamma_to_H_Electron
 
-  subroutine Molecular_Hydrogen_Rate_H2plus_CMB_to_H_Hplus(temperature,radiation,moleculeDensity,moleculeRates)
-    !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma_{\rm CMB} \rightarrow \hbox{H} + \hbox{H}^+$.
+  double precision function Cross_Section_Hminus_Gamma_to_H_Electron(wavelength)
+    !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$
+    !% using the fitting function given by \cite{shapiro_hydrogen_1987}, renormalized\footnote{It seems unclear what units were
+    !% used in \protect\cite{shapiro_hydrogen_1987}, hence the recalibration.} to match the results of
+    !% \cite{nascimento_photodetachment_1977}.
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    implicit none
+    double precision, intent(in) :: wavelength
+    double precision, parameter  :: energyThreshold=0.755d0
+    double precision             :: energy
+
+    ! Convert from wavelength (in Angstroms) to energy (in eV).
+    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+
+    ! Evaluate the fitting function for the cross-section.
+    if (energy >=  energyThreshold) then
+       Cross_Section_Hminus_Gamma_to_H_Electron=2.085d-16*(energy-energyThreshold)**1.5d0/energy**3
+    else
+       Cross_Section_Hminus_Gamma_to_H_Electron= 0.0d0
+    end if
+    return
+  end function Cross_Section_Hminus_Gamma_to_H_Electron
+
+  subroutine Molecular_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus(temperature,radiation,moleculeDensity,moleculeRates)
+    !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$.
     use Radiation_Structure
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
     implicit none
     double precision,                   intent(in)    :: temperature
     type(radiationStructure),           intent(in)    :: radiation
     type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
     type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    ! Energy range for the cross-section.
+    double precision,                   parameter     :: crossSectionEnergyLow     = 2.65d0
+    double precision,                   parameter     :: crossSectionEnergyHigh    =21.00d0
+    ! Wavelength range for the cross-section.
+    double precision,                   parameter     :: crossSectionWavelengthLow =plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEnergyHigh
+    double precision,                   parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEnergyLow
     logical,                            save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                            save          :: molecularHydrogenCationMoleculeIndex,atomicHydrogenCationMoleculeIndex&
          &,atomicHydrogenMoleculeIndex
     double precision                                  :: rate,rateCoefficient
 
     ! Check if this reaction needs initializing.
-    !$omp critical(Molecular_Hydrogen_Rate_H2plus_CMB_to_H_Hplus)
+    !$omp critical(Molecular_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
     if (.not.reactionInitialized) then
        ! Find the molecules in this reaction.
        molecularHydrogenCationMoleculeIndex=Molecules_Index("MolecularHydrogenCation")
@@ -1248,13 +1316,20 @@ contains
        ! Flag that the reaction is now initialized.
        reactionInitialized=.true.
     end if
-    !$omp end critical(Molecular_Hydrogen_Rate_H2plus_CMB_to_H_Hplus)
+    !$omp end critical(Molecular_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
 
     ! Do calculation if this reaction is active.
     if (reactionActive) then
 
        ! Compute rate coefficient.
-       rateCoefficient=6.36d5*dexp(-71600.0d0/radiation%temperatureCMB())
+       if (hydrogenNetworkCMBOnly) then
+          ! <gfortran 4.6> Would like to use the radiation%temperature() type-bound procedure form here, but type-bound procedures
+          ! with optional arguments are buggy under gfortran 4.4
+          rateCoefficient=6.36d5*dexp(-71600.0d0/Radiation_Temperature(radiation,[radiationTypeCMB]))
+       else
+          rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2plus_Gamma_to_H_Hplus,[crossSectionWavelengthLow&
+               &,crossSectionWavelengthHigh])
+       end if
 
        ! Compute rate.
        rate=rateCoefficient*moleculeDensity%abundance(molecularHydrogenCationMoleculeIndex)
@@ -1269,8 +1344,457 @@ contains
        call   moleculeRates%abundanceSet(atomicHydrogenCationMoleculeIndex   , &
             & moleculeRates%abundance   (atomicHydrogenCationMoleculeIndex   ) &
             & +rate                     )
+
     end if
     return
-  end subroutine Molecular_Hydrogen_Rate_H2plus_CMB_to_H_Hplus
+  end subroutine Molecular_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus
+
+  double precision function Cross_Section_H2plus_Gamma_to_H_Hplus(wavelength)
+    !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$
+    !% as given by \cite{shapiro_hydrogen_1987}.
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    implicit none
+    double precision, intent(in) :: wavelength
+    double precision             :: energy
+
+    ! Convert from wavelength (in Angstroms) to energy (in eV).
+    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+
+    ! Evaluate the fitting function for the cross-section.
+    if      (energy >=  2.65d0 .and. energy < 11.27d0) then
+       Cross_Section_H2plus_Gamma_to_H_Hplus=10.0d0**(-40.97d0+energy*(+6.030d+0 &
+            &                                                 +energy*(-0.504d+0 &
+            &                                                 +energy*(+1.387d-2 &
+            &                                                         )))        &
+            &                                        )
+    else if (energy >= 11.27d0 .and. energy < 21.00d0) then
+       Cross_Section_H2plus_Gamma_to_H_Hplus=10.0d0**(-30.26d0+energy*(+2.790d+0 &
+            &                                                 +energy*(-0.184d+0 &
+            &                                                 +energy*(+3.535d-3 &
+            &                                                         )))        &
+            &                                        )
+    else
+       Cross_Section_H2plus_Gamma_to_H_Hplus= 0.0d0
+    end if
+    return
+  end function Cross_Section_H2plus_Gamma_to_H_Hplus
+
+  subroutine Molecular_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H(temperature,radiation,moleculeDensity,moleculeRates)
+    !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow H_2^* \rightarrow
+    !% 2\hbox{H}$.
+    use Radiation_Structure
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Math
+    implicit none
+    double precision,                   intent(in)    :: temperature
+    type(radiationStructure),           intent(in)    :: radiation
+    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
+    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    logical,                            save          :: reactionInitialized=.false.,reactionActive=.false.
+    integer,                            save          :: molecularHydrogenMoleculeIndex,atomicHydrogenMoleculeIndex
+    ! Median energy of the Lyman band in molecular hydrogen (in eV).
+    double precision,                   parameter     :: energyLymanBand=12.87d0
+    ! Corresponding median wavelength of the Lyman band in molecular hydrogen (in Angstroms).
+    double precision,                   parameter     :: wavelengthLymanBand=angstromsPerMeter*plancksConstant*speedLight&
+         &/(energyLymanBand*electronVolt)
+    double precision                                  :: rate,rateCoefficient
+
+    ! Check if this reaction needs initializing.
+    !$omp critical(Molecular_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
+    if (.not.reactionInitialized) then
+       ! Find the molecules in this reaction.
+       molecularHydrogenMoleculeIndex=Molecules_Index("MolecularHydrogen")
+       atomicHydrogenMoleculeIndex   =Molecules_Index("AtomicHydrogen"   )
+       ! This reaction is active if all species were found.
+       reactionActive=molecularHydrogenMoleculeIndex > 0 .and. atomicHydrogenMoleculeIndex > 0
+       ! Flag that the reaction is now initialized.
+       reactionInitialized=.true.
+    end if
+    !$omp end critical(Molecular_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
+
+    ! Do calculation if this reaction is active.
+    if (reactionActive) then
+
+       ! Compute rate coefficient.
+       rateCoefficient=1.1d8*(4.0d0*Pi*Radiation_Flux(radiation,wavelengthLymanBand))
+
+       ! Compute rate.
+       rate=rateCoefficient*moleculeDensity%abundance(molecularHydrogenMoleculeIndex)
+
+       ! Record rate.
+       call   moleculeRates%abundanceSet(molecularHydrogenMoleculeIndex, &
+            & moleculeRates%abundance   (molecularHydrogenMoleculeIndex) &
+            & -      rate               )
+       call   moleculeRates%abundanceSet(atomicHydrogenMoleculeIndex   , &
+            & moleculeRates%abundance   (atomicHydrogenMoleculeIndex   ) &
+            & +2.0d0*rate               )
+    end if
+    return
+  end subroutine Molecular_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H
+
+  subroutine Molecular_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron(temperature,radiation,moleculeDensity,moleculeRates)
+    !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ + \hbox{e}^-$.
+    use Radiation_Structure
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Math
+    implicit none
+    double precision,                   intent(in)    :: temperature
+    type(radiationStructure),           intent(in)    :: radiation
+    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
+    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    logical,                            save          :: reactionInitialized=.false.,reactionActive=.false.
+    ! Energy of the edge in the cross-section.
+    double precision,                   parameter     :: crossSectionEdgeEnergy    =15.42d0
+    ! Wavelength of the edge in the cross-section.
+    double precision,                   parameter     :: crossSectionEdgeWavelength=plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEdgeEnergy
+    integer,                            save          :: molecularHydrogenMoleculeIndex,molecularHydrogenCationMoleculeIndex &
+         &,electronMoleculeIndex
+    double precision                                  :: rate,rateCoefficient
+
+    ! Check if this reaction needs initializing.
+    !$omp critical(Molecular_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
+    if (.not.reactionInitialized) then
+       ! Find the molecules in this reaction.
+       molecularHydrogenMoleculeIndex      =Molecules_Index("MolecularHydrogen"      )
+       molecularHydrogenCationMoleculeIndex=Molecules_Index("MolecularHydrogenCation")
+       electronMoleculeIndex               =Molecules_Index("Electron"               )
+       ! This reaction is active if all species were found.
+       reactionActive=       molecularHydrogenMoleculeIndex       > 0 &
+            &          .and. molecularHydrogenCationMoleculeIndex > 0 &
+            &          .and. electronMoleculeIndex                > 0
+       ! Flag that the reaction is now initialized.
+       reactionInitialized=.true.
+    end if
+    !$omp end critical(Molecular_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
+
+    ! Do calculation if this reaction is active.
+    if (reactionActive) then
+
+       ! Compute rate coefficient.
+       rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2_Gamma_to_H2plus_Electron,[0.0d0&
+            &,crossSectionEdgeWavelength])
+
+       ! Compute rate.
+       rate=rateCoefficient*moleculeDensity%abundance(molecularHydrogenMoleculeIndex)
+
+       ! Record rate.
+       call   moleculeRates%abundanceSet(molecularHydrogenMoleculeIndex      , &
+            & moleculeRates%abundance   (molecularHydrogenMoleculeIndex      ) &
+            & -rate                     )
+       call   moleculeRates%abundanceSet(molecularHydrogenCationMoleculeIndex, &
+            & moleculeRates%abundance   (molecularHydrogenCationMoleculeIndex) &
+            & +rate                     )
+       call   moleculeRates%abundanceSet(electronMoleculeIndex               , &
+            & moleculeRates%abundance   (electronMoleculeIndex               ) &
+            & +rate                     )
+
+    end if
+    return
+  end subroutine Molecular_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron
+
+  double precision function Cross_Section_H2_Gamma_to_H2plus_Electron(wavelength)
+    !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ +
+    !% \hbox{e}^-$ as given by\footnote{\protect\cite{abel_modeling_1997} cite ``O'Neil \& Reinhardt (1978)'' as the source for
+    !% this fit, but it is not listed in their bibliography, and I have not been able to locate by any other means.}
+    !% \cite{abel_modeling_1997}.
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    implicit none
+    double precision, intent(in) :: wavelength
+    double precision             :: energy
+
+    ! Convert from wavelength (in Angstroms) to energy (in eV).
+    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+
+    ! Evaluate the fitting function for the cross-section.
+    if      (energy < 15.42d0) then
+       Cross_Section_H2_Gamma_to_H2plus_Electron=0.0d0
+    else if (energy < 16.50d0) then
+       Cross_Section_H2_Gamma_to_H2plus_Electron=6.2d-18*energy-9.40d-17
+    else if (energy < 17.70d0) then
+       Cross_Section_H2_Gamma_to_H2plus_Electron=1.4d-18*energy-1.48d-17
+    else
+       Cross_Section_H2_Gamma_to_H2plus_Electron=2.5d-14/(energy**2.71d0)
+    end if
+    return
+  end function Cross_Section_H2_Gamma_to_H2plus_Electron
+
+  subroutine Molecular_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron(temperature,radiation,moleculeDensity,moleculeRates)
+    !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
+    !% \hbox{e}^-$.
+    use Radiation_Structure
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Math
+    implicit none
+    double precision,                   intent(in)    :: temperature
+    type(radiationStructure),           intent(in)    :: radiation
+    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
+    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    logical,                            save          :: reactionInitialized=.false.,reactionActive=.false.
+    ! Energy range for the cross-section.
+    double precision,                   parameter     :: crossSectionEnergyLow     =30.0d0
+    double precision,                   parameter     :: crossSectionEnergyHigh    =90.0d0
+    ! Wavelength range for the cross-section.
+    double precision,                   parameter     :: crossSectionWavelengthLow =plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEnergyHigh
+    double precision,                   parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEnergyLow
+    integer,                            save          :: atomicHydrogenCationMoleculeIndex,molecularHydrogenCationMoleculeIndex &
+         &,electronMoleculeIndex
+    double precision                                  :: rate,rateCoefficient
+
+    ! Check if this reaction needs initializing.
+    !$omp critical(Molecular_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
+    if (.not.reactionInitialized) then
+       ! Find the molecules in this reaction.
+       atomicHydrogenCationMoleculeIndex   =Molecules_Index("AtomicHydrogenCation"   )
+       molecularHydrogenCationMoleculeIndex=Molecules_Index("MolecularHydrogenCation")
+       electronMoleculeIndex               =Molecules_Index("Electron"               )
+       ! This reaction is active if all species were found.
+       reactionActive=       atomicHydrogenCationMoleculeIndex    > 0 &
+            &          .and. molecularHydrogenCationMoleculeIndex > 0 &
+            &          .and. electronMoleculeIndex                > 0
+       ! Flag that the reaction is now initialized.
+       reactionInitialized=.true.
+    end if
+    !$omp end critical(Molecular_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
+
+    ! Do calculation if this reaction is active.
+    if (reactionActive) then
+
+       ! Compute rate coefficient.
+       rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2plus_Gamma_to_2Hplus_Electron&
+            &,[crossSectionWavelengthLow,crossSectionWavelengthHigh])
+
+       ! Compute rate.
+       rate=rateCoefficient*moleculeDensity%abundance(molecularHydrogenCationMoleculeIndex)
+
+       ! Record rate.
+       call   moleculeRates%abundanceSet(molecularHydrogenCationMoleculeIndex, &
+            & moleculeRates%abundance   (molecularHydrogenCationMoleculeIndex) &
+            & -      rate               )
+       call   moleculeRates%abundanceSet(atomicHydrogenCationMoleculeIndex   , &
+            & moleculeRates%abundance   (atomicHydrogenCationMoleculeIndex   ) &
+            & +2.0d0*rate               )
+       call   moleculeRates%abundanceSet(electronMoleculeIndex               , &
+            & moleculeRates%abundance   (electronMoleculeIndex               ) &
+            & +     rate                )
+    end if
+    return
+  end subroutine Molecular_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron
+
+  double precision function Cross_Section_H2plus_Gamma_to_2Hplus_Electron(wavelength)
+    !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
+    !% \hbox{e}^-$ as given by \cite{shapiro_hydrogen_1987}.
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    implicit none
+    double precision, intent(in) :: wavelength
+    double precision             :: energy
+
+    ! Convert from wavelength (in Angstroms) to energy (in eV).
+    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+
+    ! Evaluate the fitting function for the cross-section.
+    if (energy >= 30.0d0 .and. energy <= 90.0d0) then
+       Cross_Section_H2plus_Gamma_to_2Hplus_Electron=10.0d0**(         -16.926d+0 &
+            &                                                 +energy*(- 4.528d-2 &
+            &                                                 +energy*(  2.238d-4 &
+            &                                                 +energy*(  4.245d-7 &
+            &                                                         )))         &
+            &                                                )
+    else
+       Cross_Section_H2plus_Gamma_to_2Hplus_Electron=0.0d0
+    end if
+    return
+  end function Cross_Section_H2plus_Gamma_to_2Hplus_Electron
+
+  subroutine Molecular_Hydrogen_Rate_H2_Gamma_to_2H(temperature,radiation,moleculeDensity,moleculeRates)
+    !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
+    !% \hbox{e}^-$.
+    use Radiation_Structure
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Math
+    implicit none
+    double precision,                   intent(in)    :: temperature
+    type(radiationStructure),           intent(in)    :: radiation
+    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
+    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    logical,                            save          :: reactionInitialized=.false.,reactionActive=.false.
+    ! Energy range for the cross-section.
+    double precision,                   parameter     :: crossSectionEnergyLow     =14.159d0
+    double precision,                   parameter     :: crossSectionEnergyHigh    =17.700d0
+    ! Wavelength range for the cross-section.
+    double precision,                   parameter     :: crossSectionWavelengthLow =plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEnergyHigh
+    double precision,                   parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEnergyLow
+    integer,                            save          :: atomicHydrogenMoleculeIndex,molecularHydrogenMoleculeIndex
+    double precision                                  :: rate,rateCoefficient
+
+    ! Check if this reaction needs initializing.
+    !$omp critical(Molecular_Hydrogen_Rate_H2_Gamma_to_2H)
+    if (.not.reactionInitialized) then
+       ! Find the molecules in this reaction.
+       atomicHydrogenMoleculeIndex   =Molecules_Index("AtomicHydrogen"   )
+       molecularHydrogenMoleculeIndex=Molecules_Index("MolecularHydrogen")
+       ! This reaction is active if all species were found.
+       reactionActive=       atomicHydrogenMoleculeIndex    > 0 &
+            &          .and. molecularHydrogenMoleculeIndex > 0
+       ! Flag that the reaction is now initialized.
+       reactionInitialized=.true.
+    end if
+    !$omp end critical(Molecular_Hydrogen_Rate_H2_Gamma_to_2H)
+
+    ! Do calculation if this reaction is active.
+    if (reactionActive) then
+
+       ! Compute rate coefficient.
+       rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2_Gamma_to_2H&
+            &,[crossSectionWavelengthLow,crossSectionWavelengthHigh])
+
+       ! Compute rate.
+       rate=rateCoefficient*moleculeDensity%abundance(molecularHydrogenMoleculeIndex)
+
+       ! Record rate.
+       call   moleculeRates%abundanceSet(molecularHydrogenMoleculeIndex, &
+            & moleculeRates%abundance   (molecularHydrogenMoleculeIndex) &
+            & -      rate               )
+       call   moleculeRates%abundanceSet(atomicHydrogenMoleculeIndex   , &
+            & moleculeRates%abundance   (atomicHydrogenMoleculeIndex   ) &
+            & +2.0d0*rate               )
+
+    end if
+    return
+  end subroutine Molecular_Hydrogen_Rate_H2_Gamma_to_2H
+
+  double precision function Cross_Section_H2_Gamma_to_2H(wavelength)
+    !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
+    !% \cite{abel_modeling_1997}.
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    implicit none
+    double precision, intent(in) :: wavelength
+    double precision, parameter  :: ratioOrthoToPara=0.0d0 ! Assume all H_2 is in the para- configuration.
+    double precision             :: energy,crossSectionLymanPara,crossSectionWernerPara,crossSectionLymanOrtho&
+         &,crossSectionWernerOrtho
+
+    ! Convert from wavelength (in Angstroms) to energy (in eV).
+    energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
+    
+    ! Evaluate the Lyman and Wener band cross sections for para- and ortho- configurations.
+    if      (energy > 14.675d0 .and. energy <= 16.820d0) then
+       crossSectionLymanPara  =10.0d0**(-18.0d0+15.1289d0-1.0513900000d+0*energy                       )
+    else if (                        energy <= 17.600d0) then
+       crossSectionLymanPara  =10.0d0**(-18.0d0-31.4100d0+1.8042000000d-2*energy**3-4.2339d-5*energy**5)
+    else
+       crossSectionLymanPara  = 0.0d0
+    end if
+    if      (energy > 14.675d0 .and. energy <= 17.700d0) then
+       crossSectionWernerPara =10.0d0**(-18.0d0+13.5311d0-0.9182618000d0*energy                        )
+    else
+       crossSectionWernerPara = 0.0d0
+    end if
+    if      (energy > 14.159d0 .and. energy <= 15.302d0) then
+       crossSectionLymanOrtho =10.0d0**(-18.0d0+12.0218406d0-0.8194290d0*energy                        )
+    else if (                        energy <= 17.200d0) then
+       crossSectionLymanOrtho =10.0d0**(-18.0d0+16.0464400d0-1.0824380d0*energy                        )
+    else
+       crossSectionLymanOrtho = 0.0d0
+    end if
+    if      (energy > 14.159d0 .and. energy <= 17.200d0) then
+       crossSectionWernerOrtho=10.0d0**(-18.0d0+12.8736700d0-0.85088597d0*energy                       )
+    else
+       crossSectionWernerOrtho= 0.0d0
+    end if
+
+    ! Construct the combined cross-section weighted by the appropriate ortho- to para- ratio.
+    Cross_Section_H2_Gamma_to_2H= (      1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanPara +crossSectionWernerPara ) &
+         &                       +(1.0d0-1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanOrtho+crossSectionWernerOrtho)
+
+    return
+  end function Cross_Section_H2_Gamma_to_2H
+
+  subroutine Molecular_Hydrogen_Rate_H_Gamma_to_Hplus_Electron(temperature,radiation,moleculeDensity,moleculeRates)
+    !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \gamma \rightarrow \hbox{H}^+ +
+    !% \hbox{e}^-$.
+    use Radiation_Structure
+    use Numerical_Constants_Units
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Math
+    implicit none
+    double precision,                   intent(in)    :: temperature
+    type(radiationStructure),           intent(in)    :: radiation
+    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
+    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    logical,                            save          :: reactionInitialized=.false.,reactionActive=.false.
+    ! Energy range for the cross-section (in eV).
+    double precision,                   parameter     :: crossSectionEnergyLow     =13.60d0
+    ! Wavelength range for the cross-section (in Angstroms).
+    double precision,                   parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
+         &/electronVolt/crossSectionEnergyLow
+    integer,                            save          :: atomicHydrogenMoleculeIndex,atomicHydrogenCationMoleculeIndex&
+         &,electronMoleculeIndex
+    double precision                                  :: rate,rateCoefficient
+
+    ! Check if this reaction needs initializing.
+    !$omp critical(Molecular_Hydrogen_Rate_H_Gamma_to_H_Electron)
+    if (.not.reactionInitialized) then
+       ! Find the molecules in this reaction.
+       atomicHydrogenMoleculeIndex      =Molecules_Index("AtomicHydrogen"      )
+       atomicHydrogenCationMoleculeIndex=Molecules_Index("AtomicHydrogenCation")
+       electronMoleculeIndex            =Molecules_Index("Electron"            )
+       ! This reaction is active if all species were found.
+       reactionActive=       atomicHydrogenMoleculeIndex       > 0 &
+            &          .and. atomicHydrogenCationMoleculeIndex > 0 &
+            &          .and. electronMoleculeIndex             > 0
+       ! Flag that the reaction is now initialized.
+       reactionInitialized=.true.
+    end if
+    !$omp end critical(Molecular_Hydrogen_Rate_H_Gamma_to_H_Electron)
+
+    ! Do calculation if this reaction is active.
+    if (reactionActive) then
+
+       ! Compute rate coefficient.
+       rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H_Gamma_to_Hplus_Electron&
+            &,[0.0d0,crossSectionWavelengthHigh])
+
+       ! Compute rate.
+       rate=rateCoefficient*moleculeDensity%abundance(atomicHydrogenMoleculeIndex)
+
+       ! Record rate.
+       call   moleculeRates%abundanceSet(atomicHydrogenMoleculeIndex      , &
+            & moleculeRates%abundance   (atomicHydrogenMoleculeIndex      ) &
+            & -rate                     )
+       call   moleculeRates%abundanceSet(atomicHydrogenCationMoleculeIndex, &
+            & moleculeRates%abundance   (atomicHydrogenCationMoleculeIndex) &
+            & +rate                     )
+       call   moleculeRates%abundanceSet(electronMoleculeIndex            , &
+            & moleculeRates%abundance   (electronMoleculeIndex            ) &
+            & +rate                     )
+
+    end if
+    return
+  end subroutine Molecular_Hydrogen_Rate_H_Gamma_to_Hplus_Electron
+
+  double precision function Cross_Section_H_Gamma_to_Hplus_Electron(wavelength)
+    !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
+    !% \cite{abel_modeling_1997}.
+    use Atomic_Cross_Sections_Ionization_Photo
+    implicit none
+    double precision, intent(in) :: wavelength
+
+    ! Use the hydrogen photoionization cross section method.
+    Cross_Section_H_Gamma_to_Hplus_Electron=Atomic_Cross_Section_Ionization_Photo(1,1,1,wavelength)
+
+    return
+  end function Cross_Section_H_Gamma_to_Hplus_Electron
 
 end module Molecular_Hydrogen_Rates

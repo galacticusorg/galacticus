@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, Andrew Benson <abenson@caltech.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -59,57 +59,60 @@
 !!    http://www.ott.caltech.edu
 
 
-module Thermodynamics_Radiation
-  !% Implements calculations of thermal radiation.
+module Radiation_Null
+  public :: Radiation_Set_Null, Radiation_Temperature_Null, Radiation_Flux_Null
   private
-  public :: Blackbody_Emission
-
-  ! Define labels that specify if the computed radiance is per unit wavelength or per unit frequency.
-  integer, public, parameter :: radianceTypeWavelength=0
-  integer, public, parameter :: radianceTypeFrequency =1
 
 contains
 
-  double precision function Blackbody_Emission(wavelength,temperature,radianceType)
-    !% Compute the Planck blackbody spectral radiance (defined per unit wavelength, in units of J s$^{-1}$ m$^{-2}$ sr$^{-1}$
-    !% \AA$^{-1}$) or J s$^{-1}$ m$^{-2}$ sr$^{-1}$ Hz$^{-1}$ depending on the optional {\tt radianceType} argument). Input {\tt
-    !% wavelength} is in Angstroms, input temperature is in Kelvin.
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
+  !# <radiationLabel>
+  !#  <label>Null</label>
+  !# </radiationLabel>
+
+  !# <radiationSet>
+  !#  <unitName>Radiation_Set_Null</unitName>
+  !#  <label>Null</label>
+  !# </radiationSet>
+  subroutine Radiation_Set_Null(componentMatched,thisNode,radiationProperties)
+    !% Property setting routine for null radiation component.
+    use Tree_Nodes
     implicit none
-    double precision, intent(in)           :: wavelength,temperature
-    integer,          intent(in), optional :: radianceType
-    double precision, parameter            :: exponentialArgumentMaximum=100.0d0
-    double precision                       :: exponentialArgument
-    integer                                :: radianceTypeActual
+    logical,          intent(in)                               :: componentMatched
+    type(treeNode),   intent(inout), pointer                   :: thisNode
+    double precision, intent(inout), allocatable, dimension(:) :: radiationProperties
 
-    ! Return zero emission for non-positive temperatures.
-    if (temperature <= 0.0d0) then
-       Blackbody_Emission=0.0d0
-       return
-    end if
-
-    ! Determine what type of radiance to use.
-    if (present(radianceType)) then
-       radianceTypeActual=radianceType
-    else
-       radianceTypeActual=radianceTypeWavelength
-    end if
-
-    ! Compute the argument appearing in the exponential term.
-    exponentialArgument=plancksConstant*speedLight*angstromsPerMeter/wavelength/boltzmannsConstant/temperature
-    ! If the exponential argument is not too large, then compute the spectrum, otherwise return zero.
-    if (exponentialArgument < exponentialArgumentMaximum) then
-       select case (radianceTypeActual)
-       case (radianceTypeWavelength)
-          Blackbody_Emission=2.0d0*plancksConstant*speedLight**2*angstromsPerMeter**4/wavelength**5/(dexp(exponentialArgument)-1.0d0)
-       case (radianceTypeFrequency )
-          Blackbody_Emission=2.0d0*plancksConstant*speedLight   *angstromsPerMeter**3/wavelength**3/(dexp(exponentialArgument)-1.0d0)
-       end select
-    else
-       Blackbody_Emission=0.0d0
-    end if
     return
-  end function Blackbody_Emission
+  end subroutine Radiation_Set_Null
 
-end module Thermodynamics_Radiation
+  !# <radiationTemperature>
+  !#  <unitName>Radiation_Temperature_Null</unitName>
+  !#  <label>Null</label>
+  !# </radiationTemperature>
+  subroutine Radiation_Temperature_Null(requestedType,ourType,radiationProperties,radiationTemperature,radiationType)
+    !% Temperature method for the null radiation component.
+    implicit none
+    integer,          intent(in)                               :: requestedType,ourType
+    double precision, intent(in),    allocatable, dimension(:) :: radiationProperties
+    double precision, intent(inout)                            :: radiationTemperature
+    integer,          intent(in),    optional,    dimension(:) :: radiationType
+
+    return
+  end subroutine Radiation_Temperature_Null
+
+  !# <radiationFlux>
+  !#  <unitName>Radiation_Flux_Null</unitName>
+  !#  <label>Null</label>
+  !# </radiationFlux>
+  subroutine Radiation_Flux_Null(requestedType,ourType,radiationProperties,wavelength,radiationFlux,radiationType)
+    !% Flux method for the null radiation component.
+    implicit none
+    integer,          intent(in)                               :: requestedType,ourType
+    double precision, intent(in)                               :: wavelength
+    double precision, intent(in),    allocatable, dimension(:) :: radiationProperties
+    double precision, intent(inout)                            :: radiationFlux
+    integer,          intent(in),    optional,    dimension(:) :: radiationType
+
+    return
+  end subroutine Radiation_Flux_Null
+
+end module Radiation_Null

@@ -66,6 +66,7 @@ module Tree_Node_Methods_Hot_Halo
   use Tree_Nodes
   use Components
   use Tree_Node_Methods_Hot_Halo_Data
+  use Radiation_Structure
   private
   public :: Tree_Node_Methods_Hot_Halo_Initialize, Tree_Node_Methods_Hot_Halo_Thread_Initialize, Hot_Halo_Starve,&
        & Hot_Halo_Remove_Before_Satellite_Merging, Tree_Node_Hot_Halo_Promote, Hot_Halo_Subresolution_Initialize,&
@@ -156,6 +157,10 @@ module Tree_Node_Methods_Hot_Halo
   logical          :: gotCoolingRate=.false., gotCoolingConversions=.false.
   double precision :: coolingRate,massHeatingRateRemaining,angularMomentumCoolingConversion
   !$omp threadprivate(gotCoolingRate,coolingRate,massHeatingRateRemaining,gotCoolingConversions,angularMomentumCoolingConversion)
+
+  ! Radiation structure.
+  type(radiationStructure) :: radiation
+  !$omp threadprivate(radiation)
 
 contains
 
@@ -282,19 +287,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Hot_Halo_Initialize
   
-
-
-
-
-
-
-
-
-
-
-
-
-
   !# <treeNodeCreateThreadInitialize>
   !#  <unitName>Tree_Node_Methods_Hot_Halo_Thread_Initialize</unitName>
   !# </treeNodeCreateThreadInitialize>
@@ -317,6 +309,9 @@ contains
        call Alloc_Array(moleculesCoolingRate  ,[moleculesCount])
        call Alloc_Array(moleculesAccretionRate,[moleculesCount])
        call Alloc_Array(moleculesChemicalRates,[moleculesCount])
+
+       ! Define the radiation component to include both the CMB and the intergalactic background.
+       call radiation%define([radiationTypeCMB,radiationTypeIGB])
 
     end if
     return
@@ -868,7 +863,6 @@ contains
     use Molecular_Abundances_Structure
     use Accretion_Halos
     use Molecular_Reaction_Rates
-    use Radiation_Structure
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Atomic
     use Numerical_Constants_Math
@@ -881,7 +875,6 @@ contains
          &,molecularDensitiesRates,molecularMassesRates
     !$omp threadprivate(accretionRateMolecules,molecularMasses,molecularDensities,molecularDensitiesRates,molecularMassesRates)
     double precision                                           :: massToDensityConversion,temperature
-    type(radiationStructure)                                   :: radiation
 
     ! If no molecules are being tracked, simply return.
     if (moleculesCount == 0) return
@@ -914,7 +907,7 @@ contains
     ! Get the temperature of the hot reservoir.
     temperature=Dark_Matter_Halo_Virial_Temperature(thisNode)
     ! Set the radiation background.
-    call radiation%setCMB(Tree_Node_Time(thisNode))
+    call radiation%set(thisNode)
     ! Get the masses of molecules.
     call Tree_Node_Hot_Halo_Molecules_Standard(thisNode,moleculesValue)
     ! Truncate masses to zero to avoid unphysical behavior.
@@ -984,7 +977,6 @@ contains
   subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
     !% Compute the hot halo node mass rate of change.
     use Dark_Matter_Halo_Scales
-    use Radiation_Structure
     use Abundances_Structure
     use Molecular_Abundances_Structure
     use Numerical_Constants_Math
@@ -1002,7 +994,6 @@ contains
     !$omp threadprivate(outflowedAbundances,molecularDensities,molecularRates,molecularMasses)
     double precision                       :: massReturnRate,temperature,hydrogenByMass,massToDensityConversion&
          &,numberDensityHydrogen,outflowedMass
-    type(radiationStructure)                                   :: radiation
 
     ! If a hot component exists, compute rate of return of outflowed gas to the hot gas reservoir.
     if (thisNode%componentExists(componentIndex).and.(.not.starveSatellites.or..not.thisNode%isSatellite())) then    
@@ -1031,7 +1022,7 @@ contains
           numberDensityHydrogen=hydrogenByMass*outflowedMass*massToDensityConversion/atomicMassUnit/atomicMassHydrogen
           
           ! Set the radiation field.
-          call radiation%setCMB(Tree_Node_Time(thisNode))
+          call radiation%set(thisNode)
           
           ! Get the molecule densities.
           call Molecular_Densities(molecularDensities,temperature,numberDensityHydrogen,outflowedAbundances,radiation)

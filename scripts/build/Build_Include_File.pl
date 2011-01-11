@@ -114,7 +114,9 @@ foreach $fullname ( @filesToScan ) {
 				# If we have subroutine arguments, append them to the call.
 				if ( exists($instructions->{'subroutineArgs'}) ) {
 				    if ( $inserts{$data->{'unitName'}} !~ m/\($/ ) {$inserts{$data->{'unitName'}} .= ","};
-				    $inserts{$data->{'unitName'}} .= $instructions->{'subroutineArgs'};
+				    $arguments = $instructions->{'subroutineArgs'};
+				    $arguments =~ s/\#label/$data->{'label'}/g;
+				    $inserts{$data->{'unitName'}} .= $arguments;
 				}
 				$inserts{$data->{'unitName'}} .= ")\n";
 				# If some action is specified, perform this action after the subroutine call.
@@ -146,6 +148,12 @@ foreach $fullname ( @filesToScan ) {
 		    case ( "initializeMethods" ) {
 			# Get the type of this method.
 			$inserts{$data->{'methodName'}} = &Get_Type($data);
+		    }
+		    # Process labels.
+		    case ( "label" ) {
+			# Get the prefix for this method.
+			++$labelCount{$instructions->{'prefix'}};
+			$inserts{$data->{'unitName'}} .= "integer, public, parameter :: ".$instructions->{'prefix'}.$data->{'label'}."=".$labelCount{$instructions->{'prefix'}}."\n";
 		    }
 		    # Process option names associated with component implementations.
 		    case ( [ "optionNames", "optionDefinitions" ] ) {

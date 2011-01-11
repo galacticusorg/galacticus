@@ -79,4 +79,7 @@ module Numerical_Constants_Units
   ! Electron volt (in units of Joules).
   double precision, parameter :: electronVolt=FGSL_CONST_MKSA_ELECTRON_VOLT
 
+  ! Barn (cross section unit, in units of m^2).
+  double precision, parameter :: barn=1.0d-28
+
 end module Numerical_Constants_Units

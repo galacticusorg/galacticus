@@ -68,6 +68,7 @@ module Cooling_Radii_Simple
   use, intrinsic :: ISO_C_Binding
   use Tree_Nodes
   use Kind_Numbers
+  use Radiation_Structure
   private
   public :: Cooling_Radius_Simple_Initialize, Cooling_Radius_Simple_Reset
 
@@ -93,6 +94,10 @@ module Cooling_Radii_Simple
   ! Stored values of cooling radius.
   double precision :: coolingRadiusStored,coolingRadiusGrowthRateStored
   !$omp threadprivate(coolingRadiusStored,coolingRadiusGrowthRateStored)
+
+  ! Radiation structure used in cooling calculations.
+  type(radiationStructure) :: radiation
+  !$omp threadprivate(radiation)
 
 contains
 
@@ -130,6 +135,9 @@ contains
     coolingRadiusComputed          =.false.
     coolingRadiusGrowthRateComputed=.false.
     lastUniqueID                   =thisNode%uniqueID()
+
+    ! Ensure the radiation structure is defined to use the cosmic microwave background.
+    if (.not.radiation%isDefined()) call radiation%define([radiationTypeCMB])
     return
   end subroutine Cooling_Radius_Simple_Reset
 
@@ -142,7 +150,6 @@ contains
     use Cooling_Times
     use Abundances_Structure
     use Molecular_Abundances_Structure
-    use Radiation_Structure
     use Cooling_Times_Available
     use Numerical_Constants_Math
     use Numerical_Constants_Prefixes
@@ -156,7 +163,6 @@ contains
          &,coolingTimeTemperatureLogSlope,massToDensityConversion
     type(abundancesStructure),          save                       :: abundances
     !$omp threadprivate(abundances)
-    type(radiationStructure)                                       :: radiation
     type(molecularAbundancesStructure), save                       :: molecularMasses,molecularDensities
     !$omp threadprivate(molecularMasses,molecularDensities)
 
@@ -195,8 +201,8 @@ contains
           temperature=Hot_Halo_Temperature(activeNode,coolingRadius)
           
           ! Set the radiation field.
-          call radiation%setCMB(Tree_Node_Time(thisNode))
-          
+          call radiation%set(thisNode)
+
           ! Get the abundances for this node.
           call Tree_Node_Hot_Halo_Abundances(thisNode,abundancesMassFraction)
           call abundances%pack(abundancesMassFraction)
@@ -296,7 +302,6 @@ contains
     !% Root function which evaluates the difference between the cooling time at {\tt radius} and the time available for cooling.
     use Cooling_Times
     use Abundances_Structure
-    use Radiation_Structure
     use Hot_Halo_Density_Profile
     use Hot_Halo_Temperature_Profile
     use Molecular_Abundances_Structure
@@ -313,7 +318,6 @@ contains
     double precision                                               :: coolingTime,density,temperature,massToDensityConversion
     type(abundancesStructure),          save                       :: abundances
     !$omp threadprivate(abundances)
-    type(radiationStructure)                                       :: radiation
     type(molecularAbundancesStructure), save                       :: molecularMasses,molecularDensities
     !$omp threadprivate(molecularMasses,molecularDensities)
 
@@ -339,7 +343,7 @@ contains
     end if
 
     ! Set the radiation field.
-    call radiation%setCMB(Tree_Node_Time(activeNode))
+    call radiation%set(activeNode)
 
     ! Compute the cooling time at the specified radius.
     coolingTime=Cooling_Time(temperature,density,abundances,molecularDensities,radiation)

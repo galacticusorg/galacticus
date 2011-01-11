@@ -64,6 +64,7 @@
 
 module Accretion_Halos_Simple
   !% Implements calculations of baryonic accretion onto halos using a simple truncation to mimic reionization.
+  use Radiation_Structure
   use Abundances_Structure
   private
   public :: Accretion_Halos_Simple_Initialize
@@ -79,6 +80,10 @@ module Accretion_Halos_Simple
 
   ! Zero abundance structure.
   type(abundancesStructure) :: zeroAbundances
+
+  ! Radiation structure.
+  type(radiationStructure) :: radiation
+  !$omp threadprivate(radiation)
 
 contains
 
@@ -138,6 +143,9 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter("reionizationSuppressionVelocity",reionizationSuppressionVelocity,defaultValue=30.0d0)
+
+       ! Define the radiation structure.
+       call radiation%define([radiationTypeCMB])
     end if
     return
   end subroutine Accretion_Halos_Simple_Initialize
@@ -308,7 +316,6 @@ contains
   subroutine Get_Molecular_Masses(thisNode,massAccreted,molecularMasses)
     !% Compute the masses of molecules accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Tree_Nodes
-    use Radiation_Structure
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Atomic
@@ -324,7 +331,6 @@ contains
     type(molecularAbundancesStructure), intent(out)            :: molecularMasses
     double precision                                           :: massToDensityConversion,temperature,numberDensityHydrogen&
          &,electronsDensity ,hydrogensAtomicDensity,hydrogensCationDensity
-    type(radiationStructure)                                   :: radiation
     type(molecularAbundancesStructure), save                   :: molecularDensities
     !$omp threadprivate(molecularDensities)
 
@@ -337,7 +343,7 @@ contains
     numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_0())*Tree_Node_Mass(thisNode)*massToDensityConversion/atomicMassUnit/atomicMassHydrogen
     
     ! Set the radiation field.
-    call radiation%setCMB(Tree_Node_Time(thisNode))
+    call radiation%set(thisNode)
 
     ! Get the molecule densities.
     call Molecular_Densities(molecularDensities,temperature,numberDensityHydrogen,zeroAbundances,radiation)
