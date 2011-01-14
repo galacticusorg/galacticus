@@ -94,6 +94,11 @@ module IO_HDF5
   integer                    :: hdf5CompressionLevel=-1
   integer(kind=HSIZE_T)      :: hdf5ChunkSize       =-1
 
+  ! Arrays of compatible datatypes.
+  integer(kind=HID_T), dimension(3) :: H5T_NATIVE_DOUBLES
+  integer(kind=HID_T), dimension(5) :: H5T_NATIVE_INTEGERS
+  integer(kind=HID_T), dimension(3) :: H5T_NATIVE_INTEGER_8S
+
   type hdf5Object
      !% A structure that holds properties of HDF5 objects.
      private
@@ -108,6 +113,13 @@ module IO_HDF5
      type(hdf5Object), pointer :: parentObject
    contains
 
+     ! Destroy methods.
+     !@ <objectMethod>
+     !@   <object>hdf5Object</object>
+     !@   <method>destroy</method>
+     !@   <description>Destroys the given object.</description>
+     !@ </objectMethod>
+     procedure :: destroy => IO_HDF5_Destroy  
      ! Location methods.
      !@ <objectMethod>
      !@   <object>hdf5Object</object>
@@ -342,7 +354,6 @@ module IO_HDF5
      !@   <method>destroy</method>
      !@   <description>Destroy an HDF5 object.</description>
      !@ </objectMethod>
-     procedure :: destroy             => IO_HDF5_Destroy
   end type hdf5Object
 
   ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API.
@@ -390,6 +401,13 @@ contains
     if (.not.hdf5IsInitalized) then
        call h5open_f(errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('IO_HDF5_Initialize','failed to initialize HDF5 subsystem')
+
+       ! Ensure native datatype arrays are initialized.
+       H5T_NATIVE_DOUBLES   =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F64BE,H5T_IEEE_F64LE                            ]
+       H5T_NATIVE_INTEGERS  =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE,H5T_STD_I64LE]
+       H5T_NATIVE_INTEGER_8S=[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                             ]
+
+       ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
     end if
     initializationsCount=initializationsCount+1
@@ -993,7 +1011,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Integer_Scalar',message)
        else
           ! Check that the object is a scalar integer.
-          call thisObject%assertAttributeType(H5T_NATIVE_INTEGER,0)
+          call thisObject%assertAttributeType(H5T_NATIVE_INTEGERS,0)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -1015,7 +1033,7 @@ contains
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeInteger)
        ! Check that pre-existing object is a scalar integer.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER,0)
+       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,0)
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1077,7 +1095,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Integer_1D',message)
        else
           ! Check that the object is a 1D integer.
-          call thisObject%assertAttributeType(H5T_NATIVE_INTEGER,1)
+          call thisObject%assertAttributeType(H5T_NATIVE_INTEGERS,1)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -1102,7 +1120,7 @@ contains
        attributeDimensions=shape(attributeValue)
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeInteger,attributeDimensions)
        ! Check that pre-existing object is a 1D integer.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER,1)
+       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1)
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1165,7 +1183,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Integer8_Scalar',message)
        else
           ! Check that the object is a scalar integer.
-          call thisObject%assertAttributeType(H5T_NATIVE_INTEGER_8,0)
+          call thisObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -1189,7 +1207,7 @@ contains
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeInteger8)
        ! Check that pre-existing object is a scalar integer.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8,0)
+       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0)
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1256,7 +1274,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Integer8_1D',message)
        else
           ! Check that the object is a 1D long integer.
-          call thisObject%assertAttributeType(H5T_NATIVE_INTEGER_8,1)
+          call thisObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -1281,7 +1299,7 @@ contains
        attributeDimensions=shape(attributeValue)
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeInteger8,attributeDimensions)
        ! Check that pre-existing object is a 1D long integer.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8,1)
+       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1351,7 +1369,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Double_Scalar',message)
        else
           ! Check that the object is a scalar double.
-          call thisObject%assertAttributeType(H5T_NATIVE_DOUBLE,0)
+          call thisObject%assertAttributeType(H5T_NATIVE_DOUBLES,0)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -1376,7 +1394,7 @@ contains
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeDouble)
        ! Check that pre-existing object is a scalar double.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLE,0)
+       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,0)
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1438,7 +1456,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Double_1D',message)
        else
           ! Check that the object is a 1D double.
-          call thisObject%assertAttributeType(H5T_NATIVE_DOUBLE,1)
+          call thisObject%assertAttributeType(H5T_NATIVE_DOUBLES,1)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -1463,7 +1481,7 @@ contains
        attributeDimensions=shape(attributeValue)
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeDouble,attributeDimensions)
        ! Check that pre-existing object is a 1D double.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLE,1)
+       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1)
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1538,7 +1556,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
        else
           ! Check that the object is a scalar character.
-          call thisObject%assertAttributeType(dataTypeID,0)
+          call thisObject%assertAttributeType([dataTypeID],0)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -1563,7 +1581,7 @@ contains
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeCharacter,useDataType=dataTypeID)
        ! Check that pre-existing object is a scalar character.
-       if (preExisted) call attributeObject%assertAttributeType(dataTypeID,0)
+       if (preExisted) call attributeObject%assertAttributeType([dataTypeID],0)
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1645,7 +1663,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_1D',message)
        else
           ! Check that the object is a 1D character.
-          call thisObject%assertAttributeType(dataTypeID,1)
+          call thisObject%assertAttributeType([dataTypeID],1)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -1670,7 +1688,7 @@ contains
        attributeDimensions=shape(attributeValue)
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeCharacter,attributeDimensions,useDataType=dataTypeID)
        ! Check that pre-existing object is a 1D character.
-       if (preExisted) call attributeObject%assertAttributeType(dataTypeID,1)
+       if (preExisted) call attributeObject%assertAttributeType([dataTypeID],1)
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1791,7 +1809,7 @@ contains
     end if
 
     ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER,0)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,0)
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions&
@@ -1873,7 +1891,7 @@ contains
     end if
 
     ! Check that the object is a 1D integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -1976,7 +1994,7 @@ contains
     end if
 
     ! Check that the object is a 1D integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2084,7 +2102,7 @@ contains
     end if
 
     ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8,0)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0)
 
     ! Read the attribute.
     dataBuffer=c_loc(attributeValue)
@@ -2168,7 +2186,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2274,7 +2292,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2383,7 +2401,7 @@ contains
     end if
 
     ! Check that the object is a scalar double.
-    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLE,0)
+    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,0)
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions&
@@ -2465,7 +2483,7 @@ contains
     end if
 
     ! Check that the object is a 1D double array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLE,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2568,7 +2586,7 @@ contains
     end if
 
     ! Check that the object is a 1D double array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLE,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2684,7 +2702,7 @@ contains
     end if
 
     ! Check that the object is a scalar character.
-    call attributeObject%assertAttributeType(dataTypeID,0)
+    call attributeObject%assertAttributeType([dataTypeID],0)
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,dataTypeID,attributeValue,attributeDimensions&
@@ -2785,7 +2803,7 @@ contains
     end if
 
     ! Check that the object is a 1D character array.
-    call attributeObject%assertAttributeType(dataTypeID,1)
+    call attributeObject%assertAttributeType([dataTypeID],1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2907,7 +2925,7 @@ contains
     end if
 
     ! Check that the object is a 1D character array.
-    call attributeObject%assertAttributeType(dataTypeID,1)
+    call attributeObject%assertAttributeType([dataTypeID],1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -3336,16 +3354,17 @@ contains
     use Galacticus_Error
     implicit none
 #ifdef GCC45
-    class(hdf5Object),   intent(in) :: attributeObject
+    class(hdf5Object),   intent(in)               :: attributeObject
 #else
-    type(hdf5Object),    intent(in) :: attributeObject
+    type(hdf5Object),    intent(in)               :: attributeObject
 #endif
-    integer,             intent(in) :: attributeAssertedRank
-    integer(kind=HID_T), intent(in) :: attributeAssertedType
-    integer                         :: errorCode,attributeRank
-    integer(kind=HID_T)             :: attributeTypeID,attributeDataspaceID
-    logical                         :: isCorrectType
-    type(varying_string)            :: message
+    integer,             intent(in)               :: attributeAssertedRank
+    integer(kind=HID_T), intent(in), dimension(:) :: attributeAssertedType
+    integer                                       :: errorCode,attributeRank
+    integer(kind=HID_T)                           :: attributeTypeID,attributeDataspaceID
+    logical                                       :: isCorrectType
+    integer                                       :: iType
+    type(varying_string)                          :: message
 
     ! Check the attribute type
     call h5aget_type_f(attributeObject%objectID,attributeTypeID,errorCode)
@@ -3353,11 +3372,16 @@ contains
        message="unable to get datatype of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
     end if
-    call h5tequal_f(attributeTypeID,attributeAssertedType,isCorrectType,errorCode)
-    if (errorCode /= 0) then
-       message="unable to test datatype of attribute '"//attributeObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
-    end if
+    isCorrectType=.false. ! Assume that it is of the incorrect type by default.
+    do iType=1,size(attributeAssertedType)
+       call h5tequal_f(attributeTypeID,attributeAssertedType(iType),isCorrectType,errorCode)
+       if (errorCode /= 0) then
+          message="unable to test datatype of attribute '"//attributeObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
+       end if
+       ! If a suitable type match has been found, exit the loop.
+       if (isCorrectType) exit
+    end do
     call h5tclose_f(attributeTypeID,errorCode)
     if (errorCode /= 0) then
        message="unable to close datatype of attribute '"//attributeObject%objectName//"'"
@@ -3676,16 +3700,17 @@ contains
     use Galacticus_Error
     implicit none
 #ifdef GCC45
-    class(hdf5Object),   intent(in) :: datasetObject
+    class(hdf5Object),   intent(in)               :: datasetObject
 #else
-    type(hdf5Object),    intent(in) :: datasetObject
+    type(hdf5Object),    intent(in)               :: datasetObject
 #endif
-    integer,             intent(in) :: datasetAssertedRank
-    integer(kind=HID_T), intent(in) :: datasetAssertedType
-    integer                         :: errorCode,datasetRank
-    integer(kind=HID_T)             :: datasetTypeID,datasetDataspaceID
-    logical                         :: isCorrectType
-    type(varying_string)            :: message
+    integer,             intent(in)               :: datasetAssertedRank
+    integer(kind=HID_T), intent(in), dimension(:) :: datasetAssertedType
+    integer                                       :: errorCode,datasetRank
+    integer(kind=HID_T)                           :: datasetTypeID,datasetDataspaceID
+    logical                                       :: isCorrectType
+    integer                                       :: iType
+    type(varying_string)                          :: message
 
     ! Check the dataset type
     call h5dget_type_f(datasetObject%objectID,datasetTypeID,errorCode)
@@ -3693,11 +3718,16 @@ contains
        message="unable to get datatype of dataset '"//datasetObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Assert_Dataset_Type',message)
     end if
-    call h5tequal_f(datasetTypeID,datasetAssertedType,isCorrectType,errorCode)
-    if (errorCode /= 0) then
-       message="unable to test datatype of dataset '"//datasetObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Assert_Dataset_Type',message)
-    end if
+    isCorrectType=.false. ! Assume that it is of the incorrect type by default.
+    do iType=1,size(datasetAssertedType)
+       call h5tequal_f(datasetTypeID,datasetAssertedType(iType),isCorrectType,errorCode)
+       if (errorCode /= 0) then
+          message="unable to test datatype of dataset '"//datasetObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Assert_Dataset_Type',message)
+       end if
+       ! If a suitable type match has been found, exit the loop.
+       if (isCorrectType) exit
+    end do
     call h5tclose_f(datasetTypeID,errorCode)
     if (errorCode /= 0) then
        message="unable to close datatype of dataset '"//datasetObject%objectName//"'"
@@ -3785,7 +3815,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer_1D',message)
        else
           ! Check that the object is a 1D integer.
-          call thisObject%assertDatasetType(H5T_NATIVE_INTEGER,1)
+          call thisObject%assertDatasetType(H5T_NATIVE_INTEGERS,1)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -3810,7 +3840,7 @@ contains
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeInteger,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D integer.
-       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER,1)
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,1)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
@@ -4038,7 +4068,7 @@ contains
     end if
 
     ! Check that the object is a 1D integer array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -4331,7 +4361,7 @@ contains
     end if
 
     ! Check that the object is a 1D integer array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -4542,7 +4572,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer8_1D',message)
        else
           ! Check that the object is a 1D long integer.
-          call thisObject%assertDatasetType(H5T_NATIVE_INTEGER_8,1)
+          call thisObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -4567,7 +4597,7 @@ contains
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeInteger8,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D long integer.
-       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8,1)
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
@@ -4801,7 +4831,7 @@ contains
     end if
 
     ! Check that the object is a 1D integer8 array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -5098,7 +5128,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -5305,7 +5335,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_1D',message)
        else
           ! Check that the object is a 1D double.
-          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,1)
+          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLES,1)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -5331,7 +5361,7 @@ contains
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D double.
-       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,1)
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,1)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
@@ -5558,7 +5588,7 @@ contains
     end if
 
     ! Check that the object is a 1D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -5857,7 +5887,7 @@ contains
     end if
 
     ! Check that the object is a 1D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -6064,7 +6094,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
        else
           ! Check that the object is a 2D double.
-          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,2)
+          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLES,2)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -6089,7 +6119,7 @@ contains
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D double.
-       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,2)
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,2)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
@@ -6324,7 +6354,7 @@ contains
     end if
 
     ! Check that the object is a 2D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,2)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,2)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -6617,7 +6647,7 @@ contains
     end if
 
     ! Check that the object is a 2D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,2)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,2)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -6824,7 +6854,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_3D',message)
        else
           ! Check that the object is a 3D double.
-          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,3)
+          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLES,3)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -6849,7 +6879,7 @@ contains
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D double.
-       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,3)
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,3)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
@@ -7084,7 +7114,7 @@ contains
     end if
 
     ! Check that the object is a 3D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,3)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,3)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -7377,7 +7407,7 @@ contains
     end if
 
     ! Check that the object is a 3D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,3)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,3)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -7584,7 +7614,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_4D',message)
        else
           ! Check that the object is a 4D double.
-          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,4)
+          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLES,4)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -7609,7 +7639,7 @@ contains
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 4D double.
-       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,4)
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,4)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
@@ -7844,7 +7874,7 @@ contains
     end if
 
     ! Check that the object is a 4D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,4)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,4)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -8137,7 +8167,7 @@ contains
     end if
 
     ! Check that the object is a 4D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,4)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,4)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -8344,7 +8374,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_5D',message)
        else
           ! Check that the object is a 5D double.
-          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLE,5)
+          call thisObject%assertDatasetType(H5T_NATIVE_DOUBLES,5)
        end if
 #ifdef GCC45
        select type (thisObject)
@@ -8369,7 +8399,7 @@ contains
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 5D double.
-       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,5)
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,5)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
@@ -8604,7 +8634,7 @@ contains
     end if
 
     ! Check that the object is a 5D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,5)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,5)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -8896,7 +8926,7 @@ contains
     end if
 
     ! Check that the object is a 5D double array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLE,5)
+    call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,5)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
