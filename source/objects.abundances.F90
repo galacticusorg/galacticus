@@ -123,10 +123,15 @@ module Abundances_Structure
      !@     <method>heliumMassFraction</method>
      !@     <description>Returns the helium fraction by mass.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>heliumNumberFraction</method>
+     !@     <description>Returns the helium fraction by number.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure                 :: hydrogenNumberFraction => Abundances_Hydrogen_Number_Fraction
      procedure                 :: hydrogenMassFraction   => Abundances_Hydrogen_Mass_Fraction
      procedure                 :: heliumMassFraction     => Abundances_Helium_Mass_Fraction
+     procedure                 :: heliumNumberFraction   => Abundances_Helium_Number_Fraction
   end type abundancesStructure
 
   ! Count of the number of elements being tracked.
@@ -418,6 +423,8 @@ contains
        select case (metallicityType)
        case (linearByMass)
           ! Do nothing, this is how we store metallicity.
+       case (linearByMassSolar)
+          abundances%metallicityValue=         abundances%metallicityValue *metallicitySolar
        case (logarithmicByMassSolar)
           abundances%metallicityValue=(10.0d0**abundances%metallicityValue)*metallicitySolar
        case default
@@ -579,7 +586,7 @@ contains
 #endif
 
     numberHydrogen=Abundances_Hydrogen_Mass_Fraction(abundances)/atomicMassHydrogen
-    numberHelium  =Abundances_Helium_Mass_Fraction(abundances)/atomicMassHelium
+    numberHelium  =Abundances_Helium_Mass_Fraction  (abundances)/atomicMassHelium
     Abundances_Hydrogen_Number_Fraction=numberHydrogen/(numberHydrogen+numberHelium)
 
 #ifdef GCC45
@@ -588,5 +595,34 @@ contains
 
     return
   end function Abundances_Hydrogen_Number_Fraction
+
+  double precision function Abundances_Helium_Number_Fraction(abundances)
+    !% Returns the mass fraction of helium.
+    implicit none
+#ifdef GCC45
+    class(abundancesStructure), intent(in) :: abundances
+#else
+    type(abundancesStructure),  intent(in) :: abundances
+#endif
+    double precision                       :: numberHydrogen,numberHelium
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+#ifdef GCC45
+    select type (abundances)
+    type is (abundancesStructure)
+#endif
+
+    numberHydrogen=Abundances_Hydrogen_Mass_Fraction(abundances)/atomicMassHydrogen
+    numberHelium  =Abundances_Helium_Mass_Fraction  (abundances)/atomicMassHelium
+    Abundances_Helium_Number_Fraction=numberHelium/(numberHydrogen+numberHelium)
+
+#ifdef GCC45
+    end select
+#endif
+
+    return
+  end function Abundances_Helium_Number_Fraction
 
 end module Abundances_Structure
