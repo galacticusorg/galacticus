@@ -61,6 +61,9 @@
 
 !% Contains a module that implements simple and convenient interfaces to a variety of HDF5 functionality.
 
+! Specify an explicit dependence on the hdf5_cTypes.o object file.
+!: ./work/build/hdf5_cTypes.o
+
 module IO_HDF5
   !% Implements simple and convenient interfaces to a variety of HDF5 functionality.
   use HDF5
@@ -358,6 +361,11 @@ module IO_HDF5
 
   ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API.
   interface
+     function H5T_C_S1_Get() bind(c,name='H5T_C_S1_Get')
+       !% Template for a C function that returns the H5T_C_S1 datatype ID.
+       import
+       integer(hid_t)        :: H5T_C_S1_Get
+     end function H5T_C_S1_Get     
      function H5Awrite(attr_id,mem_type_id,buf) bind(c, name='H5Awrite')
        !% Template for the HDF5 C API attribute write function.
        import
@@ -565,6 +573,38 @@ contains
     thisObject%objectID=0
     return
   end subroutine IO_HDF5_Close
+
+  function IO_HDF5_Character_Types(stringLength)
+    !% Return datatypes for character data of a given length. Types are for Fortran native and C native types.
+    use Galacticus_Error
+    implicit none
+    integer(kind=HID_T),  dimension(2) :: IO_HDF5_Character_Types
+    integer,              intent(in)   :: stringLength
+    integer                            :: errorCode
+    type(varying_string)               :: message
+
+    call h5tcopy_f(H5T_NATIVE_CHARACTER,IO_HDF5_Character_Types(1),errorCode)
+    if (errorCode < 0) then
+       message="unable to make custom datatype"
+       call Galacticus_Error_Report('IO_HDF5_Character_Types',message)
+    end if
+    call h5tset_size_f(IO_HDF5_Character_Types(1),int(stringLength,size_t),errorCode)
+    if (errorCode < 0) then
+       message="unable to set datatype size"
+       call Galacticus_Error_Report('IO_HDF5_Character_Types',message)
+    end if
+    call h5tcopy_f(H5T_C_S1_Get(),IO_HDF5_Character_Types(2),errorCode)
+    if (errorCode < 0) then
+       message="unable to make custom datatype"
+       call Galacticus_Error_Report('IO_HDF5_Character_Types',message)
+    end if
+    call h5tset_size_f(IO_HDF5_Character_Types(2),int(stringLength,size_t),errorCode)
+    if (errorCode < 0) then
+       message="unable to set datatype size"
+       call Galacticus_Error_Report('IO_HDF5_Character_Types',message)
+    end if
+    return
+  end function IO_HDF5_Character_Types
 
   !! File routines.
 
@@ -2637,7 +2677,7 @@ contains
 #endif
     character(len=*),      intent(in),    optional :: attributeName
     integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
-    integer(kind=HID_T)                            :: dataTypeID
+    integer(kind=HID_T)                            :: dataTypeID(2)
     integer                                        :: errorCode
     type(hdf5Object)                               :: attributeObject
     type(varying_string)                           :: message,attributeNameActual
@@ -2658,17 +2698,8 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_Scalar',message)
     end if
 
-    ! Create a custom datatype.
-    call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
-    if (errorCode < 0) then
-       message="unable to make custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
-    end if
-    call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
-    if (errorCode < 0) then
-       message="unable to set datatype size for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
-    end if
+    ! Create a custom datatype. We actually make two types - one is a Fortran native type, the other is a C native type.
+    dataTypeID=IO_HDF5_Character_Types(len(attributeValue))
 
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
@@ -2702,10 +2733,10 @@ contains
     end if
 
     ! Check that the object is a scalar character.
-    call attributeObject%assertAttributeType([dataTypeID],0)
+    call attributeObject%assertAttributeType(dataTypeID,0)
 
     ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,dataTypeID,attributeValue,attributeDimensions&
+    call h5aread_f(attributeObject%objectID,dataTypeID(1),attributeValue,attributeDimensions&
          &,errorCode) 
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -2713,7 +2744,12 @@ contains
     end if
 
     ! Close the datatype.
-    call h5tclose_f(dataTypeID,errorCode)
+    call h5tclose_f(dataTypeID(1),errorCode)
+    if (errorCode < 0) then
+       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
+    end if
+    call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
@@ -2739,7 +2775,7 @@ contains
     character(len=*),      intent(in),    optional                  :: attributeName
     integer(kind=HSIZE_T), dimension(1)                             :: attributeDimensions,attributeMaximumDimensions
     integer                                                         :: errorCode
-    integer(kind=HID_T)                                             :: attributeDataspaceID,dataTypeID
+    integer(kind=HID_T)                                             :: attributeDataspaceID,dataTypeID(2)
     type(hdf5Object)                                                :: attributeObject
     type(varying_string)                                            :: message,attributeNameActual
 
@@ -2760,16 +2796,7 @@ contains
     end if
 
     ! Create a custom datatype.
-    call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
-    if (errorCode < 0) then
-       message="unable to make custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
-    end if
-    call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
-    if (errorCode < 0) then
-       message="unable to set datatype size for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
-    end if
+    dataTypeID=IO_HDF5_Character_Types(len(attributeValue))
 
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
@@ -2803,7 +2830,7 @@ contains
     end if
 
     ! Check that the object is a 1D character array.
-    call attributeObject%assertAttributeType([dataTypeID],1)
+    call attributeObject%assertAttributeType(dataTypeID,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2827,7 +2854,7 @@ contains
     call Alloc_Array(attributeValue,int(attributeDimensions))
 
     ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,dataTypeID,attributeValue,attributeDimensions&
+    call h5aread_f(attributeObject%objectID,dataTypeID(1),attributeValue,attributeDimensions&
          &,errorCode) 
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -2835,7 +2862,12 @@ contains
     end if
 
     ! Close the datatype.
-    call h5tclose_f(dataTypeID,errorCode)
+    call h5tclose_f(dataTypeID(1),errorCode)
+    if (errorCode < 0) then
+       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
+    end if
+    call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
@@ -2861,7 +2893,7 @@ contains
     character(len=*),      intent(in),    optional     :: attributeName
     integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions,attributeMaximumDimensions
     integer                                            :: errorCode
-    integer(kind=HID_T)                                :: attributeDataspaceID,dataTypeID
+    integer(kind=HID_T)                                :: attributeDataspaceID,dataTypeID(2)
     type(hdf5Object)                                   :: attributeObject
     type(varying_string)                               :: message,attributeNameActual
 
@@ -2882,16 +2914,7 @@ contains
     end if
 
     ! Create a custom datatype.
-    call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
-    if (errorCode < 0) then
-       message="unable to make custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
-    end if
-    call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
-    if (errorCode < 0) then
-       message="unable to set datatype size for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
-    end if
+    dataTypeID=IO_HDF5_Character_Types(len(attributeValue))
 
     ! Check if the object is an attribute, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
@@ -2925,7 +2948,7 @@ contains
     end if
 
     ! Check that the object is a 1D character array.
-    call attributeObject%assertAttributeType([dataTypeID],1)
+    call attributeObject%assertAttributeType(dataTypeID,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2951,7 +2974,7 @@ contains
     end if
 
     ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,dataTypeID,attributeValue,attributeDimensions&
+    call h5aread_f(attributeObject%objectID,dataTypeID(1),attributeValue,attributeDimensions&
          &,errorCode) 
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
@@ -2959,7 +2982,12 @@ contains
     end if
 
     ! Close the datatype.
-    call h5tclose_f(dataTypeID,errorCode)
+    call h5tclose_f(dataTypeID(1),errorCode)
+    if (errorCode < 0) then
+       message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
+    end if
+    call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
@@ -2999,7 +3027,7 @@ contains
     end if
 
     ! Check that the object is already open.
-    if (.not.thisObject%isOpenValue) then
+   if (.not.thisObject%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//thisObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Read_Attribute_VarString_Scalar',message)
     end if

@@ -8,6 +8,9 @@ PREPROCESSOR = cpp
 # Fortran compiler:
 F03COMPILER = gfortran
 
+# C compiler:
+CCOMPILER = gcc
+
 # Module type (used for checking if module interfaces have changed):
 MODULETYPE = GCC-f95-on-LINUX
 
@@ -27,6 +30,9 @@ F03FLAGS_NOOPT := $(F03FLAGS)
 F03FLAGS += -fopenmp
 # Use gFortran >v4.5.0 functionality.
 F03FLAGS += -DGCC45 -fintrinsic-modules-path /usr/local/include
+
+# C compiler flags:
+CFLAGS = 
 
 # Libraries:
 LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5 -lhdf5_fortran -lhdf5_hl -lhdf5hl_fortran
@@ -57,6 +63,11 @@ vpath %.F90 source
 	  fi \
 	 fi \
 	done
+
+# Object (*.o) can also be built from C source files.
+vpath %.c source
+./work/build/%.o : %.c  Makefile
+	$(CCOMPILER) -c $< -o ./work/build/$*.o $(CFLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
 # bivar.F90 doesn't like to be compiled with any optimization:
