@@ -2596,10 +2596,11 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The mass movement subroutine must have the form:
 \begin{verbatim}
-  subroutine My_Method_Get(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo)
+  subroutine My_Method_Get(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
     implicit none
     type(treeNode), intent(inout), pointer  :: thisNode
     integer,        intent(out)             :: gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo
+    logical,        intent(out)             :: mergerIsMajor
     .
     .
     .
@@ -2612,6 +2613,7 @@ The subroutine must return values for each of the ``{\tt MoveTo}'' descriptors t
  \item [{\tt movesToSpheroid}] The material in question moves to the spheroid of the host node;
  \item [{\tt doesNotMove}] The material in question does not move (allowed only for host node descriptors).
 \end{description}
+Additionally, the {\tt mergerIsMajor} flag should be set to indicate whether this merger is deemed to be ``major'' (typically defined as one which redistributes mass from a disk into a spheroidal component).
 
 Currently defined satellite merger mass movement methods are:
 \begin{description}

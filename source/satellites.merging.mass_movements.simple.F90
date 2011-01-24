@@ -120,7 +120,7 @@ contains
     return
   end subroutine Satellite_Merging_Mass_Movements_Simple_Initialize
 
-  subroutine Satellite_Merging_Mass_Movement_Simple(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo)
+  subroutine Satellite_Merging_Mass_Movement_Simple(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
     !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{benson_orbital_2005}.
     use Tree_Nodes
     use Galactic_Structure_Enclosed_Masses
@@ -128,6 +128,7 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer  :: thisNode
     integer,        intent(out)             :: gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo
+    logical,        intent(out)             :: mergerIsMajor
     type(treeNode),                pointer  :: hostNode
     double precision                        :: satelliteMass,hostMass
 
@@ -139,7 +140,8 @@ contains
     hostMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic)
 
     ! Decide if the mass ratio is large enough to trigger a major merger.
-    if (satelliteMass >= majorMergerMassRatio*hostMass) then
+    mergerIsMajor=satelliteMass >= majorMergerMassRatio*hostMass
+    if (mergerIsMajor) then
        gasMovesTo     =movesToSpheroid
        starsMoveTo    =movesToSpheroid
        hostGasMovesTo =movesToSpheroid

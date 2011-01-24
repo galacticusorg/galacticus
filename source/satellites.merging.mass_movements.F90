@@ -88,11 +88,11 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer  :: thisNode
 
-    call Satellite_Merging_Mass_Movement(thisNode,thisMergerGasMovesTo,thisMergerStarsMoveTo,thisHostGasMovesTo,thisHostStarsMoveTo)
+    call Satellite_Merging_Mass_Movement(thisNode,thisMergerGasMovesTo,thisMergerStarsMoveTo,thisHostGasMovesTo,thisHostStarsMoveTo,thisMergerIsMajor)
     return
   end subroutine Satellite_Merging_Mass_Movement_Store
 
-  subroutine Satellite_Merging_Mass_Movement(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo)
+  subroutine Satellite_Merging_Mass_Movement(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
     !% Returns descriptors of how gas and stars move as the result of a satellite merger.
     use Tree_Nodes
     use Galacticus_Error
@@ -103,6 +103,7 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer  :: thisNode
     integer,        intent(out)             :: gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo
+    logical,        intent(out)             :: mergerIsMajor
 
     !$omp critical(satelliteMergingMassMovementsInitialize)
     if (.not.satelliteMergingMassMovementsInitialized) then
@@ -129,7 +130,7 @@ contains
     !$omp end critical(satelliteMergingMassMovementsInitialize)
 
     ! Call the routine to get the descriptors.
-    call Satellite_Merging_Mass_Movement_Get(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo)
+    call Satellite_Merging_Mass_Movement_Get(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
 
     return
   end subroutine Satellite_Merging_Mass_Movement

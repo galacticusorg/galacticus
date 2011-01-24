@@ -72,5 +72,7 @@ module Satellite_Merging_Mass_Movements_Descriptors
   ! Stored mass movement descriptors for the current merging event.
   integer            :: thisMergerGasMovesTo,thisMergerStarsMoveTo,thisHostGasMovesTo,thisHostStarsMoveTo
   !$omp threadprivate(thisMergerGasMovesTo,thisMergerStarsMoveTo,thisHostGasMovesTo,thisHostStarsMoveTo)
+  logical            :: thisMergerIsMajor
+  !$omp threadprivate(thisMergerIsMajor)
 
 end module Satellite_Merging_Mass_Movements_Descriptors

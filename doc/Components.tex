@@ -472,3 +472,32 @@ The scale radius does not evolve.
 
 \noindent\emph{Node promotion:} None.\\
 
+\section{Merging Statistics}
+
+This component records statistics associated with galaxy merging.
+
+\subsection{``Standard Implementation}
+
+\subsubsection{Properties}
+
+The scale dark matter profile implementation defines the following properties:
+\begin{description}
+ \item [{\tt Major\_Merger\_Time}] The time of the last major merger associated with this galaxy, output as the time \emph{since} the last major merger [{\tt majorMergerTimeLapse}];
+\end{description}
+
+\subsubsection{Initialization}
+
+The time of the last merger is stored each time a major merger occurred and this component is created the first time such a merger occurs.
+
+\subsubsection{Differential Evolution}
+
+The time of the last merger does not evolve.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} The time of the last merger is reset to the current time if the merger is major.\\
+
+\noindent\emph{Node promotion:} None.\\
+
