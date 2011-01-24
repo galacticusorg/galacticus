@@ -35,7 +35,7 @@ F03FLAGS += -DGCC45 -fintrinsic-modules-path /usr/local/include
 CFLAGS = 
 
 # Libraries:
-LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5 -lhdf5_fortran -lhdf5_hl -lhdf5hl_fortran
+LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5 -lhdf5_fortran -lhdf5_hl -lhdf5hl_fortran -lz
 
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
@@ -76,7 +76,8 @@ vpath %.c source
 
 # Rule for running *.Inc files through the preprocessor.
 ./work/build/%.inc : ./work/build/%.Inc Makefile
-	$(PREPROCESSOR) $< ./work/build/$*.inc
+	$(PREPROCESSOR) $< -o ./work/build/$*.tmp
+	mv -f ./work/build/$*.tmp ./work/build/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
