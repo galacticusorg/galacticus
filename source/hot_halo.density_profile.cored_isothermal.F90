@@ -77,17 +77,20 @@ contains
   !# <hotHaloDensityMethod>
   !#  <unitName>Hot_Halo_Density_Cored_Isothermal</unitName>
   !# </hotHaloDensityMethod>
-  subroutine Hot_Halo_Density_Cored_Isothermal(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get)
+  subroutine Hot_Halo_Density_Cored_Isothermal(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
+       &,Hot_Halo_Enclosed_Mass_Get)
     !% Initialize the cored isothermal hot halo density profile module.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: hotHaloDensityMethod
-    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get
+    type(varying_string),                 intent(in)    :: hotHaloDensityMethod
+    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
+         &,Hot_Halo_Enclosed_Mass_Get
     
     if (hotHaloDensityMethod == 'cored isothermal') then
-       Hot_Halo_Density_Get => Hot_Halo_Density_Cored_Isothermal_Get
+       Hot_Halo_Density_Get           => Hot_Halo_Density_Cored_Isothermal_Get
        Hot_Halo_Density_Log_Slope_Get => Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get
+       Hot_Halo_Enclosed_Mass_Get     => Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
        !@ <inputParameter>
        !@   <name>isothermalCoreRadiusOverVirialRadius</name>
        !@   <defaultValue>0.1</defaultValue>
@@ -137,5 +140,23 @@ contains
     Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get=-2.0d0*radiusInCoreUnitsSquared/(1.0d0+radiusInCoreUnitsSquared)
     return
   end function Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get
+  
+  double precision function Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get(thisNode,radius)
+    !% Compute the mass enclosed within radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+    double precision                         :: hotGasMass,virialRadius,coreRadius
+
+    hotGasMass=Tree_Node_Hot_Halo_Mass(thisNode)
+    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+    coreRadius=isothermalCoreRadiusOverVirialRadius*virialRadius
+    Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass*denistyNormalizationFactor*(radius/coreRadius-datan(radius&
+         &/coreRadius))
+    return
+  end function Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
   
 end module Hot_Halo_Density_Profile_Cored_Isothermal

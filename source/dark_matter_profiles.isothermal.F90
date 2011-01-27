@@ -72,20 +72,22 @@ contains
   !# <darkMatterProfileMethod>
   !#  <unitName>Dark_Matter_Profile_Isothermal_Initialize</unitName>
   !# </darkMatterProfileMethod>
-  subroutine Dark_Matter_Profile_Isothermal_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get&
-       &,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get &
-       &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get&
-       &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get)
+  subroutine Dark_Matter_Profile_Isothermal_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get&
+       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get&
+       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
+       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
+       &,Dark_Matter_Profile_kSpace_Get)
     !% Initializes the ``Isothermal'' halo spin distribution module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: darkMatterProfileMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get&
-         &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
-         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
-         &,Dark_Matter_Profile_kSpace_Get
+    type(varying_string),                 intent(in)    :: darkMatterProfileMethod
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
+         &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
+         &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
+         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get
     
     if (darkMatterProfileMethod == 'isothermal') then
+       Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_Isothermal
        Dark_Matter_Profile_Energy_Get                                => Dark_Matter_Profile_Energy_Isothermal
        Dark_Matter_Profile_Energy_Growth_Rate_Get                    => Dark_Matter_Profile_Energy_Growth_Rate_Isothermal
        Dark_Matter_Profile_Rotation_Normalization_Get                => Dark_Matter_Profile_Rotation_Normalization_Isothermal
@@ -98,6 +100,20 @@ contains
     return
   end subroutine Dark_Matter_Profile_Isothermal_Initialize
 
+  double precision function Dark_Matter_Profile_Density_Isothermal(thisNode,radius)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
+    !% in units of Mpc).
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+
+    Dark_Matter_Profile_Density_Isothermal=Tree_Node_Mass(thisNode)/4.0d0/Pi/Dark_Matter_Halo_Virial_Radius(thisNode)/radius**2
+    return
+  end function Dark_Matter_Profile_Density_Isothermal
+  
   double precision function Dark_Matter_Profile_Enclosed_Mass_Isothermal(thisNode,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
