@@ -43,3 +43,20 @@ The structure of each merger tree can optionally be dumped to a file suitable fo
 \section{Density Contrast Data}\index{density contrast}\index{density!contrast}
 
 Properties of nodes at density contrasts other than the virial density can be output by setting {\tt [outputDensityContrastData]}$=${\tt true}. When selected, this output option requires that a list of density contrasts, $Delta$ (defined in units of the mean density of the Universe), be given in the {\tt [outputDensityContrastValues]} input parameter. For each specified density contrast, two properties are output for each node: {\tt nodeRadius}$\Delta$ and {\tt nodeMass}$\Delta$ which give the radius enclosing a mean density contrast of $\Delta$ and the mass enclosed within that radius. The parameter {\tt [outputDensityContrastDataDarkOnly]} controls whether density contrasts are measured for total mass ({\tt false}) or dark matter mass only ({\tt true}). In the latter case, density contrasts are defined relative to the mean dark matter density of the Universe.
+
+\section{Cooling Data}\index{cooling}\index{cooling!output}\index{cooling!radius}\index{cooling!rate}
+
+Properties associated with cooling in hot halos can be output by setting {\tt hotHaloOutputCooling}$=${\tt true}. Currently, two additional properties are output for each node when this option is selected:
+\begin{description}
+\item[{\tt hotHaloCoolingRate}] The rate at which gas is cooling from the halo (assuming no sources of heating) in $M_\odot$ Gyr$^{-1}$;
+\item[{\tt hotHaloCoolingRadius}] The characteristic cooling radius in the halo in Mpc.
+\end{description}
+
+\section{Black Hole Accretion}\index{black holes!supermassive}\index{black holes!accretion}\index{black holes!jets}
+
+Properties associated with accretion onto supermassive black holes can be output by setting {\tt blackHoleOutputAccretion}$=${\tt true}. Currently, two additional properties are output for each node when this option is selected:
+\begin{description}
+\item[{\tt blackHoleAccretionRate}] The rate at which the supermassive black hole is accreting mass in $M_\odot$ Gyr$^{-1}$;
+\item[{\tt blackHoleJetPower}] The power being emitted into jets by the black hole/accretion disk system in $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
+\end{description}
+

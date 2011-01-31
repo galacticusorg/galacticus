@@ -158,6 +158,9 @@ module Tree_Node_Methods_Hot_Halo
   double precision :: coolingRate,massHeatingRateRemaining,angularMomentumCoolingConversion
   !$omp threadprivate(gotCoolingRate,coolingRate,massHeatingRateRemaining,gotCoolingConversions,angularMomentumCoolingConversion)
 
+  ! Output controls.
+  logical          :: hotHaloOutputCooling
+
   ! Radiation structure.
   type(radiationStructure) :: radiation
   !$omp threadprivate(radiation)
@@ -282,6 +285,17 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=1.26027d0)
+
+       ! Get options controlling output.
+       !@ <inputParameter>
+       !@   <name>hotHaloOutputCooling</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Determines whether or not cooling rates and radii are output.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloOutputCooling',hotHaloOutputCooling,defaultValue=.false.)
 
     end if
     return
@@ -1511,7 +1525,17 @@ contains
           doublePropertyComments(doubleProperty)='Outflowed gas abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
        end do
-     end if
+       if (hotHaloOutputCooling) then
+          doubleProperty=doubleProperty+1
+          doublePropertyNames   (doubleProperty)='hotHaloCoolingRate'
+          doublePropertyComments(doubleProperty)='Rate of mass cooling in the hot halo.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
+          doubleProperty=doubleProperty+1
+          doublePropertyNames   (doubleProperty)='hotHaloCoolingRadius'
+          doublePropertyComments(doubleProperty)='Cooling radius in the hot halo.'
+          doublePropertyUnitsSI (doubleProperty)=megaParsec
+       end if
+    end if
     return
   end subroutine Galacticus_Output_Tree_Hot_Halo_Standard_Names
 
@@ -1524,8 +1548,12 @@ contains
     implicit none
     double precision, intent(in)    :: time
     integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    integer,          parameter     :: extraPropertyCount=2
 
-    if (methodSelected) doublePropertyCount=doublePropertyCount+outflowedAbundancesIndexEnd
+    if (methodSelected) then
+       doublePropertyCount=doublePropertyCount+outflowedAbundancesIndexEnd
+       if (hotHaloOutputCooling) doublePropertyCount=doublePropertyCount+extraPropertyCount
+    end if
     return
   end subroutine Galacticus_Output_Tree_Hot_Halo_Standard_Property_Count
 
@@ -1537,6 +1565,7 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store hot halo properties in the \glc\ output file buffers.
     use Tree_Nodes
+    use Cooling_Radii
     use Kind_Numbers
     implicit none
     double precision,        intent(in)                 :: time
@@ -1566,7 +1595,17 @@ contains
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=outflowedAbundanceMasses(iAbundance)
        end do
-   end if
+       if (hotHaloOutputCooling) then
+          ! Ensure that we reset so that cooling rate will be re-computed.
+          call Tree_Node_Hot_Halo_Reset_Standard(thisNode)
+          ! Get and store the cooling rate.
+          call Get_Cooling_Rate(thisNode)
+          doubleProperty=doubleProperty+1
+          doubleBuffer(doubleBufferCount,doubleProperty)=coolingRate
+          doubleProperty=doubleProperty+1
+          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(thisNode)
+       end if
+    end if
     return
   end subroutine Galacticus_Output_Tree_Hot_Halo_Standard
 

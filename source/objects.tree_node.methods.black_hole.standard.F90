@@ -110,6 +110,9 @@ module Tree_Node_Methods_Black_Hole
   double precision :: accretionRate,accretionRateHotHalo
   !$omp threadprivate(gotAccretionRate,accretionRate,accretionRateHotHalo)
 
+  ! Output options.
+  logical          :: blackHoleOutputAccretion
+
 contains
 
 
@@ -206,6 +209,17 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=1.0d-3)
+
+       ! Get options controlling output.
+       !@ <inputParameter>
+       !@   <name>blackHoleOutputAccretion</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Determines whether or not accretion rates and jet powers will be output.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("blackHoleOutputAccretion",blackHoleOutputAccretion,defaultValue=.false.)
 
     end if
     return
@@ -663,7 +677,7 @@ contains
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-
+    
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='blackHoleMass'
@@ -673,7 +687,17 @@ contains
        doublePropertyNames   (doubleProperty)='blackHoleSpin'
        doublePropertyComments(doubleProperty)='Spin of the black hole.'
        doublePropertyUnitsSI (doubleProperty)=0.0d0
-     end if
+       if (blackHoleOutputAccretion) then
+          doubleProperty=doubleProperty+1
+          doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
+          doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
+          doubleProperty=doubleProperty+1
+          doublePropertyNames   (doubleProperty)='blackHoleJetPower'
+          doublePropertyComments(doubleProperty)='Power of the black hole-driven jet.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar*kilo**2/gigaYear
+       end if
+    end if
     return
   end subroutine Galacticus_Output_Tree_Black_Hole_Standard_Names
 
@@ -686,8 +710,12 @@ contains
     implicit none
     double precision, intent(in)    :: time
     integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    integer,          parameter     :: extraPropertyCount=2
 
-    if (methodSelected) doublePropertyCount=doublePropertyCount+propertyCount
+    if (methodSelected) then
+       doublePropertyCount=doublePropertyCount+propertyCount
+       if (blackHoleOutputAccretion) doublePropertyCount=doublePropertyCount+extraPropertyCount
+    end if
     return
   end subroutine Galacticus_Output_Tree_Black_Hole_Standard_Property_Count
 
@@ -700,18 +728,32 @@ contains
     !% Store black hole properties in the \glc\ output file buffers.
     use Tree_Nodes
     use Kind_Numbers
+    use Accretion_Disks
     implicit none
     double precision,        intent(in)             :: time
     type(treeNode),          intent(inout), pointer :: thisNode
     integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
     integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
     double precision,        intent(inout)          :: doubleBuffer(:,:)
+    double precision                                :: restMassAccretionRate
 
     if (methodSelected) then
+       ! Ensure the calculation is reset.
+       call Tree_Node_Black_Hole_Reset_Standard(thisNode)
+       ! Get the rest mass accretion rate.
+       restMassAccretionRate=Mass_Accretion_Rate(thisNode)
+       
+       ! Store the properties.
        doubleProperty=doubleProperty+1
        doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Black_Hole_Mass_Standard(thisNode)
        doubleProperty=doubleProperty+1
        doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Black_Hole_Spin_Standard(thisNode)
+       if (blackHoleOutputAccretion) then
+          doubleProperty=doubleProperty+1
+          doubleBuffer(doubleBufferCount,doubleProperty)=restMassAccretionRate
+          doubleProperty=doubleProperty+1
+          doubleBuffer(doubleBufferCount,doubleProperty)=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)
+       end if
     end if
     return
   end subroutine Galacticus_Output_Tree_Black_Hole_Standard
