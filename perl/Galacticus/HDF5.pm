@@ -70,15 +70,8 @@ sub Count_Trees {
     $dataHash = shift;
     unless ( exists(${$dataHash}{'mergerTreesAvailable'}) ) {
 	$HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
-	@treesAvailable = $HDFfile->group("Outputs/Output1")->groups;
-	undef(@filteredTrees);
-	foreach $tree ( @treesAvailable) {
-	    if ( $tree =~ m/mergerTree(\d+)/ ) {
-		@dataSets = $HDFfile->group("Outputs/Output1")->group($tree)->datasets;
-		push(@filteredTrees,$1) if ( $#dataSets >= 0);
-	    }
-	}
-	@{${$dataHash}{'mergerTreesAvailable'}} = sort {$a <=> $b} @filteredTrees;
+	$treesAvailable = $HDFfile->group("Outputs/Output1")->dataset("mergerTreeIndex")->get;
+	@{${$dataHash}{'mergerTreesAvailable'}} = sort {$a <=> $b} $treesAvailable->list();
     }
 }
 
@@ -114,14 +107,8 @@ sub Get_Dataset {
 
     # Extract a list of available datasets.
     unless ( exists(${$dataHash}{'dataSetsAvailable'}) ) {
-	# Find a merger tree that contains some output.
-	foreach $mergerTree ( @mergerTrees ) {
-	    if ( $testID = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->IDget ) {	
-		@dataSets = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->datasets;
-		foreach $dataSet ( @dataSets ) {${${$dataHash}{'dataSetsAvailable'}}{$dataSet} = 1};
-		last;
-	    }
-	}
+	@dataSets = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/nodeData")->datasets;
+	foreach $dataSet ( @dataSets ) {${${$dataHash}{'dataSetsAvailable'}}{$dataSet} = 1};
     }
 
     # Determine the range of data to be extracted.
@@ -147,31 +134,32 @@ sub Get_Dataset {
 	unless ( exists(${${$dataHash}{'dataSets'}}{$dataSetName}) ) {
 	    if ( exists(${${$dataHash}{'dataSetsAvailable'}}{$dataSetName}) || $dataSetName eq "volumeWeight" ) {
 		# Dataset exists in the output file, so simply read it.
-		$data = pdl [];
+		$data     = pdl [];
 		$dataTree = pdl [];
+                # Get merger tree indexing information.
+		$mergerTreeIndex      = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeIndex"     )->get;
+		$mergerTreeStartIndex = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeStartIndex")->get;
+		$mergerTreeCount      = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeCount"     )->get;
+		$mergerTreeWeight     = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeWeight"    )->get;
 		foreach $mergerTree ( @mergerTrees ) {
 		    # Check that this tree contains some nodes at this output. If it does not, skip it.
-		    if ( $testID = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->IDget ) {
+		    $treeIndex      = which($mergerTreeIndex == $mergerTree);
+		    $treeStartIndex = $mergerTreeStartIndex->index($treeIndex);
+		    $treeCount      = $mergerTreeCount     ->index($treeIndex)->squeeze;
+		    $treeWeight     = $mergerTreeWeight    ->index($treeIndex)->squeeze;
+		    $treeEndIndex   = $treeStartIndex+$treeCount-1;
+		    if ( $treeCount > 0 ) {
 			if ( $dataSetName eq "volumeWeight" ) {
-                            # Get the volume weight.
-			    @volumeWeight = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->attrGet($dataSetName);
-			    # Append the volumeWeight property once for each galaxy in this tree.
-			    $dataSetTemporary = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->get;
-			    $nodeCount = nelem($dataSetTemporary);
-			    undef($dataSetTemporary);
-			    $data = $data->append($volumeWeight[0]*ones($nodeCount));
+			    $data = $data->append($treeWeight*ones($treeCount->list));
 			} else {
 			    # Read the dataset.
-			    $thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset($dataSetName)->get;
+			    $thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/nodeData")->dataset($dataSetName)->get($treeStartIndex,$treeEndIndex);
 			    # Append the dataset.
 			    $data = $data->append($thisTreeData);
 			}
 			# Append the merger tree index.
 			unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
-			    $dataSetTemporary = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree)->dataset("nodeIndex")->get;
-			    $nodeCount = nelem($dataSetTemporary);
-			    undef($dataSetTemporary);			   
-			    $dataTree = $dataTree->append($mergerTree*ones($nodeCount));	
+			    $dataTree = $dataTree->append($mergerTree*ones($treeCount->list));	
 			}
 		    }
 		}
@@ -198,11 +186,15 @@ sub Get_Dataset {
 				);
 			    $outputDataSet->set(${$dataSets->{$dataSetName}});
 			    $dataIndexStart = 0;
+			    $mergerTreeIndex = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeIndex")->get;
+			    $mergerTreeCount = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeCount")->get;
 			    foreach $mergerTree ( @mergerTrees ) {
 				# Count up the number of entries in this tree.
 				$mergerTreeGroup = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree);
 				$start = pdl [$mergerTree-1];
 				$dataCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
+				$treeIndex      = which($mergerTreeIndex == $mergerTree);
+				$dataCount      = $mergerTreeCount->index($treeIndex)->squeeze;
 				$mergerTreeGroup->reference($outputDataSet,$dataSetName,[$dataIndexStart],[$dataCount]);
 				$dataIndexStart += $dataCount;
 			    }
