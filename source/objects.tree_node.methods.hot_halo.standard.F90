@@ -535,7 +535,7 @@ contains
        ! Pipe the cooling rate to which ever component claimed it.
        if (associated(Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To)) call&
             & Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To(thisNode,interrupt,interruptProcedurePassed&
-            &,dabs(angularMomentumCoolingRate))
+            &,sign(angularMomentumCoolingRate,massRate))
        
        ! Get the rate of change of abundances.
        call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundancesWork)
