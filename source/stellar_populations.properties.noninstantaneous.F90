@@ -273,20 +273,20 @@ contains
     call stellarAbundances%unpack(abundances)
 
     ! Set scaling factors for recycled mass.
-    thisHistory   %scales(:,recycledRateIndex   )=max(stellarMass,stellarMassMinimum      )                                       /timeSteps
+    thisHistory   %scales(:,recycledRateIndex   )=max(stellarMass           ,stellarMassMinimum      )                                       /timeSteps
 
     ! Set scaling factors for metal recycling rates.
     forall(scaleIndex=returnedMetalRateBeginIndex:returnedMetalRateEndIndex)
-       thisHistory%scales(:,scaleIndex          )=max(abundances ,stellarAbundancesMinimum)                                       /timeSteps
+       thisHistory%scales(:,scaleIndex          )=max(abundances(scaleIndex),stellarAbundancesMinimum)                                       /timeSteps
     end forall
 
     ! Set scaling factors for metal yield rates.
     forall(scaleIndex=metalYieldRateBeginIndex   :metalYieldRateEndIndex)
-       thisHistory%scales(:,scaleIndex          )=max(abundances ,stellarAbundancesMinimum)                                       /timeSteps
+       thisHistory%scales(:,scaleIndex          )=max(abundances(scaleIndex),stellarAbundancesMinimum)                                       /timeSteps
     end forall
     
     ! Set scaling factors for energy input rates.
-    thisHistory   %scales(:,energyInputRateIndex)=max(stellarMass,stellarMassMinimum      )*feedbackEnergyInputAtInfinityCanonical/timeSteps
+    thisHistory   %scales(:,energyInputRateIndex)=max(stellarMass           ,stellarMassMinimum      )*feedbackEnergyInputAtInfinityCanonical/timeSteps
 
     ! Destroy temporary array.
     call Dealloc_Array(timeSteps)
