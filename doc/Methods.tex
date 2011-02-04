@@ -2040,6 +2040,139 @@ Currently defined ionization state methods are:
  \end{description}
  If the electron density is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and electron density. Otherwise, interpolation is linear in these quantities. The electron density is scaled assuming a linear dependence on hydrogen density.
  \item [{\tt atomic CIE Cloudy}] Uses the {\sc Cloudy} software to compute the ionization state for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the ionization state suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}.
+ \item [{\tt PIE\_from\_file}]  Reads a tabulated PIE ionization state from a file and interpolates in the table to give a result. The HDF5 file containing the table should have the following form:
+\begin{verbatim}
+GROUP "/" {
+   DATASET "neutralHydrogenRatio" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <ratioCount>, <redshiftCount>, <temperatureCount>, <densityCount> ) }
+   }
+   DATASET "density" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <densityCount> ) }
+   }
+   DATASET "electronRatio" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <ratioCount>, <redshiftCount>, <temperatureCount>, <densityCount> ) }
+   }
+   DATASET "heliumToHydrogenRatio" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <ratioCount> ) }
+      ATTRIBUTE "extrapolationHigh" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+      ATTRIBUTE "extrapolationLow" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+   }
+   DATASET "redshift" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <redshiftCount> ) }
+      ATTRIBUTE "extrapolationHigh" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+      ATTRIBUTE "extrapolationLow" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+   }
+   DATASET "temperature" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <temperatureCount> ) }
+      ATTRIBUTE "extrapolationHigh" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+      ATTRIBUTE "extrapolationLow" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+   }
+}
+\end{verbatim}
+The datasets should contain the following information:
+\begin{description}
+\item [{\tt temperature}] A list of temperatures (in units of Kelvin) at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher temperatures (see below);
+\item [{\tt redshift}] A list of redshifts at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher redshifts (see below);
+\item [{\tt density}] A list of hydrogen number densities (in units of cm$^{-3}$) at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher densities (see below);
+\item [{\tt heliumToHydrogenRatio}] A list of helium-to-hydrogen number density ratios at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher ratios (see below);
+\item [{\tt elements}] A list of the atomic numbers of elements for which cooling functions are tabulated;
+\item [{\tt neutralHydrogenRatio}] The neutral hydrogen fraction on the grid of temperature, density, redshift and helium-to-hydrogen number density ratio;
+\item [{\tt electronRatio}] The electron to hydrogen number density ratio on the grid of temperature, density, redshift and helium-to-hydrogen number density ratio.
+\end{description}
+\end{description}
+
+\subsubsection{Intergalactic Medium State}\label{sec:IntergalacticMediumStateMethods}\index{intergalactic medium}
+
+Additional methods for the intergalactic medium state can be added using the {\tt intergalaticMediumStateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt RecFast} method is described by a directive:
+\begin{verbatim}
+  !# <intergalaticMediumStateMethod>
+  !#  <unitName>Intergalactic_Medium_State_RecFast_Initialize</unitName>
+  !# </intergalaticMediumStateMethod>
+\end{verbatim}
+Here, {\tt Intergalactic\_Medium\_State\_RecFast\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(intergalaticMediumStateMethod,Intergalactic_Medium_Electron_Fraction_Get&
+       &,Intergalactic_Medium_Temperature_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: intergalaticMediumStateMethod
+    procedure(),          pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get
+    
+    if (intergalaticMediumStateMethod == 'myMethod') then
+       Intergalactic_Medium_Electron_Fraction_Get => My_Intergalactic_Medium_Electron_Fraction
+       Intergalactic_Medium_Temperature_Get       => My_Intergalactic_Medium_Temperature
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt intergalaticMediumStateMethod} input parameter. The procedure pointer {\tt Intergalactic\_Medium\_Electron\_Fraction\_Get} must be set to point to a function which returns the electron fraction as described below, while {\tt Intergalactic\_Medium\_Temperature\_Get} must be set to point to a function which returns the temperature of the intergalactic medium.
+
+Both functions must have the form:
+\begin{verbatim}
+ double precision function Property_Get(time)
+    implicit none
+    double precision, intent(in) :: time
+    .
+    .
+    .
+    return
+ end function Property_Get
+\end{verbatim}
+The electron fraction function must return the electron number density in units of the hydrogen number density in the intergalactic medium, while the temperature function should return the temperature of the intergalactic medium (in Kelvin) at the specified time.
+
+Currently defined intergalactic medium state methods are:
+\begin{description}
+ \item [{\tt file}] Reads a tabulation of the intergalactic medium state from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
+ \begin{verbatim}
+<igm>
+  <electronFraction>
+    <datum>1.1590278</datum>
+    <datum>1.1590278</datum>
+    .
+    .
+    .
+  </electronFraction>
+  <matterTemperature>
+    <datum>27230.271</datum>
+    <datum>27203.016</datum>
+    .
+    .
+    .
+  </matterTemperature>
+  <redshift>
+    <datum>9990.00</datum>
+    <datum>9980.00</datum>
+    .
+    .
+    .
+  </redshift>
+</igm>
+ \end{verbatim}
+ The {\tt electronFraction} and {\tt matterTemperature} elements should contain {\tt datum} elements listing the relevant quantity for each redshift listed in the {\tt redshift} element.
+ \item [{\tt RecFast}] The state of the intergalactic medium is computed using the \href{http://www.astro.ubc.ca/people/scott/recfast.html}{{\sc RecFast}} code \cite{seager_how_2000,wong_how_2008}, which will be automatically downloaded, patched and built if necessary. The results from {\sc RecFast} are stored in a file which is then processed as in the {\tt file} method described above.
 \end{description}
 
 \subsubsection{Linear Growth Function}
