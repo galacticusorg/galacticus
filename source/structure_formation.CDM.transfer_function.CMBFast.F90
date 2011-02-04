@@ -99,6 +99,7 @@ contains
     use Transfer_Function_File
     use Input_Parameters
     use Cosmological_Parameters
+    use Numerical_Constants_Astronomical
     implicit none
     double precision,                            intent(in)    :: logWavenumber
     double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
