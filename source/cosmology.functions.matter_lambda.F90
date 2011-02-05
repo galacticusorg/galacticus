@@ -359,8 +359,8 @@ contains
     call Early_Time_Density_Scaling_Matter_Lambda(dominateFactor,densityPower,aDominant,Omega_Dominant)
 
     ! Find the corresponding time.
-    tDominant=1.0d0/H_0_invGyr()/dsqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
-    
+    tDominant=-2.0d0/densityPower/H_0_invGyr()/dsqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
+
     ! Find minimum and maximum times to tabulate.
     if (present(tCosmological)) then
        time=tCosmological
@@ -413,11 +413,11 @@ contains
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
        ageTableExpansionFactor=-1.0d0
     end if
-    
+
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
     if (ageTableExpansionFactor(1) < 0.0d0) ageTableExpansionFactor(1)=(-0.5d0*densityPower*ageTableTime(1)*H_0_invGyr()&
-         &*dsqrt(Omega_Dominant))**(-2.0d0 /densityPower)
+         &*dsqrt(Omega_Dominant))**(-2.0d0/densityPower)
 
     ! Solve ODE to get corresponding expansion factors.
     iTableTurnaround=ageTableNumberPoints
