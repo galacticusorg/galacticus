@@ -1,0 +1,18 @@
+<parameters>
+  <parameter>
+    <name>linearGrowthMethod</name>
+    <value>simple</value>
+  </parameter>
+  <parameter>
+    <name>Omega_0</name>
+    <value>1.0</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0</value>
+  </parameter>
+</parameters>
