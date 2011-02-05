@@ -66,6 +66,7 @@ program Tests_IO_HDF5
   use Kind_Numbers
   use Unit_Tests
   use ISO_Varying_String
+  use Memory_Management
   implicit none
   type(hdf5Object),        target                                 :: fileObject,groupObject,datasetObject
   integer                                                         :: integerValue,integerValueReread
@@ -100,6 +101,9 @@ program Tests_IO_HDF5
   double precision,        dimension(10,10,10,10,10)              :: doubleValueArray5d
   double precision,        dimension(10,10,10,10,10)              :: doubleValueArray5dRereadStatic
   double precision,        dimension( :, :, :, :, :), allocatable :: doubleValueArray5dReread
+
+  ! Read in basic code memory usage.
+  call Code_Memory_Usage('tests.IO.HDF5.size')
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("HDF5 IO")
