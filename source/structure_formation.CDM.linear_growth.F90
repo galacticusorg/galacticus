@@ -66,35 +66,42 @@ module Linear_Growth
   use ISO_Varying_String
   use FGSL
   private
-  public :: Linear_Growth_Factor, Linear_Growth_Factor_Logarithmic_Derivative, Linear_Growth_Initialize, Linear_Growth_State_Retrieve
+  public :: Linear_Growth_Factor, Linear_Growth_Factor_Logarithmic_Derivative, Linear_Growth_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                        :: linearGrowthInitialized=.false., tablesInitialized=.false.
+  logical                                                    :: linearGrowthInitialized=.false., tablesInitialized=.false.
 
   ! Variables to hold the tabulated linear growth data.
-  integer                                        :: linearGrowthTableNumberPoints
-  double precision,    allocatable, dimension(:) :: linearGrowthTableTime,linearGrowthTableFactor
-  integer,             parameter                 :: linearGrowthTableNPointsPerDecade=1000
-  type(fgsl_interp)                              :: interpolationObject
-  type(fgsl_interp_accel)                        :: interpolationAccelerator
-  logical                                        :: resetInterpolation
+  integer                                                    :: linearGrowthTableNumberPoints
+  double precision,    allocatable, dimension(:)             :: linearGrowthTableTime,linearGrowthTableWavenumber
+  double precision,    allocatable, dimension(:,:,:), target :: linearGrowthTableFactor
+  integer,             parameter                             :: linearGrowthTableNPointsPerDecade=1000
+  type(fgsl_interp)                                          :: interpolationObject
+  type(fgsl_interp_accel)                                    :: interpolationAccelerator,interpolationAcceleratorWavenumber
+  logical                                                    :: resetInterpolation,resetInterpolationWavenumber
 
   ! Name of virial overdensity method used.
-  type(varying_string)                           :: linearGrowthMethod
+  type(varying_string)                                       :: linearGrowthMethod
 
   ! Normalization types.
-  integer,             parameter,   public       :: normalizePresentDay=0, normalizeMatterDominated=1
-  double precision                               :: normalizationMatterDominated
+  integer,             parameter,   public                   :: normalizePresentDay=0, normalizeMatterDominated=1
+  double precision,                 dimension(3)             :: normalizationMatterDominated
+
+  ! Component types.
+  integer,             parameter,   public                   ::  linearGrowthComponentDarkMatter=1 &
+       &                                                        ,linearGrowthComponentBaryons   =2 &
+       &,linearGrowthComponentRadiation =3
 
   ! Pointer to the subroutine that tabulates the linear growth factor and template interface for that subroutine.
   procedure(Linear_Growth_Tabulate_Template), pointer :: Linear_Growth_Tabulate => null()
   abstract interface 
-     subroutine Linear_Growth_Tabulate_Template(time,linearGrowthTableNumberPoints,linearGrowthTime,linearGrowthFactor&
-          &,normalizationMatterDominated)
-       double precision,                            intent(in)    :: time
-       double precision, allocatable, dimension(:), intent(inout) :: linearGrowthTime,linearGrowthFactor
-       integer,                                     intent(out)   :: linearGrowthTableNumberPoints
-       double precision,                            intent(out)   :: normalizationMatterDominated
+     subroutine Linear_Growth_Tabulate_Template(time,linearGrowthTableNumberPoints,linearGrowthTime,linearGrowthTableWavenumber&
+          &,linearGrowthTableFactor ,normalizationMatterDominated)
+       double precision,                                intent(in)    :: time
+       double precision, allocatable, dimension(:),     intent(inout) :: linearGrowthTime,linearGrowthTableWavenumber
+       double precision, allocatable, dimension(:,:,:), intent(inout) :: linearGrowthTableFactor
+       integer,                                         intent(out)   :: linearGrowthTableNumberPoints
+       double precision,              dimension(3),     intent(out)   :: normalizationMatterDominated
      end subroutine Linear_Growth_Tabulate_Template
   end interface
   
@@ -130,26 +137,30 @@ contains
             &//char(linearGrowthMethod)//' is unrecognized')
     end if
     ! Call routine to initialize the virial overdensity table.
-    call Linear_Growth_Tabulate(time,linearGrowthTableNumberPoints,linearGrowthTableTime,linearGrowthTableFactor&
-         &,normalizationMatterDominated)
+    call Linear_Growth_Tabulate(time,linearGrowthTableNumberPoints,linearGrowthTableTime,linearGrowthTableWavenumber&
+         &,linearGrowthTableFactor ,normalizationMatterDominated)
     tablesInitialized=.true.
     ! Flag that the module is now initialized.
     linearGrowthInitialized=.true.
     return
   end subroutine Linear_Growth_Initialize
   
-  double precision function Linear_Growth_Factor(time,aExpansion,collapsing,normalize)
+  double precision function Linear_Growth_Factor(time,aExpansion,collapsing,normalize,component,wavenumber)
     !% Return the linear growth factor.
     use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in), optional :: aExpansion,time
-    logical,          intent(in), optional :: collapsing
-    integer,          intent(in), optional :: normalize
-    integer                                :: normalizeActual
-    logical                                :: collapsingActual,remakeTable
-    double precision                       :: timeActual
+    double precision, intent(in), optional       :: aExpansion,time
+    logical,          intent(in), optional       :: collapsing
+    integer,          intent(in), optional       :: normalize,component
+    double precision, intent(in), optional       :: wavenumber
+    double precision, pointer,    dimension(:)   :: thisLinearGrowthFactor
+    integer,                      dimension(0:1) :: iWavenumber
+    double precision,             dimension(0:1) :: hWavenumber
+    integer                                      :: normalizeActual,componentActual,jWavenumber
+    logical                                      :: collapsingActual,remakeTable
+    double precision                             :: timeActual
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -182,46 +193,80 @@ contains
        normalizeActual=normalizePresentDay
     end if
 
+    ! Determine the component type to use.
+    if (present(component)) then
+       componentActual=component
+    else
+       ! Assume dark matter growth factor is required by default.
+       componentActual=linearGrowthComponentDarkMatter
+    end if
+
     ! Check if we need to recompute our table.
     !$omp critical(Linear_Growth_Initialize)
     if (linearGrowthInitialized.and.tablesInitialized) then
-       remakeTable=(time<linearGrowthTableTime(1).or.time>linearGrowthTableTime(linearGrowthTableNumberPoints))
+       remakeTable=(timeActual<linearGrowthTableTime(1).or.timeActual>linearGrowthTableTime(linearGrowthTableNumberPoints))
     else
        call Linear_Growth_Initialize(timeActual)
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Linear_Growth_Tabulate(timeActual,linearGrowthTableNumberPoints,linearGrowthTableTime,linearGrowthTableFactor &
-            &,normalizationMatterDominated)
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
-       resetInterpolation=.true.
-       linearGrowthInitialized=.true.
+       call Linear_Growth_Tabulate(timeActual,linearGrowthTableNumberPoints,linearGrowthTableTime &
+            &,linearGrowthTableWavenumber,linearGrowthTableFactor ,normalizationMatterDominated)
+       call Interpolate_Done( interpolationObject     =interpolationObject                &
+            &                ,interpolationAccelerator=interpolationAccelerator           &
+            &                ,reset                   =resetInterpolation                 &
+            &               )
+       call Interpolate_Done( interpolationAccelerator=interpolationAcceleratorWavenumber &
+            &                ,reset                   =resetInterpolationWavenumber       &
+            &               )
+       resetInterpolation          =.true.
+       resetInterpolationWavenumber=.true.
+       linearGrowthInitialized     =.true.
     end if
     !$omp end critical(Linear_Growth_Initialize)
 
-    ! Interpolate to get the expansion factor.
-    Linear_Growth_Factor=Interpolate(linearGrowthTableNumberPoints,linearGrowthTableTime,linearGrowthTableFactor &
-         &,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    ! Determine which wavenumbers to use.
+    call Interpolate_In_Wavenumber(iWavenumber,hWavenumber,wavenumber)
+
+    ! Loop over wavenumbers and compute growth factor.
+    Linear_Growth_Factor=0.0d0
+    do jWavenumber=0,1
+       
+       ! Select the appropriate component.
+       thisLinearGrowthFactor => linearGrowthTableFactor(componentActual,iWavenumber(jWavenumber),:)
+
+       ! Interpolate to get the expansion factor.
+       Linear_Growth_Factor=Linear_Growth_Factor+Interpolate(linearGrowthTableNumberPoints,linearGrowthTableTime &
+            &,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)&
+            &*hWavenumber(jWavenumber)
+    end do
 
     ! Normalize.
     select case (normalizeActual)
     case (normalizeMatterDominated)
-       Linear_Growth_Factor=Linear_Growth_Factor*normalizationMatterDominated
+       Linear_Growth_Factor=Linear_Growth_Factor*normalizationMatterDominated(componentActual)
     end select
 
     return
   end function Linear_Growth_Factor
 
-  double precision function Linear_Growth_Factor_Logarithmic_Derivative(time,aExpansion,collapsing)
+  double precision function Linear_Growth_Factor_Logarithmic_Derivative(time,aExpansion,collapsing,component,wavenumber)
     !% Return the logarithmic derivative of the linear growth factor with respect to expansion factor., $\d \ln D / \d \ln a$.
     use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in), optional :: aExpansion,time
-    logical,          intent(in), optional :: collapsing
-    logical                                :: collapsingActual,remakeTable
-    double precision                       :: timeActual,expansionFactor,linearGrowthFactor,linearGrowthFactorTimeDerivative
+    double precision, intent(in), optional       :: aExpansion,time
+    logical,          intent(in), optional       :: collapsing
+    integer,          intent(in), optional       :: component
+    double precision, intent(in), optional       :: wavenumber
+    double precision, pointer,    dimension(:)   :: thisLinearGrowthFactor
+    integer,                      dimension(0:1) :: iWavenumber
+    double precision,             dimension(0:1) :: hWavenumber
+    integer                                      :: componentActual,jWavenumber
+    logical                                      :: collapsingActual
+    double precision                             :: timeActual,expansionFactor,linearGrowthFactor &
+         &,linearGrowthFactorTimeDerivative
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -247,22 +292,73 @@ contains
     if (.not.Cosmic_Time_Is_Valid(timeActual)) call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','cosmic time is&
          & invalid')
 
+    ! Determine the component type to use.
+    if (present(component)) then
+       componentActual=component
+    else
+       ! Assume dark matter growth factor is required by default.
+       componentActual=linearGrowthComponentDarkMatter
+    end if
 
     ! Get the linear growth factor (this will automatically build the tabulation if necessary).
-    linearGrowthFactor=Linear_Growth_Factor(timeActual)
+    linearGrowthFactor=Linear_Growth_Factor(timeActual,component=componentActual,wavenumber=wavenumber)
 
-    ! Interpolate to get the expansion factor.
-    linearGrowthFactorTimeDerivative=Interpolate_Derivative(linearGrowthTableNumberPoints,linearGrowthTableTime&
-         &,linearGrowthTableFactor ,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    ! Determine which wavenumbers to use.
+    call Interpolate_In_Wavenumber(iWavenumber,hWavenumber,wavenumber)
 
+    ! Loop over wavenumbers and compute growth factor.
+    linearGrowthFactorTimeDerivative=0.0d0
+    do jWavenumber=0,1
+       
+       ! Select the appropriate component.
+       thisLinearGrowthFactor => linearGrowthTableFactor(componentActual,iWavenumber(jWavenumber),:)
+
+       ! Interpolate to get the expansion factor.
+       linearGrowthFactorTimeDerivative=linearGrowthFactorTimeDerivative+Interpolate_Derivative(linearGrowthTableNumberPoints&
+            &,linearGrowthTableTime ,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset&
+            &=resetInterpolation)*hWavenumber(jWavenumber)
+    end do
+    
     ! Get the expansion factor.
     expansionFactor=Expansion_Factor(timeActual)
     
     ! Construct the logarithmic derivative with respect to expansion factor.
-    Linear_Growth_Factor_Logarithmic_Derivative=linearGrowthFactorTimeDerivative/linearGrowthFactor/Expansion_Rate(expansionFactor)
+    Linear_Growth_Factor_Logarithmic_Derivative=linearGrowthFactorTimeDerivative/linearGrowthFactor&
+         &/Expansion_Rate(expansionFactor)
 
     return
   end function Linear_Growth_Factor_Logarithmic_Derivative
+
+  subroutine Interpolate_In_Wavenumber(iWavenumber,hWavenumber,wavenumber)
+    !% Find interpolating factors in the wavenumber dimesion for linear growth factor calculations.
+    use Numerical_Interpolation
+    implicit none
+    integer,          intent(out), dimension(0:1) :: iWavenumber
+    double precision, intent(out), dimension(0:1) :: hWavenumber
+    double precision, intent(in),  optional       :: wavenumber
+
+    if (present(wavenumber).and.size(linearGrowthTableWavenumber) > 1) then
+       iWavenumber(0)=Interpolate_Locate              (                                    &
+            &                                           size(linearGrowthTableWavenumber)  &
+            &                                          ,     linearGrowthTableWavenumber   &
+            &                                          ,interpolationAcceleratorWavenumber &
+            &                                          ,wavenumber                         &
+            &                                          ,reset=resetInterpolationWavenumber &
+            &                                         )
+       hWavenumber=Interpolate_Linear_Generate_Factors(                                    &
+            &                                           size(linearGrowthTableWavenumber)  &
+            &                                          ,     linearGrowthTableWavenumber   &
+            &                                          ,iWavenumber(0)                     &
+            &                                          ,wavenumber                         &
+            &                                         )
+       iWavenumber(1)=iWavenumber(0)+1
+    else
+       ! No wavenumber was specified, so use the largest scale (smallest wavenumber) tabulated.
+       iWavenumber(0:1)=[1    ,1    ]
+       hWavenumber(0:1)=[1.0d0,0.0d0]
+    end if
+    return
+  end subroutine Interpolate_In_Wavenumber
 
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Linear_Growth_State_Retrieve</unitName>
@@ -275,8 +371,9 @@ contains
     type(fgsl_file), intent(in) :: fgslStateFile
 
     linearGrowthTableNumberPoints=0
-    if (allocated(linearGrowthTableTime  )) call Dealloc_Array(linearGrowthTableTime  )
-    if (allocated(linearGrowthTableFactor)) call Dealloc_Array(linearGrowthTableFactor)
+    if (allocated(linearGrowthTableTime      )) call Dealloc_Array(linearGrowthTableTime      )
+    if (allocated(linearGrowthTableWavenumber)) call Dealloc_Array(linearGrowthTableWavenumber)
+    if (allocated(linearGrowthTableFactor    )) call Dealloc_Array(linearGrowthTableFactor    )
     tablesInitialized=.false.
     return
   end subroutine Linear_Growth_State_Retrieve

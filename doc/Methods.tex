@@ -2203,18 +2203,20 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The tabulation subroutine must have the form:
 \begin{verbatim}
-   subroutine Linear_Growth_Tabulate(time,growthTableNumberPoints,growthTableTime,growthTableGrowthFactor,normalizationMatterDominated)
+   subroutine Linear_Growth_Tabulate(time,growthTableNumberPoints,growthTableTime,growthTableWavenumber &
+   & ,growthTableGrowthFactor,normalizationMatterDominated)
     implicit none
-    double precision, intent(in)                               :: time
-    integer,          intent(out)                              :: growthTableNumberPoints
-    double precision, intent(inout), allocatable, dimension(:) :: growthTableTime ,growthTableGrowthFactor
-    double precision, intent(out)                              :: normalizationMatterDominated     .
+    double precision, intent(in)                                   :: time
+    integer,          intent(out)                                  :: growthTableNumberPoints
+    double precision, intent(inout), allocatable, dimension(:)     :: growthTableTime,growthTableWavenumber
+    double precision, intent(inout), allocatable, dimension(:,:,:) :: growthTableGrowthFactor
+    double precision, intent(out),                dimension(3)     :: normalizationMatterDominated
     .
     .
     return
    end subroutine Linear_Growth_Tabulate
 \end{verbatim}
-The subroutine must tabulate the linear growth factor in array {\tt growthTableGrowthFactor()} as a function of wavenumber {\tt growthTableTime()} (these arrays must be allocated to the correct size, and may be prevously allocated, therefore requiring a deallocation). The number of tabulated points should be returned in {\tt growthTableNumberPoints}. The subroutine should ensure that the currently requested {\tt time} is within the range of the tabulated function (preferably with some buffer). The linear growth factor must be normalized to unity at $a=1$. Additionally, {\tt normalizationMatterDominated} should be set to the factor by which the tabulated growth factor must be multiplied such that it scales as $(9 \Omega_0 / 4.0d0)^{1/3} (H_0 t)^{2/3}$ during the matter dominated regime.
+The subroutine must tabulate the linear growth factor in array {\tt growthTableGrowthFactor()} for dark matter, baryons and radiation (entries 1, 2 and 3 of the first dimension respectively) as a function of time {\tt growthTableTime()} (second dimension) and wavenumber {\tt growthTableWavenumber()} (third dimension). These arrays must be allocated to the correct size, and may be prevously allocated, therefore requiring a deallocation. The number of tabulated points in the time dimension should be returned in {\tt growthTableNumberPoints}. It is permissible to tabulate for just a single wavenumber if the growth function is independent of wavenumber. The subroutine should ensure that the currently requested {\tt time} is within the range of the tabulated function (preferably with some buffer). The linear growth factors must be normalized to unity at $a=1$. Additionally, {\tt normalizationMatterDominated} should be set to the factor by which the tabulated growth factor (for the smallest wavenumber tabulated) must be multiplied such that it scales as $(9 \Omega_0 / 4.0d0)^{1/3} (H_0 t)^{2/3}$ during the matter dominated regime.
 
 Currently defined linear growth factor methods are:
 \begin{description}
