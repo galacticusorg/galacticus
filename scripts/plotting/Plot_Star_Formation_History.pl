@@ -34,9 +34,17 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 
 # Extract global data
 &HDF5::Get_History(\%dataSet,['historyExpansion','historyStarFormationRate']);
-$history = \%{$dataSet{'history'}};
-$redshift = 1.0/${$history->{'historyExpansion'}}-1.0;
-$SFR = ${$history->{'historyStarFormationRate'}}/1.0e9;
+$history        = \%{$dataSet{'history'}};
+$time           = ${$history->{'historyTime'}};
+$redshift       = 1.0/${$history->{'historyExpansion'}}-1.0;
+$SFR            = ${$history->{'historyStarFormationRate'}}/1.0e9;
+$stellarDensity = ${$history->{'historyStellarDensity'}};
+
+# Determine IMF correction factor.
+$imfCorrection = 1.0;
+if ( $dataSet{'parameters'}->{'imfSelectionFixed'} eq "Chabrier" ) {
+    $imfCorrection = 0.6;
+}
 
 # Read the XML data file.
 $xml = new XML::Simple;
@@ -80,6 +88,11 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
     $yUpperError = $yUpperError*$cosmologyCorrection;
     $yLowerError = $yLowerError*$cosmologyCorrection;
 
+    # Apply IMF correction.
+    $y           = $y          *$imfCorrection;
+    $yUpperError = $yUpperError*$imfCorrection;
+    $yLowerError = $yLowerError*$imfCorrection;
+
     # Store the dataset.
     ++$iDataset;
     $dataSets[$iDataset]->{'x'}           = $x          ;
@@ -94,6 +107,7 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
     ($sfrInterpolated,$error) = interpolate($x,$redshift,$SFR);
     $chiSquared += sum((($y-$sfrInterpolated)/(0.5*($yUpperError-$yLowerError)))**2);
     $degreesOfFreedom += nelem($y);
+
 }
 
 # Display chi^2 information if requested.
