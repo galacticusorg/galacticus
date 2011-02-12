@@ -150,6 +150,9 @@ module Tree_Node_Methods_Exponential_Disk
   double precision                            :: scaleLengthFactor
   logical                                     :: scaleLengthFactorSet=.false.
 
+  ! Options controlling output.
+  logical                                     :: diskOutputStarFormationRate
+
 contains
 
   !# <treeNodeCreateInitialize>
@@ -295,6 +298,15 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutflowTimescaleMinimum',diskOutflowTimescaleMinimum,defaultValue=1.0d-3)
+       !@ <inputParameter>
+       !@   <name>diskOutputStarFormationRate</name>
+       !@   <defaultValue>false.</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Determines whether or not the star formation rate in the disk of each galaxy will be output.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskOutputStarFormationRate',diskOutputStarFormationRate,defaultValue=.false.)
 
     end if
     return
@@ -1457,6 +1469,12 @@ contains
              doublePropertyUnitsSI (doubleProperty)=luminosityZeroPointAB
           end if
        end do
+       if (diskOutputStarFormationRate) then
+          doubleProperty=doubleProperty+1
+          doublePropertyNames   (doubleProperty)='diskStarFormationRate'
+          doublePropertyComments(doubleProperty)='Disk star formation rate.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
+       end if
     end if
     return
   end subroutine Galacticus_Output_Tree_Disk_Exponential_Names
@@ -1472,8 +1490,11 @@ contains
     double precision, intent(in)    :: time
     integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
 
-    if (methodSelected) doublePropertyCount=doublePropertyCount+propertyCount+dataCount-luminositiesCount&
-         &+Stellar_Population_Luminosities_Output_Count(time)
+    if (methodSelected) then
+       doublePropertyCount=doublePropertyCount+propertyCount+dataCount-luminositiesCount &
+            & +Stellar_Population_Luminosities_Output_Count(time)
+       if (diskOutputStarFormationRate) doublePropertyCount=doublePropertyCount+1
+    end if
 
     return
   end subroutine Galacticus_Output_Tree_Disk_Exponential_Property_Count
@@ -1523,7 +1544,11 @@ contains
              doubleBuffer(doubleBufferCount,doubleProperty)=stellarLuminosities(iLuminosity)
           end if
        end do
-      end if
+       if (diskOutputStarFormationRate) then
+          doubleProperty=doubleProperty+1
+          doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Disk_SFR(thisNode)
+       end if
+    end if
     return
   end subroutine Galacticus_Output_Tree_Disk_Exponential
 

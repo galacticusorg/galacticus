@@ -200,6 +200,10 @@ The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current sta
 
 \noindent\emph{Node promotion:} None\\
 
+\subsubsection{Additional Output}
+
+If the {\tt [diskOutputStarFormationRate]}\index{disk!star formation rate!output}\index{star formation rate!output!disk} input parameter is set to true, then the instantaneous star formation rate in the disk will be included in the output, as {\tt diskStarFormationRate}.
+
 \section{Galactic Spheroid}
 
 \subsection{``Null'' Implementation}
@@ -273,6 +277,10 @@ where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is
 \noindent\emph{Satellite merging:} Spheroids may be created as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see \S\ref{sec:satelliteMergerMassMovementMethod}).\\
 
 \noindent\emph{Node promotion:} None.\\
+
+\subsubsection{Additional Output}
+
+If the {\tt [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid will be included in the output, as {\tt spheroidStarFormationRate}.
 
 \section{Basic Properties}\label{sec:ComponentBasicProperties}
 

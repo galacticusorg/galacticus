@@ -153,6 +153,9 @@ module Tree_Node_Methods_Hernquist_Spheroid
   double precision :: spheroidEnergeticOutflowMassRate,spheroidOutflowTimescaleMinimum
   double precision :: spheroidMassToleranceAbsolute
 
+  ! Options controlling output.
+  logical          :: spheroidOutputStarFormationRate
+
 contains
 
   !# <treeNodeCreateInitialize>
@@ -294,6 +297,15 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)
+       !@ <inputParameter>
+       !@   <name>spheroidOutputStarFormationRate</name>
+       !@   <defaultValue>false.</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Determines whether or not the star formation rate in the spheroid of each galaxy will be output.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidOutputStarFormationRate',spheroidOutputStarFormationRate,defaultValue=.false.)
 
     end if
     return
@@ -1595,6 +1607,12 @@ contains
              doublePropertyUnitsSI (doubleProperty)=luminosityZeroPointAB
           end if
        end do
+       if (spheroidOutputStarFormationRate) then
+          doubleProperty=doubleProperty+1
+          doublePropertyNames   (doubleProperty)='spheroidStarFormationRate'
+          doublePropertyComments(doubleProperty)='Spheroid star formation rate.'
+          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
+       end if
     end if
     return
   end subroutine Galacticus_Output_Tree_Spheroid_Hernquist_Names
@@ -1610,8 +1628,11 @@ contains
     double precision, intent(in)    :: time
     integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
 
-    if (methodSelected) doublePropertyCount=doublePropertyCount+propertyCount+dataCount-luminositiesCount&
-         &+Stellar_Population_Luminosities_Output_Count(time)
+    if (methodSelected) then
+       doublePropertyCount=doublePropertyCount+propertyCount+dataCount-luminositiesCount&
+            &+Stellar_Population_Luminosities_Output_Count(time)
+       if (spheroidOutputStarFormationRate) doublePropertyCount=doublePropertyCount+1
+    end if
 
     return
   end subroutine Galacticus_Output_Tree_Spheroid_Hernquist_Property_Count
@@ -1662,7 +1683,11 @@ contains
              doubleBuffer(doubleBufferCount,doubleProperty)=stellarLuminosities(iLuminosity)
           end if
        end do
-      end if
+       if (spheroidOutputStarFormationRate) then
+          doubleProperty=doubleProperty+1
+          doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Spheroid_SFR(thisNode)
+       end if
+    end if
     return
   end subroutine Galacticus_Output_Tree_Spheroid_Hernquist
 
