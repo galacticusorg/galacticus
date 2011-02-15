@@ -104,7 +104,8 @@ contains
     else
        agreeRelatively=.true.
     end if
-    Values_Agree=agreeAbsolutely.or.agreeRelatively
+    Values_Agree=    (present(absTol).and.agreeAbsolutely) &
+         &       .or.(present(relTol).and.agreeRelatively)
     return
   end function Values_Agree
   
