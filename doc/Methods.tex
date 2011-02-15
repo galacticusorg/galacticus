@@ -926,13 +926,15 @@ Here, {\tt Cosmology\_Functions\_Matter\_Lambda\_Initialize} is the name of a su
   subroutine Method_Initialize(cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
        &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
-       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get)
+       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get &
+       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get)
     implicit none
     type(varying_string),          intent(in)    :: cosmologyMethod
     procedure(),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
        &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
-       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get
+       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get &
+       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get
     
     if (cosmologyMethod == 'myMethod') then
        Procedure_Pointer_Get => My_Procedure
@@ -1109,6 +1111,30 @@ Should return the cosmic epoch at which matter and curvature have equal energy d
    end function My_CMB_Temperature
 \end{verbatim}
 Should return the \CMB\ temperature (in K) at the given cosmic epoch. The cosmic epoch can be specified as a time since the Big Bang, or an expansion factor (in the expanding phase unless the collapsing phase is specifically requested). Specifying a time and an expansion factor is invalid input, and the routine should abort in such cases.
+
+\begin{verbatim}
+   double precision function My_Comoving_Distance(time)
+     implicit none
+     double precision, intent(in) :: time
+     .
+     .
+     .
+     return
+   end function My_Comoving_Distance
+\end{verbatim}
+Should return the comoving distance (in units of Mpc) to the given cosmic time (in units of Gyr).
+
+\begin{verbatim}
+   double precision function My_Time_From_Comoving_Distance(comovingDistance)
+     implicit none
+     double precision, intent(in) :: comovingDistance
+     .
+     .
+     .
+     return
+   end function My_Time_From_Comoving_Distance
+\end{verbatim}
+Should return the cosmic time (in units of Gyr) corresponding to the given comoving distance (in units of Mpc).
 
 Currently defined cosmology methods are:
 \begin{description}
