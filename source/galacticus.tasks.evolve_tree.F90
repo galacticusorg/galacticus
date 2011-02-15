@@ -67,14 +67,10 @@ module Galacticus_Tasks_Evolve_Tree
   public :: Galacticus_Task_Evolve_Tree
 
   ! Flag to indicate if output times have been initialized.
-  logical :: outputsInitialized=.false.
-
-  ! Array of output times.
-  integer                                     :: outputCount
-  double precision, allocatable, dimension(:) :: outputTimes
+  logical :: treeEvolveInitialized=.false.
 
   ! Parameters controlling which trees will be processed.
-  integer                                     :: treeEvolveWorkerCount,treeEvolveWorkerNumber
+  integer :: treeEvolveWorkerCount,treeEvolveWorkerNumber
   
 contains
 
@@ -88,7 +84,6 @@ contains
     !% Evolves the complete set of merger trees as specified.
     use ISO_Varying_String
     use String_Handling
-    use Cosmology_Functions
     use Merger_Trees
     use Merger_Tree_Construction
     use Merger_Trees_Evolve
@@ -96,9 +91,7 @@ contains
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
     use Input_Parameters
-    use Sort
-    use Memory_Management
-    use Histories
+    use Galacticus_Output_Times
     ! Include modules needed for pre-evolution tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
@@ -110,42 +103,11 @@ contains
     double precision,     save          :: outputTime
     type(varying_string), save          :: message
     character(len=20),    save          :: label
-    double precision                    :: aExpansion
     !$omp threadprivate(thisTree,finished,skipTree,iOutput,iTree,outputTime,message,label)
 
     ! Initialize the task if necessary.
     !$omp critical (Tasks_Evolve_Tree_Initialize)
-    if (.not.outputsInitialized) then
-
-       ! Get a list of output redshifts - stored temporarily in the outputTimes array.
-       outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
-       call Alloc_Array(outputTimes,[outputCount])
-       !@ <inputParameter>
-       !@   <name>outputRedshifts</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     A list of redshifts at which \glc\ results should be output.
-       !@   </description>
-       !@ </inputParameter>
-       if (outputCount == 1) then
-          ! If only one (or zero) output redshifts present, make redshift zero the default.
-          call Get_Input_Parameter('outputRedshifts',outputTimes,defaultValue=[0.0d0])
-       else
-          call Get_Input_Parameter('outputRedshifts',outputTimes)
-       end if
-
-       ! Convert redshifts to times.
-       do iOutput=1,outputCount
-          aExpansion=Expansion_Factor_from_Redshift(outputTimes(iOutput))
-          outputTimes(iOutput)=Cosmology_Age(aExpansion)
-       end do
-
-       ! Sort the times.
-       call Sort_Do(outputTimes)
-
-       ! Set history ranges to include these times.
-       call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
+    if (.not.treeEvolveInitialized) then
 
        ! Get parameters controlling which trees will be processed.
        !@ <inputParameter>
@@ -168,7 +130,7 @@ contains
        call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
 
        ! Flag that this task is now initialized.
-       outputsInitialized=.true.
+       treeEvolveInitialized=.true.
     end if
     !$omp end critical (Tasks_Evolve_Tree_Initialize)
 
@@ -202,10 +164,10 @@ contains
              call Galacticus_Display_Indent(message)
              
              ! Loop over output times.
-             outputTimeLoop : do iOutput=1,outputCount
+             outputTimeLoop : do iOutput=1,Galacticus_Output_Time_Count()
                 
                 ! Get the output time.
-                outputTime=outputTimes(iOutput)
+                outputTime=Galacticus_Output_Time(iOutput)
                 
                 ! Evolve the tree to the output time.
                 call Merger_Tree_Evolve_To(thisTree,outputTime)
