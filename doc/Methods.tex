@@ -4064,6 +4064,32 @@ where {\tt Node\_Dump\_Procedure} is the name of a subroutine with the following
 \end{verbatim}
 If the node contains an active component, this subroutine should display all relevant properties of the component. If not, it can display a short message indicating that fact.
 
+\subsubsection{Output Filter Tasks}\label{sec:OutputFilters}\index{output!filtering}\index{filtering!output}
+
+Extra filters for controlling which galaxies are output can be added using the directive {\tt mergerTreeOutputFilter}. The directive should give the name of the function to be called to apply the filter. A template for this task is:
+\begin{verbatim}
+  !# <mergerTreeOutputFilter>
+  !#  <unitName>Galacticus_Merger_Tree_Output_Filter__Example</unitName>
+  !# </mergerTreeOutputFilter>
+  logical function Galacticus_Merger_Tree_Output_Filter__Example(thisNode,filterNames,doOutput)
+    implicit none
+    type(treeNode),       intent(inout), pointer      :: thisNode
+    type(varying_string), intent(in),    dimension(:) :: filterNames
+    logical,              intent(inout)               :: doOutput)
+    .
+    .
+    .
+    return
+  end function Galacticus_Merger_Tree_Output_Filter__Example
+\end{verbatim}
+The function will be called for each node, {\tt thisNode}, which is being considered for output. The {\tt filterNames} arrays contains a list of all filters which were requested to be applied. The function should check if its filter is listed in this array and, if so, should determine whether {\tt thisNode} passes its criteria for output. If it does not, {\tt doOutput} should be set to false. If the output criteria are met, then {\tt doOutput} \emph{should not be changed} (as it may already have been set false by some other filter).
+
+Currently available filters, selected using the {\tt [mergerTreeOutputFilters]} input parameter, are:
+\begin{itemize}
+ \item [{\tt lightcone}] Restricts output to those galaxies which fall within a specified lightcone geometry. See \S\ref{sec:OutputLightcone} for further details.
+\end{itemize}
+
+
 \subsubsection{Output Group Output Tasks}\index{output groups}\index{tasks!output}
 
 Extra outputs for output groups (i.e. the groups which hold all merger tree data for a given output time) can be added using the directive: {\tt outputGroupOutputTask}. The directive should give the name of the subroutine to be called to perform the task. A template for this task is:

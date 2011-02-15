@@ -60,3 +60,86 @@ Properties associated with accretion onto supermassive black holes can be output
 \item[{\tt blackHoleJetPower}] The power being emitted into jets by the black hole/accretion disk system in $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
 \end{description}
 
+\section{Lightcone Coordinates}\label{sec:OutputLightcone}\index{lightcones}
+
+The position (and velocity and redshift) of a galaxy within a lightcone will automatically be output if the {\tt lightcone} output filter is active (see \S\ref{sec:OutputFilters}). In such cases, the following properties will be output for all galaxies:
+\begin{description}
+ \item [{\tt lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of the lightcone;
+ \item [{\tt lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^{\rm st}$ angular direction of the lightcone;
+ \item [{\tt lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^{\rm nd}$ angular direction of the lightcone;
+ \item [{\tt lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the lightcone;
+ \item [{\tt lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^{\rm st}$ angular direction of the lightcone;
+ \item [{\tt lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^{\rm nd}$ angular direction of the lightcone;
+ \item [{\tt lightconeRedshift}] Redshift of the galaxy in the lightcone\footnote{Note that this will not, in general, be precisely the same as the redshift corresponding to the output time.};
+\end{description}
+If active, the geometry of the lightcone must be specified in an XML file, the name of which must be specified using the {\tt [filterLightconeGeometryFileName]} input parameter. The XML file should have the following structure:
+\begin{verbatim}
+<geometry>
+  <boxLength>500</boxLength>
+  <cosmology>
+    <parameter>
+      <name>omega0</name>
+      <value>0.25</value>
+    </parameter>
+    <parameter>
+      <name>lambda0</name>
+      <value>0.75</value>
+    </parameter>
+    <parameter>
+      <name>H0</name>
+      <value>70</value>
+    </parameter>
+  </cosmology>
+  <fieldOfView>
+    <geometry>square</geometry>
+    <length>0.0174532927777778</length>
+  </fieldOfView>
+  <maximumDistance>6136.78369140625</maximumDistance>
+  <origin>
+    <coordinate>50</coordinate>
+    <coordinate>50</coordinate>
+    <coordinate>50</coordinate>
+  </origin>
+  <outputs>
+    <maximumDistance>9606.4736328125</maximumDistance>
+    <maximumDistance>9470.22194965342</maximumDistance>
+    .
+    .
+    .
+    <minimumDistance>9470.22194965342</minimumDistance>
+    <minimumDistance>9160.59527164611</minimumDistance>
+    .
+    .
+    .
+    .
+    <redshift>127</redshift>
+    <redshift>79.997894</redshift>
+    .
+    .
+    .
+  </outputs>
+  <unitVector1>
+    <coordinate>0.307692307692308</coordinate>
+    <coordinate>0.230769230769231</coordinate>
+    <coordinate>0.923076923076923</coordinate>
+  </unitVector1>
+  <unitVector2>
+    <coordinate>0</coordinate>
+    <coordinate>0.923076923076923</coordinate>
+    <coordinate>-0.230769230769231</coordinate>
+  </unitVector2>
+  <unitVector3>
+    <coordinate>-0.905325443786982</coordinate>
+    <coordinate>0.0710059171597633</coordinate>
+    <coordinate>0.284023668639053</coordinate>
+  </unitVector3>
+  <units>
+    <length>
+      <hubbleExponent>-1</hubbleExponent>
+      <unitsInSI>3.08568025e+22</unitsInSI>
+    </length>
+  </units>
+</geometry>
+\end{verbatim}
+The {\tt boxLength} element should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone), while the {\tt maximumDistance} element should specify the largest distance in the lightcone to be considered. The {\tt fieldOfView} element must specify the geometry of the field of view. Currently, the only allowed value for the {\tt geometry} of the {\tt fieldOfView} element is {\tt square}, in which case the {\tt length} element of {\tt fieldOfView} should give the length of the side of the square field of view in radians. The {\tt origin} element must contain the $x$, $y$, $z$ {\tt coordinate}s of the origin of the lightcone within the simulation box, while the {\tt unitVectorX} elements must give unit vectors which point along the lightcone (for {\tt X}$=1$, and in the two directions perpendicular to the lightcone (for {\tt X}$=2$ and 3). The {\tt outputs} element contains lists of properties corresponding to the outputs to be used for building the lightcone. The {\tt redshift} subelements must list the redshifts of available outputs (in order of decreasing redshift) while the {\tt minimumDistance} and {\tt maximumDistance} elements must give the minimum and maximum comoving distance that should be considered to be associated with each given output redshift. The {\tt units/length} element must specify the units used for lengths, with {\tt unitsInSI} giving the length unit in SI units and {\tt hubbleExponent} giving the exponent of $h$ that appears in the length unit. Finally, the optional {\tt cosmology} element may give cosmological parameters relevant to this lightcone in standard \glc\ format.
+
