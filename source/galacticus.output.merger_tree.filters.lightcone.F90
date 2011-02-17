@@ -398,11 +398,11 @@ contains
     double precision,        intent(inout)          :: doubleBuffer(:,:)
 
     if (lightconeFilterActive) then
-       doubleBuffer(doubleBufferCount+1:doubleBufferCount+3,doubleProperty)=lightconePosition
+       doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+3)=lightconePosition
        doubleProperty=doubleProperty+3
-       doubleBuffer(doubleBufferCount+1:doubleBufferCount+3,doubleProperty)=lightconeVelocity
+       doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+3)=lightconeVelocity
        doubleProperty=doubleProperty+3
-       doubleBuffer(doubleBufferCount+1                    ,doubleProperty)=lightconeRedshift
+       doubleBuffer(doubleBufferCount,doubleProperty+1                 )=lightconeRedshift
        doubleProperty=doubleProperty+1
     end if
     return
