@@ -17,7 +17,7 @@ Finally, each numbered output group is given two additional attributes, {\tt lin
 
 The information output can be used to construct galaxy power spectra and correlation functions (see \S\ref{sec:ClusteringHaloModel} for example).
 
-\section{Merger Tree Links}\index{merger tree!links}
+\section{Merger Tree Links and Node Isolation}\index{merger tree!links}
 
 The following properties are output to permit the merger tree structure to be recovered:
 \begin{description}
@@ -26,6 +26,7 @@ The following properties are output to permit the merger tree structure to be re
  \item [{\tt parentIndex}] The index of this node's parent node (or $-1$ if it has no parent);
  \item [{\tt siblingIndex}] The index of this node's sibling node (or $-1$ if it has no sibling);
  \item [{\tt satelliteIndex}] The index of this node's first satellite node (or $-1$ if it has no satellites);
+ \item [{\tt nodeIsIsolated}] Will be $0$ for a node which is a subhalo inside some other node (i.e. a satellite galaxy\index{satellite galaxies!identifying}) or $1$ for a node that is an isolated halo (i.e. a central galaxy\index{central galaxies!identifying}).
 \end{description}
 
 \section{Virial Quantities}\index{virial}
