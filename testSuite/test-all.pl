@@ -70,6 +70,7 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 # Define a list of executables to run.
 @executablesToRun = (
     "tests.IO.HDF5.exe",                       # Tests of HDF5 IO routines.
+    "tests.array_monotonicity.exe",            # Tests of array monotonicity checking function.
     "tests.cosmic_age.dark_energy.exe",        # Tests of cosmic age calculations.
     "tests.cosmic_age.EdS.exe",                # .
     "tests.cosmic_age.open.exe",               # .

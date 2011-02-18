@@ -137,7 +137,7 @@ contains
     integer,          intent(in), optional :: direction
     logical,          intent(in), optional :: allowEqual
     integer                                :: i
-    logical                                :: isIncreasing,allowEqualActual
+    logical                                :: isIncreasing,allowEqualActual,arrayIsFlat
 
     ! Single element arrays count as monotonic.
     if (size(array) <= 1) then
@@ -152,8 +152,34 @@ contains
        allowEqualActual=.false.
     end if
 
-    ! Determine if the array is increasing of decreasing in the first two elements.
-    isIncreasing=array(size(array)) > array(1)
+    ! Determine if the array is increasing or decreasing at the start.
+    if (allowEqualActual) then
+       ! Equal entries are allowed, so scan the array to find the first element which is not equal to the first element.
+       i=2                ! Begin with the second element.
+       arrayIsFlat=.true. ! Assume that the array is flat (all elements the same) until we can prove otherwise.
+       do while (i <= size(array))
+          ! Check for a difference in the element compared to the first element.
+          if (array(i) /= array(1)) then
+             ! Element does differ: 1) determine in what sense it differs; 2) flag that the array is not flat; 3) exit the loop.
+             isIncreasing=array(i) > array(1)       
+             arrayIsFlat=.false.
+             exit
+          end if
+          i=i+1
+       end do
+       ! If no element differing from the first was found, then the array is flat and so is deemed to be monotonic in this case
+       ! (since equal entries are allowed).
+       if (arrayIsFlat) then
+          Array_Is_Monotonic_Double=.true.
+          return
+       end if
+    else
+       if (array(2) == array(1)) then
+          Array_Is_Monotonic_Double=.false.
+          return
+       end if
+       isIncreasing=array(2) > array(1)       
+    end if
 
     ! Check direction is correct if this was specified.
     if (present(direction)) then

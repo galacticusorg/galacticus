@@ -1,0 +1,190 @@
+!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+!!
+!!
+!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
+!!
+!!    The California Institute of Technology shall allow RECIPIENT to use and
+!!    distribute this software subject to the terms of the included license
+!!    agreement with the understanding that:
+!!
+!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
+!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
+!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
+!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
+!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
+!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
+!!    USED.
+!!
+!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
+!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
+!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
+!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
+!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
+!!
+!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
+!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
+!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
+!!    USE OF THE SOFTWARE.
+!!
+!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
+!!    to provide technical support for the Software.
+!!
+!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
+!!    of Derivative Works, public display or redistribution of the Software
+!!    other than those specified in the included license and the requirement
+!!    that all copies of the Software released be marked with the language
+!!    provided in this notice.
+!!
+!!    This software is separately available under negotiable license terms
+!!    from:
+!!    California Institute of Technology
+!!    Office of Technology Transfer
+!!    1200 E. California Blvd.
+!!    Pasadena, California 91125
+!!    http://www.ott.caltech.edu
+
+
+!% Contains a program to test the array monotonicity checking routines.
+
+program Test_Array_Monotonicity
+  !% Tests that array monotonicity routines work correctly.
+  use Unit_Tests
+  use ISO_Varying_String
+  use Array_Utilities
+  implicit none
+  double precision,   target , dimension( 1,2) :: singleElementArrays      =reshape([                                                                         &
+       &                                                                               1.23d0                                                                 &
+       &                                                                             ,-2.31d0                                                                 &
+       &                                                                            ]                                                                         &
+       &                                                                            ,shape(singleElementArrays)                                               &
+       &                                                                           )
+  logical,            target , dimension( 9,2) :: singleElementExpectations=reshape([                                                                         &
+       &                                                                              .true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true.  &
+       &                                                                             ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true.  &
+       &                                                                            ]                                                                         &
+       &                                                                            ,shape(singleElementExpectations)                                         &
+       &                                                                           )
+  character(len=128), target , dimension(   2) :: singleElementNames       =        [                                                                         &
+       &                                                                              'Single element array (positive value)'                                 &
+       &                                                                             ,'Single element array (negative value)'                                 &
+       &                                                                            ]
+
+  double precision,   target , dimension(10,6) :: tenElementArrays         =reshape([                                                                         &
+       &                                                                              1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0            &
+       &                                                                             ,3.0d0,2.0d0,1.0d0,0.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0       &
+       &                                                                             ,1.0d0,0.0d0,3.0d0,4.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0            &
+       &                                                                             ,1.0d0,1.0d0,1.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0            &
+       &                                                                             ,3.0d0,2.0d0,1.0d0,1.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0       &
+       &                                                                             ,1.0d0,0.0d0,3.0d0,3.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0            &
+       &                                                                            ]                                                                         &
+       &                                                                            ,shape(tenElementArrays)                                                  &
+       &                                                                           )
+  logical,            target , dimension( 9,6) :: tenElementExpectations   =reshape([                                                                         &
+       &                                                                              .true. ,.true. ,.false.,.true. ,.true. ,.false.,.true. ,.true. ,.false. &
+       &                                                                             ,.true. ,.false.,.true. ,.true. ,.false.,.true. ,.true. ,.false.,.true.  &
+       &                                                                             ,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false. &
+       &                                                                             ,.false.,.false.,.false.,.false.,.false.,.false.,.true. ,.true. ,.false. &
+       &                                                                             ,.false.,.false.,.false.,.false.,.false.,.false.,.true. ,.false.,.true.  &
+       &                                                                             ,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false. &
+       &                                                                            ]                                                                         &
+       &                                                                            ,shape(tenElementExpectations)                                            &
+       &                                                                           )
+  character(len=128), target , dimension(   6) :: tenElementNames          =        [                                                                         &
+       &                                                                              'Increasing array (no equalities)     '                                 &
+       &                                                                             ,'Decreasing array (no equalities)     '                                 &
+       &                                                                             ,'Non-monotinic array (no equalities)  '                                 &
+       &                                                                             ,'Increasing array (with equalities)   '                                 &
+       &                                                                             ,'Decreasing array (with equalities)   '                                 &
+       &                                                                             ,'Non-monotinic array (with equalities)'                                 &
+       &                                                                            ]
+  double precision,   pointer, dimension( :,:) :: thisArraySet
+  logical,            pointer, dimension( :,:) :: thisExpectations
+  character(len=128), pointer, dimension(   :) :: thisNames
+  logical                                      :: isMonotonic
+  integer                                      :: iArraySet,iArray
+  type(varying_string)                         :: test
+
+  ! Begin unit tests.
+  call Unit_Tests_Begin_Group("Array monotonicity")
+
+  ! Loop over all sets of arrays.
+  do iArraySet=1,2
+
+     ! Create pointers to the specific array set to process.
+     select case (iArraySet)
+     case (1)
+        thisArraySet     => singleElementArrays
+        thisExpectations => singleElementExpectations
+        thisNames        => singleElementNames
+     case (2)
+        thisArraySet     => tenElementArrays
+        thisExpectations => tenElementExpectations
+        thisNames        => tenElementNames
+     end select
+
+     ! Loop over all arrays in this array set.
+     do iArray=1,size(thisArraySet,dim=2)
+
+        ! Perform tests on this array for each of the nine permutations of options:
+        !  direction=   increasing|decreasing|undefined
+        !  allowEquals= true      |false     |undefined
+
+        test=trim(thisNames(iArray))//' is monotonic [no direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray)                                                 )
+        call Assert(char(test),isMonotonic,thisExpectations(1,iArray))
+
+        test=trim(thisNames(iArray))//' is monotonic [increasing direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionIncreasing                   )
+        call Assert(char(test),isMonotonic,thisExpectations(2,iArray))
+
+        test=trim(thisNames(iArray))//' is monotonic [decreasing direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionDecreasing                   )
+        call Assert(char(test),isMonotonic,thisExpectations(3,iArray))
+
+        test=trim(thisNames(iArray))//' is monotonic [no direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray)                              ,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,thisExpectations(4,iArray))
+
+        test=trim(thisNames(iArray))//' is monotonic [increasing direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionIncreasing,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,thisExpectations(5,iArray))
+
+        test=trim(thisNames(iArray))//' is monotonic [decreasing direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionDecreasing,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,thisExpectations(6,iArray))
+
+        test=trim(thisNames(iArray))//' is monotonic [no direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray)                              ,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,thisExpectations(7,iArray))
+
+        test=trim(thisNames(iArray))//' is monotonic [increasing direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionIncreasing,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,thisExpectations(8,iArray))
+
+        test=trim(thisNames(iArray))//' is monotonic [decreasing direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionDecreasing,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,thisExpectations(9,iArray))
+
+     end do
+  end do
+  
+  ! End unit tests.
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish()
+
+end program Test_Array_Monotonicity

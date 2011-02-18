@@ -105,6 +105,7 @@ module Unit_Tests
      module procedure Assert_Double_3D_Array
      module procedure Assert_Double_4D_Array
      module procedure Assert_Double_5D_Array
+     module procedure Assert_Logical_Scalar
   end interface Assert
 
 contains
@@ -688,6 +689,44 @@ contains
 
     return
   end subroutine Assert_Integer8_1D_Array
+
+  subroutine Assert_Logical_Scalar(testName,value1,value2,compare)
+    !% Assess and record an assertion about logical arguments.
+    use Galacticus_Error
+    implicit none
+    character(len=*),   intent(in)               :: testName
+    logical,            intent(in)               :: value1,value2
+    integer,            intent(in), optional     :: compare
+    type(assertResult), pointer                  :: thisResult
+    integer                                      :: compareActual
+    logical                                      :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals            )
+       passed=value1 .eqv.  value2
+    case (compareNotEqual          )
+       passed=value1 .neqv. value2
+    case default
+       call Galacticus_Error_Report('Assert_Logical_Scalar','assertions about logical variables can be equality or non-equality only')
+    end select
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+
+    return
+  end subroutine Assert_Logical_Scalar
 
   subroutine Assert_Character_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
