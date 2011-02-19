@@ -91,6 +91,7 @@ contains
     logical                      :: didPruning
 
     ! Check if module is initialized.
+    !$omp critical (Merger_Tree_Prune_Branches_Initialize)
     if (.not.pruneBranchesModuleInitialized) then
        ! Get parameter specifying if pruning is required.
        !@ <inputParameter>
@@ -114,6 +115,7 @@ contains
        ! Flag that module is initialized.
        pruneBranchesModuleInitialized=.true.
     end if
+    !$omp end critical (Merger_Tree_Prune_Branches_Initialize)
 
     ! Prune tree if necessary.
     if (mergerTreePruneBranches) then

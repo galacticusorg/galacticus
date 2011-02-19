@@ -74,7 +74,7 @@ module Galacticus_Output_Times
   double precision, allocatable, dimension(:) :: outputTimes
 
 contains
-
+  
   subroutine Output_Times_Initialize()
     !% Initialize the output times.
     use Input_Parameters
@@ -86,7 +86,7 @@ contains
     implicit none
     integer          :: iOutput
     double precision :: aExpansion
-
+    
     !$omp critical (Tasks_Evolve_Tree_Initialize)
     if (.not.outputsInitialized) then
        ! Get a list of output redshifts - stored temporarily in the outputTimes array.
@@ -106,26 +106,27 @@ contains
        else
           call Get_Input_Parameter('outputRedshifts',outputTimes                     )
        end if
-
+       
        ! Convert redshifts to times.
        do iOutput=1,outputCount
           aExpansion=Expansion_Factor_from_Redshift(outputTimes(iOutput))
           outputTimes(iOutput)=Cosmology_Age(aExpansion)
        end do
-
+       
        ! Sort the times.
        call Sort_Do(outputTimes)
-
+       
        ! Set history ranges to include these times.
        call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
-
+       
        ! Flag that this module is now initialized.
        outputsInitialized=.true.
     end if
-    
+    !$omp end critical (Tasks_Evolve_Tree_Initialize)
+
     return
   end subroutine Output_Times_Initialize
-
+  
   integer function Galacticus_Output_Time_Count()
     !% Return the number of outputs.
     implicit none
