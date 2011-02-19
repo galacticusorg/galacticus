@@ -378,6 +378,7 @@ sub Output_Data {
 	$unitType = $units{$unitID}->{"unitType"};
 	# Get unit name in LaTeX encoding.
 	$unitName = &latex_encode($units{$unitID}->{"unitName"});
+	$unitName =~ s/\\_/\\\-\\_/g;
 	# Get ID of parent.
 	if ( exists($units{$unitID}->{"belongsTo"}) ) {
 	    $parentID = $units{$unitID}->{"belongsTo"};
