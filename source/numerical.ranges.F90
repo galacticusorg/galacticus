@@ -91,6 +91,8 @@ contains
     ! Build the range.
     select case (rangeTypeActual)
     case (rangeTypeLinear)
+       ! Check that the rangeNumber is valid.
+       if (rangeNumber <= 1) call Galacticus_Error_Report('Make_Range','number of points in range must exceed 1')
        ! Build a linear range.
        forall(iRange=1:rangeNumber)
           rangeValues(iRange)=rangeMinimum+(rangeMaximum-rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1)
