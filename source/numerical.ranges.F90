@@ -67,7 +67,7 @@ module Numerical_Ranges
   public :: Make_Range
 
   ! Parameters to specify type of range required.
-  integer, public, parameter :: rangeTypeLinear=0, rangeTypeLogarithmic=1
+  integer, public, parameter :: rangeTypeUndefined=-1, rangeTypeLinear=0, rangeTypeLogarithmic=1
   
 contains
 

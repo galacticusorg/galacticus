@@ -73,7 +73,8 @@ module Tree_Node_Methods_Hernquist_Spheroid
        & Galacticus_Output_Tree_Spheroid_Hernquist_Property_Count, Galacticus_Output_Tree_Spheroid_Hernquist_Names,&
        & Hernquist_Spheroid_Radius_Solver, Hernquist_Spheroid_Enclosed_Mass, Hernquist_Spheroid_Density,&
        & Hernquist_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Hernquist, Tree_Node_Methods_Hernquist_Spheroid_Dump,&
-       & Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set, Hernquist_Spheroid_Post_Evolve
+       & Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set, Hernquist_Spheroid_Post_Evolve,&
+       & Hernquist_Spheroid_Star_Formation_History_Output
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -89,7 +90,7 @@ module Tree_Node_Methods_Hernquist_Spheroid
   !$omp threadprivate(stellarLuminositiesRates,luminositiesDisk,luminositiesSpheroid)
 
   ! Property indices.
-  integer, parameter :: propertyCountBase=3, dataCountBase=2, historyCount=1
+  integer, parameter :: propertyCountBase=3, dataCountBase=2, historyCount=2
   integer            :: propertyCount      , dataCount
   integer, parameter :: angularMomentumIndex=1
   integer, parameter :: gasMassIndex        =2
@@ -97,9 +98,10 @@ module Tree_Node_Methods_Hernquist_Spheroid
   integer            :: gasAbundancesIndex      ,gasAbundancesIndexEnd
   integer            :: stellarAbundancesIndex  ,stellarAbundancesIndexEnd
   integer            :: stellarLuminositiesIndex,stellarLuminositiesIndexEnd
-  integer, parameter :: radiusIndex          =1
-  integer, parameter :: velocityIndex        =2
-  integer, parameter :: stellarHistoryIndex  =1
+  integer, parameter :: radiusIndex              =1
+  integer, parameter :: velocityIndex            =2
+  integer, parameter :: stellarHistoryIndex      =1
+  integer, parameter :: starFormationHistoryIndex=2
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -135,6 +137,9 @@ module Tree_Node_Methods_Hernquist_Spheroid
   !# <treeNodeMethodsPointer type="history">
   !#  <methodName>Tree_Node_Spheroid_Stellar_Properties_History</methodName>
   !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer type="history">
+  !#  <methodName>Tree_Node_Spheroid_Star_Formation_History</methodName>
+  !# </treeNodeMethodsPointer>
 
   ! Define pipes.
   !
@@ -152,6 +157,10 @@ module Tree_Node_Methods_Hernquist_Spheroid
   ! Parameters controlling the physical implementation.
   double precision :: spheroidEnergeticOutflowMassRate,spheroidOutflowTimescaleMinimum
   double precision :: spheroidMassToleranceAbsolute
+
+  ! Storage for the star formation history time range, used whene extending this range.
+  double precision, allocatable, dimension(:) :: starFormationHistoryTemplate
+  !$omp threadprivate(starFormationHistoryTemplate)
 
   ! Options controlling output.
   logical          :: spheroidOutputStarFormationRate
@@ -264,6 +273,11 @@ contains
        Tree_Node_Spheroid_Stellar_Properties_History_Set          => Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist
        Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust  => Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Hernquist
        Tree_Node_Spheroid_Stellar_Properties_History_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy
+
+       Tree_Node_Spheroid_Star_Formation_History                  => Tree_Node_Spheroid_Star_Formation_History_Hernquist
+       Tree_Node_Spheroid_Star_Formation_History_Set              => Tree_Node_Spheroid_Star_Formation_History_Set_Hernquist
+       Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust      => Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust_Hernquist
+       Tree_Node_Spheroid_Star_Formation_History_Rate_Compute     => Tree_Node_Rate_Rate_Compute_Dummy
 
        ! Associate pipes with procedures.
        Tree_Node_Spheroid_Gas_Sink                                => Tree_Node_Spheroid_Gas_Sink_Rate_Adjust_Hernquist
@@ -577,6 +591,7 @@ contains
     use Cooling_Rates
     use Star_Formation_Feedback_Spheroids
     use Abundances_Structure
+    use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),            pointer, intent(inout) :: thisNode
@@ -624,6 +639,10 @@ contains
        call fuelAbundancesRates%unpack(abundancesValue)
        call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist      (thisNode,interrupt,interruptProcedure,abundancesValue         )
        call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,stellarLuminositiesRates)
+
+       ! Record the star formation history.
+       call Star_Formation_History_Record(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex)&
+            &,fuelAbundances,starFormationRate)
        
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
        massOutflowRate=Star_Formation_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
@@ -659,7 +678,6 @@ contains
           call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist  (thisNode,interrupt,interruptProcedure,&
                &-abundancesOutflowRate)
        end if
-
     end if
     return
   end subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Compute_Hernquist
@@ -924,6 +942,37 @@ contains
     return
   end subroutine Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist
 
+  function Tree_Node_Spheroid_Star_Formation_History_Hernquist(thisNode)
+    !% Return the spheroid star formation history.
+    use Histories
+    use Galacticus_Output_Star_Formation_Histories
+    implicit none
+    type(history)                          :: Tree_Node_Spheroid_Star_Formation_History_Hernquist
+    type(treeNode), pointer, intent(inout) :: thisNode
+    integer                                :: thisIndex
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
+       Tree_Node_Spheroid_Star_Formation_History_Hernquist=thisNode%components(thisIndex)%histories(starFormationHistoryIndex)
+    else
+       Tree_Node_Spheroid_Star_Formation_History_Hernquist=nullHistory
+    end if
+    return
+  end function Tree_Node_Spheroid_Star_Formation_History_Hernquist
+
+  subroutine Tree_Node_Spheroid_Star_Formation_History_Set_Hernquist(thisNode,thisHistory)
+    !% Set the node spheroid star formation history.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    type(history),           intent(in)    :: thisHistory
+    integer                                :: thisIndex
+
+    thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
+    call thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%destroy()
+    thisNode%components(thisIndex)%histories(starFormationHistoryIndex)=thisHistory
+    return
+  end subroutine Tree_Node_Spheroid_Star_Formation_History_Set_Hernquist
+
   subroutine Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the rates for the stellar properties history.
     use Histories
@@ -950,6 +999,51 @@ contains
     return
   end subroutine Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Hernquist
 
+  subroutine Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustments)
+    !% Adjust the rates for the star formation history.
+    use Histories
+    use Galacticus_Error
+    use Memory_Management
+    implicit none
+    type(treeNode),  pointer, intent(inout) :: thisNode
+    logical,                  intent(inout) :: interrupt
+    procedure(),     pointer, intent(inout) :: interruptProcedure
+    type(history),            intent(in)    :: rateAdjustments
+    integer                                 :: thisIndex
+
+    ! If no Hernquist spheroid component currently exists and we have some non-zero rate into it then interrupt and create an Hernquist
+    ! spheroid.
+    if (.not.thisNode%componentExists(componentIndex)) then
+       if (any(rateAdjustments%data /= 0.0d0)) then
+          interrupt=.true.
+          interruptProcedure => Hernquist_Spheroid_Create
+       end if
+       return
+    end if
+    ! Get the index for this component.
+    thisIndex=thisNode%componentIndex(componentIndex)
+    ! Ensure that a history already exists in the spheroid.
+    if (.not.thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%exists())                &
+         & call Galacticus_Error_Report('Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust_Hernquist' &
+         & ,'no star formation history has been created in spheroid')
+    ! Check if the star formation history in the spheroid spans a sufficient range to accept the input rates.
+    if (rateAdjustments%time(1) < thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%time(1) .or.                      &
+         & rateAdjustments%time(size(rateAdjustments%time)) > thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%time( &
+         & size(thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%time))) then
+       ! It does not, so interrupt evolution and extend the history.
+       if (allocated(starFormationHistoryTemplate)) call Dealloc_Array(starFormationHistoryTemplate)
+       call Alloc_Array(starFormationHistoryTemplate,shape(rateAdjustments%time))
+       starFormationHistoryTemplate=rateAdjustments%time
+       interrupt=.true.
+       interruptProcedure => Hernquist_Spheroid_Star_Formation_History_Extend
+       return
+    end if
+
+    ! Adjust the rate.
+    call thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%combine(rateAdjustments,addTo=historyRates)
+    return
+  end subroutine Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust_Hernquist
+
   !# <scaleSetTask>
   !#  <unitName>Hernquist_Spheroid_Scale_Set</unitName>
   !# </scaleSetTask>
@@ -957,6 +1051,7 @@ contains
     !% Set scales for properties of {\tt thisNode}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
     use Abundances_Structure
+    use Galacticus_Output_Star_Formation_Histories
     implicit none
     type(treeNode),            pointer, intent(inout) :: thisNode
     double precision,          parameter              :: massMinimum           =1.0d0
@@ -1008,7 +1103,8 @@ contains
        ! Set scales for stellar population properties history.
        call Tree_Node_Spheroid_Stellar_Abundances_Hernquist(thisNode,abundancesSpheroid)
        call stellarAbundances%pack(abundancesSpheroid)
-       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%histories(stellarHistoryIndex),Tree_Node_Spheroid_Stellar_Mass(thisNode),stellarAbundances)
+       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%histories(stellarHistoryIndex      ),Tree_Node_Spheroid_Stellar_Mass(thisNode),stellarAbundances)
+       call Star_Formation_History_Scales       (thisNode%components(thisIndex)%histories(starFormationHistoryIndex),Tree_Node_Spheroid_Stellar_Mass(thisNode),stellarAbundances)
     end if
     return
   end subroutine Hernquist_Spheroid_Scale_Set
@@ -1111,6 +1207,13 @@ contains
           call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,historyDisk    )
           call historySpheroid%reset()
           call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,historySpheroid)
+          ! Also add stellar properties histories.
+          historyDisk    =Tree_Node_Disk_Star_formation_History                  (hostNode                )
+          historySpheroid=Tree_Node_Spheroid_Star_formation_History_Hernquist    (hostNode                )
+          call historyDisk%combine(historySpheroid)
+          call Tree_Node_Disk_Star_formation_History_Set                         (hostNode,historyDisk    )
+          call historySpheroid%reset()
+          call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (hostNode,historySpheroid)
           call historyDisk%destroy()
           call historySpheroid%destroy()
        case (movesToSpheroid)
@@ -1136,6 +1239,13 @@ contains
           call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,historySpheroid)
           call historyDisk%reset()
           call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,historyDisk    )
+          ! Also add stellar properties histories.
+          historyDisk    =Tree_Node_Disk_Star_formation_History                  (hostNode                )
+          historySpheroid=Tree_Node_Spheroid_Star_formation_History_Hernquist    (hostNode                )
+          call historySpheroid%combine(historyDisk)
+          call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (hostNode,historySpheroid)
+          call historyDisk%reset()
+          call Tree_Node_Disk_Star_formation_History_Set                         (hostNode,historyDisk    )
           call historyDisk%destroy()
           call historySpheroid%destroy()
        case (doesNotMove)
@@ -1192,6 +1302,13 @@ contains
              call Tree_Node_Disk_Stellar_Properties_History_Set                     (hostNode,thisHistory    )
              call historySpheroid%reset()
              call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (thisNode,historySpheroid)
+             ! Also add star formation histories.
+             historySpheroid=Tree_Node_Spheroid_Star_formation_History_Hernquist    (thisNode                )
+             thisHistory    =Tree_Node_Disk_Star_formation_History                  (hostNode                )
+             call thisHistory%combine(historySpheroid)
+             call Tree_Node_Disk_Star_formation_History_Set                         (hostNode,thisHistory    )
+             call historySpheroid%reset()
+             call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (thisNode,historySpheroid)
              call thisHistory%destroy()
              call historySpheroid%destroy()
          case (movesToSpheroid)
@@ -1210,6 +1327,13 @@ contains
              call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (hostNode,thisHistory    )
              call historySpheroid%reset()
              call Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist       (thisNode,historySpheroid)
+             ! Also add star formation histories.
+             historySpheroid=Tree_Node_Spheroid_Star_formation_History_Hernquist    (thisNode                )
+             thisHistory    =Tree_Node_Spheroid_Star_formation_History_Hernquist    (hostNode                )
+             call thisHistory%combine(historySpheroid)
+             call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (hostNode,thisHistory    )
+             call historySpheroid%reset()
+             call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (thisNode,historySpheroid)
              call thisHistory%destroy()
              call historySpheroid%destroy()
           case default
@@ -1509,6 +1633,7 @@ contains
 
   integer function Tree_Node_Hernquist_Spheroid_Index(thisNode)
     !% Ensure the Hernquist spheroid component exists and return its position in the components array.
+    use Galacticus_Output_Star_Formation_Histories
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
@@ -1520,6 +1645,8 @@ contains
        thisIndex=thisNode%componentIndex(componentIndex)
        ! Create the stellar properties history.
        call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%histories(stellarHistoryIndex))
+       ! Create the star formation history.
+       call Star_Formation_History_Create(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex))
     else
        ! Get the index for this component.
        thisIndex=thisNode%componentIndex(componentIndex)
@@ -1546,6 +1673,20 @@ contains
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
     return
   end subroutine Hernquist_Spheroid_Create
+
+  subroutine Hernquist_Spheroid_Star_Formation_History_Extend(thisNode)
+    !% Extend the range of a star formation history in a Hernquist spheroid component for {\tt thisNode}.
+    use Histories
+    implicit none
+    type(treeNode),      pointer, intent(inout) :: thisNode
+    integer                                     :: thisIndex
+
+    ! Get the index of the component.
+    thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
+    ! Extend the range as necessary.
+    call thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%extend(times=starFormationHistoryTemplate)
+    return
+  end subroutine Hernquist_Spheroid_Star_Formation_History_Extend
 
   
   !# <mergerTreeOutputNames>
@@ -1633,7 +1774,6 @@ contains
             &+Stellar_Population_Luminosities_Output_Count(time)
        if (spheroidOutputStarFormationRate) doublePropertyCount=doublePropertyCount+1
     end if
-
     return
   end subroutine Galacticus_Output_Tree_Spheroid_Hernquist_Property_Count
 
@@ -1729,6 +1869,29 @@ contains
     end if
     return
   end subroutine Tree_Node_Methods_Hernquist_Spheroid_Dump
+
+  !# <mergerTreeExtraOutputTask>
+  !#  <unitName>Hernquist_Spheroid_Star_Formation_History_Output</unitName>
+  !# </mergerTreeExtraOutputTask>
+  subroutine Hernquist_Spheroid_Star_Formation_History_Output(thisNode,iOutput,treeIndex)
+    !% Store the star formation history in the output file.
+    use Kind_Numbers
+    use Tree_Nodes
+    use Galacticus_Output_Star_Formation_Histories
+    implicit none
+    type(treeNode),          intent(inout), pointer      :: thisNode
+    integer,                 intent(in)                  :: iOutput
+    integer(kind=kind_int8), intent(in)                  :: treeIndex
+    integer                                              :: thisIndex
+
+    ! Output the star formation history if a spheroid exists for this component.
+    if (methodSelected .and. thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
+       call Star_Formation_History_Output(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex),iOutput&
+            &,treeIndex,'spheroid')
+    end if
+    return
+  end subroutine Hernquist_Spheroid_Star_Formation_History_Output
 
   !# <postEvolveTask>
   !#  <unitName>Hernquist_Spheroid_Post_Evolve</unitName>

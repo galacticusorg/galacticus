@@ -75,7 +75,8 @@ module Tree_Node_Methods_Exponential_Disk
        & Exponential_Disk_Radius_Solver, Exponential_Disk_Enclosed_Mass, Exponential_Disk_Rotation_Curve,&
        & Tree_Node_Disk_Post_Evolve_Exponential, Tree_Node_Methods_Exponential_Disk_Dump,&
        & Exponential_Disk_Radius_Solver_Plausibility, Tree_Node_Methods_Exponential_Disk_State_Store,&
-       & Tree_Node_Methods_Exponential_Disk_State_Retrieve, Exponential_Disk_Scale_Set
+       & Tree_Node_Methods_Exponential_Disk_State_Retrieve, Exponential_Disk_Scale_Set,&
+       & Exponential_Disk_Star_Formation_History_Output
   
   ! Internal count of abundances and work arrays.
   integer                                     :: abundancesCount
@@ -89,7 +90,7 @@ module Tree_Node_Methods_Exponential_Disk
   !$omp threadprivate(stellarLuminositiesRates,luminositiesTransferRate,luminositiesValue,luminositiesDisk,luminositiesSpheroid)
 
   ! Property indices.
-  integer, parameter :: propertyCountBase=3, dataCountBase=2, historyCount=1
+  integer, parameter :: propertyCountBase=3, dataCountBase=2, historyCount=2
   integer            :: propertyCount      , dataCount
   integer, parameter :: angularMomentumIndex=1
   integer, parameter :: gasMassIndex        =2
@@ -97,9 +98,10 @@ module Tree_Node_Methods_Exponential_Disk
   integer            :: gasAbundancesIndex      ,gasAbundancesIndexEnd
   integer            :: stellarAbundancesIndex  ,stellarAbundancesIndexEnd
   integer            :: stellarLuminositiesIndex,stellarLuminositiesIndexEnd
-  integer, parameter :: radiusIndex          =1
-  integer, parameter :: velocityIndex        =2
-  integer, parameter :: stellarHistoryIndex  =1
+  integer, parameter :: radiusIndex              =1
+  integer, parameter :: velocityIndex            =2
+  integer, parameter :: stellarHistoryIndex      =1
+  integer, parameter :: starFormationHistoryIndex=2
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -134,6 +136,9 @@ module Tree_Node_Methods_Exponential_Disk
   !# </treeNodeMethodsPointer>
   !# <treeNodeMethodsPointer type="history">
   !#  <methodName>Tree_Node_Disk_Stellar_Properties_History</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer type="history">
+  !#  <methodName>Tree_Node_Disk_Star_Formation_History</methodName>
   !# </treeNodeMethodsPointer>
 
   ! Parameters controlling the physical implementation.
@@ -261,6 +266,11 @@ contains
        Tree_Node_Disk_Stellar_Properties_History_Set          => Tree_Node_Disk_Stellar_Properties_History_Set_Exponential
        Tree_Node_Disk_Stellar_Properties_History_Rate_Adjust  => null()
        Tree_Node_Disk_Stellar_Properties_History_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy
+
+       Tree_Node_Disk_Star_Formation_History                  => Tree_Node_Disk_Star_Formation_History_Exponential
+       Tree_Node_Disk_Star_Formation_History_Set              => Tree_Node_Disk_Star_Formation_History_Set_Exponential
+       Tree_Node_Disk_Star_Formation_History_Rate_Adjust      => null()
+       Tree_Node_Disk_Star_Formation_History_Rate_Compute     => Tree_Node_Rate_Rate_Compute_Dummy
 
        ! Grab the cooling mass/angular momentum pipes from the hot halo component.
        if (.not.associated(Tree_Node_Hot_Halo_Cooling_Mass_To)) then
@@ -486,15 +496,16 @@ contains
     use Star_Formation_Feedback_Disks
     use Abundances_Structure
     use Galactic_Dynamics_Bar_Instabilities
+    use Galacticus_Output_Star_Formation_Histories 
     use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),            pointer, intent(inout) :: thisNode
     logical,                            intent(inout) :: interrupt
     procedure(),               pointer, intent(inout) :: interruptProcedureReturn
     procedure(),               pointer                :: interruptProcedure
-    integer                                           :: thisIndex 
+    integer                                           :: thisIndex,iHistory
     double precision                                  :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass &
-         &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate &
+         &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate&
          &,diskDynamicalTime
     type(abundancesStructure), save                   :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
@@ -540,6 +551,10 @@ contains
        call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential      (thisNode,interrupt,interruptProcedure,abundancesValue         )
        call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,stellarLuminositiesRates)
 
+       ! Record the star formation history.
+       call Star_Formation_History_Record(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex)&
+            &,fuelAbundances,starFormationRate)
+       
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
        massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
        if (massOutflowRate > 0.0d0) then
@@ -616,6 +631,15 @@ contains
              call Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust (thisNode,interrupt,interruptProcedure, historyTransferRate     )
              call historyTransferRate%destroy()
           end if
+          ! Star formation history.
+          if (thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%exists()) then
+             thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+             historyTransferRate=thisNode%components(thisIndex)%histories(starFormationHistoryIndex)/barInstabilityTimescale
+             thisNode                    %components(thisIndex)%histories(starFormationHistoryIndex)%rates                          &
+                  &             =thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%rates-historyTransferRate%data
+             call Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust     (thisNode,interrupt,interruptProcedure, historyTransferRate     )
+          end if
+          
        end if
 
     end if
@@ -889,12 +913,43 @@ contains
     return
   end subroutine Tree_Node_Disk_Stellar_Properties_History_Set_Exponential
 
+  function Tree_Node_Disk_Star_Formation_History_Exponential(thisNode)
+    !% Return the disk star formation history.
+    use Histories
+    implicit none
+    type(history)                          :: Tree_Node_Disk_Star_Formation_History_Exponential
+    type(treeNode), pointer, intent(inout) :: thisNode
+    integer                                :: thisIndex
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+       Tree_Node_Disk_Star_Formation_History_Exponential=thisNode%components(thisIndex)%histories(starFormationHistoryIndex)
+    else
+       Tree_Node_Disk_Star_Formation_History_Exponential=nullHistory
+    end if
+    return
+  end function Tree_Node_Disk_Star_Formation_History_Exponential
+
+  subroutine Tree_Node_Disk_Star_Formation_History_Set_Exponential(thisNode,thisHistory)
+    !% Set the node disk star formation history.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    type(history),           intent(in)    :: thisHistory
+    integer                                :: thisIndex
+
+    thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+    call thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%destroy()
+    thisNode%components(thisIndex)%histories(starFormationHistoryIndex)=thisHistory
+    return
+  end subroutine Tree_Node_Disk_Star_Formation_History_Set_Exponential
+
   !# <scaleSetTask>
   !#  <unitName>Exponential_Disk_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Exponential_Disk_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
     use Abundances_Structure
+    use Galacticus_Output_Star_Formation_Histories
     implicit none
     type(treeNode),            pointer, intent(inout) :: thisNode
     double precision,          parameter              :: massMinimum           =1.0d0
@@ -942,10 +997,11 @@ contains
           thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyScale)=max(luminositiesDisk+luminositiesSpheroid,luminosityMinimum)
        end if
 
-       ! Set scales for stellar population properties history.
+       ! Set scales for stellar population properties and star formation histories.
        call Tree_Node_Disk_Stellar_Abundances_Exponential(thisNode,abundancesDisk)
        call stellarAbundances%pack(abundancesDisk)
-       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%histories(stellarHistoryIndex),Tree_Node_Disk_Stellar_Mass(thisNode),stellarAbundances)
+       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%histories(stellarHistoryIndex      ),Tree_Node_Disk_Stellar_Mass(thisNode),stellarAbundances)
+       call Star_Formation_History_Scales       (thisNode%components(thisIndex)%histories(starFormationHistoryIndex),Tree_Node_Disk_Stellar_Mass(thisNode),stellarAbundances)
     end if
     return
   end subroutine Exponential_Disk_Scale_Set
@@ -1025,6 +1081,13 @@ contains
           call Tree_Node_Disk_Stellar_Properties_History_Set(hostNode,hostHistory)
           call thisHistory%reset()
           call Tree_Node_Disk_Stellar_Properties_History_Set(thisNode,thisHistory)
+          ! Also add star formation histories.
+          thisHistory=Tree_Node_Disk_Star_Formation_History(thisNode)
+          hostHistory=Tree_Node_Disk_Star_Formation_History(hostNode)
+          call hostHistory%combine(thisHistory)
+          call Tree_Node_Disk_Star_Formation_History_Set(hostNode,hostHistory)
+          call thisHistory%reset()
+          call Tree_Node_Disk_Star_Formation_History_Set(thisNode,thisHistory)
           call thisHistory%destroy()
           call hostHistory%destroy()
        case (movesToSpheroid)
@@ -1043,6 +1106,13 @@ contains
           call Tree_Node_Spheroid_Stellar_Properties_History_Set(hostNode,hostHistory)
           call thisHistory%reset()
           call Tree_Node_Disk_Stellar_Properties_History_Set    (thisNode,thisHistory)
+          ! Also add star formation histories.
+          thisHistory=Tree_Node_Disk_Star_Formation_History(thisNode)
+          hostHistory=Tree_Node_Spheroid_Star_Formation_History(hostNode)
+          call hostHistory%combine(thisHistory)
+          call Tree_Node_Spheroid_Star_Formation_History_Set(hostNode,hostHistory)
+          call thisHistory%reset()
+          call Tree_Node_Disk_Star_Formation_History_Set    (thisNode,thisHistory)
           call thisHistory%destroy()
           call hostHistory%destroy()
        case default
@@ -1372,10 +1442,11 @@ contains
 
   integer function Tree_Node_Exponential_Disk_Index(thisNode)
     !% Ensure the exponential disk component exists and return its position in the components array.
+    use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
-    
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    integer                                  :: thisIndex
+
     if (.not.thisNode%componentExists(componentIndex)) then
        ! Create the component.
        call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
@@ -1383,6 +1454,8 @@ contains
        thisIndex=thisNode%componentIndex(componentIndex)
        ! Create the stellar properties history.
        call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%histories(stellarHistoryIndex))
+       ! Create the star formation history.
+       call Star_Formation_History_Create(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex))
     else
        ! Get the index for this component.
        thisIndex=thisNode%componentIndex(componentIndex)
@@ -1621,5 +1694,28 @@ contains
     rotationCurveInitialized=.false.
     return
   end subroutine Tree_Node_Methods_Exponential_Disk_State_Retrieve
+  
+  !# <mergerTreeExtraOutputTask>
+  !#  <unitName>Exponential_Disk_Star_Formation_History_Output</unitName>
+  !# </mergerTreeExtraOutputTask>
+  subroutine Exponential_Disk_Star_Formation_History_Output(thisNode,iOutput,treeIndex)
+    !% Store the star formation history in the output file.
+    use Kind_Numbers
+    use Tree_Nodes
+    use Galacticus_Output_Star_Formation_Histories
+    implicit none
+    type(treeNode),          intent(inout), pointer  :: thisNode
+    integer,                 intent(in)              :: iOutput
+    integer(kind=kind_int8), intent(in)              :: treeIndex
+    integer                                          :: thisIndex
+
+    ! Output the star formation history if a disk exists for this component.
+    if (methodSelected .and. thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+       call Star_Formation_History_Output(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex),iOutput&
+            &,treeIndex,'disk')
+    end if
+    return
+  end subroutine Exponential_Disk_Star_Formation_History_Output
   
 end module Tree_Node_Methods_Exponential_Disk
