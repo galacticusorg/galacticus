@@ -869,7 +869,7 @@ contains
     if (passCount+FailCount > 0) then
        percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
     else
-       percentage=100.0d0
+       percentage=100
     end if
     message="Tests passed: "
     message=message//passCount//" ("//percentage//"%)"
@@ -877,7 +877,7 @@ contains
     if (passCount+FailCount > 0) then
        percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
     else
-       percentage=100.0d0
+       percentage=100
     end if
     message="Tests failed: "
     message=message//failCount//" ("//percentage//"%)"
