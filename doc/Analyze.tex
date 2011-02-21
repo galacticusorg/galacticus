@@ -222,13 +222,13 @@ sub Get_hotHaloFraction {
 \end{verbatim}
 The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} hash. The key gives a regular expression which matches to the name of the property to be defined. The value of the key gives the name of a subroutine to be called to evaluate this expression. The subroutine is defined below. When called, it receives the {\tt \$dataSet} structure along with the name of the requested property. The subroutine should then simply evaluate the requested property and store it in the appropriate location within {\tt \$dataSet}. Note that the subroutine can request additional datasets be loaded (as happens above where {\tt hotHaloMass} and {\tt nodeMass} are requested) if they are needed for its calculations.
 
-\subsubsection{Available Derived Properties}
+\subsubsection{Available Derived Properties}\label{sec:DerivedProperties}
 
 \begin{description}
  \item[{\tt mergerTreeIndex}] The index of the merger tree in which the galaxy is found. Provided by: {\tt Galacticus::HDF5}.
  \item[{\tt hotHalo(Fraction\textbar Frac)}] The fraction the node's mass in the hot gas halo. Provided by: {\tt Galacticus::Baryons}.
  \item[{\tt inclination}] A randomly selected inclination for the disk (in degrees). Provided by: {\tt Galacticus::Inclination}.
- \item[{\tt \textasciicircum(disk\textbar bulge)StellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Dust-extingiushed luminosities for disk and bulge found by interpolating in the dust tables of \cite{ferrara_atlas_1999}. If the {\tt [faceOn]} qualifier is present, extinctions are computed assuming that the disk is observed face-on, otherwise a random inclination is used. Optionally, the dust atlas file to used can be specified via {\tt \$\{\$dataSet\}\{'dustAtlasFile'\}}. The available dust atlases span a limited range of spheroid sizes and central optical depths in their tabulations. Standard behavior is to extrapolate beyond the ends of these ranges. This can be controlled via {\tt \$\{\$dataSet\}\{'dustAtlasExtrapolateInSize'\}} and {\tt \$\{\$dataSet\}\{'dustAtlasExtrapolateInTau'\}} respectively, which can be set to {\tt yes}/{\tt no} (or, equivalently, 1/0). Provided by: {\tt Galacticus::DustAttenuation}.
+ \item[{\tt \textasciicircum(disk\textbar bulge)StellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Dust-extingiushed\index{dust!extinction} luminosities for disk and bulge found by interpolating in the dust tables of \cite{ferrara_atlas_1999}. If the {\tt [faceOn]} qualifier is present, extinctions are computed assuming that the disk is observed face-on, otherwise a random inclination is used. Optionally, the dust atlas file to used can be specified via {\tt \$\{\$dataSet\}\{'dustAtlasFile'\}}. The available dust atlases span a limited range of spheroid sizes and central optical depths in their tabulations. Standard behavior is to extrapolate beyond the ends of these ranges. This can be controlled via {\tt \$\{\$dataSet\}\{'dustAtlasExtrapolateInSize'\}} and {\tt \$\{\$dataSet\}\{'dustAtlasExtrapolateInTau'\}} respectively, which can be set to {\tt yes}/{\tt no} (or, equivalently, 1/0). Provided by: {\tt Galacticus::DustAttenuation}.
  \item[{\tt \textasciicircum totalStellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] (Optionally dust-extingiushed) luminosities for disk plus bulge found by adding together the corresponding disk and bulge luminosities. Provided by: {\tt Galacticus::Luminosities}.
  \item[{\tt \textasciicircum bulgeToTotalLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Ratio of bulge to total (optionally dust-extingiushed) luminosities. Provided by: {\tt Galacticus::Luminosities}.
  \item[{\tt \textasciicircum magnitude([\textasciicircum :]+):([\textasciicircum :]+):([\textasciicircum :]+):z([$\backslash$d$\backslash$.]+)(:dust[\textasciicircum :]+)?(:vega\textbar :AB)?}] Absolute magnitude corresponding to a stellar luminosity, in either Vega or AB systems. Provided by: {\tt Galacticus::Magnitudes}.
@@ -300,3 +300,27 @@ Here {\tt <modelDirectory>} should be the name of a directory containing \glc\ m
 \end{itemize}
 Any plots found in the model directory will be combined into a {\tt tar} archive and stored in the archive directory.
 
+\section{Reprocessing Through Dust Using {\sc Grasil}}\index{dust!reprocessing}\index{Grasil@{\sc Grasil}}
+
+\glc\ computes the star formation histories and, optionally, the luminosities of stellar populations in galaxies. The effects of dust on galaxy spectra is handled by post-processing of \glc\ output. A simple treatment of dust-extinction of starlight is described in \S\ref{sec:DerivedProperties}. For a more detailed treatment of dust extinction, and the re-emission of starlight by dust, \glc\ is able to interface with the \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.html}{{\sc Grasil}} radiative transfer code described by \cite{silva_modeling_1998}.
+
+To process a \glc\ galaxy through {\sc Grasil} use the following method:
+\begin{enumerate}
+ \item Run \glc\ to generate galaxies. {\sc Grasil} requires a detailed star formation history for each galaxy it processes. Therefore, you should set {\tt [starFormationHistoriesMethod]}$=${\tt metallicity split} in your input parameter file. Other parameters controlling the details of the star formation history recording are discussed in \S\ref{sec:StarFormationHistoryTasks}. Note that you should ensure that the history is recorded with sufficient precision to permit an accurate calculation by {\sc Grasil}. Additionally, you may want to consider using the same stellar population data in \glc\ as is used by {\sc Grasil}---suitable files in \glc\ format can be downloaded from the \glc\ \href{https://sites.google.com/site/galacticusmodel/home/auxiliary-data}{web site}.
+ \item Select a galaxy from the output to process through {\sc Grasil}. You will need to know the output number, tree index and node index of the galaxy;
+ \item Run the {\tt Extract\_Star\_Formation\_History\_for\_Grasil.pl} script to extract the star formation history for this galaxy in a format suitable for input into {\sc Grasil}:
+\begin{verbatim}
+ scripts/aux/Extract_Star_Formation_History_for_Grasil.pl <inputFile> <outputIndex> \
+    <treeIndex> <nodeIndex> <grasilFile> [<plotFile>]
+\end{verbatim}
+where {\tt inputFile} is the name of the \glc\ model file, {\tt outputIndex}, {\tt treeIndex} and {\tt nodeIndex} are the quantities described above that identify the galaxy of interest and {\tt grasilFile} is the name of the file to which the star formation history should be written. {\sc Grasil} convention dictates that this file should have the suffix {\tt .dat}. The optional {\tt plotFile} is the name of a file to which a plot of the star formation history will be written.
+ \item Create a suitable input parameter file for {\tt Grasil}, with the same name as your star formation file created above, but with the suffix {\tt .par}. An example of such a file is given in {\tt aux/Grasil/grasilExample.par} ---refer to the {\sc Grasil} \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.doc}{documentation} for details of the parameters and how to control {\sc Grasil}. 
+ \item Download the {\sc Grasil} executable and supporting data files from \href{http://adlibitum.oat.ts.astro.it/silva/grasil/download.htm}{here} and unpack them\footnote{You can put these files where ever you want. Usually, we place them into {\tt aux/Grasil/}.}.
+ \item Run {\sc Grasil}:
+\begin{verbatim}
+ aux/Grasil/grasil <fileNameRoot>
+\end{verbatim}
+where {\tt fileNameRoot} is the name of the parameter file you created without the {\tt .par} suffix. {\sc Grasil} will now process (this will probably take a few minutes) the galaxy and output a set of files describing the spectral energy distribution of the galaxy (possibly as viewed from multiple angles depending on your input parameter file). See the {\sc Grasil} \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.doc}{documentation} for full details on the output data.
+\end{enumerate}
+
+Future versions of \glc\ will automate this process, allowing galaxies to be processed and their full SEDs or fluxes at particular wavelengths to be written back into the \glc\ output file.
