@@ -97,6 +97,7 @@ contains
     use Input_Parameters
     use Numerical_Ranges
     use Memory_Management
+    use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: starFormationHistoriesMethod
     procedure(),          pointer, intent(inout) :: Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do&
@@ -166,11 +167,19 @@ contains
        call Get_Input_Parameter('starFormationHistoryMetallicityMaximum',starFormationHistoryMetallicityMaximum,defaultValue=1.0d+1)
 
        ! Construct a table of metallicities at which to tabulate. Add an extra bin since we want to catch all metallicities,
-       ! including those below and above the maximum.
-       call Alloc_Array(metallicityTable,[starFormationHistoryMetallicityCount+1])
-       metallicityTable(1:starFormationHistoryMetallicityCount)=Make_Range(starFormationHistoryMetallicityMinimum&
-            &,starFormationHistoryMetallicityMaximum ,starFormationHistoryMetallicityCount,rangeType=rangeTypeLogarithmic)
-       metallicityTable(starFormationHistoryMetallicityCount+1)=metallicityInfinite
+       ! including those below and above the maximum. A single bin is not allowed, but zero bins implies that no metallicity
+       ! resolution is required.
+       select case (starFormationHistoryMetallicityCount)
+       case (:-1,1)
+          call Galacticus_Error_Report('Star_Formation_Histories_Metallicity_Split_Initialize','number of bins must be 0, or greater than 1')
+       case default
+          call Alloc_Array(metallicityTable,[starFormationHistoryMetallicityCount+1])
+          if (starFormationHistoryMetallicityCount > 1) then
+             metallicityTable(1:starFormationHistoryMetallicityCount)=Make_Range(starFormationHistoryMetallicityMinimum&
+                  &,starFormationHistoryMetallicityMaximum ,starFormationHistoryMetallicityCount,rangeType=rangeTypeLogarithmic)
+          end if
+          metallicityTable(starFormationHistoryMetallicityCount+1)=metallicityInfinite
+       end select
     end if
     return
   end subroutine Star_Formation_Histories_Metallicity_Split_Initialize
@@ -331,7 +340,7 @@ contains
 
     ! Find the metallicity bin to accumulate to.
     fuelMetallicity=fuelAbundances%metallicity(metallicityType=linearByMassSolar)
-    if (fuelMetallicity < metallicityTable(1)) then
+    if (fuelMetallicity < metallicityTable(1) .or. starFormationHistoryMetallicityCount == 0) then
        iMetallicity=1
     else
        iMetallicity=Search_Array(metallicityTable,fuelMetallicity)+1

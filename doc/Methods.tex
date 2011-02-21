@@ -4222,6 +4222,148 @@ Here, {\tt Satellite\_Merger\_Task} is the name of a subroutine which will be ca
 \end{verbatim}
 where {\tt thisNode} is the node about to merge with {\tt thisNode\%parentNode}.
 
+\subsubsection{Star Formation History Tasks}\index{star formation history}
+
+Additional methods for star formation history tracking  can be added using the {\tt starFormationHistoriesMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt metallicity split} method uses this directive as follows:
+\begin{verbatim}
+  !# <starFormationHistoriesMethod>
+  !#  <unitName>Star_Formation_Histories_Metallicity_Split_Initialize</unitName>
+  !# </starFormationHistoriesMethod>
+\end{verbatim}
+Here, {\tt Star\_Formation\_Histories\_Metallicity\_Split\_Initialize} is the name of a subroutine which will be called to initialize the method. The subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize( starFormationHistoriesMethod     &
+       &                       ,Star_Formation_History_Create_Do &
+       &                       ,Star_Formation_History_Scales_Do &
+       &                       ,Star_Formation_History_Record_Do &
+       &                       ,Star_Formation_History_Output_Do &
+       &                      )
+    implicit none
+    type(varying_string),          intent(in)    ::  starFormationHistoriesMethod
+    procedure(),          pointer, intent(inout) ::  Star_Formation_History_Create_Do &
+       &                                            ,Star_Formation_History_Scales_Do &
+       &                                            ,Star_Formation_History_Record_Do &
+       &                                            ,Star_Formation_History_Output_Do
+    
+    if (starFormationHistoriesMethod == 'myMethod') then
+       Star_Formation_History_Create_Do => My_Create
+       Star_Formation_History_Scales_Do => My_Scales
+       Star_Formation_History_Record_Do => My_Record
+       Star_Formation_History_Output_Do => My_Output
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt starFormationHistoriesMethod} input parameter. The procedure pointers must be set to point to subroutines which perform the functions described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The {\tt Star\_Formation\_History\_Create\_Do} subroutine must have the form:
+\begin{verbatim}
+  subroutine My_Create(thisNode,thisHistory)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    type(history),   ntent(inout)          :: thisHistory
+    return
+  end subroutine My_Create
+\end{verbatim}
+and should return a history object in {\tt thisHistory} suitable for holding a star formation history for {\tt thisNode}.
+
+The {\tt Star\_Formation\_History\_Scales\_Do} subroutine must have the form:
+\begin{verbatim}
+  subroutine My_Scales(thisHistory,stellarMass,stellarAbundances)
+    implicit none
+    double precision,          intent(in)    :: stellarMass
+    type(abundancesStructure), intent(in)    :: stellarAbundances
+    type(history),             intent(inout) :: thisHistory
+    return
+  end subroutine My_Scales
+\end{verbatim}
+and should set the ODE solver error tolerance scales in {\tt thisHistory}, using the provided information on {\tt stellarMass} and {\tt stellarAbundances} if required.
+
+The {\tt Star\_Formation\_History\_Record\_Do}\index{star formation history!recording} subroutine must have the form:
+\begin{verbatim}
+  subroutine My_Record(thisNode,thisHistory,fuelAbundances,starFormationRate)
+    implicit none
+    type(treeNode),            intent(inout), pointer :: thisNode
+    type(history),             intent(inout)          :: thisHistory
+    type(abundancesStructure), intent(in)             :: fuelAbundances
+    double precision,          intent(in)             :: starFormationRate
+    return
+  end subroutine My_Record
+\end{verbatim}
+and should record the contribution to the star formation history in {\tt thisHistory} for {\tt thisNode} given the current {\tt starFormationRate} and star formation {\tt fuelAbundances}. That is, the subroutine should adjust the rates in {\tt thisHistory} appropriately.
+
+The {\tt Star\_Formation\_History\_Output\_Do}\index{star formation history!outputting} subroutine must have the form:
+\begin{verbatim}
+  subroutine My_Output(thisNode,thisHistory,iOutput,treeIndex,componentLabel)
+    implicit none
+    type(treeNode),          intent(inout), pointer :: thisNode
+    type(history),           intent(inout)          :: thisHistory
+    integer,                 intent(in)             :: iOutput
+    integer(kind=kind_int8), intent(in)             :: treeIndex
+    character(len=*),        intent(in)             :: componentLabel
+    return
+  end subroutine My_Output
+\end{verbatim}
+and should write the star formation history, {\tt thisHistory}, for {\tt thisNode} to the output file. The output number and tree index are provided as {\tt iOutput} and {\tt treeIndex} for reference, and {\tt componentLabel} provides a suitable label for the component to which the history belongs (and so should be used in the name of the datasets to which the history is written for example).
+
+Conventionally, star formation histories are output as follows:
+\begin{verbatim}
+HDF5 "galacticus.hdf5" {
+GROUP "starFormationHistories" {
+   COMMENT "Star formation history data."
+   GROUP "Output1" {
+      COMMENT "Star formation histories for all trees at each out"
+      GROUP "mergerTree1" {
+         COMMENT "Star formation histories for each tree."
+         DATASET "diskSFH<nodeID>" {
+         COMMENT "Star formation history stellar masses of the disk "
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { }
+         }
+         DATASET "diskTime<nodeID>" {
+         COMMENT "Star formation history times of the disk component"
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { }
+         }
+         DATASET "spheroidSFH<nodeID>" {
+         COMMENT "Star formation history stellar masses of the spher"
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { }
+         }
+         DATASET "spheroidTime<nodeID>" {
+         COMMENT "Star formation history times of the spheroid compo"
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { }
+         }
+      }
+      GROUP "mergerTree2" {
+      .
+      .
+      .
+      }
+   }
+   GROUP "Output1" {
+   .
+   .
+   .
+   }
+}
+}
+\end{verbatim}
+where {\tt nodeID} is the index of the relevant node. The specifics of each dataset will depend on the selected star formation history method.
+
+Currently defined star formation history methods are:
+\begin{description}
+ \item [\hyperlink{galacticus.output.merger_tree.star_formation.metallicity_split.F90:star_formation_histories_metallicity_split}{{\tt metallicity split}}] The star formation history is tabulated on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size {\tt [starFormationHistoryTimeStep]} between the time at which each galaxy formed and the final output time, and at most of size {\tt [starFormationHistoryFineTimeStep]} in the period {\tt [starFormationHistoryFineTime]} prior to each output time (all times specified in Gyr). The allows fine binning of recent star formation just prior to each output. The metallicity binning is arranged logarithmically in metallicity with {\tt [starFormationHistoryMetallicityCount]} bins between {\tt [starFormationHistoryMetallicityMinimum]} and {\tt [starFormationHistoryMetallicityMaximum]} (specified in Solar units). Note that the metallicity associated with each bin is the minimum metallicity for that bin (the maximum being the metallicity value associated with the next bin, except for the final bin which extends to infinite metallicity). If {\tt [starFormationHistoryMetallicityCount]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is used).  Output follows the conventional format, with 2D star formation history datasets to represent the history as a function of time and metallicity. An additional {\tt metallicities} dataset is added to the {\tt starFormationHistories} output group to record the metallicity binning as follows:
+\begin{verbatim}
+DATASET "metallicities" {
+ COMMENT "Metallicities at which star formation histories are tabulated"
+   DATATYPE  H5T_IEEE_F64LE
+   DATASPACE  SIMPLE { ( [starFormationHistoryMetallicityCount] ) / ( [starFormationHistoryMetallicityCount] ) }
+}
+\end{verbatim}
+\end{description}
+
 \section{Subsystems}
 
 This section describes some of the subsystems within \glc\ that support various physical entities or processes.
