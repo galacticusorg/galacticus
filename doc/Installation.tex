@@ -157,13 +157,13 @@ Alternatively, GraphViz can be installed from source, following the online instr
 perl -MCPAN -e 'install GraphViz'
 \end{verbatim}
 
- \item [GNU Scientific Library] The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} $\star$ (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.13 or v1.14 of GSL---other versions may or may not work. On Fedora the following (as root) will install GSL:
+ \item [GNU Scientific Library] $\star$ The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.13 or v1.14 of GSL---other versions may or may not work. On Fedora the following (as root) will install GSL:
 \begin{verbatim}
 yum install gsl gsl-devel
 \end{verbatim}
 Alternatively, GSL can be downloaded and installed from source as described online.
 
- \item [GNU Make] \glc\ uses \href{http://www.gnu.org/software/make/}{GNU Make} $\star$ to build executables. Other implementations of {\tt make} may work, but we make no guarantees. On Fedora the following (as root) will install GNU Make:
+ \item [GNU Make] $\star$ \glc\ uses \href{http://www.gnu.org/software/make/}{GNU Make} to build executables. Other implementations of {\tt make} may work, but we make no guarantees. On Fedora the following (as root) will install GNU Make:
 \begin{verbatim}
 yum install make
 \end{verbatim}
@@ -210,7 +210,7 @@ This will create the {\tt Galacticus.exe} executable. The build takes some time,
 
 The {\tt Makefile} contains a few options that you may want to adjust:
 \begin{description}
- \item[{\tt F03COMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.4. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers and type-bound procedures) which older compilers might not handle (and some newer compilers might still have difficulty with);
+ \item[{\tt F03COMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only\footnote{{\sc GFortran} v4.5 seems to have problems compiling \glc. {\sc GFortran} v4.6 has additional functionality which means that it will not accept the syntax used by \glc\ at present. However v4.6 has better OpenMP support and will eventually become the default compiler forglc\ once it reaches a stable release.} tried it using {\sc GFortran} v4.4. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers and type-bound procedures) which older compilers might not handle (and some newer compilers might still have difficulty with);
  \item[{\tt PREPROCESSOR}] The command to invoke a preprocessor to handle {\tt \#IFDEF} etc. statements. We normally use {\tt cpp};
  \item[{\tt MODULETYPE}] A label identifying the structure of modules built by the compiler. This is used to detected when module interfaces have been changed (requiring a recompile of all dependent code) and when only the module internals have changed. When the {\sc GFortran} compiler is used {\tt GCC-f95-on-LINUX} should be used here. Look in {\tt ./scripts/build/Compare\_Module\_Files.pl} for other possibilities (if your compiler isn't listed you'll need to either edit that script or deal with longer recompiles if you edit the code).
  \item[{\tt F03FLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
