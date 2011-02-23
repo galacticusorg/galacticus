@@ -22,7 +22,7 @@ sub GnuPlot2PDF {
 
     # Create a wrapper file for the LaTeX.
     open(wHndl,">gnuplotWrapper.tex");
-    print wHndl "\\documentclass{article}\n\\usepackage{graphicx}\n\\pagestyle{empty}\n\\begin{document}\n\\include{".$gnuplotRoot."}\n\\end{document}\n";
+    print wHndl "\\documentclass[10pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotRoot."}\n\\end{document}\n";
     close(wHndl);
     system("epstopdf ".$gnuplotEpsFile."; pdflatex gnuplotWrapper; pdfcrop gnuplotWrapper.pdf");
     move("gnuplotWrapper-crop.pdf",$gnuplotPdfFile);
