@@ -1,0 +1,43 @@
+<!-- Parameter file used for testing Zhao et al. 2009 algorithms in an open universe model. -->
+<parameters>
+  <parameter>
+    <name>cosmologyMethod</name>
+    <value>matter + lambda</value>
+  </parameter>
+  <parameter>
+    <name>Omega_0</name>
+    <value>0.25</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>H_0</name>
+    <value>100.0</value>
+  </parameter>
+  <parameter>
+    <name>sigma_8</name>
+    <value>0.8</value>
+  </parameter>
+  <parameter>
+    <name>transferFunctionMethod</name>
+    <value>BBKS</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumIndex</name>
+    <value>1.0</value>
+  </parameter>
+  <parameter>
+    <name>darkMatterAccretionHistoryMethod</name>
+    <value>Zhao 2009</value>
+  </parameter>
+  <parameter>
+    <name>darkMatterConcentrationMethod</name>
+    <value>Zhao 2009</value>
+  </parameter>
+</parameters>

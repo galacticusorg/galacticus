@@ -323,10 +323,9 @@ contains
     end do
     
     ! Interpolate to get the expansion factor.
-    !$omp critical(Time_of_Collapse_Interp)	
     Time_of_Collapse=Interpolate(deltaCritTableNumberPoints,deltaCritReverseTableDeltaCrit,deltaCritReverseTableTime &
          &,reverseInterpolationObject,reverseInterpolationAccelerator,criticalOverdensity,reset=reverseResetInterpolation)
-    !$omp end critical(Time_of_Collapse_Interp)	
+    !$omp end critical(Critical_Overdensity_for_Collapse_Interp)
 
     return
   end function Time_of_Collapse

@@ -1288,6 +1288,52 @@ Currently defined dark matter density profile methods are:
  \item [{\tt NFW}] The density profile proposed by \cite{navarro_universal_1997}.
 \end{description}
 
+\subsubsection{Dark Matter Halo Mass Accretion History}\index{dark matter halo!mass accretion history}\index{mass accretion history!dark matter halo}\label{sec:HaloMassAccretionHistory}
+
+Additional methods for dark matter halo mass accretion histories can be added using the {\tt darkMatterAccretionHistoryMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Zhao 2009} method is described by a directive:
+\begin{verbatim}
+ !# <darkMatterAccretionHistoryMethod>
+ !#  <unitName>Dark_Matter_Mass_Accretion_Zhao2009_Initialize</unitName>
+ !# </darkMatterAccretionHistoryMethod>
+\end{verbatim}
+Here, {\tt Dark\_Matter\_Mass\_Accretion\_Zhao2009\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: darkMatterAccretionHistoryMethod
+    procedure(),          pointer, intent(inout) :: Dark_Matter_Halo_Mass_Accretion_Time_Get
+    
+    if (darkMatterAccretionHistoryMethod == 'myMethod') then
+       Dark_Matter_Halo_Mass_Accretion_Time_Get => My_Time_Get
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterAccretionHistoryMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Halo\_Mass\_Accretion\_Time\_Get} must be set to point to a function which returns the time at which a given mass is reached in the mass accretion history. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The time function must have the form:
+\begin{verbatim}
+  double precision function My_Dark_Matter_Halo_Mass_Accretion_Time(baseNode,nodeMass)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: baseNode
+    double precision, intent(in)             :: nodeMass
+    .
+    .
+    .
+    return
+  end function My_Dark_Matter_Halo_Mass_Accretion_Time
+\end{verbatim}
+The function should compute and return the time at which the mass accretion history of {\tt baseNode} reaches the specified {\tt nodeMass}.
+
+Currently defined mass accretion history methods are:
+\begin{description}
+ \item [{\tt Wechsler 2002}] Uses the fitting function from \cite{wechsler_concentrations_2002} to compute the mass accretion history. If {\tt [accretionHistoryWechslerFormationRedshiftCompute]} is set to true then the formation redshift for each history is set sing the method of \cite{bullock_profiles_2001}, otherwise it can be set directly via the {\tt [accretionHistoryWechslerFormationRedshift]} parameter;
+ \item [{\tt Zhao 2009}] Uses the algorithm of \cite{zhao_accurate_2009} to compute the mass accretion history.
+\end{description}
+
 \subsubsection{Dark Matter Density Profile Concentration}
 
 Additional methods for the dark matter density profile concentration can be added using the {\tt darkMatterConcentrationMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Gao2008} method is described by a directive:
@@ -1329,7 +1375,8 @@ The function should compute and return the concentration for {\tt thisNode}.
 
 Currently defined darl matter profile concentration methods are:
 \begin{description}
- \item [{\tt Gao2008}] The concentration is computed using a fitting function from \cite{gao_redshift_2008}.
+ \item [{\tt Gao 2008}] The concentration is computed using a fitting function from \cite{gao_redshift_2008};
+ \item [{\tt Zhao 2009}] The concentration is computed using a fitting function from \cite{zhao_accurate_2009}. Halo formation times (as defined by \citealt{zhao_accurate_2009}) are computed directly from the merger tree branch associated with each node. Where the tree does not exist or has insufficient resolution to contain the merging time the merging time will be found by extrapolation of the earliest resolved progenitor halo using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}).
 \end{description}
 
 \subsubsection{Dark Matter Halo Spin Distribution}\label{sec:HaloSpinDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
@@ -2409,7 +2456,7 @@ Currently defined merger tree building methods are:
 \begin{description}
  \item [{\tt build}] Generates a set of halo masses distributed between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} (with {\tt mergerTreeBuildTreesPerDecade} halos per decade of mass) at redshift {\tt mergerTreeBuildTreesBaseRedshift} and then uses the selected merger tree build method (see \S\ref{sec:MergerTreeBuildMethod}) to build trees from these base nodes;
  \item [{\tt read}] Reads merger tree data from an HDF5 file (see \S\ref{sec:MergerTreeFiles}). The file to read is specified by the {\tt [mergerTreeReadFileName]} parameter.
- \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history based on the fitting formula of \cite{wechsler_concentrations_2002}. See \S\ref{sec:SmoothAccretion} for details.
+ \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). See \S\ref{sec:SmoothAccretion} for details.
 \end{description}
 
 \subsubsection{Molecular Reaction Rates}
