@@ -197,7 +197,7 @@ module Merger_Tree_Data_Structure
           &,hasParticlePositionY,hasParticlePositionZ,hasParticleVelocityX,hasParticleVelocityY,hasParticleVelocityZ&
           &,hasParticleIndex,hasParticles,hasMostBoundParticleIndex
      logical                                              :: areSelfContained=.true., includesHubbleFlow=.false.,&
-          & includesSubhaloMasses=.false.
+          & includesSubhaloMasses=.false.,doMakeReferences=.true.
      type(unitsMetaData),     dimension(unitTypeCount)    :: units
      logical,                 dimension(unitTypeCount)    :: unitsSet=.false.
      integer                                              :: metaDataCount=0
@@ -220,10 +220,21 @@ module Merger_Tree_Data_Structure
      generic                                              :: addMetadata              => Merger_Tree_Data_Structure_Add_Metadata_Double , &
           &                                                                              Merger_Tree_Data_Structure_Add_Metadata_Integer, &
           &                                                                              Merger_Tree_Data_Structure_Add_Metadata_Text
+     procedure                                            :: makeReferences           => Merger_Tree_Data_Structure_Make_References
      procedure                                            :: export                   => Merger_Tree_Data_Structure_Export
   end type mergerTreeData
 
 contains
+
+  subroutine Merger_Tree_Data_Structure_Make_References(mergerTrees,makeReferences)
+    !% Specify whether or not to make merger tree dataset references.
+    implicit none
+    type(mergerTreeData), intent(inout) :: mergerTrees
+    logical,              intent(in)    :: makeReferences
+
+    mergerTrees%doMakeReferences=makeReferences
+    return
+  end subroutine Merger_Tree_Data_Structure_Make_References
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Double(mergerTrees,metadataType,label,doubleValue)
     !% Add a double metadatum.
@@ -974,47 +985,53 @@ contains
        call haloTrees%writeDataset(mergerTrees%particleReferenceCount,"particleIndexCount","The number of particle data for each node."        )
     end if
 
-    ! Create a containing group for individual trees.
-    treesGroup=IO_HDF5_Open_Group(outputFile,"mergerTrees","Data for individual merger trees.")
-
-    ! Create groups for trees and dataset references.
-    do iTree=1,mergerTrees%treeCount
-       groupName="mergerTree"
-       groupName=groupName//iTree
-       treeGroup=IO_HDF5_Open_Group(treesGroup,char(groupName),"Data for a merger tree.")
-
-       ! Standard datasets.
-       hyperslabStart(1)=mergerTrees%treeBeginsAt (iTree)
-       hyperslabCount(1)=mergerTrees%treeNodeCount(iTree)
-       do iProperty=3,size(propertyNames)
-          ! Skip cases where we have the corresponding 3-D dataset.
-          if (trim(propertyNames(iProperty)) == "spin"            .and. .not.mergerTrees%hasSpinMagnitude           ) cycle
-          if (trim(propertyNames(iProperty)) == "angularMomentum" .and. .not.mergerTrees%hasAngularMomentumMagnitude) cycle
-          if (haloTrees%hasDataset(trim(propertyNames(iProperty)))) then
-             treeDataset=IO_HDF5_Open_Dataset(haloTrees,propertyNames(iProperty))
-             call treeGroup%createReference1D(treeDataset,trim(propertyNames(iProperty)),hyperslabStart,hyperslabCount)
-             call treeDataset%close()
-          end if
+    ! Begin creating individual merger tree datasets if requested.
+    if (mergerTrees%doMakeReferences) then
+       
+       ! Create a containing group for individual trees.
+       treesGroup=IO_HDF5_Open_Group(outputFile,"mergerTrees","Data for individual merger trees.")
+       
+       ! Create groups for trees and dataset references.
+       do iTree=1,mergerTrees%treeCount
+          groupName="mergerTree"
+          groupName=groupName//iTree
+          treeGroup=IO_HDF5_Open_Group(treesGroup,char(groupName),"Data for a merger tree.")
+          
+          ! Standard datasets.
+          hyperslabStart(1)=mergerTrees%treeBeginsAt (iTree)
+          hyperslabCount(1)=mergerTrees%treeNodeCount(iTree)
+          do iProperty=3,size(propertyNames)
+             ! Skip cases where we have the corresponding 3-D dataset.
+             if (trim(propertyNames(iProperty)) == "spin"            .and. .not.mergerTrees%hasSpinMagnitude           ) cycle
+             if (trim(propertyNames(iProperty)) == "angularMomentum" .and. .not.mergerTrees%hasAngularMomentumMagnitude) cycle
+             if (haloTrees%hasDataset(trim(propertyNames(iProperty)))) then
+                treeDataset=IO_HDF5_Open_Dataset(haloTrees,propertyNames(iProperty))
+                call treeGroup%createReference1D(treeDataset,trim(propertyNames(iProperty)),hyperslabStart,hyperslabCount)
+                call treeDataset%close()
+             end if
+          end do
+          
+          ! Datasets for properties defined in 3-D spaces.
+          hyperslabStart(2)=hyperslabStart(1)
+          hyperslabCount(2)=hyperslabCount(1)
+          hyperslabStart(1)=int(1,kind=HSIZE_T)
+          hyperslabCount(1)=int(3,kind=HSIZE_T)
+          do iProperty=1,size(propertyNames3D)
+             if (haloTrees%hasDataset(trim(propertyNames3D(iProperty)))) then
+                treeDataset=IO_HDF5_Open_Dataset(haloTrees,propertyNames3D(iProperty))
+                call treeGroup%createReference2D(treeDataset,trim(propertyNames3D(iProperty)),hyperslabStart,hyperslabCount)
+                call treeDataset%close()
+             end if
+          end do
+          
+          call treeGroup%close()
        end do
-
-       ! Datasets for properties defined in 3-D spaces.
-       hyperslabStart(2)=hyperslabStart(1)
-       hyperslabCount(2)=hyperslabCount(1)
-       hyperslabStart(1)=int(1,kind=HSIZE_T)
-       hyperslabCount(1)=int(3,kind=HSIZE_T)
-       do iProperty=1,size(propertyNames3D)
-          if (haloTrees%hasDataset(trim(propertyNames3D(iProperty)))) then
-             treeDataset=IO_HDF5_Open_Dataset(haloTrees,propertyNames3D(iProperty))
-             call treeGroup%createReference2D(treeDataset,trim(propertyNames3D(iProperty)),hyperslabStart,hyperslabCount)
-             call treeDataset%close()
-          end if
-       end do
-
-       call treeGroup%close()
-    end do
-
-    ! Close the merger trees group.
-    call treesGroup%close()
+    
+       ! Close the merger trees group.
+       call treesGroup%close()
+       
+       ! Finished making individual merger tree datasets
+    end if
 
     ! Write particle data if necessary.
     if (mergerTrees%hasParticles) then

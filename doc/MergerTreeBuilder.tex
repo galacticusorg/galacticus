@@ -83,7 +83,12 @@ call mergerTrees%setIncludesHubbleFlow([.true.|.false.])
 
 \noindent \emph{Specifying subhalo mass inclusion:} Whether or not halo masses include the masses of any subhalos can be specified using:
 \begin{verbatim}
-call mergerTrees%setIncludesSubhaloMasses([|.true..false.])
+call mergerTrees%setIncludesSubhaloMasses([.true.|.false.])
+\end{verbatim}
+
+\noindent \emph{Specifying reference creation:} Whether or not HDF5 reference to individual merger trees within the {\tt haloTrees} datasets should be made can be specified using:
+\begin{verbatim}
+call mergerTrees%makeReferences([.true.|.false.])
 \end{verbatim}
 
 \noindent \emph{Specifying units:} The units used in the files can be specified with repeated calls to {\tt setUnits} as follows:
