@@ -69,7 +69,8 @@ program Tests_IO_HDF5
   use Memory_Management
   implicit none
   type(hdf5Object),        target                                 :: fileObject,groupObject,datasetObject
-  integer                                                         :: integerValue,integerValueReread
+  integer                                                         :: integerValue,integerValueReread,iPass
+  logical                                                         :: appendableOK
   integer,                 dimension(10)                          :: integerValueArray
   integer,                 dimension(10)                          :: integerValueArrayRereadStatic
   integer,                 dimension( :),             allocatable :: integerValueArrayReread
@@ -107,459 +108,493 @@ program Tests_IO_HDF5
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("HDF5 IO")
- 
-  ! Open an HDF5 file.
-  call fileObject%openFile("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.)
 
-  ! Open an HDF5 group.
-  groupObject=IO_HDF5_Open_Group(fileObject,"myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024&
-       &,compressionLevel=9)
+  ! Begin passes through the tests.
+  do iPass=1,2
 
-  ! Write a scalar integer attribute to the group.
-  integerValue=9
-  call groupObject%writeAttribute(integerValue,"integerAttribute")
-  ! Overwrite a scalar integer attribute to the group.
-  integerValue=10
-  call groupObject%writeAttribute(integerValue,"integerAttribute")
-  ! Read the scalar integer attribute back.
-  call groupObject%readAttribute("integerAttribute",integerValueReread)
-  call Assert("re-read scalar integer attribute",integerValue,integerValueReread)
+     ! Open an HDF5 file.
+     call fileObject%openFile("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.)
 
-  ! Write an integer 1-D array attribute to the group.
-  integerValueArray=7
-  call groupObject%writeAttribute(integerValueArray,"integerAttribute1dArray")
-  ! Write an integer 1-D array attribute to the group.
-  integerValueArray=6
-  call groupObject%writeAttribute(integerValueArray,"integerAttribute1dArray")
-  ! Read the integer 1-D array attribute back.
-  call groupObject%readAttribute("integerAttribute1dArray",integerValueArrayReread)
-  call Assert("re-read 1-D array integer attribute",integerValueArray,integerValueArrayReread)
-  ! Read the integer 1-D array attribute back to a static array.
-  call groupObject%readAttributeStatic("integerAttribute1dArray",integerValueArrayRereadStatic)
-  call Assert("re-read 1-D array integer attribute to static array",integerValueArray,integerValueArrayRereadStatic)
+     ! Open an HDF5 group.
+     select case (iPass)
+     case(1)
+        call Unit_Tests_Begin_Group("Tests with chunking enabled")     
+        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024&
+             &,compressionLevel=9)
+        appendableOK=.true.
+     case (2)
+        call Unit_Tests_Begin_Group("Tests with chunking disabled")     
+        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=-1&
+             &,compressionLevel=-1)
+        appendableOK=.false.
+     end select
 
-  ! Write a scalar long integer attribute to the group.
-  integer8Value=20202020
-  call groupObject%writeAttribute(integer8value,"integer8Attribute")
-  ! Overwrite a scalar long integer attribute to the group.
-  integer8Value=20202021
-  call groupObject%writeAttribute(integer8value,"integer8Attribute")
-  ! Read the scalar long integer attribute back.
-  call groupObject%readAttribute("integer8Attribute",integer8ValueReread)
-  call Assert("re-read scalar long integer attribute",integer8Value,integer8ValueReread)
+     ! Write a scalar integer attribute to the group.
+     integerValue=9
+     call groupObject%writeAttribute(integerValue,"integerAttribute")
+     ! Overwrite a scalar integer attribute to the group.
+     integerValue=10
+     call groupObject%writeAttribute(integerValue,"integerAttribute")
+     ! Read the scalar integer attribute back.
+     call groupObject%readAttribute("integerAttribute",integerValueReread)
+     call Assert("re-read scalar integer attribute",integerValue,integerValueReread)
 
-  ! Write a long integer 1-D array attribute to the group.
-  integer8ValueArray=7
-  call groupObject%writeAttribute(integer8ValueArray,"integer8Attribute1dArray")
-  ! Write a long integer 1-D array attribute to the group.
-  integer8ValueArray=6
-  call groupObject%writeAttribute(integer8ValueArray,"integer8Attribute1dArray")
-  ! Read the long integer 1-D array attribute back.
-  call groupObject%readAttribute("integer8Attribute1dArray",integer8ValueArrayReread)
-  call Assert("re-read 1-D array long integer attribute",integer8ValueArray,integer8ValueArrayReread)
-  ! Read the long integer 1-D array attribute back to a static array.
-  call groupObject%readAttributeStatic("integer8Attribute1dArray",integer8ValueArrayRereadStatic)
-  call Assert("re-read 1-D array long integer attribute to static array",integer8ValueArray,integer8ValueArrayRereadStatic)
+     ! Write an integer 1-D array attribute to the group.
+     integerValueArray=7
+     call groupObject%writeAttribute(integerValueArray,"integerAttribute1dArray")
+     ! Write an integer 1-D array attribute to the group.
+     integerValueArray=6
+     call groupObject%writeAttribute(integerValueArray,"integerAttribute1dArray")
+     ! Read the integer 1-D array attribute back.
+     call groupObject%readAttribute("integerAttribute1dArray",integerValueArrayReread)
+     call Assert("re-read 1-D array integer attribute",integerValueArray,integerValueArrayReread)
+     ! Read the integer 1-D array attribute back to a static array.
+     call groupObject%readAttributeStatic("integerAttribute1dArray",integerValueArrayRereadStatic)
+     call Assert("re-read 1-D array integer attribute to static array",integerValueArray,integerValueArrayRereadStatic)
 
-  ! Write a scalar double attribute to the group.
-  doubleValue=9.12345d0
-  call groupObject%writeAttribute(doubleValue,"doubleAttribute")
-  ! Overwrite a scalar double attribute to the group.
-  doubleValue=10.9876d0
-  call groupObject%writeAttribute(doubleValue,"doubleAttribute")
-  ! Read the scalar double attribute back.
-  call groupObject%readAttribute("doubleAttribute",doubleValueReread)
-  call Assert("re-read scalar double attribute",doubleValue,doubleValueReread)
+     ! Write a scalar long integer attribute to the group.
+     integer8Value=20202020
+     call groupObject%writeAttribute(integer8value,"integer8Attribute")
+     ! Overwrite a scalar long integer attribute to the group.
+     integer8Value=20202021
+     call groupObject%writeAttribute(integer8value,"integer8Attribute")
+     ! Read the scalar long integer attribute back.
+     call groupObject%readAttribute("integer8Attribute",integer8ValueReread)
+     call Assert("re-read scalar long integer attribute",integer8Value,integer8ValueReread)
 
-  ! Write an double 1-D array attribute to the group.
-  doubleValueArray=7.676767d0
-  call groupObject%writeAttribute(doubleValueArray,"doubleAttribute1dArray")
-  ! Write an double 1-D array attribute to the group.
-  doubleValueArray=6.141414d0
-  call groupObject%writeAttribute(doubleValueArray,"doubleAttribute1dArray")
-  ! Read the double 1-D array attribute back.
-  call groupObject%readAttribute("doubleAttribute1dArray",doubleValueArrayReread)
-  call Assert("re-read 1-D array double attribute",doubleValueArray,doubleValueArrayReread)
-  ! Read the double 1-D array attribute back to a static array.
-  call groupObject%readAttributeStatic("doubleAttribute1dArray",doubleValueArrayRereadStatic)
-  call Assert("re-read 1-D array double attribute to static array",doubleValueArray,doubleValueArrayRereadStatic)
+     ! Write a long integer 1-D array attribute to the group.
+     integer8ValueArray=7
+     call groupObject%writeAttribute(integer8ValueArray,"integer8Attribute1dArray")
+     ! Write a long integer 1-D array attribute to the group.
+     integer8ValueArray=6
+     call groupObject%writeAttribute(integer8ValueArray,"integer8Attribute1dArray")
+     ! Read the long integer 1-D array attribute back.
+     call groupObject%readAttribute("integer8Attribute1dArray",integer8ValueArrayReread)
+     call Assert("re-read 1-D array long integer attribute",integer8ValueArray,integer8ValueArrayReread)
+     ! Read the long integer 1-D array attribute back to a static array.
+     call groupObject%readAttributeStatic("integer8Attribute1dArray",integer8ValueArrayRereadStatic)
+     call Assert("re-read 1-D array long integer attribute to static array",integer8ValueArray,integer8ValueArrayRereadStatic)
 
-  ! Write a scalar character attribute to the group.
-  characterValue='abcdefghijklmnopqrstuvwxyz'
-  call groupObject%writeAttribute(characterValue,"characterAttribute")
-  ! Overwrite a scalar character attribute to the group.
-  characterValue='qwertyuiop'
-  call groupObject%writeAttribute(characterValue,"characterAttribute")
-  ! Read the scalar character attribute back.
-  call groupObject%readAttribute("characterAttribute",characterValueReread)
-  call Assert("re-read scalar character attribute",characterValue,characterValueReread)
+     ! Write a scalar double attribute to the group.
+     doubleValue=9.12345d0
+     call groupObject%writeAttribute(doubleValue,"doubleAttribute")
+     ! Overwrite a scalar double attribute to the group.
+     doubleValue=10.9876d0
+     call groupObject%writeAttribute(doubleValue,"doubleAttribute")
+     ! Read the scalar double attribute back.
+     call groupObject%readAttribute("doubleAttribute",doubleValueReread)
+     call Assert("re-read scalar double attribute",doubleValue,doubleValueReread)
 
-  ! Write a character 1-D array attribute to the group.
-  characterValueArray='aAbBcCdDeEfFgGhH'
-  call groupObject%writeAttribute(characterValueArray,"characterAttribute1dArray")
-  ! Write a character 1-D array attribute to the group.
-  characterValueArray='1!2@3#4$5%6^7&8*9(0)'
-  call groupObject%writeAttribute(characterValueArray,"characterAttribute1dArray")
-  ! Read the character 1-D array attribute back.
-  call groupObject%readAttribute("characterAttribute1dArray",characterValueArrayReread)
-  call Assert("re-read 1-D array character attribute",characterValueArray,characterValueArrayReread)
-  ! Read the character 1-D array attribute back to a static array.
-  call groupObject%readAttributeStatic("characterAttribute1dArray",characterValueArrayRereadStatic)
-  call Assert("re-read 1-D array character attribute to static array",characterValueArray,characterValueArrayRereadStatic)
+     ! Write an double 1-D array attribute to the group.
+     doubleValueArray=7.676767d0
+     call groupObject%writeAttribute(doubleValueArray,"doubleAttribute1dArray")
+     ! Write an double 1-D array attribute to the group.
+     doubleValueArray=6.141414d0
+     call groupObject%writeAttribute(doubleValueArray,"doubleAttribute1dArray")
+     ! Read the double 1-D array attribute back.
+     call groupObject%readAttribute("doubleAttribute1dArray",doubleValueArrayReread)
+     call Assert("re-read 1-D array double attribute",doubleValueArray,doubleValueArrayReread)
+     ! Read the double 1-D array attribute back to a static array.
+     call groupObject%readAttributeStatic("doubleAttribute1dArray",doubleValueArrayRereadStatic)
+     call Assert("re-read 1-D array double attribute to static array",doubleValueArray,doubleValueArrayRereadStatic)
 
-  ! Write a scalar varString attribute to the group.
-  varStringValue="le sange est dans l'arbre. pad pad pad pad!!"
-  call groupObject%writeAttribute(varStringValue,"varStringAttribute")
-  ! Overwrite a scalar varString attribute to the group.
-  varStringValue="dans l'interior de l'intestine de la mouton!"
-  call groupObject%writeAttribute(varStringValue,"varStringAttribute")
-  ! Read the scalar varString attribute back.
-  call groupObject%readAttribute("varStringAttribute",varStringValueReread)
-  call Assert("re-read scalar varString attribute",varStringValue,varStringValueReread)
-  ! Write a varying string 1-D array attribute to the group.
-  varStringValueArray='qazwsxedcrfvtgbyhnujmikolp'
-  call groupObject%writeAttribute(varStringValueArray,"varStringAttribute1dArray")
-  ! Read the varying string 1-D array attribute back.
-  call groupObject%readAttribute("varStringAttribute1dArray",varStringValueArrayReread)
-  call Assert("re-read 1-D array varString attribute",varStringValueArray,varStringValueArrayReread)
-  ! Read the varying string 1-D array attribute back to a static array.
-  call groupObject%readAttributeStatic("varStringAttribute1dArray",varStringValueArrayRereadStatic)
-  call Assert("re-read 1-D array varString attribute to static array",varStringValueArray,varStringValueArrayRereadStatic)
+     ! Write a scalar character attribute to the group.
+     characterValue='abcdefghijklmnopqrstuvwxyz'
+     call groupObject%writeAttribute(characterValue,"characterAttribute")
+     ! Overwrite a scalar character attribute to the group.
+     characterValue='qwertyuiop'
+     call groupObject%writeAttribute(characterValue,"characterAttribute")
+     ! Read the scalar character attribute back.
+     call groupObject%readAttribute("characterAttribute",characterValueReread)
+     call Assert("re-read scalar character attribute",characterValue,characterValueReread)
 
-  ! Write an extensible integer 1-D array dataset to the group.
-  integerValueArray=[0,11,22,33,44,55,66,77,88,99]
-  call groupObject%writeDataset(integerValueArray,"integerDataset1dArrayExtensible","This is an extensible dataset",appendTo=.true.)
-  ! Append to the extensible integer 1-D array dataset.
-  integerValueArray=[1,-2,3,-4,5,-6,7,-8,9,-10]
-  call groupObject%writeDataset(integerValueArray,"integerDataset1dArrayExtensible",appendTo=.true.)
+     ! Write a character 1-D array attribute to the group.
+     characterValueArray='aAbBcCdDeEfFgGhH'
+     call groupObject%writeAttribute(characterValueArray,"characterAttribute1dArray")
+     ! Write a character 1-D array attribute to the group.
+     characterValueArray='1!2@3#4$5%6^7&8*9(0)'
+     call groupObject%writeAttribute(characterValueArray,"characterAttribute1dArray")
+     ! Read the character 1-D array attribute back.
+     call groupObject%readAttribute("characterAttribute1dArray",characterValueArrayReread)
+     call Assert("re-read 1-D array character attribute",characterValueArray,characterValueArrayReread)
+     ! Read the character 1-D array attribute back to a static array.
+     call groupObject%readAttributeStatic("characterAttribute1dArray",characterValueArrayRereadStatic)
+     call Assert("re-read 1-D array character attribute to static array",characterValueArray,characterValueArrayRereadStatic)
 
-  ! Write an integer 1-D array dataset to the group.
-  integerValueArray=[0,11,22,33,44,55,66,77,88,99]
-  call groupObject%writeDataset(integerValueArray,"integerDataset1dArray","This is an example dataset")
-  ! Write an integer 1-D array dataset to the group.
-  integerValueArray=[1,-2,3,-4,5,-6,7,-8,9,-10]
-  call groupObject%writeDataset(integerValueArray,"integerDataset1dArray")
-  ! Read an integer 1-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("integerDataset1dArray",integerValueArrayRereadStatic)
-  call Assert("re-read 1-D array integer dataset to static array",integerValueArray,integerValueArrayRereadStatic)
-  ! Read an integer 1-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("integerDataset1dArray",integerValueArrayReread)
-  call Assert("re-read 1-D array integer dataset to allocatable array",integerValueArray,integerValueArrayReread)
-  ! Read part of an integer 1-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("integerDataset1dArray",integerValueArrayRereadStatic,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
-  call Assert("re-read part of a 1-D array integer dataset to static array",integerValueArray(3:6),integerValueArrayRereadStatic)
-  ! Read part of an integer 1-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("integerDataset1dArray",integerValueArrayReread,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
-  call Assert("re-read part of a 1-D array integer dataset to allocatable array",integerValueArray(3:6),integerValueArrayReread)
+     ! Write a scalar varString attribute to the group.
+     varStringValue="le sange est dans l'arbre. pad pad pad pad!!"
+     call groupObject%writeAttribute(varStringValue,"varStringAttribute")
+     ! Overwrite a scalar varString attribute to the group.
+     varStringValue="dans l'interior de l'intestine de la mouton!"
+     call groupObject%writeAttribute(varStringValue,"varStringAttribute")
+     ! Read the scalar varString attribute back.
+     call groupObject%readAttribute("varStringAttribute",varStringValueReread)
+     call Assert("re-read scalar varString attribute",varStringValue,varStringValueReread)
+     ! Write a varying string 1-D array attribute to the group.
+     varStringValueArray='qazwsxedcrfvtgbyhnujmikolp'
+     call groupObject%writeAttribute(varStringValueArray,"varStringAttribute1dArray")
+     ! Read the varying string 1-D array attribute back.
+     call groupObject%readAttribute("varStringAttribute1dArray",varStringValueArrayReread)
+     call Assert("re-read 1-D array varString attribute",varStringValueArray,varStringValueArrayReread)
+     ! Read the varying string 1-D array attribute back to a static array.
+     call groupObject%readAttributeStatic("varStringAttribute1dArray",varStringValueArrayRereadStatic)
+     call Assert("re-read 1-D array varString attribute to static array",varStringValueArray,varStringValueArrayRereadStatic)
 
-  ! Open the dataset.
-  datasetObject=IO_HDF5_Open_Dataset(groupObject,"integerDataset1dArray")
-  ! Create a reference to the dataset object.
-  call groupObject%createReference1D(datasetObject,"myReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
-  ! Close the dataset.
-  call datasetObject%close()
-  ! Read an integer 1-D array dataset from the group into a static array.
-  integerValueArrayRereadStatic=0
-  call groupObject%readDatasetStatic("myReference",integerValueArrayRereadStatic)
-  call Assert("re-read referenced 1-D array integer dataset to static array",integerValueArray(3:4),integerValueArrayRereadStatic(1:2))
-  ! Read an integer 1-D array dataset from the group into an allocatable array.
-  integerValueArrayReread=0
-  call groupObject%readDataset("myReference",integerValueArrayReread)
-  call Assert("re-read referenced 1-D array integer dataset to allocatable array",integerValueArray(3:4),integerValueArrayReread(1:2))
-  ! Read part of an integer 1-D array dataset from the group into an allocatable array.
-  integerValueArrayReread=0
-  call groupObject%readDataset("myReference",integerValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
-  call Assert("re-read part of referenced 1-D array integer dataset to allocatable array",integerValueArray(4:4),integerValueArrayReread(1:1))
+     ! Write an extensible integer 1-D array dataset to the group.
+     if (appendableOK) then
+        integerValueArray=[0,11,22,33,44,55,66,77,88,99]
+        call groupObject%writeDataset(integerValueArray,"integerDataset1dArrayExtensible","This is an extensible dataset",appendTo=.true.)
+        ! Append to the extensible integer 1-D array dataset.
+        integerValueArray=[1,-2,3,-4,5,-6,7,-8,9,-10]
+        call groupObject%writeDataset(integerValueArray,"integerDataset1dArrayExtensible",appendTo=.true.)
+     end if
 
-  ! Write an extensible long integer 1-D array dataset to the group.
-  integer8ValueArray=[0,11,22,33,44,55,66,77,88,99]
-  call groupObject%writeDataset(integer8ValueArray,"integer8Dataset1dArrayExtensible","This is an extensible dataset",appendTo=.true.)
-  ! Append to the extensible long integer 1-D array dataset.
-  integer8ValueArray=[1,-2,3,-4,5,-6,7,-8,9,-10]
-  call groupObject%writeDataset(integer8ValueArray,"integer8Dataset1dArrayExtensible",appendTo=.true.)
+     ! Write an integer 1-D array dataset to the group.
+     integerValueArray=[0,11,22,33,44,55,66,77,88,99]
+     call groupObject%writeDataset(integerValueArray,"integerDataset1dArray","This is an example dataset")
+     ! Write an integer 1-D array dataset to the group.
+     integerValueArray=[1,-2,3,-4,5,-6,7,-8,9,-10]
+     call groupObject%writeDataset(integerValueArray,"integerDataset1dArray")
+     ! Read an integer 1-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("integerDataset1dArray",integerValueArrayRereadStatic)
+     call Assert("re-read 1-D array integer dataset to static array",integerValueArray,integerValueArrayRereadStatic)
+     ! Read an integer 1-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("integerDataset1dArray",integerValueArrayReread)
+     call Assert("re-read 1-D array integer dataset to allocatable array",integerValueArray,integerValueArrayReread)
+     ! Read part of an integer 1-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("integerDataset1dArray",integerValueArrayRereadStatic,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
+     call Assert("re-read part of a 1-D array integer dataset to static array",integerValueArray(3:6),integerValueArrayRereadStatic)
+     ! Read part of an integer 1-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("integerDataset1dArray",integerValueArrayReread,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
+     call Assert("re-read part of a 1-D array integer dataset to allocatable array",integerValueArray(3:6),integerValueArrayReread)
 
-  ! Write a long integer 1-D array dataset to the group.
-  integer8ValueArray=[0,11,22,33,44,55,66,77,88,99]
-  call groupObject%writeDataset(integer8ValueArray,"integer8Dataset1dArray","This is an example dataset")
-  ! Write a long integer 1-D array dataset to the group.
-  integer8ValueArray=[1,-2,3,-4,5,-6,7,-8,9,-10]
-  call groupObject%writeDataset(integer8ValueArray,"integer8Dataset1dArray")
-  ! Read a long integer 1-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("integer8Dataset1dArray",integer8ValueArrayRereadStatic)
-  call Assert("re-read 1-D array long integer dataset to static array",integer8ValueArray,integer8ValueArrayRereadStatic)
-  ! Read a long integer 1-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("integer8Dataset1dArray",integer8ValueArrayReread)
-  call Assert("re-read 1-D array long integer dataset to allocatable array",integer8ValueArray,integer8ValueArrayReread)
-  ! Read part of a long integer 1-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("integer8Dataset1dArray",integer8ValueArrayRereadStatic,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
-  call Assert("re-read part of a 1-D array long integer dataset to static array",integer8ValueArray(3:6),integer8ValueArrayRereadStatic)
-  ! Read part of a long integer 1-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("integer8Dataset1dArray",integer8ValueArrayReread,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
-  call Assert("re-read part of a 1-D array long integer dataset to allocatable array",integer8ValueArray(3:6),integer8ValueArrayReread)
+     ! Open the dataset.
+     datasetObject=IO_HDF5_Open_Dataset(groupObject,"integerDataset1dArray")
+     ! Create a reference to the dataset object.
+     call groupObject%createReference1D(datasetObject,"myReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
+     ! Close the dataset.
+     call datasetObject%close()
+     ! Read an integer 1-D array dataset from the group into a static array.
+     integerValueArrayRereadStatic=0
+     call groupObject%readDatasetStatic("myReference",integerValueArrayRereadStatic)
+     call Assert("re-read referenced 1-D array integer dataset to static array",integerValueArray(3:4),integerValueArrayRereadStatic(1:2))
+     ! Read an integer 1-D array dataset from the group into an allocatable array.
+     integerValueArrayReread=0
+     call groupObject%readDataset("myReference",integerValueArrayReread)
+     call Assert("re-read referenced 1-D array integer dataset to allocatable array",integerValueArray(3:4),integerValueArrayReread(1:2))
+     ! Read part of an integer 1-D array dataset from the group into an allocatable array.
+     integerValueArrayReread=0
+     call groupObject%readDataset("myReference",integerValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
+     call Assert("re-read part of referenced 1-D array integer dataset to allocatable array",integerValueArray(4:4),integerValueArrayReread(1:1))
 
-  ! Open the dataset.
-  datasetObject=IO_HDF5_Open_Dataset(groupObject,"integer8Dataset1dArray")
-  ! Create a reference to the dataset object.
-  call groupObject%createReference1D(datasetObject,"anotherReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
-  ! Close the dataset.
-  call datasetObject%close()
-  ! Read a long integer 1-D array dataset from the group into a static array.
-  integer8ValueArrayRereadStatic=0
-  call groupObject%readDatasetStatic("anotherReference",integer8ValueArrayRereadStatic)
-  call Assert("re-read referenced 1-D array long integer dataset to static array",integer8ValueArray(3:4),integer8ValueArrayRereadStatic(1:2))
-  ! Read a long integer 1-D array dataset from the group into a static array.
-  integer8ValueArrayReread=0
-  call groupObject%readDataset("anotherReference",integer8ValueArrayReread)
-  call Assert("re-read referenced 1-D array long integer dataset to allocatable array",integer8ValueArray(3:4),integer8ValueArrayReread(1:2))
-  ! Read part of a long integer 1-D array dataset from the group into an allocatable array.
-  integer8ValueArrayReread=0
-  call groupObject%readDataset("anotherReference",integer8ValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
-  call Assert("re-read part of referenced 1-D array long integer dataset to allocatable array",integer8ValueArray(4:4),integer8ValueArrayReread(1:1))
+     ! Write an extensible long integer 1-D array dataset to the group.
+     if (appendableOK) then
+        integer8ValueArray=[0,11,22,33,44,55,66,77,88,99]
+        call groupObject%writeDataset(integer8ValueArray,"integer8Dataset1dArrayExtensible","This is an extensible dataset",appendTo=.true.)
+        ! Append to the extensible long integer 1-D array dataset.
+        integer8ValueArray=[1,-2,3,-4,5,-6,7,-8,9,-10]
+        call groupObject%writeDataset(integer8ValueArray,"integer8Dataset1dArrayExtensible",appendTo=.true.)
+     end if
 
-  ! Write an extensible double 1-D array dataset to the group.
-  doubleValueArray=[0.0d0,11.0d0,22.0d0,33.0d0,44.0d0,55.0d0,6.0d06,77.0d0,88.0d0,99.0d0]
-  call groupObject%writeDataset(doubleValueArray,"doubleDataset1dArrayExtensible","This is an extensible dataset",appendTo=.true.)
-  ! Append to the extensible double 1-D array dataset.
-  doubleValueArray=[1.0d0,-.0d02,3.0d0,-4.0d0,5.0d0,-6.0d0,7.0d0,-8.0d0,9.0d0,-10.0d0]
-  call groupObject%writeDataset(doubleValueArray,"doubleDataset1dArrayExtensible",appendTo=.true.)
+     ! Write a long integer 1-D array dataset to the group.
+     integer8ValueArray=[0,11,22,33,44,55,66,77,88,99]
+     call groupObject%writeDataset(integer8ValueArray,"integer8Dataset1dArray","This is an example dataset")
+     ! Write a long integer 1-D array dataset to the group.
+     integer8ValueArray=[1,-2,3,-4,5,-6,7,-8,9,-10]
+     call groupObject%writeDataset(integer8ValueArray,"integer8Dataset1dArray")
+     ! Read a long integer 1-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("integer8Dataset1dArray",integer8ValueArrayRereadStatic)
+     call Assert("re-read 1-D array long integer dataset to static array",integer8ValueArray,integer8ValueArrayRereadStatic)
+     ! Read a long integer 1-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("integer8Dataset1dArray",integer8ValueArrayReread)
+     call Assert("re-read 1-D array long integer dataset to allocatable array",integer8ValueArray,integer8ValueArrayReread)
+     ! Read part of a long integer 1-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("integer8Dataset1dArray",integer8ValueArrayRereadStatic,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
+     call Assert("re-read part of a 1-D array long integer dataset to static array",integer8ValueArray(3:6),integer8ValueArrayRereadStatic)
+     ! Read part of a long integer 1-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("integer8Dataset1dArray",integer8ValueArrayReread,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
+     call Assert("re-read part of a 1-D array long integer dataset to allocatable array",integer8ValueArray(3:6),integer8ValueArrayReread)
 
-  ! Write a double 1-D array dataset to the group.
-  doubleValueArray=[0.0d0,11.0d0,22.0d0,33.0d0,44.0d0,55.0d0,6.0d06,77.0d0,88.0d0,99.0d0]
-  call groupObject%writeDataset(doubleValueArray,"doubleDataset1dArray","This is an example dataset")
-  ! Write a double 1-D array dataset to the group.
-  doubleValueArray=[1.0d0,-.0d02,3.0d0,-4.0d0,5.0d0,-6.0d0,7.0d0,-8.0d0,9.0d0,-10.0d0]
-  call groupObject%writeDataset(doubleValueArray,"doubleDataset1dArray")
-  ! Read a double 1-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset1dArray",doubleValueArrayRereadStatic)
-  call Assert("re-read 1-D array double dataset to static array",doubleValueArray,doubleValueArrayRereadStatic)
-  ! Read a double 1-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset1dArray",doubleValueArrayReread)
-  call Assert("re-read 1-D array double dataset to allocatable array",doubleValueArray,doubleValueArrayReread)
-  ! Read part of a double 1-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset1dArray",doubleValueArrayRereadStatic,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
-  call Assert("re-read part of a 1-D array double dataset to static array",doubleValueArray(3:6),doubleValueArrayRereadStatic)
-  ! Read part of a double 1-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset1dArray",doubleValueArrayReread,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
-  call Assert("re-read part of a 1-D array double dataset to allocatable array",doubleValueArray(3:6),doubleValueArrayReread)
+     ! Open the dataset.
+     datasetObject=IO_HDF5_Open_Dataset(groupObject,"integer8Dataset1dArray")
+     ! Create a reference to the dataset object.
+     call groupObject%createReference1D(datasetObject,"anotherReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
+     ! Close the dataset.
+     call datasetObject%close()
+     ! Read a long integer 1-D array dataset from the group into a static array.
+     integer8ValueArrayRereadStatic=0
+     call groupObject%readDatasetStatic("anotherReference",integer8ValueArrayRereadStatic)
+     call Assert("re-read referenced 1-D array long integer dataset to static array",integer8ValueArray(3:4),integer8ValueArrayRereadStatic(1:2))
+     ! Read a long integer 1-D array dataset from the group into a static array.
+     integer8ValueArrayReread=0
+     call groupObject%readDataset("anotherReference",integer8ValueArrayReread)
+     call Assert("re-read referenced 1-D array long integer dataset to allocatable array",integer8ValueArray(3:4),integer8ValueArrayReread(1:2))
+     ! Read part of a long integer 1-D array dataset from the group into an allocatable array.
+     integer8ValueArrayReread=0
+     call groupObject%readDataset("anotherReference",integer8ValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
+     call Assert("re-read part of referenced 1-D array long integer dataset to allocatable array",integer8ValueArray(4:4),integer8ValueArrayReread(1:1))
 
-  ! Open the dataset.
-  datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset1dArray")
-  ! Create a reference to the dataset object.
-  call groupObject%createReference1D(datasetObject,"doubleReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
-  ! Close the dataset.
-  call datasetObject%close()
-  ! Read a double 1-D array dataset from the group into a static array.
-  doubleValueArrayRereadStatic=0
-  call groupObject%readDatasetStatic("doubleReference",doubleValueArrayRereadStatic)
-  call Assert("re-read referenced 1-D array double dataset to static array",doubleValueArray(3:4),doubleValueArrayRereadStatic(1:2))
-  ! Read a double 1-D array dataset from the group into a static array.
-  doubleValueArrayReread=0
-  call groupObject%readDataset("doubleReference",doubleValueArrayReread)
-  call Assert("re-read referenced 1-D array double dataset to allocatable array",doubleValueArray(3:4),doubleValueArrayReread(1:2))
-  ! Read part of a double 1-D array dataset from the group into an allocatable array.
-  doubleValueArrayReread=0
-  call groupObject%readDataset("doubleReference",doubleValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
-  call Assert("re-read part of referenced 1-D array double dataset to allocatable array",doubleValueArray(4:4),doubleValueArrayReread(1:1))
+     ! Write an extensible double 1-D array dataset to the group.
+     if (appendableOK) then
+        doubleValueArray=[0.0d0,11.0d0,22.0d0,33.0d0,44.0d0,55.0d0,6.0d06,77.0d0,88.0d0,99.0d0]
+        call groupObject%writeDataset(doubleValueArray,"doubleDataset1dArrayExtensible","This is an extensible dataset",appendTo=.true.)
+        ! Append to the extensible double 1-D array dataset.
+        doubleValueArray=[1.0d0,-.0d02,3.0d0,-4.0d0,5.0d0,-6.0d0,7.0d0,-8.0d0,9.0d0,-10.0d0]
+        call groupObject%writeDataset(doubleValueArray,"doubleDataset1dArrayExtensible",appendTo=.true.)
+     end if
 
-  ! Write an extensible double 2-D array dataset to the group.
-  doubleValueArray2d=3.141d0
-  call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArrayExtensible","This is an extensible dataset",appendTo=.true.)
-  ! Append to the extensible double 2-D array dataset.
-  doubleValueArray2d=1.414d0
-  call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArrayExtensible",appendTo=.true.)
+     ! Write a double 1-D array dataset to the group.
+     doubleValueArray=[0.0d0,11.0d0,22.0d0,33.0d0,44.0d0,55.0d0,6.0d06,77.0d0,88.0d0,99.0d0]
+     call groupObject%writeDataset(doubleValueArray,"doubleDataset1dArray","This is an example dataset")
+     ! Write a double 1-D array dataset to the group.
+     doubleValueArray=[1.0d0,-.0d02,3.0d0,-4.0d0,5.0d0,-6.0d0,7.0d0,-8.0d0,9.0d0,-10.0d0]
+     call groupObject%writeDataset(doubleValueArray,"doubleDataset1dArray")
+     ! Read a double 1-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset1dArray",doubleValueArrayRereadStatic)
+     call Assert("re-read 1-D array double dataset to static array",doubleValueArray,doubleValueArrayRereadStatic)
+     ! Read a double 1-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset1dArray",doubleValueArrayReread)
+     call Assert("re-read 1-D array double dataset to allocatable array",doubleValueArray,doubleValueArrayReread)
+     ! Read part of a double 1-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset1dArray",doubleValueArrayRereadStatic,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
+     call Assert("re-read part of a 1-D array double dataset to static array",doubleValueArray(3:6),doubleValueArrayRereadStatic)
+     ! Read part of a double 1-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset1dArray",doubleValueArrayReread,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
+     call Assert("re-read part of a 1-D array double dataset to allocatable array",doubleValueArray(3:6),doubleValueArrayReread)
 
-  ! Write a double 2-D array dataset to the group.
-  doubleValueArray2d=3.141d0
-  call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArray","This is an example dataset")
-  ! Write a double 2-D array dataset to the group.
-  doubleValueArray2d=reshape([                                                                                               &
-       & [0.237788d0 ,0.291066d0,0.845814d0,0.152208d0,0.585537d0,0.193475d0 ,0.810623d0,0.173531d0,0.484983d0 ,0.151863d0], &
-       & [0.410484d0 ,0.974563d0,0.785438d0,0.133273d0,0.431549d0,0.348772d0 ,0.906572d0,0.695991d0,0.436928d0 ,0.174665d0], &
-       & [0.791948d0 ,0.811843d0,0.190154d0,0.572683d0,0.163506d0,0.160362d0 ,0.735122d0,0.642781d0,0.364369d0 ,0.667146d0], &
-       & [0.512184d0 ,0.893128d0,0.541979d0,0.66375d0 ,0.434586d0,0.18809d0  ,0.483802d0,0.307417d0,0.55204d0  ,0.285505d0], &
-       & [0.70769d0  ,0.933332d0,0.26389d0 ,0.309795d0,0.619072d0,0.765444d0 ,0.357948d0,0.187444d0,0.249545d0 ,0.443694d0], &
-       & [0.0380047d0,0.885859d0,0.863514d0,0.624677d0,0.172947d0,0.700814d0 ,0.187242d0,0.135365d0,0.433696d0 ,0.762279d0], &
-       & [0.640738d0 ,0.54239d0 ,0.973174d0,0.04795d0 ,0.85148d0 ,0.0798072d0,0.844763d0,0.622515d0,0.022242d0 ,0.142351d0], &
-       & [0.128965d0 ,0.450326d0,0.326675d0,0.662633d0,0.257568d0,0.19853d0  ,0.753418d0,0.41144d0 ,0.490829d0 ,0.702937d0], &
-       & [0.40262d0  ,0.508495d0,0.765204d0,0.758824d0,0.55126d0 ,0.373559d0 ,0.223917d0,0.616797d0,0.0957982d0,0.245396d0], &
-       & [0.424457d0 ,0.174276d0,0.735554d0,0.312812d0,0.563389d0,0.693084d0 ,0.995854d0,0.549814d0,0.772399d0 ,0.364521d0]  &
-       &                     ],                                                                                              &
-       & [10,10]                                                                                                             &
-       &                    )
-  call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArray")
-  ! Read a double 2-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset2dArray",doubleValueArray2dRereadStatic)
-  call Assert("re-read 2-D array double dataset to static array",doubleValueArray2d,doubleValueArray2dRereadStatic)
-  ! Read a double 2-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset2dArray",doubleValueArray2dReread)
-  call Assert("re-read 2-D array double dataset to allocatable array",doubleValueArray2d,doubleValueArray2dReread)
-  ! Read part of a double 2-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset2dArray",doubleValueArray2dRereadStatic,int([3,6],kind=HSIZE_T),int([4,3],kind=HSIZE_T))
-  call Assert("re-read part of a 2-D array double dataset to static array",doubleValueArray2d(3:6,6:8),doubleValueArray2dRereadStatic(1:4,1:3))
-  ! Read part of a double 2-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset2dArray",doubleValueArray2dReread,int([3,6],kind=HSIZE_T),int([4,3],kind=HSIZE_T))
-  call Assert("re-read part of a 2-D array double dataset to allocatable array",doubleValueArray2d(3:6,6:8),doubleValueArray2dReread(1:4,1:3))
+     ! Open the dataset.
+     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset1dArray")
+     ! Create a reference to the dataset object.
+     call groupObject%createReference1D(datasetObject,"doubleReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
+     ! Close the dataset.
+     call datasetObject%close()
+     ! Read a double 1-D array dataset from the group into a static array.
+     doubleValueArrayRereadStatic=0
+     call groupObject%readDatasetStatic("doubleReference",doubleValueArrayRereadStatic)
+     call Assert("re-read referenced 1-D array double dataset to static array",doubleValueArray(3:4),doubleValueArrayRereadStatic(1:2))
+     ! Read a double 1-D array dataset from the group into a static array.
+     doubleValueArrayReread=0
+     call groupObject%readDataset("doubleReference",doubleValueArrayReread)
+     call Assert("re-read referenced 1-D array double dataset to allocatable array",doubleValueArray(3:4),doubleValueArrayReread(1:2))
+     ! Read part of a double 1-D array dataset from the group into an allocatable array.
+     doubleValueArrayReread=0
+     call groupObject%readDataset("doubleReference",doubleValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
+     call Assert("re-read part of referenced 1-D array double dataset to allocatable array",doubleValueArray(4:4),doubleValueArrayReread(1:1))
 
-  ! Open the dataset.
-  datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset2dArray")
-  ! Create a reference to the dataset object.
-  call groupObject%createReference2D(datasetObject,"double2dReference",int([3,5],kind=HSIZE_T),int([2,3],kind=HSIZE_T))
-  ! Close the dataset.
-  call datasetObject%close()
-  ! Read a double 2-D array dataset from the group into a static array.
-  doubleValueArray2dRereadStatic=0
-  call groupObject%readDatasetStatic("double2dReference",doubleValueArray2dRereadStatic)
-  call Assert("re-read referenced 2-D array double dataset to static array",doubleValueArray2d(3:4,5:7),doubleValueArray2dRereadStatic(1:2,1:3))
-  ! Read part of a double 2-D array dataset from the group into an allocatable array.
-  doubleValueArray2dReread=0
-  call groupObject%readDataset("double2dReference",doubleValueArray2dReread,int([2,2],kind=HSIZE_T),int([1,2],kind=HSIZE_T))
-  call Assert("re-read part of referenced 2-D array double dataset to allocatable array",doubleValueArray2d(4:4,6:7),doubleValueArray2dReread(1:1,1:2))
+     ! Write an extensible double 2-D array dataset to the group.
+     if (appendableOK) then
+        doubleValueArray2d=3.141d0
+        call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArrayExtensible","This is an extensible dataset",appendTo=.true.)
+        ! Append to the extensible double 2-D array dataset.
+        doubleValueArray2d=1.414d0
+        call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArrayExtensible",appendTo=.true.)
+     end if
 
-  ! Read a double 2-D array dataset from the group into a static array.
-  doubleValueArray2dReread=0
-  call groupObject%readDataset("double2dReference",doubleValueArray2dReread)
-  call Assert("re-read referenced 2-D array double dataset to allocatable array",doubleValueArray2d(3:4,5:7),doubleValueArray2dReread(1:2,1:3))
+     ! Write a double 2-D array dataset to the group.
+     doubleValueArray2d=3.141d0
+     call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArray","This is an example dataset")
+     ! Write a double 2-D array dataset to the group.
+     doubleValueArray2d=reshape([                                                                                               &
+          & [0.237788d0 ,0.291066d0,0.845814d0,0.152208d0,0.585537d0,0.193475d0 ,0.810623d0,0.173531d0,0.484983d0 ,0.151863d0], &
+          & [0.410484d0 ,0.974563d0,0.785438d0,0.133273d0,0.431549d0,0.348772d0 ,0.906572d0,0.695991d0,0.436928d0 ,0.174665d0], &
+          & [0.791948d0 ,0.811843d0,0.190154d0,0.572683d0,0.163506d0,0.160362d0 ,0.735122d0,0.642781d0,0.364369d0 ,0.667146d0], &
+          & [0.512184d0 ,0.893128d0,0.541979d0,0.66375d0 ,0.434586d0,0.18809d0  ,0.483802d0,0.307417d0,0.55204d0  ,0.285505d0], &
+          & [0.70769d0  ,0.933332d0,0.26389d0 ,0.309795d0,0.619072d0,0.765444d0 ,0.357948d0,0.187444d0,0.249545d0 ,0.443694d0], &
+          & [0.0380047d0,0.885859d0,0.863514d0,0.624677d0,0.172947d0,0.700814d0 ,0.187242d0,0.135365d0,0.433696d0 ,0.762279d0], &
+          & [0.640738d0 ,0.54239d0 ,0.973174d0,0.04795d0 ,0.85148d0 ,0.0798072d0,0.844763d0,0.622515d0,0.022242d0 ,0.142351d0], &
+          & [0.128965d0 ,0.450326d0,0.326675d0,0.662633d0,0.257568d0,0.19853d0  ,0.753418d0,0.41144d0 ,0.490829d0 ,0.702937d0], &
+          & [0.40262d0  ,0.508495d0,0.765204d0,0.758824d0,0.55126d0 ,0.373559d0 ,0.223917d0,0.616797d0,0.0957982d0,0.245396d0], &
+          & [0.424457d0 ,0.174276d0,0.735554d0,0.312812d0,0.563389d0,0.693084d0 ,0.995854d0,0.549814d0,0.772399d0 ,0.364521d0]  &
+          &                     ],                                                                                              &
+          & [10,10]                                                                                                             &
+          &                    )
+     call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArray")
+     ! Read a double 2-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset2dArray",doubleValueArray2dRereadStatic)
+     call Assert("re-read 2-D array double dataset to static array",doubleValueArray2d,doubleValueArray2dRereadStatic)
+     ! Read a double 2-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset2dArray",doubleValueArray2dReread)
+     call Assert("re-read 2-D array double dataset to allocatable array",doubleValueArray2d,doubleValueArray2dReread)
+     ! Read part of a double 2-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset2dArray",doubleValueArray2dRereadStatic,int([3,6],kind=HSIZE_T),int([4,3],kind=HSIZE_T))
+     call Assert("re-read part of a 2-D array double dataset to static array",doubleValueArray2d(3:6,6:8),doubleValueArray2dRereadStatic(1:4,1:3))
+     ! Read part of a double 2-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset2dArray",doubleValueArray2dReread,int([3,6],kind=HSIZE_T),int([4,3],kind=HSIZE_T))
+     call Assert("re-read part of a 2-D array double dataset to allocatable array",doubleValueArray2d(3:6,6:8),doubleValueArray2dReread(1:4,1:3))
 
-  ! Write an extensible double 3-D array dataset to the group.
-  doubleValueArray3d=3.141d0
-  call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArrayExtensible","This is an extensible dataset",appendTo=.true.)
-  ! Append to the extensible double 3-D array dataset.
-  doubleValueArray3d=1.414d0
-  call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArrayExtensible",appendTo=.true.)
+     ! Open the dataset.
+     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset2dArray")
+     ! Create a reference to the dataset object.
+     call groupObject%createReference2D(datasetObject,"double2dReference",int([3,5],kind=HSIZE_T),int([2,3],kind=HSIZE_T))
+     ! Close the dataset.
+     call datasetObject%close()
+     ! Read a double 2-D array dataset from the group into a static array.
+     doubleValueArray2dRereadStatic=0
+     call groupObject%readDatasetStatic("double2dReference",doubleValueArray2dRereadStatic)
+     call Assert("re-read referenced 2-D array double dataset to static array",doubleValueArray2d(3:4,5:7),doubleValueArray2dRereadStatic(1:2,1:3))
+     ! Read part of a double 2-D array dataset from the group into an allocatable array.
+     doubleValueArray2dReread=0
+     call groupObject%readDataset("double2dReference",doubleValueArray2dReread,int([2,2],kind=HSIZE_T),int([1,2],kind=HSIZE_T))
+     call Assert("re-read part of referenced 2-D array double dataset to allocatable array",doubleValueArray2d(4:4,6:7),doubleValueArray2dReread(1:1,1:2))
 
-  ! Write a double 3-D array dataset to the group.
-  doubleValueArray3d=3.141d0
-  call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArray","This is an example dataset")
-  ! Write a double 3-D array dataset to the group.
-  doubleValueArray3d=1.414d0
-  call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArray")
-  ! Read a double 3-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset3dArray",doubleValueArray3dRereadStatic)
-  call Assert("re-read 3-D array double dataset to static array",doubleValueArray3d,doubleValueArray3dRereadStatic)
-  ! Read a double 3-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset3dArray",doubleValueArray3dReread)
-  call Assert("re-read 3-D array double dataset to allocatable array",doubleValueArray3d,doubleValueArray3dReread)
-  ! Read part of a double 3-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset3dArray",doubleValueArray3dRereadStatic,int([3,6,2],kind=HSIZE_T),int([4,3,5],kind=HSIZE_T))
-  call Assert("re-read part of a 3-D array double dataset to static array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dRereadStatic(1:4,1:3,1:5))
-  ! Read part of a double 3-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset3dArray",doubleValueArray3dReread,int([3,6,2],kind=HSIZE_T),int([4,3,5],kind=HSIZE_T))
-  call Assert("re-read part of a 3-D array double dataset to allocatable array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dReread(1:4,1:3,1:5))
+     ! Read a double 2-D array dataset from the group into a static array.
+     doubleValueArray2dReread=0
+     call groupObject%readDataset("double2dReference",doubleValueArray2dReread)
+     call Assert("re-read referenced 2-D array double dataset to allocatable array",doubleValueArray2d(3:4,5:7),doubleValueArray2dReread(1:2,1:3))
 
-  ! Open the dataset.
-  datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset3dArray")
-  ! Create a reference to the dataset object.
-  call groupObject%createReference3D(datasetObject,"double3dReference",int([3,5,2],kind=HSIZE_T),int([2,3,4],kind=HSIZE_T))
-  ! Close the dataset.
-  call datasetObject%close()
-  ! Read a double 3-D array dataset from the group into a static array.
-  doubleValueArray3dRereadStatic=0
-  call groupObject%readDatasetStatic("double3dReference",doubleValueArray3dRereadStatic)
-  call Assert("re-read referenced 3-D array double dataset to static array",doubleValueArray3d(3:4,5:7,2:5),doubleValueArray3dRereadStatic(1:2,1:3,1:4))
-  ! Read a double 3-D array dataset from the group into a static array.
-  doubleValueArray3dReread=0
-  call groupObject%readDataset("double3dReference",doubleValueArray3dReread)
-  call Assert("re-read referenced 3-D array double dataset to allocatable array",doubleValueArray3d(3:4,5:7,2:5),doubleValueArray3dReread(1:2,1:3,1:4))
-  ! Read part of a double 3-D array dataset from the group into an allocatable array.
-  doubleValueArray3dReread=0
-  call groupObject%readDataset("double3dReference",doubleValueArray3dReread,int([2,2,1],kind=HSIZE_T),int([1,2,3],kind=HSIZE_T))
-  call Assert("re-read part of referenced 3-D array double dataset to allocatable array",doubleValueArray3d(4:4,6:7,2:4),doubleValueArray3dReread(1:1,1:2,1:3))
+     ! Write an extensible double 3-D array dataset to the group.
+     if (appendableOK) then
+        doubleValueArray3d=3.141d0
+        call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArrayExtensible","This is an extensible dataset",appendTo=.true.)
+        ! Append to the extensible double 3-D array dataset.
+        doubleValueArray3d=1.414d0
+        call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArrayExtensible",appendTo=.true.)
+     end if
 
-  ! Write an extensible double 4-D array dataset to the group.
-  doubleValueArray4d=3.141d0
-  call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArrayExtensible","This is an extensible dataset",appendTo=.true.)
-  ! Append to the extensible double 4-D array dataset.
-  doubleValueArray4d=1.414d0
-  call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArrayExtensible",appendTo=.true.)
+     ! Write a double 3-D array dataset to the group.
+     doubleValueArray3d=3.141d0
+     call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArray","This is an example dataset")
+     ! Write a double 3-D array dataset to the group.
+     doubleValueArray3d=1.414d0
+     call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArray")
+     ! Read a double 3-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset3dArray",doubleValueArray3dRereadStatic)
+     call Assert("re-read 3-D array double dataset to static array",doubleValueArray3d,doubleValueArray3dRereadStatic)
+     ! Read a double 3-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset3dArray",doubleValueArray3dReread)
+     call Assert("re-read 3-D array double dataset to allocatable array",doubleValueArray3d,doubleValueArray3dReread)
+     ! Read part of a double 3-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset3dArray",doubleValueArray3dRereadStatic,int([3,6,2],kind=HSIZE_T),int([4,3,5],kind=HSIZE_T))
+     call Assert("re-read part of a 3-D array double dataset to static array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dRereadStatic(1:4,1:3,1:5))
+     ! Read part of a double 3-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset3dArray",doubleValueArray3dReread,int([3,6,2],kind=HSIZE_T),int([4,3,5],kind=HSIZE_T))
+     call Assert("re-read part of a 3-D array double dataset to allocatable array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dReread(1:4,1:3,1:5))
 
-  ! Write a double 4-D array dataset to the group.
-  doubleValueArray4d=3.141d0
-  call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArray","This is an example dataset")
-  ! Write a double 4-D array dataset to the group.
-  doubleValueArray4d=1.414d0
-  call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArray")
-  ! Read a double 4-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset4dArray",doubleValueArray4dRereadStatic)
-  call Assert("re-read 4-D array double dataset to static array",doubleValueArray4d,doubleValueArray4dRereadStatic)
-  ! Read a double 4-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset4dArray",doubleValueArray4dReread)
-  call Assert("re-read 4-D array double dataset to allocatable array",doubleValueArray4d,doubleValueArray4dReread)
-  ! Read part of a double 4-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset4dArray",doubleValueArray4dRereadStatic,int([3,6,2,7],kind=HSIZE_T),int([4,3,5,2],kind=HSIZE_T))
-  call Assert("re-read part of a 4-D array double dataset to static array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dRereadStatic(1:4,1:3,1:5,1:2))
-  ! Read part of a double 4-D array dataset from the group into a array.
-  call groupObject%readDataset("doubleDataset4dArray",doubleValueArray4dReread,int([3,6,2,7],kind=HSIZE_T),int([4,3,5,2],kind=HSIZE_T))
-  call Assert("re-read part of a 4-D array double dataset to allocatable array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dReread(1:4,1:3,1:5,1:2))
+     ! Open the dataset.
+     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset3dArray")
+     ! Create a reference to the dataset object.
+     call groupObject%createReference3D(datasetObject,"double3dReference",int([3,5,2],kind=HSIZE_T),int([2,3,4],kind=HSIZE_T))
+     ! Close the dataset.
+     call datasetObject%close()
+     ! Read a double 3-D array dataset from the group into a static array.
+     doubleValueArray3dRereadStatic=0
+     call groupObject%readDatasetStatic("double3dReference",doubleValueArray3dRereadStatic)
+     call Assert("re-read referenced 3-D array double dataset to static array",doubleValueArray3d(3:4,5:7,2:5),doubleValueArray3dRereadStatic(1:2,1:3,1:4))
+     ! Read a double 3-D array dataset from the group into a static array.
+     doubleValueArray3dReread=0
+     call groupObject%readDataset("double3dReference",doubleValueArray3dReread)
+     call Assert("re-read referenced 3-D array double dataset to allocatable array",doubleValueArray3d(3:4,5:7,2:5),doubleValueArray3dReread(1:2,1:3,1:4))
+     ! Read part of a double 3-D array dataset from the group into an allocatable array.
+     doubleValueArray3dReread=0
+     call groupObject%readDataset("double3dReference",doubleValueArray3dReread,int([2,2,1],kind=HSIZE_T),int([1,2,3],kind=HSIZE_T))
+     call Assert("re-read part of referenced 3-D array double dataset to allocatable array",doubleValueArray3d(4:4,6:7,2:4),doubleValueArray3dReread(1:1,1:2,1:3))
 
-  ! Open the dataset.
-  datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset4dArray")
-  ! Create a reference to the dataset object.
-  call groupObject%createReference4D(datasetObject,"double4dReference",int([3,5,2,6],kind=HSIZE_T),int([2,3,4,3],kind=HSIZE_T))
-  ! Close the dataset.
-  call datasetObject%close()
-  ! Read a double 4-D array dataset from the group into a static array.
-  doubleValueArray4dRereadStatic=0
-  call groupObject%readDatasetStatic("double4dReference",doubleValueArray4dRereadStatic)
-  call Assert("re-read referenced 4-D array double dataset to static array",doubleValueArray4d(3:4,5:7,2:5,6:8),doubleValueArray4dRereadStatic(1:2,1:3,1:4,1:3))
-  ! Read a double 4-D array dataset from the group into a static array.
-  doubleValueArray4dReread=0
-  call groupObject%readDataset("double4dReference",doubleValueArray4dReread)
-  call Assert("re-read referenced 4-D array double dataset to allocatable array",doubleValueArray4d(3:4,5:7,2:5,6:8),doubleValueArray4dReread(1:2,1:3,1:4,1:3))
-  ! Read part of a double 4-D array dataset from the group into an allocatable array.
-  doubleValueArray4dReread=0
-  call groupObject%readDataset("double4dReference",doubleValueArray4dReread,int([2,2,1,1],kind=HSIZE_T),int([1,2,3,2],kind=HSIZE_T))
-  call Assert("re-read part of referenced 4-D array double dataset to allocatable array",doubleValueArray4d(4:4,6:7,2:4,6:7),doubleValueArray4dReread(1:1,1:2,1:3,1:2))
+     ! Write an extensible double 4-D array dataset to the group.
+     if (appendableOK) then
+        doubleValueArray4d=3.141d0
+        call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArrayExtensible","This is an extensible dataset",appendTo=.true.)
+        ! Append to the extensible double 4-D array dataset.
+        doubleValueArray4d=1.414d0
+        call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArrayExtensible",appendTo=.true.)
+     end if
 
-  ! Write an extensible double 5-D array dataset to the group.
-  doubleValueArray5d=3.141d0
-  call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArrayExtensible","This is an extensible dataset",appendTo=.true.)
-  ! Append to the extensible double 5-D array dataset.
-  doubleValueArray5d=1.415d0
-  call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArrayExtensible",appendTo=.true.)
+     ! Write a double 4-D array dataset to the group.
+     doubleValueArray4d=3.141d0
+     call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArray","This is an example dataset")
+     ! Write a double 4-D array dataset to the group.
+     doubleValueArray4d=1.414d0
+     call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArray")
+     ! Read a double 4-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset4dArray",doubleValueArray4dRereadStatic)
+     call Assert("re-read 4-D array double dataset to static array",doubleValueArray4d,doubleValueArray4dRereadStatic)
+     ! Read a double 4-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset4dArray",doubleValueArray4dReread)
+     call Assert("re-read 4-D array double dataset to allocatable array",doubleValueArray4d,doubleValueArray4dReread)
+     ! Read part of a double 4-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset4dArray",doubleValueArray4dRereadStatic,int([3,6,2,7],kind=HSIZE_T),int([4,3,5,2],kind=HSIZE_T))
+     call Assert("re-read part of a 4-D array double dataset to static array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dRereadStatic(1:4,1:3,1:5,1:2))
+     ! Read part of a double 4-D array dataset from the group into a array.
+     call groupObject%readDataset("doubleDataset4dArray",doubleValueArray4dReread,int([3,6,2,7],kind=HSIZE_T),int([4,3,5,2],kind=HSIZE_T))
+     call Assert("re-read part of a 4-D array double dataset to allocatable array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dReread(1:4,1:3,1:5,1:2))
 
-  ! Write a double 5-D array dataset to the group.
-  doubleValueArray5d=3.141d0
-  call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArray","This is an example dataset")
-  ! Write a double 5-D array dataset to the group.
-  doubleValueArray5d=1.415d0
-  call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArray")
-  ! Read a double 5-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset5dArray",doubleValueArray5dRereadStatic)
-  call Assert("re-read 5-D array double dataset to static array",doubleValueArray5d,doubleValueArray5dRereadStatic)
-  ! Read a double 5-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset5dArray",doubleValueArray5dReread)
-  call Assert("re-read 5-D array double dataset to allocatable array",doubleValueArray5d,doubleValueArray5dReread)
-  ! Read part of a double 5-D array dataset from the group into a static array.
-  call groupObject%readDatasetStatic("doubleDataset5dArray",doubleValueArray5dRereadStatic,int([3,6,2,7,2],kind=HSIZE_T),int([4,3,5,2,6],kind=HSIZE_T))
-  call Assert("re-read part of a 5-D array double dataset to static array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dRereadStatic(1:4,1:3,1:5,1:2,1:6))
-  ! Read part of a double 5-D array dataset from the group into an allocatable array.
-  call groupObject%readDataset("doubleDataset5dArray",doubleValueArray5dReread,int([3,6,2,7,2],kind=HSIZE_T),int([4,3,5,2,6],kind=HSIZE_T))
-  call Assert("re-read part of a 5-D array double dataset to allocatable array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dReread(1:4,1:3,1:5,1:2,1:6))
+     ! Open the dataset.
+     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset4dArray")
+     ! Create a reference to the dataset object.
+     call groupObject%createReference4D(datasetObject,"double4dReference",int([3,5,2,6],kind=HSIZE_T),int([2,3,4,3],kind=HSIZE_T))
+     ! Close the dataset.
+     call datasetObject%close()
+     ! Read a double 4-D array dataset from the group into a static array.
+     doubleValueArray4dRereadStatic=0
+     call groupObject%readDatasetStatic("double4dReference",doubleValueArray4dRereadStatic)
+     call Assert("re-read referenced 4-D array double dataset to static array",doubleValueArray4d(3:4,5:7,2:5,6:8),doubleValueArray4dRereadStatic(1:2,1:3,1:4,1:3))
+     ! Read a double 4-D array dataset from the group into a static array.
+     doubleValueArray4dReread=0
+     call groupObject%readDataset("double4dReference",doubleValueArray4dReread)
+     call Assert("re-read referenced 4-D array double dataset to allocatable array",doubleValueArray4d(3:4,5:7,2:5,6:8),doubleValueArray4dReread(1:2,1:3,1:4,1:3))
+     ! Read part of a double 4-D array dataset from the group into an allocatable array.
+     doubleValueArray4dReread=0
+     call groupObject%readDataset("double4dReference",doubleValueArray4dReread,int([2,2,1,1],kind=HSIZE_T),int([1,2,3,2],kind=HSIZE_T))
+     call Assert("re-read part of referenced 4-D array double dataset to allocatable array",doubleValueArray4d(4:4,6:7,2:4,6:7),doubleValueArray4dReread(1:1,1:2,1:3,1:2))
 
-  ! Open the dataset.
-  datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset5dArray")
-  ! Create a reference to the dataset object.
-  call groupObject%createReference5D(datasetObject,"double5dReference",int([3,5,2,6,2],kind=HSIZE_T),int([2,3,4,3,8],kind=HSIZE_T))
-  ! Close the dataset.
-  call datasetObject%close()
-  ! Read a double 5-D array dataset from the group into a static array.
-  doubleValueArray5dRereadStatic=0
-  call groupObject%readDatasetStatic("double5dReference",doubleValueArray5dRereadStatic)
-  call Assert("re-read referenced 5-D array double dataset to static array",doubleValueArray5d(3:4,5:7,2:5,6:8,2:9),doubleValueArray5dRereadStatic(1:2,1:3,1:4,1:3,1:8))
-  ! Read a double 5-D array dataset from the group into a static array.
-  doubleValueArray5dReread=0
-  call groupObject%readDataset("double5dReference",doubleValueArray5dReread)
-  call Assert("re-read referenced 5-D array double dataset to allocatable array",doubleValueArray5d(3:4,5:7,2:5,6:8,2:9),doubleValueArray5dReread(1:2,1:3,1:4,1:3,1:8))
-  ! Read part of a double 5-D array dataset from the group into an allocatable array.
-  doubleValueArray5dReread=0
-  call groupObject%readDataset("double5dReference",doubleValueArray5dReread,int([2,2,1,1,4],kind=HSIZE_T),int([1,2,3,2,4],kind=HSIZE_T))
-  call Assert("re-read part of referenced 5-D array double dataset to allocatable array",doubleValueArray5d(4:4,6:7,2:4,6:7,5:8),doubleValueArray5dReread(1:1,1:2,1:3,1:2,1:4))
+     ! Write an extensible double 5-D array dataset to the group.
+     if (appendableOK) then
+        doubleValueArray5d=3.141d0
+        call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArrayExtensible","This is an extensible dataset",appendTo=.true.)
+        ! Append to the extensible double 5-D array dataset.
+        doubleValueArray5d=1.415d0
+        call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArrayExtensible",appendTo=.true.)
+     end if
 
-  ! Close the group.
-  call groupObject%close()
+     ! Write a double 5-D array dataset to the group.
+     doubleValueArray5d=3.141d0
+     call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArray","This is an example dataset")
+     ! Write a double 5-D array dataset to the group.
+     doubleValueArray5d=1.415d0
+     call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArray")
+     ! Read a double 5-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset5dArray",doubleValueArray5dRereadStatic)
+     call Assert("re-read 5-D array double dataset to static array",doubleValueArray5d,doubleValueArray5dRereadStatic)
+     ! Read a double 5-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset5dArray",doubleValueArray5dReread)
+     call Assert("re-read 5-D array double dataset to allocatable array",doubleValueArray5d,doubleValueArray5dReread)
+     ! Read part of a double 5-D array dataset from the group into a static array.
+     call groupObject%readDatasetStatic("doubleDataset5dArray",doubleValueArray5dRereadStatic,int([3,6,2,7,2],kind=HSIZE_T),int([4,3,5,2,6],kind=HSIZE_T))
+     call Assert("re-read part of a 5-D array double dataset to static array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dRereadStatic(1:4,1:3,1:5,1:2,1:6))
+     ! Read part of a double 5-D array dataset from the group into an allocatable array.
+     call groupObject%readDataset("doubleDataset5dArray",doubleValueArray5dReread,int([3,6,2,7,2],kind=HSIZE_T),int([4,3,5,2,6],kind=HSIZE_T))
+     call Assert("re-read part of a 5-D array double dataset to allocatable array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dReread(1:4,1:3,1:5,1:2,1:6))
 
-  ! Close the file.
-  call fileObject%close()
+     ! Open the dataset.
+     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset5dArray")
+     ! Create a reference to the dataset object.
+     call groupObject%createReference5D(datasetObject,"double5dReference",int([3,5,2,6,2],kind=HSIZE_T),int([2,3,4,3,8],kind=HSIZE_T))
+     ! Close the dataset.
+     call datasetObject%close()
+     ! Read a double 5-D array dataset from the group into a static array.
+     doubleValueArray5dRereadStatic=0
+     call groupObject%readDatasetStatic("double5dReference",doubleValueArray5dRereadStatic)
+     call Assert("re-read referenced 5-D array double dataset to static array",doubleValueArray5d(3:4,5:7,2:5,6:8,2:9),doubleValueArray5dRereadStatic(1:2,1:3,1:4,1:3,1:8))
+     ! Read a double 5-D array dataset from the group into a static array.
+     doubleValueArray5dReread=0
+     call groupObject%readDataset("double5dReference",doubleValueArray5dReread)
+     call Assert("re-read referenced 5-D array double dataset to allocatable array",doubleValueArray5d(3:4,5:7,2:5,6:8,2:9),doubleValueArray5dReread(1:2,1:3,1:4,1:3,1:8))
+     ! Read part of a double 5-D array dataset from the group into an allocatable array.
+     doubleValueArray5dReread=0
+     call groupObject%readDataset("double5dReference",doubleValueArray5dReread,int([2,2,1,1,4],kind=HSIZE_T),int([1,2,3,2,4],kind=HSIZE_T))
+     call Assert("re-read part of referenced 5-D array double dataset to allocatable array",doubleValueArray5d(4:4,6:7,2:4,6:7,5:8),doubleValueArray5dReread(1:1,1:2,1:3,1:2,1:4))
+
+     ! Close the group.
+     call groupObject%close()
+
+     ! Close the file.
+     call fileObject%close()
+
+     ! End the pass and destroiy objects.
+     call Unit_Tests_End_Group()
+     call fileObject   %destroy()
+     call groupObject  %destroy()
+     call datasetObject%destroy()
+  end do
 
   ! End unit tests.
   call Unit_Tests_End_Group()

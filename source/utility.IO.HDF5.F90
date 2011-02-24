@@ -3520,6 +3520,33 @@ contains
           message="failed to open dataset '"//trim(datasetName)//"' at "//locationPath
           call Galacticus_Error_Report('IO_HDF5_Open_Dataset',message)
        end if
+       call h5dget_create_plist_f(datasetObject%objectID,propertyList,errorCode) 
+       if (errorCode /= 0) then
+          message="failed to get creation property list for dataset '"//trim(datasetName)//"' at "//locationPath
+          call Galacticus_Error_Report('IO_HDF5_Open_Dataset',message)
+       end if
+       call h5eset_auto_f(0,errorCode)
+       if (errorCode /= 0) then
+          message="failed to switch HDF5 error report off"
+          call Galacticus_Error_Report('IO_HDF5_Has_Dataset',message)
+       end if
+       call h5pget_chunk_f(propertyList,1,chunkDimensions,errorCode)
+       if (errorCode < 0) then
+          ! Assume that a failed attempt to get chunk size indicates that the dataset is not chunked.
+          datasetObject%chunkSize=-1
+       else
+          datasetObject%chunkSize=chunkDimensions(1)
+       end if
+       call h5eset_auto_f(1,errorCode)
+       if (errorCode /= 0) then
+          message="failed to switch HDF5 error report on"
+          call Galacticus_Error_Report('IO_HDF5_Has_Dataset',message)
+       end if
+       call h5pclose_f(propertyList,errorCode)
+       if (errorCode /= 0) then
+          message="failed to close property list for dataset '"//trim(datasetName)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Open_Dataset',message)
+       end if
     else
        ! Determine maximum dimensions of this dataset.
        select case (appendToActual)
@@ -3550,6 +3577,7 @@ contains
              chunkSizeActual=hdf5ChunkSize
           end if
        end if
+       datasetObject%chunkSize=chunkSizeActual
        ! Determine the compression level.
        if (present(compressionLevel)) then
           ! Check that compression level is valid.
@@ -3566,6 +3594,7 @@ contains
              compressionLevelActual=hdf5CompressionLevel
           end if
        end if
+       datasetObject%compressionLevel=compressionLevelActual
        ! Create a property list for the dataset.
        call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
        if (errorCode < 0) then
@@ -3595,6 +3624,7 @@ contains
              call Galacticus_Error_Report('IO_HDF5_Open_Dataset',message)
           end if
        end if
+
        ! Check if compression level should be set.
        if (compressionLevelActual >= 0) then
           call h5pset_deflate_f(propertyList,compressionLevelActual,errorCode) 
@@ -3904,10 +3934,12 @@ contains
     end if
 
     ! Set extent of the dataset.
-    call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
-    if (errorCode < 0) then
-       message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer_1D',message)
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer_1D',message)
+       end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
@@ -4661,10 +4693,12 @@ contains
     end if
 
     ! Set extent of the dataset.
-    call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
-    if (errorCode < 0) then
-       message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer8_1D',message)
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer8_1D',message)
+       end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
@@ -5425,10 +5459,12 @@ contains
     end if
 
     ! Set extent of the dataset.
-    call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
-    if (errorCode < 0) then
-       message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_1D',message)
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_1D',message)
+       end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
@@ -6190,10 +6226,12 @@ contains
     end if
 
     ! Set extent of the dataset.
-    call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
-    if (errorCode < 0) then
-       message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
+       end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
@@ -6950,10 +6988,12 @@ contains
     end if
 
     ! Set extent of the dataset.
-    call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
-    if (errorCode < 0) then
-       message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_3D',message)
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_3D',message)
+       end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
@@ -7710,10 +7750,12 @@ contains
     end if
 
     ! Set extent of the dataset.
-    call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
-    if (errorCode < 0) then
-       message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_4D',message)
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_4D',message)
+       end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
@@ -8470,10 +8512,12 @@ contains
     end if
 
     ! Set extent of the dataset.
-    call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
-    if (errorCode < 0) then
-       message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-       call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_5D',message)
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_5D',message)
+       end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
