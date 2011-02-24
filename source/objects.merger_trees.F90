@@ -227,12 +227,19 @@ contains
     type(treeNode),    pointer, intent(inout) :: thisNode
     type(treeNode),    pointer                :: destroyNode,nextNode
 
-    nextNode => thisNode
+    ! Descend to the tip of the branch.
+    call thisNode%walkBranchWithSatellites(thisNode,nextNode)
+    ! Loop over all tree nodes.
     do while (associated(nextNode))
+       ! Keep of a record of the current node, so that we can destroy it.
        destroyNode => nextNode
+       ! Walk to the next node in the tree.
        call destroyNode%walkBranchWithSatellites(thisNode,nextNode)
+       ! Destroy the current node.
        call destroyNode%destroy
     end do
+    ! Destroy the base node of the branch.
+    call thisNode%destroy
     return
   end subroutine Merger_Tree_Destroy_Branch
 
