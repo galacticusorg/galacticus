@@ -72,7 +72,7 @@ module Merger_Tree_Build
   double precision     :: mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum,mergerTreeBuildTreesBaseRedshift &
        &,mergerTreeBuildTreesBaseTime,mergerTreeBuildTreesHaloMassExponent
   integer              :: mergerTreeBuildTreesPerDecade,mergerTreeBuildTreesBeginAtTree
-  type(varying_string) :: mergerTreeBuildTreesHaloMassDistribution
+  type(varying_string) :: mergerTreeBuildTreesHaloMassDistribution,mergerTreeBuildTreeMassesFile
 
   ! Direction in which to process trees.
   logical              :: mergerTreeBuildTreesProcessDescending
@@ -109,13 +109,16 @@ contains
     use Galacticus_Error
     use Numerical_Ranges
     use ISO_Varying_String
+    use FoX_dom
     !# <include directive="mergerTreeBuildMethod" type="moduleUse">
     include 'merger_trees.build.modules.inc'
     !# </include>
     implicit none
     type(varying_string),          intent(in)    :: mergerTreeConstructMethod
     procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
-    integer                                      :: iTree
+    type(Node),           pointer                :: doc,thisTree
+    type(NodeList),       pointer                :: rootMassList
+    integer                                      :: iTree,ioErr
     type(fgsl_qrng)                              :: quasiSequenceObject
     logical                                      :: quasiSequenceReset=.true.
     double precision                             :: expansionFactor,massMinimum,massMaximum
@@ -198,30 +201,68 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.false.)
+       !@   <name>mergerTreeBuildTreeMassesFile</name>
+       !@   <defaultValue>null</defaultValue>       
+       !@   <description>
+       !@     Specifies the name of a file from which to read the masses of merger tree root halos when building merger trees.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeBuildTreeMassesFile',mergerTreeBuildTreeMassesFile,defaultValue='null')
 
        ! Generate a randomly sampled set of halo masses.
        treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
        call Alloc_Array(treeHaloMass,[treeCount])
        call Alloc_Array(treeWeight  ,[treeCount])
 
-       ! Create a distribution of halo masses.
+       ! Determine how to compute the tree root masses.
        select case (char(mergerTreeBuildTreesHaloMassDistribution))
-       case ("quasi")
-          ! Use a quasi-random sequence to generate halo masses.
+       case ("quasi","uniform")
+          ! Generate a randomly sampled set of halo masses.
+          treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
+          call Alloc_Array(treeHaloMass,[treeCount])
+          call Alloc_Array(treeWeight  ,[treeCount])
+          
+          ! Create a distribution of halo masses.
+          select case (char(mergerTreeBuildTreesHaloMassDistribution))
+          case ("quasi")
+             ! Use a quasi-random sequence to generate halo masses.
+             do iTree=1,treeCount
+                treeHaloMass(iTree)=Quasi_Random_Get(quasiSequenceObject,reset=quasiSequenceReset)
+             end do
+             call Quasi_Random_Free(quasiSequenceObject)
+             call Sort_Do(treeHaloMass)
+          case ("uniform")
+             ! Use a uniform distribution in logarithm of halo mass.
+             treeHaloMass=Make_Range(0.0d0,1.0d0,treeCount,rangeType=rangeTypeLinear)
+          case default
+             call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
+          end select
+          treeHaloMass=dexp((treeHaloMass**(1.0d0+mergerTreeBuildTreesHaloMassExponent))*dlog(mergerTreeBuildHaloMassMaximum&
+               &/mergerTreeBuildHaloMassMinimum)+dlog(mergerTreeBuildHaloMassMinimum))
+       case ("read")
+          ! Read masses from a file.
+          !$omp critical (FoX_DOM_Access)
+          doc => parseFile(char(mergerTreeBuildTreeMassesFile),iostat=ioErr)
+          if (ioErr /= 0) call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unable to read or parse merger tree root mass file')
+          ! Get a list of all defined tree root masses.
+          rootMassList => getElementsByTagname(doc,"treeRootMass")
+          ! Get a count of the number of trees.
+          treeCount=getLength(rootMassList)
+          ! Allocate arrays for tree masses.
+          call Alloc_Array(treeHaloMass,[treeCount])
+          call Alloc_Array(treeWeight  ,[treeCount])
+          ! Extract the tree masses from the XML data.
           do iTree=1,treeCount
-             treeHaloMass(iTree)=Quasi_Random_Get(quasiSequenceObject,reset=quasiSequenceReset)
+             thisTree => item(rootMassList,iTree-1)
+             call extractDataContent(thisTree,treeHaloMass(iTree))
           end do
-          call Quasi_Random_Free(quasiSequenceObject)
-          call Sort_Do(treeHaloMass)
-       case ("uniform")
-          ! Use a uniform distribution in logarithm of halo mass.
-          treeHaloMass=Make_Range(0.0d0,1.0d0,treeCount,rangeType=rangeTypeLinear)
+          ! Finished - destroy the XML document.
+          call destroy(doc)
+          !$omp end critical (FoX_DOM_Access)
        case default
           call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
        end select
-       treeHaloMass=dexp((treeHaloMass**(1.0d0+mergerTreeBuildTreesHaloMassExponent))*dlog(mergerTreeBuildHaloMassMaximum&
-            &/mergerTreeBuildHaloMassMinimum) +dlog(mergerTreeBuildHaloMassMinimum))
-
+       
        ! Find the cosmic time at which the trees are based.
        expansionFactor=Expansion_Factor_from_Redshift(mergerTreeBuildTreesBaseRedshift)
        mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)       
@@ -229,13 +270,21 @@ contains
        do iTree=1,treeCount
           ! Get the minimum mass of the interval occupied by this tree.
           if (iTree==1) then
-             MassMinimum=mergerTreeBuildHaloMassMinimum
+             if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
+                MassMinimum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
+             else
+                MassMinimum=mergerTreeBuildHaloMassMinimum
+             end if
           else
              MassMinimum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
           end if
           ! Get the maximum mass of the interval occupied by this tree.
           if (iTree==treeCount) then
-             MassMaximum=mergerTreeBuildHaloMassMaximum
+             if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
+                MassMaximum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
+             else
+                MassMaximum=mergerTreeBuildHaloMassMaximum
+             end if
           else
              MassMaximum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
           end if

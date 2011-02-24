@@ -88,7 +88,18 @@
 	  <value>Zhao 2009</value>
         </parameter>
       </value>
-      <value>build</value>
+      <value>build
+        <parameter>
+	  <name>mergerTreeBuildTreesHaloMassDistribution</name>
+	  <value>uniform</value>
+	  <value>read
+	  <parameter>
+	    <name>mergerTreeBuildTreeMassesFile</name>
+	    <value>testSuite/data/mergerTreeBuilding/treeMasses.xml</value>
+	  </parameter>
+	  </value>
+        </parameter>
+      </value>
       <value>read</value>
     </parameter>
     <parameter>

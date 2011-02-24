@@ -557,7 +557,9 @@ Selected with {\tt mergerTreeConstructMethod}$=${\tt read}, this method reads me
 
 \subsection{Build}
 
-Selected with {\tt mergerTreeConstructMethod}$=${\tt build}, this method first creates a distribution of tree root halo masses and then builds a merger tree using the algorithm specified by the {\tt mergerTreeBuildMethod} parameter. The root halo masses are selected to range between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} with {\tt mergerTreeBuildTreesPerDecade} trees per decade of root halo mass on average. Trees are rooted at {\tt mergerTreeBuildTreesBaseRedshift} and tree building will begin with the {\tt mergerTreeBuildTreesBeginAtTree}$^{\rm th}$ tree\footnote{This will normally be set to 1 to begin with the first tree. Other values allow to begin on later trees for debugging purposes.}. The distribution of halo masses is such that the mass of the $i^{\rm th}$ halo is
+Selected with {\tt mergerTreeConstructMethod}$=${\tt build}, this method first creates a distribution of tree root halo masses and then builds a merger tree using the algorithm specified by the {\tt mergerTreeBuildMethod} parameter.
+
+If {\tt [mergerTreeBuildTreesHaloMassDistribution]}$=${\tt read}, then these masses will be read from a file specified by {\tt [mergerTreeBuildTreeMassesFile]}. Otherwise, the root halo masses are selected to range between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} with {\tt mergerTreeBuildTreesPerDecade} trees per decade of root halo mass on average. Trees are rooted at {\tt mergerTreeBuildTreesBaseRedshift} and tree building will begin with the {\tt mergerTreeBuildTreesBeginAtTree}$^{\rm th}$ tree\footnote{This will normally be set to 1 to begin with the first tree. Other values allow to begin on later trees for debugging purposes.}. The distribution of halo masses is such that the mass of the $i^{\rm th}$ halo is
 \begin{equation}
  M_{\rm halo,i} = \exp\left[ \ln(M_{\rm halo,min}) + \ln\left({M_{\rm halo,max}/M_{\rm halo,min}}\right) x_i^{1+\alpha} \right].
 \end{equation}
@@ -566,6 +568,19 @@ Here, $x_i$ is a number between 0 and 1 and $\alpha=${\tt mergerTreeBuildTreesHa
  \item [{\tt uniform}] $x$ is distributed uniformly between 0 and 1;
  \item [{\tt quasi}] $x$ is distributed using a quasi-random sequence.
 \end{description}
+
+In the case of reading root halo masses from a file, the file should be an XML file with the following form:
+\begin{verbatim}
+ <mergerTrees>
+  <treeRootMass>13522377303.5998</treeRootMass>
+  <treeRootMass>19579530191.8709</treeRootMass>
+  <treeRootMass>21061025282.9613</treeRootMass>
+  .
+  .
+  .
+ </mergerTrees>
+\end{verbatim}
+where each {\tt treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to generate.
 
 \section{Merger Tree Branching}\index{merger trees!branching}
 
