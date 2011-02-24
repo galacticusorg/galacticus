@@ -6,6 +6,7 @@ use Graphics::GnuplotIF;
 use Galacticus::HDF5;
 use Astro::Cosmology;
 use Math::SigFigs;
+use Stats::Means;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Star_Formation_History.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -45,6 +46,13 @@ $imfCorrection = 1.0;
 if ( $dataSet{'parameters'}->{'imfSelectionFixed'} eq "Chabrier" ) {
     $imfCorrection = 0.6;
 }
+
+# Define redshift bins.
+$redshiftPoints = pdl 16;
+$redshiftMin    = pdl 0.0;
+$redshiftMax    = pdl 8.0;
+$redshiftBin    = pdl ($redshiftMax-$redshiftMin)/$redshiftPoints;
+$redshiftBins   = pdl (0..$redshiftPoints-1)*$redshiftBin+$redshiftMin+0.5*$redshiftBin;
 
 # Read the XML data file.
 $xml = new XML::Simple;
@@ -103,10 +111,17 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
     $dataSets[$iDataset]->{'yUpperError'} = $yUpperError;
     $dataSets[$iDataset]->{'label'}       = $dataSet->{'label'};
 
+    # Compute a binned mean star formation rate.
+    $weight = 1.0/($yUpperError**2+$yLowerError**2);
+    ($yBinned,$yBinnedError,$ySigma,$ySigmaError)
+	= &Means::BinnedMean($redshiftBins,$x,$y,$weight);
+    $empty = which($yBinnedError == 0.0);
+    $yBinnedError->index($empty) .= 1.0e30;
+
     # Interpolate model to data points and compute chi^2.
-    ($sfrInterpolated,$error) = interpolate($x,$redshift,$SFR);
-    $chiSquared += sum((($y-$sfrInterpolated)/(0.5*($yUpperError-$yLowerError)))**2);
-    $degreesOfFreedom += nelem($y);
+    ($sfrInterpolated,$error) = interpolate($redshiftBins,$redshift,$SFR);
+    $chiSquared += sum((($yBinned-$sfrInterpolated)/$yBinnedError)**2);
+    $degreesOfFreedom += nelem($yBinned)-nelem($empty);
 
 }
 
