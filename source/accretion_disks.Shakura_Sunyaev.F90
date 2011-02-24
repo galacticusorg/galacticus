@@ -132,12 +132,12 @@ contains
                &*(accretionRateDimensionless**1.2d0)*(1.0d0+1.1d0*blackHoleSpin+0.29d0*blackHoleSpin**2)/(alphaViscosityNormalized&
                &**0.1d0)
        else
-          ! Use Meier's rapidly rotating (Schwarzchild) solution for low spin black holes. We, somewhat arbitrarily, interpolate
+          ! Use Meier's Schwarzchild solution for low spin black holes. We, somewhat arbitrarily, interpolate
           ! from the Schwarzchild solution assuming power grows exponentially with spin and matched to the Kerr solution at the
           ! transition spin.
-         Accretion_Disk_Jet_Power_Shakura_Sunyaev=powerNormalizationSchwarzchild*(blackHoleMassDimensionless**0.9d0) &
-              &*(accretionRateDimensionless**1.2d0)*dexp(3.785d0*blackHoleSpin)/(alphaViscosityNormalized**0.1d0)
-      end if
+          Accretion_Disk_Jet_Power_Shakura_Sunyaev=powerNormalizationSchwarzchild*(blackHoleMassDimensionless**0.9d0) &
+               &*(accretionRateDimensionless**1.2d0)*dexp(3.785d0*blackHoleSpin)/(alphaViscosityNormalized**0.1d0)
+       end if
     end if
     return
   end function Accretion_Disk_Jet_Power_Shakura_Sunyaev
