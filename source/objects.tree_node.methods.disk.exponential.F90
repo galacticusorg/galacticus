@@ -357,17 +357,71 @@ contains
   !# </postEvolveTask>
   subroutine Tree_Node_Disk_Post_Evolve_Exponential(thisNode)
     !% Trim histories attached to the disk.
+    use Galacticus_Display
+    use String_Handling
+    use ISO_Varying_String
     use Histories
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision, save                   :: fractionalErrorMaximum=0.0d0
+    integer                                  :: thisIndex
+    double precision                         :: specificAngularMomentum,fractionalError
+    character(len=20)                        :: valueString
+    type(varying_string)                     :: message
 
     ! Check if an exponential disk component exists.
     if (methodSelected .and. thisNode%componentExists(componentIndex)) then
        ! Get the index of the component.
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+
        ! Trim the stellar populations properties future history.
        call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%trim(Tree_Node_Time(thisNode))
+
+       ! Trap negative gas masses.
+       if (Tree_Node_Disk_Gas_Mass(thisNode) < 0.0d0) then
+          
+          ! Check if this exceeds the maximum previously recorded error.
+          fractionalError=dabs(thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue))&
+               &/(thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)&
+               &+dabs(thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)))
+          !$omp critical (Exponential_Disk_Post_Evolve_Check)
+          if (fractionalError > fractionalErrorMaximum) then
+             ! Report a warning.          
+             message='Warning: disk has negative gas mass (fractional error exceeds any previously reported):'//char(10)
+             message=message//'  Node index        = '//thisNode%index() //char(10)
+             write (valueString,'(e12.6)') thisNode%components(thisIndex)%properties(gasMassIndex    ,propertyValue)
+             message=message//'  Disk gas mass     = '//trim(valueString)//char(10)
+             write (valueString,'(e12.6)') thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+             message=message//'  Disk stellar mass = '//trim(valueString)//char(10)
+             write (valueString,'(e12.6)') fractionalError
+             message=message//'  Error measure     = '//trim(valueString)//char(10)
+             if (fractionalErrorMaximum == 0.0d0) then
+                ! This is the first time this warning has been issued, so give some extra information.
+                message=message//'  Gas mass will be reset to zero (in future cases also).'//char(10)
+                message=message//'  Future cases will be reported only when they exceed the previous maximum error measure.'//char(10)
+                message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'//char(10)
+                message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
+             end if
+             call Galacticus_Display_Message(message,verbosityWarn)
+             ! Store the new maximum fractional error.
+             fractionalErrorMaximum=fractionalError
+          end if
+          !$omp end critical (Exponential_Disk_Post_Evolve_Check)
+          
+          ! Get the specific angular momentum of the spheroid material
+          specificAngularMomentum=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)&
+               &/(thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)&
+               &+thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue))
+          
+          ! Reset the gas, abundances and angular momentum of the spheroid.
+          thisNode%components(thisIndex)%properties(gasMassIndex                            ,propertyValue)=0.0d0
+          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=0.0d0
+          thisNode%components(thisIndex)%properties(angularMomentumIndex                    ,propertyValue)= &
+               & specificAngularMomentum*thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+
+
+       end if
+       
     end if
     return
   end subroutine Tree_Node_Disk_Post_Evolve_Exponential
@@ -498,6 +552,9 @@ contains
     use Galactic_Dynamics_Bar_Instabilities
     use Galacticus_Output_Star_Formation_Histories 
     use Numerical_Constants_Astronomical
+
+use Kind_Numbers
+
     implicit none
     type(treeNode),            pointer, intent(inout) :: thisNode
     logical,                            intent(inout) :: interrupt
@@ -567,8 +624,12 @@ contains
           massOutflowRate=min(massOutflowRate,gasMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
           
           ! Compute the angular momentum outflow rate.
-          angularMomentumOutflowRate=massOutflowRate*Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)/diskMass
-          if (gasMass > 0.0d0) then
+          if (diskMass > 0.0d0) then
+             angularMomentumOutflowRate=massOutflowRate*Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)/diskMass
+          else
+             angularMomentumOutflowRate=0.0d0
+          end if
+          if (gasMass  > 0.0d0) then
              call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundancesValue)
              call Abundances_Mass_To_Mass_Fraction(abundancesValue,gasMass)
              abundancesOutflowRate=massOutflowRate*abundancesValue
