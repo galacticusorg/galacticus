@@ -66,8 +66,6 @@ module Dynamical_Friction_Lacey_Cole
   private
   public :: Satellite_Time_Until_Merging_Lacey_Cole_Initialize
 
-  double precision :: mergingTimescaleMultiplier
-
 contains
 
   !# <satelliteMergingMethod>
@@ -76,23 +74,11 @@ contains
   subroutine Satellite_Time_Until_Merging_Lacey_Cole_Initialize(satelliteMergingMethod,Satellite_Time_Until_Merging)
     !% Determine if this method is to be used and set pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type(varying_string), intent(in)    :: satelliteMergingMethod
     procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
 
-    if (satelliteMergingMethod == 'Lacey-Cole') then
-       Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Lacey_Cole
-       !@ <inputParameter>
-       !@   <name>mergingTimescaleMultiplier</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     A multiplier for the merging timescale in the ``Lacey-Cole'' dynamical friction timescale method.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergingTimescaleMultiplier',mergingTimescaleMultiplier,defaultValue=1.0d0)
-    end if
+    if (satelliteMergingMethod == 'Lacey-Cole') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Lacey_Cole
     return
   end subroutine Satellite_Time_Until_Merging_Lacey_Cole_Initialize
 
@@ -102,6 +88,7 @@ contains
     use Dark_Matter_Halo_Scales
     use Virial_Orbits
     use Numerical_Constants_Math
+    use Dynamical_Friction_Timescale_Utilities
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     type(treeNode),   pointer                :: hostNode
@@ -124,8 +111,9 @@ contains
     ! Compute mass ratio.
     massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)
     ! Compute dynamical friction timescale.
-    Satellite_Time_Until_Merging_Lacey_Cole=(orbitalCircularity**0.78d0)*(equivalentCircularOrbitRadius**2)&
-         &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*mergingTimescaleMultiplier*inverseTwoB1*massRatio/dlog(massRatio)
+    Satellite_Time_Until_Merging_Lacey_Cole=Dynamical_Friction_Timescale_Multiplier()*(orbitalCircularity**0.78d0)&
+         &*(equivalentCircularOrbitRadius**2) *Dark_Matter_Halo_Dynamical_Timescale(hostNode)*inverseTwoB1*massRatio&
+         &/dlog(massRatio)
     return
   end function Satellite_Time_Until_Merging_Lacey_Cole
 

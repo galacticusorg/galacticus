@@ -90,6 +90,7 @@ contains
     use Virial_Orbits
     use Numerical_Constants_Math
     use Dark_Matter_Profiles
+    use Dynamical_Friction_Timescale_Utilities
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     type(treeNode),   pointer                :: hostNode
@@ -112,8 +113,9 @@ contains
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
     massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)-1.0d0
     ! Compute dynamical friction timescale.
-    Satellite_Time_Until_Merging_BoylanKolchin2008=Dark_Matter_Halo_Dynamical_Timescale(hostNode)*A*((massRatio**b)/dlog(1.0d0&
-         &+massRatio))*dexp(c*orbitalCircularity)*((equivalentCircularOrbitRadius/radialScale)**d)
+    Satellite_Time_Until_Merging_BoylanKolchin2008=Dynamical_Friction_Timescale_Multiplier()&
+         &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*A*((massRatio**b)/dlog(1.0d0 +massRatio))*dexp(c*orbitalCircularity)&
+         &*((equivalentCircularOrbitRadius/radialScale)**d)
     return
   end function Satellite_Time_Until_Merging_BoylanKolchin2008
 
