@@ -34,8 +34,12 @@ sub BinnedMean {
 	$yValuesSelected = where($yValues,$xValues >= $binMinimum->index($iBin) & $xValues < $binMaximum->index($iBin) );
 	$weightsSelected = where($weights,$xValues >= $binMinimum->index($iBin) & $xValues < $binMaximum->index($iBin) );
         # Only compute results for cases where we have more than zero entries.
-	if ( nelem($weightsSelected) > 0 ) {	
-	    
+	if ( nelem($weightsSelected) == 1 ) {
+	    $mean           ->index($iBin) .= sum($yValuesSelected);
+	    $meanError      ->index($iBin) .= sum($yValuesSelected);
+	    $dispersion     ->index($iBin) .= 0.0;
+	    $dispersionError->index($iBin) .= 0.0;
+	} elsif ( nelem($weightsSelected) > 1 ) {	    
 	    # Compute weighted sums.
 	    $sumYWeight  = sum($yValuesSelected   *$weightsSelected   );
 	    $sumY2Weight = sum($yValuesSelected**2*$weightsSelected   );
