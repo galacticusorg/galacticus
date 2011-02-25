@@ -202,19 +202,21 @@ contains
     return
   end subroutine Star_Formation_History_Create_Metallicity_Split
   
-  subroutine Star_Formation_History_Metallicity_Split_Make_History(thisHistory,timeBegin,timeEnd)
+  subroutine Star_Formation_History_Metallicity_Split_Make_History(thisHistory,timeBegin,timeEnd,currentTimes)
     !% Create the history required for storing star formation history.
     use Histories
     use Numerical_Ranges
     use Tree_Nodes
     use Galacticus_Output_Times
+    use Galacticus_Error
     implicit none
-    type(history),       intent(inout) :: thisHistory
-    double precision,    intent(in)    :: timeBegin,timeEnd
-    type(timeStepRange), pointer       :: firstTimeStep,thisTimeStep,nextTimeStep
-    integer                            :: timeCount,coarseTimeCount,fineTimeCount
-    logical                            :: gotFirstTimeStep
-    double precision                   :: timeFineBegin,timeCoarseBegin,timeCoarseEnd,timeNow,timeNext
+    type(history),       intent(inout)                       :: thisHistory
+    double precision,    intent(in)                          :: timeBegin,timeEnd
+    double precision,    intent(in),  dimension(:), optional :: currentTimes
+    type(timeStepRange), pointer                             :: firstTimeStep,thisTimeStep,nextTimeStep
+    integer                                                  :: timeCount,coarseTimeCount,fineTimeCount
+    logical                                                  :: gotFirstTimeStep
+    double precision                                         :: timeFineBegin,timeCoarseBegin,timeCoarseEnd,timeNow,timeNext
 
     ! Exit with a null history if it would contain no time.
     if (timeEnd <= timeBegin) then
@@ -222,11 +224,22 @@ contains
        return
     end if
 
+    ! If we have a set of times tabulated already, do some sanity checks.
+    if (present(currentTimes)) then
+       ! Complain if the beginning time is before the given list of times.
+       if (timeBegin < currentTimes(1                 )) call Galacticus_Error_Report('Star_Formation_History_Metallicity_Split_Make_History','requested begin time is before currently tabulated times')
+       ! Complain if the end time is less than the maximum tabulated time.
+       if (timeEnd   < currentTimes(size(currentTimes))) call Galacticus_Error_Report('Star_Formation_History_Metallicity_Split_Make_History','requested end time is within currently tabulated times')
+    end if
+
     ! Step through time, creating a set of timesteps as needed.
-    timeNow         =timeBegin
+    if (present(currentTimes)) then
+       timeNow       =currentTimes(size(currentTimes))
+    else
+       timeNow       =timeBegin
+    end if
     timeCount       =0
     gotFirstTimeStep=.false.
-    allocate(firstTimeStep)
     do while (timeNow < timeEnd)
        ! Get the time of the next output
        timeNext=Galacticus_Next_Output_Time(timeNow)
@@ -244,7 +257,7 @@ contains
           timeFineBegin  =timeNext
           timeCoarseBegin=timeNow      +starFormationHistoryTimeStep
           timeCoarseEnd  =timeNext
-      end if
+       end if
        ! Determine the number of coarse time bins required for this history.
        if (timeCoarseEnd > timeCoarseBegin) then
           coarseTimeCount=max(int((timeCoarseEnd-timeCoarseBegin)/starFormationHistoryTimeStep)+1,2)
@@ -259,6 +272,7 @@ contains
           allocate(thisTimeStep%next)
           thisTimeStep => thisTimeStep%next
        else
+          allocate(firstTimeStep)
           thisTimeStep => firstTimeStep
           if (coarseTimeCount > 0) then
              coarseTimeCount=coarseTimeCount+1
@@ -282,35 +296,52 @@ contains
           thisTimeStep%timeEnd  =  timeNext
        end if
        thisTimeStep%next => null()
-
+       
        ! Increment the total number of steps required.
        timeCount=timeCount+fineTimeCount+coarseTimeCount
-
+       
        ! Increment the time.
        timeNow=timeNext
     end do
     ! Shift the end point for the final step to the overall end time.
-    thisTimeStep%timeEnd=timeNext
-
-    ! Create the history.
+    if (gotFirstTimeStep) thisTimeStep%timeEnd=timeNext
+    
+    ! Copy in existing times if necessary.
+    if (present(currentTimes)) then
+       timeCount=timeCount+size(currentTimes)
+       if (gotFirstTimeStep) timeCount=timeCount-1
+    end if
     call thisHistory%create(starFormationHistoryMetallicityCount+1,timeCount)
-
-    thisTimeStep => firstTimeStep
     timeCount=0
-    do while (associated(thisTimeStep))
-       ! Populate the time array.
-       if      (thisTimeStep%count == 1) then
-          thisHistory%time(timeCount+1)=thisTimeStep%timeEnd
-       else if (thisTimeStep%count >  1) then
-          thisHistory%time(timeCount+1:timeCount+thisTimeStep%count)=Make_Range(thisTimeStep%timeBegin,thisTimeStep%timeEnd,thisTimeStep%count,rangeTypeLinear)
+    if (present(currentTimes)) then
+       if (gotFirstTimeStep) then
+          thisHistory%time(timeCount+1:timeCount+size(currentTimes)-1)=currentTimes(1:size(currentTimes)-1)
+          timeCount=size(currentTimes)-1
+       else
+          thisHistory%time(timeCount+1:timeCount+size(currentTimes)  )=currentTimes(1:size(currentTimes)  )
+          timeCount=size(currentTimes)
        end if
-       timeCount=timeCount+thisTimeStep%count
-       ! Jump to the next time step.
-       nextTimeStep => thisTimeStep%next
-       deallocate(thisTimeStep)
-       thisTimeStep => nextTimeStep
-    end do
+    end if
 
+    ! Create new times if necessary.
+    if (gotFirstTimeStep) then
+       thisTimeStep => firstTimeStep
+       do while (associated(thisTimeStep))
+          ! Populate the time array.
+          if      (thisTimeStep%count == 1) then
+             thisHistory%time(timeCount+1)=thisTimeStep%timeEnd
+          else if (thisTimeStep%count >  1) then
+             thisHistory%time(timeCount+1:timeCount+thisTimeStep%count)=Make_Range(thisTimeStep%timeBegin,thisTimeStep%timeEnd&
+                  &,thisTimeStep%count,rangeTypeLinear)
+          end if
+          timeCount=timeCount+thisTimeStep%count
+          ! Jump to the next time step.
+          nextTimeStep => thisTimeStep%next
+          deallocate(thisTimeStep)
+          thisTimeStep => nextTimeStep
+       end do
+    end if
+    
     return
   end subroutine Star_Formation_History_Metallicity_Split_Make_History
 
@@ -422,7 +453,7 @@ contains
        end do
        timeEnd=Tree_Node_Time(parentNode)
     end if
-    call Star_Formation_History_Metallicity_Split_Make_History(newHistory,timeBegin,timeEnd)
+    call Star_Formation_History_Metallicity_Split_Make_History(newHistory,timeBegin,timeEnd,thisHistory%time)
     newHistory%data(1:size(thisHistory%time),:)=thisHistory%data(:,:)
     call thisHistory%destroy()
     thisHistory=newHistory
