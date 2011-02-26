@@ -35,7 +35,7 @@ F03FLAGS += -DGCC45 -fintrinsic-modules-path /usr/local/include
 CFLAGS = 
 
 # Libraries:
-LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5 -lhdf5_fortran -lhdf5_hl -lhdf5hl_fortran -lz
+LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lhdf5hl_fortran -lhdf5_hl -lhdf5_fortran -lhdf5 -lm -lz
 
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps

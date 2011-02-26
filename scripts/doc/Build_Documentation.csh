@@ -7,14 +7,14 @@
 scripts/doc/Extract_Data.pl source doc/data
 if ( $? != 0 ) then
  echo Failed to extract source code data
- exit
+ exit 1
 endif
 
 # Analyze source code.
 scripts/doc/Code_Analyzer.pl source doc/source_documentation.tex
 if ( $? != 0 ) then
  echo Failed to analyze source code
- exit
+ exit 1
 endif
 
 # Compile the manual.
@@ -25,24 +25,24 @@ while( $iPass <= 3 )
  pdflatex Galacticus
  if ( $? != 0 ) then
   echo pdflatex failed
-  exit
+  exit 1
  endif
 
  # Run bibtex.
  bibtex Galacticus
  if ( $? != 0 ) then
   echo bibtex failed
-  exit
+  exit 1
  endif
 
  # Run makeindex.
  makeindex -s Galacticus.ist Galacticus
  if ( $? != 0 ) then
   echo makeindex failed
-  exit
+  exit 1
  endif
 
  @ iPass++
 end
 
-exit
+exit 0
