@@ -258,6 +258,7 @@
       <name>darkMatterConcentrationMethod</name>
       <value>Gao 2008</value>
       <value>Zhao 2009</value>
+      <value>Munoz-Cuartas 2011</value>
     </parameter>
   </parameters>
 </parameterGrid>
