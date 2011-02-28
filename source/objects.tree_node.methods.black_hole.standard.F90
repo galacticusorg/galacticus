@@ -104,6 +104,7 @@ module Tree_Node_Methods_Black_Hole
 
   ! Feedback parameters.
   double precision :: blackHoleWindEfficiency
+  logical          :: blackHoleHeatsHotHalo
 
   ! Quantities stored to avoid repeated computation.
   logical          :: gotAccretionRate=.false.
@@ -209,6 +210,17 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=1.0d-3)
+
+       ! Options controlling AGN feedback.
+       !@ <inputParameter>
+       !@   <name>blackHoleHeatsHotHalo</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not the black hole launched jets should heat the hot halo.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("blackHoleHeatsHotHalo",blackHoleHeatsHotHalo,defaultValue=.true.)
 
        ! Get options controlling output.
        !@ <inputParameter>
@@ -334,12 +346,14 @@ contains
     call Tree_Node_Hot_Halo_Hot_Gas_Sink               (thisNode,interrupt,interruptProcedurePassed,-accretionRateHotHalo)
 
     ! Add heating to the hot halo component.
-    if (Cooling_Radius(thisNode) < Dark_Matter_Halo_Virial_Radius(thisNode)) then
-       ! Halo is cooling quasistatically, assume heating can occur as jet can couple to halo gas.
-       ! Get jet power.
-       heatingRate=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)
-       ! Pipe this power to the hot halo.
-       call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
+    if (blackHoleHeatsHotHalo) then
+       if (Cooling_Radius(thisNode) < Dark_Matter_Halo_Virial_Radius(thisNode)) then
+          ! Halo is cooling quasistatically, assume heating can occur as jet can couple to halo gas.
+          ! Get jet power.
+          heatingRate=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)
+          ! Pipe this power to the hot halo.
+          call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
+       end if
     end if
 
     ! Add energy to the spheroid component.
