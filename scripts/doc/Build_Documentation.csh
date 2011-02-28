@@ -17,8 +17,17 @@ if ( $? != 0 ) then
  exit 1
 endif
 
-# Compile the manual.
+# Move to the documentation folder.
 cd doc
+
+# Demangle the bibliography.
+Bibliography_Demangle.pl
+if ( $? != 0 ) then
+ echo Failed to demangle bibliography
+ exit 1
+endif
+
+# Compile the manual.
 @ iPass = 1
 while( $iPass <= 3 )
  # Run pdflatex.
