@@ -103,7 +103,7 @@ contains
        ! Flag that the module is now initialized.
        indexShiftInitialized=.true.
     end if
-    !$omp critical (Node_Promotion_Index_Shift_Initialize)
+    !$omp end critical (Node_Promotion_Index_Shift_Initialize)
     
     ! Check if we are to perform an index shift.
     if (nodePromotionIndexShift) then
