@@ -344,12 +344,6 @@ contains
     type(treeNode),      pointer                :: parentNode,satelliteNode
     type(varying_string)                        :: message
 
-    ! Perform any processing necessary before this halo is promoted.
-    !# <include directive="nodePromotionTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode</subroutineArgs>
-    include 'objects.tree_node.promote.inc'
-    !# </include>
-
     ! Get pointer to parent node.
     parentNode => thisNode%parentNode
 
@@ -357,6 +351,12 @@ contains
     message='Promoting node '
     message=message//thisNode%index()//' to '//parentNode%index()
     call Galacticus_Display_Message(message,verbosityInfo)
+
+    ! Perform any processing necessary before this halo is promoted.
+    !# <include directive="nodePromotionTask" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode</subroutineArgs>
+    include 'objects.tree_node.promote.inc'
+    !# </include>
 
     ! Move the components of thisNode to the parent.
     call parentNode%destroyAllComponents

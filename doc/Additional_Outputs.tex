@@ -29,6 +29,8 @@ The following properties are output to permit the merger tree structure to be re
  \item [{\tt nodeIsIsolated}] Will be $0$ for a node which is a subhalo inside some other node (i.e. a satellite galaxy\index{satellite galaxies!identifying}) or $1$ for a node that is an isolated halo (i.e. a central galaxy\index{central galaxies!identifying}).
 \end{description}
 
+The {\tt nodeIndex} property corresponds by default to the index of the node in the original merger tree. This means that as a galaxy evovles through the tree and, in particular, gets promoted into a new halo the index associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree structure, but does not allow galaxies to be traced from one output to the next using their {\tt nodeIndex} value. By setting {\tt [nodePromotionIndexShift]}$=${\tt true} this behavior can be changed such that the value of {\tt nodeIndex} will reflect the index of the earliest progenitor node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its evolution\index{galaxies!tracing through outputs}\index{galaxies!indices}\index{nodes!indices}\index{indices!nodes}\index{indices!galaxies}.
+
 \section{Virial Quantities}\index{virial}
 
 The following quantities related to the virialized region of each node are output if {\tt outputVirialData} is set to true:
