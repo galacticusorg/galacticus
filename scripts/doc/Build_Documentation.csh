@@ -31,7 +31,7 @@ endif
 @ iPass = 1
 while( $iPass <= 3 )
  # Run pdflatex.
- pdflatex Galacticus
+ pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
  if ( $? != 0 ) then
   echo pdflatex failed
   exit 1
