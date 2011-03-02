@@ -137,7 +137,11 @@ contains
     else       
        ! Check that the properties of the galaxies are physically reasonable.
        errorCondition=.false.
-       if (satelliteRadius <= 0.0d0 .or. satelliteMass < -absoluteMassTolerance .or. satelliteSpheroidMass < -absoluteMassTolerance) then
+       if     (                                                                         &
+            &      (satelliteRadius       <= 0.0d0 .and. satelliteSpheroidMass > 0.0d0) &
+            &  .or. satelliteMass         < -absoluteMassTolerance                      &
+            &  .or. satelliteSpheroidMass < -absoluteMassTolerance                      &
+            & ) then
           write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') satelliteRadius,satelliteMass,satelliteSpheroidMass
           message='Satellite galaxy ['
           message=message//thisNode%index()//'] has '
@@ -158,7 +162,7 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if ((hostRadius <= 0.0d0 .and. hostMass > 0.0d0) .or. hostMass < -absoluteMassTolerance .or. hostSpheroidMass < -absoluteMassTolerance) then
+       if ((hostRadius <= 0.0d0 .and. hostSpheroidMass > 0.0d0) .or. hostMass < -absoluteMassTolerance .or. hostSpheroidMass < -absoluteMassTolerance) then
           write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') hostRadius,hostMass,hostSpheroidMass
           message='Host galaxy ['
           message=message//hostNode%index()//'] has '
@@ -181,12 +185,12 @@ contains
        end if
        if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','error condition detected')
        ! Check if host has finite mass.
-       if (hostMass > 0.0d0) then
+       if (hostSpheroidMass > 0.0d0) then
           ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
-          progenitorsEnergy= satelliteSpheroidMass*satelliteMass/satelliteRadius &
-               &            +hostSpheroidMass     *hostMass     /hostRadius      &
-               &            +mergerRemnantSizeOrbitalEnergy*satelliteSpheroidMass*hostSpheroidMass/(satelliteRadius+hostRadius)&
-               &                                                                                  /bindingEnergyFormFactor
+          progenitorsEnergy= satelliteSpheroidMass                 **2/ satelliteRadius                &
+               &            +                      hostSpheroidMass**2/                 hostRadius     &
+               &            +satelliteSpheroidMass*hostSpheroidMass   /(satelliteRadius+hostRadius)    &
+               &            *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
           remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/progenitorsEnergy
        else
           remnantRadius=satelliteRadius

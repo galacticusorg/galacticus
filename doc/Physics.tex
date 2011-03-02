@@ -400,7 +400,7 @@ The method used to calculate the sizes of merger remnant spheroids is selected b
 
 Selected using {\tt satelliteMergingRemnantSizeMethod}$=${\tt null}, this is a null method which does nothing at all. It is useful, for example, when running \glc\ to study dark matter only (i.e. when no galaxy properties are computed).
 
-\subsubsection{Cole et al. (2000)}
+\subsubsection{Cole et al. (2000)}\label{sec:MergerRemnantSizeCole2000}
 
 Selected using {\tt satelliteMergingRemnantSizeMethod}$=${\tt Cole2000}, this method uses the algorithm of \cite{cole_hierarchical_2000} to compute merger remnant spheroid sizes. Specifically
 \begin{equation}
@@ -408,8 +408,20 @@ Selected using {\tt satelliteMergingRemnantSizeMethod}$=${\tt Cole2000}, this me
 \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_{\rm orbit}}{c}
 \frac{M_1 M_2}{r_1+r_2},
 \end{equation}
-where $M_1$ and $M_2$ are the baryonic masses of the merging galaxies and $r_1$
-and $r_2$ are their half mass radii, $r_{\rm new}$ is the half mass radius of the spheroidal component of the remnant galaxy and $c$ is a constant which depends on the distribution of the mass. For a Hernquist spheroid $c=0.40$ can be found by numerical integration while for a exponential disk $c=0.49$. For simplicity a value of $c=0.5$ is adopted for all components. The parameter $f_{\rm orbit}=${\tt mergerRemnantSizeOrbitalEnergy} depends on the orbital parameters of the galaxy pair. For example, a value of $f_{\rm orbit} = 1$ corresponds to point mass galaxies in circular orbits about their center of mass. 
+where $M_1$ and $M_2$ are the baryonic masses of the components of the merging galaxies that will end up in the spheroid component of the remnant\footnote{Depending on the merging rules (see \S\protect\ref{sec:MergingMassMovements}) not all mass may be placed into the spheroid component of the remnant.} and $r_1$ and $r_2$ are the half mass radii of those same components of the merging galaxies\footnote{In practice, \glc\ computes a weighted average of the disk and spheroid half-mass radii of each galaxy, with weights equal to the masses of each component (disk and spheroid) which will become part of the spheroid component of the remnant.}, $r_{\rm new}$ is the half mass radius of the spheroidal component of the remnant galaxy and $c$ is a constant which depends on the distribution of the mass. For a Hernquist spheroid $c=0.40$ can be found by numerical integration while for a exponential disk $c=0.49$. For simplicity a value of $c=0.5$ is adopted for all components. The parameter $f_{\rm orbit}=${\tt mergerRemnantSizeOrbitalEnergy} depends on the orbital parameters of the galaxy pair. For example, a value of $f_{\rm orbit} = 1$ corresponds to point mass galaxies in circular orbits about their center of mass. 
+
+A subtelty arises because the above expression accounts for only the baryonic mass of material which becomes part of the spheroid component of the remnant. In reality, there are additional terms in the energy equation due to the interaction of this material with any dark matter mass in each galaxy and any baryonic mass of each galaxy which does not become part of the spheroid component of the remnant. To account for this additional matter, an effective boost factor, $f_{\rm boost}$, to the specific angular momentum of each component of each merging galaxy is computed:
+\begin{equation}
+ f_{\rm boost} = {j \over \sqrt{{\rm G} M r_{1/2}}},
+\end{equation}
+where $j$ is the specific angular momentum of the component, $M$ is its total baryonic mass and $r_{\rm 1/2}$ is its half-mass radius. The mass-weighted mean boost factor is found by combining those of all components which will form part of the spheroid of the remnant. The final specific angular momentum of the remnant spheroid is then given by:
+\begin{equation}
+ j_{\rm new} = \langle f_{\rm boost} \rangle r_{\rm new} V_{\rm new},
+\end{equation}
+where
+\begin{equation}
+ V_{\rm new}^2 = {{\rm G} (M_1+M_2)\over r_{\rm new}}.
+\end{equation}
 
 \subsubsection{Covington et al. (2008)}
 
@@ -425,7 +437,7 @@ and $r_2$ are their half mass radii, $r_{\rm new}$ is the half mass radius of th
 \begin{equation}
  f_{\rm gas} = {M_{\rm 1,gas}+M_{\rm 2,gas} \over M_1+M_2}
 \end{equation}
-begin the gas fraction of the progenitor galaxies. By default, $C_{\rm rad}=2.75$ \citep{covington_effects_2011}.
+begin the gas fraction of the progenitor galaxies. By default, $C_{\rm rad}=2.75$ \citep{covington_effects_2011}. To account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the \cite{cole_hierarchical_2000} algorithm (see \S\ref{sec:MergerRemnantSizeCole2000}). 
 
 \section{Hot Halo Density Profile}\index{hot halo!density profile}\index{density profile!hot halo}
 
