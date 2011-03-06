@@ -11,6 +11,9 @@ F03COMPILER = gfortran
 # C compiler:
 CCOMPILER = gcc
 
+# C++ compiler:
+CPPCOMPILER = g++
+
 # Module type (used for checking if module interfaces have changed):
 MODULETYPE = GCC-f95-on-LINUX
 
@@ -32,10 +35,15 @@ F03FLAGS += -fopenmp
 F03FLAGS += -DGCC45 -fintrinsic-modules-path /usr/local/include
 
 # C compiler flags:
-CFLAGS = 
+CFLAGS = -I./source/ -I./work/build/
+CFLAGS += -g
+
+# C++ compiler flags:
+CPPFLAGS = -I./source/ -I./work/build/
+CPPFLAGS += -g
 
 # Libraries:
-LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lhdf5hl_fortran -lhdf5_hl -lhdf5_fortran -lhdf5 -lm -lz
+LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lhdf5hl_fortran -lhdf5_hl -lhdf5_fortran -lhdf5 -lm -lz -lstdc++
 
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
@@ -66,8 +74,13 @@ vpath %.F90 source
 
 # Object (*.o) can also be built from C source files.
 vpath %.c source
-./work/build/%.o : %.c  Makefile
+./work/build/%.o : %.c ./work/build/%.d Makefile
 	$(CCOMPILER) -c $< -o ./work/build/$*.o $(CFLAGS)
+
+# Object (*.o) can also be built from C++ source files.
+vpath %.cpp source
+./work/build/%.o : %.cpp ./work/build/%.d Makefile
+	$(CPPCOMPILER) -c $< -o ./work/build/$*.o $(CPPFLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
 # bivar.F90 doesn't like to be compiled with any optimization:
@@ -76,12 +89,16 @@ vpath %.c source
 
 # Rule for running *.Inc files through the preprocessor.
 ./work/build/%.inc : ./work/build/%.Inc Makefile
-	$(PREPROCESSOR) $< -o ./work/build/$*.tmp
+	$(PREPROCESSOR) -C $< -o ./work/build/$*.tmp
 	mv -f ./work/build/$*.tmp ./work/build/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
 ./work/build/%.d : ./source/%.F90
+	@echo ./work/build/$*.o > ./work/build/$*.d
+./work/build/%.d : ./source/%.c
+	@echo ./work/build/$*.o > ./work/build/$*.d
+./work/build/%.d : ./source/%.cpp
 	@echo ./work/build/$*.o > ./work/build/$*.d
 
 # Module list files are created empty by default. Normally this rule is overruled by a specific set of rules in the
@@ -136,19 +153,19 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-./work/build/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 $(wildcard source/*.Inc)
+./work/build/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
-./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Makefile_Include_Deps source/*.[fF]90 $(wildcard source/*.Inc)
+./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
 	./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE)
 
-./work/build/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90
+./work/build/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
 	./scripts/build/Code_Directive_Parser.pl `pwd`
 
-./work/build/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90
+./work/build/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
 	./scripts/build/Find_Include_Dependencies.pl `pwd`
 
-./work/build/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90
+./work/build/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
 	./scripts/build/Find_Programs.pl `pwd`
 
 deps: $(MAKE_DEPS) ./work/build/Makefile_All_Execs

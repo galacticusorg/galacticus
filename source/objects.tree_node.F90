@@ -63,6 +63,7 @@
 
 module Tree_Nodes
   !% Defines the tree node object and associated methods.
+  use, intrinsic :: ISO_C_Binding 
   use Components
   use Kind_Numbers
   use Histories

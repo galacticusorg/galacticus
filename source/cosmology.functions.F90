@@ -63,13 +63,14 @@
 
 module Cosmology_Functions
   !% Implements useful cosmological functions.
+  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   private
   public :: Cosmology_Age, Expansion_Factor, Hubble_Parameter, Early_Time_Density_Scaling, Expansion_Factor_Is_Valid,&
        & Cosmic_Time_Is_Valid, Omega_Matter, Omega_Dark_Energy, Expansion_Rate, Epoch_of_Matter_Dark_Energy_Equality,&
        & Epoch_of_Matter_Domination, Expansion_Factor_from_Redshift, Redshift_from_Expansion_Factor, CMB_Temperature,&
        & Comoving_Distance, Time_From_Comoving_Distance
-  
+
   ! Flag to indicate if this module has been initialized.  
   logical              :: cosmologyInitialized=.false.
 
@@ -245,7 +246,17 @@ contains
      
      return
    end function Expansion_Factor
-  
+
+   function Expansion_Factor_C(tCosmological) bind(c,name="Expansion_Factor")
+     !% A C-bound wrapper function for \hyperlink{cosmology.functions.F90:cosmology_functions:expansion_factor}{\tt Expansion\_Factor()}.
+     implicit none
+     real(c_double)        :: Expansion_Factor_C
+     real(c_double), value :: tCosmological
+     
+     Expansion_Factor_C=Expansion_Factor(tCosmological)
+     return
+   end function Expansion_Factor_C
+     
    double precision function Expansion_Rate(aExpansion)
      !% Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\tt aExpansion}.
      implicit none

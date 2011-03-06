@@ -58,25 +58,45 @@ if ( $gotLocations == 1 ) {
 
 # Scan all necessary files.
 foreach $fullname ( @filesToScan ) {
+    # Determine source code type.
+    $codeType = "fortran";
+    $codeType = "c" if ( $fullname =~ m/\.c(pp)??$/ );
+
     open($infile,$fullname) or die "Can't open input file: #!";
     until ( eof($infile) ) {
-	
-	# Get next line from the Fortran source.
-	&Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
-	
+
+	switch ( $codeType) {
+	    case ( "fortran" ) {
+		# Get next line from the Fortran source.
+		&Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
+	    }
+	    case ( "c" ) {
+		# Get the next line from a C(++) source.
+		$processedLine = <$infile>;
+		$rawLine = $processedLine;	
+	    }
+	}
+		
 	# Check if we've entered or left a module.
 	if ( $processedLine =~ /^\s*module\s*([a-z0-9_]+)\s*$/i ) {$moduleName = $1};
 	if ( $processedLine =~ /^\s*end\s+module\s*([a-z0-9_]+)\s*$/i ) {$moduleName = ""};
-	
-	if ( $rawLine =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
-	    $xmlCode = $1."\n";
-	    $xmlTag  = $2;
+		
+	if ( $rawLine =~ m/^\s*(!|\/\/)\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
+	    $xmlCode = $2."\n";
+	    $xmlTag  = $3;
 	    # Read ahead until a matching close tag is found.
 	    unless ( $xmlCode =~  m/\/>/ ) {
 		$nextLine = "";
 		until ( $nextLine =~ m/<\/$xmlTag>/ || eof($infile) ) {
-		    &Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
-		    $nextLine =~ s/^\s*!\#\s+//;
+		    switch ( $codeType) {
+			case ( "fortran" ) {
+			    &Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
+			}
+			case ( "c" ) {
+			    $nextLine = <$infile>;
+			}
+		    }
+		    $nextLine =~ s/^\s*(!|\/\/)\#\s+//;
 		    $xmlCode .= $nextLine;
 		}
 	    }
@@ -113,8 +133,17 @@ foreach $fullname ( @filesToScan ) {
 				}
 				# If we have subroutine arguments, append them to the call.
 				if ( exists($instructions->{'subroutineArgs'}) ) {
+				    if ( exists($instructions->{'subroutineArgs'}->{$codeType}) ) {
+					$arguments = $instructions->{'subroutineArgs'}->{$codeType};
+				    } else {
+					die ("Build_Include_File.pl: subroutine arguments not derived for this language") unless ( $codeType eq "fortran" );
+					$arguments = $instructions->{'subroutineArgs'};
+				    }
+				} else {
+				    $arguments = "";
+				}
+				unless ( $arguments eq "" ) {
 				    if ( $inserts{$data->{'unitName'}} !~ m/\($/ ) {$inserts{$data->{'unitName'}} .= ","};
-				    $arguments = $instructions->{'subroutineArgs'};
 				    $arguments =~ s/\#label/$data->{'label'}/g;
 				    $inserts{$data->{'unitName'}} .= $arguments;
 				}
@@ -128,10 +157,36 @@ foreach $fullname ( @filesToScan ) {
 		    }
 		    # Instruction is to insert a "use" statement for the module which the directive appears in.
 		    case ( "moduleUse" ) {
-			$inserts{$moduleName} = "use ".$moduleName."\n";	
+			switch ( $codeType ) {
+			    case ( "fortran" ) {
+				$inserts{$moduleName} = "use ".$moduleName."\n";	
+			    }
+			    case ( "c" ) {
+				($leafName = $fullname) =~ s/.*?([^\/]+)\.c(pp)??$/\1.o/;
+				$inserts{$moduleName} = "!: ./work/build/".$leafName."\n";
+			    }
+			}
+		    }
+		    # Instruction is to declare C bindings as appropriate.
+		    case ( "cBinding" ) {
+			switch ( $codeType ) {
+			    case ( "c" ) {
+				$inserts{$moduleName} = "bind(c,name='".$data->{'unitName'}."') :: ".$data->{'unitName'}."\n";
+			    }
+			}
 		    }
 		    # Instruction is to process a new component property method.
 		    case ( "methods" ) {
+			# Get the type of this method.
+			$inserts{$data->{'methodName'}} = &Get_Type($data);
+		    }
+		    # Instruction is to generate a C-bound wrapper for a component property method.
+		    case ( "cWrapper" ) {
+			# Get the type of this method.
+			$inserts{$data->{'methodName'}} = &Get_Type($data);
+		    }
+		    # Instruction is to generate templates for C wrappers for a component property method.
+		    case ( "cTemplate" ) {
 			# Get the type of this method.
 			$inserts{$data->{'methodName'}} = &Get_Type($data);
 		    }
@@ -255,6 +310,43 @@ switch ( $instructions->{'type'} ) {
 	    print includeFile "procedure(Rate_Adjust_Template".$suffix."), pointer, public :: $method\_Rate_Adjust => null()\n";
 	    print includeFile "procedure(Rate_Compute_Template), pointer, public :: $method\_Rate_Compute => null()\n";
 	}
+    }
+    # For cWrapper, create C-bound wrappers for the given method.
+    case ( "cWrapper" ) {
+	foreach $method ( @SortedBlocks ) {
+	    $suffix = &Get_Suffix($inserts{$method});
+	    switch ( $suffix ) {
+		case ( "" ) {
+		    # Simple scalar method.
+		    print includeFile "function c".$method."(cNode) bind(c,name='".$method."')\n";
+		    print includeFile "  use, intrinsic :: ISO_C_Binding\n";
+		    print includeFile "  use Tree_Nodes\n";
+		    print includeFile "  implicit none\n";
+		    print includeFile "  real(c_double)          :: c".$method."\n";
+		    print includeFile "  type(c_ptr),    value   :: cNode\n";
+		    print includeFile "  type(treeNode), pointer :: thisNode\n";
+		    print includeFile "  call c_f_pointer(cNode,thisNode)\n";
+		    print includeFile "  c".$method."=".$method."(thisNode)\n";
+		    print includeFile "  return\n";
+		    print includeFile "end function c".$method."\n\n";
+		}
+	    }
+	}
+    }
+    # For cTemplate, create C templates for the given method.
+    case ( "cTemplate" ) {
+	print includeFile "extern \"C\"\n"; 
+	print includeFile "{\n";
+	foreach $method ( @SortedBlocks ) {
+	    $suffix = &Get_Suffix($inserts{$method});
+	    switch ( $suffix ) {
+		case ( "" ) {
+		    # Simple scalar method.
+		    print includeFile "  double ".$method."(void *thisNode);\n";
+		}
+	    }
+	}
+	print includeFile "}\n";
     }
     # Create code to compute derivatives for properties.
     case ( "derivatives" ) {

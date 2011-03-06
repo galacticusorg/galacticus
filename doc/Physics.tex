@@ -744,6 +744,14 @@ The star formation rate integated over the disk is
 \end{equation}
 From this the star formation timescale is found through the definition $\tau_\star \equiv M_{\rm gas, disk}/\Psi$.
 
+\subsection{Baugh et al. (2005)}
+
+Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt Baugh2005} this method assumes that the star formation rate is given by a modified version of the \cite{baugh_can_2005} prescription:
+\begin{equation}
+\tau_\star = \tau_0 (V_{\rm disk}/200\hbox{km/s})^\alpha a^\beta
+\end{equation}
+where $\tau_0=${\tt [starFormationDiskTimescale]}, $\alpha=${\tt [starFormationDiskVelocityExponent]} and $\beta=${\tt [starFormationExpansionExponent]}.
+
 \section{Stellar Population Properties}\label{sec:StellarPopulationProperties}\index{stellar populations}
 
 Algorithms for determining stellar population properties---essentially the rates of change of stellar and gas mass and abundances given a star formation rate and fuel abundances (and perhaps a historical record of star formation in the component)---are selected by the {\tt stellarPopulationPropertiesMethod} parameter.

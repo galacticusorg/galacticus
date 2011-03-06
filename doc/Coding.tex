@@ -12,6 +12,62 @@ The first feature is the ``unique ID''---an integer number assigned to each node
 
 The second feature accounts for the fact that the properties of a node will change, so even if a function is called on a node with the same unique ID it may occasionally need to recompute its result. \glc\ provides a calculation reset task\index{calculation reset task}\index{task, calculation reset} (see \S\ref{sec:CalculationResetTask}). All such tasks are performed just prior to the computation of derivatives for a node being evolved. A function can register a calculation reset task and use it to flag that it must update its calculations even if called again with the same node.
 
+\section{Mixed Language Coding}\label{sec:MixedLanguageCoding}\index{coding!mixed language}\index{mixed language coding}\index{C (language) coding}
+
+It is possible to incorporate C or C++ code into \glc. The implementation of C++-integration into \glc\ is currently only partially complete---if there is a specific function or feature that you would like to be C++-interoperable \href{mailto:abenson@caltech.edu}{contact us}. For an example of the various C++ interoperability see the {\tt star\_formation.timescales.disks.Baugh2005.cpp} file.
+
+\subsection{Component Property Methods}
+
+C++-wrappers are currently automatically built for the ``get'' method for all scalar properties defined for \glc\ components. To use these wrappers include the following lines:
+\begin{verbatim}
+//: ./work/build/objects.tree_node.cWrappers.o
+#include <objects.tree_node.cWrappers.h>
+\end{verbatim}
+The first line adds an explicit dependency on the wrappers file, while the second includes it. Then, scalar get methods are available using:
+\begin{verbatim}
+double Tree_Node_<Method>(void *thisNode)
+\end{verbatim}
+where {\tt *thisNode} is a pointer to a node object.
+
+\subsection{Using Functions in C++}
+
+Where functions have been made available in C++ the approach is to make an identical interface as in Fortran, as far as is possible. So, for example, getting the expansion factor for some cosmological time would work as follows in the two languages:
+
+\noindent Fortran
+\begin{verbatim}
+use Cosmology_Functions
+expansionFactor=Expansion_Factor(cosmologicalTime)
+\end{verbatim}
+
+\noindent C++
+\begin{verbatim}
+//: ./work/build/cosmology.functions.o
+#include <cosmology.functions.h>
+expansionFactor=Expansion_Factor(cosmologicalTime)
+\end{verbatim}
+
+Currently, the only function with C++-wrappers are {\tt Expansion\_Factor} and the double precision and integer scalar versions of {\tt Get\_Input\_Parameter}. Further wrappers will be added as needed or \href{mailto:abenson@caltech.edu}{requested}.
+
+\subsection{Adding New Implementations in C++}
+
+Adding a new implementation of a method is done in a very similar way as in Fortran. For example, the {\tt Baugh2005} disk star formation timescale method initializes as follows:
+
+\begin{verbatim}
+//# <starFormationTimescaleDisksMethod>
+//#  <unitName>Star_Formation_Timescale_Disk_Baugh2005_Initialize</unitName>
+//# </starFormationTimescaleDisksMethod>
+typedef double (func)(void *thisNode);
+void  Star_Formation_Timescale_Disk_Baugh2005_Initialize(char *starFormationTimescaleDisksMethod,func **Star_Formation_Timescale_Disk_Get)
+{
+  char ourName[] = "Baugh2005";
+  if (strcmp(starFormationTimescaleDisksMethod,ourName) == 0) {
+    *Star_Formation_Timescale_Disk_Get=&Star_Formation_Timescale_Disk_Baugh2005;
+  }
+}
+\end{verbatim}
+
+The usual embedded XML directives specifies that this function should be called to initialize the method. The function is passed both the name of the method that has been selected and a function pointer. If the method is matched, the function simply sets the function pointer to point to the specific function implementing the timescale calculation.
+
 \section{Objects}
 
 \subsection{Object Methods}

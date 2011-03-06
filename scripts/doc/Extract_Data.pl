@@ -21,8 +21,8 @@ opendir(dirHndl,$sourceDir);
 # Read files from the source directory.
 while ( $fileName = readdir(dirHndl) ) {
 
-    # Find Fortran 90 source files.
-    if ( $fileName =~ m/\.F90$/ ) {
+    # Find Fortran 90 and C++ source files.
+    if ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) {
 
 	# Get a printable file name.
 	($fileNamePrint = $fileName) =~ s/_/\\_/g;
@@ -55,9 +55,9 @@ while ( $fileName = readdir(dirHndl) ) {
 	    }
 
 	    # Search for "!@".
-	    if ( $line =~ m/^\s*\!\@\s/ ) {
+	    if ( $line =~ m/^\s*(\!|\/\/)\@\s/ ) {
 		# Found directive - add it to the buffer.
-		$line =~ s/^\s*\!\@\s*//;
+		$line =~ s/^\s*(\!|\/\/)\@\s*//;
 		$line =~ s/\s*$//;
 		$dataDirective .= $line." ";
 	    } elsif ( $dataDirective ne "" ) {

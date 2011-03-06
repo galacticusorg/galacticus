@@ -66,7 +66,7 @@ module String_Handling
   use ISO_Varying_String
   private
   public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
-       & Convert_VarString_To_Char
+       & Convert_VarString_To_Char, String_C_to_Fortran
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -289,5 +289,20 @@ contains
     end do
     return
   end function Convert_VarString_To_Char
+
+  function String_C_to_Fortran(charArray)
+    !% Convert a C-style character array into a Fortran varying string variable.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    type(varying_string)          :: String_C_to_Fortran
+    character(c_char), intent(in) :: charArray(:)
+    integer                       :: i
+
+    String_C_to_Fortran=""
+    do i=1,size(charArray)
+       String_C_to_Fortran=String_C_to_Fortran//charArray(i)
+    end do
+    return
+  end function String_C_to_Fortran
 
 end module String_Handling

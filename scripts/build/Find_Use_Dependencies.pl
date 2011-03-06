@@ -67,7 +67,14 @@ foreach $srcdir ( @sourcedirs ) {
     opendir(indir,$srcdir) or die "Can't open the source directory: #!";
     while (my $fname = readdir indir) {
 
-	if ( ( ( ( lc($fname) =~ m/\.f(90)??$/ ) && ! -e $srcdir."/".$fname."t" ) || ( lc($fname) =~ m/\.f90t$/ ) ) && lc($fname) !~ m/^\.\#/ ) {	    
+	if (
+	    (
+	     ( ( lc($fname) =~ m/\.f(90)??$/ ) && ! -e $srcdir."/".$fname."t" )
+	     || ( lc($fname) =~ m/\.f90t$/ )
+	     || ( lc($fname) =~ m/\.c(pp)??$/ )
+	    )
+	    && lc($fname) !~ m/^\.\#/ 
+	    ) {	    
 	    my $pname = $fname;
 	    my $fullname = "$srcdir/$fname";
 	    my $doesio = 0;
@@ -79,6 +86,7 @@ foreach $srcdir ( @sourcedirs ) {
 	    $oname =~ s/\.F90t$/\.o/;
 	    $oname =~ s/\.f$/\.o/;
 	    $oname =~ s/\.F$/\.o/;
+	    $oname =~ s/\.c(pp)??$/\.o/;
 	    @incfiles = ();
 	    @modfiles = ();
 	    @extra_includes = ();
@@ -145,7 +153,7 @@ foreach $srcdir ( @sourcedirs ) {
 				$hasuses = 1;
 			    }
 			}
-			if ( $line =~ m/^\s*\!:\s*(.*)$/ ) {
+			if ( $line =~ m/^\s*\!:\s*(.*)$/ || $line =~ m/^\s*\/\/:\s*(.*)$/ ) {
 			    $includes = $1;
 			    @includes = split(/\s+/,$1);
 			    push(@extra_includes,@includes);
@@ -216,13 +224,18 @@ foreach $srcdir ( @sourcedirs ) {
 		    $dname =~ s/.o$/.d/;
 		    print outfile ".".$workDir.$base.$dname,": ";
 		    if ( $#sortedinc >= 0 ) {print outfile ".",join(".",@sortedinc)};
+		    foreach $extra_include ( @extra_includes ) {
+			($dFile = $extra_include) =~ s/\.o$/.d/;
+			print outfile " ".$dFile;
+		    }
 		    print outfile "\n";
 		    print outfile "\t\@echo .$workDir$base$oname > .$workDir$base$dname\n";
 		    foreach $extra_include ( @extra_includes ) {
+			($dFile = $extra_include) =~ s/\.o$/.d/;
 			if ( $extra_include =~ m/\// ) {
-			print outfile "\t\@echo $extra_include >> .$workDir$base$dname\n";
+			    print outfile "\t\@cat $dFile >> .$workDir$base$dname\n";
 			} else {
-			print outfile "\t\@echo .$workDir$extra_include >> .$workDir$base$dname\n";
+			    print outfile "\t\@cat .$workDir$dFile >> .$workDir$base$dname\n";
 			}
 		    }
 		    foreach $item (@sortedinc) {
