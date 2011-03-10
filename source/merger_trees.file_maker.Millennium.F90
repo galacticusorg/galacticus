@@ -135,8 +135,8 @@ contains
        lineCountData =Count_Lines_in_File(particlesFile,"#")-1
        
        ! Find lines number ranges with data.
-       lineNumberStart=lineCountTotal-lineCountData
-       lineNumberStop =lineCountTotal-1
+       lineNumberStart=lineCountTotal-lineCountData+1
+       lineNumberStop =lineCountTotal
        
        ! Set columns to read.
        call mergerTrees%setParticleProperty(propertyTypeParticleIndex,1)
