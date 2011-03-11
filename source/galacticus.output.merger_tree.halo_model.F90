@@ -314,7 +314,7 @@ contains
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Galacticus_Extra_Output_Halo_Fourier_Profile</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(thisNode,iOutput,treeIndex)
+  subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
     use Tree_Nodes
     use IO_HDF5
@@ -329,6 +329,7 @@ contains
     type(treeNode),          intent(inout), pointer      :: thisNode
     integer,                 intent(in)                  :: iOutput
     integer(kind=kind_int8), intent(in)                  :: treeIndex
+    logical,                 intent(in)                  :: nodePassesFilter
     double precision,        allocatable,   dimension(:) :: fourierProfile
     integer                                              :: iWavenumber
     double precision                                     :: expansionFactor
@@ -336,7 +337,7 @@ contains
     type(hdf5Object)                                     :: profilesGroup,treeGroup,outputGroup
  
     ! If halo model output was requested, output the Fourier-space halo profiles.
-    if (outputHaloModelData.and..not.thisNode%isSatellite()) then
+    if (nodePassesFilter.and.outputHaloModelData.and..not.thisNode%isSatellite()) then
        ! Create a group for the profile datasets.
        profilesGroup=IO_HDF5_Open_Group(galacticusOutputFile,"haloModel","Halo model data.")
        groupName="Output"

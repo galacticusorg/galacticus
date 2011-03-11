@@ -1759,7 +1759,7 @@ use Kind_Numbers
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Exponential_Disk_Star_Formation_History_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Exponential_Disk_Star_Formation_History_Output(thisNode,iOutput,treeIndex)
+  subroutine Exponential_Disk_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use Kind_Numbers
     use Tree_Nodes
@@ -1768,13 +1768,14 @@ use Kind_Numbers
     type(treeNode),          intent(inout), pointer  :: thisNode
     integer,                 intent(in)              :: iOutput
     integer(kind=kind_int8), intent(in)              :: treeIndex
+    logical,                 intent(in)              :: nodePassesFilter
     integer                                          :: thisIndex
 
     ! Output the star formation history if a disk exists for this component.
     if (methodSelected .and. thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       call Star_Formation_History_Output(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex),iOutput&
-            &,treeIndex,'disk')
+       call Star_Formation_History_Output(thisNode,nodePassesFilter,thisNode%components(thisIndex)&
+            &%histories(starFormationHistoryIndex),iOutput ,treeIndex,'disk')
     end if
     return
   end subroutine Exponential_Disk_Star_Formation_History_Output

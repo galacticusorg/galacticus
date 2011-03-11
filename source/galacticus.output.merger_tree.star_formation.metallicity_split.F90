@@ -197,7 +197,6 @@ contains
     ! Find the start and end times for this history.
     timeBegin=Tree_Node_Time(thisNode  )
     timeEnd  =Galacticus_Next_Output_Time(timeBegin)
-
     call Star_Formation_History_Metallicity_Split_Make_History(thisHistory,timeBegin,timeEnd)
     return
   end subroutine Star_Formation_History_Create_Metallicity_Split
@@ -352,13 +351,15 @@ contains
     use Tree_Nodes
     use Abundances_Structure
     use Arrays_Search
+    use Galacticus_Output_Times
     implicit none
     type(treeNode),            intent(inout), pointer :: thisNode
     type(history),             intent(inout)          :: thisHistory
     type(abundancesStructure), intent(in)             :: fuelAbundances
     double precision,          intent(in)             :: starFormationRate
     integer                                           :: iHistory,iMetallicity,historyCount
-    double precision                                  :: timeNode,fuelMetallicity
+    double precision                                  :: timeNode,timeBegin,timeEnd,fuelMetallicity
+    type(history)                                     :: newHistory
 
     ! Get the current time for this node.
     timeNode    =Tree_Node_Time(thisNode)
@@ -383,7 +384,7 @@ contains
     return
   end subroutine Star_Formation_History_Record_Metallicity_Split
 
-  subroutine Star_Formation_History_Output_Metallicity_Split(thisNode,thisHistory,iOutput,treeIndex,componentLabel)
+  subroutine Star_Formation_History_Output_Metallicity_Split(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
     !% Output the star formation history for {\tt thisNode}.
     use Histories
     use ISO_Varying_String
@@ -395,6 +396,7 @@ contains
     use Galacticus_Output_Times
     implicit none
     type(treeNode),          intent(inout), pointer :: thisNode
+    logical,                 intent(in)             :: nodePassesFilter
     type(history),           intent(inout)          :: thisHistory
     integer,                 intent(in)             :: iOutput
     integer(kind=kind_int8), intent(in)             :: treeIndex
@@ -408,44 +410,48 @@ contains
     ! Return if the history does not exist.
     if (.not.thisHistory%exists()) return
 
-    ! Write metallicities if not already done.
-    if (.not.metallicityTableWritten) then
-       ! Open the histories group.
+    ! Check if the node passes any filtering, and output it if it does.
+    if (nodePassesFilter) then
+       
+       ! Write metallicities if not already done.
+       if (.not.metallicityTableWritten) then
+          ! Open the histories group.
+          historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,"starFormationHistories","Star formation history data.")
+          
+          ! Write the metallicities.
+          call historyGroup%writeDataset(metallicityTable,"metallicities","Metallicities at which star formation histories are tabulated.")
+          
+          ! Close the history group.
+          call historyGroup%close()
+          
+          ! Flag that metallicities have been written.
+          metallicityTableWritten=.true.
+       end if
+       
+       ! Create a group for the profile datasets.
        historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,"starFormationHistories","Star formation history data.")
-       
-       ! Write the metallicities.
-       call historyGroup%writeDataset(metallicityTable,"metallicities","Metallicities at which star formation histories are tabulated.")
-       
-       ! Close the history group.
+       groupName="Output"
+       groupName=groupName//iOutput
+       outputGroup=IO_HDF5_Open_Group(historyGroup,char(groupName),"Star formation histories for all trees at each output.")
+       groupName="mergerTree"
+       groupName=groupName//treeIndex
+       treeGroup=IO_HDF5_Open_Group(outputGroup,char(groupName),"Star formation histories for each tree.")
+       ! Write dataset to the group.
+       groupName=trim(componentLabel)//"Time"
+       groupname=groupName//thisNode%index()
+       call treeGroup%writeDataset(thisHistory%time,char(groupName),"Star formation history times of the "//trim(componentLabel)//" component.")
+       groupName=trim(componentLabel)//"SFH"
+       groupname=groupName//thisNode%index()
+       call treeGroup%writeDataset(thisHistory%data,char(groupName),"Star formation history stellar masses of the "//trim(componentLabel)//" component.")
+       ! Close the star formation history group.
+       call treeGroup   %close()
+       call outputGroup %close()
        call historyGroup%close()
-       
-       ! Flag that metallicities have been written.
-       metallicityTableWritten=.true.
     end if
-
-    ! Create a group for the profile datasets.
-    historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,"starFormationHistories","Star formation history data.")
-    groupName="Output"
-    groupName=groupName//iOutput
-    outputGroup=IO_HDF5_Open_Group(historyGroup,char(groupName),"Star formation histories for all trees at each output.")
-    groupName="mergerTree"
-    groupName=groupName//treeIndex
-    treeGroup=IO_HDF5_Open_Group(outputGroup,char(groupName),"Star formation histories for each tree.")
-    ! Write dataset to the group.
-    groupName=trim(componentLabel)//"Time"
-    groupname=groupName//thisNode%index()
-    call treeGroup%writeDataset(thisHistory%time,char(groupName),"Star formation history times of the "//trim(componentLabel)//" component.")
-    groupName=trim(componentLabel)//"SFH"
-    groupname=groupName//thisNode%index()
-    call treeGroup%writeDataset(thisHistory%data,char(groupName),"Star formation history stellar masses of the "//trim(componentLabel)//" component.")
-    ! Close the star formation history group.
-    call treeGroup   %close()
-    call outputGroup %close()
-    call historyGroup%close()
-
+    
     timeBegin=thisHistory%time(1)
     if (iOutput < Galacticus_Output_Time_Count()) then
-       timeEnd  =Galacticus_Output_Time(iOutput+1)
+       timeEnd =Galacticus_Output_Time(iOutput+1)
     else
        parentNode => thisNode
        do while (associated(parentNode%parentNode))

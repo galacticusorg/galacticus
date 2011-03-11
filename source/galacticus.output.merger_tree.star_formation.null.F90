@@ -124,7 +124,7 @@ contains
     return
   end subroutine Star_Formation_History_Record_Null
 
-  subroutine Star_Formation_History_Output_Null(thisNode,thisHistory,iOutput,treeIndex,componentLabel)
+  subroutine Star_Formation_History_Output_Null(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
     !% Output the star formation history for {\tt thisNode}.
     use Histories
     use ISO_Varying_String
@@ -135,6 +135,7 @@ contains
     use Kind_Numbers
     implicit none
     type(treeNode),          intent(inout), pointer :: thisNode
+    logical,                 intent(in)             :: nodePassesFilter
     type(history),           intent(inout)          :: thisHistory
     integer,                 intent(in)             :: iOutput
     integer(kind=kind_int8), intent(in)             :: treeIndex

@@ -131,6 +131,7 @@ contains
     type(treeNode),        pointer                :: thisNode
     integer(kind=HSIZE_T), dimension(1)           :: referenceStart,referenceLength
     integer                                       :: integerProperty,doubleProperty,iProperty
+    logical                                       :: nodePassesFilter
     type(hdf5Object)                              :: toDataset
 
     ! Initialize if necessary.
@@ -175,7 +176,8 @@ contains
     thisNode => thisTree%baseNode
     do while (associated(thisNode))
        if (Tree_Node_Time(thisNode) == time) then
-          if (Galacticus_Merger_Tree_Output_Filter(thisNode)) then
+          nodePassesFilter=Galacticus_Merger_Tree_Output_Filter(thisNode)
+          if (nodePassesFilter) then
              ! Establish node link properties.
              if (integerPropertyCount > 0) then
                 integerProperty=0
@@ -196,13 +198,14 @@ contains
              if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(iOutput)
              if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (iOutput)
              
-             ! Do any extra output tasks.
-             !# <include directive="mergerTreeExtraOutputTask" type="code" action="subroutine">
-             !#  <subroutineArgs>thisNode,iOutput,thisTree%index</subroutineArgs>
-             include 'galacticus.output.merger_tree.tasks.extra.inc'
-             !# </include>
-             
           end if
+
+          ! Do any extra output tasks.
+          !# <include directive="mergerTreeExtraOutputTask" type="code" action="subroutine">
+          !#  <subroutineArgs>thisNode,iOutput,thisTree%index,nodePassesFilter</subroutineArgs>
+          include 'galacticus.output.merger_tree.tasks.extra.inc'
+          !# </include>
+
        end if
        call thisNode%walkTreeWithSatellites(thisNode)
     end do
