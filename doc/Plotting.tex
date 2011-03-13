@@ -1,0 +1,59 @@
+\chapter{Plotting Support}\index{plotting}
+
+While \glc\ data can, of course, be plotted using whatever method you choose, two Perl modules are provided that we find useful for plotting \glc\ data. These are intended for use with \href{http://www.gnuplot.info/}{\sc GnuPlot} and with datasets stored as \href{http://pdl.perl.org/}{\tt PDL} variables. The first module, {\tt GnuPlot::PrettyPlots} plots lines and points with two color style (typically a lighter interior color and a darker border) with support for errorbars and limits (show as arrows) on points. The second, {\tt GnuPlot::LaTeX} provides a convenient way to process output from {\sc GnuPlot}'s {\tt epslatex} terminal into PDF files (suitable for inclusion in documents) or PNG images with transparent backgrounds (suitable for inclusion into presentations).
+
+A typical use of these packages would look as follows:
+\begin{verbatim}
+use lib "./perl";
+use PDL;
+use GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+
+$outputFile = "myImage";
+open($gnuPlot,"|gnuplot");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output '".$outputFile.".eps'\n";
+print $gnuPlot "set xlabel '\$x-axis label\$'\n";
+print $gnuPlot "set ylabel '\$y-axis label\$'\n";
+print $gnuPlot "set lmargin screen 0.15\n";
+print $gnuPlot "set rmargin screen 0.95\n";
+print $gnuPlot "set bmargin screen 0.15\n";
+print $gnuPlot "set tmargin screen 0.95\n";
+print $gnuPlot "set key spacing 1.2\n";
+print $gnuPlot "set key at screen 0.4,0.8\n";
+print $gnuPlot "set key left bottom\n";
+print $gnuPlot "set xrange [0.0:6.0]\n";
+print $gnuPlot "set yrange [0.0:1.0]\n";
+print $gnuPlot "set pointsize 2.0\n";
+&PrettyPlots::Prepare_Dataset(\$plot,
+			      $x1Data, $y1Data,
+                              title => "First dataset",
+                              style => line,
+                              weight => [7,3],
+			      color => $PrettyPlots::colorPairs{'lightGoldenrod'}
+                             );
+&PrettyPlots::Prepare_Dataset(\$plot,
+			      $x2Data, $y2Data,
+			      errorDown => $errorDown,
+			      errorUp   => $errorUp,
+                              title => "Galacticus",
+			      style => point,
+                              symbol => [6,7],
+                              weight => [5,3],
+			      color => $PrettyPlots::colorPairs{'redYellow'}
+                             );
+&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+close($gnuPlot);
+&LaTeX::GnuPlot2PNG($outputFile.".eps", backgroundColor => "#000080");
+\end{verbatim}
+
+The process begins by opening a pipe to {\sc GnuPlot} and specifying the {\tt epslatex} terminal along with {\tt color} and {\tt colortext} options, any line weight preferences and the output EPS file. This is followed by commands to set up the plot, including labels, ranges etc. Note that you \emph{must} specify margins manually\footnote{The {\tt GnuPlot::PrettyPlots} module works by generating multiple layers of plotting which are overlaid. Axes are only drawn for the first layer. If you do not specify margins manually, they will be computed automatically for each layer and so will not match up between all layers. This will result in data being plotted incorrectly.}. Following this are calls to {\tt \&PrettyPlots::Prepare\_Dataset} which prepares instructions for plotting of a single dataset. The first argument is a reference to a structure which will store the instructions, while the second and third arguments are PDLs containing the $x$ and $y$ data to be plotted. Following this are multiple options as follows:
+\begin{description}
+\item[{\tt title}] Gives the title of the dataset for inclusion in the plot key;
+\item[{\tt style}] Specifies how the dataset should be drawn: either {\tt line} or {\tt point};
+\item[{\tt symbol}] A two element list giving the symbol indices that should be used to plot the border and inner parts of each point respectively;
+\item[{\tt weight}] A two element list giving the line weights to be used for border and inner parts of each point/line respectively;
+\item[{\tt color}] A two element list giving the color of border and inner parts of each point/line respectively. Colors should be specified as {\tt \#RRGGBB} in hexadecimal. Several suitable color pairs and sequences of pairs are defined in the {\tt GnuPlot::PrettyPlots} module;
+\item[{\tt errorNNN}] Gives a PDL containing sizes of errors to be plotted on points in the up, down, left and right directions. A zero value will cause the error bar to be omitted, while a negative value will cause an arrow to be drawn with a length equal to the absolute value of the specified value.
+\end{description}
+Once all datasets have been prepared, the call to {\tt \&PrettyPlots::Plot\_Datasets} will generate the EPS and \LaTeX\ files necessary to make the plot. This resulting plot can be converted to PDF or PNG form by calling {\tt \&LaTeX::GnuPlot2PDF} or {\tt \&LaTeX::GnuPlot2PNG} respectively. The EPS file will be replaced with the appropriate file. The {\tt \&LaTeX::GnuPlot2PNG} routine accepts an optional {\tt backgroundColor} argument in {\tt \#RRGGBB} format. If present, this color will be used to set the background color of the plot (otherwise white is assumed). Although the background is made transparent in the PNG, setting the background color is important as antialiasing will make use of this background.
