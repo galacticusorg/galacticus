@@ -400,7 +400,7 @@ sub Output_Data {
 	
 	# Output header line for unit, skipping nameless interfaces (i.e. abstract interfaces) and any children of such interfaces.
 	unless ( $unitIsAbstract == 1 || $parentUnitIsAbstract == 1 ) {
-	    print $outputHandle "\\noindent{\\bf ".$unitType.":} \\hypertarget{".$unitID."}{{\\tt ".$unitName."}}\\index{".$unitName."\@\{\\tt ".$unitName."} (".$unitType.")}\n\n";
+	    print $outputHandle "\\noindent{\\bf ".$unitType.":} \\hypertarget{".$unitID."}{{\\tt ".$unitName."}}\\index[code]{".$unitName."\@\{\\tt ".$unitName."} (".$unitType.")}\n\n";
 
 	    # Begin tabulated output.
 	    $tableOpen = "\\begin{supertabular}{lp{70mm}p{70mm}}\n";

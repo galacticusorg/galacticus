@@ -5,7 +5,7 @@
 \usepackage{supertabular}
 \usepackage{epsfig}
 \usepackage{ifthen}
-\usepackage{makeidx}
+\usepackage{index}
 \usepackage{listings}
 \usepackage{verbatim}
 \usepackage{hyphenat}
@@ -68,6 +68,7 @@
 \def\SNe{\ifthenelse{\equal{\arabic{SNeDone}}{0}}{supernovae (SNe) \setcounter{SNeDone}{1}}{SNe}}
 
 \makeindex
+\newindex{code}{cdx}{cnd}{Code Index}
 
 \begin{document}
 
@@ -156,5 +157,6 @@ In this Part we focus on how to modify \glc\ to meet your own needs. \glc\ is de
 
 \citeindextrue
 \printindex
+\printindex[code]
 
 \end{document}
