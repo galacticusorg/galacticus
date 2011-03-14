@@ -179,13 +179,13 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>Hot_Halo_Profile_Enclosed_Mass_Task</unitName>
   !# </enclosedMassTask>
-  subroutine Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,componentMass)
+  subroutine Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightBy,weightIndex,componentMass)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
     use Cosmological_Parameters
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType
+    integer,          intent(in)             :: massType,componentType,weightBy,weightIndex
     double precision, intent(in)             :: radius
     double precision, intent(out)            :: componentMass
 
@@ -193,6 +193,7 @@ contains
     componentMass=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
+    if (.not.(weightBy      == weightByMass                                                                                )) return
 
     ! Return the enclosed mass.
     componentMass=Hot_Halo_Enclosed_Mass(thisNode,radius)
@@ -204,6 +205,7 @@ contains
   !# </rotationCurveTask>
   subroutine Hot_Halo_Profile_Rotation_Curve_Task(thisNode,radius,massType,componentType,componentVelocity)
     !% Computes the rotation curve at a given radius for a dark matter profile.
+    use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -217,7 +219,7 @@ contains
 
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
-       call Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,componentMass)
+       call Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,componentMass)
        if (componentMass > 0.0d0) componentVelocity=dsqrt(gravitationalConstantGalacticus*componentMass)/dsqrt(radius)
     end if
     return

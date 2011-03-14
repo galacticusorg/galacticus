@@ -1417,12 +1417,12 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>Hernquist_Spheroid_Enclosed_Mass</unitName>
   !# </enclosedMassTask>
-  subroutine Hernquist_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,componentMass)
+  subroutine Hernquist_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex,componentMass)
     !% Computes the mass within a given radius for an Hernquist spheroid.
     use Galactic_Structure_Options
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType
+    integer,          intent(in)             :: massType,componentType,weightBy,weightIndex
     double precision, intent(in)             :: radius
     double precision, intent(out)            :: componentMass
     double precision                         :: fractionalRadius,spheroidRadius
@@ -1431,13 +1431,22 @@ contains
     if (.not.methodSelected                           ) return
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
     if (.not.thisNode%componentExists(componentIndex)) return
-    select case (massType)
-    case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-       componentMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
-    case (massTypeGaseous)
-       componentMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
-    case (massTypeStellar)
-       componentMass=Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
+    select case (weightBy)
+    case (weightByMass      )
+       select case (massType)
+       case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+          componentMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
+       case (massTypeGaseous)
+          componentMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
+       case (massTypeStellar)
+          componentMass=Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
+       end select
+    case (weightByLuminosity)
+       select case (massType)
+       case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+          call Tree_Node_Spheroid_Stellar_Luminosities_Hernquist(thisNode,luminositiesSpheroid)
+          componentMass=luminositiesSpheroid(weightIndex)
+       end select
     end select
     ! Return if total mass was requested.  
     if (radius >= radiusLarge)                          return
@@ -1457,6 +1466,7 @@ contains
   !# </rotationCurveTask>
   subroutine Hernquist_Spheroid_Rotation_Curve(thisNode,radius,massType,componentType,componentVelocity)
     !% Computes the rotation curve at a given radius for an Hernquist spheroid.
+    use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -1471,7 +1481,7 @@ contains
     ! Compute if a spheroid is present.
     if (methodSelected .and. thisNode%componentExists(componentIndex)) then       
        if (radius > 0.0d0) then
-          call Hernquist_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,componentMass)
+          call Hernquist_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,componentMass)
           if (componentMass > 0.0d0) componentVelocity=dsqrt(gravitationalConstantGalacticus*componentMass)/dsqrt(radius)
        end if
     end if

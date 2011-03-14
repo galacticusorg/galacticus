@@ -1192,12 +1192,12 @@ use Kind_Numbers
   !# <enclosedMassTask>
   !#  <unitName>Exponential_Disk_Enclosed_Mass</unitName>
   !# </enclosedMassTask>
-  subroutine Exponential_Disk_Enclosed_Mass(thisNode,radius,massType,componentType,componentMass)
+  subroutine Exponential_Disk_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex,componentMass)
     !% Computes the mass within a given radius for an exponential disk.
     use Galactic_Structure_Options
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType
+    integer,          intent(in)             :: massType,componentType,weightBy,weightIndex
     double precision, intent(in)             :: radius
     double precision, intent(out)            :: componentMass
     double precision                         :: fractionalRadius,diskRadius
@@ -1206,13 +1206,22 @@ use Kind_Numbers
     if (.not.methodSelected                           ) return
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
     if (.not.thisNode%componentExists(componentIndex)) return
-    select case (massType)
-    case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-       componentMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
-    case (massTypeGaseous)
-       componentMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
-    case (massTypeStellar)
-       componentMass=Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
+    select case (weightBy)
+    case (weightByMass      )
+       select case (massType)
+       case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+          componentMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
+       case (massTypeGaseous)
+          componentMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
+       case (massTypeStellar)
+          componentMass=Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
+       end select
+    case (weightByLuminosity)
+       select case (massType)
+       case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+          call Tree_Node_Disk_Stellar_Luminosities_Exponential(thisNode,luminositiesDisk)
+          componentMass=luminositiesDisk(weightIndex)
+       end select
     end select
     ! Return if no mass.
     if (componentMass <= 0.0d0)                         return
@@ -1249,7 +1258,7 @@ use Kind_Numbers
     if (methodSelected .and. thisNode%componentExists(componentIndex)) then
        
        ! Get the mass of the disk.
-       call Exponential_Disk_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,componentMass)
+       call Exponential_Disk_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,componentMass)
        if (componentMass <= 0.0d0) return
        
        ! Compute the actual velocity.
