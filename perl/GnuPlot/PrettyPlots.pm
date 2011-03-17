@@ -226,11 +226,11 @@ sub Prepare_Dataset {
     $pointType{'upper'} = " pt \"".${$options{'symbol'}}[1]."\"" if ( exists($options{'symbol'}) );
 
     # Create a title attribute, defaulting to no title if none is specified.
-    my $title = "notitle";
+    my $title = " notitle";
     $title = " title \"".$options{'title'}."\"" if ( exists($options{'title'}) );
 
     # Define the dummy point and end points.
-    my $dummyPoint = "0/0 0/0\n";
+    my $dummyPoint = "inf inf\n";
     my $endPoint   = "e\n";
 
     # We have three plotting phases:
