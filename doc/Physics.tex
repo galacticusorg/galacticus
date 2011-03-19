@@ -644,9 +644,13 @@ Arbitrary processing of merger trees prior to their evolution can be carried out
 
 Output of the mass accretion history (i.e. the mass of the node on the primary branch as a function of time) for each merger tree can be requested by setting {\tt [massAccretionHistoryOutput]}$=${\tt true}. If requested, an additional group, {\tt massAccretionHistories}, is made in the \glc\ output file. This group will contain a subgroup for each merger tree ({\tt mergerTreeN} where {\tt N} is the merger tree index) within which three datasets, {\tt nodeIndex}, {\tt nodeTime} and {\tt nodeMass}, can be found. These give the index, time and mass of the node on the primary branch of the tree at all times for which the tree is defined.
 
-\subsection{Tree Pruning}\index{merger tree!pruning}
+\subsection{Tree Pruning By Mass}\index{merger tree!pruning!by mass}
 
 This task allows for branches of merger trees to be pruned---i.e. nodes below a specified mass limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. To prune branches set {\tt [mergerTreePruneBranches]}$=${\tt true} and set {\tt [mergerTreePruningMassThreshold]} to the desired mass threshold below which nodes will be pruned.
+
+\subsection{Tree Pruning By Hierarchy}\index{merger tree!pruning!by hierarchy}
+
+This task allows for branches of merger trees to be pruned by hierarchy---i.e. nodes below a given depth in the hierarchy\footnote{The main branch is defined as depth 0. Other branches are assigned a depth equal to the depth of the branch onto which they merge plus 1. For example, any branch which merges directly onto the main branch is defined as depth 1.} are removed from the tree prior to any evolution.  To prune branches by hierarchy depth set {\tt [mergerTreePruneHierarchyAtDepth]} to the desired depth at which to prune. For example, a value of 1 will result in all branches except for the main branch being removed, while a value of 2 will remove all branches that do not merge directly onto the main branch. (Note that setting {\tt [mergerTreePruneHierarchyAtDepth]} to zero will result in no pruning.)
 
 \section{Molecular Reaction Rates}\index{molecules!reaction rates}\index{reaction rates!molecular}\label{sec:MolecularReactionRates}
 
