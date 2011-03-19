@@ -174,16 +174,17 @@ sub GnuPlot2PDF {
     move($gnuplotRoot.".tex.swapped",$gnuplotRoot.".tex");
 
     # Create a wrapper file for the LaTeX.
-    open(wHndl,">gnuplotWrapper.tex");
+    my $wrapper = "gnuplotWrapper".$$;
+    open(wHndl,">".$wrapper.".tex");
     print wHndl "\\documentclass[10pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotRoot."}\n\\end{document}\n";
     close(wHndl);
-    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile."; pdflatex gnuplotWrapper; pdfcrop gnuplotWrapper.pdf","/dev/null");
-    move("gnuplotWrapper-crop.pdf",$gnuplotPdfFile);
+    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf","/dev/null");
+    move("".$wrapper."-crop.pdf",$gnuplotPdfFile);
     unlink(
-	   "gnuplotWrapper.pdf",
-	   "gnuplotWrapper.tex",
-	   "gnuplotWrapper.log",
-	   "gnuplotWrapper.aux",
+	   $wrapper.".pdf",
+	   $wrapper.".tex",
+	   $wrapper.".log",
+	   $wrapper.".aux",
 	   $gnuplotEpsFile,
 	   $gnuplotLatexFile,
 	   $gnuplotAuxFile
