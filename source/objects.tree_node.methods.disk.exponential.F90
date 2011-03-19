@@ -552,9 +552,6 @@ contains
     use Galactic_Dynamics_Bar_Instabilities
     use Galacticus_Output_Star_Formation_Histories 
     use Numerical_Constants_Astronomical
-
-use Kind_Numbers
-
     implicit none
     type(treeNode),            pointer, intent(inout) :: thisNode
     logical,                            intent(inout) :: interrupt
