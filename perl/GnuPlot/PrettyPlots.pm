@@ -170,6 +170,7 @@ our %colors = (
 # Sets of color pairs suitable for plotting points with a light middle and darker border.
 our %colorPairs = (
     redYellow      => [$colors{'Red'          },$colors{'Yellow'        }],
+    blackGray      => [$colors{'SlateGray'    },$colors{'Black'         }],
     blueCyan       => [$colors{'Blue'         },$colors{'Cyan'          }],
     peachPuff      => [$colors{'Bisque3'      },$colors{'PeachPuff'     }],
     slateGray      => [$colors{'DarkSlateGray'},$colors{'SlateGray'     }],
