@@ -250,6 +250,10 @@ contains
           ! If the root function is not negative at aMaximumHigh it is due to rounding errors in the calculation of aMaximumHigh
           ! which implies that aMaximumHigh is very close to the actual root.
           Perturbation_Maximum_Radius=aMaximumHigh          
+       else if (aMaximumRoot(aMaximumLow,parameterPointer) < 0.0d0)  then
+          ! If the root function is not positive at aMaximumLow it is due to rounding errors in the calculation of aMaximumLow
+          ! which implies that aMaximumLow is very close to the actual root.
+          Perturbation_Maximum_Radius=aMaximumLow
        else
           Perturbation_Maximum_Radius=Root_Find(aMaximumLow,aMaximumHigh,aMaximumRoot,parameterPointer &
                &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
