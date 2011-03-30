@@ -1310,17 +1310,14 @@ contains
 
     ! Begin at the input node.
     progenitorNode => thisNode
-    
+
     ! Descend through satellites and children.
     do while (associated(progenitorNode%satelliteNode).or.associated(progenitorNode%childNode))
-       ! Descend through any satellite nodes.
-       do while (associated(progenitorNode%satelliteNode))
+       if (associated(progenitorNode%satelliteNode)) then
           progenitorNode => progenitorNode%satelliteNode
-       end do
-       ! Descend through any child nodes.
-       do while (associated(progenitorNode%childNode))
+       else
           progenitorNode => progenitorNode%childNode
-       end do
+       end if
     end do
     return
   end function Merger_Tree_Walk_Descend_to_Progenitors
