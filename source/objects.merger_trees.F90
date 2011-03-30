@@ -75,7 +75,7 @@ module Merger_Trees
   include 'objects.tree_node.create.modules.inc'
   !# </include>
   private
-  public :: mergerTree, Tree_Node_Is_Accurate
+  public :: mergerTree, Tree_Node_Is_Accurate, Tree_Node_Get
 
   type mergerTree
      !% The merger tree object type.
@@ -926,12 +926,12 @@ contains
     use Tree_Nodes
     implicit none
 #ifdef GCC45
-    class(mergerTree), intent(inout) :: thisTree
+    class(mergerTree),       intent(inout) :: thisTree
 #else
-    type(mergerTree),  intent(inout) :: thisTree
+    type(mergerTree),        intent(inout) :: thisTree
 #endif
-    integer,           intent(in)    :: nodeIndex
-    type(treeNode),    pointer       :: Tree_Node_Get,thisNode
+    integer(kind=kind_int8), intent(in)    :: nodeIndex
+    type(treeNode),          pointer       :: Tree_Node_Get,thisNode
 
     Tree_Node_Get => null()
     thisNode => thisTree%baseNode
