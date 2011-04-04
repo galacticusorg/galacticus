@@ -60,7 +60,7 @@
 
 
 program Tests_Bug745815
-  !% Tests for regression of Bug #745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
+  !% Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
   !% walk.
   use Unit_Tests
   use Input_Parameters
