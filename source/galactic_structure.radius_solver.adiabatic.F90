@@ -78,6 +78,9 @@ module Galactic_Structure_Radii_Adiabatic
   double precision :: fitMeasure,haloFraction
   !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloFraction)
 
+  ! Options controlling the solver.
+  logical          :: adiabaticContractionIncludeBaryonGravity
+
 contains
 
   !# <galacticStructureRadiusSolverMethod>
@@ -112,6 +115,15 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionGnedinOmega',adiabaticContractionGnedinOmega,defaultValue=0.77d0)
+       !@ <inputParameter>
+       !@   <name>adiabaticContractionIncludeBaryonGravity</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in adiabatically contracted dark matter halos.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('adiabaticContractionIncludeBaryonGravity',adiabaticContractionIncludeBaryonGravity,defaultValue=.true.)
        ! Store the exponent that we actually use in the equations.
        inverseAdiabaticContractionGnedinOmegaMinusOne=1.0d0/adiabaticContractionGnedinOmega-1.0d0
     end if
@@ -189,7 +201,7 @@ contains
     ! Count the number of active comonents.
     activeComponentCount=activeComponentCount+1
 
-    if (iterationCount == 1) then
+    if (iterationCount == 1 .or. haloFraction <= 0.0d0) then
        ! On first iteration, see if we have a previous radius set for this component.
        radius=Radius_Get(thisNode)
 
@@ -243,7 +255,11 @@ contains
        darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
 
        ! Compute baryonic contribution to rotation curve.
-       baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(thisNode,radius,massType=massTypeGalactic)**2
+       if (adiabaticContractionIncludeBaryonGravity) then
+          baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(thisNode,radius,massType=massTypeGalactic)**2
+       else
+          baryonicVelocitySquared=0.0d0
+       end if
 
        ! Compute new estimate of velocity.
        velocity=dsqrt(darkMatterVelocitySquared+baryonicVelocitySquared)
