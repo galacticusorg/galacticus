@@ -350,6 +350,7 @@ contains
   !# </postEvolveTask>
   subroutine Tree_Node_Hot_Halo_Post_Evolve_Standard(thisNode)
     !% Do processing of the node required after evolution.
+    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: parentNode
@@ -360,12 +361,13 @@ contains
        do while (parentNode%isSatellite())
           parentNode => parentNode%parentNode
        end do
+       call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(parentNode&
+            &,Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode)+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)&
+            &*Tree_Node_Spin(parentNode)*Dark_Matter_Halo_Virial_Radius(parentNode)*Dark_Matter_Halo_Virial_Velocity(parentNode))
+       call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,0.0d0)
        call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(parentNode,Tree_Node_Hot_Halo_Outflowed_Mass_Standard(parentNode) &
             &+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode))
        call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,0.0d0)
-       call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(parentNode&
-            &,Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode)+Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode))
-       call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,0.0d0)
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(parentNode,abundancesParent)
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode  ,abundancesWork  )
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(parentNode,abundancesWork+abundancesParent)
@@ -539,7 +541,7 @@ contains
        if (.not.gotCoolingConversions) then
           angularMomentumCoolingConversion=Cooling_Radius(thisNode)*Dark_Matter_Profile_Rotation_Normalization(thisNode)&
                &*Tree_Node_Hot_Halo_Angular_Momentum(thisNode)/Tree_Node_Hot_Halo_Mass(thisNode)
-          
+
           ! Flag that cooling conversion factors have now been computed.
           gotCoolingConversions=.true.
        end if
