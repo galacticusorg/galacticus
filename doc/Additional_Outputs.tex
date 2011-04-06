@@ -1,5 +1,29 @@
 \chapter{Additional Output Quantities}
 
+\section{Black Hole Accretion}\index{black holes!supermassive}\index{black holes!accretion}\index{black holes!jets}
+
+Properties associated with accretion onto supermassive black holes can be output by setting {\tt blackHoleOutputAccretion}$=${\tt true}. Currently, two additional properties are output for each node when this option is selected:
+\begin{description}
+\item[{\tt blackHoleAccretionRate}] The rate at which the supermassive black hole is accreting mass in $M_\odot$ Gyr$^{-1}$;
+\item[{\tt blackHoleJetPower}] The power being emitted into jets by the black hole/accretion disk system in $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
+\end{description}
+
+\section{Cooling Data}\index{cooling}\index{cooling!output}\index{cooling!radius}\index{cooling!rate}
+
+Properties associated with cooling in hot halos can be output by setting {\tt hotHaloOutputCooling}$=${\tt true}. Currently, two additional properties are output for each node when this option is selected:
+\begin{description}
+\item[{\tt hotHaloCoolingRate}] The rate at which gas is cooling from the halo (assuming no sources of heating) in $M_\odot$ Gyr$^{-1}$;
+\item[{\tt hotHaloCoolingRadius}] The characteristic cooling radius in the halo in Mpc.
+\end{description}
+
+\section{Density Contrast Data}\index{density contrast}\index{density!contrast}
+
+Properties of nodes at density contrasts other than the virial density can be output by setting {\tt [outputDensityContrastData]}$=${\tt true}. When selected, this output option requires that a list of density contrasts, $Delta$ (defined in units of the mean density of the Universe), be given in the {\tt [outputDensityContrastValues]} input parameter. For each specified density contrast, two properties are output for each node: {\tt nodeRadius}$\Delta$ and {\tt nodeMass}$\Delta$ which give the radius enclosing a mean density contrast of $\Delta$ and the mass enclosed within that radius. The parameter {\tt [outputDensityContrastDataDarkOnly]} controls whether density contrasts are measured for total mass ({\tt false}) or dark matter mass only ({\tt true}). In the latter case, density contrasts are defined relative to the mean dark matter density of the Universe.
+
+\section{Half-Light Radii Data}\index{mass profile!half-light radius}\index{half-light radius}
+
+Half-light radii and masses enclosed within them can be output by setting {\tt [outputHalfLightData]}$=${\tt true}. When selected the half-light radius in each specified luminosity band is output as {\tt [halfLightRadius\{luminosityID\}]} (in Mpc), where {\tt\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass within that radius is output as {\tt [halfLightMass\{luminosityID\}]} (in $M_\odot$).
+
 \section{Halo Model Quantities}\label{sec:HaloModelOutput}\index{halo model}\index{clustering!halo model}
 
 The following quantities related to galaxy clustering are output if {\tt [outputHaloModelData]} is set to true:
@@ -16,60 +40,6 @@ In addition to these quantities output for each node, setting {\tt [outputHaloMo
 Finally, each numbered output group is given two additional attributes, {\tt linearGrowthFactor} and {\tt linearGrowthFactorLogDerivative} which give the growth factor, $D$, and its logarithmic derivative, $\d \ln D / \d \ln a$ at the output time.
 
 The information output can be used to construct galaxy power spectra and correlation functions (see \S\ref{sec:ClusteringHaloModel} for example).
-
-\section{Merger Tree Links and Node Isolation}\index{merger tree!links}
-
-The following properties are output to permit the merger tree structure to be recovered:
-\begin{description}
- \item [{\tt nodeIndex}] A unique (within a tree) integer index identifying the node;
- \item [{\tt childIndex}] The index of this node's primary child node (or $-1$ if it has no child);
- \item [{\tt parentIndex}] The index of this node's parent node (or $-1$ if it has no parent);
- \item [{\tt siblingIndex}] The index of this node's sibling node (or $-1$ if it has no sibling);
- \item [{\tt satelliteIndex}] The index of this node's first satellite node (or $-1$ if it has no satellites);
- \item [{\tt nodeIsIsolated}] Will be $0$ for a node which is a subhalo inside some other node (i.e. a satellite galaxy\index{satellite galaxies!identifying}) or $1$ for a node that is an isolated halo (i.e. a central galaxy\index{central galaxies!identifying}).
-\end{description}
-
-The {\tt nodeIndex} property corresponds by default to the index of the node in the original merger tree. This means that as a galaxy evovles through the tree and, in particular, gets promoted into a new halo the index associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree structure, but does not allow galaxies to be traced from one output to the next using their {\tt nodeIndex} value. By setting {\tt [nodePromotionIndexShift]}$=${\tt true} this behavior can be changed such that the value of {\tt nodeIndex} will reflect the index of the earliest progenitor node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its evolution\index{galaxies!tracing through outputs}\index{galaxies!indices}\index{nodes!indices}\index{indices!nodes}\index{indices!galaxies}.
-
-\section{Virial Quantities}\index{virial}
-
-The following quantities related to the virialized region of each node are output if {\tt outputVirialData} is set to true:
-\begin{description}
- \item [{\tt nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity was selected in \glc) in units of Mpc;
- \item [{\tt nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
-\end{description}
-
-\section{Merger Tree Structure}\index{merger tree!structure}
-
-The structure of each merger tree can optionally be dumped to a file suitable for post-processing with \href{http://www.graphviz.org/}{\sc dot} after every step of evolution. To request this output set {\tt [mergerTreesDumpStructure]}$=${\tt true}. After each evolution step the tree structure will be dumped to a file named {\tt mergerTreeDump:$\langle$treeIndex$\rangle$:$\langle$outputIndex$\rangle$.gv} where $\langle${\tt treeIndex}$\rangle$ is the index of the tree and $\langle${\tt outputIndex}$\rangle$ is an incremental counter that tracks the number of outputs for this tree. These files can be processed with \href{http://www.graphviz.org/}{\sc dot} to produce a diagram of the tree structure. The node currently being evolved will be highlighted in green. This output option makes use of the \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump}{\tt Merger\_Trees\_Dump} module to create the outputs.
-
-\section{Density Contrast Data}\index{density contrast}\index{density!contrast}
-
-Properties of nodes at density contrasts other than the virial density can be output by setting {\tt [outputDensityContrastData]}$=${\tt true}. When selected, this output option requires that a list of density contrasts, $Delta$ (defined in units of the mean density of the Universe), be given in the {\tt [outputDensityContrastValues]} input parameter. For each specified density contrast, two properties are output for each node: {\tt nodeRadius}$\Delta$ and {\tt nodeMass}$\Delta$ which give the radius enclosing a mean density contrast of $\Delta$ and the mass enclosed within that radius. The parameter {\tt [outputDensityContrastDataDarkOnly]} controls whether density contrasts are measured for total mass ({\tt false}) or dark matter mass only ({\tt true}). In the latter case, density contrasts are defined relative to the mean dark matter density of the Universe.
-
-\section{Mass Profile Data}\index{mass profile}
-
-Masses enclosed within specific radii can be output by setting {\tt [outputMassProfileData]}$=${\tt true}. When selected, this output option requires that a list of radii, $r$ (in Mpc), be given in the {\tt [outputMassProfileRadii]} input parameter. For each specified radius, the total (dark + baryonic) mass will be output as {\tt massProfile}$r$.
-
-\section{Half-Light Radii Data}\index{mass profile!half-light radius}\index{half-light radius}
-
-Half-light radii and masses enclosed within them can be output by setting {\tt [outputHalfLightData]}$=${\tt true}. When selected the half-light radius in each specified luminosity band is output as {\tt [halfLightRadius\{luminosityID\}]} (in Mpc), where {\tt\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass within that radius is output as {\tt [halfLightMass\{luminosityID\}]} (in $M_\odot$).
-
-\section{Cooling Data}\index{cooling}\index{cooling!output}\index{cooling!radius}\index{cooling!rate}
-
-Properties associated with cooling in hot halos can be output by setting {\tt hotHaloOutputCooling}$=${\tt true}. Currently, two additional properties are output for each node when this option is selected:
-\begin{description}
-\item[{\tt hotHaloCoolingRate}] The rate at which gas is cooling from the halo (assuming no sources of heating) in $M_\odot$ Gyr$^{-1}$;
-\item[{\tt hotHaloCoolingRadius}] The characteristic cooling radius in the halo in Mpc.
-\end{description}
-
-\section{Black Hole Accretion}\index{black holes!supermassive}\index{black holes!accretion}\index{black holes!jets}
-
-Properties associated with accretion onto supermassive black holes can be output by setting {\tt blackHoleOutputAccretion}$=${\tt true}. Currently, two additional properties are output for each node when this option is selected:
-\begin{description}
-\item[{\tt blackHoleAccretionRate}] The rate at which the supermassive black hole is accreting mass in $M_\odot$ Gyr$^{-1}$;
-\item[{\tt blackHoleJetPower}] The power being emitted into jets by the black hole/accretion disk system in $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
-\end{description}
 
 \section{Lightcone Coordinates}\label{sec:OutputLightcone}\index{lightcones}
 
@@ -154,3 +124,36 @@ If active, the geometry of the lightcone must be specified in an XML file, the n
 \end{verbatim}
 The {\tt boxLength} element should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone), while the {\tt maximumDistance} element should specify the largest distance in the lightcone to be considered. The {\tt fieldOfView} element must specify the geometry of the field of view. Currently, the only allowed value for the {\tt geometry} of the {\tt fieldOfView} element is {\tt square}, in which case the {\tt length} element of {\tt fieldOfView} should give the length of the side of the square field of view in radians. The {\tt origin} element must contain the $x$, $y$, $z$ {\tt coordinate}s of the origin of the lightcone within the simulation box, while the {\tt unitVectorX} elements must give unit vectors which point along the lightcone (for {\tt X}$=1$, and in the two directions perpendicular to the lightcone (for {\tt X}$=2$ and 3). The {\tt outputs} element contains lists of properties corresponding to the outputs to be used for building the lightcone. The {\tt redshift} subelements must list the redshifts of available outputs (in order of decreasing redshift) while the {\tt minimumDistance} and {\tt maximumDistance} elements must give the minimum and maximum comoving distance that should be considered to be associated with each given output redshift. The {\tt units/length} element must specify the units used for lengths, with {\tt unitsInSI} giving the length unit in SI units and {\tt hubbleExponent} giving the exponent of $h$ that appears in the length unit. Finally, the optional {\tt cosmology} element may give cosmological parameters relevant to this lightcone in standard \glc\ format.
 
+\section{Mass Profile Data}\index{mass profile}
+
+Masses enclosed within specific radii can be output by setting {\tt [outputMassProfileData]}$=${\tt true}. When selected, this output option requires that a list of radii, $r$ (in Mpc), be given in the {\tt [outputMassProfileRadii]} input parameter. For each specified radius, the total (dark + baryonic) mass will be output as {\tt massProfile}$r$.
+
+\section{Merger Tree Links and Node Isolation}\index{merger tree!links}\index{galaxies!satellite}\index{galaxies!central}\index{nodes!isolated}\index{nodes!substructure}
+
+The following properties are output to permit the merger tree structure to be recovered:
+\begin{description}
+ \item [{\tt nodeIndex}] A unique (within a tree) integer index identifying the node;
+ \item [{\tt childIndex}] The index of this node's primary child node (or $-1$ if it has no child);
+ \item [{\tt parentIndex}] The index of this node's parent node (or $-1$ if it has no parent);
+ \item [{\tt siblingIndex}] The index of this node's sibling node (or $-1$ if it has no sibling);
+ \item [{\tt satelliteIndex}] The index of this node's first satellite node (or $-1$ if it has no satellites);
+ \item [{\tt nodeIsIsolated}] Will be $0$ for a node which is a subhalo inside some other node (i.e. a satellite galaxy\index{satellite galaxies!identifying}) or $1$ for a node that is an isolated halo (i.e. a central galaxy\index{central galaxies!identifying}).
+\end{description}
+
+The {\tt nodeIndex} property corresponds by default to the index of the node in the original merger tree. This means that as a galaxy evovles through the tree and, in particular, gets promoted into a new halo the index associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree structure, but does not allow galaxies to be traced from one output to the next using their {\tt nodeIndex} value. By setting {\tt [nodePromotionIndexShift]}$=${\tt true} this behavior can be changed such that the value of {\tt nodeIndex} will reflect the index of the earliest progenitor node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its evolution\index{galaxies!tracing through outputs}\index{galaxies!indices}\index{nodes!indices}\index{indices!nodes}\index{indices!galaxies}.
+
+\section{Merger Tree Structure}\index{merger tree!structure}
+
+The structure of each merger tree can optionally be dumped to a file suitable for post-processing with \href{http://www.graphviz.org/}{\sc dot} after every step of evolution. To request this output set {\tt [mergerTreesDumpStructure]}$=${\tt true}. After each evolution step the tree structure will be dumped to a file named {\tt mergerTreeDump:$\langle$treeIndex$\rangle$:$\langle$outputIndex$\rangle$.gv} where $\langle${\tt treeIndex}$\rangle$ is the index of the tree and $\langle${\tt outputIndex}$\rangle$ is an incremental counter that tracks the number of outputs for this tree. These files can be processed with \href{http://www.graphviz.org/}{\sc dot} to produce a diagram of the tree structure. The node currently being evolved will be highlighted in green. This output option makes use of the \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump}{\tt Merger\_Trees\_Dump} module to create the outputs.
+
+\section{Star Formation Rates}\index{star formation rate!outputting}\index{outputs!star formation rate}
+
+By default the star formation rate in each galaxy is \emph{not} output. However, setting {\tt [diskOutputStarFormationRate]} to true will cause the current star formation rate in the disk of each galaxy to be output as {\tt diskStarFormationRate} (in units of $M_\odot$/Gyr). The {\tt [spheroidOutputStarFormationRate]} has the same effect for the spheroid component.
+
+\section{Virial Quantities}\index{virial}
+
+The following quantities related to the virialized region of each node are output if {\tt outputVirialData} is set to true:
+\begin{description}
+ \item [{\tt nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity was selected in \glc) in units of Mpc;
+ \item [{\tt nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
+\end{description}
