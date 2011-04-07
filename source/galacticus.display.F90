@@ -67,7 +67,7 @@ module Galacticus_Display
   use ISO_Varying_String
   private
   public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
-       &,Galacticus_Verbosity_Level_Set
+       &,Galacticus_Verbosity_Level_Set, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
 
   integer                                      :: maxThreads
   integer,           allocatable, dimension(:) :: indentationLevel
@@ -301,5 +301,56 @@ contains
     !$ end if
     return
   end subroutine Create_Indentation_Format
+
+  subroutine Galacticus_Display_Counter(percentageComplete,isNew,verbosity)
+    !% Displays a percentage counter and bar to show progress.
+    implicit none
+    integer,          intent(in)           :: percentageComplete
+    logical,          intent(in)           :: isNew
+    integer,          intent(in), optional :: verbosity
+    character(len=50)                      :: bar
+    integer                                :: percentage,minorCount,majorCount
+    logical                                :: showMessage
+    
+    !$omp critical(Galacticus_Message_Lock)
+    call Initialize_Display
+    if (present(verbosity)) then
+       showMessage=(verbosity<=verbosityLevel)
+    else
+       showMessage=.true.
+    end if
+    if (showMessage) then
+       if (.not.isNew) call Galacticus_Display_Counter_Clear()
+       percentage=max(0,min(percentageComplete,100))
+       majorCount=percentage/2
+       minorCount=percentage-majorCount*2
+       bar=repeat("=",majorCount)//repeat("-",minorCount)//repeat(" ",50-majorCount-minorCount)
+       write (0,'(1x,i3,"% [",a50,"]",$)') percentage,bar
+    end if
+    !$omp end critical(Galacticus_Message_Lock)
+    return
+  end subroutine Galacticus_Display_Counter
+
+  subroutine Galacticus_Display_Counter_Clear(verbosity)
+    !% Clears a percentage counter.
+    implicit none
+    integer, intent(in), optional :: verbosity
+    logical                       :: showMessage
+    
+    !$omp critical(Galacticus_Message_Lock)
+    call Initialize_Display
+    if (present(verbosity)) then
+       showMessage=(verbosity<=verbosityLevel)
+    else
+       showMessage=.true.
+    end if
+    if (showMessage) then
+       write (0,'(a58,$)') repeat(char(8),58)
+       write (0,'(a58,$)') repeat(" "    ,58)
+       write (0,'(a58,$)') repeat(char(8),58)
+    end if
+    !$omp end critical(Galacticus_Message_Lock)
+    return
+  end subroutine Galacticus_Display_Counter_Clear
 
 end module Galacticus_Display
