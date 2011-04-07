@@ -1285,7 +1285,8 @@ This function should compute and return the Fourier transform of the dark matter
 Currently defined dark matter density profile methods are:
 \begin{description}
  \item [{\tt Isothermal}] The density profile is a singular isothermal sphere;
- \item [{\tt NFW}] The density profile proposed by \cite{navarro_universal_1997}.
+ \item [{\tt NFW}] The density profile proposed by \cite{navarro_universal_1997}\index{Navarro-Frenk-White profile}\index{density profile!Navarro-Frenk-White}.
+ \item [{\tt Einasto}] The Einasto density profile, described, for example, by \cite{cardone_spherical_2005}\index{Einasto profile}\index{density profile!Einasto}.
 \end{description}
 
 \subsubsection{Dark Matter Halo Mass Accretion History}\index{dark matter halo!mass accretion history}\index{mass accretion history!dark matter halo}\label{sec:HaloMassAccretionHistory}
@@ -1378,6 +1379,50 @@ Currently defined darl matter profile concentration methods are:
  \item [{\tt Gao 2008}] The concentration is computed using a fitting function from \cite{gao_redshift_2008};
  \item [{\tt Zhao 2009}] The concentration is computed using a fitting function from \cite{zhao_accurate_2009}. Halo formation times (as defined by \citealt{zhao_accurate_2009}) are computed directly from the merger tree branch associated with each node. Where the tree does not exist or has insufficient resolution to contain the merging time the merging time will be found by extrapolation of the earliest resolved progenitor halo using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory});
  \item [{\tt Munoz-Cuartas 20011}] The concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011};
+\end{description}
+
+\subsubsection{Dark Matter Density Profile Shape}
+
+Additional methods for the dark matter density profile shape paramter can be added using the {\tt darkMatterShapeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Gao2008} method is described by a directive:
+\begin{verbatim}
+ !# <darkMatterShapeMethod>
+ !#  <unitName>Dark_Matter_Shapes_Gao20008_Initialize</unitName>
+ !# </darkMatterShapeMethod>
+\end{verbatim}
+Here, {\tt Dark\_Matter\_Shapes\_Gao20008\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: darkMatterShapeMethod
+    procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Shape_Get
+    
+    if (darkMatterShapeMethod == 'myMethod') then
+       Dark_Matter_Profile_Shape_Get => My_Shape_Get
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterShapeMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Profile\_Shape\_Get} must be set to point to a function which returns the shape parameter of a node. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The shape parameter function must have the form:
+\begin{verbatim}
+  double precision function My_Dark_Matter_Profile_Shape(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+  end function My_Dark_Matter_Profile_Shape
+\end{verbatim}
+The function should compute and return the shape parameter for {\tt thisNode}.
+
+Currently defined darl matter profile shape parameter methods are:
+\begin{description}
+ \item [{\tt Gao 2008}] The shape parameter is computed using a fitting function from \cite{gao_redshift_2008} - see \S\ref{sec:DarkMatterProfileShape} for details.
 \end{description}
 
 \subsubsection{Dark Matter Halo Spin Distribution}\label{sec:HaloSpinDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}

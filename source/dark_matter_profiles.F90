@@ -69,7 +69,8 @@ module Dark_Matter_Profiles
   public :: Dark_Matter_Profile_Rotation_Normalization, Dark_Matter_Profile_Energy, Dark_Matter_Profile_Energy_Growth_Rate,&
        & Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum,Dark_Matter_Profile_Circular_Velocity&
        &,Dark_Matter_Profile_Potential,Dark_Matter_Profile_Enclosed_Mass,Dark_Matter_Profile_kSpace,&
-       & Dark_Matter_Profile_Density_Task, Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Enclosed_Mass_Task
+       & Dark_Matter_Profile_Density_Task, Dark_Matter_Profile_Density,Dark_Matter_Profile_Rotation_Curve_Task,&
+       & Dark_Matter_Profile_Enclosed_Mass_Task
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: darkMatterProfileInitialized=.false.
