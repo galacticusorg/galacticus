@@ -660,6 +660,17 @@ Selected with {\tt mergerTreeConstructMethod}$=${\tt smoothAccretion}, this meth
 
 Arbitrary processing of merger trees prior to their evolution can be carried out using the {\tt mergerTreePreEvolveTask} directive (see \S\ref{sec:MergerTreePreEvolveTask}). Currently defined tasks are defined below.
 
+\subsection{Interpolate Tree to Time Grid}\index{merger tree!fixed time steps}\index{merger tree!regrid times}
+
+This task will interpolate the merger tree structure onto a new array of timesteps if {\tt [mergerTreeRegridTimes]}$=${\tt true}. The timestep array is specified via the parameters:
+\begin{description}
+\item[{\tt [mergerTreeRegridStartExpansionFactor]}] The smallest expansion factor in the array;
+\item[{\tt [mergerTreeRegridEndExpansionFactor]}] The largest expansion factor in the array;
+\item[{\tt [mergerTreeRegridCount]}] The number of timesteps in the array;
+\item[{\tt [mergerTreeRegridSpacing]}] The spacing of the timesteps. Two options are available: {\tt linear} will space timesteps uniformly in expansion factor, while {\tt logarithmic} will space timesteps uniformly in the logarithm of expansion factor.
+\end{description}
+Along each branch of the tree, new halos are inserted at times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.} The processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations\index{merger tree!N-body} affects the properties of galaxies that form in them.
+
 \subsection{Mass Accretion History Output}\index{merger tree!mass accretion history}
 
 Output of the mass accretion history (i.e. the mass of the node on the primary branch as a function of time) for each merger tree can be requested by setting {\tt [massAccretionHistoryOutput]}$=${\tt true}. If requested, an additional group, {\tt massAccretionHistories}, is made in the \glc\ output file. This group will contain a subgroup for each merger tree ({\tt mergerTreeN} where {\tt N} is the merger tree index) within which three datasets, {\tt nodeIndex}, {\tt nodeTime} and {\tt nodeMass}, can be found. These give the index, time and mass of the node on the primary branch of the tree at all times for which the tree is defined.
