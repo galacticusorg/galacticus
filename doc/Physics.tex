@@ -363,6 +363,10 @@ Selected with {\tt haloSpinDistributionMethod}$=${\tt lognormal}, under this met
 
 Selected with {\tt haloSpinDistributionMethod}$=${\tt Bett2007}, under this method the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$ and $\alpha$ parameter of Bett et al.'s distribution are set by the {\tt [spinDistributionBett2007Lambda0]} and {\tt [spinDistributionBett2007Alpha]} input parameters.
 
+\subsubsection{Delta Function}
+
+Selected with {\tt haloSpinDistributionMethod}$=${\tt delta function}, under this method the spin is drawn from a delta function distribution, $P(\lambda) = \delta(\lambda-\lambda_0)$, where $\lambda_0=${\tt [deltaFunctionSpinDistributionSpin]}, i.e. a fixed value of spin equal to $\lambda_0$ is returned.
+
 \section{Disk Stability/Bar Formation}\label{sec:DiskStability}\index{disks!stability}\index{bar instability}
 
 The method uses to compute the bar instability timescale for galactic disks is selected via the {\tt barInstabilityMethod} parameter.

@@ -1468,6 +1468,7 @@ Currently defined spin distribution methods are:
 \begin{description}
  \item [{\tt lognormal}] The spin is drawn from a lognormal distribution with median {\tt [lognormalSpinDistributionMedian]} and width {\tt [lognormalSpinDistributionSigma]}.
  \item [{\tt Bett2007}] The spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$ and $\alpha$ parameter of Bett et al.'s distribution are set by the {\tt [spinDistributionBett2007Lambda0]} and {\tt [spinDistributionBett2007Alpha]} input parameters.
+ \item [{\tt delta function}] The spin is drawn from a delta function distribution, i.e. a value equal to {\tt [deltaFunctionSpinDistributionSpin]} is always returned.
 \end{description}
 
 \subsubsection{Bar Instabilities}
