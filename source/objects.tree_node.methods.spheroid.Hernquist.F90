@@ -364,7 +364,7 @@ contains
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, save                   :: fractionalErrorMaximum=0.0d0
     integer                                  :: thisIndex
-    double precision                         :: specificAngularMomentum,fractionalError
+    double precision                         :: specificAngularMomentum,fractionalError,spheroidMass
     character(len=20)                        :: valueString
     type(varying_string)                     :: message
 
@@ -407,9 +407,17 @@ contains
           !$omp end critical (Hernquist_Spheroid_Post_Evolve_Check)
           
           ! Get the specific angular momentum of the spheroid material
-          specificAngularMomentum=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)&
-               &/(thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)&
-               &+thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue))
+          spheroidMass= thisNode%components(thisIndex)%properties(gasMassIndex    ,propertyValue) &
+               &       +thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+          if (spheroidMass == 0.0d0) then
+             specificAngularMomentum=0.0d0
+             thisNode%components(thisIndex)%properties(stellarMassIndex                                    ,propertyValue)=0.0d0
+             thisNode%components(thisIndex)%properties(stellarAbundancesIndex  :stellarAbundancesIndexEnd  ,propertyValue)=0.0d0  
+             thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=0.0d0
+          else
+             specificAngularMomentum=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)&
+                  &/spheroidMass
+          end if
           
           ! Reset the gas, abundances and angular momentum of the spheroid.
           thisNode%components(thisIndex)%properties(gasMassIndex                            ,propertyValue)=0.0d0
