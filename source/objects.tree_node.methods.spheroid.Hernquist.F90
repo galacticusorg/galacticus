@@ -156,7 +156,7 @@ module Tree_Node_Methods_Hernquist_Spheroid
 
   ! Parameters controlling the physical implementation.
   double precision :: spheroidEnergeticOutflowMassRate,spheroidOutflowTimescaleMinimum
-  double precision :: spheroidMassToleranceAbsolute
+  double precision :: spheroidMassToleranceAbsolute,spheroidAngularMomentumAtScaleRadius
 
   ! Storage for the star formation history time range, used whene extending this range.
   double precision, allocatable, dimension(:) :: starFormationHistoryTemplate
@@ -284,6 +284,15 @@ contains
        Tree_Node_Spheroid_Gas_Energy_Input                        => Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Hernquist
 
        ! Read parameters controlling the physical implementation.
+       !@ <inputParameter>
+       !@   <name>spheroidAngularMomentumAtScaleRadius</name>
+       !@   <defaultValue>0.2546479089 [value for a self-gravitating Hernquist spheroid]</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of a Hernquist spheroid .
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=0.2546479089d0)
        !@ <inputParameter>
        !@   <name>spheroidEnergeticOutflowMassRate</name>
        !@   <defaultValue>1.0</defaultValue>
@@ -1569,9 +1578,6 @@ contains
     double precision,                     intent(out)   :: specificAngularMomentum
     procedure(),                 pointer, intent(out)   :: Radius_Set,Velocity_Set
     procedure(double precision), pointer, intent(out)   :: Radius_Get,Velocity_Get
-    double precision,            parameter              :: spheroidAngularMomentumRatio=0.2546479089d0 ! Ratio of specific angular
-                                                                                                       ! momentum at scale radius to
-                                                                                                       ! global mean.
     double precision                                    :: specificAngularMomentumMean,angularMomentum,spheroidMass
 
     ! Determine if thisNode has an active spheroid component supported by this module.    
@@ -1589,7 +1595,7 @@ contains
           else
              specificAngularMomentumMean=0.0d0
           end if
-          specificAngularMomentum=spheroidAngularMomentumRatio*specificAngularMomentumMean
+          specificAngularMomentum=spheroidAngularMomentumAtScaleRadius*specificAngularMomentumMean
           ! Associate the pointers with the appropriate property routines.
           Radius_Get   => Hernquist_Spheroid_Radius
           Radius_Set   => Hernquist_Spheroid_Radius_Set
