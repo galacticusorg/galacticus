@@ -7,6 +7,9 @@ open(iHndl,"Galacticus.bib");
 open(oHndl,">GalacticusAccented.bib");
 while ( my $line = <iHndl> ) {
 
+    # Percentages.
+    $line =~ s/[^\\]%/\\%/g;
+
     # Backslashes.
     $line =~ s/{\\textbackslash}([a-zA-Z]+)/{\\\1}/g;
     $line =~ s/{\\textbackslash([a-zA-Z]+)}/{\\\1}/g;
