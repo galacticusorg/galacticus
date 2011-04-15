@@ -68,12 +68,15 @@ module Transfer_Function_BBKS
   public :: Transfer_Function_BBKS_Initialize, Transfer_Function_BBKS_State_Store, Transfer_Function_BBKS_State_Retrieve
   
   ! Flag to indicate if this module has been initialized.
-  logical              :: transferFunctionInitialized=.false.
+  logical                     :: transferFunctionInitialized=.false.
 
-  ! avenumber range and fineness of gridding.
+  ! Wavenumber range and fineness of gridding.
   double precision            :: logWavenumberMaximum=dlog(10.0d0)
   double precision            :: logWavenumberMinimum=dlog(1.0d-5)
   integer,          parameter :: numberPointsPerDecade=1000
+
+  ! Warm dark matter free-streaming length.
+  double precision            :: transferFunctionWDMFreeStreamingLength
 
 contains
   
@@ -87,7 +90,21 @@ contains
     type(varying_string),          intent(in)    :: transferFunctionMethod
     procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
     
-    if (transferFunctionMethod.eq.'BBKS') Transfer_Function_Tabulate => Transfer_Function_BBKS_Make
+    if (transferFunctionMethod == 'BBKS') then
+       ! Return a pointer to our tabulation function.
+       Transfer_Function_Tabulate => Transfer_Function_BBKS_Make
+
+       ! Get input parameters.
+       !@ <inputParameter>
+       !@   <name>transferFunctionWDMFreeStreamingLength</name>
+       !@   <defaultValue>0</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The warm dark matter free streaming length (in Mpc).
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('transferFunctionWDMFreeStreamingLength',transferFunctionWDMFreeStreamingLength,defaultValue=0.0d0)
+    end if
     return
   end subroutine Transfer_Function_BBKS_Initialize
 
@@ -103,7 +120,7 @@ contains
     double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
     integer,                                     intent(out)   :: transferFunctionNumberPoints
     integer                                                    :: iWavenumber
-    double precision                                           :: Gamma,q,wavenumberHUnits
+    double precision                                           :: Gamma,q,wavenumberHUnits,wavenumber,wavenumberScaleFree
  
     ! Set wavenumber range and number of points in table.
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
@@ -121,10 +138,12 @@ contains
     ! Create transfer function.
     Gamma=Omega_0()*Little_H_0()*dexp(-Omega_b()*(1.0d0+dsqrt(2.0d0*Little_H_0())/Omega_0()))/((T_CMB()/2.7d0)**2)
     do iWavenumber=1,transferFunctionNumberPoints
-       wavenumberHUnits=dexp(transferFunctionLogWavenumber(iWavenumber))/Little_H_0()
-       q=wavenumberHUnits/Gamma
+       wavenumber         =dexp(transferFunctionLogWavenumber(iWavenumber))
+       wavenumberHUnits   =wavenumber/Little_H_0()
+       wavenumberScaleFree=wavenumber*transferFunctionWDMFreeStreamingLength
+       q                  =wavenumberHUnits/Gamma
        transferFunctionLogT(iWavenumber)=dlog((dlog(1.0+2.34d0*q)/2.34d0/q)/(1.0d0+3.89d0*q+(16.1d0*q)**2+(5.46d0*q)**3+(6.71d0&
-            &*q)**4)**0.25d0)
+            &*q)**4)**0.25d0)-0.5d0*wavenumberScaleFree*(1.0d0+wavenumberScaleFree)
     end do
     return
   end subroutine Transfer_Function_BBKS_Make
