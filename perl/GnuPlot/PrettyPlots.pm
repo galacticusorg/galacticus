@@ -226,6 +226,13 @@ sub Prepare_Dataset {
     $pointType{'lower'} = " pt \"".${$options{'symbol'}}[0]."\"" if ( exists($options{'symbol'}) );
     $pointType{'upper'} = " pt \"".${$options{'symbol'}}[1]."\"" if ( exists($options{'symbol'}) );
 
+    # Create attribute for point size, assuming no specification if pointSize option is not present.
+    my %pointSize;
+    $pointSize{'lower'} = "";
+    $pointSize{'upper'} = "";
+    $pointSize{'lower'} = " ps ".$options{'pointSize'} if ( exists($options{'pointSize'}) );
+    $pointSize{'upper'} = " ps ".$options{'pointSize'} if ( exists($options{'pointSize'}) );
+
     # Create a title attribute, defaulting to no title if none is specified.
     my $title = " notitle";
     $title = " title \"".$options{'title'}."\"" if ( exists($options{'title'}) );
@@ -280,7 +287,7 @@ sub Prepare_Dataset {
 		if ( exists($phaseRules{$phase}->{'level'}) ) {
 		    # Plot just a single level, no real data.
 		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-'".$title
-			.$pointType{$phaseRules{$phase}->{'level'}}.$lineColor{$phaseRules{$phase}->{'level'}}.$lineWeight{$phaseRules{$phase}->{'level'}};
+			.$pointType{$phaseRules{$phase}->{'level'}}.$pointSize{$phaseRules{$phase}->{'level'}}.$lineColor{$phaseRules{$phase}->{'level'}}.$lineWeight{$phaseRules{$phase}->{'level'}};
 		    ${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		    ${$plot}->{$phase}->{'data'   } .= $endPoint;
 		    ${$plot}->{$phase}->{'prefix'} = ",";
@@ -385,7 +392,7 @@ sub Prepare_Dataset {
 			# Output the point.
 			foreach my $level ( 'lower', 'upper' ) {
 			    ${$plot}->{$phase}->{'data'} .= $arrows if ( $level eq "lower" );
-			    ${$plot}->{$phase}->{'data'} .= "plot '-' notitle".$errorCommand.$pointType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+			    ${$plot}->{$phase}->{'data'} .= "plot '-' notitle".$errorCommand.$pointType{$level}.$pointSize{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
 			    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint).$errors."\n";
 			    ${$plot}->{$phase}->{'data'} .= $endPoint;
 			    ${$plot}->{$phase}->{'data'} .= $clearArrows if ( $level eq "lower" );
