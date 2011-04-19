@@ -1,5 +1,7 @@
 \chapter{Plotting Support}\index{plotting}
 
+\section{Plotting with {\sc Gnuplot}}
+
 While \glc\ data can, of course, be plotted using whatever method you choose, two Perl modules are provided that we find useful for plotting \glc\ data. These are intended for use with \href{http://www.gnuplot.info/}{\sc GnuPlot} and with datasets stored as \href{http://pdl.perl.org/}{\tt PDL} variables. The first module, {\tt GnuPlot::PrettyPlots} plots lines and points with two color style (typically a lighter interior color and a darker border) with support for errorbars and limits (show as arrows) on points. The second, {\tt GnuPlot::LaTeX} provides a convenient way to process output from {\sc GnuPlot}'s {\tt epslatex} terminal into PDF files (suitable for inclusion in documents), PNG images with transparent backgrounds or \href{http://www.openoffice.org/}{OpenOffice} \href{http://www.wikimedia.org/wikipedia/en/wiki/OpenDocument}{ODG} files (suitable for inclusion into presentations\footnote{If you create an OpenOffice ODG file it's recommended that you covert it to a Metafile within OpenOffice before putting it into a presentation---this seems to prevent a bug which occasionally causes an element of the plot to be lost during saving\ldots}).
 
 A typical use of these packages would look as follows:
@@ -59,3 +61,43 @@ The process begins by opening a pipe to {\sc GnuPlot} and specifying the {\tt ep
 Once all datasets have been prepared, the call to {\tt \&PrettyPlots::Plot\_Datasets} will generate the EPS and \LaTeX\ files necessary to make the plot. This resulting plot can be converted to PDF, PNG or ODG form by calling {\tt \&LaTeX::GnuPlot2PDF}, {\tt \&LaTeX::GnuPlot2PNG} or {\tt \&LaTeX::GnuPlot2ODG} respectively. The EPS file will be replaced with the appropriate file. The {\tt \&LaTeX::GnuPlot2PNG} routine accepts an optional {\tt backgroundColor} argument in {\tt \#RRGGBB} format. If present, this color will be used to set the background color of the plot (otherwise white is assumed). Although the background is made transparent in the PNG, setting the background color is important as antialiasing will make use of this background. Note that both PNG and ODG options will switch black axes and labels to white\footnote{This is just a presonal preference for plots displayed in presentations---other options could be added}.
 
 The ODG option requires that both \href{http://www.cityinthesky.co.uk/opensource/pdf2svg}{{\tt pdf2svg}} and \href{http://www.haumacher.de/svg-import/}{{svg2office}} be installed on your system ({\tt svg2office} should be located in {\tt /usr/local/bin}).
+
+\section{Merger Tree Diagrams with {\sc dot}}\index{merger trees!graphing}
+
+The {\sc dot} command, which is a part of \href{http://www.graphviz.org/}{{\sc GraphViz}}\index{graphviz@{\sc GraphViz}} is useful for creating diagrams of merger trees. \glc\ provides a function to output the structure of any merger tree in {\sc GraphViz} format. This function, \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump:merger_tree_dump}{{\tt Merger\_Tree\_Dump}}, is provided by the \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump:merger_tree_dump}{{\tt Merger\_Trees\_Dump}} module. Usage is as follows:
+\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
+call Merger_Tree_Dump(                                    &
+     &                index                             , &
+     &                baseNode                          , &
+     &                highlightNodes     =highlightNodes, &
+     &                backgroundColor    ='white'       , &
+     &                nodeColor          ='black'       , &
+     &                highlightColor     ='black'       , &
+     &                edgeColor          ='#DDDDDD'     , &
+     &                nodeStyle          ='solid'       , &
+     &                highlightStyle     ='filled'      , &
+     &                edgeStyle          ='solid'       , &
+     &                labelNodes         =.false.       , &
+     &                scaleNodesByLogMass=.true.        , &
+     &                edgeLengthsToTimes =.true.          &
+     &               )
+\end{lstlisting}
+Here {\tt index} is the tree index (successive calls to \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump:merger_tree_dump}{{\tt Merger\_Tree\_Dump}} with the same index will result in a sequence of output files---see below), and {\tt baseNode} is a pointer to the base node of the tree to be dumped. All other arguments are optional:
+\begin{description}
+ \item [{\tt highlightNodes}] A list of node IDs. All nodes listed will be highlighted in the diagram;
+ \item [{\tt backgroundColor}] The color for the background of the diagram;
+ \item [{\tt nodeColor}] The color used to draw nodes;
+ \item [{\tt highlightColor}] The color used for highlighted nodes;
+ \item [{\tt edgeColor}] The color of edges (lines joining nodes);
+ \item [{\tt nodeStyle}] The style to use when drawing nodes;
+ \item [{\tt highlightStyle}] The style to use when drawing highlighted nodes;
+ \item [{\tt edgeStyle}] The style to use when drawing edges;
+ \item [{\tt labelNodes}] Specifies whether or not nodes should be labelled (labels consist of the node ID followed by the redshift);
+ \item [{\tt scaleNodesByLogMass}] If true, the size of nodes will be set to be proportional to the logarithm of the node mass;
+ \item [{\tt edgeLengthsToTimes}] If true, the spacing between parent and child nodes will be proportional to the logarithmic time interval between them.
+\end{description}
+All colors and styles are character strings and can be in any format understood by {\sc dot}. The tree structure will be dumped to file named {\tt mergerTreeDump:$\langle$ID$\rangle$:$\langle$N$\rangle$.gv} where {\tt $\langle$ID$\rangle$} is the index of the tree and {\tt $\langle$N$\rangle$} increasing incrementally from $1$ each time the same tree is consecutively dumped. These files can be processed using {\sc dot}. For example
+\begin{verbatim}
+ dot -Tps mergerTreeDump:1:1.gv > tree.ps
+\end{verbatim}
+will create a tree diagram as the PostScript file {\tt tree.ps}.
