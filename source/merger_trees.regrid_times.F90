@@ -73,11 +73,17 @@ module Merger_Trees_Regrid_Times
   ! Flag indicating if regridding is required.
   logical                                         :: mergerTreeRegridTimes
 
+  ! Flag indicating if dumping of merger trees is required.
+  logical                                         :: mergerTreeRegridDumpTrees
+
   ! Variables expressing the distribution of grid points.
   integer                                         :: mergerTreeRegridCount,mergerTreeRegridSpacing
   type(varying_string)                            :: mergerTreeRegridSpacingAsText
   double precision                                :: mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor
   double precision,     allocatable, dimension(:) :: mergerTreeRegridTimeGrid
+  integer,              parameter                 :: mergerTreeRegridSpacingLinear                =0
+  integer,              parameter                 :: mergerTreeRegridSpacingLogarithmic           =1
+  integer,              parameter                 :: mergerTreeRegridSpacingLogCriticalOverdensity=2
   
 contains
 
@@ -92,19 +98,22 @@ contains
     use Numerical_Ranges
     use Memory_Management
     use Cosmology_Functions
+    use Critical_Overdensity
     use Galacticus_Error
     use FGSL
     use Numerical_Interpolation
     use Kind_Numbers
+    use Merger_Trees_Dump
     implicit none
     type(mergerTree),        intent(inout)             :: thisTree
     type(treeNode),          pointer                   :: thisNode,childNode,siblingNode,nextNode
     type(treeNodeList),      allocatable, dimension(:) :: newNodes
+    integer(kind=kind_int8), allocatable, dimension(:) :: highlightNodes
     type(fgsl_interp_accel)                            :: interpolationAccelerator
     logical                                            :: interpolationReset
     integer                                            :: iNow,iParent,iTime
     double precision                                   :: timeNow,timeParent,massNow,massParent
-    integer(kind=kind_int8)                            :: nodeIndex
+    integer(kind=kind_int8)                            :: nodeIndex,firstNewNode
 
     ! Check if module is initialized.
     if (.not.regridTimeModuleInitialized) then
@@ -119,6 +128,15 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeRegridTimes',mergerTreeRegridTimes,defaultValue=.false.)
        if (mergerTreeRegridTimes) then
+          !@ <inputParameter>
+          !@   <name>mergerTreeRegridDumpTrees</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to dump merger trees as they are regridded.
+          !@   </description>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeRegridDumpTrees',mergerTreeRegridDumpTrees,defaultValue=.false.)
           !@ <inputParameter>
           !@   <name>mergerTreeRegridCount</name>
           !@   <defaultValue>false</defaultValue>
@@ -158,22 +176,46 @@ contains
           call Get_Input_Parameter('mergerTreeRegridSpacing',mergerTreeRegridSpacingAsText,defaultValue='logarithmic')
           select case (char(mergerTreeRegridSpacingAsText))
           case ("linear")
-             mergerTreeRegridSpacing=rangeTypeLinear
+             mergerTreeRegridSpacing=mergerTreeRegridSpacingLinear
           case ("logarithmic")
-             mergerTreeRegridSpacing=rangeTypeLogarithmic
+             mergerTreeRegridSpacing=mergerTreeRegridSpacingLogarithmic
+          case ("log critical density")
+             mergerTreeRegridSpacing=mergerTreeRegridSpacingLogCriticalOverdensity
           case default
              call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unrecognized spacing type: '//mergerTreeRegridSpacingAsText)
           end select
           
           ! Construct array of grid expansion factors.
           call Alloc_Array(mergerTreeRegridTimeGrid,[mergerTreeRegridCount])
-          mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
-               &,mergerTreeRegridCount,mergerTreeRegridSpacing)
-          
-          ! Convert expansion factors to time.
-          do iTime=1,mergerTreeRegridCount
-             mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
-          end do
+          select case (mergerTreeRegridSpacing)
+          case (mergerTreeRegridSpacingLinear                )
+             mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
+                  &,mergerTreeRegridCount,rangeTypeLinear     )
+             ! Convert expansion factors to time.
+             do iTime=1,mergerTreeRegridCount
+                mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+             end do
+          case (mergerTreeRegridSpacingLogarithmic           )
+             mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
+                  &,mergerTreeRegridCount,rangeTypeLogarithmic)
+             ! Convert expansion factors to time.
+             do iTime=1,mergerTreeRegridCount
+                mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+             end do
+          case (mergerTreeRegridSpacingLogCriticalOverdensity)
+             ! Build a logarithmic grid in critical overdensity.
+             mergerTreeRegridTimeGrid&
+                  & =Make_Range(                                                                                        &
+                  &              Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridStartExpansionFactor)) &
+                  &             ,Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridEndExpansionFactor  )) &
+                  &             ,mergerTreeRegridCount                                                                  &
+                  &             ,rangeTypeLogarithmic                                                                   &
+                  &            )
+             ! Convert critical overdensity to time.
+             do iTime=1,mergerTreeRegridCount
+                mergerTreeRegridTimeGrid(iTime)=Time_of_Collapse(mergerTreeRegridTimeGrid(iTime))
+             end do
+          end select
 
        end if
 
@@ -183,6 +225,22 @@ contains
 
     ! Prune tree if necessary.
     if (mergerTreeRegridTimes) then
+       ! Dump the unprocessed tree if required.
+       if (mergerTreeRegridDumpTrees) call Merger_Tree_Dump(                              &
+            &                                               thisTree%index,               &
+            &                                               thisTree%baseNode           , &
+            &                                               backgroundColor    ='white' , &
+            &                                               nodeColor          ='black' , &
+            &                                               highlightColor     ='black' , &
+            &                                               edgeColor          ='black' , &
+            &                                               nodeStyle          ='solid' , &
+            &                                               highlightStyle     ='filled', &
+            &                                               edgeStyle          ='solid' , &
+            &                                               labelNodes         =.false. , &
+            &                                               scaleNodesByLogMass=.true.  , &
+            &                                               edgeLengthsToTimes =.true.    &
+            &                                              )
+
        ! Ensure interpolation accelerator gets reset.
        interpolationReset=.true.
 
@@ -193,6 +251,7 @@ contains
           nodeIndex=max(nodeIndex,thisNode%index())
           call thisNode%walkTree()
        end do
+       firstNewNode=nodeIndex+1
 
        ! Walk the tree, locating branches which intersect grid times.
        thisNode => thisTree%baseNode
@@ -267,6 +326,31 @@ contains
           call thisNode%walkTree()
 
        end do
+
+       ! Dump the intermediate tree if required.
+       if (mergerTreeRegridDumpTrees) then
+          allocate(highlightNodes(nodeIndex-firstNewNode+2))
+          highlightNodes(1)=thisTree%baseNode%index()
+          do nodeIndex=1,nodeIndex-firstNewNode+1
+             highlightNodes(nodeIndex+1)=firstNewNode+nodeIndex-1
+          end do
+          call Merger_Tree_Dump(                                    &
+               &                thisTree%index,                     &
+               &                thisTree%baseNode                 , &
+               &                highlightNodes     =highlightNodes, &
+               &                backgroundColor    ='white'       , &
+               &                nodeColor          ='black'       , &
+               &                highlightColor     ='black'       , &
+               &                edgeColor          ='#DDDDDD'     , &
+               &                nodeStyle          ='solid'       , &
+               &                highlightStyle     ='filled'      , &
+               &                edgeStyle          ='solid'       , &
+               &                labelNodes         =.false.       , &
+               &                scaleNodesByLogMass=.true.        , &
+               &                edgeLengthsToTimes =.true.          &
+               &               )
+          deallocate(highlightNodes)
+       end if
 
        ! Walk the tree removing nodes not at grid times.
        thisNode => thisTree%baseNode
@@ -348,6 +432,21 @@ contains
        ! Clean up interpolation objects.
        call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
 
+       ! Dump the processed tree if required.
+       if (mergerTreeRegridDumpTrees) call Merger_Tree_Dump(                                     &
+               &                                             thisTree%index,                     &
+               &                                             thisTree%baseNode                 , &
+               &                                             backgroundColor    ='white'       , &
+               &                                             nodeColor          ='black'       , &
+               &                                             highlightColor     ='black'       , &
+               &                                             edgeColor          ='black'       , &
+               &                                             nodeStyle          ='solid'       , &
+               &                                             highlightStyle     ='filled'      , &
+               &                                             edgeStyle          ='solid'       , &
+               &                                             labelNodes         =.false.       , &
+               &                                             scaleNodesByLogMass=.true.        , &
+               &                                             edgeLengthsToTimes =.true.          &
+               &                                            )
     end if
 
     return
