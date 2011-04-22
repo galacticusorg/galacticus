@@ -167,6 +167,7 @@ contains
     call Galacticus_Output_Tree_Main_Branch_Initalize
 
     if (outputMainBranchStatus) then
+       integerProperty=integerProperty+1
        select case (thisNode%isOnMainBranch())
        case (.true.)
           integerBuffer(integerBufferCount,integerProperty)=1
