@@ -71,7 +71,7 @@ sub Count_Trees {
     unless ( exists(${$dataHash}{'mergerTreesAvailable'}) ) {
 	$HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
 	$treesAvailable = $HDFfile->group("Outputs/Output1")->dataset("mergerTreeIndex")->get;
-	@{${$dataHash}{'mergerTreesAvailable'}} = sort {$a <=> $b} $treesAvailable->list();
+	@{${$dataHash}{'mergerTreesAvailable'}} = $treesAvailable->list();
     }
 }
 
@@ -188,13 +188,14 @@ sub Get_Dataset {
 			    $dataIndexStart = 0;
 			    $mergerTreeIndex = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeIndex")->get;
 			    $mergerTreeCount = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeCount")->get;
+			    $start = pdl [-1];
 			    foreach $mergerTree ( @mergerTrees ) {
 				# Count up the number of entries in this tree.
 				$mergerTreeGroup = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree);
-				$start = pdl [$mergerTree-1];
-				$dataCount = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
-				$treeIndex      = which($mergerTreeIndex == $mergerTree);
-				$dataCount      = $mergerTreeCount->index($treeIndex)->squeeze;
+				$start          += 1;
+				$dataCount       = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
+				$treeIndex       = which($mergerTreeIndex == $mergerTree);
+				$dataCount       = $mergerTreeCount->index($treeIndex)->squeeze;
 				$mergerTreeGroup->reference($outputDataSet,$dataSetName,[$dataIndexStart],[$dataCount]);
 				$dataIndexStart += $dataCount;
 			    }
