@@ -1471,6 +1471,51 @@ Currently defined spin distribution methods are:
  \item [{\tt delta function}] The spin is drawn from a delta function distribution, i.e. a value equal to {\tt [deltaFunctionSpinDistributionSpin]} is always returned.
 \end{description}
 
+\subsubsection{Dark Matter Halo Mass Loss Rates}\label{sec:HaloMassLossRates}\index{dark matter halo!mass loss}\index{mass loss!dark matter halo}
+
+Additional methods for dark matter halo mass loss rates can be added using the {\tt darkMatterHaloMassLossRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt van den Bosch 2005} method is described by a directive:
+\begin{verbatim}
+ !# <darkMatterHaloMassLossRateMethod>
+ !#  <unitName>Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize</unitName>
+ !# </darkMatterHaloMassLossRateMethod>
+\end{verbatim}
+Here, {\tt Dark\_Matter\_Halos\_Mass\_Loss\_Rate\_vanDenBosch\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(darkMatterHaloMassLossRateMethod,Dark_Matter_Halos_Mass_Loss_Rate_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: darkMatterHaloMassLossRateMethod
+    procedure(),          pointer, intent(inout) :: Dark_Matter_Halos_Mass_Loss_Rate_Get
+    
+    if (darkMatterHaloMassLossRateMethod == 'myMethod') then
+       Dark_Matter_Halos_Mass_Loss_Rate_Get => My_Mass_Loss_Rate_Get
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterHaloMassLossRateMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Halos\_Mass\_Loss\_Rate\_Get} must be set to point to a function which returns a spin parameter drawn at random from a distribution. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The mass loss rate function must have the form:
+\begin{verbatim}
+  double precision function My_Mass_Loss_Rate(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+  end function My_Mass_Loss_Rate
+\end{verbatim}
+The function should compute and return the mass loss rate from {\tt thisNode} in units of $M_\odot/$Gyr.
+
+Currently defined halo mass loss rate methods are:
+\begin{description}
+ \item [{\tt null}] Always returns zero mass loss rate.
+ \item [{\tt vanDenBosch2005}] Uses the algorithm of \cite{van_den_bosch_mass_2005} to compute the mass loss rate.
+\end{description}
+
 \subsubsection{Bar Instabilities}
 
 Additional methods for bar instabilities in disks can be added using the {\tt barInstabilityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt ELN} method is described by a directive:

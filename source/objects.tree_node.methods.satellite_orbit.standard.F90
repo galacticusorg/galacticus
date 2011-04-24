@@ -75,12 +75,16 @@ module Tree_Node_Methods_Satellite_Orbit
   integer :: componentIndex=-1
 
   ! Property indices.
-  integer, parameter :: propertyCount =1, dataCount=0, historyCount=0
+  integer, parameter :: propertyCount =2, dataCount=0, historyCount=0
   integer, parameter :: mergeTimeIndex=1
+  integer, parameter :: boundMassIndex=2
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
   !#  <methodName>Tree_Node_Satellite_Merge_Time</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer>
+  !#  <methodName>Tree_Node_Bound_Mass</methodName>
   !# </treeNodeMethodsPointer>
 
   ! Procedure pointer for function that will be called to assign merging times to satellites.
@@ -96,7 +100,6 @@ module Tree_Node_Methods_Satellite_Orbit
   logical :: methodSelected=.false.
 
 contains
-
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Satellite_Orbit_Initialize</unitName>
@@ -136,6 +139,11 @@ contains
        Tree_Node_Satellite_Merge_Time_Set          => Tree_Node_Satellite_Merge_Time_Set_Simple
        Tree_Node_Satellite_Merge_Time_Rate_Adjust  => Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple
        Tree_Node_Satellite_Merge_Time_Rate_Compute => Tree_Node_Satellite_Merge_Time_Rate_Compute_Simple
+
+       Tree_Node_Bound_Mass                        => Tree_Node_Bound_Mass_Simple
+       Tree_Node_Bound_Mass_Set                    => null()
+       Tree_Node_Bound_Mass_Rate_Adjust            => Tree_Node_Bound_Mass_Rate_Adjust_Simple
+       Tree_Node_Bound_Mass_Rate_Compute           => Tree_Node_Bound_Mass_Rate_Compute_Simple
     end if
 
     ! Get the satellite merging timescale method.
@@ -160,7 +168,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Satellite_Orbit_Initialize
   
-
   double precision function Tree_Node_Satellite_Merge_Time_Simple(thisNode)
     !% Return the time until satellite merging.
     implicit none
@@ -215,6 +222,67 @@ contains
     return
   end subroutine Tree_Node_Satellite_Merge_Time_Rate_Compute_Simple
 
+  double precision function Tree_Node_Bound_Mass_Simple(thisNode)
+    !% Return the satellite bound mass at the current time.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    integer                                :: thisIndex
+
+    ! Check if the component exists.
+    if (thisNode%componentExists(componentIndex)) then
+       ! Component exists, so return bound mass.
+       thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+       Tree_Node_Bound_Mass_Simple=thisNode%components(thisIndex)%properties(boundMassIndex,propertyValue)
+    else
+       ! Component does not exist, so return total node mass.
+       Tree_Node_Bound_Mass_Simple=Tree_Node_Mass(thisNode)
+    end if
+    return
+  end function Tree_Node_Bound_Mass_Simple
+
+  subroutine Tree_Node_Bound_Mass_Set_Simple(thisNode,boundMass)
+    !% Set the bound mass of the satellite.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: boundMass
+    integer                                  :: thisIndex
+
+    thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+    thisNode%components(thisIndex)%properties(boundMassIndex,propertyValue)=boundMass
+    return
+  end subroutine Tree_Node_Bound_Mass_Set_Simple
+
+  subroutine Tree_Node_Bound_Mass_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,rateAdjustment)
+    !% Adjust the satellite mass loss rate.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    double precision,          intent(in)    :: rateAdjustment
+    integer                                  :: thisIndex
+
+    thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+    thisNode%components(thisIndex)%properties(boundMassIndex,propertyDerivative) &
+         &=thisNode%components(thisIndex)%properties(boundMassIndex,propertyDerivative)+rateAdjustment
+    return
+  end subroutine Tree_Node_Bound_Mass_Rate_Adjust_Simple
+
+  subroutine Tree_Node_Bound_Mass_Rate_Compute_Simple(thisNode,interrupt,interruptProcedure)
+    !% Compute the rate of change of the satellite's bound mass.
+    use Dark_Matter_Halos_Mass_Loss_Rates
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    logical,                 intent(inout) :: interrupt
+    procedure(),    pointer, intent(inout) :: interruptProcedure
+    double precision                       :: massLossRate
+ 
+    if (thisNode%componentExists(componentIndex).and.thisNode%isSatellite()) then
+       massLossRate=Dark_Matter_Halos_Mass_Loss_Rate(thisNode)
+       call Tree_Node_Bound_Mass_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,massLossRate)
+    end if
+    return
+  end subroutine Tree_Node_Bound_Mass_Rate_Compute_Simple
+
   !# <scaleSetTask>
   !#  <unitName>Satellite_Orbit_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
@@ -232,6 +300,10 @@ contains
        ! Set scale for time.
        thisNode%components(thisIndex)%properties(mergeTimeIndex,propertyScale)=timeScale
 
+       ! Set scale for bound mass.
+       thisNode       %components(thisIndex)%properties(boundMassIndex,propertyScale)= &
+            & thisNode%components(thisIndex)%properties(boundMassIndex,propertyValue)
+
     end if
     return
   end subroutine Satellite_Orbit_Standard_Scale_Set
@@ -243,7 +315,7 @@ contains
   !#  <unitName>Satellite_Orbit_Create_Simple</unitName>
   !# </satelliteHostChangeTask>
   subroutine Satellite_Orbit_Create_Simple(thisNode)
-    !% Create a satellite orbit component and assign a time until merging.
+    !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
     double precision                        :: mergeTime
@@ -253,6 +325,7 @@ contains
        call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
        mergeTime=Satellite_Time_Until_Merging(thisNode)
        if (mergeTime >= 0.0d0) call Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime)
+       call Tree_Node_Bound_Mass_Set_Simple(thisNode,Tree_Node_Mass(thisNode))
     end if
     return
   end subroutine Satellite_Orbit_Create_Simple
@@ -288,6 +361,10 @@ contains
        doublePropertyNames   (doubleProperty)='timeToMerge'
        doublePropertyComments(doubleProperty)='Time until satellite merges.'
        doublePropertyUnitsSI (doubleProperty)=gigaYear
+       doubleProperty=doubleProperty+1
+       doublePropertyNames   (doubleProperty)='nodeBoundMass'
+       doublePropertyComments(doubleProperty)='Bound mass of the node.'
+       doublePropertyUnitsSI (doubleProperty)=massSolar
     end if
     return
   end subroutine Galacticus_Output_Tree_Satellite_Orbit_Simple_Names
@@ -302,7 +379,7 @@ contains
     double precision, intent(in)    :: time
     integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
 
-    if (methodSelected) doublePropertyCount=doublePropertyCount+1
+    if (methodSelected) doublePropertyCount=doublePropertyCount+2
     return
   end subroutine Galacticus_Output_Tree_Satellite_Orbit_Simple_Property_Count
 
@@ -325,6 +402,8 @@ contains
     if (methodSelected) then
        doubleProperty=doubleProperty+1
        doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Satellite_Merge_Time(thisNode)
+       doubleProperty=doubleProperty+1
+       doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Bound_Mass(thisNode)
     end if
     return
   end subroutine Galacticus_Output_Tree_Satellite_Orbit_Simple
@@ -341,6 +420,7 @@ contains
        if (thisNode%componentExists(componentIndex)) then
           write (0,'(1x,a)'           ) 'satellite orbit component -> properties:'
           write (0,'(2x,a50,1x,e12.6)') 'time until merging:',Tree_Node_Satellite_Merge_Time(thisNode)
+          write (0,'(2x,a50,1x,e12.6)') '        bound mass:',Tree_Node_Bound_Mass          (thisNode)
        else
           write (0,'(1x,a)'           ) 'satellite orbit component -> nonexistant'
        end if

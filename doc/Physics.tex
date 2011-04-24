@@ -351,6 +351,26 @@ Selected with {\tt darkMatterShapeMethod}$=${\tt Gao 2008}, under this method th
 \end{equation}
 where $\nu=\delta_{\rm c}(t)/\sigma(M)$ is the peak height of the halo. The truncation at $\alpha = 0.3$ is included since \cite{gao_redshift_2008}'s fits do not probe this region and extremely large values of $\alpha$ are numerically troublesome.
 
+\subsection{Mass Loss Rates}\index{dark matter halo!mass loss}\index{mass loss!dark matter halo}
+
+The method used to compute the rate of mass loss from dark matter (sub)halos is selected via the {\tt darkMatterHaloMassLossRateMethod} parameter.
+
+\subsubsection{Null}
+
+Selected with {\tt darkMatterHaloMassLossRateMethod}$=${\tt null}, this method assumes a zero rate of mass loss from dark matter halos.
+
+\subsubsection{van den Bosch et al. (2005)}
+
+Selected with {\tt darkMatterHaloMassLossRateMethod}$=${\tt vanDenBosch2005}, this method uses the algorithm of \cite{van_den_bosch_mass_2005} to compute the rate of mass loss. Specifically:
+\begin{equation}
+\dot{M}_{\rm node,bound} = -{M_{\rm node,bound}\over \tau} \left({M_{\rm node,bound} / M_{\rm node,parent}}\right)^\zeta,
+\end{equation}
+where $M_{\rm node,parent}$ is the mass of the parent node in which the halo lives and
+\begin{equation}
+\tau = \tau_0 \left({\Delta_{\rm vir}(t) \over \Delta(t_0)}\right)^{-1/2} a^{3/2},
+\end{equation}
+where $\Delta_{\rm vir}(t)$ is the virial overdensity of halos at time $t$ and $a$ is the expansion factor. The fitting parameters, $\tau_0$ and $\zeta$ have values of 0.13~Gyr and 0.36 respectively as determined by \cite{van_den_bosch_mass_2005}. Note that  \cite{van_den_bosch_mass_2005} write this expression in a slightly different form since their $\Delta_{\rm vir}$ is defined relative to the critical density rather than the mean density as it is in \glc. In both cases, the timescale $\tau$ simply scales as $\langle \rho_{\rm vir} \rangle ^{-1/2}$ where $\langle \rho_{\rm vir} \rangle$ is the mean virial overdensity of halos.
+
 \subsection{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
 
 The method used to compute the distribution of dark matter halo spin parameters is selected via the {\tt haloSpinDistributionMethod} parameter.
