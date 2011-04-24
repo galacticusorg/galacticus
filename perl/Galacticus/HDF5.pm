@@ -66,6 +66,14 @@ sub Get_History {
     }
 }
 
+sub Get_Datasets_Available {
+    my $dataHash = shift;
+    unless ( exists(${$dataHash}{'dataSetsAvailable'}) ) {
+	@dataSets = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/nodeData")->datasets;
+	foreach $dataSet ( @dataSets ) {${${$dataHash}{'dataSetsAvailable'}}{$dataSet} = 1};
+    }
+}
+
 sub Count_Trees {
     $dataHash = shift;
     unless ( exists(${$dataHash}{'mergerTreesAvailable'}) ) {
@@ -106,10 +114,7 @@ sub Get_Dataset {
     $HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
 
     # Extract a list of available datasets.
-    unless ( exists(${$dataHash}{'dataSetsAvailable'}) ) {
-	@dataSets = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/nodeData")->datasets;
-	foreach $dataSet ( @dataSets ) {${${$dataHash}{'dataSetsAvailable'}}{$dataSet} = 1};
-    }
+    &Get_Datasets_Available($dataHash);
 
     # Determine the range of data to be extracted.
     if ( exists(${$dataHash}{'dataRange'}) ) {
