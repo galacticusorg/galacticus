@@ -234,31 +234,36 @@ contains
     implicit none
     type(hdf5Object) :: historyGroup,historyDataset
 
-    historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,'globalHistory','Global (volume averaged) history for this model.')
-    
-    call historyGroup%writeDataset(historyTime             ,"historyTime"             ,"Time [Gyr]"                          ,datasetReturned=historyDataset)
-    call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI")
-    call historyDataset%close()
-    
-    call historyGroup%writeDataset(historyExpansion        ,"historyExpansion"        ,"Expansion factor []"                                                )
-    
-    call historyGroup%writeDataset(historyStarFormationRate,"historyStarFormationRate","Star formation rate [Msun/Gyr/Mpc^3]",datasetReturned=historyDataset)
-    call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
-    call historyDataset%close()
-    
-    call historyGroup%writeDataset(historyStellarDensity   ,"historyStellarDensity"   ,"Stellar mass density [Msun/Mpc^3]"   ,datasetReturned=historyDataset)
-    call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
-    call historyDataset%close()
-    
-    call historyGroup%writeDataset(historyGasDensity       ,"historyGasDensity"       ,"Gas mass density [Msun/Mpc^3]"       ,datasetReturned=historyDataset)
-    call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
-    call historyDataset%close()
-    
-    call historyGroup%writeDataset(historyNodeDensity      ,"historyNodeDensity"      ,"Node mass density [Msun/Mpc^3]"      ,datasetReturned=historyDataset)
-    call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
-    call historyDataset%close()
-    
-    call historyGroup%close()
+    ! Output the history data if and only if any has been collated.
+    if (timestepHistoryInitialized) then
+       
+       historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,'globalHistory','Global (volume averaged) history for this model.')
+       
+       call historyGroup%writeDataset(historyTime             ,"historyTime"             ,"Time [Gyr]"                          ,datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historyExpansion        ,"historyExpansion"        ,"Expansion factor []"                                                )
+       
+       call historyGroup%writeDataset(historyStarFormationRate,"historyStarFormationRate","Star formation rate [Msun/Gyr/Mpc^3]",datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historyStellarDensity   ,"historyStellarDensity"   ,"Stellar mass density [Msun/Mpc^3]"   ,datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historyGasDensity       ,"historyGasDensity"       ,"Gas mass density [Msun/Mpc^3]"       ,datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historyNodeDensity      ,"historyNodeDensity"      ,"Node mass density [Msun/Mpc^3]"      ,datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%close()
+
+    end if
     return
   end subroutine Merger_Tree_History_Write
 
