@@ -71,4 +71,7 @@ module Numerical_Constants_Math
   ! Natural logarithm of 10.
   double precision, parameter :: ln10=dlog(10.0d0)
 
+  ! Natural logarithm of 2.
+  double precision, parameter :: ln2 =dlog( 2.0d0)
+
 end module Numerical_Constants_Math
