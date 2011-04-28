@@ -167,8 +167,8 @@ contains
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
 
     ! Determine range of masss required.
-    logMassMinimum=min(logMassMinimum,logMass-ln10)
-    logMassMaximum=max(logMassMaximum,logMass+ln10)
+    logMassMinimum=min(logMassMinimum,logMass-ln2)
+    logMassMaximum=max(logMassMaximum,logMass+ln2)
     
     ! Determine number of points to tabulate.
     haloMassFunctionNumberPoints=int((logMassMaximum-logMassMinimum)*dble(nPointsPerDecade)/ln10)
