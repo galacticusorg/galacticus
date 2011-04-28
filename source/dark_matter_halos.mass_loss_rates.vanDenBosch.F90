@@ -86,8 +86,8 @@ contains
     use Virial_Density_Contrast
     use Cosmology_Functions
     implicit none
-    type(varying_string),          intent(in)    :: darkMatterHaloMassLossRateMethod
-    procedure(),          pointer, intent(inout) :: Dark_Matter_Halos_Mass_Loss_Rate_Get
+    type(varying_string),                 intent(in)    :: darkMatterHaloMassLossRateMethod
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halos_Mass_Loss_Rate_Get
     
     if (darkMatterHaloMassLossRateMethod == 'vanDenBosch2005') then
        ! Set a pointer to our implementation.

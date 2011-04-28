@@ -249,7 +249,7 @@ contains
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeIndex=max(nodeIndex,thisNode%index())
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
        firstNewNode=nodeIndex+1
 
@@ -323,7 +323,7 @@ contains
           end if
 
           ! Step to the next node.
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
 
        end do
 

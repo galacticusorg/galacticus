@@ -172,7 +172,7 @@ contains
           if (Tree_Node_Mass(thisNode) > nodeMassMaximum) nodeMassMaximum=Tree_Node_Mass(thisNode)
           if (Tree_Node_Time(thisNode) < timeMinimum    ) timeMinimum    =Tree_Node_Time(thisNode)
           if (Tree_Node_Time(thisNode) > timeMaximum    ) timeMaximum    =Tree_Node_Time(thisNode)
-          call thisNode%walkTreeWithSatellites()
+          call thisNode%walkTreeWithSatellites(thisNode)
        end do
        nodeMassMinimum=dlog(nodeMassMinimum)
        nodeMassMaximum=dlog(nodeMassMaximum)

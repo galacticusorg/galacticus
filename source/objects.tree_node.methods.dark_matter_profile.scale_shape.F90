@@ -513,7 +513,7 @@ contains
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeProperty(nodeCount)=Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode)
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
        call treeGroup%writeDataset(nodeProperty,'darkMatterScaleRadius','Scale radius of the dark matter profile [Mpc].',datasetReturned=nodeDataset)
        call nodeDataset%writeAttribute(megaParsec,"unitsInSI")
@@ -524,7 +524,7 @@ contains
        do while (associated(thisNode))
           nodeCount=nodeCount+1
           nodeProperty(nodeCount)=Tree_Node_Dark_Matter_Profile_Shape_ScaleShape(thisNode)
-          call thisNode%walkTree()
+          call thisNode%walkTree(thisNode)
        end do
        call treeGroup%writeDataset(nodeProperty,'darkMatterShapeParameter','Shape parameter of the dark matter profile.')
        

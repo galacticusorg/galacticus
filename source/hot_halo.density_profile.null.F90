@@ -76,8 +76,8 @@ contains
     !% Initialize the null hot halo density profile module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: hotHaloDensityMethod
-    procedure(),          pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get
+    type(varying_string),                 intent(in)    :: hotHaloDensityMethod
+    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get
     
     if (hotHaloDensityMethod == 'null') then
        Hot_Halo_Density_Get           => Hot_Halo_Density_Null_Get

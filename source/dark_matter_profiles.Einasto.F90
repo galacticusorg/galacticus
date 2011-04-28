@@ -144,8 +144,8 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type(varying_string),          intent(in)    :: darkMatterProfileMethod
-    procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
+    type(varying_string),                 intent(in)    :: darkMatterProfileMethod
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
          &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
          &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
          &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get
@@ -446,7 +446,7 @@ contains
     ! Ensure the table exists and is sufficiently tabulated.
     call Energy_Table_Make(virialRadiusOverScaleRadius,alpha)
 
-    !$omp critical(NFW_Interpolation)
+    !$omp critical(Einasto_Interpolation)
     ! Get interpolating factors in alpha.
     jAlpha(0)=Interpolate_Locate(energyTableAlphaCount,energyTableAlpha,energyTableAlphaInterpolationAccelerator,alpha,reset&
          &=energyTableAlphaInterpolationReset)
@@ -465,7 +465,7 @@ contains
     ! Scale to dimensionful units.
     Dark_Matter_Profile_Energy_Einasto=Dark_Matter_Profile_Energy_Einasto*Tree_Node_Mass(thisNode) &
          &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
-    !$omp end critical(NFW_Interpolation)
+    !$omp end critical(Einasto_Interpolation)
     return
   end function Dark_Matter_Profile_Energy_Einasto
   
@@ -489,7 +489,7 @@ contains
     ! Ensure the table exists and is sufficiently tabulated.
     call Energy_Table_Make(virialRadiusOverScaleRadius,alpha)
     
-    !$omp critical(NFW_Interpolation)
+    !$omp critical(Einasto_Interpolation)
     ! Get interpolating factors in alpha.
     jAlpha(0)=Interpolate_Locate(energyTableAlphaCount,energyTableAlpha,energyTableAlphaInterpolationAccelerator,alpha,reset&
          &=energyTableAlphaInterpolationReset)
@@ -497,7 +497,6 @@ contains
     hAlpha=Interpolate_Linear_Generate_Factors(energyTableAlphaCount,energyTableAlpha,jAlpha(0),alpha)
 
     ! Find the energy gradient by interpolation.
-    !$omp critical(NFW_Interpolation)
     energy        =0.0d0
     energyGradient=0.0d0
     do iAlpha=0,1
@@ -508,7 +507,7 @@ contains
             &,jAlpha(iAlpha)),energyTableConcentrationInterpolationObject ,energyTableConcentrationInterpolationAccelerator&
             &,virialRadiusOverScaleRadius,reset=energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
     end do
-    !$omp end critical(NFW_Interpolation)
+    !$omp end critical(Einasto_Interpolation)
 
     ! Compute the energy growth rate.
     Dark_Matter_Profile_Energy_Growth_Rate_Einasto=Dark_Matter_Profile_Energy_Einasto(thisNode)&
@@ -744,7 +743,7 @@ contains
     ! Ensure the table exists and is sufficiently tabulated.
     call Fourier_Profile_Table_Make(wavenumberScaleFree,virialRadiusOverScaleRadius,alpha)
 
-    !$omp critical(NFW_Interpolation)
+    !$omp critical(Einasto_Interpolation)
     ! Get interpolating factors in alpha.
     jAlpha(0)=Interpolate_Locate(fourierProfileTableAlphaCount,fourierProfileTableAlpha&
          &,fourierProfileTableAlphaInterpolationAccelerator,alpha,reset=fourierProfileTableAlphaInterpolationReset)
@@ -769,7 +768,7 @@ contains
                &,wavenumberScaleFree,reset =fourierProfileTableWavenumberInterpolationReset)*hAlpha(iAlpha)*hConcentration(iConcentration)
        end do
     end do
-    !$omp end critical(NFW_Interpolation)
+    !$omp end critical(Einasto_Interpolation)
     return
   end function Dark_Matter_Profile_kSpace_Einasto
 
