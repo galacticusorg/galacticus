@@ -31,6 +31,7 @@ print $gnuPlot "set pointsize 2.0\n";
 			      $x1Data, $y1Data,
                               title => "First dataset",
                               style => line,
+                              linePattern => 0,
                               weight => [7,3],
 			      color => $PrettyPlots::colorPairs{'lightGoldenrod'}
                              );
@@ -53,6 +54,7 @@ The process begins by opening a pipe to {\sc GnuPlot} and specifying the {\tt ep
 \begin{description}
 \item[{\tt title}] Gives the title of the dataset for inclusion in the plot key;
 \item[{\tt style}] Specifies how the dataset should be drawn: either {\tt line} or {\tt point};
+\item{{\tt linePattern}} Specifies the line pattern (as defined for {\sc GnuPlot}'s {\tt lt} option) to use;
 \item[{\tt symbol}] A two element list giving the symbol indices that should be used to plot the border and inner parts of each point respectively;
 \item[{\tt weight}] A two element list giving the line weights to be used for border and inner parts of each point/line respectively;
 \item[{\tt color}] A two element list giving the color of border and inner parts of each point/line respectively. Colors should be specified as {\tt \#RRGGBB} in hexadecimal. Several suitable color pairs and sequences of pairs are defined in the {\tt GnuPlot::PrettyPlots} module;

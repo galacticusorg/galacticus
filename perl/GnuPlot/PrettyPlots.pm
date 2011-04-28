@@ -219,6 +219,13 @@ sub Prepare_Dataset {
     $lineColor{'lower'} = " lc rgbcolor \"".${$options{'color'}}[0]."\"" if ( exists($options{'color'}) );
     $lineColor{'upper'} = " lc rgbcolor \"".${$options{'color'}}[1]."\"" if ( exists($options{'color'}) );
 
+    # Create attribute for line type, assuming no specification if type option is not present.
+    my %lineType;
+    $lineType{'lower'} = "";
+    $lineType{'upper'} = "";
+    $lineType{'lower'} = " lt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
+    $lineType{'upper'} = " lt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
+
     # Create attribute for point type, assuming no specification if symbol option is not present.
     my %pointType;
     $pointType{'lower'} = "";
@@ -267,14 +274,16 @@ sub Prepare_Dataset {
 		if ( exists($phaseRules{$phase}->{'level'}) ) {
 		    # Plot just a single level, no real data.
 		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with lines".$title
-			.$lineColor{$phaseRules{$phase}->{'level'}}.$lineWeight{$phaseRules{$phase}->{'level'}};
+			.$lineType  {$phaseRules{$phase}->{'level'}}
+		        .$lineColor {$phaseRules{$phase}->{'level'}}
+		        .$lineWeight{$phaseRules{$phase}->{'level'}};
 		    ${$plot}->{$phase}->{'data'   } .= $dummyPoint;
 		    ${$plot}->{$phase}->{'data'   } .= $endPoint;
 		    ${$plot}->{$phase}->{'prefix'} = ",";
 		} else {
 		    # Plot the actual data.
 		    foreach my $level ( 'lower', 'upper' ) {
-			${$plot}->{$phase}->{'data'} .= "plot '-' with lines notitle".$lineColor{$level}.$lineWeight{$level}."\n";
+			${$plot}->{$phase}->{'data'} .= "plot '-' with lines notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
 			for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
 			}
