@@ -285,3 +285,41 @@ The {\tt haloMassFunctions} group contains datasets which list the properties of
 \item [{\tt haloVirialVelocity}] The virial velocity (in units of km/s) of the current halo mass;
 \end{description}
 Dimensionful datasets have an {\tt unitsInSI} attribute that gives their units in the SI system.
+
+\subsection{{\tt Power\_Spectra}}\index{power spectrum!outputting}
+
+The {\tt Power\_Spectra} code will generate an HDF5 output file which contains a variety of measures of the matter power spectrum tabulated as a function of wavenumber. The code is built and run as follows:
+\begin{verbatim}
+make Power_Spectra.exe
+Power_Spectra.exe <parameterFile> <outputFile>
+\end{verbatim}
+where {\tt parameterFile} is a file of parameters in \glc's usual XML format and {\tt outputFile} is the name of the file to which the power spectrum data will be written. The parameter file can specify any parameters needed for computing the power spectrum (they will be set to default values in cases where a parameter is not included).
+The output file has the following structure:
+\begin{verbatim}
++-> powerSpectrum
+|   |
+|   +-> alpha         [dataset]
+|   |
+|   +-> mass          [dataset]
+|   |
+|   +-> powerSpectrum [dataset]
+|   |
+|   +-> sigma         [dataset]
+|   |
+|   +-> wavenumber    [dataset]
+|    
++-> Parameters
+    |
+    +-> parameter1    [attribute]
+    |
+    +-> parameterN    [attribute]
+\end{verbatim}
+The {\tt Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\tt powerSpectrum} group contains datasets which give the power spectrum and related properties as follows:
+\begin{description}
+\item [{\tt alpha}] The logarithmic slope of $\sigma(M)$: $\alpha = {\rm d} \ln \sigma / {\rm d} \ln M$;
+\item [{\tt mass}] The mass scale, $M$, corresponding to the given wavenumber, $k$, defined such that $M=4 \pi \Omega_0 \rho_{\rm crit} / 3 k^3$ (in units of $M_\odot$);
+\item [{\tt powerSpectrum}] The linear theory power spectrum at $z=0$: $P(k)$ in units of Mpc$^3$;
+\item [{\tt sigma}] The dimensionless linear theory mass fluctuation at $z=0$: $\sigma(M)$;
+\item [{\tt wavenumber}] The wavenumber in units of Mpc$^{-1}$.
+\end{description}
+Dimensionful datasets have an {\tt unitsInSI} attribute that gives their units in the SI system.
