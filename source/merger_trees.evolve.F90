@@ -350,7 +350,8 @@ contains
 
     ! Also ensure that a primary progenitor does not evolve in advance of siblings. This is important since we can not promote a
     ! primary progenitor into its parent until all siblings have become satellites in that parent.
-    if (thisNode%isPrimaryProgenitor().and.associated(thisNode%siblingNode)) Evolve_To_Time=min(Evolve_To_Time,Tree_Node_Time(thisNode%siblingNode))
+    if (thisNode%isPrimaryProgenitor().and.associated(thisNode%siblingNode)) Evolve_To_Time=min(Evolve_To_Time&
+         &,max(Tree_Node_Time(thisNode),Tree_Node_Time(thisNode%siblingNode)))
 
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
     End_Of_Timestep_Task_Internal => null()
