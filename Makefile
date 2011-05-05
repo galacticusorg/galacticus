@@ -14,6 +14,10 @@ CCOMPILER = gcc
 # C++ compiler:
 CPPCOMPILER = g++
 
+# Linker for Condor standard universe executables. Uncomment the second line to link for submission to the Condor standard universe.
+CONDORLINKER = 
+#CONDORLINKER = condor_compile
+
 # Module type (used for checking if module interfaces have changed):
 MODULETYPE = GCC-f95-on-LINUX
 
@@ -109,7 +113,7 @@ vpath %.cpp source
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
 %.exe : ./work/build/%.o ./work/build/%.d `cat ./work/build/$*.d` $(MAKE_DEPS)
-	 $(F03COMPILER) `cat $*.d` -o $*.exe $(F03FLAGS) $(LIBS)
+	 $(CONDORLINKER) $(F03COMPILER) `cat $*.d` -o $*.exe $(F03FLAGS) $(LIBS)
 	 ./scripts/build/Find_Executable_Size.pl $*.exe $*.size
 
 # Ensure that we don't delete object files which make considers to be intermediate

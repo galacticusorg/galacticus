@@ -85,7 +85,7 @@ where {\tt N} is the number of the tree that crashed. This will cause calculatio
 
 \subsection{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine or on a \href{http://www.cs.wisc.edu/condor/}{{\sc Condor}}\index{Condor} cluster To run the script simply enter:
 \begin{verbatim}
  ./scripts/aux/Run_Galacticus.pl <runFile>
 \end{verbatim}
@@ -94,6 +94,14 @@ This will launch a single instance of the script. Multiple instances can be laun
 <parameterGrid>
  <modelRootDirectory>models.new</modelRootDirectory>
  <baseParameters>newBestParametersQuick.xml</baseParameters>
+ <threadCount>maximum</threadCount>
+ <condor>
+   <useCondor>true</useCondor>
+   <galacticusDirectory>/home/condor/Galacticus/v0.9.0</galacticusDirectory>
+   <universe>vanilla</universe>
+   <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
+   <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
+ </condor>
  <parameters>
   <label>modelLabel</label>
   <parameter>
@@ -133,6 +141,15 @@ By default, each model is output into a sequentially numbered directory within t
 \begin{description}
 \item[{\tt doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be;
 \item[{\tt emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\tt galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.
+\item[{\tt threadCount}] Specifies the number of threads that should be launched (each running a separate \glc\ model) when running on the local machine. If set to ``maximum'' then the number of threads will be set to the available number of cores on the local machine. If not present, a single thread is used.
+\item[{\tt condor}] This section, if present, specifies if and how jobs should be submitted to a {\tt Condor} cluster. The following options are available:
+\begin{description}
+\item[{\tt useCondor}] If set to ``true'' then jobs will be submitted to a {\sc Condor} cluster, otherwise they will be run on the local machine;
+\item[{\tt galacticusDirectory}] When a \glc\ job is submitted to a {\sc Condor} cluster the \glc\ executable and the input parameter file are transferred to the machine where the job runs. Other files, such as data files, are not transferred. Therefore, they must be already present on any remote machine on which the job can run. This option specifies where a complete \glc\ installation can be found on the remote machine. If not present, it defaults to {\tt /home/condor/Galacticus/v0.9.0};
+\item[{\tt universe}] Specifies to which {\sc Condor} universe jobs should be submitted. Allowed options are ``vanilla'' and ``standard''. If the standard universe is to be used then \glc\ must have been linked with {\tt condor\_compile}---the {\tt Makefile} allows this if the relevant lines are uncommented;
+\item[{\tt environment}] Any settings here are passed to {\sc Condor}'s {\tt environment} option in order to set appropriate environment variables on the machine where a job is executed;
+\item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
+\end{description}
 \end{description}
 
 In addition to the {\tt galacticus.hdf5} output file, each model directory will contain a file {\tt newParameters.xml} which contains the parameters used to run the model and {\tt galacticus.log} which contains any output from \glc\ during the run.
