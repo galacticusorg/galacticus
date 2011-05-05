@@ -257,12 +257,16 @@ contains
        massResolutionPrevious=massResolution
     end if
     resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
-    hyperGeometricFactor=Hypergeometric_2F1([1.5d0,0.5d0-0.5d0*modifiedPressSchechterGamma1],[1.5d0-0.5d0&
-         &*modifiedPressSchechterGamma1],1.0d0/resolutionSigmaOverParentSigma**2)
-    Modified_Press_Schechter_Subresolution_Fraction=sqrtTwoOverPi*(modificationG0Gamma2Factor/parentSigma) &
-         &*(resolutionSigmaOverParentSigma**(modifiedPressSchechterGamma1-1.0d0))/(1.0d0-modifiedPressSchechterGamma1)&
-         &*hyperGeometricFactor
-
+    if (resolutionSigmaOverParentSigma > 1.0d0) then
+       hyperGeometricFactor=Hypergeometric_2F1([1.5d0,0.5d0-0.5d0*modifiedPressSchechterGamma1],[1.5d0-0.5d0&
+            &*modifiedPressSchechterGamma1],1.0d0/resolutionSigmaOverParentSigma**2)
+       
+       Modified_Press_Schechter_Subresolution_Fraction=sqrtTwoOverPi*(modificationG0Gamma2Factor/parentSigma) &
+            &*(resolutionSigmaOverParentSigma**(modifiedPressSchechterGamma1-1.0d0))/(1.0d0-modifiedPressSchechterGamma1)&
+            &*hyperGeometricFactor
+       else
+          Modified_Press_Schechter_Subresolution_Fraction=-1.0d0
+       end if
     return
   end function Modified_Press_Schechter_Subresolution_Fraction
 
