@@ -64,6 +64,7 @@
 module Tree_Node_Methods_Satellite_Orbit
   !% Implement satellite orbit tree node methods.
   use Tree_Nodes
+  use Kepler_Orbits_Structure
   use Components
   private
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize, Satellite_Orbit_Create_Simple,&
@@ -75,9 +76,14 @@ module Tree_Node_Methods_Satellite_Orbit
   integer :: componentIndex=-1
 
   ! Property indices.
-  integer, parameter :: propertyCount =2, dataCount=0, historyCount=0
-  integer, parameter :: mergeTimeIndex=1
-  integer, parameter :: boundMassIndex=2
+  integer, parameter :: propertyCount          =2, historyCount=0
+  integer            :: dataCount              =0
+  integer, parameter :: mergeTimeIndex         =1
+  integer, parameter :: boundMassIndex         =2
+  integer, parameter :: velocityRadialIndex    =1
+  integer, parameter :: velocityTangentialIndex=2
+  integer, parameter :: virialRadiusIndex      =3
+  integer, parameter :: hostMassIndex          =4
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -86,18 +92,28 @@ module Tree_Node_Methods_Satellite_Orbit
   !# <treeNodeMethodsPointer>
   !#  <methodName>Tree_Node_Bound_Mass</methodName>
   !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer type="keplerOrbit">
+  !#  <methodName>Tree_Node_Satellite_Virial_Orbit</methodName>
+  !# </treeNodeMethodsPointer>
 
   ! Procedure pointer for function that will be called to assign merging times to satellites.
   procedure(Satellite_Time_Until_Merging_Template), pointer :: Satellite_Time_Until_Merging => null()
   abstract interface
-     double precision function Satellite_Time_Until_Merging_Template(thisNode)
-       import treeNode
-       type(treeNode), pointer, intent(in) :: thisNode
+     double precision function Satellite_Time_Until_Merging_Template(thisNode,thisOrbit)
+       import treeNode, keplerOrbit
+       type(treeNode),    pointer, intent(inout) :: thisNode
+       type(keplerOrbit),          intent(inout) :: thisOrbit
      end function Satellite_Time_Until_Merging_Template
   end interface
 
   ! Flag to indicate if this method is selected.
   logical :: methodSelected=.false.
+
+  ! Flag indicating whether or not satellite virial orbital parameters will be stored.
+  logical :: satelliteOrbitStoreOrbitalParameters
+
+  ! Option controlling whether or not unbound virial orbits are acceptable.
+  logical, parameter :: acceptUnboundOrbits=.false.
 
 contains
 
@@ -121,7 +137,7 @@ contains
     type(varying_string)                :: satelliteMergingMethod,message
 
     ! Check if this implementation is selected.
-    if (componentOption.eq.'simple') then
+    if (componentOption == 'simple') then
        ! Record that method is selected.
        methodSelected=.true.
 
@@ -144,26 +160,44 @@ contains
        Tree_Node_Bound_Mass_Set                    => null()
        Tree_Node_Bound_Mass_Rate_Adjust            => Tree_Node_Bound_Mass_Rate_Adjust_Simple
        Tree_Node_Bound_Mass_Rate_Compute           => Tree_Node_Bound_Mass_Rate_Compute_Simple
-    end if
 
-    ! Get the satellite merging timescale method.
-    !@ <inputParameter>
-    !@   <name>satelliteMergingMethod</name>
-    !@   <defaultValue>Jiang2008</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The name of the method to be used to compute satellite merging timescales.
-    !@   </description>
-    !@ </inputParameter>
-    call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
-    ! Include file that makes calls to all available method initialization routines.
-    !# <include directive="satelliteMergingMethod" type="code" action="subroutine">
-    !#  <subroutineArgs>satelliteMergingMethod,Satellite_Time_Until_Merging</subroutineArgs>
-    include 'objects.tree_node.methods.satellite_orbit.inc'
-    !# </include>
-    if (.not.associated(Satellite_Time_Until_Merging)) call&
-         & Galacticus_Error_Report('Tree_Node_Methods_Satellite_Orbit_Initialize','method '//char(satelliteMergingMethod)//' is&
-         & unrecognized')
+       Tree_Node_Satellite_Virial_Orbit            => Tree_Node_Satellite_Virial_Orbit_Simple
+       Tree_Node_Satellite_Virial_Orbit_Set        => null()
+
+       ! Determine if satellite orbits are to be stored.
+       !@ <inputParameter>
+       !@   <name>satelliteOrbitStoreOrbitalParameters</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
+       !@     again---possibly at random---each time they are requested).
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('satelliteOrbitStoreOrbitalParameters',satelliteOrbitStoreOrbitalParameters,defaultValue=.false.)
+       ! Add two data properties if this information is to be stored.
+       if (satelliteOrbitStoreOrbitalParameters) dataCount=dataCount+4
+
+       ! Get the satellite merging timescale method.
+       !@ <inputParameter>
+       !@   <name>satelliteMergingMethod</name>
+       !@   <defaultValue>Jiang2008</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The name of the method to be used to compute satellite merging timescales.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
+       ! Include file that makes calls to all available method initialization routines.
+       !# <include directive="satelliteMergingMethod" type="code" action="subroutine">
+       !#  <subroutineArgs>satelliteMergingMethod,Satellite_Time_Until_Merging</subroutineArgs>
+       include 'objects.tree_node.methods.satellite_orbit.inc'
+       !# </include>
+       if (.not.associated(Satellite_Time_Until_Merging)) call&
+            & Galacticus_Error_Report('Tree_Node_Methods_Satellite_Orbit_Initialize','method '//char(satelliteMergingMethod)//' is&
+            & unrecognized')
+       
+    end if
 
     return
   end subroutine Tree_Node_Methods_Satellite_Orbit_Initialize
@@ -283,6 +317,38 @@ contains
     return
   end subroutine Tree_Node_Bound_Mass_Rate_Compute_Simple
 
+  function Tree_Node_Satellite_Virial_Orbit_Simple(thisNode) result (thisOrbit)
+    !% Return the orbit of the satellite at the virial radius.
+    use Kepler_Orbits_Structure
+    use Virial_Orbits
+    implicit none
+    type(keplerOrbit)                        :: thisOrbit
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),   pointer                :: hostNode
+    integer                                  :: thisIndex
+
+    if (thisNode%isSatellite().or..not.thisNode%isPrimaryProgenitor()) then
+       if (satelliteOrbitStoreOrbitalParameters) then
+          if (.not.thisNode%componentExists(componentIndex)) call Satellite_Orbit_Create_Simple(thisNode)
+          call thisOrbit%reset()
+          thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+          call thisOrbit%massesSet            (                                                          &
+               &                               Tree_Node_Mass(thisNode)                                , &
+               &                               thisNode%components(thisIndex)%data(hostMassIndex      )  &
+               &                              )
+          call thisOrbit%radiusSet            (thisNode%components(thisIndex)%data(virialRadiusIndex  ))
+          call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%data(velocityRadialIndex))
+          call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%data(velocityRadialIndex))
+       else
+          hostNode => thisNode%parentNode
+          thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
+       end if
+    else
+       call thisOrbit%reset()
+    end if
+    return
+  end function Tree_Node_Satellite_Virial_Orbit_Simple
+
   !# <scaleSetTask>
   !#  <unitName>Satellite_Orbit_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
@@ -316,15 +382,38 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Satellite_Orbit_Create_Simple(thisNode)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
+    use Numerical_Constants_Math
+    use Dark_Matter_Halo_Scales
+    use Virial_Orbits
     implicit none
-    type(treeNode),  pointer, intent(inout) :: thisNode
-    double precision                        :: mergeTime
+    type(treeNode),     pointer, intent(inout) :: thisNode
+    type(treeNode),     pointer                :: hostNode
+    integer                                    :: thisIndex
+    double precision                           :: mergeTime
+    type(keplerOrbit)                          :: thisOrbit
 
     if (methodSelected) then
        ! Create a satellite orbit component and assign a time until merging.
        call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
-       mergeTime=Satellite_Time_Until_Merging(thisNode)
+
+       ! Get an orbit for this satellite.
+       hostNode => thisNode%parentNode
+       thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
+
+       ! Store the orbit if necessary.
+       if (satelliteOrbitStoreOrbitalParameters) then
+          thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+          thisNode%components(thisIndex)%data(hostMassIndex          )=thisOrbit%hostMass          ()
+          thisNode%components(thisIndex)%data(virialRadiusIndex      )=thisOrbit%radius            ()
+          thisNode%components(thisIndex)%data(velocityRadialIndex    )=thisOrbit%velocityRadial    ()
+          thisNode%components(thisIndex)%data(velocityTangentialIndex)=thisOrbit%velocityTangential()
+       end if
+
+       ! Compute and store a time until merging.
+       mergeTime=Satellite_Time_Until_Merging(thisNode,thisOrbit)
        if (mergeTime >= 0.0d0) call Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime)
+
+       ! Set the bound mass of the satellite.
        call Tree_Node_Bound_Mass_Set_Simple(thisNode,Tree_Node_Mass(thisNode))
     end if
     return

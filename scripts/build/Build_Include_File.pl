@@ -18,6 +18,14 @@ $xmlFile = $ARGV[1];
 # Specify verbosity.
 $verbosity = 0;
 
+# Specify evolvability of different object types.
+my %isEvolvable = (
+    scalar      => 1,
+    array       => 1,
+    history     => 1,
+    keplerOrbit => 0
+    );
+
 # Load the file of directive locations.
 if ( -e "./work/build/Code_Directive_Locations.xml" ) {
     $xml = new XML::Simple;
@@ -197,7 +205,7 @@ foreach $fullname ( @filesToScan ) {
 		    }
 		    # Instruction is to build a set of calls to evaluate property derivatives.
 		    case ( "derivatives" ) {
-			$inserts{$data->{'methodName'}} = 1;
+			$inserts{$data->{'methodName'}} = &Get_Type($data);
 		    }
 		    # Instruction is to build a set of calls that initialize methods.
 		    case ( "initializeMethods" ) {
@@ -307,8 +315,10 @@ switch ( $instructions->{'type'} ) {
 	    $suffix = &Get_Suffix($inserts{$method});
 	    print includeFile "procedure(Get_Template".$suffix."), pointer, public :: $method => null()\n";
 	    print includeFile "procedure(Set_Template".$suffix."), pointer, public :: $method\_Set => null()\n";
-	    print includeFile "procedure(Rate_Adjust_Template".$suffix."), pointer, public :: $method\_Rate_Adjust => null()\n";
-	    print includeFile "procedure(Rate_Compute_Template), pointer, public :: $method\_Rate_Compute => null()\n";
+	    print includeFile "procedure(Rate_Adjust_Template".$suffix."), pointer, public :: $method\_Rate_Adjust => null()\n"
+		unless ( $isEvolvable{$inserts{$method}} == 0 );
+	    print includeFile "procedure(Rate_Compute_Template), pointer, public :: $method\_Rate_Compute => null()\n"
+		unless ( $isEvolvable{$inserts{$method}} == 0 );
 	}
     }
     # For cWrapper, create C-bound wrappers for the given method.
@@ -351,15 +361,18 @@ switch ( $instructions->{'type'} ) {
     # Create code to compute derivatives for properties.
     case ( "derivatives" ) {
 	foreach $method ( @SortedBlocks ) {
-	    print includeFile "if (.not.interrupt) call $method\_Rate_Compute(thisNode,interrupt,interruptProcedure)\n";
+	    print includeFile "if (.not.interrupt) call $method\_Rate_Compute(thisNode,interrupt,interruptProcedure)\n"
+		unless ( $isEvolvable{$inserts{$method}} == 0 );
 	}
     }
     # Create code to intialize all methods.
     case ( "initializeMethods" ) {
 	foreach $method ( @SortedBlocks ) {
 	    $suffix = &Get_Suffix($inserts{$method});
-	    print includeFile "$method\_Rate_Adjust  => Tree_Node_Rate_Adjust".$suffix."_Dummy\n";
-	    print includeFile "$method\_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy\n";
+	    print includeFile "$method\_Rate_Adjust  => Tree_Node_Rate_Adjust".$suffix."_Dummy\n"
+		unless ( $isEvolvable{$inserts{$method}} == 0 );
+	    print includeFile "$method\_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy\n"
+		unless ( $isEvolvable{$inserts{$method}} == 0 );
 	}
     }
     # Create code to define procedure pointers for pipes.
@@ -403,6 +416,9 @@ sub Get_Suffix {
 	}
 	case ( "history" ) {
 	    $suffix = "_History";
+	}
+	case ( "keplerOrbit" ) {
+	    $suffix = "_Kepler_Orbit";
 	}
 	else {
 	    die("Build_Include_File.pl: unrecognized method type");

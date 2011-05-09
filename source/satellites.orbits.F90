@@ -59,71 +59,73 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements satellite orbital parameters at virial radius crossing.
+!% Contains a module which implements calculations related to satellite orbits.
 
-module Virial_Orbits
-  !% Implements satellite orbital parameters at virial radius crossing.
-  use ISO_Varying_String
+module Satellite_Orbits
+  !% Implements calculations related to satellite orbits.
   use Tree_Nodes
   private
-  public :: Virial_Orbital_Parameters
+  public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius
+  
+  ! Orbital energy - used for finding radius of equivalent circular orbit.
+  double precision                              :: orbitalEnergyInternal
+  !$omp threadprivate(orbitalEnergyInternal)
+  
+  ! Node used in root finding calculations.
+  type(treeNode),                       pointer :: activeNode
+  !$omp threadprivate(hostNode)
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                        :: virialOrbitsInitialized=.false.
-
-  ! Name of virial overdensity method used.
-  type(varying_string)                           :: virialOrbitsMethod
-
-  ! Pointer to the function that returns virial orbital parameters.
-  procedure(Virial_Orbital_Parameters), pointer :: Virial_Orbital_Parameters_Get => null()
- 
 contains
-
-  function Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
-    !% Returns virial orbital parameters.
+  
+  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit)
+    !% Solves for the equivalent circular orbit radius for {\tt thisOrbit} in {\tt hostNode}.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error
-    use Input_Parameters
     use Root_Finder
     use FGSL
-    use Dark_Matter_Halo_Scales
     use Kepler_Orbits_Structure
-    !# <include directive="virialOrbitsMethod" type="moduleUse">
-    include 'satellites.merging.virial_orbits.modules.inc'
-    !# </include>
+    use Dark_Matter_Halo_Scales
     implicit none
-    type(keplerOrbit)                         :: thisOrbit
-    type(treeNode),   intent(inout), pointer  :: thisNode,hostNode
-    logical,          intent(in)              :: acceptUnboundOrbits
-    
-    !$omp critical(virialOrbitsInitialized)
-    if (.not.virialOrbitsInitialized) then
-       ! Get the virial orbits method parameter.
-       !@ <inputParameter>
-       !@   <name>virialOrbitsMethod</name>
-       !@   <defaultValue>Benson2005</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects the method to be used for finding orbital parameters of satellites at virial radius crossing.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('virialOrbitsMethod',virialOrbitsMethod,defaultValue='Benson2005')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="virialOrbitsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>virialOrbitsMethod,Virial_Orbital_Parameters_Get</subroutineArgs>
-       include 'satellites.merging.virial_orbits.inc'
-       !# </include>
-       if (.not.associated(Virial_Orbital_Parameters_Get)) call Galacticus_Error_Report('Virial_Orbital_Parameters','method ' &
-            &//char(virialOrbitsMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       virialOrbitsInitialized=.true.
+    type(treeNode),          pointer, intent(inout) :: hostNode
+    type(keplerOrbit),                intent(inout) :: thisOrbit
+    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
+    type(fgsl_function),     save                   :: rootFunction
+    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    !$omp threadprivate(rootFunction,rootFunctionSolver)
+    type(c_ptr)                                     :: parameterPointer
+    double precision                                :: radiusMinimum,radiusMaximum
+
+    orbitalEnergyInternal=thisOrbit%energy()
+    if (orbitalEnergyInternal >= 0.0d0) then
+       ! Orbit is unbound, return unphysical value.
+       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
+    else
+       activeNode => hostNode
+       radiusMinimum=Dark_Matter_Halo_Virial_Radius(hostNode)
+       radiusMaximum=radiusMinimum
+       do while (Equivalent_Circular_Orbit_Solver(radiusMinimum,parameterPointer) >= 0.0d0)
+          radiusMinimum=0.5d0*radiusMinimum
+       end do
+       do while (Equivalent_Circular_Orbit_Solver(radiusMaximum,parameterPointer) <= 0.0d0)
+          radiusMaximum=2.0d0*radiusMaximum
+       end do
+       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=Root_Find(radiusMinimum,radiusMaximum,Equivalent_Circular_Orbit_Solver&
+            &,parameterPointer ,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
     end if
-    !$omp end critical(virialOrbitsInitialized)
-
-    ! Call the routine to get the orbital parameters.
-    thisOrbit=Virial_Orbital_Parameters_Get(thisNode,hostNode,acceptUnboundOrbits)
-
     return
-  end function Virial_Orbital_Parameters
+  end function Satellite_Orbit_Equivalent_Circular_Orbit_Radius
 
-end module Virial_Orbits
+  function Equivalent_Circular_Orbit_Solver(radius,parameterPointer) bind(c)
+    !% Root function used in finding equivalent circular orbits.
+    use, intrinsic :: ISO_C_Binding
+    use Dark_Matter_Profiles
+    implicit none
+    real(c_double), value :: radius
+    type(c_ptr),    value :: parameterPointer
+    real(c_double)        :: Equivalent_Circular_Orbit_Solver
+
+    Equivalent_Circular_Orbit_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0&
+         &*Dark_Matter_Profile_Circular_Velocity(activeNode,radius)**2-orbitalEnergyInternal
+    return
+  end function Equivalent_Circular_Orbit_Solver
+
+end module Satellite_Orbits

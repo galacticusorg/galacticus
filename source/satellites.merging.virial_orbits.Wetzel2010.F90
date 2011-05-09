@@ -132,8 +132,7 @@ contains
     return
   end subroutine Virial_Orbital_Parameters_Wetzel2010_Initialize
 
-  subroutine Virial_Orbital_Parameters_Wetzel2010(thisNode,acceptUnboundOrbits,velocityRadial,velocityTangential,angularMomentum&
-       &,orbitalEnergy,eccentricity,semimajorAxis)
+ function Virial_Orbital_Parameters_Wetzel2010(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
     !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{wetzel_orbits_2010}.
     use Pseudo_Random
     use Tree_Nodes
@@ -144,12 +143,11 @@ contains
     use Root_Finder
     use Cosmology_Functions
     use FGSL
+    use Kepler_Orbits_Structure
     implicit none
-    type(treeNode),          intent(inout), pointer  :: thisNode
+    type(keplerOrbit)                                :: thisOrbit
+    type(treeNode),          intent(inout), pointer  :: thisNode,hostNode
     logical,                 intent(in)              :: acceptUnboundOrbits
-    double precision,        intent(out),   optional :: velocityRadial,velocityTangential,angularMomentum,orbitalEnergy&
-         &,eccentricity ,semimajorAxis
-    type(treeNode),                         pointer  :: hostNode
     double precision,        parameter               :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
     double precision,        parameter               :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
     double precision,        parameter               :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
@@ -161,17 +159,16 @@ contains
     type(fgsl_root_fsolver), save                    :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
     type(c_ptr)                                      :: parameterPointer
-    double precision                                 :: massFactor,g1,R1,timeNode,massHost,massCharacteristic,expansionFactor&
-         &,pericentricRadius,probabilityTotal,circularity,eccentricityInternal ,semimajorAxisInternal,orbitalEnergyInternal&
-         &,angularMomentumInternal,velocityTangentialInternal,radialScale ,velocityScale,apocentricRadius
-    logical                                          :: requireEccentricity,requireSemimajorAxis,requireOrbitalEnergy&
-         &,requireAngularMomentum,requireVelocityTangential,foundOrbit
+    double precision                                 :: g1,R1,timeNode,massCharacteristic,expansionFactor&
+         &,pericentricRadius,apocentricRadius,probabilityTotal,circularity,eccentricityInternal,radialScale
+    logical                                          :: foundOrbit
 
-    ! Determine the mass parameter.
-    hostNode  => thisNode%parentNode
-    massHost  =  Tree_Node_Mass(hostNode)
-    massFactor=  1.0d0+Tree_Node_Mass(thisNode)/massHost
- 
+    ! Reset the orbit.
+    call thisOrbit%reset()
+    ! Set masses and radius of the orbit.
+    call thisOrbit%massesSet(Tree_Node_Mass(thisNode),Tree_Node_Mass(hostNode))
+    call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
+
     ! Get the time at which this node exists.
     timeNode=Tree_Node_Time(thisNode)
 
@@ -190,7 +187,7 @@ contains
     ! Compute parameter of the circularity fitting function. We limit C1 to a given maximum - the fit is not explored in this
     ! regime and without the truncation we get problems evaluating hypergeometric functions.
     g1=(1.0d0/expansionFactor)**circularityP1
-    C1=min(circularityAlpha1*(1.0d0+circularityBeta1*(g1*massHost/massCharacteristic)**circularityGamma1),c1Maximum)
+    C1=min(circularityAlpha1*(1.0d0+circularityBeta1*(g1*thisOrbit%hostMass()/massCharacteristic)**circularityGamma1),c1Maximum)
     C0=1.0d0
     probabilityTotal=Circularity_Cumulative_Probability(circularityMaximum)
     C0=1.0d0/probabilityTotal
@@ -198,7 +195,7 @@ contains
     ! Compute parameter of the pericentric distance fitting function. Since the fit for R1 can lead to negative pericentric
     ! distances in some cases we force R1 to always be above a specified minimum.
     g1=(1.0d0/expansionFactor)**pericenterP1
-    R1=max(pericenterAlpha1*(1.0d0+pericenterBeta1*(g1*massHost/massCharacteristic)**pericenterGamma1),r1Minimum)
+    R1=max(pericenterAlpha1*(1.0d0+pericenterBeta1*(g1*thisOrbit%hostMass()/massCharacteristic)**pericenterGamma1),r1Minimum)
 
     ! Search for an orbit.
     foundOrbit=.false.
@@ -220,34 +217,15 @@ contains
        foundOrbit=apocentricRadius >= 1.0d0 .and. pericentricRadius <= 1.0d0
     end do
     
-    ! Get length and velocity scales for this orbit.
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
+    ! Get length scale for this orbit.
     radialScale  =Dark_Matter_Halo_Virial_Radius(hostNode)
     
-    ! Determine which orbital properties must be computed.
-    requireVelocityTangential=present(velocityTangential).or.present(velocityRadial)
-    requireAngularMomentum   =present(angularMomentum)   .or.requireVelocityTangential
-    requireOrbitalEnergy     =present(orbitalEnergy)     .or.present(velocityRadial)
-    requireSemimajorAxis     =present(semimajorAxis)     .or.present(orbitalEnergy)
-    requireEccentricity      =present(eccentricity)      .or.requireAngularMomentum.or.requireSemimajorAxis
-
-    ! Compute required orbital properties.
-    if (requireEccentricity      ) eccentricityInternal      =dsqrt(1.0-circularity**2)
-    if (requireSemimajorAxis     ) semimajorAxisInternal     =2.0d0*pericentricRadius/(1.0d0-eccentricityInternal)
-    if (requireOrbitalEnergy     ) orbitalEnergyInternal     =-0.5d0*massFactor/semimajorAxisInternal
-    if (requireAngularMomentum   ) angularMomentumInternal   =dsqrt(pericentricRadius*(1.0d0+eccentricityInternal)/massFactor)
-    if (requireVelocityTangential) velocityTangentialInternal=angularMomentumInternal*massFactor
-
-    ! Compute properties to be returned.
-    if (present(eccentricity      )) eccentricity      =eccentricityInternal
-    if (present(semimajorAxis     )) semimajorAxis     =semimajorAxisInternal                                                                         *radialScale
-    if (present(orbitalEnergy     )) orbitalEnergy     =orbitalEnergyInternal                                                                                     *velocityScale**2
-    if (present(angularMomentum   )) angularMomentum   =angularMomentumInternal                                                                       *radialScale*velocityScale
-    if (present(velocityTangential)) velocityTangential=velocityTangentialInternal                                                                                *velocityScale
-    if (present(velocityRadial    )) velocityRadial    =dsqrt(2.0d0*(massFactor*orbitalEnergyInternal+massFactor-0.5d0*velocityTangentialInternal**2))            *velocityScale
-
+    ! Set eccentricity and periapsis.
+    call thisOrbit%eccentricitySet    (dsqrt(1.0-circularity**2)    )
+    call thisOrbit%radiusPericenterSet(pericentricRadius*radialScale)
+    
     return
-  end subroutine Virial_Orbital_Parameters_Wetzel2010
+  end function Virial_Orbital_Parameters_Wetzel2010
 
   function Circularity_Root(circularity,parameterPointer) bind(c)
     !% Function used in finding the circularity corresponding to a given cumulative probability.

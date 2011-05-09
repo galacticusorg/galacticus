@@ -67,6 +67,7 @@ module Tree_Nodes
   use Components
   use Kind_Numbers
   use Histories
+  use Kepler_Orbits_Structure
   private
   public :: treeNode, treeNodeList, Tree_Node_Rate_Rate_Compute_Dummy, Tree_Node_Rate_Adjust_Dummy,&
        & Tree_Node_Rate_Adjust_Array_Dummy, Tree_Node_Rate_Adjust_History_Dummy, Get_Template, Set_Template
@@ -291,6 +292,13 @@ module Tree_Nodes
      end function Get_Template_History
   end interface
   abstract interface
+     function Get_Template_Kepler_Orbit(thisNode)
+       import treeNode, keplerOrbit
+       type(treeNode),   pointer, intent(inout) :: thisNode
+       type(keplerOrbit)                        :: Get_Template_Kepler_Orbit
+     end function Get_Template_Kepler_Orbit
+  end interface
+  abstract interface
      subroutine Set_Template(thisNode,value)
        import treeNode
        type(treeNode),   pointer, intent(inout) :: thisNode
@@ -310,6 +318,13 @@ module Tree_Nodes
        type(treeNode), pointer, intent(inout) :: thisNode
        type(history),           intent(in)    :: values
      end subroutine Set_Template_History
+  end interface
+  abstract interface
+     subroutine Set_Template_Kepler_Orbit(thisNode,values)
+       import treeNode, keplerOrbit
+       type(treeNode),    pointer, intent(inout) :: thisNode
+       type(keplerOrbit),          intent(inout) :: values
+     end subroutine Set_Template_Kepler_Orbit
   end interface
   abstract interface
      subroutine Rate_Adjust_Template(thisNode,interrupt,interruptProcedure,rateAdjustment)
