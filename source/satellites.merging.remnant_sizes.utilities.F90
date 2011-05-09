@@ -147,7 +147,7 @@ contains
        remnantSpheroidMass   =0.0d0
     case (doesNotMove)
        hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)
-       hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidHalfMassRadius
+       hostRadius            =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidHalfMassRadius
        darkMatterFactor      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor
        remnantSpheroidGasMass=Tree_Node_Spheroid_Gas_Mass(hostNode)
        remnantSpheroidMass   =Tree_Node_Spheroid_Gas_Mass(hostNode)
@@ -161,9 +161,9 @@ contains
        darkMatterFactor   =darkMatterFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskDarkMatterFactor
        remnantSpheroidMass=remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
     case (movesToDisk)
-       hostSpheroidMass=hostSpheroidMass
-       hostRadius      =hostRadius
-       darkMatterFactor=darkMatterFactor
+       hostSpheroidMass   =hostSpheroidMass
+       hostRadius         =hostRadius
+       darkMatterFactor   =darkMatterFactor
     case (doesNotMove)
        hostSpheroidMass   =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)
        hostRadius         =hostRadius         +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidHalfMassRadius
