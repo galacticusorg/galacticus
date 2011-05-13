@@ -1324,7 +1324,8 @@
   </coolingFunction>
   <coolingFunction>
     <coolingRate>
-      <datum>1.47911e-26</datum>
+      <datum>2.23872e-26</datum>
+      <datum>5.37032e-25</datum>
       <datum>1.04713e-23</datum>
       <datum>5.49541e-23</datum>
       <datum>1.58489e-22</datum>
