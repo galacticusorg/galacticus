@@ -3099,6 +3099,51 @@ Currently defined star formation feedback methods are:
 where $V_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} (in km/s) and $\alpha_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
 \end{description}
 
+\subsubsection{(Expulsive) Star Formation Feedback in Disks/Spheroids}\index{feedback!expulsive}
+
+Additional methods for computing expulsive feedback\footnote{``Expulsive'' feedback implies outflows in which gas is driven not only out of a galaxy but also out of its host dark matter halo.} from star formation in disks/spheroids can be added using the {\tt starFormationExpulsiveFeedback[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt power law} method is described by a directive:
+\begin{verbatim}
+ !# <starFormationExpulsiveFeedbackSpheroidsMethod>
+ !#  <unitName>Star_Formation_Expulsive_Feedback_Spheroids_Power_Law_Initialize</unitName>
+ !# </starFormationExpulsiveFeedbackSpheroidsMethod>
+\end{verbatim}
+Here, {\tt Star\_Formation\_Expulsive\_Feedback\_Spheroids\_Power\_Law\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(starFormationExpulsiveFeedbackDisksMethod,Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: starFormationFeedbackDisksMethod
+    procedure(),          pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
+    
+    if (starFormationExpulsiveFeedbackDisksMethod == 'myMethod') Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get => My_Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt starFormationExpulsiveFeedback[Disks|Spheroids]Method} input parameter. The procedure pointer {\tt Star\_Formation\_Expulsive\_Feedback\_Disk\_Outflow\_Rate\_Get} (or {\tt Star\_Formation\_Expulsive\_Feedback\_Spheroid\_Outflow\_Rate\_Get} for the spheroid case) must be set to point to a function which returns the expulsive mass outflow rate due to star formation as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The outflow rate function must have the form:
+\begin{verbatim}
+ double precision function Star_Formation_Expulsive_Feedback_Outflow_Rate_Get(thisNode,starFormationRate,energyInputRate)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: starFormationRate,energyInputRate
+    .
+    .
+    .
+    return
+ end function Star_Formation_Expulsive_Feedback_Outflow_Rate_Get
+\end{verbatim}
+The function must return the expulsive mass outflow rate (in $M_\odot$ Gyr$^{-1}$) for {\tt thisNode}.
+
+Currently defined star formation expulsive feedback methods are:
+\begin{description}
+ \item [\hyperlink{star_formation.feedback_expulsion.spheroids.null.F90:star_formation_expulsion_feedback_spheroids_null:star_formation_expulsive_feedback_spheroid_outflow_rate_null}{{\tt null}}] Assumes a zero outflow rate.
+ \item [\hyperlink{star_formation.feedback_expulsion.spheroids.superwind.F90:star_formation_expulsion_feedback_spheroids_superwinds:star_formation_expulsive_feedback_spheroid_outflow_rate_sw}{{\tt superwind}}] The outflow rate is given by
+\begin{equation}
+ \dot{M}_{\rm outflow} = \beta_{\rm superwind} {\dot{E} \over E_{\rm canonical}} \left\{ \begin{array}{ll} \left( V_{\rm superwind}/V\right)^2 & \hbox{ if } V > V_{\rm superwind} \\ 1 & \hbox{ otherwise,} \end{array} \right.
+\end{equation}
+where $V_{\rm superwind}=${\tt [disk|spheroid]SuperwindVelocity} (in km/s) and $\beta_{\rm superwind}=${\tt [disk|spheroid]SuperwindMassLoading} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+\end{description}
+
 \subsubsection{Star Formation Timescale in Disks/Spheroids}
 
 Additional methods for computing star formation timescales in disks/spheroids can be added using the {\tt starFormationTimescale[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt dynamical time} method is described by a directive:

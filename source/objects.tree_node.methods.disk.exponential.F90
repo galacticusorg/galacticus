@@ -556,6 +556,7 @@ contains
     use Cosmological_Parameters
     use Cooling_Rates
     use Star_Formation_Feedback_Disks
+    use Star_Formation_Feedback_Expulsion_Disks
     use Abundances_Structure
     use Galactic_Structure_Options
     use Galactic_Dynamics_Bar_Instabilities
@@ -569,7 +570,7 @@ contains
     integer                                           :: thisIndex,iHistory
     double precision                                  :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass &
          &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate&
-         &,diskDynamicalTime
+         &,diskDynamicalTime,massOutflowRateToHotHalo,massOutflowRateFromHalo,outflowToHotHaloFraction
     type(abundancesStructure), save                   :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
     type(history)                                     :: historyTransferRate
@@ -619,8 +620,13 @@ contains
             &,fuelAbundances,starFormationRate)
        
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-       massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       massOutflowRateToHotHalo=Star_Formation_Feedback_Disk_Outflow_Rate          (thisNode,starFormationRate,energyInputRate)
+       massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then
+          ! Find the fraction of material which outflows to the hot halo.
+          outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
+
           ! Get the masses of the disk.
           gasMass =        Tree_Node_Disk_Gas_Mass_Exponential    (thisNode)
           diskMass=gasMass+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
@@ -642,18 +648,18 @@ contains
           else
              abundancesOutflowRate=0.0d0
           end if
-          call Tree_Node_Hot_Halo_Outflow_Mass_To                     (thisNode,interrupt,interruptProcedure,&
-               & massOutflowRate           )
-          call Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure,&
-               &-massOutflowRate           )
-          call Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To         (thisNode,interrupt,interruptProcedure,&
-               & angularMomentumOutflowRate)
-          call Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,&
-               &-angularMomentumOutflowRate)
-          call Tree_Node_Hot_Halo_Outflow_Abundances_To               (thisNode,interrupt,interruptProcedure,&
-               & abundancesOutflowRate)
-          call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,&
-               &-abundancesOutflowRate)
+          call Tree_Node_Hot_Halo_Outflow_Mass_To                     (thisNode,interrupt,interruptProcedure, &
+               &  massOutflowRate           *outflowToHotHaloFraction)
+          call Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure, &
+               & -massOutflowRate                                    )
+          call Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To         (thisNode,interrupt,interruptProcedure, &
+               &  angularMomentumOutflowRate*outflowToHotHaloFraction)
+          call Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure, &
+               & -angularMomentumOutflowRate                         )
+          call Tree_Node_Hot_Halo_Outflow_Abundances_To               (thisNode,interrupt,interruptProcedure, &
+               &  abundancesOutflowRate     *outflowToHotHaloFraction)
+          call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure, &
+               & -abundancesOutflowRate                              )
        end if
 
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.

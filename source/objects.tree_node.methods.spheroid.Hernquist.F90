@@ -660,6 +660,7 @@ contains
     use Cosmological_Parameters
     use Cooling_Rates
     use Star_Formation_Feedback_Spheroids
+    use Star_Formation_Feedback_Expulsion_Spheroids
     use Abundances_Structure
     use Galactic_Structure_Options
     use Galacticus_Output_Star_Formation_Histories
@@ -669,8 +670,9 @@ contains
     logical,                            intent(inout) :: interrupt
     procedure(),               pointer, intent(inout) :: interruptProcedure
     integer                                           :: thisIndex
-    double precision                                  :: starFormationRate,stellarMassRate ,fuelMassRate,fuelMass&
-         &,massOutflowRate,spheroidMass,angularMomentumOutflowRate,energyInputRate,gasMass,spheroidDynamicalTime
+    double precision                                  :: starFormationRate,stellarMassRate ,fuelMassRate,fuelMass &
+         &,massOutflowRate,spheroidMass,angularMomentumOutflowRate,energyInputRate,gasMass,spheroidDynamicalTime&
+         &,massOutflowRateToHotHalo,massOutflowRateFromHalo,outflowToHotHaloFraction
     type(abundancesStructure), save                   :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
 
@@ -716,8 +718,13 @@ contains
             &,fuelAbundances,starFormationRate)
        
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
-       massOutflowRate=Star_Formation_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       massOutflowRateToHotHalo=Star_Formation_Feedback_Spheroid_Outflow_Rate          (thisNode,starFormationRate,energyInputRate)
+       massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then
+          ! Find the fraction of material which outflows to the hot halo.
+          outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
+          
           ! Get the masses of the spheroid.
           gasMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
           spheroidMass=gasMass+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
@@ -727,17 +734,17 @@ contains
           ! Limit the mass outflow rate.
           massOutflowRate=min(massOutflowRate,gasMass/spheroidOutflowTimescaleMinimum/spheroidDynamicalTime)
           call Tree_Node_Hot_Halo_Outflow_Mass_To                       (thisNode,interrupt,interruptProcedure,&
-               & massOutflowRate           )
+               & massOutflowRate*outflowToHotHaloFraction)
           call Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist        (thisNode,interrupt,interruptProcedure,&
-               &-massOutflowRate           )
+               &-massOutflowRate                         )
           
           ! Compute the angular momentum outflow rate.
           if (spheroidMass > 0.0d0) then
              angularMomentumOutflowRate=(massOutflowRate/spheroidMass)*Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode)
              call Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To           (thisNode,interrupt,interruptProcedure,&
-                  & angularMomentumOutflowRate)
+                  & angularMomentumOutflowRate*outflowToHotHaloFraction)
              call Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,&
-                  &-angularMomentumOutflowRate)
+                  &-angularMomentumOutflowRate                         )
           end if
           
           ! Compute the abundances outflow rate.
@@ -745,9 +752,9 @@ contains
           call Abundances_Mass_To_Mass_Fraction(abundancesValue,gasMass)
           abundancesOutflowRate=massOutflowRate*abundancesValue
           call Tree_Node_Hot_Halo_Outflow_Abundances_To                 (thisNode,interrupt,interruptProcedure,&
-               & abundancesOutflowRate)
+               & abundancesOutflowRate*outflowToHotHaloFraction)
           call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist  (thisNode,interrupt,interruptProcedure,&
-               &-abundancesOutflowRate)
+               &-abundancesOutflowRate                         )
        end if
     end if
     return
