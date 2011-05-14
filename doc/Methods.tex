@@ -1376,9 +1376,10 @@ The function should compute and return the concentration for {\tt thisNode}.
 
 Currently defined darl matter profile concentration methods are:
 \begin{description}
+ \item [{\tt NFW 1996}] The concentration is computed using the algorithm given by \cite{navarro_structure_1996};
  \item [{\tt Gao 2008}] The concentration is computed using a fitting function from \cite{gao_redshift_2008};
  \item [{\tt Zhao 2009}] The concentration is computed using a fitting function from \cite{zhao_accurate_2009}. Halo formation times (as defined by \citealt{zhao_accurate_2009}) are computed directly from the merger tree branch associated with each node. Where the tree does not exist or has insufficient resolution to contain the merging time the merging time will be found by extrapolation of the earliest resolved progenitor halo using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory});
- \item [{\tt Munoz-Cuartas 20011}] The concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011};
+ \item [{\tt Munoz-Cuartas 2011}] The concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011};
 \end{description}
 
 \subsubsection{Dark Matter Density Profile Shape}

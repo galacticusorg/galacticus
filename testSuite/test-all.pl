@@ -83,6 +83,7 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     "tests.Zhao2009_algorithms.dark_energy.exe", # Tests of Zhao et al. (2009) algorithms.
     "tests.Zhao2009_algorithms.EdS.exe",         # .
     "tests.Zhao2009_algorithms.open.exe",        # .
+    "tests.NFW96_concentration.dark_energy.exe", # Tests of Navarro, Frenk & White (1996) halo concentration algorithm.
     "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
     "tests.bug745815.exe",                       # Regresssions.
     );
