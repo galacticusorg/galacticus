@@ -542,6 +542,14 @@ Selected by {\tt imfSelectionMethod}$=${\tt diskSpheroid}, this method uses diff
 
 A variety of different \IMF s are available. Each \IMF\ registers itself with the \glc\ \IMF\ subsystem and can then be looked-up by name or internal index. All IMFs are assumed to be continuous in $M$, unless otherwise noted and normalized to unit mass. Each \IMF\ supplies a recycled fraction and metal yield for use in the instantaneous recycling approximation. These can be set via the parameters {\tt imf[imfName]RecycledInstantaneous} and {\tt imf[imfName]YieldInstantaneous} where {\tt [imfName]} is the name of the \IMF. Their default values were computed using \glc 's internal stellar astrophysics modules for a Solar metallicity population with age of $13.8$ Gyr.
 
+\subsubsection{Baugh et al. (2005) Top-Heavy}
+
+The {\tt Baugh2005TopHeavy} \IMF\ is defined by \citep{baugh_can_2005}:
+\begin{equation}
+ \phi(M) \propto 
+ M^{-1} & \hbox{ for } 0.15M_\odot < M < 125M_\odot
+\end{equation}
+
 \subsubsection{Chabrier}
 
 The {\tt Chabrier} \IMF\ is defined by \citep{chabrier_galactic_2001}:
