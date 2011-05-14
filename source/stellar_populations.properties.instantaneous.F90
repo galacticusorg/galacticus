@@ -107,7 +107,7 @@ contains
     return
   end function Stellar_Population_Properties_History_Count_Instantaneous
   
-  subroutine Stellar_Population_Properties_Rates_Instantaneous(starFormationRate,fuelAbundances,thisNode,thisHistory,stellarMassRate&
+  subroutine Stellar_Population_Properties_Rates_Instantaneous(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate&
        &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Tree_Nodes
@@ -122,6 +122,7 @@ contains
     double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
     double precision,          intent(in)                  :: starFormationRate
     type(abundancesStructure), intent(in)                  :: fuelAbundances
+    integer,                   intent(in)                  :: component
     type(treeNode),            intent(inout), pointer      :: thisNode
     type(history),             intent(inout)               :: thisHistory
     integer                                                :: imfSelected
@@ -129,10 +130,10 @@ contains
          &,stellarMetalsRateOfChange,fuelMetalsRateOfChange,time
  
     ! Get the instantaneous recycling rate for the IMF.
-    recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances)
+    recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances,component)
 
     ! Get the yield for this IMF.
-    yieldInstantaneous=IMF_Yield_Instantaneous(starFormationRate,fuelAbundances)
+    yieldInstantaneous=IMF_Yield_Instantaneous(starFormationRate,fuelAbundances,component)
 
     ! Get the metallicity of the fuel supply.
     fuelMetallicity=Abundances_Get_Metallicity(fuelAbundances)
@@ -151,7 +152,7 @@ contains
     call fuelAbundancesRates   %metallicitySet(fuelMetalsRateOfChange   ,adjustElements=adjustElementsReset,abundanceIndex=abundanceIndex)
 
     ! Get the IMF.
-    imfSelected=IMF_Select(starFormationRate,fuelAbundances)
+    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     ! Get the current cosmological time for this node.
     time=Tree_Node_Time(thisNode)

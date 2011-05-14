@@ -534,6 +534,10 @@ The method to use for selecting which \IMF\ to use is specified by the {\tt imfS
 
 Selected by {\tt imfSelectionMethod}$=${\tt fixed}, this method uses a fixed \IMF\ irrespective of physical conditions. The \IMF\ to use is specified by the {\tt imfSelectionFixed} parameter (e.g. setting this parameter to {\tt Salpeter} selects the Salpeter \IMF).
 
+\subsubsection{Disk and Spheroid}
+
+Selected by {\tt imfSelectionMethod}$=${\tt diskSpheroid}, this method uses different {\IMF}s for star formation in disks and spheroids irrespective of other physical conditions. The {\IMF}s to use are specified by the {\tt imfSelectionDisk} and {\tt imfSelectionSpheroid} parameters (e.g. setting one of these parameters to {\tt Salpeter} selects the Salpeter \IMF).
+
 \subsection{Initial Mass Functions}\label{sec:physicsIMF}\index{initial mass function}
 
 A variety of different \IMF s are available. Each \IMF\ registers itself with the \glc\ \IMF\ subsystem and can then be looked-up by name or internal index. All IMFs are assumed to be continuous in $M$, unless otherwise noted and normalized to unit mass. Each \IMF\ supplies a recycled fraction and metal yield for use in the instantaneous recycling approximation. These can be set via the parameters {\tt imf[imfName]RecycledInstantaneous} and {\tt imf[imfName]YieldInstantaneous} where {\tt [imfName]} is the name of the \IMF. Their default values were computed using \glc 's internal stellar astrophysics modules for a Solar metallicity population with age of $13.8$ Gyr.

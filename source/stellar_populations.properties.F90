@@ -83,7 +83,7 @@ module Stellar_Population_Properties
   ! Pointer to the function that actually does the calculation.
   procedure(Stellar_Population_Properties_Rates_Template), pointer :: Stellar_Population_Properties_Rates_Get => null()
   abstract interface
-     subroutine Stellar_Population_Properties_Rates_Template(starFormationRate,fuelAbundances,thisNode,thisHistory &
+     subroutine Stellar_Population_Properties_Rates_Template(starFormationRate,fuelAbundances,component,thisNode,thisHistory &
           &,stellarMassRate,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
        import treeNode, abundancesStructure, history
        double precision,          intent(out)                 :: stellarMassRate,fuelMassRate,energyInputRate
@@ -91,6 +91,7 @@ module Stellar_Population_Properties
        double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
        double precision,          intent(in)                  :: starFormationRate
        type(abundancesStructure), intent(in)                  :: fuelAbundances
+       integer,                   intent(in)                  :: component
        type(treeNode),            intent(inout), pointer      :: thisNode
        type(history),             intent(inout)               :: thisHistory
      end subroutine Stellar_Population_Properties_Rates_Template
@@ -162,7 +163,7 @@ contains
     return
   end subroutine Stellar_Population_Properties_Rates_Initialize
 
-  subroutine Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,thisNode,thisHistory,stellarMassRate&
+  subroutine Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate &
        &,stellarAbundancesRates ,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     implicit none
@@ -171,6 +172,7 @@ contains
     double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
     double precision,          intent(in)                  :: starFormationRate
     type(abundancesStructure), intent(in)                  :: fuelAbundances
+    integer,                   intent(in)                  :: component
     type(treeNode),            intent(inout), pointer      :: thisNode
     type(history),             intent(inout)               :: thisHistory
     
@@ -178,7 +180,7 @@ contains
     call Stellar_Population_Properties_Rates_Initialize
 
     ! Simply call the subroutine which does the actual work.
-    call Stellar_Population_Properties_Rates_Get(starFormationRate,fuelAbundances,thisNode,thisHistory,stellarMassRate&
+    call Stellar_Population_Properties_Rates_Get(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate&
          &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     return
   end subroutine Stellar_Population_Properties_Rates

@@ -2064,20 +2064,22 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The selection function must have the form:
 \begin{verbatim}
- integer function IMF_Select(starFormationRate,fuelAbundances)
+ integer function IMF_Select(starFormationRate,fuelAbundances,component)
     double precision,          intent(in) :: starFormationRate
     type(abundancesStructure), intent(in) :: fuelAbundances
+    integer,                   intent(in) :: component
     .
     .
     .
     return
  end function IMF_Select
 \end{verbatim}
-The function must return the index of the \IMF\ appropriate for the given {\tt starFormationRate} (in $M_\odot$ Gyr$^{-1}$) and {\tt fuelAbundances}.
+The function must return the index of the \IMF\ appropriate for the given {\tt starFormationRate} (in $M_\odot$ Gyr$^{-1}$), {\tt fuelAbundances} and {\tt component} (using the component labels provided by the \hyperlink{galactic_structure.options.F90:galactic_structure_options}{{\tt Galactic\_Structure\_Options}} module).
 
 Currently defined \IMF\ selection methods are:
 \begin{description}
  \item [{\tt fixed}] A fixed \IMF\ is used irrespective of physical conditions. The \IMF\ is specified by the input parameter {\tt imfSelectionFixed}.
+ \item [{\tt diskSpheroid}] Uses different {\IMF}s for star formation in disks and in spheroids irrespective of other physical conditions. The {\IMF}s are specified by the input parameters {\tt imfSelectionDisk} and {\tt imfSelectionSpheroid}.
 \end{description}
 
 \subsubsection{Ionization State}\label{sec:IonizationStateMethods}
@@ -3244,12 +3246,13 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The stellar populations properties subroutine must have the form:
 \begin{verbatim}
- subroutine Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,thisNode,thisHistory,stellarMassRate&
+ subroutine Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate&
        &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     implicit none
     implicit none
     double precision,          intent(out)                 :: stellarMassRate,fuelMassRate,energyInputRate
     type(abundancesStructure), intent(out)                 :: stellarAbundancesRates,fuelAbundancesRates
+    integer,                   intent(in)                  :: component
     double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
     double precision,          intent(in)                  :: starFormationRate
     type(abundancesStructure), intent(in)                  :: fuelAbundances
@@ -3261,7 +3264,7 @@ The stellar populations properties subroutine must have the form:
     return
  end subroutine Stellar_Population_Properties_Rates
 \end{verbatim}
-The subroutine is given the {\tt starFormationRate} (in $M_\odot$ Gyr$^{-1}$) in {\tt thisNode}. Any history information required by this method must be passed in via the {\tt history} argument. Stars are forming from fuel material with composition specified by {\tt fuelAbundances}. The subroutine must return the rates of change of stellar and fuel mass (in $M_\odot$ Gyr$^{-1}$) in {\tt stellarMassRate} and {\tt fuelMassRate} respectively, and the corresponding rates (also in $M_\odot$ Gyr$^{-1}$) of abundance change in {\tt stellarAbundancesRates} and {\tt fuelAbundancesRates} respectively. Finally, it should return rates of change (in $L_{\rm AB}$ Gyr$^{-1}$) of stellar luminosities for all requested output bands in {\tt stellarLuminositiesRates}. Additionally, the rate of energy input from stellar populations must be returned in {\tt energyInputRate}.
+The subroutine is given the {\tt starFormationRate} (in $M_\odot$ Gyr$^{-1}$) in {\tt thisNode}. Any history information required by this method must be passed in via the {\tt history} argument. Stars are forming from fuel material with composition specified by {\tt fuelAbundances} and occurring in the specified galactic {\tt component} (using the labels provided by the \hyperlink{galactic_structure.options.F90:galactic_structure_options}{{\tt Galactic\_Structure\_Options}} module). The subroutine must return the rates of change of stellar and fuel mass (in $M_\odot$ Gyr$^{-1}$) in {\tt stellarMassRate} and {\tt fuelMassRate} respectively, and the corresponding rates (also in $M_\odot$ Gyr$^{-1}$) of abundance change in {\tt stellarAbundancesRates} and {\tt fuelAbundancesRates} respectively. Finally, it should return rates of change (in $L_{\rm AB}$ Gyr$^{-1}$) of stellar luminosities for all requested output bands in {\tt stellarLuminositiesRates}. Additionally, the rate of energy input from stellar populations must be returned in {\tt energyInputRate}.
 
 The scales procedure should have the form:
 \begin{verbatim}

@@ -132,26 +132,28 @@ module Star_Formation_IMF
   ! Pointer to the function that selects which IMF to use.
   procedure(IMF_Select_Template), pointer :: IMF_Select_Do => null()
   abstract interface
-     integer function IMF_Select_Template(starFormationRate,fuelAbundances)
+     integer function IMF_Select_Template(starFormationRate,fuelAbundances,component)
        import abundancesStructure
        double precision,          intent(in) :: starFormationRate
        type(abundancesStructure), intent(in) :: fuelAbundances
+       integer,                   intent(in) :: component
      end function IMF_Select_Template
   end interface
 
 contains
 
-  integer function IMF_Select(starFormationRate,fuelAbundances)
+  integer function IMF_Select(starFormationRate,fuelAbundances,component)
     !% Selects an IMF give an input {\tt starFormationRate} and {\tt fuelAbundances}.
     implicit none
     double precision,          intent(in) :: starFormationRate
     type(abundancesStructure), intent(in) :: fuelAbundances
-    
+    integer,                   intent(in) :: component
+
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
     
     ! Call the function that makes the selection.
-    IMF_Select=IMF_Select_Do(starFormationRate,fuelAbundances)
+    IMF_Select=IMF_Select_Do(starFormationRate,fuelAbundances,component)
     return
   end function IMF_Select
 
@@ -226,12 +228,13 @@ contains
     return
   end subroutine Star_Formation_IMF_Initialize
 
-  double precision function IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances)
+  double precision function IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances,component)
     !% Returns a recycled fraction for the IMF suitable for use in the instantaneous recycling approximation.
     use Abundances_Structure
     implicit none
     double precision,          intent(in) :: starFormationRate
     type(abundancesStructure), intent(in) :: fuelAbundances
+    integer,                   intent(in) :: component
     integer                               :: imfSelected
     logical                               :: imfMatched
 
@@ -239,7 +242,7 @@ contains
     call Star_Formation_IMF_Initialize
 
     ! Select which IMF to use.
-    imfSelected=IMF_Select(starFormationRate,fuelAbundances)
+    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     ! Get the recycled fraction from the appropriate IMF.
     imfMatched=.false.
@@ -251,12 +254,13 @@ contains
     return
   end function IMF_Recycled_Fraction_Instantaneous
 
-  double precision function IMF_Yield_Instantaneous(starFormationRate,fuelAbundances)
+  double precision function IMF_Yield_Instantaneous(starFormationRate,fuelAbundances,component)
     !% Returns a yield for the IMF suitable for use in the instantaneous recycling approximation.
     use Abundances_Structure
     implicit none
     double precision,          intent(in) :: starFormationRate
     type(abundancesStructure), intent(in) :: fuelAbundances
+    integer,                   intent(in) :: component
     integer                               :: imfSelected
     logical                               :: imfMatched
 
@@ -264,7 +268,7 @@ contains
     call Star_Formation_IMF_Initialize
 
     ! Select which IMF to use.
-    imfSelected=IMF_Select(starFormationRate,fuelAbundances)
+    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     ! Get the yield from the appropriate IMF.
     imfMatched=.false.
@@ -345,7 +349,7 @@ contains
     return
   end function IMF_Phi
 
-  double precision function IMF_Recycling_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum)
+  double precision function IMF_Recycling_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)
     !% Returns the recycling rate for a simple stellar population. The \IMF\ is determined from the given {\tt starFormationRate}
     !% and {\tt fuelAbundances}. The recycling rate (in the fraction of the population's mass returned to the \ISM\ per Gyr) is
     !% computed for the given {\tt age} (in Gyr). The recycled fraction is computed on a grid of age and metallicity. This is
@@ -368,6 +372,7 @@ contains
     double precision,          intent(in)                    :: starFormationRate,ageMinimum
     double precision,          intent(in),  optional         :: ageMaximum
     type(abundancesStructure), intent(in)                    :: fuelAbundances
+    integer,                   intent(in)                    :: component
     logical,                   allocatable, dimension(:    ) :: recycledFractionTabulatedTemporary
     integer,                   allocatable, dimension(:    ) :: recycledFractionIndexTemporary
     double precision,          allocatable, dimension(:,:,:) :: recycledFractionTableTemporary
@@ -393,7 +398,7 @@ contains
     call Star_Formation_IMF_Initialize
 
     ! Select which IMF to use.
-    imfSelected=IMF_Select(starFormationRate,fuelAbundances)
+    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     !$omp critical(IMF_Recycling_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
@@ -655,7 +660,7 @@ contains
     return
   end function Recycled_Fraction_Integrand
   
-  double precision function IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum,abundanceIndex)
+  double precision function IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum,abundanceIndex)
     !% Returns the metal yield rate for a simple stellar population, either for the total metallicity or, if {\tt atomIndex} is
     !% given, for the specified element. The \IMF\ is determined from the given {\tt starFormationRate} and {\tt fuelAbundances}.
     !% The metal yield rate (in fraction of the population's mass returned to the \ISM\ as new metals per Gyr) is computed for the
@@ -680,6 +685,7 @@ contains
      double precision,          intent(in),  optional           :: ageMaximum
      integer,                   intent(in),  optional           :: abundanceIndex
      type(abundancesStructure), intent(in)                      :: fuelAbundances
+     integer,                   intent(in)                      :: component
      logical,                   allocatable, dimension(:      ) :: metalYieldTabulatedTemporary
      integer,                   allocatable, dimension(:      ) :: metalYieldIndexTemporary
      double precision,          allocatable, dimension(:,:,:,:) :: metalYieldTableTemporary
@@ -705,7 +711,7 @@ contains
     call Star_Formation_IMF_Initialize
 
     ! Select which IMF to use.
-    imfSelected=IMF_Select(starFormationRate,fuelAbundances)
+    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     !$omp critical(IMF_Metal_Yield_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
@@ -1046,7 +1052,7 @@ contains
     return
   end function Metal_Yield_Integrand
 
-  double precision function IMF_Energy_Input_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum)
+  double precision function IMF_Energy_Input_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)
     !% Returns the energy input rate for a simple stellar population in (km/s)$^2$ Gyr$^{-1}$. The \IMF\ is determined from the
     !% given {\tt starFormationRate} and {\tt fuelAbundances}. The energy input rate is computed for the given {\tt age} (in
     !% Gyr). The cumulative energy input is computed on a grid of age and metallicity. This is stored to file and will be read
@@ -1069,6 +1075,7 @@ contains
     double precision,          intent(in)                    :: starFormationRate,ageMinimum
     double precision,          intent(in),  optional         :: ageMaximum
     type(abundancesStructure), intent(in)                    :: fuelAbundances
+    integer,                   intent(in)                    :: component
     logical,                   allocatable, dimension(:    ) :: energyInputTabulatedTemporary
     integer,                   allocatable, dimension(:    ) :: energyInputIndexTemporary
     double precision,          allocatable, dimension(:,:,:) :: energyInputTableTemporary
@@ -1094,7 +1101,7 @@ contains
     call Star_Formation_IMF_Initialize
 
     ! Select which IMF to use.
-    imfSelected=IMF_Select(starFormationRate,fuelAbundances)
+    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     !$omp critical(IMF_Energy_Input_Rate_NonInstantaneous_Initialize)
     ! Check that flag and index arrays exist.
