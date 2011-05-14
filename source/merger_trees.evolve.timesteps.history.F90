@@ -77,8 +77,9 @@ module Merger_Tree_Timesteps_History
   double precision :: timestepHistoryBegin,timestepHistoryEnd
 
   ! Storage arrays.
-  double precision, dimension(:), allocatable :: historyTime,historyExpansion,historyStarFormationRate,historyStellarDensity&
-       &,historyGasDensity,historyNodeDensity
+  double precision, dimension(:), allocatable :: historyTime,historyExpansion,historyStarFormationRate&
+       &,historyDiskStarFormationRate,historySpheroidStarFormationRate,historyDiskStellarDensity ,historySpheroidStellarDensity&
+       &,historyStellarDensity ,historyGasDensity,historyNodeDensity
 
   ! Interpolation variables.
   type(fgsl_interp_accel)                     :: interpolationAccelerator
@@ -141,22 +142,30 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
        ! Allocate storage arrays.
-       call Alloc_Array(historyTime             ,[timestepHistorySteps])
-       call Alloc_Array(historyExpansion        ,[timestepHistorySteps])
-       call Alloc_Array(historyStarFormationRate,[timestepHistorySteps])
-       call Alloc_Array(historyStellarDensity   ,[timestepHistorySteps])
-       call Alloc_Array(historyGasDensity       ,[timestepHistorySteps])
-       call Alloc_Array(historyNodeDensity      ,[timestepHistorySteps])
+       call Alloc_Array(historyTime                     ,[timestepHistorySteps])
+       call Alloc_Array(historyExpansion                ,[timestepHistorySteps])
+       call Alloc_Array(historyStarFormationRate        ,[timestepHistorySteps])
+       call Alloc_Array(historyDiskStarFormationRate    ,[timestepHistorySteps])
+       call Alloc_Array(historySpheroidStarFormationRate,[timestepHistorySteps])
+       call Alloc_Array(historyStellarDensity           ,[timestepHistorySteps])
+       call Alloc_Array(historyDiskStellarDensity       ,[timestepHistorySteps])
+       call Alloc_Array(historySpheroidStellarDensity   ,[timestepHistorySteps])
+       call Alloc_Array(historyGasDensity               ,[timestepHistorySteps])
+       call Alloc_Array(historyNodeDensity              ,[timestepHistorySteps])
        ! Initialize arrays.
        historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
        do timeIndex=1,timestepHistorySteps
           historyExpansion(timeIndex)=Expansion_Factor(historyTime(timeIndex))
        end do
-       historyStarFormationRate=0.0d0
-       historyStellarDensity   =0.0d0
-       historyGasDensity       =0.0d0
-       historyNodeDensity      =0.0d0
-       timestepHistoryInitialized=.true.
+       historyStarFormationRate        =0.0d0
+       historyDiskStarFormationRate    =0.0d0
+       historySpheroidStarFormationRate=0.0d0
+       historyStellarDensity           =0.0d0
+       historyDiskStellarDensity       =0.0d0
+       historySpheroidStellarDensity   =0.0d0
+       historyGasDensity               =0.0d0
+       historyNodeDensity              =0.0d0
+       timestepHistoryInitialized      =.true.
     end if
     !$omp end critical (timestepHistoryInitialize)
 
@@ -190,7 +199,7 @@ contains
     type(mergerTree), intent(in)             :: thisTree
     type(treeNode),   intent(inout), pointer :: thisNode
     integer                                  :: timeIndex
-    double precision                         :: time,starFormationRate
+    double precision                         :: time,diskStarFormationRate,spheroidStarFormationRate
 
     ! Get current cosmic time.
     time=Tree_Node_Time(thisNode)
@@ -204,20 +213,37 @@ contains
 
     ! Accumulate the properties.
     ! Star formation rate:
-    starFormationRate=0.0d0
-    if (diskActive)     starFormationRate=starFormationRate+Tree_Node_Disk_SFR    (thisNode)
-    if (spheroidActive) starFormationRate=starFormationRate+Tree_Node_Spheroid_SFR(thisNode)
-    historyStarFormationRate(timeIndex)=historyStarFormationRate(timeIndex)+starFormationRate                                 &
-         &                 *thisTree%volumeWeight
-    ! Stellar density.
-    historyStellarDensity   (timeIndex)=historyStellarDensity   (timeIndex)+Galactic_Structure_Enclosed_Mass(thisNode,massType&
-         &=massTypeStellar)*thisTree%volumeWeight
+    diskStarFormationRate    =0.0d0
+    spheroidStarFormationRate=0.0d0
+    if (diskActive)     diskStarFormationRate    =Tree_Node_Disk_SFR    (thisNode)
+    if (spheroidActive) spheroidStarFormationRate=Tree_Node_Spheroid_SFR(thisNode)
+    historyStarFormationRate        (timeIndex)= historyStarFormationRate        (timeIndex)                                                             &
+         &                                      +(diskStarFormationRate+spheroidStarFormationRate)                                                       &
+         &                                      *thisTree%volumeWeight
+    historyDiskStarFormationRate    (timeIndex)= historyDiskStarFormationRate    (timeIndex)                                                             &
+         &                                      + diskStarFormationRate                                                                                  &
+         &                                      *thisTree%volumeWeight
+    historySpheroidStarFormationRate(timeIndex)= historySpheroidStarFormationRate(timeIndex)                                                             &
+         &                                      +                       spheroidStarFormationRate                                                        &
+         &                                      *thisTree%volumeWeight
+    ! Stellar densities.
+    historyStellarDensity           (timeIndex)= historyStellarDensity           (timeIndex)                                                             &
+         &                                      +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar                                    ) &
+         &                                      *thisTree%volumeWeight
+    historyDiskStellarDensity       (timeIndex)= historyDiskStellarDensity       (timeIndex)                                                             &
+         &                                      +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,componentType=componentTypeDisk    ) &
+         &                                      *thisTree%volumeWeight
+    historySpheroidStellarDensity   (timeIndex)= historySpheroidStellarDensity   (timeIndex)                                                             &
+         &                                      +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,componentType=componentTypeSpheroid) &
+         &                                      *thisTree%volumeWeight
     ! Gas density.
-    historyGasDensity       (timeIndex)=historyGasDensity       (timeIndex)+Galactic_Structure_Enclosed_Mass(thisNode,massType&
-         &=massTypeGaseous)*thisTree%volumeWeight
+    historyGasDensity               (timeIndex)= historyGasDensity               (timeIndex)                                                             &
+         &                                      +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGaseous                                    ) &
+         &                                      *thisTree%volumeWeight
     ! Node density
-    historyNodeDensity      (timeIndex)=historyNodeDensity      (timeIndex)+Tree_Node_Mass                  (thisNode)        &
-         &                 *thisTree%volumeWeight
+    historyNodeDensity              (timeIndex)= historyNodeDensity              (timeIndex)                                                             &
+         &                                      +Tree_Node_Mass                  (thisNode                                                             ) &
+         &                                      *thisTree%volumeWeight
 
     return
   end subroutine Merger_Tree_History_Store
@@ -239,25 +265,41 @@ contains
        
        historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,'globalHistory','Global (volume averaged) history for this model.')
        
-       call historyGroup%writeDataset(historyTime             ,"historyTime"             ,"Time [Gyr]"                          ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyTime                     ,"historyTime"                     ,"Time [Gyr]"                                       ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyExpansion        ,"historyExpansion"        ,"Expansion factor []"                                                )
+       call historyGroup%writeDataset(historyExpansion                ,"historyExpansion"                ,"Expansion factor []"                                                             )
        
-       call historyGroup%writeDataset(historyStarFormationRate,"historyStarFormationRate","Star formation rate [Msun/Gyr/Mpc^3]",datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyStarFormationRate        ,"historyStarFormationRate"        ,"Star formation rate [Msun/Gyr/Mpc^3]"             ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyStellarDensity   ,"historyStellarDensity"   ,"Stellar mass density [Msun/Mpc^3]"   ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyDiskStarFormationRate    ,"historyDiskStarFormationRate"    ,"Star formation rate in disks [Msun/Gyr/Mpc^3]"    ,datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historySpheroidStarFormationRate,"historySpheroidStarFormationRate","Star formation rate in spheroids [Msun/Gyr/Mpc^3]",datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historyStellarDensity           ,"historyStellarDensity"           ,"Stellar mass density [Msun/Mpc^3]"                ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyGasDensity       ,"historyGasDensity"       ,"Gas mass density [Msun/Mpc^3]"       ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyDiskStellarDensity       ,"historyDiskStellarDensity"       ,"Stellar mass density in disks [Msun/Mpc^3]"       ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyNodeDensity      ,"historyNodeDensity"      ,"Node mass density [Msun/Mpc^3]"      ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historySpheroidStellarDensity   ,"historySpheroidStellarDensity"   ,"Stellar mass density in spheroids [Msun/Mpc^3]"   ,datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historyGasDensity               ,"historyGasDensity"               ,"Gas mass density [Msun/Mpc^3]"                    ,datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historyNodeDensity              ,"historyNodeDensity"              ,"Node mass density [Msun/Mpc^3]"                   ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
