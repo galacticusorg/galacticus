@@ -4101,6 +4101,16 @@ The coordinate system in which {\tt position} is specified is given by {\tt coor
  \item [{\tt coordinateSystemCylindrical}] Cylindrical $(R,\phi,z)$.
 \end{description}
 
+\subsubsection{Halo Formation Events}
+
+Tasks to be performed when a halo is deemed to have ``formed'' (or reformed) can be registered using the {\tt haloFormationTask} directive. For example, the {\tt Tree\_Node\_Methods\_Hot\_Halo} module registers a task using
+\begin{verbatim}
+ !# <haloFormationTask>
+ !#  <unitName>Hot_Halo_Formation_Task</unitName>
+ !# </haloFormationTask>
+\end{verbatim}
+The contents of {\tt <unitName>} should give the name of the subroutine to be called on halo formation. The subroutine should have a single argument, {\tt thisNode}, which is the node that has (re)formed.
+
 \subsubsection{HDF5 File Close}
 
 Tasks to be performed just prior to closing the \glc\ output HDF5 file (typically involving writing accumulated data to that file) can be registered using the {\tt hdfPreCloseTask} directive. For example, the {\tt Merger\_Tree\_Timesteps\_History} module registers a task using
