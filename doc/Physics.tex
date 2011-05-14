@@ -525,11 +525,23 @@ Selected with {\tt hotHaloDensityMethod}$=${\tt cored isothermal} this method ad
 \begin{equation}
  \rho_{\rm hot halo}(r) \propto \left[ r^2 + r_{\rm core}^2 \right]^2,
 \end{equation}
-where the core radius, $r_{\rm core}$, is set to be a fixed fraction of the virial radius, that fraction being given by the input parameter {\tt [isothermalCoreRadiusOverVirialRadius]}. The profile is normalized such that the current mass in the hot gas profile is contained within the virial radius.
+where the core radius, $r_{\rm core}$, is set using the selected cored isothermal core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the hot gas profile is contained within the virial radius.
 
 \subsection{Null}
 
 Selected with {\tt hotHaloDensityMethod}$=${\tt null} this method assumes no hot halo density profile. It is useful, for example, when performing dark matter-only calculations.
+
+\section{Hot Halo Density Profile: Cored Isothermal Core Radius}\label{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}\index{hot halo!density profile!core radius}\index{density profile!hot halo!core radius}
+
+The algorithm to be used when determining the core radius of cored isothermal hot halo density profiles is selected via the {\tt hotHaloCoredIsothermalCoreRadiiMethod} parameter.
+
+\subsection{Growing Core}
+
+Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt growing core}, this method implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+
+\subsection{Virial Radius Fraction}
+
+Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt virialRadiusFraction}, this method implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
 
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 

@@ -1647,8 +1647,48 @@ Currently defined hot halo density profile methods are:
  \begin{equation}
   \rho(r) = {\rho_0 \over 1 + (r/r_{\rm core})^2}
  \end{equation}
- where the normalization is chosen to ensure the correct hot halo mass within the virial radius, and $r_{\rm core}=${\tt isothermalCoreRadiusOverVirialRadius}$r_{\rm virial}$ where {\tt isothermalCoreRadiusOverVirialRadius} is an input parameter.
+ where the normalization is chosen to ensure the correct hot halo mass within the virial radius, and $r_{\rm core}$ is set using the selected cored isothermal core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}).
  \item [\hyperlink{hot_halo.density_profile.null.F90:hot_halo_density_profile_null:hot_halo_density_null_get}{{\tt null}}] A null implementation that assumes zero density always.
+\end{description}
+
+\subsubsection{Hot Halo Density Profile: Cored Isothermal Core Radius}
+
+Additional methods for the core radius of cored isothermal hot halo density profiles can be added using the {\tt hotHaloCoredIsothermalCoreRadiiMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt virialRadiusFraction} method is described by a directive:
+\begin{verbatim}
+ !# <hotHaloCoredIsothermalCoreRadiiMethod>
+ !#  <unitName>Hot_Halo_Density_Cored_Isothermal_Core_Radii_VF_Initialize</unitName>
+ !# </hotHaloCoredIsothermalCoreRadiiMethod>
+\end{verbatim}
+Here, {\tt Hot\_Halo\_Density\_Cored\_Isothermal\_Core\_Radii\_VF\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(hotHaloCoredIsothermalCoreRadiiMethod,Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: hotHaloCoredIsothermalCoreRadiiMethod
+    procedure(),          pointer, intent(inout) :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get
+    
+    if (hotHaloCoredIsothermalCoreRadiiMethod == 'myMethod') Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get => Hot_Halo_Density_Cored_Isothermal_Core_Radius_Virial_Fraction
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt hotHaloCoredIsothermalCoreRadiiMethod} input parameter. The procedure pointer {\tt Hot\_Halo\_Density\_Cored\_Isothermal\_Core\_Radius\_Get} must be set to point to a function which returns the core radius of a cored isothermal hot gas density profile. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The core radius function must have the form:
+\begin{verbatim}
+ double precision function Hot_Halo_Core_Radius_Get(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+ end function Hot_Halo_Core_Radius_Get
+\end{verbatim}
+The function must return the radius (in units of Mpc) of the cored isothermal hot halo for {\tt thisNode}.
+
+Currently defined hot halo cored isothermal density profile core radii methods are:
+\begin{description}
+ \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.virial_radius_fraction.F90:hot_halo_density_cored_isothermal_core_radii_virial_fraction:hot_halo_density_cored_isothermal_core_radius_virial_fraction}{{\tt virialRadiusFraction}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
+ \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.virial_radius_fraction.F90:hot_halo_density_cored_isothermal_core_radii_growing_core:hot_halo_density_cored_isothermal_core_radius_growing_core}{{\tt growing core}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
 \end{description}
 
 \subsubsection{Hot Halo Temperature Profile}

@@ -66,12 +66,6 @@ module Hot_Halo_Density_Profile_Cored_Isothermal
   private
   public :: Hot_Halo_Density_Cored_Isothermal
 
-  ! Parameter which specifies the ratio of the cored isothermal profile core radius to the virial radius.
-  double precision :: isothermalCoreRadiusOverVirialRadius
-
-  ! Pre-computed factor that appears in the density normalization.
-  double precision :: denistyNormalizationFactor
-
 contains
 
   !# <hotHaloDensityMethod>
@@ -91,24 +85,23 @@ contains
        Hot_Halo_Density_Get           => Hot_Halo_Density_Cored_Isothermal_Get
        Hot_Halo_Density_Log_Slope_Get => Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get
        Hot_Halo_Enclosed_Mass_Get     => Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
-       !@ <inputParameter>
-       !@   <name>isothermalCoreRadiusOverVirialRadius</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadius',isothermalCoreRadiusOverVirialRadius,defaultValue=0.1d0)
-       denistyNormalizationFactor=1.0d0/(1.0d0/isothermalCoreRadiusOverVirialRadius-datan(1.0d0&
-            &/isothermalCoreRadiusOverVirialRadius))
     end if
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal
 
+  double precision function Density_Normalization_Factor(coreRadius,virialRadius)
+    !% Computes the density profile normalization factor for a given core radius and virial radius.
+    implicit none
+    double precision, intent(in) :: coreRadius,virialRadius
+    
+    Density_Normalization_Factor=1.0d0/(virialRadius/coreRadius-datan(virialRadius/coreRadius))
+    return
+  end function Density_Normalization_Factor
+
   double precision function Hot_Halo_Density_Cored_Isothermal_Get(thisNode,radius)
     !% Compute the density at radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
     use Tree_Nodes
+    use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     implicit none
@@ -116,10 +109,10 @@ contains
     double precision, intent(in)             :: radius
     double precision                         :: hotGasMass,virialRadius,coreRadius,densityNormalization
 
-    hotGasMass=Tree_Node_Hot_Halo_Mass(thisNode)
-    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
-    coreRadius=isothermalCoreRadiusOverVirialRadius*virialRadius
-    densityNormalization=denistyNormalizationFactor*hotGasMass/4.0d0/Pi/(coreRadius**3)
+    hotGasMass          =Tree_Node_Hot_Halo_Mass(thisNode)
+    virialRadius        =Dark_Matter_Halo_Virial_Radius(thisNode)
+    coreRadius          =Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
+    densityNormalization=Density_Normalization_Factor(coreRadius,virialRadius)*hotGasMass/4.0d0/Pi/(coreRadius**3)
     Hot_Halo_Density_Cored_Isothermal_Get=densityNormalization/(1.0d0+(radius/coreRadius)**2)
     return
   end function Hot_Halo_Density_Cored_Isothermal_Get
@@ -128,14 +121,13 @@ contains
     !% Compute the density at radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
+    use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
-    double precision                         :: virialRadius,coreRadius,radiusInCoreUnitsSquared
+    double precision                         :: coreRadius,radiusInCoreUnitsSquared
 
-    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
-    coreRadius=isothermalCoreRadiusOverVirialRadius*virialRadius
+    coreRadius              =Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
     radiusInCoreUnitsSquared=(radius/coreRadius)**2
     Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get=-2.0d0*radiusInCoreUnitsSquared/(1.0d0+radiusInCoreUnitsSquared)
     return
@@ -145,17 +137,23 @@ contains
     !% Compute the mass enclosed within radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
+    use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
     double precision                         :: hotGasMass,virialRadius,coreRadius
 
-    hotGasMass=Tree_Node_Hot_Halo_Mass(thisNode)
-    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
-    coreRadius=isothermalCoreRadiusOverVirialRadius*virialRadius
-    Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass*denistyNormalizationFactor*(radius/coreRadius-datan(radius&
-         &/coreRadius))
+    hotGasMass  =Tree_Node_Hot_Halo_Mass                      (thisNode)
+    virialRadius=Dark_Matter_Halo_Virial_Radius               (thisNode)
+    ! Truncate the profile at the virial radius.
+    if (radius >= virialRadius) then
+       Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass
+       return
+    end if
+    coreRadius  =Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
+    Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass*Density_Normalization_Factor(coreRadius,virialRadius)*(radius&
+         &/coreRadius-datan(radius/coreRadius))
+
     return
   end function Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
   
