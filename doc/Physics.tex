@@ -451,6 +451,19 @@ Selected with {\tt satelliteMergingMassMovementsMethod}$=${\tt simple}, this met
 \end{itemize}
 Here, $f_{\rm major}=${\tt [majorMergerMassRatio]} is the mass ratio above which a merger is considered to be ``major''.
 
+\subsubsection{Baugh et al. (2005)}
+
+Selected with {\tt satelliteMergingMassMovementsMethod}$=${\tt Baugh2005}, this method implements mass movements according to:
+\begin{itemize}
+ \item If $M_{\rm satellite} > f_{\rm major} M_{\rm central}$ then all mass from both satellite and central galaxies moves to the spheroid component of the central galaxy;
+ \item Otherwise:
+ \begin{itemize}
+  \item If $M_{\rm satellite} > f_{\rm burst} M_{\rm central}$ and the gas fraction in the host exceeds $f_{\rm gas,crit}$ then all gas is moved to the host spheroid, while the host stellar disk remains in place.
+  \item Otherwise, gas from the satellite moves to the component of the central specified by the {\tt [minorMergerGasMovesTo]} parameter (either ``{\tt disk}'' or ``{\tt spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+ \end{itemize}
+\end{itemize}
+Here, $f_{\rm major}=${\tt [majorMergerMassRatio]} is the mass ratio above which a merger is considered to be ``major'', while $f_{\rm burst}=${\tt [burstMassRatio]} and $f_{\rm gas,crit}=${\tt [burstCriticalGasFraction]}.
+
 \subsection{Remnant Sizes}\index{merging!remnant size}
 
 The method used to calculate the sizes of merger remnant spheroids is selected by the {\tt satelliteMergingRemnantSizeMethod} parameter.
