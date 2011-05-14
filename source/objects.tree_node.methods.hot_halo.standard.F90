@@ -151,7 +151,7 @@ module Tree_Node_Methods_Hot_Halo
 
   ! Configuration variables.
   logical          :: starveSatellites
-  double precision :: hotHaloOutflowReturnRate
+  double precision :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction
 
   ! Quantities stored to avoid repeated computation.
   logical          :: gotCoolingRate=.false., gotCoolingConversions=.false.
@@ -285,6 +285,17 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=1.26027d0)
+
+       ! Get fraction of angular momentum that is lost during cooling/infall.
+       !@ <inputParameter>
+       !@   <name>hotHaloAngularMomentumLossFraction</name>
+       !@   <defaultValue>0.0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies the fraction of angular momentum that is lost from cooling/infalling gas.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloAngularMomentumLossFraction',hotHaloAngularMomentumLossFraction,defaultValue=0.0d0)
 
        ! Get options controlling output.
        !@ <inputParameter>
@@ -551,7 +562,7 @@ contains
        ! Pipe the cooling rate to which ever component claimed it.
        if (associated(Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To)) call&
             & Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To(thisNode,interrupt,interruptProcedurePassed&
-            &,sign(angularMomentumCoolingRate,massRate))
+            &,sign(angularMomentumCoolingRate*(1.0-hotHaloAngularMomentumLossFraction),massRate))
        
        ! Get the rate of change of abundances.
        call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundancesWork)
