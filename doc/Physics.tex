@@ -238,6 +238,14 @@ where $N=${\tt coolingTimeSimpleDegreesOfFreedom} is the number of degrees of fr
 
 The method used to determine the time available for cooling (i.e. the time for which gas in a halo has been able to cool) is selected by the {\tt coolingTimeAvailableMethod} parameter.
 
+\subsubsection{Halo Formation}
+
+Selected with {\tt coolingTimeAvailableMethod}$=${\tt halo formation}, this methods assumes that the time available for cooling is equal to
+\begin{equation}
+ t_{\rm available} = t - t_{\rm form},
+\end{equation}
+where $t_{\rm form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
+
 \subsubsection{White \& Frenk}
 
 Selected with {\tt coolingTimeAvailableMethod}$=${\tt White-Frenk}, this methods assumes that the time available for cooling is equal to
