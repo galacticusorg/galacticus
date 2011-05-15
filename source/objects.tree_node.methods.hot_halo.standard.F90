@@ -72,14 +72,15 @@ module Tree_Node_Methods_Hot_Halo
        & Hot_Halo_Remove_Before_Satellite_Merging, Tree_Node_Hot_Halo_Promote, Hot_Halo_Subresolution_Initialize,&
        & Galacticus_Output_Tree_Hot_Halo_Standard, Galacticus_Output_Tree_Hot_Halo_Standard_Property_Count,&
        & Galacticus_Output_Tree_Hot_Halo_Standard_Names, Tree_Node_Hot_Halo_Reset_Standard,&
-       & Tree_Node_Hot_Halo_Post_Evolve_Standard, Tree_Node_Methods_Hot_Halo_Standard_Dump, Hot_Halo_Scale_Set
+       & Tree_Node_Hot_Halo_Post_Evolve_Standard, Tree_Node_Methods_Hot_Halo_Standard_Dump, Hot_Halo_Scale_Set&
+       &,Hot_Halo_Formation_Task
   
   ! Internal count of abundances and molecules.
   integer                                     :: abundancesCount,moleculesCount
   double precision, allocatable, dimension(:) :: abundancesWork,abundancesParent,abundancesCoolingRate,abundancesReturnRate,abundancesHost
   !$omp threadprivate(abundancesWork,abundancesParent,abundancesCoolingRate,abundancesReturnRate,abundancesHost)
-  double precision, allocatable, dimension(:) :: moleculesValue,moleculesCoolingRate,moleculesAccretionRate,moleculesChemicalRates
-  !$omp threadprivate(moleculesValue,moleculesCoolingRate,moleculesAccretionRate,moleculesChemicalRates)
+  double precision, allocatable, dimension(:) :: moleculesValue,moleculesWork,moleculesCoolingRate,moleculesAccretionRate,moleculesChemicalRates
+  !$omp threadprivate(moleculesValue,moleculesWork,moleculesCoolingRate,moleculesAccretionRate,moleculesChemicalRates)
 
   ! Property indices.
   integer, parameter :: propertyCountBase=5, dataCount=0, historyCount=0
@@ -150,7 +151,7 @@ module Tree_Node_Methods_Hot_Halo
   !# </treeNodePipePointer>
 
   ! Configuration variables.
-  logical          :: starveSatellites
+  logical          :: starveSatellites,hotHaloOutflowReturnOnFormation
   double precision :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction
 
   ! Quantities stored to avoid repeated computation.
@@ -275,6 +276,17 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('starveSatellites',starveSatellites,defaultValue=.true.)
 
+       ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
+       !@ <inputParameter>
+       !@   <name>hotHaloOutflowReturnOnFormation</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloOutflowReturnOnFormation',hotHaloOutflowReturnOnFormation,defaultValue=.false.)
+
        ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
        !@ <inputParameter>
        !@   <name>hotHaloOutflowReturnRate</name>
@@ -331,6 +343,7 @@ contains
        call Alloc_Array(abundancesReturnRate ,[abundancesCount])
 
        ! Allocate work arrays for molecules.
+       call Alloc_Array(moleculesWork         ,[moleculesCount])
        call Alloc_Array(moleculesValue        ,[moleculesCount])
        call Alloc_Array(moleculesCoolingRate  ,[moleculesCount])
        call Alloc_Array(moleculesAccretionRate,[moleculesCount])
@@ -1487,6 +1500,99 @@ contains
     call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
     return
   end subroutine Hot_Halo_Create
+
+  !# <haloFormationTask>
+  !#  <unitName>Hot_Halo_Formation_Task</unitName>
+  !# </haloFormationTask>
+  subroutine Hot_Halo_Formation_Task(thisNode)
+    !% Updates the hot halo gas distribution at a formation event, if requested.
+    use Ionization_States
+    use Abundances_Structure
+    use Molecular_Abundances_Structure
+    use Numerical_Constants_Math
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Atomic
+    use Numerical_Constants_Astronomical
+    implicit none
+    type(treeNode),                     pointer, intent(inout) :: thisNode
+    type(abundancesStructure),          save                   :: outflowedAbundances
+    type(molecularAbundancesStructure), save                   :: molecularDensities,molecularRates,molecularMasses
+    !$omp threadprivate(outflowedAbundances,molecularDensities,molecularRates,molecularMasses)
+    double precision                                           :: numberDensityHydrogen,temperature,hydrogenByMass&
+         &,massToDensityConversion,outflowedMass
+
+    ! Return immediately if return of outflowed gas on formation events is not requested.
+    if (.not.hotHaloOutflowReturnOnFormation) return
+    
+    ! If we have a non-zero mass to return, compute associated molecular masses.
+    if (moleculesCount > 0 .and. Tree_Node_Hot_Halo_Outflowed_Mass(thisNode) > 0.0d0) then
+       
+       ! Compute coefficient in conversion of mass to density for this node.
+       massToDensityConversion=massSolar/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(thisNode))**3
+       
+       ! Get the abundances of the outflowed material.
+       call Tree_Node_Hot_Halo_Outflowed_Abundances(thisNode,abundancesWork)
+       ! Convert to mass fractions and pack.
+       abundancesWork=abundancesWork/Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)
+       call outflowedAbundances%pack(abundancesWork)
+       
+       ! Get the hydrogen mass fraction in outflowed gas.
+       hydrogenByMass=outflowedAbundances%hydrogenMassFraction()
+       
+       ! Compute the temperature and density of material in the hot halo.
+       temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
+       numberDensityHydrogen=hydrogenByMass*Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)*massToDensityConversion/atomicMassUnit/atomicMassHydrogen
+          
+       ! Set the radiation field.
+       call radiation%set(thisNode)
+       
+       ! Get the molecule densities.
+       call Molecular_Densities(molecularDensities,temperature,numberDensityHydrogen,outflowedAbundances,radiation)
+          
+       ! Convert from densities to masses.
+       call molecularDensities%numberToMass(molecularMasses)
+       molecularRates=molecularMasses
+       call molecularRates%multiply(Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen)
+
+       ! Add molecules to the hot component.
+       call Tree_Node_Hot_Halo_Molecules(thisNode,moleculesWork)
+       call molecularRates%unpack(moleculesValue)
+       call Tree_Node_Hot_Halo_Molecules_Set(                              thisNode , &
+            &                                 moleculesWork                           &
+            &                                +moleculesValue                          &
+            &                               )
+          
+    end if
+
+    call Tree_Node_Hot_Halo_Abundances          (thisNode,abundancesParent)
+    call Tree_Node_Hot_Halo_Outflowed_Abundances(thisNode,abundancesWork  )
+    abundancesParent=abundancesParent+abundancesWork
+    abundancesWork  =0.0d0
+
+    call Tree_Node_Hot_Halo_Mass_Set                (                                   thisNode , &
+         &                                            Tree_Node_Hot_Halo_Mass          (thisNode)  &
+         &                                           +Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)  &
+         &                                          )
+    call Tree_Node_Hot_Halo_Angular_Momentum_Set    (                                   thisNode , &
+         &                                            Tree_Node_Hot_Halo_Mass          (thisNode)  &
+         &                                           +Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)  &
+         &                                          )
+    call Tree_Node_Hot_Halo_Abundances_Set          (                                   thisNode , &
+         &                                            abundancesParent                             &
+         &                                          )
+    call Tree_Node_Hot_Halo_Outflowed_Mass_Set      (                                   thisNode , &
+         &                                            0.0d0                                        &
+         &                                          )
+    call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set   (                                   thisNode , &
+         &                                            0.0d0                                        &
+         &                                          )
+    call Tree_Node_Hot_Halo_Outflowed_Abundances_Set(                                   thisNode , &
+         &                                            abundancesWork                               &
+         &                                          )
+    
+    return
+  end subroutine Hot_Halo_Formation_Task
 
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Hot_Halo_Standard_Names</unitName>
