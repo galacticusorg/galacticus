@@ -817,39 +817,23 @@ contains
     use Abundances_Structure
     use Accretion_Halos
     implicit none
-    type(treeNode),            pointer, intent(inout)     :: thisNode
-    logical,                            intent(inout)     :: interrupt
-    procedure(),               pointer, intent(inout)     :: interruptProcedure
-    procedure(),               pointer                    :: interruptProcedurePassed
-    double precision,          dimension(abundancesCount) :: abundances,abundancesCoolingRate,abundancesAccretionRate
-    type(abundancesStructure), save                       :: accretionRateAbundances
+    type(treeNode),            pointer, intent(inout) :: thisNode
+    logical,                            intent(inout) :: interrupt
+    procedure(),               pointer, intent(inout) :: interruptProcedure
+    procedure(),               pointer                :: interruptProcedurePassed
+    type(abundancesStructure), save                   :: accretionRateAbundances
     !$omp threadprivate(accretionRateAbundances)
 
     ! Get the rate at which abundances are accreted onto this halo.
     call Halo_Baryonic_Accretion_Rate_Abundances(thisNode,accretionRateAbundances)
-    call accretionRateAbundances%unpack(abundancesAccretionRate)
-    if (any(abundancesAccretionRate /= 0.0d0)) then
+    call accretionRateAbundances%unpack(abundancesWork)
+    if (any(abundancesWork /= 0.0d0)) then
        if (.not.thisNode%componentExists(componentIndex)) then    
           interrupt=.true.
           interruptProcedure => Hot_Halo_Create
           return
        end if
-       call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,abundancesAccretionRate)
-    end if
-    
-    ! Get the cooling rate.
-    call Get_Cooling_Rate(thisNode)
-    ! Adjust abundance rates for cooling.
-    if (coolingRate > 0.0d0) then
-       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundances)
-       abundancesCoolingRate=coolingRate*abundances/Tree_Node_Hot_Halo_Mass(thisNode)
-       call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,-abundancesCoolingRate)
-       ! Pipe the cooling rate to which ever component claimed it.
-       if (associated(Tree_Node_Hot_Halo_Cooling_Abundances_To)) call Tree_Node_Hot_Halo_Cooling_Abundances_To(thisNode,interrupt&
-            &,interruptProcedurePassed,abundancesCoolingRate)
-
-       ! Point the interrupt procedure that is returned to our internal one.
-       interruptProcedure => interruptProcedurePassed
+       call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,abundancesWork)
     end if
     return
   end subroutine Tree_Node_Hot_Halo_Abundances_Rate_Compute_Standard
