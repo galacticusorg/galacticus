@@ -268,6 +268,13 @@ contains
              massNow      =Tree_Node_Mass(thisNode           )
              if (thisNode%isPrimaryProgenitor()) then
                 massParent=Tree_Node_Mass(thisNode%parentNode)
+                ! Remove the mass in any non-primary progenitors - we don't want to include their mass in the estimated mass
+                ! growth rate of this node.
+                childNode => thisNode%parentNode%childNode%siblingNode
+                do while (associated(childNode))
+                   massParent=massParent-Tree_Node_Mass(childNode)
+                   childNode => childNode%siblingNode
+                end do
              else
                 massParent=Tree_Node_Mass(thisNode           )
              end if
@@ -276,8 +283,11 @@ contains
              iNow   =Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow   ,reset=interpolationReset)
              iParent=Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeParent,reset=interpolationReset)
 
+             ! For nodes existing precisely at a grid time, ignore this grid point. (These are, typically, nodes which have been created at these points.)
+             if (timeNow == mergerTreeRegridTimeGrid(iNow)) iNow=iNow+1
+
              ! If the branch from node to parent spans one or more grid times, insert new nodes at those points.
-             if (iParent > iNow .and. timeNow /= mergerTreeRegridTimeGrid(iNow)) then
+             if (iParent > iNow) then
                 ! Create new nodes.
                 allocate(newNodes(iParent-iNow))
                 do iTime=iNow+1,iParent
@@ -341,10 +351,10 @@ contains
                &                backgroundColor    ='white'       , &
                &                nodeColor          ='black'       , &
                &                highlightColor     ='black'       , &
-               &                edgeColor          ='#DDDDDD'     , &
+               &                edgeColor          ='black'       , &
                &                nodeStyle          ='solid'       , &
                &                highlightStyle     ='filled'      , &
-               &                edgeStyle          ='solid'       , &
+               &                edgeStyle          ='dotted'      , &
                &                labelNodes         =.false.       , &
                &                scaleNodesByLogMass=.true.        , &
                &                edgeLengthsToTimes =.true.          &
