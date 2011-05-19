@@ -84,6 +84,7 @@ foreach $dataSet ( @dataSets ) {
 if ( exists($availableDatasets{"diskTime".$nodeIndex}) ) {
     $diskTime            = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->dataset("diskTime"    .$nodeIndex)->get;
     $diskSFH             = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->dataset("diskSFH"     .$nodeIndex)->get;
+    $diskSFH->where($diskSFH < 0.0) .= 0.0;
 } else {
     $diskTime            = ones  (1);
     $diskSFH             = zeroes(1,nelem($metallicities));
@@ -91,6 +92,7 @@ if ( exists($availableDatasets{"diskTime".$nodeIndex}) ) {
 if ( exists($availableDatasets{"spheroidTime".$nodeIndex}) ) {
     $spheroidTime        = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->dataset("spheroidTime".$nodeIndex)->get;
     $spheroidSFH         = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->dataset("spheroidSFH" .$nodeIndex)->get;
+    $spheroidSFH->where($spheroidSFH < 0.0) .= 0.0;
 } else {
     $spheroidTime        = ones  (1);
     $spheroidSFH         = zeroes(1,nelem($metallicities));
