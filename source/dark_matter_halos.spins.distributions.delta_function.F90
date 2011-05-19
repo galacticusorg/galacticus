@@ -102,7 +102,6 @@ contains
   double precision function Halo_Spin_Distribution_Delta_Function(thisNode)
     !% Return a halo spin from a delta function distribution.
     use Tree_Nodes
-    use Gaussian_Random
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
