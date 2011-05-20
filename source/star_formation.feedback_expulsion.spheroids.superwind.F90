@@ -83,8 +83,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: starFormationExpulsiveFeedbackSpheroidsMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get
+    type(varying_string),                 intent(in)    :: starFormationExpulsiveFeedbackSpheroidsMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get
     
     if (starFormationExpulsiveFeedbackSpheroidsMethod == 'superwind') then
        Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_SW

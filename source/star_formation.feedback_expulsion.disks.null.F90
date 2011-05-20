@@ -78,8 +78,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: starFormationExpulsiveFeedbackDisksMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
+    type(varying_string),                 intent(in)    :: starFormationExpulsiveFeedbackDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
     
     if (starFormationExpulsiveFeedbackDisksMethod == 'null') Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null
      

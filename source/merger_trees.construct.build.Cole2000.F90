@@ -166,7 +166,7 @@ contains
           ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
           ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
           if (accretionFraction < 0.0d0) then
-             call thisNode%walkTreeConstruction()
+             call thisNode%walkTreeConstruction(thisNode)
              cycle
           end if
           ! Finding maximum allowed step in w.
