@@ -455,7 +455,7 @@ The spin parameter does not evolve.
 
 \noindent\emph{Node promotion:} The spin is updated to equal that of the parent node. (The two will differ only if this is a case where the new halo node was sufficiently more massive than the node for which a spin was last selected that a new spin value was chosen.)\\
 
-\section{Dark Matter Profile}
+\section{Dark Matter Profile}\label{sec:DarkMatterProfileComponent}
 
 This component stores dynamic properties associated with dark matter halo density profiles.
 
@@ -475,7 +475,7 @@ The scale dark matter profile implementation defines the following properties:
 
 \subsubsection{Initialization}
 
-The scale length of each node, if not already assigned, is assigned using the concentration parameter function (see \S\ref{sec:DarkMatterProfileConcentration}), but is not allowed to drop below {\tt [darkMatterProfileMinimumConcentration]}, such that the scale length is equal to the virial radius divided by that concentration. The value is propagated in both directions along the primary child branch from the node.
+The scale length of each node, if not already assigned, is assigned using the concentration parameter function (see \S\ref{sec:DarkMatterProfileConcentration}), but is not allowed to drop below {\tt [darkMatterProfileMinimumConcentration]}, such that the scale length is equal to the virial radius divided by that concentration.
 
 \subsubsection{Differential Evolution}
 
@@ -488,6 +488,35 @@ The scale radius does not evolve.
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} None.\\
+
+\subsection{``Scale + Shape'' Implementation}
+
+\subsubsection{Properties}
+
+The scale$+$shape dark matter profile implementation defines the following properties:
+\begin{description}
+ \item [{\tt Scale}] The scale length of the density profile [{\tt darkMatterScaleRadius}];
+ \item [{\tt Scale\_Growth\_Rate}] The growth rate of the scale length of the density profile.
+ \item [{\tt Shape}] A shape parameter describing the density profile [{\tt darkMatterShapeParameter}];
+ \item [{\tt Shape\_Growth\_Rate}] The growth rate of the shape parameter of the density profile.
+\end{description}
+
+\subsubsection{Initialization}
+
+The scale length of each node, if not already assigned, is assigned using the concentration parameter function (see \S\ref{sec:DarkMatterProfileConcentration}), but is not allowed to drop below {\tt [darkMatterProfileMinimumConcentration]}, such that the scale length is equal to the virial radius divided by that concentration. The shape parameter of each node is assigned using the dark matter profile shape function (see \S\ref{sec:darkMatterProfileShape}).
+
+\subsubsection{Differential Evolution}
+
+The scale radius and shape parameters do not evolve.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} None.\\
+
 
 \section{Merging Statistics}
 
