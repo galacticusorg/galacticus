@@ -128,6 +128,7 @@ module Merger_Tree_Read
   logical                                            :: mergerTreeReadPresetMergerNodes
   logical                                            :: mergerTreeReadPresetSubhaloMasses
   logical                                            :: mergerTreeReadPresetPositions
+  logical                                            :: mergerTreeReadPresetScaleRadii
 
   ! Buffer to hold additional merger trees.
   type(mergerTree),        allocatable, dimension(:) :: mergerTreesQueued
@@ -142,12 +143,17 @@ module Merger_Tree_Read
   double precision                                   :: mergerTreeReadOutputTimeSnapTolerance
   double precision,        allocatable, dimension(:) :: outputTimes
 
+  ! Node used in root finding.
+  type(treeNode),          pointer                   :: activeNode
+  double precision                                   :: halfMassRadius
+  !$omp threadprivate(activeNode,halfMassRadius)
+
   ! Type used to store raw data.
   type nodeData
      !% Structure used to store raw data read from merger tree files.
      integer(kind=kind_int8)                         :: nodeIndex,hostIndex,descendentIndex,particleIndexStart,particleIndexCount&
           &,isolatedNodeIndex,mergesWithIndex,treeIndex
-     double precision                                :: nodeMass,nodeTime
+     double precision                                :: nodeMass,nodeTime,halfMassRadius
      double precision,       dimension(3)            :: position,velocity
      logical                                         :: isSubhalo,childIsSubhalo
      type(nodeData),         pointer                 :: descendentNode,parentNode,hostNode
@@ -223,6 +229,14 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetPositions',mergerTreeReadPresetPositions,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetScaleRadii</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether node scale radii should be preset when reading merger trees from a file.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetScaleRadii',mergerTreeReadPresetScaleRadii,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadBeginAt</name>
        !@   <attachedTo>module</attachedTo>
@@ -378,6 +392,12 @@ contains
           if (.not.(haloTreesGroup%hasDataset("position").and.haloTreesGroup%hasDataset("velocity"))) call&
                & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting positions requires that both position and&
                & velocity datasets be present in merger tree file")
+       end if
+
+       ! Check that half-mass radius information is present if required.
+       if (mergerTreeReadPresetScaleRadii) then
+          if (.not.haloTreesGroup%hasDataset("halfMassRadius")) call&
+               & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting scale radii requires that halfMassRadius dataset be present in merger tree file")
        end if
 
        ! Reset first node indices to Fortran array standard.
@@ -537,6 +557,9 @@ contains
              
              ! Now build child and sibling links.
              call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
+
+             ! Assign scale radii.
+             call Assign_Scale_Radii(nodes,thisNodeList)
              
              ! Check that all required properties exist.
              if (mergerTreeReadPresetPositions) then
@@ -550,7 +573,12 @@ contains
                 if (.not.associated(Tree_Node_Satellite_Time_of_Merging_Set)) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
                      & 'presetting merging times requires a component that supports setting of merging times')
              end if
-             
+             if (mergerTreeReadPresetScaleRadii) then
+                ! Scale radius property is required.
+                if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale_Set)) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
+                     & 'presetting scale radii requires a component that supports setting of scale radii')
+             end if
+
              ! Assign isolated node indices to subhalos.
              call Assign_Isolated_Node_Indices(nodes,thisNodeList)
              
@@ -634,6 +662,9 @@ contains
     else
        call Galacticus_Error_Report("Merger_Tree_Read_Do","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
     end if
+    ! Half-mass radius.
+    if (mergerTreeReadPresetScaleRadii) call haloTreesGroup%readDatasetStatic("halfMassRadius",nodes%halfMassRadius&
+         &,firstNodeIndex,nodeCount)
 
     ! Snap node times to output times if a tolerance has been specified.
     if (mergerTreeReadOutputTimeSnapTolerance > 0.0d0) then
@@ -939,7 +970,7 @@ contains
           end if
           call Tree_Node_Mass_Set(nodeList(iIsolatedNode)%node,nodes(iNode)%nodeMass)
           call Tree_Node_Time_Set(nodeList(iIsolatedNode)%node,nodes(iNode)%nodeTime)
-       end if
+      end if
     end do
     return
   end subroutine Build_Isolated_Parent_Pointers
@@ -996,7 +1027,83 @@ contains
     call Dealloc_Array(childIsSubhalo)
     return
   end subroutine Build_Child_and_Sibling_Links
-  
+
+  subroutine Assign_Scale_Radii(nodes,nodeList)
+    !% Assign scale radii to nodes.
+    use Root_Finder
+    use FGSL
+    use Dark_Matter_Halo_Scales
+    use, intrinsic :: ISO_C_Binding
+    use Galacticus_Display
+    implicit none
+    type(nodeData),          intent(inout), dimension(:) :: nodes
+    type(treeNodeList),      intent(inout), dimension(:) :: nodeList
+    type(fgsl_function),     save                        :: rootFunction
+    type(fgsl_root_fsolver), save                        :: rootFunctionSolver
+    double precision,        parameter                   :: toleranceAbsolute=1.0d-9,toleranceRelative=1.0d-9
+    logical,                 save                        :: excessiveScaleRadiiReported=.false.
+    type(c_ptr)                                          :: parameterPointer
+    integer                                              :: iNode,iIsolatedNode
+    double precision                                     :: radiusMinimum,radiusMaximum,radiusScale
+    logical                                              :: excessiveScaleRadii
+
+    iIsolatedNode=0
+    excessiveScaleRadii=.false.
+    do iNode=1,size(nodes)
+       ! Only process if this is an isolated node.
+       if (nodes(iNode)%nodeIndex == nodes(iNode)%hostNode%nodeIndex) then
+          iIsolatedNode=iIsolatedNode+1
+
+          ! Set the active node and target half mass radius.
+          activeNode => nodeList(iIsolatedNode)%node
+          halfMassRadius=nodes(iNode)%halfMassRadius
+          
+          ! Find minimum and maximum scale radii such that the target half-mass radius is bracketed.
+          radiusMinimum=halfMassRadius
+          radiusMaximum=halfMassRadius
+          do while (Half_Mass_Radius_Root(radiusMinimum,parameterPointer) <= 0.0d0)
+             radiusMinimum=0.5d0*radiusMinimum
+          end do
+          do while (Half_Mass_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
+             radiusMaximum=2.0d0*radiusMaximum
+          end do
+
+          ! Solve for the scale radius.
+          radiusScale=Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root,parameterPointer &
+               &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+          call Tree_Node_Dark_Matter_Profile_Scale_Set(nodeList(iIsolatedNode)%node,radiusScale)
+
+          ! Check for scale radii exceeding the virial radius.
+          if (radiusScale > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii=.true.
+
+       end if
+    end do
+    
+    ! Report warning on excessive scale radii if not already done.
+    if (excessiveScaleRadii.and..not.excessiveScaleRadiiReported) then
+       excessiveScaleRadiiReported=.true.
+       call Galacticus_Display_Message('Assign_Scale_Radii(): warning - some scale radii exceed the corresponding virial radii - suggests&
+            & inconsistent definitions of halo mass/radius',verbosityWarn)
+    end if
+    return
+  end subroutine Assign_Scale_Radii
+
+  function Half_Mass_Radius_Root(radius,parameterPointer) bind(c)
+    !% Function used to find scale radius of dark matter halos given their half-mass radius.
+    use, intrinsic :: ISO_C_Binding
+    use Dark_Matter_Profiles
+    implicit none
+    real(c_double)        :: Half_Mass_Radius_Root
+    real(c_double), value :: radius
+    type(c_ptr)           :: parameterPointer
+
+    ! Set scale radius to current guess.
+    call Tree_Node_Dark_Matter_Profile_Scale_Set(activeNode,radius)
+    ! Compute difference between mass fraction enclosed at half mass radius and one half.
+    Half_Mass_Radius_Root=Dark_Matter_Profile_Enclosed_Mass(activeNode,halfMassRadius)/Tree_Node_Mass(activeNode)-0.50d0
+    return
+  end function Half_Mass_Radius_Root
+
   subroutine Assign_Isolated_Node_Indices(nodes,nodeList)
     !% Assign to each node the number of the corresponding isolated node.
     implicit none

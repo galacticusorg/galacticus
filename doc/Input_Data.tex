@@ -108,3 +108,7 @@ Once the tree has been read, \glc\ processes it according to the following rules
 \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{The proposed host does not exists, which implies the end of a branch has been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it descended.}\\
 
 Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
+
+\subsubsection{Dark Matter Scale Radii}\index{dark matter halo!concentration}\index{dark matter halo!scale radius}
+
+If {\tt [mergerTreeReadPresetScaleRadii]}$=${\tt true} and the {\tt halfMassRadius} dataset is available within the {\tt haloTrees} group (see \S\ref{sec:HaloTreesGroup}) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This requires a dark matter profile scale component which supports setting of the scale length (see \S\ref{sec:DarkMatterProfileComponent}).
