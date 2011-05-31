@@ -161,6 +161,9 @@ contains
     ! Create an output group.
     call Make_Output_Group(iOutput,time)
 
+    ! Ensure that the output filter subsystem is initialized.
+    call Galacticus_Merger_Tree_Output_Filter_Initialize()
+
     ! Count up the number of properties to be output.
     call Count_Properties(time)
 

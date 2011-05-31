@@ -65,7 +65,7 @@ module Galacticus_Merger_Tree_Output_Filters
   !% Provides filtering of output.
   use ISO_Varying_String
   private
-  public :: Galacticus_Merger_Tree_Output_Filter
+  public :: Galacticus_Merger_Tree_Output_Filter, Galacticus_Merger_Tree_Output_Filter_Initialize
 
   ! Flag indicating whether filters have been initialized.
   logical                                         :: filtersInitialized=.false.
@@ -78,16 +78,14 @@ module Galacticus_Merger_Tree_Output_Filters
 
 contains
 
-  logical function Galacticus_Merger_Tree_Output_Filter(thisNode)
-    !% Return true if {\tt thisNode} should be included in the output. Always arbitrary filters to block output of {\tt thisNode}.
+  subroutine Galacticus_Merger_Tree_Output_Filter_Initialize()
+    !% Initialize the output filter subsystem.
     use Input_Parameters
-    use Tree_Nodes
     use Memory_Management
-    !# <include directive="mergerTreeOutputFilter" type="moduleUse">
-    include 'galacticus.output.merger_tree.filters.modules.inc'
+    !# <include directive="mergerTreeOutputFilterInitialize" type="moduleUse">
+    include 'galacticus.output.merger_tree.filters.initialize.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
 
     ! Initialize filters if necessary.
     if (.not.filtersInitialized) then
@@ -105,17 +103,39 @@ contains
           !@   </description>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeOutputFilters',mergerTreeOutputFilters)
+
+          !# <include directive="mergerTreeOutputFilterInitialize" type="code" action="subroutine">
+          !#  <subroutineArgs>mergerTreeOutputFilters</subroutineArgs>
+          include 'galacticus.output.merger_tree.filters.initialize.inc'
+          !# </include>
+
        end if
+
        ! Flag that filters are now initialized.
        filtersInitialized=.true.
     end if
+
+    return
+  end subroutine Galacticus_Merger_Tree_Output_Filter_Initialize
+
+  logical function Galacticus_Merger_Tree_Output_Filter(thisNode)
+    !% Return true if {\tt thisNode} should be included in the output. Always arbitrary filters to block output of {\tt thisNode}.
+    use Tree_Nodes
+    !# <include directive="mergerTreeOutputFilter" type="moduleUse">
+    include 'galacticus.output.merger_tree.filters.modules.inc'
+    !# </include>
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Ensure the filter subsystem is initialized.
+    call Galacticus_Merger_Tree_Output_Filter_Initialize()
 
     ! Assume galaxy will be output by default.
     Galacticus_Merger_Tree_Output_Filter=.true.
     ! Return immediately if no filters were defined.
     if (filterCount == 0) return
     !# <include directive="mergerTreeOutputFilter" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,mergerTreeOutputFilters,Galacticus_Merger_Tree_Output_Filter</subroutineArgs>
+    !#  <subroutineArgs>thisNode,Galacticus_Merger_Tree_Output_Filter</subroutineArgs>
     include 'galacticus.output.merger_tree.filters.inc'
     !# </include>
     return
