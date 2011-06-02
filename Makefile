@@ -22,7 +22,7 @@ CONDORLINKER =
 MODULETYPE = GCC-f95-on-LINUX
 
 # Fortran compiler flags:
-F03FLAGS = -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules ${GALACTICUS_FLAGS}
+F03FLAGS = -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules
 # Error checking flags
 F03FLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
 # Add bounds checking.
