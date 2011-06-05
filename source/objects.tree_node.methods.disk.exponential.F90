@@ -304,9 +304,11 @@ contains
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
-    ! Trim the stellar populations properties future history.
+    ! Check if an exponential disk component exists.
     if (methodSelected .and. thisNode%componentExists(componentIndex)) then
+       ! Get the index of the component.
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+       ! Trim the stellar populations properties future history.
        call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%trim(Tree_Node_Time(thisNode))
     end if
     return
@@ -462,13 +464,6 @@ contains
        if     (    Tree_Node_Disk_Angular_Momentum    (thisNode) < 0.0d0 &
             & .or. Tree_Node_Disk_Radius              (thisNode) < 0.0d0 &
             & .or. Tree_Node_Disk_Gas_Mass            (thisNode) < 0.0d0 &
-            & .or. Tree_Node_Disk_Stellar_Mass        (thisNode) < 0.0d0 &
-            & ) return
-       ! Check for a realistic spheroid, return immediately if disk is unphysical.
-       if     (    Tree_Node_Spheroid_Angular_Momentum(thisNode) < 0.0d0 &
-            & .or. Tree_Node_Spheroid_Radius          (thisNode) < 0.0d0 &
-            & .or. Tree_Node_Spheroid_Gas_Mass        (thisNode) < 0.0d0 &
-            & .or. Tree_Node_Spheroid_Stellar_Mass    (thisNode) < 0.0d0 &
             & ) return
 
        ! Compute the star formation rate.
