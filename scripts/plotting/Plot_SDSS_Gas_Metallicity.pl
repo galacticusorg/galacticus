@@ -30,11 +30,14 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Specify Solar metallicity and oxygen abundance.
-$solarMetallicity = pdl 0.0189;
+$solarMetallicity     = pdl 0.0189;
 $solarOxygenAbundance = pdl 4.8977e-4;
 
+# Minimum gas fraction for galaxies to be considered in this plot.
+$gasFractionMinimum   = pdl 0.1;
+
 # Initialize chi^2 accumulator.
-$chiSquared = 0.0;
+$chiSquared      = 0.0;
 $degreesOfFreedom = 0;
 
 # Create data structure to read the results.
@@ -47,13 +50,16 @@ $dataSet{'tree'} = "all";
 &HDF5::Get_Dataset(\%dataSet,['volumeWeight'
 			      ,'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas[faceOn]:AB'
 			      ,'magnitudeTotal:SDSS_z:observed:z0.1000:AB'
+			      ,'diskStellarMass'
+			      ,'spheroidStellarMass'
 			      ,'diskGasMass'
 			      ,'spheroidGasMass'
 			      ,'diskGasMetals'
 			      ,'spheroidGasMetals'
 		   ]);
 $dataSets = \%{$dataSet{'dataSets'}};
-$gasMetallicity = 12.0+log10((${$dataSets->{'diskGasMetals'}}+${$dataSets->{'spheroidGasMetals'}})/(${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}}))-log10($solarMetallicity)+log10($solarOxygenAbundance);
+$gasFraction    = (${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}})/(${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}}+${$dataSets->{'diskStellarMass'}}+${$dataSets->{'spheroidStellarMass'}});
+$gasMetallicity = where(12.0+log10((${$dataSets->{'diskGasMetals'}}+${$dataSets->{'spheroidGasMetals'}})/(${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot");
@@ -78,8 +84,8 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
     if ( $dust eq "face-on" )   {$dustLabel = ":dustAtlas[faceOn]"};
 
     $property    = "magnitudeTotal:".$filter.":observed:z0.1000".$dustLabel.":AB";
-    $magnitude   = ${$dataSets->{$property}};
-    $weight      = ${$dataSets->{'volumeWeight'}};
+    $magnitude   = where(${$dataSets->{$property}}     ,$gasFraction > $gasFractionMinimum);
+    $weight      = where(${$dataSets->{'volumeWeight'}},$gasFraction > $gasFractionMinimum);
     $percentiles = pdl [2.5,16.0,50.0,84.0,97.5];
     $results     = &Percentiles::BinnedPercentiles(
 	$x,
