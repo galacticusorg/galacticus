@@ -1965,6 +1965,7 @@ Currently defined virial density contrast methods are:
 \begin{description}
  \item [{\tt spherical top hat}] The virial density contrast is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
  \item [{\tt Bryan + Norman}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
+ \item [{\tt fixed}] The virial density contrast is fixed at {\tt [virialDensityConstrastFixed]}, defined relative to {\tt critical density} and {\tt mean density} as specified by {\tt [virialDensityConstrastFixedType]}.
 \end{description}
 
 \subsubsection{Initial Mass Function Functions}\label{sec:IMF_functions}

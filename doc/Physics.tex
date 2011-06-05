@@ -112,6 +112,10 @@ The method used to compute the mean density contrast of virialized dark matter h
 
 Selected with {\tt virialDensityContrastMethod}$=${\tt Bryan + Norman} this method calculates virial density contrast using the fitting functions given by \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
 
+\subsubsection{Fixed}
+
+Selected with {\tt virialDensityContrastMethod}$=${\tt fixed} this method uses a fixed virial density contrast of {\tt [virialDensityConstrastFixed]}, defined relative to {\tt critical density} and {\tt mean density} as specified by {\tt [virialDensityConstrastFixedType]}.
+
 \subsubsection{Spherical Collapse (Matter + Cosmological Constant)}
 
 Selected with {\tt virialDensityContrastMethod}$=${\tt spherical top hat} this method calculates virial density contrast using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
