@@ -21,7 +21,7 @@
   </parameter>
   <parameter>
     <name>accretionDisksMethod</name>
-    <value>switched</value>
+    <value>ADAF</value>
   </parameter>
   <parameter>
     <name>accretionHalosMethod</name>
