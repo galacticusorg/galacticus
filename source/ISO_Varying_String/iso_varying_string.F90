@@ -2639,7 +2639,11 @@ contains
 
   subroutine destroy_VS (string)
     !% Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
-    type(varying_string), intent(inout) :: string
+#ifdef GCC45
+    class(varying_string), intent(inout) :: string
+#else
+    type(varying_string),  intent(inout) :: string
+#endif
 
     if (allocated(string%chars)) deallocate(string%chars)
     return

@@ -247,7 +247,7 @@ contains
     !% Multiply molecular abundances in {\tt theseAbundances} by a scalar {\tt scaleFactor}.
     implicit none
 #ifdef GCC45
-    class(molecularAbundancesStructure), intent(inout) :: molecules
+    class(molecularAbundancesStructure), intent(inout) :: theseAbundances
 #else
     type(molecularAbundancesStructure),  intent(inout) :: theseAbundances
 #endif
@@ -272,7 +272,7 @@ contains
     !% Divide molecular abundances in {\tt theseAbundances} by a scalar {\tt scaleFactor}.
     implicit none
 #ifdef GCC45
-    class(molecularAbundancesStructure), intent(inout) :: molecules
+    class(molecularAbundancesStructure), intent(inout) :: theseAbundances
 #else
     type(molecularAbundancesStructure),  intent(inout) :: theseAbundances
 #endif
