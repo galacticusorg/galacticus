@@ -1043,8 +1043,7 @@ contains
     type(nodeData),          pointer                     :: thisNode
     type(treeNode),          pointer                     :: firstProgenitor
     double precision,        parameter                   :: timeUntilMergingInfinite=1.0d30
-    integer                                              :: iNode,jNode,iIsolatedNode
-    integer(kind=kind_int8)                              :: historyCount
+    integer                                              :: iNode,jNode,iIsolatedNode,historyCount
     logical                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge
     double precision                                     :: timeSubhaloMerges
     
@@ -1216,8 +1215,7 @@ contains
     double precision,   intent(inout), dimension(:,:)         :: position,velocity
     type(nodeData),                                   pointer :: thisNode
     type(treeNode),                                   pointer :: firstProgenitor
-    integer                                                   :: iIsolatedNode,iNode,jNode,iAxis
-    integer(kind=kind_int8)                                   :: iTime,historyCount
+    integer                                                   :: iIsolatedNode,iNode,jNode,iAxis,iTime,historyCount
     logical                                                   :: endOfBranch
     double precision                                          :: expansionFactor
     type(varying_string)                                      :: message
