@@ -35,8 +35,6 @@ F03FLAGS_NOOPT := $(F03FLAGS)
 #F03FLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
 # For OpenMP compilation.
 F03FLAGS += -fopenmp
-# Use gFortran >v4.5.0 functionality.
-F03FLAGS += -DGCC45 -fintrinsic-modules-path /usr/local/include
 
 # C compiler flags:
 CFLAGS = -I./source/ -I./work/build/

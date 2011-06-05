@@ -281,29 +281,21 @@ contains
   subroutine Abundances_Pack(abundances,abundancesArray)
     !% Pack abundances from an array into an abundances structure.
     implicit none
-#ifdef GCC45
     class(abundancesStructure), intent(inout)              :: abundances
-#else
-    type(abundancesStructure),  intent(inout)              :: abundances
-#endif
     double precision,           intent(in),   dimension(:) :: abundancesArray
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-#ifdef GCC45
     select type (abundances)
     type is (abundancesStructure)
-#endif
     ! Extract metallicity from array.
     abundances%metallicityValue=abundancesArray(1)
     ! Ensure elemental values array exists.
     call Abundances_Allocate_Elemental_Values(abundances)
     ! Extract elemental values from array.
     abundances%elementalValue=abundancesArray(2:elementsCount+1)
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Abundances_Pack
 
@@ -311,11 +303,7 @@ contains
     !% Pack abundances from an array into an abundances structure.
     implicit none
     double precision,           intent(out), dimension(:) :: abundancesArray(:)
-#ifdef GCC45
     class(abundancesStructure), intent(in)                :: abundances
-#else
-    type(abundancesStructure),  intent(in)                :: abundances
-#endif
 
     ! Ensure module is initialized.
     call Abundances_Initialize
@@ -336,21 +324,15 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Error
     implicit none
-#ifdef GCC45
     class(abundancesStructure), intent(in)           :: abundances
-#else
-    type(abundancesStructure),  intent(in)           :: abundances
-#endif
     integer,                    intent(in), optional :: metallicityType
     integer                                          :: metallicityTypeActual
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-#ifdef GCC45
     select type (abundances)
     type is (abundancesStructure)
-#endif
        Abundances_Get_Metallicity=abundances%metallicityValue
        
        if (present(metallicityType)) then
@@ -375,9 +357,7 @@ contains
        case default
           call Galacticus_Error_Report('Abundances_Get_Metallicity','metallicity type not supported')
        end select
-#ifdef GCC45
     end select
-#endif
 
     return
   end function Abundances_Get_Metallicity
@@ -387,11 +367,7 @@ contains
     use Galacticus_Error
     use Atomic_Data
     implicit none
-#ifdef GCC45
     class(abundancesStructure), intent(inout)        :: abundances
-#else
-    type(abundancesStructure),  intent(inout)        :: abundances
-#endif
     double precision,           intent(in)           :: metallicity
     integer,                    intent(in), optional :: metallicityType,adjustElements,abundanceIndex
     integer                                          :: adjustElementsActual,iElement
@@ -400,10 +376,8 @@ contains
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-#ifdef GCC45
     select type (abundances)
     type is (abundancesStructure)
-#endif
     ! Store the current metallicity.
     metallicityPrevious        =abundances%metallicityValue
 
@@ -460,20 +434,14 @@ contains
           end do
         end select
     end if
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Abundances_Set_Metallicity
 
   subroutine Abundances_Mass_To_Mass_Fraction_Packed(abundances,mass)
     !% Convert abundance masses to mass fractions by dividing by {\tt mass} while ensuring that the fractions remain within the range 0--1.
     implicit none
-#ifdef GCC45
     class(abundancesStructure), intent(inout) :: abundances
-#else
-    type(abundancesStructure),  intent(inout) :: abundances
-#endif
     double precision,           intent(in)    :: mass
 
     ! Ensure module is initialized.
@@ -521,77 +489,53 @@ contains
   double precision function Abundances_Hydrogen_Mass_Fraction(abundances)
     !% Returns the mass fraction of hydrogen.
     implicit none
-#ifdef GCC45
     class(abundancesStructure), intent(in) :: abundances
-#else
-    type(abundancesStructure),  intent(in) :: abundances
-#endif
     double precision,           parameter  :: massFractionMinimum=0.7d0
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-#ifdef GCC45
     select type (abundances)
     type is (abundancesStructure)
-#endif
     Abundances_Hydrogen_Mass_Fraction=max((abundances%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
          &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial,massFractionMinimum)
-#ifdef GCC45
     end select
-#endif
     return
   end function Abundances_Hydrogen_Mass_Fraction
 
   double precision function Abundances_Helium_Mass_Fraction(abundances)
     !% Returns the mass fraction of helium.
     implicit none
-#ifdef GCC45
     class(abundancesStructure), intent(in) :: abundances
-#else
-    type(abundancesStructure),  intent(in) :: abundances
-#endif
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-#ifdef GCC45
     select type (abundances)
     type is (abundancesStructure)
-#endif
     Abundances_Helium_Mass_Fraction=(abundances%metallicityValue/metallicitySolar)*(heliumByMassSolar-heliumByMassPrimordial)&
          &+heliumByMassPrimordial
-#ifdef GCC45
     end select
-#endif
     return
   end function Abundances_Helium_Mass_Fraction
 
   double precision function Abundances_Hydrogen_Number_Fraction(abundances)
     !% Returns the number fraction of hydrogen.
     implicit none
-#ifdef GCC45
     class(abundancesStructure), intent(in) :: abundances
-#else
-    type(abundancesStructure),  intent(in) :: abundances
-#endif
     double precision                       :: numberHydrogen,numberHelium
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-#ifdef GCC45
     select type (abundances)
     type is (abundancesStructure)
-#endif
 
     numberHydrogen=Abundances_Hydrogen_Mass_Fraction(abundances)/atomicMassHydrogen
     numberHelium  =Abundances_Helium_Mass_Fraction  (abundances)/atomicMassHelium
     Abundances_Hydrogen_Number_Fraction=numberHydrogen/(numberHydrogen+numberHelium)
 
-#ifdef GCC45
     end select
-#endif
 
     return
   end function Abundances_Hydrogen_Number_Fraction
@@ -599,28 +543,20 @@ contains
   double precision function Abundances_Helium_Number_Fraction(abundances)
     !% Returns the mass fraction of helium.
     implicit none
-#ifdef GCC45
     class(abundancesStructure), intent(in) :: abundances
-#else
-    type(abundancesStructure),  intent(in) :: abundances
-#endif
     double precision                       :: numberHydrogen,numberHelium
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-#ifdef GCC45
     select type (abundances)
     type is (abundancesStructure)
-#endif
 
     numberHydrogen=Abundances_Hydrogen_Mass_Fraction(abundances)/atomicMassHydrogen
     numberHelium  =Abundances_Helium_Mass_Fraction  (abundances)/atomicMassHelium
     Abundances_Helium_Number_Fraction=numberHelium/(numberHydrogen+numberHelium)
 
-#ifdef GCC45
     end select
-#endif
 
     return
   end function Abundances_Helium_Number_Fraction

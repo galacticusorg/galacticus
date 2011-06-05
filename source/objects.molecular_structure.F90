@@ -217,11 +217,7 @@ contains
     use FoX_dom
     use String_Handling
     implicit none
-#ifdef GCC45
     class(molecularStructure), intent(in) :: thisMolecule
-#else
-    type(molecularStructure),  intent(in) :: thisMolecule
-#endif
     character(len=*),          intent(in) :: outputFile
     type(xmlf_t)                          :: exportedMoleculeDoc
     character(len=10)                     :: label
@@ -314,22 +310,14 @@ contains
     !% Find a molecule in the database and return it.
     use Galacticus_Error
     implicit none
-#ifdef GCC45
     class(molecularStructure), intent(inout) :: thisMolecule
-#else
-    type(molecularStructure),  intent(inout) :: thisMolecule
-#endif
 
     character(len=*),         intent(in)    :: moleculeName
 
-#ifdef GCC45
     select type (thisMolecule)
     type is (molecularStructure)
-#endif
        thisMolecule=molecules(Molecular_Database_Get_Index(moleculeName))
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Molecular_Database_Get
 
@@ -337,11 +325,7 @@ contains
     !% Return the charge on a molecule.
     use Galacticus_Error
     implicit none
-#ifdef GCC45
     class(molecularStructure), intent(in) :: thisMolecule
-#else
-    type(molecularStructure),  intent(in) :: thisMolecule
-#endif
 
     Molecular_Structure_Charge=thisMolecule%chargeValue
     return
@@ -351,11 +335,7 @@ contains
     !% Return the mass of a molecule.
     use Galacticus_Error
     implicit none
-#ifdef GCC45
     class(molecularStructure), intent(in) :: thisMolecule
-#else
-    type(molecularStructure),  intent(in) :: thisMolecule
-#endif
 
     Molecular_Structure_Mass=thisMolecule%massValue
     return

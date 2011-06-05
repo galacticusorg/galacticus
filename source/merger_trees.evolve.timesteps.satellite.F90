@@ -136,10 +136,8 @@ contains
     call thisNode%removeFromHost()
     call thisNode%removeFromMergee()
     call thisNode%destroy
-#ifdef GCC45
     ! <gfortran 4.6> The destroy method cannot disassociate the pointer (since it can't accept a pointer input), so we do it manually here.
     thisNode => null()
-#endif
     return
   end subroutine Satellite_Merger_Process
 

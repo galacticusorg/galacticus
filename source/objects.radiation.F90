@@ -141,11 +141,7 @@ contains
   logical function Radiation_Is_Defined(radiation)
     !% Return true if the radiation object has been defined, false otherwise.
     implicit none
-#ifdef GCC45
     class(radiationStructure), intent(in) :: radiation
-#else
-    type(radiationStructure),  intent(in) :: radiation
-#endif
 
     Radiation_Is_Defined=allocated(radiation%radiationType)
     return
@@ -155,11 +151,7 @@ contains
     !% Define which radiation fields are active in this {\tt radiation} object.
     use Memory_Management
     implicit none
-#ifdef GCC45
     class(radiationStructure), intent(inout)              :: radiation
-#else
-    type(radiationStructure),  intent(inout)              :: radiation
-#endif
     integer,                   intent(in),   dimension(:) :: radiationTypes
 
     ! Allocate the array of radiation types to the correct size.
@@ -184,11 +176,7 @@ contains
     !# </include>
     use Tree_Nodes
     implicit none
-#ifdef GCC45
     class(radiationStructure), intent(inout)          :: radiation
-#else
-    type(radiationStructure),  intent(inout)          :: radiation
-#endif
     type(treeNode),            intent(inout), pointer :: thisNode         
     integer                                           :: iComponent
 
@@ -212,11 +200,7 @@ contains
   double precision function Radiation_Time(radiation)
     !% Return the time of the {\tt radiation} object.
     implicit none
-#ifdef GCC45
     class(radiationStructure), intent(in) :: radiation
-#else
-    type(radiationStructure),  intent(in) :: radiation
-#endif
 
     Radiation_Time=radiation%timeValue
     return
@@ -228,11 +212,7 @@ contains
     include 'objects.radiation.temperature.modules.inc'
     !# </include>
     implicit none
-#ifdef GCC45
     class(radiationStructure), intent(in)                         :: radiation
-#else
-    type(radiationStructure),  intent(in)                         :: radiation
-#endif
     integer,                   intent(in), optional, dimension(:) :: radiationType
     integer                                                       :: iComponent
 
@@ -255,11 +235,7 @@ contains
     include 'objects.radiation.flux.modules.inc'
     !# </include>
     implicit none
-#ifdef GCC45
     class(radiationStructure), intent(in)                        :: radiation
-#else
-    type(radiationStructure),  intent(in)                        :: radiation
-#endif
     double precision,         intent(in)                         :: wavelength
     integer,                  intent(in), optional, dimension(:) :: radiationType
     integer                                                      :: iComponent
@@ -290,11 +266,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-#ifdef GCC45
     class(radiationStructure), intent(in)              :: radiation
-#else
-    type(radiationStructure),  intent(in)              :: radiation
-#endif
     double precision,         intent(in), dimension(2) :: wavelengthRange
     double precision,         external                 :: crossSectionFunction
     type(c_ptr)                                        :: parameterPointer
@@ -302,14 +274,10 @@ contains
     type(fgsl_integration_workspace)                   :: integrationWorkspace
 
     ! Copy the radiation object to a module global copy for use in the integrand routine.
-#ifdef GCC45
     select type (radiation)
     type is (radiationStructure)
-#endif
        radiationGlobal=radiation
-#ifdef GCC45
     end select
-#endif
 
     ! Copy the procedure pointer to a module global copy for use in the integrand routine.
     crossSectionFunctionGlobal => crossSectionFunction

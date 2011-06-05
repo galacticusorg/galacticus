@@ -367,21 +367,13 @@ contains
   integer(kind=kind_int8) function Tree_Node_Unique_ID(thisNode)
     !% Returns the unique ID of {\tt thisNode}.
     implicit none
-#ifdef GCC45
     class(treeNode), intent(in), target  :: thisNode
-#else
-    type(treeNode),  intent(in), pointer :: thisNode
-#endif
     type(treeNode),              pointer :: workNode
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
     if (associated(workNode)) then
        Tree_Node_Unique_ID=workNode%nodeUniqueID
     else
@@ -393,11 +385,7 @@ contains
   subroutine Tree_Node_Unique_ID_Set(thisNode,uniqueID)
     !% Set the index of {\tt thisNode}.
     implicit none
-#ifdef GCC45
     class(treeNode),         intent(inout) :: thisNode
-#else
-    type(treeNode),          intent(inout) :: thisNode
-#endif
     integer(kind=kind_int8), intent(in)    :: uniqueID
 
     thisNode%nodeUniqueID=uniqueID
@@ -407,21 +395,13 @@ contains
   integer(kind=kind_int8) function Tree_Node_Index(thisNode)
     !% Returns the index of {\tt thisNode}.
     implicit none
-#ifdef GCC45
     class(treeNode), intent(in), target  :: thisNode
-#else
-    type(treeNode),  intent(in), pointer :: thisNode
-#endif
     type(treeNode),              pointer :: workNode
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
     if (associated(workNode)) then
        Tree_Node_Index=workNode%nodeIndex
     else
@@ -433,11 +413,7 @@ contains
   subroutine Tree_Node_Index_Set(thisNode,index)
     !% Set the index of {\tt thisNode}.
     implicit none
-#ifdef GCC45
     class(treeNode),         intent(inout) :: thisNode
-#else
-    type(treeNode),          intent(inout) :: thisNode
-#endif
     integer(kind=kind_int8), intent(in)    :: index
 
     thisNode%nodeIndex=index
@@ -448,22 +424,14 @@ contains
     !% Destroy a node in the tree, along with all components.
     use Memory_Management
     implicit none
-#ifdef GCC45
     class(treeNode), target,  intent(inout) :: thisNode
-#else
-    type(treeNode),  pointer, intent(inout) :: thisNode
-#endif
     integer                                 :: iComponent
     type(treeNode),  pointer                :: workNode
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
 
     ! Deallocate list of component indices.
     if (allocated(workNode%componentIndex)) then
@@ -490,10 +458,6 @@ contains
     ! Deallocate the tree node object.
     call Memory_Usage_Record(sizeof(workNode),addRemove=-1,memoryType=memoryTypeNodes)
     deallocate(workNode)
-#ifndef GCC45
-    ! <gfortran 4.6> This next line does not do anything under gFortran 4.6 since the input object is not a pointer (merely a target).
-    workNode => null()
-#endif
 
     return
   end subroutine Tree_Node_Destroy
@@ -501,11 +465,7 @@ contains
   logical function Tree_Node_Component_Exists(thisNode,componentIndex)
     !% Return true if {\tt thisNode} already has a component with index {\tt componentIndex}.
     implicit none
-#ifdef GCC45
     class(treeNode), intent(in)          :: thisNode
-#else
-    type(treeNode),  intent(in), pointer :: thisNode
-#endif
     integer,         intent(in)          :: componentIndex
 
     Tree_Node_Component_Exists=(thisNode%componentIndex(componentIndex) > 0)
@@ -517,11 +477,7 @@ contains
     use Memory_Management
     implicit none
     integer,          intent(in)                :: componentIndex,propertyCount,dataCount,historyCount
-#ifdef GCC45
     class(treeNode),  intent(inout)             :: thisNode
-#else
-    type(treeNode),   intent(inout)             :: thisNode
-#endif
     type(component),  allocatable, dimension(:) :: tempComponents
     integer                                     :: previousSize,thisIndex
 
@@ -566,11 +522,7 @@ contains
     use Memory_Management
     implicit none
     integer,         intent(in)                :: componentIndex,propertyCount,dataCount
-#ifdef GCC45
     class(treeNode), intent(inout)             :: thisNode
-#else
-    type(treeNode),  intent(inout)             :: thisNode
-#endif
     type(component), allocatable, dimension(:) :: tempComponents
     integer                                    :: previousSize,listIndex,timesCount,iHistory
 
@@ -612,11 +564,7 @@ contains
     !% Ensure that all components of {\tt thisNode} are deallocated.
     use Memory_Management
     implicit none
-#ifdef GCC45
     class(treeNode), intent(inout)             :: thisNode
-#else
-    type(treeNode),  intent(inout)             :: thisNode
-#endif
     integer                                    :: listIndex,thisIndex,iHistory
 
     ! Deallocate each component and record the memory usage change.
@@ -650,47 +598,31 @@ contains
   logical function Tree_Node_Is_Primary_Progenitor(thisNode)
     !% Returns true if {\tt thisNode} is the primary progenitor of its parent node.
     implicit none
-#ifdef GCC45
     class(treeNode), intent(inout), target  :: thisNode
-#else
-    type(treeNode),  intent(inout), pointer :: thisNode
-#endif
 
-#ifdef GCC45
     select type(thisNode)
     type is (treeNode)
-#endif
        if (associated(thisNode%parentNode)) then
           Tree_Node_Is_Primary_Progenitor=associated(thisNode%parentNode%childNode,thisNode)
        else
           Tree_Node_Is_Primary_Progenitor=.false.
        end if
-#ifdef GCC45
     end select
-#endif
     return
   end function Tree_Node_Is_Primary_Progenitor
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(thisNode,targetNodeIndex)
     !% Return true if {\tt thisNode} is a progenitor of the node with index {\tt targetNodeIndex}.
     implicit none
-#ifdef GCC45
     class(treeNode),         intent(in), target  :: thisNode
-#else
-    type(treeNode),          intent(in), pointer :: thisNode
-#endif
     integer(kind=kind_int8), intent(in)          :: targetNodeIndex
     type(treeNode),                      pointer :: workNode
 
     Tree_Node_Is_Primary_Progenitor_Of_Index=.false.
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
           Tree_Node_Is_Primary_Progenitor_Of_Index=.true.
@@ -705,23 +637,15 @@ contains
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(thisNode,targetNode)
     !% Return true if {\tt thisNode} is a progenitor of {\tt targetNode}.
     implicit none
-#ifdef GCC45
     class(treeNode), intent(in), target  :: thisNode
-#else
-    type(treeNode),  intent(in), pointer :: thisNode
-#endif
     type(treeNode),  intent(in), pointer :: targetNode
     type(treeNode),              pointer :: workNode
 
     Tree_Node_Is_Primary_Progenitor_Of_Node=.false.
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
           Tree_Node_Is_Primary_Progenitor_Of_Node=.true.
@@ -736,23 +660,15 @@ contains
   logical function Tree_Node_Is_Progenitor_Of_Index(thisNode,targetNodeIndex)
     !% Return true if {\tt thisNode} is a progenitor of the node with index {\tt targetNodeIndex}.
     implicit none
-#ifdef GCC45
     class(treeNode),         intent(in), target  :: thisNode
-#else
-    type(treeNode),          intent(in), pointer :: thisNode
-#endif
     integer(kind=kind_int8), intent(in)          :: targetNodeIndex
     type(treeNode),                      pointer :: workNode
 
     Tree_Node_Is_Progenitor_Of_Index=.false.
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
           Tree_Node_Is_Progenitor_Of_Index=.true.
@@ -766,23 +682,15 @@ contains
   logical function Tree_Node_Is_Progenitor_Of_Node(thisNode,targetNode)
     !% Return true if {\tt thisNode} is a progenitor of {\tt targetNode}.
     implicit none
-#ifdef GCC45
     class(treeNode), intent(in), target  :: thisNode
-#else
-    type(treeNode),  intent(in), pointer :: thisNode
-#endif
     type(treeNode),  intent(in), pointer :: targetNode
     type(treeNode),              pointer :: workNode
 
     Tree_Node_Is_Progenitor_Of_Node=.false.
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
           Tree_Node_Is_Progenitor_Of_Node=.true.
@@ -796,22 +704,14 @@ contains
   logical function Tree_Node_Is_On_Main_Branch(thisNode)
     !% Returns true if {\tt thisNode} is on the main branch.
     implicit none
-#ifdef GCC45
     class(treeNode), intent(inout), target  :: thisNode
-#else
-    type(treeNode),  intent(inout), pointer :: thisNode
-#endif
     type(treeNode),                 pointer :: workNode
 
     Tree_Node_Is_On_Main_Branch=.not.associated(thisNode%parentNode)
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
     do while (associated(workNode%parentNode))
        if (.not.workNode%isPrimaryProgenitor()) return
        workNode => workNode%parentNode
@@ -824,21 +724,13 @@ contains
   logical function Tree_Node_Is_Satellite(thisNode)
     !% Returns true if {\tt thisNode} is a satellite.
     implicit none
-#ifdef GCC45
     class(treeNode), target, intent(in)  :: thisNode
-#else
-    type(treeNode),  pointer, intent(in) :: thisNode
-#endif
     type(treeNode),  pointer             :: parentNode,childNode,thisNodeActual
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        thisnodeActual => thisNode
-#ifdef GCC45
     end select
-#endif
     parentNode => thisNodeActual%parentNode
     select case (associated(parentNode))
     case (.false.)
@@ -861,22 +753,14 @@ contains
   subroutine Tree_Node_Merge_Node(thisNode,mergesWith)
     !% Returns a pointer to the node with which {\tt thisNode} will merge.
     implicit none
-#ifdef GCC45
     class(treeNode), target,  intent(in)    :: thisNode
-#else
-    type(treeNode),  pointer, intent(in)    :: thisNode
-#endif
     type(treeNode),  pointer, intent(inout) :: mergesWith
     type(treeNode),  pointer                :: thisNodeActual
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        thisNodeActual => thisNode
-#ifdef GCC45
     end select
-#endif
 
     ! Check if a specific merge node has been set.
     if (associated(thisNode%mergeNode)) then
@@ -895,22 +779,14 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-#ifdef GCC45
     class(treeNode),     target,  intent(in) :: satelliteNode
-#else
-    type(treeNode),      pointer, intent(in) :: satelliteNode
-#endif
     type(treeNode),      pointer             :: hostNode,thisNode,previousNode,satelliteNodeActual
     type(varying_string)                     :: message
 
-#ifdef GCC45
     select type (satelliteNode)
     type is (treeNode)
-#endif
        satelliteNodeActual => satelliteNode
-#ifdef GCC45
     end select
-#endif
 
     ! Remove from the parent node satellite list.
     hostNode => satelliteNodeActual%parentNode
@@ -942,22 +818,14 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-#ifdef GCC45
     class(treeNode),     target,  intent(in) :: mergeeNode
-#else
-    type(treeNode),      pointer, intent(in) :: mergeeNode
-#endif
     type(treeNode),      pointer             :: hostNode,thisNode,previousNode,mergeeNodeActual
     type(varying_string)                     :: message
 
-#ifdef GCC45
     select type (mergeeNode)
     type is (treeNode)
-#endif
        mergeeNodeActual => mergeeNode
-#ifdef GCC45
     end select
-#endif
 
     ! Remove from the mergee list of any merge target.
     if (associated(mergeeNodeActual%mergeNode)) then
@@ -988,11 +856,7 @@ contains
   subroutine Get_Last_Satellite(thisNode,satelliteNode)
     !% Returns a pointer to the final satellite node associated with {\tt thisNode}.
     implicit none
-#ifdef GCC45
     class(treeNode), intent(in)              :: thisNode
-#else
-    type(treeNode),  intent(in),     pointer :: thisNode
-#endif
     type(treeNode),  intent(inout),  pointer :: satelliteNode
 
     satelliteNode => thisNode%satelliteNode
@@ -1030,23 +894,15 @@ contains
   subroutine Get_Earliest_Progenitor(thisNode,progenitorNode)
     !% Returns a pointer to the earliest progenitor of with {\tt thisNode}.
     implicit none
-#ifdef GCC45
     class(treeNode), target,  intent(inout) :: thisNode
-#else
-    type(treeNode),  pointer, intent(inout) :: thisNode
-#endif
     type(treeNode),  pointer, intent(inout) :: progenitorNode
     type(treeNode),  pointer                :: thisNodeActual
 
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        thisNodeActual => thisNode
-#ifdef GCC45
     end select
-#endif
 
     progenitorNode => thisNodeActual
     do while (associated(progenitorNode%childNode))
@@ -1062,22 +918,14 @@ contains
     !% of the tree. Once the entire tree has been walked, a {\tt null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the tree is walked in this way.
     implicit none
-#ifdef GCC45
     class(treeNode), target,  intent(inout) :: thisNode
-#else
-    type(treeNode),  pointer, intent(inout) :: thisNode
-#endif
     type(treeNode),  pointer, intent(inout) :: nextNode
     type(treeNode),  pointer                :: workNode,thisNodeActual
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        thisNodeActual => thisNode
-#ifdef GCC45
     end select
-#endif
     workNode => thisNodeActual
 
     if (.not.associated(workNode%parentNode)) then
@@ -1132,22 +980,14 @@ contains
     !% used in testing whether a node is a satellite---if they are destroyed prior to the test being made then problems with
     !% dangling pointers will occur.
     implicit none
-#ifdef GCC45
     class (treeNode), target , intent(inout) :: thisNode
-#else
-    type (treeNode),  pointer, intent(inout) :: thisNode
-#endif
     type (treeNode),  pointer, intent(inout) :: nextNode
     type (treeNode),  pointer                :: workNode,thisNodeActual
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        thisNodeActual => thisNode
-#ifdef GCC45
     end select
-#endif
     workNode => thisNodeActual
     if (.not.associated(workNode%parentNode)) then
        ! This is the base of the merger tree.
@@ -1191,22 +1031,14 @@ contains
     !% of the branch. Once the entire branch has been walked, a {\tt null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
     implicit none
-#ifdef GCC45
     class (treeNode), target,  intent(inout) :: thisNode
-#else
-    type (treeNode),  pointer, intent(inout) :: thisNode
-#endif
     type (treeNode),  pointer, intent(inout) :: startNode,nextNode
     type (treeNode),  pointer                :: workNode,thisNodeActual
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        thisNodeActual => thisNode
-#ifdef GCC45
     end select
-#endif
     workNode => thisNodeActual
 
     if (associated(thisNodeActual,startNode)) then
@@ -1239,22 +1071,14 @@ contains
     !% branches rely on this since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to
     !% the test being made then problems with dangling pointers will occur.
     implicit none
-#ifdef GCC45
     class (treeNode), target,  intent(inout) :: thisNode
-#else
-    type (treeNode),  pointer, intent(inout) :: thisNode
-#endif
     type (treeNode),  pointer, intent(inout) :: startNode,nextNode
     type (treeNode),  pointer                :: workNode,thisNodeActual
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        thisNodeActual => thisNode
-#ifdef GCC45
     end select
-#endif
     workNode => thisNodeActual
 
     if (associated(thisNodeActual,startNode)) then
@@ -1340,22 +1164,14 @@ contains
   subroutine Merger_Tree_Construction_Walk(thisNode,nextNode)
     !% This function provides a mechanism for walking through a merger tree that is being built.
     implicit none
-#ifdef GCC45
     class (treeNode), target,  intent(inout) :: thisNode
-#else
-    type (treeNode),  pointer, intent(inout) :: thisNode
-#endif
     type (treeNode),  pointer, intent(inout) :: nextNode
     type (treeNode),  pointer                :: workNode
 
-#ifdef GCC45
     select type (thisNode)
     type is (treeNode)
-#endif
        workNode => thisNode
-#ifdef GCC45
     end select
-#endif
 
     if (associated(workNode%childNode)) then
        ! Move to the primary child if one exists.

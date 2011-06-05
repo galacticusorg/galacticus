@@ -246,61 +246,41 @@ contains
   subroutine Molecules_Abundances_Multiply(theseAbundances,scaleFactor)
     !% Multiply molecular abundances in {\tt theseAbundances} by a scalar {\tt scaleFactor}.
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(inout) :: theseAbundances
-#else
-    type(molecularAbundancesStructure),  intent(inout) :: theseAbundances
-#endif
     double precision,                    intent(in)    :: scaleFactor
     
     ! Ensure the target structure is allocated.
     call Molecular_Abundances_Allocate_Values(theseAbundances)
 
     ! Do the multiplication.
-#ifdef GCC45
     select type (theseAbundances)
     type is (molecularAbundancesStructure)
-#endif
        theseAbundances%molecularValue=theseAbundances%molecularValue*scaleFactor
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Molecules_Abundances_Multiply
 
   subroutine Molecules_Abundances_Divide(theseAbundances,scaleFactor)
     !% Divide molecular abundances in {\tt theseAbundances} by a scalar {\tt scaleFactor}.
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(inout) :: theseAbundances
-#else
-    type(molecularAbundancesStructure),  intent(inout) :: theseAbundances
-#endif
     double precision,                    intent(in)    :: scaleFactor
     
     ! Ensure the target structure is allocated.
     call Molecular_Abundances_Allocate_Values(theseAbundances)
 
     ! Do the division.
-#ifdef GCC45
     select type (theseAbundances)
     type is (molecularAbundancesStructure)
-#endif
        theseAbundances%molecularValue=theseAbundances%molecularValue/scaleFactor
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Molecules_Abundances_Divide
 
   double precision function Molecules_Abundances(molecules,moleculeIndex)
     !% Returns the abundance of a molecule in the molecular abundances structure given the {\tt moleculeIndex}.
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(in) :: molecules
-#else
-    type(molecularAbundancesStructure),  intent(in) :: molecules
-#endif
     integer,                             intent(in) :: moleculeIndex
 
     Molecules_Abundances=molecules%molecularValue(moleculeIndex)
@@ -310,11 +290,7 @@ contains
   subroutine Molecules_Number_To_Mass(molecules,moleculesByMass)
     !% Multiply all molecular species by their mass in units of the atomic mass. This converts abundances by number into abundances by mass.
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(in)    :: molecules
-#else
-    type(molecularAbundancesStructure),  intent(in)    :: molecules 
-#endif
     type(molecularAbundancesStructure),  intent(inout) :: moleculesByMass
 
     ! Ensure values array exists.
@@ -334,11 +310,7 @@ contains
   subroutine Molecules_Mass_To_Number(molecules,moleculesByNumber)
     !% Divide all molecular species by their mass in units of the atomic mass. This converts abundances by mass into abundances by number.
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(in)    :: molecules
-#else
-    type(molecularAbundancesStructure),  intent(in)    :: molecules 
-#endif
     type(molecularAbundancesStructure),  intent(inout) :: moleculesByNumber
 
     ! Ensure values array exists.
@@ -358,49 +330,33 @@ contains
   subroutine Molecules_Abundances_Set(molecules,moleculeIndex,abundance)
     !% Sets the abundance of a molecule in the molecular abundances structure given the {\tt moleculeIndex}.
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(inout) :: molecules
-#else
-    type(molecularAbundancesStructure),  intent(inout) :: molecules
-#endif
     integer,                             intent(in)    :: moleculeIndex
     double precision,                    intent(in)    :: abundance
     
     ! Ensure values array exists.
     call Molecular_Abundances_Allocate_Values(molecules)
     
-#ifdef GCC45
     select type (molecules)
     type is (molecularAbundancesStructure)
-#endif
        molecules%molecularValue(moleculeIndex)=abundance
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Molecules_Abundances_Set
 
   subroutine Molecules_Abundances_Reset(molecules)
     !% Resets all molecular abundances to zero.
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(inout) :: molecules
-#else
-    type(molecularAbundancesStructure),  intent(inout) :: molecules
-#endif
 
     ! Ensure values array exists.
     call Molecular_Abundances_Allocate_Values(molecules)
     
     ! Reset to zero.
-#ifdef GCC45
     select type (molecules)
     type is (molecularAbundancesStructure)
-#endif
        molecules%molecularValue=0.0d0
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Molecules_Abundances_Reset
 
@@ -408,34 +364,22 @@ contains
     !% Ensure that the {\tt molecularValue} array in an {\tt moleculesStructure} is allocated.
     use Memory_Management
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(inout) :: molecules
-#else
-    type(molecularAbundancesStructure),  intent(inout) :: molecules
-#endif
 
-#ifdef GCC45
     select type (molecules)
     type is (molecularAbundancesStructure)
-#endif
        if (.not.allocated(molecules%molecularValue)) then
           allocate(molecules%molecularValue(moleculesCount))
           call Memory_Usage_Record(sizeof(molecules%molecularValue))
        end if
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Molecular_Abundances_Allocate_Values
 
   subroutine Molecular_Abundances_Pack(molecules,molecularAbundancesArray)
     !% Pack abundances from an array into an abundances structure.
     implicit none
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(inout)            :: molecules
-#else
-    type(molecularAbundancesStructure),  intent(inout)            :: molecules
-#endif
     double precision,                    intent(in), dimension(:) :: molecularAbundancesArray
 
     ! Ensure module is initialized.
@@ -444,14 +388,10 @@ contains
     ! Ensure values array exists.
     call Molecular_Abundances_Allocate_Values(molecules)
     ! Extract molecular values from array.
-#ifdef GCC45
     select type (molecules)
     type is (molecularAbundancesStructure)
-#endif    
        molecules%molecularValue=molecularAbundancesArray
-#ifdef GCC45
     end select
-#endif    
     return
   end subroutine Molecular_Abundances_Pack
 
@@ -459,11 +399,7 @@ contains
     !% Pack abundances from an array into an abundances structure.
     implicit none
     double precision,                    intent(out), dimension(:) :: molecularAbundancesArray(:)
-#ifdef GCC45
     class(molecularAbundancesStructure), intent(in)                :: molecules
-#else
-    type(molecularAbundancesStructure),  intent(in)                :: molecules
-#endif
 
     ! Ensure module is initialized.
     call Molecular_Abundances_Initialize

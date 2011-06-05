@@ -190,16 +190,10 @@ contains
     !% Destroys the entire merger tree.
     use Memory_Management
     implicit none
-#ifdef GCC45
     class(mergerTree),          intent(inout) :: thisTree
-#else
-    type(mergerTree),  pointer, intent(inout) :: thisTree
-#endif
 
-#ifdef GCC45
     select type (thisTree)
     type is (mergerTree)
-#endif
     if (associated(thisTree)) then
        ! Destroy all nodes.
        if (associated(thisTree%baseNode)) call thisTree%destroyBranch(thisTree%baseNode)
@@ -209,9 +203,7 @@ contains
        call Memory_Usage_Record(sizeof(thisTree),addRemove=-1,memoryType=memoryTypeNodes)
        deallocate(thisTree)
     end if
-#ifdef GCC45
     end select
-#endif
     return
   end subroutine Merger_Tree_Destroy
 
@@ -219,11 +211,7 @@ contains
     !% Destroy a branch of a tree which begins at {\tt thisNode}.
     use Tree_Nodes
     implicit none
-#ifdef GCC45
     class(mergerTree),          intent(inout) :: thisTree
-#else
-    type(mergerTree),  pointer, intent(inout) :: thisTree
-#endif
     type(treeNode),    pointer, intent(inout) :: thisNode
     type(treeNode),    pointer                :: destroyNode,nextNode
 
@@ -248,11 +236,7 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-#ifdef GCC45
     class(mergerTree),                intent(inout)        :: thisTree
-#else
-    type(mergerTree),                 intent(inout)        :: thisTree
-#endif
     type(treeNode),          pointer, intent(inout)        :: thisNode
     integer(kind=kind_int8),          intent(in), optional :: index
     integer                                                :: allocErr
@@ -335,11 +319,7 @@ contains
     include 'objects.tree_node.promote.modules.inc'
     !# </include>
     implicit none
-#ifdef GCC45
     class(mergerTree),            intent(inout) :: thisTree
-#else
-    type(mergerTree),             intent(inout) :: thisTree
-#endif
     type(treeNode),      pointer, intent(inout) :: thisNode
     type(treeNode),      pointer                :: parentNode,satelliteNode
     type(varying_string)                        :: message
@@ -432,11 +412,7 @@ contains
     include 'objects.tree_node.post_evolve.modules.inc'
     !# </include>
     implicit none
-#ifdef GCC45
     class(mergerTree),                       intent(inout)          :: thisTree
-#else
-    type(mergerTree),                        intent(inout)          :: thisTree
-#endif
     type(treeNode),                          intent(inout), pointer :: thisNode
     double precision,                        intent(in)             :: endTime
     logical,                                 intent(out)            :: interrupted
@@ -872,11 +848,7 @@ contains
     include 'events.node_mergers.process.modules.inc'
     !# </include>
     implicit none
-#ifdef GCC45
     class(mergerTree),   intent(inout)          :: thisTree
-#else
-    type(mergerTree),    intent(inout)          :: thisTree
-#endif
     type(treeNode),      intent(inout), pointer :: thisNode
     type(varying_string)                        :: message
     
@@ -925,11 +897,7 @@ contains
     !% Return a pointer to a node in {\tt thisTree} given the index of the node.
     use Tree_Nodes
     implicit none
-#ifdef GCC45
     class(mergerTree),       intent(inout) :: thisTree
-#else
-    type(mergerTree),        intent(inout) :: thisTree
-#endif
     integer(kind=kind_int8), intent(in)    :: nodeIndex
     type(treeNode),          pointer       :: Tree_Node_Get,thisNode
 
