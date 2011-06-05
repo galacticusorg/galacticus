@@ -60,15 +60,14 @@
 
 
 !% Contains a module which computes the contribution to the cooling function due to Compton cooling off of the cosmic microwave
-!% background, assuming collisional ionization equilibrium electron densities.
+!% background.
 
-module Cooling_Functions_CMB_CIE_Compton
-  !% Computes the contribution to the cooling function due to Compton cooling off of the cosmic microwave background, assuming
-  !% collisional ionization equilibrium electron densities.
+module Cooling_Functions_CMB_Compton
+  !% Computes the contribution to the cooling function due to Compton cooling off of the cosmic microwave background.
   use ISO_Varying_String
   private
-  public :: Cooling_Function_CMB_CIE_Compton_Initialize, Cooling_Function_CMB_CIE_Compton,&
-       & Cooling_Function_Density_Slope_CMB_CIE_Compton, Cooling_Function_Temperature_Slope_CMB_CIE_Compton
+  public :: Cooling_Function_CMB_Compton_Initialize, Cooling_Function_CMB_Compton,&
+       & Cooling_Function_Density_Slope_CMB_Compton, Cooling_Function_Temperature_Slope_CMB_Compton
   
   ! Flag indicating whether or not this cooling function is selected.
   logical                     :: functionSelected=.false.
@@ -76,23 +75,23 @@ module Cooling_Functions_CMB_CIE_Compton
 contains
   
   !# <coolingFunctionMethods>
-  !#  <unitName>Cooling_Function_CMB_CIE_Compton_Initialize</unitName>
+  !#  <unitName>Cooling_Function_CMB_Compton_Initialize</unitName>
   !# </coolingFunctionMethods>
-  subroutine Cooling_Function_CMB_CIE_Compton_Initialize(coolingFunctionMethods)
+  subroutine Cooling_Function_CMB_Compton_Initialize(coolingFunctionMethods)
     !% Initializes the ``atomic CIE cooling function from {\sc Cloudy}'' module.
     implicit none
     type(varying_string), intent(in) :: coolingFunctionMethods(:)
  
     ! Check if this cooling function has been selected.
-    if (any(coolingFunctionMethods == 'CMB_CIE_Compton')) functionSelected=.true.
+    if (any(coolingFunctionMethods == 'CMB Compton')) functionSelected=.true.
 
     return
-  end subroutine Cooling_Function_CMB_CIE_Compton_Initialize
+  end subroutine Cooling_Function_CMB_Compton_Initialize
 
   !# <coolingFunctionCompute>
-  !#   <unitName>Cooling_Function_CMB_CIE_Compton</unitName>
+  !#   <unitName>Cooling_Function_CMB_Compton</unitName>
   !# </coolingFunctionCompute>
-  subroutine Cooling_Function_CMB_CIE_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
+  subroutine Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Ionization_States
     use Abundances_Structure
@@ -125,12 +124,12 @@ contains
     end if
 
     return
-  end subroutine Cooling_Function_CMB_CIE_Compton
+  end subroutine Cooling_Function_CMB_Compton
   
   !# <coolingFunctionDensitySlopeCompute>
-  !#   <unitName>Cooling_Function_Density_Slope_CMB_CIE_Compton</unitName>
+  !#   <unitName>Cooling_Function_Density_Slope_CMB_Compton</unitName>
   !# </coolingFunctionDensitySlopeCompute>
-  subroutine Cooling_Function_Density_Slope_CMB_CIE_Compton(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,abundances&
+  subroutine Cooling_Function_Density_Slope_CMB_Compton(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,abundances&
        &,radiation)
     !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Ionization_States
@@ -147,7 +146,7 @@ contains
     if (functionSelected) then
        
        ! Get the cooling function.
-       call Cooling_Function_CMB_CIE_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
+       call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
        
        ! Get logarithmic slope of electron density with density.
        electronDensityDensityLogSlope=Electron_Density_Density_Log_Slope(temperature,numberDensityHydrogen,abundances&
@@ -164,12 +163,12 @@ contains
     end if
        
     return
-  end subroutine Cooling_Function_Density_Slope_CMB_CIE_Compton
+  end subroutine Cooling_Function_Density_Slope_CMB_Compton
   
   !# <coolingFunctionTemperatureSlopeCompute>
-  !#   <unitName>Cooling_Function_Temperature_Slope_CMB_CIE_Compton</unitName>
+  !#   <unitName>Cooling_Function_Temperature_Slope_CMB_Compton</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
-  subroutine Cooling_Function_Temperature_Slope_CMB_CIE_Compton(coolingFunctionTemperatureSlope,temperature,numberDensityHydrogen&
+  subroutine Cooling_Function_Temperature_Slope_CMB_Compton(coolingFunctionTemperatureSlope,temperature,numberDensityHydrogen&
        &,abundances,radiation)
     !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Ionization_States
@@ -186,7 +185,7 @@ contains
     if (functionSelected) then
               
        ! Get the cooling function.
-       call Cooling_Function_CMB_CIE_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
+       call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,abundances,radiation)
        
        ! Get logarithmic slope of electron density with temperature.
        electronDensityTemperatureLogSlope=Electron_Density_Temperature_Log_Slope(temperature,numberDensityHydrogen,abundances&
@@ -204,6 +203,6 @@ contains
     end if
        
     return
-  end subroutine Cooling_Function_Temperature_Slope_CMB_CIE_Compton
+  end subroutine Cooling_Function_Temperature_Slope_CMB_Compton
   
-end module Cooling_Functions_CMB_CIE_Compton
+end module Cooling_Functions_CMB_Compton
