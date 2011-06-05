@@ -126,7 +126,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
  	    if ( $? == 0 ) {
  		# Model finished successfully.
  		# Generate plots.
- 		system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory);
+ 		system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory) unless ( ${$modelsToRun->{'doAnalysis'}}[0] eq "no" );
  	    } else {
  		# The run failed for some reason.
  		# Move the core file to the output directory.
@@ -135,12 +135,12 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
  		    if ( $file =~ m/core\.\d+/ ) {move($file,$galacticusOutputDirectory."/core")};
  		}
  		closedir(gDir);
- 		# If we have an e-mail address to send a report to, then do so.
- 		if ( $config->{'contact'}->{'email'} =~ m/\@/ ) {
- 		    $message  = "A Galacticus model failed to finish:\n\n";
- 		    $message .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
- 		    $message .= "  User:\t".$ENV{"USER"}."\n\n";
- 		    $message .= "Model output is in: ".$pwd."/".$galacticusOutputDirectory."\n\n";
+ 		# Report the model failure (by e-mail if we have an e-mail address to send a report to and if so requested).
+		$message  = "FAILED: A Galacticus model failed to finish:\n\n";
+		$message .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
+		$message .= "  User:\t".$ENV{"USER"}."\n\n";
+		$message .= "Model output is in: ".$pwd."/".$galacticusOutputDirectory."\n\n";
+ 		if ( $config->{'contact'}->{'email'} =~ m/\@/ && ${$modelsToRun->{'emailReport'}}[0] eq "yes" ) {
  		    $message .= "Log file is attached.\n";
  		    $msg = MIME::Lite->new(
  					   From    => '',
@@ -155,7 +155,11 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
  				 Filename => "galacticus.log"
  				 );
  		    $msg->send;
- 		}
+ 		} else {
+		    print $message;
+		    print "Log follows:\n";
+		    print slurp($galacticusOutputDirectory."/galacticus.log");
+		}
  	    }
 
  	    # Compress all files in the output directory.
