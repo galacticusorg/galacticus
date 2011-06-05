@@ -64,7 +64,7 @@
 module Histories
   !% Defines the history object type.
   private
-  public :: history, History_Set_Times, operator(/)
+  public :: history, History_Set_Times, operator(/), Histories_State_Store, Histories_State_Retrieve
 
   type history
      !% The history object type.
@@ -387,5 +387,32 @@ contains
     if (allocated(History_Division_Double%data)) History_Division_Double%data=History_Division_Double%data/divisor
     return
   end function History_Division_Double
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Histories_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Histories_State_Store(stateFile,fgslStateFile)
+    !% Write the history state to file.
+    use FGSL
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
 
+    write (stateFile) historyStorageEarliestTime,historyStorageLatestTime
+    return
+  end subroutine Histories_State_Store
+  
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Histories_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Histories_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the history state from the file.
+    use FGSL
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    read (stateFile) historyStorageEarliestTime,historyStorageLatestTime
+    return
+  end subroutine Histories_State_Retrieve
+  
 end module Histories
