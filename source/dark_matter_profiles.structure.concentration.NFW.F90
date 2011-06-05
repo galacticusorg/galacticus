@@ -84,8 +84,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: darkMatterConcentrationMethod
-    procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
+    type(varying_string),                 intent(in)    :: darkMatterConcentrationMethod
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
     
     if (darkMatterConcentrationMethod == 'NFW 1996') then
        ! Return a pointer to our implementation.

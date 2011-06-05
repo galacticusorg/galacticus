@@ -80,9 +80,10 @@ contains
   subroutine Virial_Orbital_Parameters_Benson2005_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
+    use Kepler_Orbits_Structure
     implicit none
-    type(varying_string),          intent(in)    :: virialOrbitsMethod
-    procedure(),          pointer, intent(inout) :: Virial_Orbital_Parameters_Get
+    type(varying_string),                  intent(in)    :: virialOrbitsMethod
+    procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
     
     if (virialOrbitsMethod.eq.'Benson2005') Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Benson2005
     return

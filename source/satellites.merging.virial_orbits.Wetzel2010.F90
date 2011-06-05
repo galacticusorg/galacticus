@@ -99,11 +99,12 @@ contains
     use Memory_Management
     use Numerical_Ranges
     use Hypergeometric_Functions
+    use Kepler_Orbits_Structure
     implicit none
-    type(varying_string),          intent(in)    :: virialOrbitsMethod
-    procedure(),          pointer, intent(inout) :: Virial_Orbital_Parameters_Get
-    integer                                      :: iRadius
-    double precision                             :: x,xGamma2
+    type(varying_string),                  intent(in)    :: virialOrbitsMethod
+    procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
+    integer                                              :: iRadius
+    double precision                                     :: x,xGamma2
     
     if (virialOrbitsMethod == 'Wetzel2010') then
        ! Set procedure pointer to our orbital parameter function.
