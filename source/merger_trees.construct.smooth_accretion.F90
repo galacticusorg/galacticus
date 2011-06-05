@@ -71,8 +71,8 @@ module Merger_Tree_Smooth_Accretion
   public :: Merger_Tree_Smooth_Accretion_Initialize
 
   ! Variables giving properties of the merger tree.
-  double precision :: mergerTreeHaloMass,mergerTreeBuildTreesBaseTime,mergerTreeFormationExpansionFactor&
-       &,mergerTreeHaloMassResolution,mergerTreeHaloMassDeclineFactor,mergerTreeBaseRedshift
+  double precision :: mergerTreeHaloMass,mergerTreeBuildTreesBaseTime,mergerTreeHaloMassResolution&
+       &,mergerTreeHaloMassDeclineFactor,mergerTreeBaseRedshift
 
   ! Flag indicating whether or not we've already built the tree.
   logical          :: treeWasBuilt=.false.
@@ -89,8 +89,6 @@ contains
     implicit none
     type(varying_string),          intent(in)    :: mergerTreeConstructMethod
     procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
-    double precision                             :: mergerTreeFormationRedshift
-    logical                                      :: mergerTreeFormationRedshiftCompute
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'smoothAccretion') then
@@ -133,33 +131,6 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBaseRedshift'            ,mergerTreeBaseRedshift            ,defaultValue=0.0d0 )
-       !@ <inputParameter>
-       !@   <name>mergerTreeFormationRedshiftCompute</name>
-       !@   <defaultValue>true</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Compute formation redshift automatically when building the smoothly accreting merger tree?
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeFormationRedshiftCompute',mergerTreeFormationRedshiftCompute,defaultValue=.true.)
-       select case (mergerTreeFormationRedshiftCompute)
-       case (.true.)
-          ! Compute the expansion factor at formation.
-          mergerTreeFormationExpansionFactor=Expansion_Factor_At_Formation(mergerTreeHaloMass)
-       case (.false.)
-          ! In this case, read the formation redshift.
-          !@ <inputParameter>
-          !@   <name>mergerTreeFormationRedshift</name>
-          !@   <defaultValue>0.4</defaultValue>       
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The formation redshift to use when building the smoothly accreting merger tree?
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeFormationRedshift',mergerTreeFormationRedshift,defaultValue=0.4d0)
-          ! Compute the corresponding expansion factor for the formation redshift.
-          mergerTreeFormationExpansionFactor=Expansion_Factor_from_Redshift(mergerTreeFormationRedshift)
-       end select
     end if
     return
   end subroutine Merger_Tree_Smooth_Accretion_Initialize
@@ -169,12 +140,13 @@ contains
     use Tree_Nodes
     use Cosmology_Functions
     use Kind_Numbers
+    use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
     type(mergerTree),       intent(inout) :: thisTree
     logical,                intent(in)    :: skipTree
     type(treeNode),         pointer       :: currentNode,newNode
     integer(kind=kind_int8)               :: nodeIndex
-    double precision                      :: expansionFactor,mergerTreeBaseTime,expansionFactorBase,nodeMass,nodeTime
+    double precision                      :: mergerTreeBaseTime,expansionFactorBase,nodeMass,nodeTime
 
     ! Build the merger tree.
     !$omp critical (Merger_Tree_Build_Do)
@@ -209,10 +181,8 @@ contains
           nodeMass=nodeMass*mergerTreeHaloMassDeclineFactor
           ! Set the mass of the node.
           call Tree_Node_Mass_Set (newNode,nodeMass )
-          ! Find the corresponding expansion factor using the expression from Wechsler et al. (2002).
-          expansionFactor=expansionFactorBase/(1.0d0-0.5d0*dlog(nodeMass/mergerTreeHaloMass)/mergerTreeFormationExpansionFactor)
           ! Find the time corresponding to this expansion factor.
-          nodeTime=Cosmology_Age(expansionFactor)
+          nodeTime=Dark_Matter_Halo_Mass_Accretion_Time(thisTree%baseNode,nodeMass)
           ! Set the time for the new node.
           call Tree_Node_Time_Set (newNode,nodeTime )
           ! Create parent and child links.
@@ -228,30 +198,5 @@ contains
 
     return
   end subroutine Merger_Tree_Smooth_Accretion_Do
-  
-  double precision function Expansion_Factor_At_Formation(haloMass)
-    !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
-    use Cosmology_Functions
-    use CDM_Power_Spectrum
-    use Critical_Overdensity
-    implicit none
-    double precision, intent(in) :: haloMass
-    double precision, parameter  :: haloMassFraction=0.015d0 ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
-    double precision             :: haloMassCharacteristic,sigmaCharacteristic,formationTime
-
-    ! Compute the characteristic mass at formation time.    
-    haloMassCharacteristic=haloMassFraction*haloMass
-
-    ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
-    sigmaCharacteristic=sigma_CDM(haloMassCharacteristic)
-
-    ! Get the time at which this equals the critical overdensity for collapse.
-    formationTime=Time_of_Collapse(sigmaCharacteristic)
-    
-    ! Get the corresponding expansion factor.
-    Expansion_Factor_At_Formation=Expansion_Factor(formationTime)
-    
-    return
-  end function Expansion_Factor_At_Formation
 
 end module Merger_Tree_Smooth_Accretion

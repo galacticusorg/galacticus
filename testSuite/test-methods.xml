@@ -81,7 +81,13 @@
     </parameter>
     <parameter>
       <name>mergerTreeConstructMethod</name>
-      <value>smoothAccretion</value>
+      <value>smoothAccretion
+        <parameter>
+	  <name>darkMatterAccretionHistoryMethod</name>
+	  <value>Wechsler 2002</value>
+	  <value>Zhao 2009</value>
+        </parameter>
+      </value>
       <value>build</value>
       <value>read</value>
     </parameter>
@@ -234,6 +240,13 @@
       <name>satelliteMergingRemnantSizeMethod</name>
       <value>Cole2000</value>
       <value>Covington2008</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>darkMatterConcentrationMethod</name>
+      <value>Gao 2008</value>
+      <value>Zhao 2009</value>
     </parameter>
   </parameters>
 </parameterGrid>

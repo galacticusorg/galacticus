@@ -254,6 +254,26 @@ Selected with {\tt cosmologyMethod}$=${\tt Matter + Lambda}, this method assumes
 
 Several algorithms are used to implement dark matter halos.
 
+\subsection{Mass Accretion History}\index{mass accretion history!dark matter halo}\index{dark matter halo!mass accretion history}
+
+The method used to compute mass accretion histories of dark matter halos is selected via the {\tt darkMatterAccretionHistoryMethod} parameter.
+
+\subsubsection{Wechsler et al. (2002)}
+
+Selected with {\tt darkMatterAccretionHistoryMethod}$=${\tt Wechsler 2002}, under this method the mass accretion history is given by \citep{wechsler_concentrations_2002}:
+\begin{equation}
+M(t) = M(t_0) \exp \left( - 2 a_{\rm c} \left[ {a(t_0)\over a(t)}-1 \right] \right),
+\end{equation}
+where $t_0$ is some reference time and $a_{\rm c}$ is a characteristic expansion factor defined by \cite{wechsler_concentrations_2002} to correspond to the formation time of the halo (using the formation time definition of \citealt{bullock_profiles_2001}).
+
+\subsubsection{Zhao et al. (2009)}
+
+Selected with {\tt darkMatterAccretionHistoryMethod}$=${\tt Zhao 2009}, under this method the algorithm given by \cite{zhao_accurate_2009} to compute mass accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity ${\rm d} \ln \sigma(M)/{\rm d} \ln  \delta_{\rm c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$ and halo mass $M$. This is converted to a dimensionful growth rate using
+\begin{equation}
+ {{\rm d} M \over {\rm d} t} = \left({{\rm d} \ln \sigma(M) \over {\rm d} \ln M}\right)^{-1} \left({{\rm d} \delta_c(t) \over {\rm d} t}\right) \left( {M \over \delta_{\rm c}(t)} \right) \left({{\rm d} \ln \sigma(M) \over {\rm d} \ln \delta_{\rm c}(t)}\right).
+\end{equation}
+This differential equation is then solved numerically to find the mass accretion history.
+
 \subsection{Density Profile}
 
 The method uses to compute density profiles of dark matter halos is selected via the {\tt darkMatterProfileMethod} parameter.
@@ -289,6 +309,14 @@ The parameters are a functon of expansion factor, $a$. We use the following fits
 A &=& -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right], \\
 B &=&  2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
 \end{eqnarray}
+
+\subsubsection{Zhao (2009)}
+
+Selected with {\tt darkMatterConcentrationMethod}$=${\tt Zhao 2009}, under this method the concentration is computed using a fitting function from \cite{zhao_accurate_2009}:
+\begin{equation}
+ c = 4 \left(1 + \left[ {t  \over 3.75 t_{\rm form}}\right]^{8.4}\right)^{1/8},
+\end{equation}
+where $t$ is the time for the halo and $t_{\rm form}$ is a formation time defined by \cite{zhao_accurate_2009} as the time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}).
 
 \subsection{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
 
@@ -562,7 +590,7 @@ Selected with {\tt mergerTreeBuildMethod}$=${\tt Cole2000}, this method uses the
 
 \subsection{Smooth Accretion}\label{sec:SmoothAccretion}
 
-Selected with {\tt mergerTreeConstructMethod}$=${\tt smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the fitting formula of \cite{wechsler_concentrations_2002}. The tree has a final mass of {\tt mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\tt mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\tt mergerTreeHaloMassDeclineFactor} at each new node until a specified {\tt mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached. The fitting formula of \cite{wechsler_concentrations_2002} has one free parameter, the formation redshift. If {\tt mergerTreeFormationRedshiftCompute} is set to true, then this formation redshift is computed automatically using the method of \cite{bullock_profiles_2001}, otherwise it is read from {\tt mergerTreeFormationRedshift}.
+Selected with {\tt mergerTreeConstructMethod}$=${\tt smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). The tree has a final mass of {\tt mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\tt mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\tt mergerTreeHaloMassDeclineFactor} at each new node until a specified {\tt mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached.
 
 \section{Merger Tree Pre-evolution Processing}
 
