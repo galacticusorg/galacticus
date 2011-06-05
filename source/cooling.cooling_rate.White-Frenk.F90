@@ -29,6 +29,9 @@ module Cooling_Rates_White_Frenk
   private
   public :: Cooling_Rate_White_Frenk_Initialize
 
+  ! Velocity (in km/s) above which cooling rates in gas are forced to zero.
+  double precision :: zeroCoolingRateAboveVelocity
+
 contains
 
   !# <coolingRateMethod>
@@ -37,11 +40,25 @@ contains
   subroutine Cooling_Rate_White_Frenk_Initialize(coolingRateMethod,Cooling_Rate_Get)
     !% Initializes the ``White + Frenk'' cooling rate module.
     use ISO_Varying_String
+    use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: coolingRateMethod
     procedure(),          pointer, intent(inout) :: Cooling_Rate_Get
     
-    if (coolingRateMethod == 'White + Frenk') Cooling_Rate_Get => Cooling_Rate_White_Frenk
+    if (coolingRateMethod == 'White + Frenk') then
+       Cooling_Rate_Get => Cooling_Rate_White_Frenk
+
+       ! Get cooling rate parameters.
+       !@ <inputParameter>
+       !@   <name>zeroCoolingRateAboveVelocity</name>
+       !@   <defaultValue>1000</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White + Frenk} cooling rate model.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
+   end if
     return
   end subroutine Cooling_Rate_White_Frenk_Initialize
 
@@ -56,8 +73,17 @@ contains
     use Hot_Halo_Density_Profile
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: coolingRadius,coolingDensity,virialRadius,coolingRadiusGrowthRate
+    double precision                         :: coolingRadius,coolingDensity,virialRadius,coolingRadiusGrowthRate,virialVelocity
 
+    ! Get the virial velocity.
+    virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
+    
+    ! Return zero cooling rate if virial velocity exceeds critical value.
+    if (virialVelocity > zeroCoolingRateAboveVelocity) then
+       Cooling_Rate_White_Frenk=0.0d0
+       return
+    end if
+    
     ! Get the virial radius.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
 
