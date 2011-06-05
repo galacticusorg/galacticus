@@ -75,6 +75,71 @@ sub GnuPlot2PNG {
     unlink($gnuplotRoot.".pdf");
 }
 
+sub GnuPlot2ODG {
+    # Generate an ODG file of the plot.
+
+    # Get the name of the GnuPlot-generated EPS file.
+    my $gnuplotEpsFile = shift;
+    
+    # Get the root name.
+    (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
+    
+    # Edit the LaTeX input to reverse black and white for labels.
+    open(iHndl,$gnuplotRoot.".tex");
+    open(oHndl,">".$gnuplotRoot.".tex.swapped");
+    while ( my $line = <iHndl> ) {
+	if ( $line =~ m/LTw/ ) {$line =~ s/white/black/};
+	if ( $line =~ m/LTb/ ) {$line =~ s/black/white/};
+	if ( $line =~ m/LTa/ ) {$line =~ s/black/white/};
+	print oHndl $line;
+    }
+    close(oHndl);
+    close(iHndl);
+    unlink($gnuplotRoot.".tex");
+    move($gnuplotRoot.".tex.swapped",$gnuplotRoot.".tex");
+
+    # Edit the EPS file to reverse black and white for axes.
+    open(iHndl,$gnuplotRoot.".eps");
+    open(oHndl,">".$gnuplotRoot.".eps.swapped");
+    while ( my $line = <iHndl> ) {
+	if ( $line =~ m/LCw/ ) {$line =~ s/1 1 1/0 0 0/};
+	if ( $line =~ m/LCb/ ) {$line =~ s/0 0 0/1 1 1/};
+	if ( $line =~ m/LCa/ ) {$line =~ s/0 0 0/1 1 1/};
+	print oHndl $line;
+    }
+    close(oHndl);
+    close(iHndl);
+    unlink($gnuplotRoot.".eps");
+    move($gnuplotRoot.".eps.swapped",$gnuplotRoot.".eps");
+
+    # Convert to PDF.
+    &GnuPlot2PDF($gnuplotEpsFile);
+
+    # Convert to SVG.
+    system("pdf2svg ".$gnuplotRoot.".pdf ".$gnuplotRoot."_percent.svg");
+
+    # Convert SVG RGB colors from percentages to 0-255 scale.
+    open(iHndl,$gnuplotRoot."_percent.svg");
+    open(oHndl,">".$gnuplotRoot.".svg");
+    while ( my $line = <iHndl> ) {
+	while ( $line =~ m/rgb\(([\d\.]+)\%,([\d\.]+)\%,([\d\.]+)\%\)/ ) {
+	    my $r = int($1*255.0/100.0);
+	    my $g = int($2*255.0/100.0);
+	    my $b = int($3*255.0/100.0);
+	    $line =~ s/rgb\([\d\.]+\%,[\d\.]+\%,[\d\.]+\%\)/rgb($r,$g,$b)/;
+	}
+	print oHndl $line;
+    }
+    close(oHndl);
+    close(iHndl);
+
+    # Convert to ODG.
+    system("java -jar /usr/local/bin/svg2office-1.2.2.jar ".$gnuplotRoot.".svg");
+
+    # Remove the PDF and SVG files.
+    unlink($gnuplotRoot.".pdf",$gnuplotRoot.".svg",$gnuplotRoot."_percent.svg");
+}
+
 sub GnuPlot2PDF {
     # Get the name of the GnuPlot-generated EPS file.
     my $gnuplotEpsFile = shift;
