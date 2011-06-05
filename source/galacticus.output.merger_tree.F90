@@ -428,17 +428,14 @@ contains
           call Move_Alloc(outputGroups,outputGroupsTemporary)
           outputGroupsCount=outputGroupsCount+outputGroupsIncrement
           allocate(outputGroups(outputGroupsCount))
-          outputGroups(1:size(outputGroupsTemporary))%opened=outputGroupsTemporary%opened
+          outputGroups(1:size(outputGroupsTemporary))=outputGroupsTemporary
           outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%opened                  =.false.
-          outputGroups(1:size(outputGroupsTemporary))%integerAttributesWritten=outputGroupsTemporary%integerAttributesWritten
           outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%integerAttributesWritten=.false.
-          outputGroups(1:size(outputGroupsTemporary))%doubleAttributesWritten=outputGroupsTemporary%doubleAttributesWritten
           outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%doubleAttributesWritten =.false.
-          outputGroups(1:size(outputGroupsTemporary))%length=outputGroupsTemporary%length
-          outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%length=0
+          outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%length                  =0
           deallocate(outputGroupsTemporary)
           call Memory_Usage_Record(sizeof(outputGroups(1)),blockCount=0)
-     else
+       else
           outputGroupsCount=outputGroupsIncrement
           allocate(outputGroups(outputGroupsCount))
           outputGroups%opened                  =.false.
