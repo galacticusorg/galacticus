@@ -59,59 +59,78 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements a fixed choice of stellar initial mass function.
+!% Contains a module which implements selection of stellar {\IMF}s with one \IMF\ for disks and another for spheroids.
 
-module Star_Formation_IMF_Select_Fixed
-  !% Implements a fixed choice of stellar initial mass function.
+module Star_Formation_IMF_Select_Disk_Spheroid
+  !% Implements selection of stellar {\IMF}s with one \IMF\ for disks and another for spheroids.
   private
-  public :: IMF_Select_Fixed_Initialize
+  public :: IMF_Select_Disk_Spheroid_Initialize
 
-  ! Store the index of the selected IMF.
-  integer :: imfSelectedIndex
+  ! Store the indices of the selected IMFs.
+  integer :: imfSelectedDiskIndex,imfSelectedSpheroidIndex
 
 contains
 
   !# <imfSelectionMethod>
-  !#  <unitName>IMF_Select_Fixed_Initialize</unitName>
+  !#  <unitName>IMF_Select_Disk_Spheroid_Initialize</unitName>
   !# </imfSelectionMethod>
-  subroutine IMF_Select_Fixed_Initialize(imfSelectionMethod,IMF_Select_Do,imfNames)
-    !% Initializes the ``fixed'' IMF selection module.
+  subroutine IMF_Select_Disk_Spheroid_Initialize(imfSelectionMethod,IMF_Select_Do,imfNames)
+    !% Initializes the ``diskSpheroid'' IMF selection module.
     use ISO_Varying_String
     use Input_Parameters
     use Star_Formation_IMF_Utilities
     implicit none
     type(varying_string),          intent(in)    :: imfSelectionMethod,imfNames(:)
-    procedure(integer),   pointer, intent(inout) :: IMF_Select_Do
-    type(varying_string)                         :: imfSelectionFixed
+    procedure(),          pointer, intent(inout) :: IMF_Select_Do
+    type(varying_string)                         :: imfSelectionDisk,imfSelectionSpheroid
     
-    if (imfSelectionMethod == 'fixed') then
-       IMF_Select_Do => IMF_Select_Fixed
-       ! Get IMF choice.
+    if (imfSelectionMethod == 'diskSpheroid') then
+       IMF_Select_Do => IMF_Select_Disk_Spheroid
+       ! Get IMF choices.
        !@ <inputParameter>
-       !@   <name>imfSelectionFixed</name>
+       !@   <name>imfSelectionDisk</name>
        !@   <defaultValue>Salpeter</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the initial mass function to use in the ``fixed initial mass function'' module.
+       !@     The name of the initial mass function to use in the ``diskSpheroid initial mass function'' module for star formation in disks.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('imfSelectionFixed',imfSelectionFixed,defaultValue='Salpeter')
-       imfSelectedIndex=IMF_Index_Lookup(imfSelectionFixed,imfNames)
+       call Get_Input_Parameter('imfSelectionDisk',imfSelectionDisk,defaultValue='Salpeter')
+       imfSelectedDiskIndex=IMF_Index_Lookup(imfSelectionDisk,imfNames)
+       !@ <inputParameter>
+       !@   <name>imfSelectionSpheroid</name>
+       !@   <defaultValue>Salpeter</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The name of the initial mass function to use in the ``diskSpheroid initial mass function'' module for star formation in spheroids.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('imfSelectionSpheroid',imfSelectionSpheroid,defaultValue='Salpeter')
+       imfSelectedSpheroidIndex=IMF_Index_Lookup(imfSelectionSpheroid,imfNames)
     end if
     return
-  end subroutine IMF_Select_Fixed_Initialize
+  end subroutine IMF_Select_Disk_Spheroid_Initialize
 
-  integer function IMF_Select_Fixed(starFormationRate,fuelAbundances,component)
+  integer function IMF_Select_Disk_Spheroid(starFormationRate,fuelAbundances,component)
     !% Return our selection of stellar initial mass function.
     use Abundances_Structure
+    use Galacticus_Error
     use Galactic_Structure_Options
     implicit none
     double precision,          intent(in) :: starFormationRate
     type(abundancesStructure), intent(in) :: fuelAbundances
     integer,                   intent(in) :: component
 
-    IMF_Select_Fixed=imfSelectedIndex
+    ! Select between disk and spheroid IMFs.
+    select case (component)
+    case (componentTypeDisk)
+       IMF_Select_Disk_Spheroid=imfSelectedDiskIndex
+    case (componentTypeSpheroid)
+       IMF_Select_Disk_Spheroid=imfSelectedSpheroidIndex
+    case default
+       call Galacticus_Error_Report('IMF_Select_Disk_Spheroid','only disk and spheroid components are allowed')
+    end select
     return
-  end function IMF_Select_Fixed
+  end function IMF_Select_Disk_Spheroid
   
-end module Star_Formation_IMF_Select_Fixed
+end module Star_Formation_IMF_Select_Disk_Spheroid

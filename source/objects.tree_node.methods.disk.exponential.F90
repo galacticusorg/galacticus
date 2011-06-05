@@ -557,6 +557,7 @@ contains
     use Cooling_Rates
     use Star_Formation_Feedback_Disks
     use Abundances_Structure
+    use Galactic_Structure_Options
     use Galactic_Dynamics_Bar_Instabilities
     use Galacticus_Output_Star_Formation_Histories 
     use Numerical_Constants_Astronomical
@@ -600,7 +601,7 @@ contains
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
        
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,thisNode&
+       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,thisNode&
             &,thisNode%components(thisIndex)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates&
             &,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
 

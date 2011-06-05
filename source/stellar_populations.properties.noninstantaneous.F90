@@ -136,8 +136,8 @@ contains
     return
   end function Stellar_Population_Properties_History_Count_Noninstantaneous
   
-  subroutine Stellar_Population_Properties_Rates_Noninstantaneous(starFormationRate,fuelAbundances,thisNode,thisHistory,stellarMassRate&
-       &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
+  subroutine Stellar_Population_Properties_Rates_Noninstantaneous(starFormationRate,fuelAbundances,component,thisNode,thisHistory&
+       &,stellarMassRate ,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Tree_Nodes
     use Abundances_Structure
@@ -152,6 +152,7 @@ contains
     double precision,          intent(out),   dimension(:)             :: stellarLuminositiesRates
     double precision,          intent(in)                              :: starFormationRate
     type(abundancesStructure), intent(in)                              :: fuelAbundances
+    integer,                   intent(in)                              :: component
     type(treeNode),            intent(inout), pointer                  :: thisNode
     type(history),             intent(inout)                           :: thisHistory
     double precision,                         dimension(elementsCount) :: fuelMetallicity,stellarMetalsRateOfChange&
@@ -202,7 +203,7 @@ contains
     call fuelAbundancesRates   %pack(fuelMetalsRateOfChange   )
 
     ! Get the IMF.
-    imfSelected=IMF_Select(starFormationRate,fuelAbundances)
+    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     ! Set luminosity rates of change.
     if (size(stellarLuminositiesRates) > 0) stellarLuminositiesRates=starFormationRate&
@@ -228,13 +229,13 @@ contains
        ! Check that it really is in the future.
        if (ageMaximum >= 0.0d0) then
           ! Get the recycling rate.
-          recyclingRate=IMF_Recycling_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum)&
+          recyclingRate=IMF_Recycling_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)&
                &*starFormationRate
           ! Accumulate the mass recycling rate from this population at the future time.
           thisHistory%rates(iHistory,recycledRateIndex     )=thisHistory%rates(iHistory,recycledRateIndex     ) +recyclingRate
           ! Get the (normalized) energy input rate.
           thisHistory%rates(iHistory,energyInputRateIndex  )=thisHistory%rates(iHistory,energyInputRateIndex  ) &
-               &+IMF_Energy_Input_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum)*starFormationRate
+               &+IMF_Energy_Input_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)*starFormationRate
           ! Accumulate the metal return rate from this population at the future time.
           thisHistory%rates(iHistory,returnedMetalRateBeginIndex:returnedMetalRateEndIndex)=thisHistory%rates(iHistory&
                &,returnedMetalRateBeginIndex:returnedMetalRateEndIndex)+recyclingRate*fuelMetallicity
@@ -242,7 +243,7 @@ contains
           do iElement=1,elementsCount
              ! Get the metal yield rate.
              thisHistory%rates(iHistory,metalYieldRateBeginIndex+iElement-1)=thisHistory%rates(iHistory,metalYieldRateBeginIndex &
-                  &+iElement-1)+IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,ageMinimum,ageMaximum&
+                  &+iElement-1)+IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum&
                   &,iElement)*starFormationRate
           end do
        end if
