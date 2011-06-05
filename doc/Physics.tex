@@ -1,0 +1,571 @@
+\chapter{Physical Implementations}
+
+\section{Accretion of Gas into Halos}\label{sec:AccretionBaryonic}\index{accretion!baryonic}
+
+The accretion rate of gas from the \IGM\ into a dark matter halo is expected to depend on (at least) the rate at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting gas. \glc\ implements the following calculations of gas accretion from the \IGM, which can be selected via the {\tt accretionHalosMethod} input parameter.
+
+\subsection{Simple Method}
+
+Currently the only option, and selected using {\tt accretionHalosMethod}$=${\tt simple}, this method sets the accretion rate of baryons into a halo to be:
+\begin{equation}
+ \dot{M}_{\rm accretion} = \left\{ \begin{array}{ll} (\Omega_{\rm b}/\Omega_0) \dot{M}_{\rm halo} & \hbox{ if } V_{\rm virial} > V_{\rm reionization} \hbox{ or } z > z_{\rm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
+\end{equation}
+where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\rm reionization}=${\tt [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\rm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2009} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the ``failed'' reservoir times the growth rate of the halo.
+
+\section{Background Cosmology}\index{cosmology}
+
+The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time. Currently, only one implementation of background cosmology is available and is hard-coded into \glc. This will likely change in future releases to allow other cosmological models to be considered. The current implementation considers a standard cosmological model containing a mixture of collisionless matter (including dark matter) and dark energy. The dynamical effects of the radiation component are ignored.
+
+\section{Circumnuclear Accretion Disks}\label{sec:CircumnuclearDisks}\index{accretion disks}\index{accretion!disk}
+
+Circumnuclear accretion disks surrounding supermassive black holes at the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic outflows (e.g. jets) from the nuclear region. Accretion disk type is specified via the {\tt accretionDisksMethod}, and the physics that must be implemented for each accretion disk type is describe in more detail in \S\ref{sec:AccretionDisks}. Current implementations of accretion disks are as follows.
+
+\subsection{Shakura-Sunyaev Geometrically Thin, Radiatively Efficient Disks}
+
+Selected with {\tt accretionDisksMethod}$=${\tt Shakura-Sunyaev}, this implementation assumes that accretion disks are always described by a radiatively efficient, geometrically thin accretion disk as described by \cite{shakura_black_1973}. The radiative efficiency of the flow is computed assuming that material falls into the black hole without further energy loss from the \ISCO, while the spin-up rate of the black hole is computed assuming that the material enters the black hole with the specific angular momentum of the \ISCO\ (i.e. there are no torques on the material once it begins to fall in from the \ISCO; \citealt{bardeen_kerr_1970}). Finally, zero jet power is assumed on the basis that the magnetic field in such flows is very weak \cite{benson_maximum_2009}.
+
+\subsection{Advection Dominated, Geometrically Thick, Radiatively Inefficient Flows (ADAFs)}
+
+Selected with {\tt accretionDisksMethod}$=${\tt ADAF}, this implementation assumes that accretion is via an advection dominated accretion flow \citep{narayan_advection-dominated_1994} which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a pure ADAF, can be set via the input parameter {\tt adafRadiativeEfficiency}. The spin up rate of the black hole and the jet power produced as material accretes into the black hole are computed using the method of \cite{benson_maximum_2009}. The energy of the accreted material can be set equal to the energy at infinity (as expected for a pure ADAF) or the energy at the \ISCO\ by use of the {\tt adafEnergyOption} parameter (set to {\tt pure ADAF} or {\tt ISCO} respectively).
+
+\subsection{``Switched'' Disks}
+
+Selected with {\tt accretionDisksMethod}$=${\tt switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (ADAF) modes. TWhich mode is used is determine by the accretion rate onto the disk:
+\begin{itemize}
+ \item Radiatively efficient accretion if $\dot{M}/\dot{M}_{\rm Eddington}>${\tt accretionRateThinDiskMinimum} and $\dot{M}/\dot{M}_{\rm Eddington}<${\tt accretionRateThinDiskMaximum};
+ \item Radiatively inefficient accretion otherwise.
+\end{itemize}
+Both {\tt accretionRateThinDiskMinimum} and {\tt accretionRateThinDiskMaximum} are adjustable input parameters.
+
+\section{Cold Dark Matter Structure Formation}\index{structure formation}\index{cold dark matter}
+
+A variety of functions are used to describe structure formation in cold dark matter dominated universes. These are described below.
+
+\subsection{Primordial Power Spectrum}\index{power spectrum!primordial}
+
+The functional form of the primordial dark matter power spectrum is selected via the {\tt powerSpectrumMethod} parameter.
+
+\subsubsection{(Running) Power Law Spectrum}
+
+Selected via {\tt powerSpectrumMethod}$=${\tt power law}, this method implements a primordial power spectrum of the form:
+\begin{equation}
+ P(k) \propto k^{n_{\rm eff}(k)},
+\end{equation}
+where
+\begin{equation}
+ n_{\rm eff}(k) = n_{\rm s} + {\d n \over \d \ln k} {k \over k_{\rm ref}},
+\end{equation}
+where $n_{\rm s}=${\tt powerSpectrumIndex} is the power spectrum index at wavenumber $k_{\rm ref}=${\tt powerSpectrumReferenceWavenumber} and $\d n / \d \ln k=${\tt powerSpectrumRunning} describes the running of this index with wavenumber.
+
+\subsection{Transfer Function}\index{transfer function}
+
+The functional form of the cold dark matter transfer function is selected via the {\tt transferFunctionMethod} parameter.
+
+\subsubsection{BBKS}
+
+Selected with {\tt transferFunctionMethod}$=${\tt BBKS}, this method uses the fitting function of \cite{bardeen_statistics_1986} to compute the \CDM\ transfer function.
+
+\subsubsection{Eisenstein \& Hu}
+
+Selected with {\tt transferFunctionMethod}$=${\tt Eisenstein + Hu}, this method uses the fitting function of \cite{eisenstein_power_1999} to compute the \CDM\ transfer function. It requires that the effective number of neutrino species be specified via the {\tt effectiveNumberNeutrinos} parameter and summed mass of all neutrino species (in eV) be specified via the {\tt summedNeutrinoMasses} parameter.
+
+\subsubsection{{\sc CMBFast}}
+
+Selected with {\tt transferFunctionMethod}$=${\tt CMBFast}, this method uses the {\sc CMBFast} code to compute the \CDM\ transfer function. It requires that the mass fraction of helium in the early Universe be specified via the {\tt Y\_He} parameter. {\sc CMBFast} will be downloaded and run if the transfer function needs to be computed. It will then be stored in a file for future reference.
+
+\subsubsection{File}
+
+Selected with {\tt transferFunctionMethod}$=${\tt file}, this method reads a tabulated transfer function from an XML file (specified via the {\tt transferFunctionFile} parameter), interpolating between tabulated points. The structure of the transfer function file is described in \S\ref{sec:TransferFunctionMethod}.
+
+\subsection{Linear Growth Function}\index{linear growth}
+
+The function describing the amplitude of linear perturbations is selected via the {\tt linearGrowthMethod} parameter.
+
+\subsubsection{Simple}
+
+Selected with {\tt linearGrowthMethod}$=${\tt simple}, this method calculates the growth of linear perturbations using standard perturbation theory in a Universe consisting of matter and a cosmological constant.
+
+\subsection{Critical Overdensity}\index{density!critical}
+
+The method used to compute the critical linear overdensity at which overdense regions virialize is selected via the {\tt criticalOverdensityMethod} parameter.
+
+\subsubsection{Spherical Collapse (Matter + Cosmological Constant)}
+
+Selected with {\tt criticalOverdensityMethod}$=${\tt spherical top hat} this method calculates critical overdensity using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
+
+\subsection{Virial Density Contrast}\label{sec:VirialDensityConstrast}\index{density!virial}
+
+The method used to compute the mean density contrast of virialized dark matter halos is selected via the {\tt virialDensityContrastMethod} parameter.
+
+\subsubsection{Bryan \& Norman Fitting Function}
+
+Selected with {\tt virialDensityContrastMethod}$=${\tt Bryan + Norman} this method calculates virial density contrast using the fitting functions given by \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
+
+\subsubsection{Spherical Collapse (Matter + Cosmological Constant)}
+
+Selected with {\tt virialDensityContrastMethod}$=${\tt spherical top hat} this method calculates virial density contrast using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
+
+\subsection{Halo Mass Function}\index{halo mass function}\index{dark matter halos!mass function}
+
+The dark matter halo mass function (i.e. the number of halos per unit volume per unit mass interval) is selected via the {\tt haloMassFunctionMethod} parameter.
+
+\subsubsection{Press-Schechter}
+
+Selected with {\tt haloMassFunctionMethod}$=${\tt Press-Schechter} this method uses the functional form proposed by \cite{press_formation_1974} to compute the halo mass function.
+
+\subsubsection{Sheth-Tormen}
+
+Selected with {\tt haloMassFunctionMethod}$=${\tt Sheth-Tormen} this method uses the functional form proposed by \cite{sheth_ellipsoidal_2001} to compute the halo mass function.
+
+\subsubsection{Tinker}
+
+Selected with {\tt haloMassFunctionMethod}$=${\tt Tinker2008} this method uses the functional form proposed by \cite{tinker_large_2010} to compute the halo mass function. The mass function is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
+
+\section{Cooling of Gas Inside Halos}\index{cooling}
+
+The cooling of gas within dark matter halos is controlled by a number of different algorithms which will be decribed below.
+
+\subsection{Cooling Function}\index{cooling function}\index{cooling!cooling function}
+
+The cooling function of gas, $\Lambda(\rho,T,{\bf Z})$, is implemented by the algorithm selected using the {\tt coolingFunctionMethod} parameter.
+
+\subsubsection{Atomic Collisional Ionization Equilibrium Using {\sc Cloudy}}
+
+Selected using {\tt coolingFunctionMethod}$=${\tt atomic CIE Cloudy}, this method computes the cooling function using the {\sc Cloudy} code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use {\sc Cloudy}'s ``primordial'' metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\sc Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
+
+\subsubsection{Collisional Ionization Eqiulibruim From File}
+
+Selected using {\tt coolingFunctionMethod}$=${\tt CIE from file}, in this method the cooling function is read from a file specified by the {\tt coolingFunctionFile} parameter. The format of this file is specified in \S\ref{sec:CoolingFunctionMethods}. The cooling function is assumed to be computed under conditions of collisional ionization equilibrium and therefore to scale as $\rho^2$.
+
+\subsection{Cooling Rate}\index{cooling!rate}
+
+The algorithm used to compute the rate at which gas drops out of the hot halo due to cooling is selected with the {\tt coolingRateMethod} parameter.
+
+\subsubsection{White \& Frenk}
+
+Selected with {\tt coolingRateMethod}$=${\tt White + Frenk}, this method computes the cooling rate using the expression given by \cite{white_galaxy_1991}, namely
+\begin{equation}
+\dot{M}_{\rm cool} = 4 \pi r_{\rm cool}^2 \rho(r_{\rm cool}) \dot{r}_{\rm cool},
+\end{equation}
+where $r_{\rm cool}$ is the cooling radius in the hot halo and $\rho(r)$ is the density profile of the hot halo.
+
+\subsection{Cooling Time}\index{cooling time}\index{cooling!time}
+
+The algorithm used to compute the time taken for gas to cool (i.e. the cooling time) is selected via the {\tt coolingTimeMethod} parameter.
+
+\subsubsection{Simple}
+
+Selcted with {\tt coolingTimeMethod}$=${\tt simple}, this method assumes that the cooling time is simply
+\begin{equation}
+ t_{\rm cool} = {N \over 2} {{\rm k}_{\rm B} T n_{\rm tot} \over \Lambda},
+\end{equation}
+where $N=${\tt coolingTimeSimpleDegreesOfFreedom} is the number of degrees of freedom in the cooling gas which has temperature $T$ and total particle number density $n_{\rm tot}$ and $\Lambda$ is the cooling function.
+
+\subsection{Time Available for Cooling}\index{cooling!time available}
+
+The method used to determine the time available for cooling (i.e. the time for which gas in a halo has been able to cool) is selected by the {\tt coolingTimeAvailableMethod} parameter.
+
+\subsubsection{White \& Frenk}
+
+Selected with {\tt coolingTimeAvailableMethod}$=${\tt White-Frenk}, this methods assumes that the time available for cooling is equal to
+\begin{equation}
+ t_{\rm available} = \exp\left[ f \ln t_{\rm Universe} + (1-f)\ln t_{\rm dynamical} \right],
+\end{equation}
+where $f=${\tt coolingTimeAvailableAgeFactor} is an interpolating factor, $t_{\rm Universe}$ is the age of the Universe and $t_{\rm dynamical}$ is the dynamical time in the halo. The original \cite{white_galaxy_1991} algorithm corresponds to $f=1$.
+
+\section{Cosmology}
+
+The method used to compute cosmological relations (e.g. expansion factor as a function of time) is selected by the {\tt cosmologyMethod} parameter.
+
+\subsection{Matter + Cosmological Constant Universes}
+
+Selected with {\tt cosmologyMethod}$=${\tt Matter + Lambda}, this method assumes a universe which contains only matter and a cosmological constant
+
+\section{Disk Stability/Bar Formation}\index{disks!stability}\index{bar instability}
+
+The method uses to compute the bar instability timescale for galactic disks is selected via the {\tt barInstabilityMethod} parameter.
+
+\subsection{Efstathiou, Lake \& Negroponte}
+
+Selected with {\tt barInstabilityMethod}$=${\tt ELN}, this method uses the stability criterion of \cite{efstathiou_stability_1982} to estimate when disks are unstable to bar formation:
+\begin{equation}
+ \epsilon \left( \equiv {V_{\rm peak} \over \sqrt{\G M_{\rm disk}/r_{\rm disk}}} \right) < \epsilon_{\rm c},
+\end{equation}
+for stability, where $V_{\rm peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated exponential disk), $M_{\rm disk}$ is the mass of the disk and $r_{\rm disk}$ is its scale length (assuming an exponential disk). The value of $\epsilon_{\rm c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by {\tt stabilityThresholdStellar} and {\tt stabilityThresholdGaseous} respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+\begin{equation}
+ t_{\rm bar} = t_{\rm disk} {\epsilon_{\rm c} - \epsilon_{\rm iso} \over \epsilon_{\rm c} - \epsilon},
+\end{equation}
+where $\epsilon_{\rm iso}$ is the value of $\epsilon$ for an isolated disk and $t_{\rm disk}$ is the disk dynamical time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to a dynamical time for highly unstable disks.
+
+\section{Galactic Structure}\index{galactic structure}
+
+The algorithm to be used when solving for galactic structure (specifically, finding radii of galactic components) is selected via the {\tt galacticStructureRadiusSolverMethod} parameter.
+
+\subsection{Simple}
+
+Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt simple} this method determines the sizes of galactic components by assuming that their self-gravity is negligible (i.e. that the gravitational potential well is dominated by dark matter) and that, therefore, baryons do not modify the dark matter density profile. The radius of a given component is then found by solving
+\begin{equation}
+ j = \sqrt{\G M_{\rm DM}(r) r},
+\end{equation}
+where $j$ is the specific angular momentum of the component (at whatever point in the profile is to be solved for), $r$ is radius and $M(r)$ is the mass of dark matter within radius $r$.
+
+\subsection{Adiabatic}
+
+Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt adiabatic}, this method takes into account the baryonic self-gravity of all galactic components when solving for structure and additionally accounts for backreaction of the baryons on the dark matter density profile using the adiabatic contraction algorithm of \cite{gnedin_response_2004}. The parameter $A$ and $\omega$ of that model are specified via input parameters {\tt adiabaticContractionGnedinA} and {\tt adiabaticContractionGnedinOmega} respectively. Solution proceeds via an iterative procedure to find equilibrium radii for all galaxies in a consistently contracted halo. The method used follows that described by \cite{benson_galaxy_2010}.
+
+\section{Galaxy Merging}\index{galaxy!merging}\index{merging!galaxy}
+
+The process of merging two galaxies currently involves two algorithms: one which decides how the merger causes mass components from both galaxies to move and one which determines the size of the remnant galaxy spheroid.
+
+\subsection{Mass Movements}
+
+The movement of mass elements in the merging galaxies is determined by the {\tt satelliteMergingMassMovementsMethod} parameter. 
+
+\subsubsection{Simple}
+
+Selected with {\tt satelliteMergingMassMovementsMethod}$=${\tt simple}, this method implements mass movements according to:
+\begin{itemize}
+ \item If $M_{\rm satellite} > f_{\rm major} M_{\rm central}$ then all mass from both satellite and central galaxies moves to the spheroid component of the central galaxy;
+ \item Otherwise: Gas from the satellite moves to the disk of the central, stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+\end{itemize}
+Here, $f_{\rm major}=${\tt majorMergerMassRatio} is the mass ratio above which a merger is considered to be ``major''.
+
+\subsection{Remnant Sizes}\index{merging!remnant size}
+
+The method used to calculate the sizes of merger remnant spheroids is selected by the {\tt satelliteMergingRemnantSizeMethod} parameter.
+
+\subsubsection{Null}
+
+Selected using {\tt satelliteMergingRemnantSizeMethod}$=${\tt null}, this is a null method which does nothing at all. It is useful, for example, when running \glc\ to study dark matter only (i.e. when no galaxy properties are computed).
+
+\subsubsection{Cole et al. (2000)}
+
+Selected using {\tt satelliteMergingRemnantSizeMethod}$=${\tt Cole2000}, this method uses the algorithm of \cite{cole_hierarchical_2000} to compute merger remnant spheroid sizes. Specifically
+\begin{equation}
+\frac{(M_1+M_2)^2}{ r_{\rm new}} =
+\frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_{\rm orbit}}{c}
+\frac{M_1 M_2}{r_1+r_2},
+\end{equation}
+where $M_1$ and $M_2$ are the baryonic masses of the merging galaxies and $r_1$
+and $r_2$ are their half mass radii, $r_{\rm new}$ is the half mass radius of the spheroidal component of the remnant galaxy and $c$ is a constant which depends on the distribution of the mass. For an $r^{1/4}$-law galaxy $c=0.45$ can be found by numerical integration while for a exponential disk $c=0.49$. For simplicity a value of $c=0.5$ is adopted for all components. The parameter $f_{\rm orbit}=${\tt mergerRemnantSizeOrbitalEnergy} depends on the orbital parameters of the galaxy pair. For example, a value of $f_{\rm orbit} = 1$ corresponds to point mass galaxies in circular orbits about their center of mass. 
+
+\section{Initial Mass Functions}\index{initial mass function}
+
+The stellar \IMF\ subsystem supports multiple IMFs and extensible algorithms to select which \IMF\ to use based on the physical conditions of star formation.
+
+\subsection{Initial Mass Function Selection}\index{initial mass function!selection}
+
+The method to use for selecting which \IMF\ to use is specified by the {\tt imfSelectionMethod} parameter.
+
+\subsubsection{Fixed}
+
+Selected by {\tt imfSelectionMethod}$=${\tt fixed}, this method uses a fixed \IMF\ irrespective of physical conditions. The \IMF\ to use is specified by the {\tt imfSelectionFixed} parameter (e.g. setting this parameter to {\tt Salpeter} selects the Salpeter \IMF).
+
+\subsection{Initial Mass Functions}\label{sec:physicsIMF}\index{initial mass function}
+
+A variety of different \IMF s are available. Each \IMF\ registers itself with the \glc\ \IMF\ subsystem and can then be looked-up by name or internal index. All IMFs are assumed to be continuous and $M$, unless otherwise noted and normalized to unit mass. Each \IMF\ supplies a recycled fraction and metal yield for use in the instantaneous recycling approximation. These can be set via the parameters {\tt imf[imfName]RecycledInstantaneous} and {\tt imf[imfName]YieldInstantaneous} where {\tt [imfName]} is the name of the \IMF. Their default values were computed using \glc 's internal stellar astrophysics modules for a Solar metallicity population with age of $13.8$ Gyr.
+
+\subsubsection{Chabrier}
+
+The {\tt Chabrier} \IMF\ is defined by \citep{chabrier_galactic_2001}:
+\begin{equation}
+ \phi(M) \propto \left\{ \begin{array}{ll}
+ M^{-1} \exp(-[\log_{10}(M/M_{\rm c})/\sigma_{\rm c}]^2/2) & \hbox{ for } 0.1M_\odot < M < 1M_\odot \\
+ M^{-2.3} & \hbox{ for } 1M_\odot < M < 125M_\odot \\
+ 0 & \hbox {otherwise,} \end{array} \right.
+\end{equation}
+where $\sigma_{\rm c}=0.69$ and $M_{\rm c}=0.08M_\odot$.
+
+\subsubsection{Kennicutt}
+
+The {\tt Kennicutt} \IMF\ is defined by \citep{kennicutt_rate_1983}:
+\begin{equation}
+ \phi(M) \propto \left\{ \begin{array}{ll}
+ M^{-1.25} & \hbox{ for } 0.10M_\odot < M < 1.00M_\odot \\
+ M^{-2.00} & \hbox{ for } 1.00M_\odot < M < 2.00M_\odot \\
+ M^{-2.30} & \hbox{ for } 2.00M_\odot < M < 125M_\odot \\
+ 0 & \hbox {otherwise.} \end{array} \right.
+\end{equation}
+
+\subsubsection{Kroupa}
+
+The {\tt Kroupa} \IMF\ is defined by \citep{kroupa_variation_2001}:
+\begin{equation}
+ \phi(M) \propto \left\{ \begin{array}{ll}
+ M^{-0.3} & \hbox{ for } 0.01M_\odot < M < 0.08M_\odot \\ 
+ M^{-1.8} & \hbox{ for } 0.08M_\odot < M < 0.5M_\odot \\ 
+ M^{-2.7} & \hbox{ for } 0.5M_\odot < M < 1M_\odot \\ 
+ M^{-2.3} & \hbox{ for } 1M_\odot < M < 125M_\odot \\ 
+0 & \hbox {otherwise.} \end{array} \right.
+\end{equation}
+
+\subsubsection{Miller-Scalo}
+
+The {\tt Miller-Scalo} \IMF\ is defined by \citep{miller_initial_1979}:
+\begin{equation}
+ \phi(M) \propto \left\{ \begin{array}{ll}
+ M^{-1.25} & \hbox{ for } 0.10M_\odot < M < 1.00M_\odot \\
+ M^{-2.00} & \hbox{ for } 1.00M_\odot < M < 2.00M_\odot \\
+ M^{-2.30} & \hbox{ for } 2.00M_\odot < M < 10.0M_\odot \\
+ M^{-3.30} & \hbox{ for } 10.0M_\odot < M < 125M_\odot \\
+ 0 & \hbox {otherwise.} \end{array} \right.
+\end{equation}
+
+\subsubsection{Salpeter}
+
+The {\tt Salpeter} \IMF\ is defined by \citep{salpeter_luminosity_1955}:
+\begin{equation}
+ \phi(M) \propto \left\{ \begin{array}{ll} M^{-2.35} & \hbox{ for } 0.1M_\odot < M < 125M_\odot \\ 0 & \hbox {otherwise.} \end{array} \right.
+\end{equation}
+
+\subsubsection{Scalo}
+
+The {\tt Scalo} \IMF\ is defined by \citep{scalo_stellar_1986}:
+\begin{equation}
+ \phi(M) \propto \left\{ \begin{array}{ll}
+ M^{+1.60} & \hbox{ for } 0.10M_\odot < M < 0.18M_\odot \\
+ M^{-1.01} & \hbox{ for } 0.18M_\odot < M < 0.42M_\odot \\
+ M^{-2.75} & \hbox{ for } 0.42M_\odot < M < 0.62M_\odot \\
+ M^{-2.08} & \hbox{ for } 0.62M_\odot < M < 1.18M_\odot \\
+ M^{-3.50} & \hbox{ for } 1.18M_\odot < M < 3.50M_\odot \\
+ M^{-2.63} & \hbox{ for } 3.50M_\odot < M < 125M_\odot \\
+ 0 & \hbox {otherwise.} \end{array} \right.
+\end{equation}
+
+\section{Ionization State}\index{ionization state}
+
+The ionization state of gas is implemented by the algorithm selected using the {\tt ionizatonStateMethod} parameter.
+
+\subsection{Atomic Collisional Ionization Equilibrium Using {\sc Cloudy}}
+
+Selected using {\tt ionizatonStateMethod}$=${\tt atomic\_CIE\_Cloudy}, this method computes the ionization state using the {\sc Cloudy} code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use {\sc Cloudy}'s ``primordial'' metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\sc Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
+
+\subsection{Collisional Ionization Eqiulibruim From File}
+
+Selected using {\tt ionizatonStateMethod}$=${\tt CIE\_from\_file}, in this method the ionization state is read from a file specified by the {\tt ionizationStateFile} parameter. The format of this file is specified in \S\ref{sec:IonizationStateMethods}. The ionization state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$.
+
+\section{Merger Tree Construction}\index{merger trees}
+
+Merger trees are ``constructed\footnote{By ``construct'' we mean any process of creating a representation of a merger tree within \protect\glc.}'' by the method specified by the {\tt mergerTreeConstructMethod} parameter.
+
+\subsection{Read From File}
+
+Selected with {\tt mergerTreeConstructMethod}$=${\tt read}, this method reads merger tree structures from an HDF5 file specified by the {\tt mergerTreeReadFileName} parameter. The structure of these HDF5 files is described in \S\ref{sec:MergerTreeFiles}.
+
+\subsection{Build}
+
+Selected with {\tt mergerTreeConstructMethod}$=${\tt build}, this method first creates a distribution of tree root halo masses and then builds a merger tree using the algorithm specified by the {\tt mergerTreeBuildMethod} parameter. The root halo masses are selected to range between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} with {\tt mergerTreeBuildTreesPerDecade} trees per decade of root halo mass on average. Trees are rooted at {\tt mergerTreeBuildTreesBaseRedshift} and tree building will begin with the {\tt mergerTreeBuildTreesBeginAtTree}$^{\rm th}$ tree\footnote{This will normally be set to 1 to begin with the first tree. Other values allow to begin on later trees for debugging purposes.}. The distribution of halo masses is such that the mass of the $i^{\rm th}$ halo is
+\begin{equation}
+ M_{\rm halo,i} = \exp\left[ \ln(M_{\rm halo,min}) + \ln\left({M_{\rm halo,max}/M_{\rm halo,min}}\right) x_i^(1+\alpha) \right].
+\end{equation}
+Here, $x_i$ is a number between 0 and 1 and $\alpha=${\tt mergerTreeBuildTreesHaloMassExponent} is an input parameter that controls the relative number of low and high mass tree produced. The distribution of $x$ is determined by the input parameter {\tt mergerTreeBuildTreesHaloMassDistribution} with options:
+\begin{description}
+ \item [{\tt uniform}] $x$ is distributed uniformly between 0 and 1;
+ \item [{\tt quasi}] $x$ is distributed using a quasi-random sequence.
+\end{description}
+
+\subsubsection{Cole et al. (2000) Algorithm}
+
+Selected with {\tt mergerTreeBuildMethod}$=${\tt Cole2000}, this method uses the algorithm described by \cite{cole_hierarchical_2000}, with a branching probability method selected via the {\tt treeBranchingMethod} parameter. This action of this algorithm is controlled by the following parameters:
+\begin{description}
+ \item [{\tt mergerTreeBuildCole2000MergeProbability}] The maximum probability for a binary merger allowed in a single timestep. This allows the probability to be kept small, such the the probability for multiple mergers within a single timestep is small.
+ \item [{\tt mergerTreeBuildCole2000AccretionLimit}] The maximum fractional change in mass due to sub-esolution accretion allowed in any given timestep when building the tree.
+ \item [{\tt mergerTreeBuildCole2000MassResolution}] The minimum halo mass (in $M_\odot$) that the algorithm will follow. Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
+\end{description}
+
+\section{Merger Tree Branching}\index{merger trees!branching}
+
+The method to be used for computing branching probabilities in merger trees is specified by the {\tt treeBranchingMethod} parameter.
+
+\subsection{Modified Press-Schechter}
+
+Selected with {\tt treeBranchingMethod}$=${\tt modified Press-Schechter}, this method uses the algorithm of \cite{parkinson_generating_2008} to compute branching ratios. The parameters $G_0$, $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\tt modifiedPressSchechterG0}, {\tt modifiedPressSchechterGamma1} and {\tt modifiedPressSchechterGamma2} respectively. Additionally, the parameter {\tt modifiedPressSchechterFirstOrderAccuracy} limits the step in $\delta_{\rm crit}$ so that it never exceeds {\tt modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures the the first order expansion of the merging rate that is assumed is accurate.
+
+\section{Star Formation Timescales}\index{star formation!timescale}
+
+The methods for computing star formation timescales in disks and spheroids are selected via the {\tt starFormationTimescaleDisksMethod} and {\tt starFormationTimescaleSpheroidsMethod} respectively.
+
+\subsection{Power Law}
+
+Selected with {\tt starFormationTimescale[Disks|Spheroids]Method}$=${\tt dynamical time} this method computes the star formation timescale to be:
+\begin{equation}
+ \tau_\star = \epsilon_\star^{-1} \tau_{\rm dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
+\end{equation}
+where $\epsilon_\star=${\tt starFormation[Disks|Spheroids]Efficiency} and $\alpha_\star=${\tt starFormation[Disks|Spheroids]VelocityExponent} are input parameters, $\tau_{\rm dynamical}\equiv r/V$ is the dynamical timescale of the component and $r$ and $V$ are the characteristic radius and velocity respectively of the component. The timescale is not allowed to fall below a minimum value specified by {\tt starFormation[Disks|Spheroids]MinimumTimescale} (in Gyr).
+
+\section{Stellar Population Properties}\label{sec:StellarPopulationProperties}\index{stellar populations}
+
+Algorithms for determining stellar population properties---essentially the rates of change of stellar and gas mass and abundances given a star formation rate and fuel abundances (and perhaps a historical record of star formation in the component)---are selected by the {\tt stellarPopulationPropertiesMethod} parameter.
+
+\subsection{Instantaneous}
+
+Selected with {\tt stellarPopulationPropertiesMethod}$=${\tt instantaneous} this method uses the instantaneous recycling approximation. Specifically, given a star formation rate $\phi$, this method assumes a rate of increase of stellar mass of $\dot{M}_\star=(1-R)\phi$, a corresponding rate of decrease in fuel mass. The rate of change of the metal content of stars follows from the fuel metallicity, while that of the fuel changes according to
+\begin{equation}
+ \dot{M}_{fuel,Z} = - (1-R) Z_{\rm fuel} \phi + p \phi.
+\end{equation}
+In the above $R$ is the instantaneous recycled fraction and $p$ is the yield, both of which are supplied by the \IMF\ subsystem. The rate of energy input from the stellar population is computed assuming that the canonical amount of energy from a single stellar population (as defined by the {\tt feedbackEnergyInputAtInfinityCanonical}) is input instantaneously.
+
+\subsection{Noninstantaneous}
+
+Selected with {\tt stellarPopulationPropertiesMethod}$=${\tt noninstantaneous} this method assumes fully non-instantaneous recycling and metal enrichment. Recycling and metal production rates from simple stellar populations are computed, for any given \IMF, from stellar evolution models. The rates of change are then:
+\begin{eqnarray}
+ \dot{M}_\star &=& \phi - \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_{\rm fuel}[t^\prime]) \d t^\prime, \\
+ \dot{M}_{\rm fuel} &=& -\phi + \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_{\rm fuel}[t]) \d t^\prime, \\
+ \dot{M}_{\star,Z} &=& Z_{\rm fuel} \phi - \int_0^t \phi(t^\prime) Z_{\rm fuel}(t^\prime)  \dot{R}(t-t^\prime;Z_{\rm fuel}[t^\prime]) \d t^\prime, \\
+ \dot{M}_{{\rm fuel},Z} &=& -Z_{\rm fuel} \phi + \int_0^t  \phi(t^\prime) \{ Z_{\rm fuel}(t^\prime) \dot{R}(t-t^\prime;Z_{\rm fuel}[t^\prime]) + \dot{p}(t-t^\prime;Z_{\rm fuel}[t^\prime]) \} \d t^\prime, \\
+\end{eqnarray}
+where $\dot{R}(t;Z)$ and $\dot{p}(t;Z)$ are the recycling and metal yield rates respectively from a stellar population of age $t$ and metallicity $Z$. The energy input rate is computed self-consistently from the star formation history.
+
+\section{Stellar Astrophysics}
+
+Various properties related to stellar astrophysics are required by \glc. The following documents their implementation.
+
+\subsection{Basics}
+
+This subset of properties include recycled mass, metal yield and lifetime.  The method used to compute such properties is specified by the {\tt stellarAstrophysicsMethod} parameter.
+
+\subsubsection{File}\label{sec:StellarAstrophysicsFile}
+
+Selected with {\tt stellarAstrophysicsMethod}$=${\tt file} this method uses reads properties of individual stars of different initial mass and metallicity from an XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The XML file should have the following structure:
+\begin{verbatim}
+ <stars>
+  <star>
+    <initialMass>0.6</initialMass>
+    <lifetime>28.19</lifetime>
+    <metallicity>0.0000</metallicity>
+    <ejectedMass>7.65</ejectedMass>
+    <metalYieldMass>0.44435954</metalYieldMass>
+    <elementYieldMassFe>2.2017e-13</elementYieldMassFe>
+    <source>Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)</source>
+    <url>http://adsabs.harvard.edu/abs/2003ApJ...584..608T</url>
+  </star>
+  <star>
+    .
+    .
+    .
+  </star>
+  .
+  .
+  .
+ </stars
+\end{verbatim}
+Each {\tt star} element must contain the {\tt initialMass} (given in $M_\odot$) and {\tt metallicity} tags. Other tags are optional. {\tt lifetime} gives the lifetime of such a star (in Gyr), {\tt ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during its lifetime, {\tt metalYieldMass} gives the total mass of metals yielded by the star during its lifetime while {\tt elementYieldMassX} gives the mass of element {\tt X} yielded by the star during its lifetime. The {\tt source} and {\tt url} tags are not used, but are strongly recommended to provide a reference to the origin of the stellar data.
+
+\subsection{Stellar Winds}
+
+Energy input to the \ISM\ from stellar winds is used in calculations of feedback efficiency. The method used to compute stellar wind properties is specified by the {\tt stellarWindsMethod} parameter.
+
+\subsubsection{Leitherer et al. (1992)}
+
+Selected with {\tt stellarWindsMethod}$=${\tt Leitherer1992} this method uses the fitting formulae of \cite{leitherer_deposition_1992} to compute stellar wind energy input from the luminosity and effective temperature of a star.
+
+\subsection{Stellar Tracks}
+
+The method used to compute stellar tracks is specified by the {\tt stellarTracksMethod} parameter.
+
+\subsubsection{File}\label{sec:StellarTracksFile}
+
+Selected with {\tt stellarTracksMethod}$=${\tt file} in this method luminosities and effective temperatures of stars are computed from a tabulated set of stellar tracks. The file containing the tracks to use is specified via the {\tt stellarTracksFile} parameter. The file specified must be an HDF5 file with the following structure:
+\begin{verbatim}
+ stellarTracksFile
+  |
+  +-> metallicity1
+  |    |
+  |    +-> metallicity
+  |    |
+  |    +-> mass1
+  |    |    |
+  |    |    +-> mass
+  |    |    |
+  |    |    +-> age
+  |    |    |
+  |    |    +-> luminosity
+  |    |    |
+  |    |    +-> effectiveTemperature
+  |    |
+  |    x-> massN
+  |
+  x-> metallicityN
+\end{verbatim}
+Each {\tt metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in the {\tt metallicity} dataset within each group), and may contain an arbitrary number of {\tt massN} groups. Each {\tt massN} group should contain a track for a star of some mass (the value of which is given in the {\tt mass} dataset). Within each track three datasets specify the {\tt age} (in Gyr), {\tt luminosity} (in $L_\odot$) and {\tt effectiveTemperature} (in Kelvin) along the track.
+
+\subsection{Supernovae Type Ia}\index{supernovae!Type Ia}
+
+Properties of Type Ia supernovae, including the cumulative number occuring and metal yield, are handled by the method selected using the {\tt supernovaeIaMethod} parameter.
+
+\subsubsection{Nagashima et al. (2005) Prescription}
+
+Selected with {\tt supernovaeIaMethod}$=${\tt Nagashima} this method uses the prescriptions from \cite{nagashima_metal_2005} to compute the numbers and yields of Type Ia supernovae.
+
+\subsection{Population III Supernovae}\index{supernovae!Population III}\index{Population III!supernovae}
+
+Properties of Population III specific supernovae are handled by the method selected with the {\tt supernovaePopIIIMethod} parameter.
+
+\subsubsection{Heger \& Woosley (2002)}
+
+Selected with {\tt supernovaePopIIIMethod}$=${\tt Heger + Woosley} this method computes the energies of pair instability supernovae from the results of \cite{heger_nucleosynthetic_2002}.
+
+\subsection{Stellar Feedback}
+
+Aspects of stellar feedback are computed by the method selected with the {\tt stellarFeedbackMethod} parameter.
+
+\subsubsection{Standard}
+
+Selected with {\tt stellarFeedbackMethod}$=${\tt standard}, the method assumes that the cumulative energy input from a stellar population is equal to the total number of (Type II and Type Ia) supernovae multiplied by {\tt supernovaEnergy} (specified in ergs) plus any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a star required to form a Type II supernova is specified (in $M_\odot$) via the {\tt initialMassForSupernovaeTypeII} parameter.
+
+\section{Substructure and Merging}\index{merging!substructure}\index{substructure}
+
+Substructures and merging of nodes/substructures is controlled by several algorithms which are described below:
+
+\subsection{Merging Timescales}\index{merging!dynamical friction}
+
+The method used to compute merging timescales of substructures is specified by the {\tt satelliteMergingMethod} parameter.
+
+\subsubsection{Dynamical Friction: Lacey \& Cole}
+
+Selected with {\tt satelliteMergingMethod}$=${\tt Lacey-Cole}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter.
+
+\subsubsection{Dynamical Friction: Jiang (2008)}
+
+Selected with {\tt satelliteMergingMethod}$=${\tt Jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}.
+
+\subsubsection{Dynamical Friction: Boylan-Kolchin (2008)}
+
+Selected with {\tt satelliteMergingMethod}$=${\tt BoylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
+
+\subsection{Virial Orbits}
+
+The algorithm to be used to determine orbital parameters of substructures when they first enter the virial radius of their host is specified via the {\tt virialOrbitsMethod} parameter.
+
+\subsubsection{Benson (2005)}
+
+Selected with {\tt virialOrbitsMethod}$=${\tt Benson2005}, this method selects orbital parameters randomly from the distribution given by \cite{benson_orbital_2005}.
+
+\subsection{Node Merging}
+
+The algorithm to be used to process nodes when they become substructures is specified by the {\tt nodeMergersMethod} parameter.
+
+\subsubsection{Single Level Hierarchy}
+
+Selcted with {\tt nodeMergersMethod}$=${\tt single level hierarchy}, this method maintains a single level hierarchy of substructure, i.e. it tracks only substructures, not sub-substructures or deeper levels. When a node first becomes a satellite it is appended to the list of satellites associated with its host halo. If the node contains its own satellites they will be detached from the node and appended to the list of satellites of the new host (and assigned new merging times).
+
+\section{Supernovae Feedback Models}\index{supernovae!feedback}\index{feedback}
+
+The supernovae feedback driven outflow rate is computed using the method specified by the {\tt starFormationFeedback[Disks|Spheroids]Method} for disks and spheroids respectively.
+
+\subsection{Power Law}
+
+Selected with {\tt starFormationFeedback[Disks|Spheroids]Method}$=${\tt power law}, this method assumes an outflow rate of:
+\begin{equation}
+ \dot{M}_{\rm outflow} = \left({V_{\rm outflow} \over V}\right)^{\alpha_{\rm outflow}} {\dot{E} \over E_{\rm canonical}},
+\end{equation}
+where $V_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} (in km/s) and $\alpha_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+
+\section{Supermassive Black Holes Binary Mergers}\index{supermassive black holes!mergers}
+
+The method to be used for computing the effects of binary mergers of supermassive black holes is specified by the {\tt blackHoleBinaryMergersMethod} parameter.
+
+\subsection{Rezzolla et al. (2008)}
+
+Selected with {\tt blackHoleBinaryMergersMethod}$=${\tt Rezzolla2008}, this method uses the fitting function of \cite{rezzolla_final_2008} to compute the spin of the black hole resulting from a binary merger. The mass of the resulting black hole is assumed to equal the sum of the mass of the initial black holes (i.e. there is negligible energy loss through gravitational waves).
+

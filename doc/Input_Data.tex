@@ -1,0 +1,74 @@
+\chapter{Input Data}
+
+In some configurations, \glc\ requires additional input data to run. For example, if asked to process galaxy formation through a set of externally derived merger trees, then a file describing those trees must be given. In the remainder of this section we describe the structure of external datasets which can be inputs to \glc.
+
+\section{Broadband Filters}\index{filters!broadband}
+
+To compute luminosities through a given filter, \glc\ requires the response function, $R(\lambda)$, of that filter to be defined. \glc\ follows the convention of \cite{hogg_k_2002} in defining the filter response to be the fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector. Filter response files are stored in {\tt data/filters/}. Their structure is shown below, with the {\tt SDSS\_g.xml} filter reponse file used as an example:
+\begin{verbatim}
+ <filter>
+  <description>SDSS g vacuum (filter+CCD +0 air mass)</description>
+  <name>SDSS g</name>
+  <origin>Michael Blanton</origin>
+  <response>
+    <datum>   3630.000      0.0000000E+00</datum>
+    <datum>   3680.000      2.2690000E-03</datum>
+    <datum>   3730.000      5.4120002E-03</datum>
+    <datum>   3780.000      9.8719997E-03</datum>
+    <datum>   3830.000      2.9449999E-02</datum>
+    .
+    .
+    . 
+  </response>
+  <effectiveWavelength>4727.02994472695</effectiveWavelength>
+  <vegaOffset>0.107430167298754</vegaOffset>
+</filter>
+\end{verbatim}
+The {\tt description} tag should provide a description of the filter, while the {\tt name} tag provides a shorter name. The {\tt origin} tag should describe from where/whom this filter originated. The {\tt response} element contains a list of {\tt datum} tags each giving a wavelength (in Angstroms) and response pair. The normalization of the response is arbitrary. The {\tt effectiveWavelength} tag gives the mean, response-weighted wavelength of the filter and is used, for example, in dust attenuation calculations. The {\tt vegaOffset} tag gives the value (in magnitudes) which must be added to an AB-system magnitude in this system to place it into the Vega system. Both {\tt effectiveWavelength} and {\tt vegaOffset} can be computed by running
+\begin{verbatim}
+ scripts/filters/vega_offset_effective_lambda.pl data/filters
+\end{verbatim}
+which will compute these values for any filter files that do not already contain them and append them to the files.
+
+\section{Merger Trees}\label{sec:MergerTreeFiles}
+
+While \glc\ can build merger trees using analytic methods it is often usedful to be able to utilize merger trees from other sources (e.g. extracted from an N-body simulation). To facilitate this, \glc\ allows merger trees to be read from an HDF5 files. To do so, set the {\tt [mergerTreeConstructMethod]} input parameter to {\tt read} and specify the filename to read via their {\tt [mergerTreeReadFileName]} parameter.
+
+The HDF5 file should have the following structure:
+\begin{verbatim}
+mergerTreeFile.hdf5 {
+  [mergerTrees] {
+    [mergerTree1] {
+      volumeWeight => (1)
+      treeIndex    => (1)
+      nodeIndex    => (nodeCount1)
+      parentNode   => (nodeCount1)
+      childNode    => (nodeCount1)
+      siblingNode  => (nodeCount1)
+      nodeMass     => (nodeCount1)
+      nodeRedshift => (nodeCount1)
+    }
+    [mergerTree2] {
+      volumeWeight => (1)
+      treeIndex    => (1)
+      nodeIndex    => (nodeCount2)
+      parentNode   => (nodeCount2)
+      childNode    => (nodeCount2)
+      siblingNode  => (nodeCount2)
+      nodeMass     => (nodeCount2)
+      nodeRedshift => (nodeCount2)
+    }
+    .
+    .
+    .
+  }
+}
+\end{verbatim}
+where {\tt volumeWeight} is the number of such trees per unit volume, {\tt treeIndex} is an index for this tree, {\tt nodeIndex} is a unique integer identifier for their node, {\tt parentNode} is the index of the parent node (or $-1$ if none exists), {\tt childNode} is the index of the most massive child node (or $-1$ if none exists), {\tt siblingNode} is the index of the sibling node (or $-1$ if none exists), {\tt nodeMass} is the mass of the nodeCount1 (in $M_\odot$) and {\tt nodeRedshift} is the redshift at which the node exists. Here, {\tt nodeCount1} is the number of nodes in tree number 1 for example. The trees must be self-consistent (i.e. parent and child indices must make sense, sibling should all have the same parent, parents must exist at lower redshift than their children, there must be a unique root to the tree).
+
+An example of how to construct such a file is given by the {\tt scripts/aux/Millennium\_Trees\_Grab.pl} script which pulls merger tree data from the Millennium Simulation database and outputs it as an HDF5 file in the format required by \glc. This script is used as follows:
+\begin{verbatim}
+ scripts/aux/Millennium_Trees_Grab.pl --output <outputFile> --user <userName> --password <password> --select <sqlSelection>
+\end{verbatim}
+All arguments are optional. If present the {\tt user} and {\tt password} will be used to log in to the database server. Merger trees are output to the file specified by {\tt output} if present, or to {\tt Millennium\_Trees.hdf5} otherwise. If the {\tt select} keyword is present, then its contents are added to the SQL query sent to the database and permits you to select subsamples of merger trees (e.g. those in a given mass range). The script {\tt examples/Millennium\_Trees\_Grab.csh} shows an example of how this script should be used.
+

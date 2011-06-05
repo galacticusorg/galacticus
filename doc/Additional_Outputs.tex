@@ -1,0 +1,22 @@
+\chapter{Additional Output Quantities}
+
+\section{Merger Tree Links}\index{merger tree!links}
+
+The following properties are output to permit the merger tree structure to be recovered:
+\begin{description}
+ \item [{\tt nodeIndex}] A unique (within a tree) integer index identifying the node;
+ \item [{\tt childIndex}] The index of this node's primary child node (or $-1$ if it has no child);
+ \item [{\tt parentIndex}] The index of this node's parent node (or $-1$ if it has no parent);
+ \item [{\tt siblingIndex}] The index of this node's sibling node (or $-1$ if it has no sibling);
+ \item [{\tt satelliteIndex}] The index of this node's first satellite node (or $-1$ if it has no satellites);
+\end{description}
+
+\section{Virial Quantities}\index{virial}
+
+The following quantities related to the virialized region of each node are output if {\tt outputVirialData} is set to true:
+\begin{description}
+ \item [{\tt nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity was selected in \glc) in units of Mpc;
+ \item [{\tt nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
+\end{description}
+
+

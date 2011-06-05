@@ -1,0 +1,138 @@
+\chapter{Running Galacticus}
+
+\section{Parameter Files}
+
+\glc\ requires a file of parameters to be given as a command line argument. (In fact, it technically doesn't as all of the parameters will be assigned default values if no file is given, but in most cases you want to change some parameters, in which case you must specify them in a file.) The parameter file is an XML file (which makes it easy to manipulate and construct these files from within many languages, e.g. Perl) with the following structure:
+\begin{verbatim}
+ <parameters>
+   <parameter>
+     <name>parameter1name</name>
+     <value>parameter1value</value>
+   </parameter>
+   .
+   .
+   .
+ </parameters>
+\end{verbatim}
+Each {\tt parameter} element contains {\tt name} and {\tt value} elements which contain the parameter name and desired value respectively. The value can be a number, word(s) or an array of space-separated numbers. Parameters are used to control the values of numerical parameters and also to select methods and other options. If a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves.
+
+All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\tt Parameters} group within the \glc\ output file. The script {\tt scripts/aux/Extract\_Parameter\_File.pl} will, if given a \glc\ output file, extract the parameters from it and output them into an XML file suitable for re-input into \glc.
+
+\section{Running Galacticus}
+
+\glc\ is running using
+\begin{verbatim}
+ Galacticus.exe [<parameterFile>]
+\end{verbatim}
+where {\tt parameterFile} is the name of the file containing a list of parameter values for \glc. \glc\ will display messages indicating its progress as it runs (the verbosity can be controlled with the {\tt verbosityLevel} parameter).
+
+\subsection{Restarting A Crashed Run}\label{sec:Restarting}
+
+If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\tt build} method of merger tree construction, such that the internal state is stored prior to commencing the building of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.
+
+To cause \glc\ to periodically store its internal state include the following input parameter:
+\begin{verbatim}
+  <parameter>
+    <name>stateFileRoot</name>
+    <value>galacticusState</value>
+  </parameter>
+\end{verbatim}
+This will cause the internal state to be stored to files {\tt galacticusState.state} and {\tt galacticusState.fgsl.state} prior to commencing building each merger tree. Should a tree crash then replace this input parameter with:
+\begin{verbatim}
+  <parameter>
+    <name>stateRetrieveFileRoot</name>
+    <value>galacticusState</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildTreesBeginAtTree</name>
+    <value>N</value>
+  </parameter>
+\end{verbatim}
+where {\tt N} is the number of the tree that crashed. This will cause calculations to begin with tree {\tt N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
+
+\section{Running Grids of Models}\label{sec:RunningGrids}
+
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. To run the script simply enter:
+\begin{verbatim}
+ ./scripts/aux/Run_Galacticus.pl <runFile>
+\end{verbatim}
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). The {\tt runFile} is an XML file with the following structure:
+\begin{verbatim}
+<parameterGrid>
+  <modelRootDirectory>models.new</modelRootDirectory>
+  <baseParameters>newBestParametersQuick.xml</baseParameters>
+  <parameters>
+   <parameter>
+    <name>stabilityThresholdStellar</name>
+    <value>1.1</value>
+    <value>0.9</value>
+   </parameter>
+  </parameters>
+  <parameters>
+   <parameter>
+    <name>stabilityThresholdGaseous</name>
+    <value>1.1</value>
+    <value>0.9</value>
+   </parameter>
+   <parameter>
+    <name>imfSalpeterYieldInstantaneous</name>
+    <value>0.02</value>
+    <value>0.04</value>
+   </parameter>
+  </parameters>
+</parameterGrid>
+\end{verbatim}
+Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values.
+
+By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur.
+
+In addition to the {\tt galacticus.hdf5} output file, each model directory will contain a file {\tt newParameters.xml} which contains the parameters used to run the model and {\tt galacticus.log} which contains any output from \glc\ during the run.
+
+If present, the file {\tt runGalacticus.xml} is parsed for configuration options. It should have the following structure:
+\begin{verbatim}
+<config>
+  <errorReport>
+    <name>My Name</name>
+    <email>me@ivory.towers.edu</email>
+  </errorReport>
+</config>
+\end{verbatim}
+The {\tt errorReport} element contains the name and e-mail address of the person who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
+
+\subsubsection{Analysis of Models}
+
+The {\tt Run\_Galacticus.pl} script will automatically run {\tt scripts/analysis/Galacticus\_Compute\_Fit.pl} on each model to generate plots and fitting data. This script, which can also be running manually using
+\begin{verbatim}
+ ./scripts/analysis/Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory>
+\end{verbatim}
+where {\tt galacticusFile} is the name of the \glc\ output file to analyze and {\tt outputDirectory} is the directory into which plots and fitting data should be placed, reads the file {\tt data/Galacticus\_Compute\_Fit\_Analyses.xml} which has the following structure:
+\begin{verbatim}
+ <analyses>
+  <analysis>
+    <script>scripts/plotting/Plot_HI_Mass_Function.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  <analysis>
+    <script>scripts/plotting/Plot_K_Luminosity_Function.pl</script>
+    <weight>1.0</weight>
+  </analysis>
+  .
+  .
+  .
+ </analyses>
+\end{verbatim}
+Each {\tt analysis} element contains the name of a script to run to perform some analysis and a weight to be given to the results of this analysis when combining results to get a net goodness of fit. Each script listed will be run and is expected to have accept arguments of the form:
+\begin{verbatim}
+ My_Analysis_Script.pl <galacticusFile> <outputDirectory> <showFit>
+\end{verbatim}
+where the {\tt showFit} argument can be 0 or 1 and, if set to 1, the script should output an XML chunk to standard output giving details of its fitting analysis. This chunk should have the form:
+\begin{verbatim}
+ <galacticusFit>
+   <name>Description of this analysis</name>
+   <chiSquared>24.5</chiSquared>
+   <degreesOfFreedom>19</degreesOfFreedom>
+   <fileName>Output_File_Name.pdf</fileName>
+ </galacticusFit>
+\end{verbatim}
+where {\tt chiSquared} and {\tt degreesOfFreedom} are the fitting results. All such data returned from fitting scripts will be collated by {\tt Galacticus\_Compute\_Fit.pl}, augmented with the weight value and the net goodness of fit determined. All of this information is then output to {\tt galacticusFits.xml} in the selected output directory.
+
