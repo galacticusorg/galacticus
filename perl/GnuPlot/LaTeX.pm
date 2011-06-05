@@ -2,6 +2,7 @@
 
 package LaTeX;
 use File::Copy;
+use System::Redirect;
 
 my $status = 1;
 $status;
@@ -24,7 +25,7 @@ sub GnuPlot2PDF {
     open(wHndl,">gnuplotWrapper.tex");
     print wHndl "\\documentclass[10pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotRoot."}\n\\end{document}\n";
     close(wHndl);
-    system("epstopdf ".$gnuplotEpsFile."; pdflatex gnuplotWrapper; pdfcrop gnuplotWrapper.pdf");
+    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile."; pdflatex gnuplotWrapper; pdfcrop gnuplotWrapper.pdf","/dev/null");
     move("gnuplotWrapper-crop.pdf",$gnuplotPdfFile);
     unlink(
 	   "gnuplotWrapper.pdf",
