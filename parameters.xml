@@ -1,0 +1,74 @@
+<parameters>
+  <parameter>
+    <name>transferFunctionMethod</name>
+    <value>Eisenstein + Hu</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildTreesPerDecade</name>
+    <value>15</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildHaloMassMinimum</name>
+    <value>1.0d12</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildHaloMassMaximum</name>
+    <value>3.0d12</value>
+  </parameter>  
+  <parameter>
+    <name>mergerTreeBuildCole2000MassResolution</name>
+    <value>5.0d9</value>
+  </parameter>
+  <parameter>
+    <name>outputRedshifts</name>
+    <value>0.0 0.1</value>
+  </parameter>
+  <parameter>
+    <name>luminosityFilter</name>
+    <value>UKIRT_K bJ RGO_I SDSS_g SDSS_r SDSS_i SDSS_z</value>
+  </parameter> 
+  <parameter>
+    <name>luminosityType</name>
+    <value>rest rest rest observed observed observed observed</value>
+  </parameter> 
+  <parameter>
+    <name>luminosityRedshift</name>
+    <value>0.0 0.0 0.0 0.1 0.1 0.1 0.1</value>
+  </parameter>
+  <parameter>
+    <name>verbosityLevel</name>
+    <value>1</value>
+  </parameter>
+  <parameter>
+    <name>starFormationSpheroidEfficiency</name>
+    <value>3.0e-3</value>
+  </parameter>
+  <parameter>
+    <name>adafRadiativeEfficiency</name>
+    <value>0.0</value>
+    </parameter>
+  <parameter>
+    <name>accretionDisksMethod</name>
+    <value>ADAF</value>
+  </parameter>
+  <parameter>
+    <name>blackHoleSeedMass</name>
+    <value>100.0</value>
+  </parameter>
+  <parameter>
+    <name>diskOutflowVelocity</name>
+    <value>50</value>
+  </parameter>
+  <parameter>
+    <name>starFormationDiskEfficiency</name>
+    <value>0.02</value>
+  </parameter>
+  <parameter>
+    <name>reionizationSuppressionRedshift</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>reionizationSuppressionVelocity</name>
+    <value>0.0</value>
+  </parameter>
+</parameters>
