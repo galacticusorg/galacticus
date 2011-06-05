@@ -249,12 +249,13 @@ contains
     return
   end subroutine Merger_Tree_Build_Initialize
 
-  subroutine Merger_Tree_Build_Do(thisTree)
+  subroutine Merger_Tree_Build_Do(thisTree,skipTree)
     !% Build a merger tree.
     use Tree_Node_Methods
     use Galacticus_State
     implicit none
     type(mergerTree), intent(inout) :: thisTree
+    logical,          intent(in)    :: skipTree
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
@@ -280,7 +281,7 @@ contains
     end if
     !$omp end critical (Merger_Tree_Build_Do)
     ! If we got a tree, we can now process it (in paralell if running under OpenMP).
-    if (associated(thisTree%baseNode)) then
+    if (associated(thisTree%baseNode).and..not.skipTree) then
        ! Call routine to actually build the tree.
        call Merger_Tree_Builder(thisTree)
     end if

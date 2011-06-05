@@ -72,6 +72,9 @@ module Galacticus_Tasks_Evolve_Tree
   ! Array of output times.
   integer                                     :: outputCount
   double precision, allocatable, dimension(:) :: outputTimes
+
+  ! Parameters controlling which trees will be processed.
+  integer                                     :: treeEvolveWorkerCount,treeEvolveWorkerNumber
   
 contains
 
@@ -103,13 +106,13 @@ contains
     !# </include>
     implicit none
     type(mergerTree),     save, pointer :: thisTree
-    logical,              save          :: finished
-    integer,              save          :: iOutput
+    logical,              save          :: finished,skipTree
+    integer,              save          :: iOutput,iTree
     double precision,     save          :: outputTime
     type(varying_string), save          :: message
     character(len=20),    save          :: label
     double precision                    :: aExpansion
-    !$omp threadprivate(thisTree,finished,iOutput,outputTime,message,label)
+    !$omp threadprivate(thisTree,finished,skipTree,iOutput,iTree,outputTime,message,label)
 
     ! Initialize the task if necessary.
     !$omp critical (Tasks_Evolve_Tree_Initialize)
@@ -145,6 +148,26 @@ contains
        ! Set history ranges to include these times.
        call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
 
+       ! Get parameters controlling which trees will be processed.
+       !@ <inputParameter>
+       !@   <name>treeEvolveWorkerCount</name>
+       !@   <defaultValue>1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The number of workers that will work on this calculation.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('treeEvolveWorkerCount',treeEvolveWorkerCount,defaultValue=1)
+       !@ <inputParameter>
+       !@   <name>treeEvolveWorkerNumber</name>
+       !@   <defaultValue>1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The number of this worker.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
+
        ! Flag that this task is now initialized.
        outputsInitialized=.true.
     end if
@@ -152,45 +175,56 @@ contains
 
     ! Begin looping through available trees.
     finished=.false.
+    iTree=0
     !$omp parallel copyin(finished)
     do while (.not.finished)
-       thisTree => Merger_Tree_Create()
+       ! Increment the tree number.
+       iTree=iTree+1
+       ! Decide whether or not to skip this tree.
+       skipTree=.not.(modulo(iTree-1,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
+       ! Get a tree.
+       thisTree => Merger_Tree_Create(skipTree)
        finished=finished.or..not.associated(thisTree)
        if (.not.finished) then
           
-          ! Perform any pre-evolution tasks on the tree.
-          !# <include directive="mergerTreePreEvolveTask" type="code" action="subroutine">
-          !#  <subroutineArgs>thisTree</subroutineArgs>
-          include 'galacticus.tasks.evolve_tree.preEvolveTask.inc'
-          !# </include>
+          ! Skip this tree if necessary.
+          if (.not.skipTree) then
 
-          ! Display a message.
-          message="Evolving tree number "
-          message=message//thisTree%index
-          call Galacticus_Display_Indent(message)
-
-          ! Loop over output times.
-          outputTimeLoop : do iOutput=1,outputCount
-
-             ! Get the output time.
-             outputTime=outputTimes(iOutput)
-
-             ! Evolve the tree to the output time.
-             call Merger_Tree_Evolve_To(thisTree,outputTime)
-          
-             ! Output the merger tree.
-             write (label,'(f7.2)') outputTime
-             message="Output tree data at t="//trim(label)//" Gyr"          
-             call Galacticus_Display_Message(message)
-             call Galacticus_Merger_Tree_Output(thisTree,iOutput,outputTime,.false.)
-          
-          end do outputTimeLoop
+             ! Perform any pre-evolution tasks on the tree.
+             !# <include directive="mergerTreePreEvolveTask" type="code" action="subroutine">
+             !#  <subroutineArgs>thisTree</subroutineArgs>
+             include 'galacticus.tasks.evolve_tree.preEvolveTask.inc'
+             !# </include>
              
+             ! Display a message.
+             message="Evolving tree number "
+             message=message//thisTree%index
+             call Galacticus_Display_Indent(message)
+             
+             ! Loop over output times.
+             outputTimeLoop : do iOutput=1,outputCount
+                
+                ! Get the output time.
+                outputTime=outputTimes(iOutput)
+                
+                ! Evolve the tree to the output time.
+                call Merger_Tree_Evolve_To(thisTree,outputTime)
+                
+                ! Output the merger tree.
+                write (label,'(f7.2)') outputTime
+                message="Output tree data at t="//trim(label)//" Gyr"          
+                call Galacticus_Display_Message(message)
+                call Galacticus_Merger_Tree_Output(thisTree,iOutput,outputTime,.false.)
+                
+             end do outputTimeLoop
+
+             ! Unindent messages.
+             call Galacticus_Display_Unindent('Finished tree')
+             
+          end if
+
           ! Destroy the tree.
           call thisTree%destroy()
-
-          ! Unindent messages.
-          call Galacticus_Display_Unindent('Finished tree')
 
        end if
     end do

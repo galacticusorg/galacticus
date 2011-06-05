@@ -50,7 +50,7 @@ This will cause the internal state to be stored to files {\tt galacticusState.st
 \end{verbatim}
 where {\tt N} is the number of the tree that crashed. This will cause calculations to begin with tree {\tt N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
 
-\section{Running Grids of Models}\label{sec:RunningGrids}
+\subsection{Running Grids of Models}\label{sec:RunningGrids}
 
 You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. To run the script simply enter:
 \begin{verbatim}
@@ -99,7 +99,7 @@ If present, the file {\tt runGalacticus.xml} is parsed for configuration options
 \end{verbatim}
 The {\tt errorReport} element contains the name and e-mail address of the person who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
 
-\subsubsection{Analysis of Models}
+\subsection{Analysis of Models}
 
 The {\tt Run\_Galacticus.pl} script will automatically run {\tt scripts/analysis/Galacticus\_Compute\_Fit.pl} on each model to generate plots and fitting data. This script, which can also be running manually using
 \begin{verbatim}
@@ -136,3 +136,21 @@ where the {\tt showFit} argument can be 0 or 1 and, if set to 1, the script shou
 \end{verbatim}
 where {\tt chiSquared} and {\tt degreesOfFreedom} are the fitting results. All such data returned from fitting scripts will be collated by {\tt Galacticus\_Compute\_Fit.pl}, augmented with the weight value and the net goodness of fit determined. All of this information is then output to {\tt galacticusFits.xml} in the selected output directory.
 
+\subsection{Running Models in Parallel}
+
+Currently, \glc\ is not parallelized\footnote{This is planned for future releases, but awaits the fixing of bugs in {\sc GFortran}.}. However, it is possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:
+\begin{verbatim}
+  <parameter>
+    <name>treeEvolveWorkerCount</name>
+    <value>N</value>
+  </parameter>
+  <parameter>
+    <name>treeEvolveWorkerNumber</name>
+    <value>i</value>
+  </parameter>
+\end{verbatim}
+where {\tt N} is the total number of workers to be used and {\tt i} is the number of this worker (ranging from 1 to {\tt N}). Once all workers have finished, their outputs can (if required) be combined into a single output file using the {\tt Merge\_Models.pl} script as follows:
+\begin{verbatim}
+./scripts/aux/Merge_Models.pl <model1> <model2> .... <modelOutput>
+\end{verbatim}
+where {\tt model1} etc. are the names of the various output files and {\tt modelOutput} is the file into which the combined results should be placed. The {\tt Merge\_Models.pl} script will combine all merger trees into the output file and will additionally cumulate any data in the {\tt globalHistory} groups in these files.
