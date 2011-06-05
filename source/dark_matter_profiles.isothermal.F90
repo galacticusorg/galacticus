@@ -75,14 +75,15 @@ contains
   subroutine Dark_Matter_Profile_Isothermal_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get&
        &,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get &
        &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get&
-       &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get)
+       &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get)
     !% Initializes the ``Isothermal'' halo spin distribution module.
     use ISO_Varying_String
     implicit none
     type(varying_string),          intent(in)    :: darkMatterProfileMethod
     procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get&
-         &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
-         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get
+         &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get &
+         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
+         &,Dark_Matter_Profile_kSpace_Get
     
     if (darkMatterProfileMethod == 'isothermal') then
        Dark_Matter_Profile_Energy_Get                                => Dark_Matter_Profile_Energy_Isothermal
@@ -92,6 +93,7 @@ contains
        Dark_Matter_Profile_Circular_Velocity_Get                     => Dark_Matter_Profile_Circular_Velocity_Isothermal
        Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_Isothermal
        Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_Isothermal
+       Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_Isothermal
     end if
     return
   end subroutine Dark_Matter_Profile_Isothermal_Initialize
@@ -186,5 +188,28 @@ contains
          &*Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)/Dark_Matter_Halo_Virial_Velocity(thisNode))
     return
   end function Dark_Matter_Profile_Energy_Growth_Rate_Isothermal
+
+  double precision function Dark_Matter_Profile_kSpace_Isothermal(thisNode,waveNumber)
+    !% Returns the Fourier transform of the isothermal density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$), using the
+    !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; table~1).
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Exponential_Integrals
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: waveNumber
+    double precision                         :: radiusScale,waveNumberScaleFree
+
+    ! Get the scale radius (for which we use the virial radius).
+    radiusScale=Dark_Matter_Halo_Virial_Radius(thisNode)
+
+    ! Get the dimensionless wavenumber.
+    waveNumberScaleFree=waveNumber*radiusScale
+
+    ! Compute the Fourier transformed profile.
+    Dark_Matter_Profile_kSpace_Isothermal=Sine_Integral(waveNumberScaleFree)/waveNumberScaleFree
+
+    return
+  end function Dark_Matter_Profile_kSpace_Isothermal
   
 end module Dark_Matter_Profiles_Isothermal

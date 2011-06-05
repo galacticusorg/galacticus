@@ -68,7 +68,7 @@ module Dark_Matter_Profiles
   private
   public :: Dark_Matter_Profile_Rotation_Normalization, Dark_Matter_Profile_Energy, Dark_Matter_Profile_Energy_Growth_Rate,&
        & Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum,Dark_Matter_Profile_Circular_Velocity&
-       &,Dark_Matter_Profile_Potential,Dark_Matter_Profile_Enclosed_Mass
+       &,Dark_Matter_Profile_Potential,Dark_Matter_Profile_Enclosed_Mass,Dark_Matter_Profile_kSpace
 
 
   ! Flag to indicate if this module has been initialized.  
@@ -92,6 +92,7 @@ module Dark_Matter_Profiles
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Circular_Velocity_Get => null()
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Potential_Get         => null()
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get     => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_kSpace_Get            => null()
   abstract interface
      double precision function Dark_Matter_Profile_Parameter_Template(thisNode,inputParameter)
        import treeNode
@@ -126,7 +127,7 @@ contains
        call Get_Input_Parameter('darkMatterProfileMethod',darkMatterProfileMethod,defaultValue='NFW')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="darkMatterProfileMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get</subroutineArgs>
+       !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get</subroutineArgs>
        include 'dark_matter_profiles.inc'
        !# </include>
        if (.not.(     associated(Dark_Matter_Profile_Energy_Get                               )   &
@@ -135,7 +136,8 @@ contains
             &    .and.associated(Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get)   &
             &    .and.associated(Dark_Matter_Profile_Circular_Velocity_Get                    )   &
             &    .and.associated(Dark_Matter_Profile_Potential_Get                            )   &
-            &    .and.associated(Dark_Matter_Profile_Enclosed_Mass_Get                        ))) &
+            &    .and.associated(Dark_Matter_Profile_Enclosed_Mass_Get                        )   &
+            &    .and.associated(Dark_Matter_Profile_kSpace_Get                               ))) &
             & call Galacticus_Error_Report('Dark_Matter_Profile','method ' //char(darkMatterProfileMethod)//' is unrecognized')
        darkMatterProfileInitialized=.true.
     end if
@@ -251,5 +253,21 @@ contains
 
     return
   end function Dark_Matter_Profile_Energy_Growth_Rate
+
+  double precision function Dark_Matter_Profile_kSpace(thisNode,waveNumber)
+    !% Returns the normalized Fourier space density profile of the dark matter profile of {\tt thisNode} at the given {\tt waveNumber}
+    !% (given in units of Mpc$^{-1}$).
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: waveNumber
+
+    ! Initialize the module.
+    call Dark_Matter_Profile_Initialize
+
+    ! Get the circular velocity using the selected method.
+    Dark_Matter_Profile_kSpace=Dark_Matter_Profile_kSpace_Get(thisNode,waveNumber)
+
+    return
+  end function Dark_Matter_Profile_kSpace
 
 end module Dark_Matter_Profiles

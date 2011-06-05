@@ -115,15 +115,16 @@ contains
   subroutine Dark_Matter_Profile_NFW_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get&
        &,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get &
        &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get&
-       &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get)
+       &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get)
     !% Initializes the ``NFW'' halo profile module.
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: darkMatterProfileMethod
     procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get&
-         &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
-         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get
+         &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get &
+         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
+         &,Dark_Matter_Profile_kSpace_Get
     
     if (darkMatterProfileMethod == 'NFW') then
        Dark_Matter_Profile_Energy_Get                                => Dark_Matter_Profile_Energy_NFW
@@ -133,6 +134,7 @@ contains
        Dark_Matter_Profile_Circular_Velocity_Get                     => Dark_Matter_Profile_Circular_Velocity_NFW
        Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_NFW
        Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_NFW       
+       Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_NFW
        ! Ensure that the dark matter profile component supports a "scale" property. Since we've been called with a treeNode to
        ! process, it should have been initialized by now.
        if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call&
@@ -605,6 +607,36 @@ contains
          &,concentrationParameter)/radius**2
     return
   end function Jeans_Equation_Integrand
+
+  double precision function Dark_Matter_Profile_kSpace_NFW(thisNode,waveNumber)
+    !% Returns the Fourier transform of the NFW density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$), using the
+    !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Exponential_Integrals
+   implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: waveNumber
+    double precision                         :: radiusScale,waveNumberScaleFree,concentration
+    
+    ! Get the scale radius.
+    radiusScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+
+    ! Compute the concentration parameter.
+    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale
+
+    ! Get the dimensionless wavenumber.
+    waveNumberScaleFree=waveNumber*radiusScale
+
+    ! Compute the Fourier transformed profile.
+    Dark_Matter_Profile_kSpace_NFW=(                                                                                                                  &
+         & +dsin(              waveNumberScaleFree)*(Sine_Integral  ((1.0d0+concentration)*waveNumberScaleFree)-Sine_Integral  (waveNumberScaleFree)) &
+         & -dsin(concentration*waveNumberScaleFree)/(1.0d0+concentration)/waveNumberScaleFree                                                         &
+         & +dcos(              waveNumberScaleFree)*(Cosine_Integral((1.0d0+concentration)*waveNumberScaleFree)-Cosine_Integral(waveNumberScaleFree)) &
+         &                         )                                                                                                                  &
+         & /(dlog(1.0d0+concentration)-concentration/(1.0d0+concentration))
+    return
+  end function Dark_Matter_Profile_kSpace_NFW
 
   !# <galacticusStateStoreTask>
   !#  <unitName>Dark_Matter_Profiles_NFW_State_Store</unitName>
