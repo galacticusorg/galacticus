@@ -105,6 +105,7 @@ contains
     use Galactic_Structure_Options
     use Satellite_Merging_Mass_Movements_Descriptors
     use Numerical_Constants_Physical
+    use Numerical_Comparison
     use Satellite_Merging_Remnant_Sizes_Properties
     use Galactic_Structure_Rotation_Curves
     use Galacticus_Error
@@ -115,7 +116,8 @@ contains
     type(treeNode),          intent(inout), pointer  :: thisNode
     type(treeNode),                         pointer  :: hostNode
     double precision,        parameter               :: bindingEnergyFormFactor=0.5d+0
-    double precision,        parameter               :: massTolerance          =1.0d-6
+    double precision,        parameter               :: absoluteMassTolerance  =1.0d-6
+    double precision,        parameter               :: relativeMassTolerance  =1.0d-9
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
          &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,hostSpheroidDarkMatterFactor,hostDiskDarkMatterFactor&
          &,satelliteSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor,darkMatterFactor,componentMass
@@ -231,15 +233,14 @@ contains
     end if
 
     hostSpheroidMassPreMerger=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
-
-    if (satelliteSpheroidMass <= 0.0d0 .and. hostSpheroidMass == hostSpheroidMassPreMerger) then
+    if (satelliteSpheroidMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
        remnantRadius                 =remnantNoChangeValue
        remnantCircularVelocity       =remnantNoChangeValue
        remnantSpecificAngularMomentum=remnantNoChangeValue
     else       
        ! Check that the properties of the galaxies are physically reasonable.
        errorCondition=.false.
-       if (satelliteRadius <= 0.0d0 .or. satelliteMass < -massTolerance .or. satelliteSpheroidMass < -massTolerance) then
+       if (satelliteRadius <= 0.0d0 .or. satelliteMass < -absoluteMassTolerance .or. satelliteSpheroidMass < -absoluteMassTolerance) then
           write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') satelliteRadius,satelliteMass,satelliteSpheroidMass
           message='Satellite galaxy ['
           message=message//thisNode%index()//'] has '
@@ -248,11 +249,11 @@ contains
              message=message//trim(joinString)//'non-positive radius'
              joinString=", "
           end if
-          if (satelliteMass         <  -massTolerance) then
+          if (satelliteMass         <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative mass'
              joinString=", "
           end if
-          if (satelliteSpheroidMass <  -massTolerance) then
+          if (satelliteSpheroidMass <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative spheroid mass'
              joinString=", "
           end if
@@ -260,7 +261,7 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if ((hostRadius <= 0.0d0 .and. hostMass > 0.0d0) .or. hostMass < -massTolerance .or. hostSpheroidMass < -massTolerance) then
+       if ((hostRadius <= 0.0d0 .and. hostMass > 0.0d0) .or. hostMass < -absoluteMassTolerance .or. hostSpheroidMass < -absoluteMassTolerance) then
           write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') hostRadius,hostMass,hostSpheroidMass
           message='Host galaxy ['
           message=message//hostNode%index()//'] has '
@@ -269,11 +270,11 @@ contains
              message=message//trim(joinString)//'non-positive radius'
              joinString=", "
           end if
-          if (hostMass         <  -massTolerance) then
+          if (hostMass         <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative mass'
              joinString=", "
           end if
-          if (hostSpheroidMass <  -massTolerance) then
+          if (hostSpheroidMass <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative spheroid mass'
              joinString=", "
           end if
