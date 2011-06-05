@@ -95,6 +95,7 @@ This will launch a single instance of the script. Multiple instances can be laun
  <modelRootDirectory>models.new</modelRootDirectory>
  <baseParameters>newBestParametersQuick.xml</baseParameters>
  <parameters>
+  <label>modelLabel</label>
   <parameter>
    <name>stabilityThresholdStellar</name>
    <value>1.1</value>
@@ -128,7 +129,7 @@ This will launch a single instance of the script. Multiple instances can be laun
 \end{verbatim}
 Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values. Additionally, any {\tt value} element may contain further {\tt parameter} elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\tt [starFormationKennicuttSchmidtTruncate]}$=${\tt true} and {\tt false} only when {\tt [starFormationTimescaleDisksMethod]}$=${\tt Kennicutt-Schmidt} and not when {\tt [starFormationTimescaleDisksMethod]}$=${\tt dynamical time}.
 
-By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur. Additional options that may be present in the file (as elements within the {\tt parameterGrid} element) are:
+By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. By default, these directories have the prefix {\tt galacticus}. This can be changed by including a {\tt label} element inside a {\tt parameters} block, in which case the content of the {\tt label} element will be used as the prefix. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur. Additional options that may be present in the file (as elements within the {\tt parameterGrid} element) are:
 \begin{description}
 \item[{\tt doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be;
 \item[{\tt emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\tt galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.

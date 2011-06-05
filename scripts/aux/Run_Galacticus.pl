@@ -47,6 +47,12 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
     # Increment model set counter.
     ++$iModelSet;
 
+    if ( exists($parameterSet->{'label'}) ) {
+	$modelBaseName = ${$parameterSet->{'label'}}[0];
+    } else {
+	$modelBaseName = "galacticus";
+    }
+
     # Create an array of hashes giving the parameters for this parameter set.
     @parameterHashes = &Create_Parameter_Hashes($parameterSet);
 
@@ -59,7 +65,8 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
 	++$randomSeed;
 
 	# Specify the output directory.
-	$galacticusOutputDirectory = $rootDirectory."/galacticus_".$iModelSet.":".$iModel;
+	$galacticusOutputDirectory = $rootDirectory."/".$modelBaseName."_".$iModelSet.":".$iModel;
+	$galacticusOutputDirectory .= "_".$parameterHash->{'label'} if ( exists($parameterHash->{'label'}) );
 	system("mkdir -p ".$galacticusOutputDirectory);
 
 	# Specify the output file.
@@ -97,8 +104,10 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
 	    delete($data->{'parameter'});
 	    undef(@parameterArray);
 	    foreach $name ( keys(%parameterHash) ) {
-		$parameterArray[++$#parameterArray]->{'name'}  = $name;
-		$parameterArray[  $#parameterArray]->{'value'} = $parameterHash{$name};
+		unless ( $name eq "label" ) {
+		    $parameterArray[++$#parameterArray]->{'name'}  = $name;
+		    $parameterArray[  $#parameterArray]->{'value'} = $parameterHash{$name};
+		}
 	    }
 	    $data->{'parameter'} = \@parameterArray;
 
@@ -243,7 +252,8 @@ sub Create_Parameter_Hashes {
 
 	# Build a parameter hash including only active parameters.
 	my %parameters;
-	my $label = "";
+	my $label  = "";
+	my $joiner = "";
 	foreach $parameter ( @currentParameterPointer ) {
 	    if ( exists($parameter->{'name'}) ) {
 		if ( exists(${$parameter->{'value'}}[$parameter->{'index'}]->{'content'}) ) {
@@ -255,6 +265,10 @@ sub Create_Parameter_Hashes {
 		}
 		$parameters{${$parameter->{'name'}}[0]} = $value;
 		$label .= ":".$parameter->{'ID'}.".".$parameter->{'index'};
+		if ( ${$parameter->{'label'}}[0] eq "yes" ) {
+		    $parameters{'label'} .= $joiner.${$parameter->{'name'}}[0]."=".$value;
+		    $joiner = ":";
+		}
 	    }
 	}
 
