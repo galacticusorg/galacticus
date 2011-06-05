@@ -109,6 +109,21 @@ Once the tree has been read, \glc\ processes it according to the following rules
 
 Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
 
+\subsubsection{Requirements for \glc\ Input Parameters}
+
+The following requirements must be met for the input parameters to \glc\ when using merger trees read from file:
+\begin{itemize}
+ \item The cosmological parameters ($\Omega_0$, $\Omega_\Lambda$, $\Omega_{\rm b}$, $H_0$, $\sigma_8$), if defined in the file, must be set identically in the \glc\ input file;
+ \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set {\tt [allTreesExistAtFinalTime]}$=${\tt false}.
+\end{itemize}
+
+\subsection{Setting of Halo Properties}
+
 \subsubsection{Dark Matter Scale Radii}\index{dark matter halo!concentration}\index{dark matter halo!scale radius}
 
 If {\tt [mergerTreeReadPresetScaleRadii]}$=${\tt true} and the {\tt halfMassRadius} dataset is available within the {\tt haloTrees} group (see \S\ref{sec:HaloTreesGroup}) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This requires a dark matter profile scale component which supports setting of the scale length (see \S\ref{sec:DarkMatterProfileComponent}).
+
+\subsubsection{Satellite Merger Times}\index{merger times}\index{satellite!merger times}
+
+If {\tt [mergerTreeReadPresetMergerTimes]}$=${\tt true} then merger times for satellites will be computed directly from the merger tree data read from file. When a subhalo has an isolated halo as a descendent it is assumed to undergo a merger with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger times (e.g. {\tt [treeNodeMethodSatelliteOrbit]}$=${\tt preset}).
+
