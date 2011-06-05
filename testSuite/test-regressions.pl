@@ -21,6 +21,7 @@ sub runRegressions {
     # Test if this is a script to run.
     if ( $fileName =~ m/\.xml$/ ) {
 	print "\n\n:--> Running regression test case: ".$fileName."\n";
-	system("cd ../..; Galacticus.exe testSuite/".$File::Find::dir."/".$fileName);
+	system("cd ../..; Galacticus.exe testSuite/".$File::Find::dir."/".$fileName);       
+	print "FAILED: regression test case: ".$fileName."\n" unless ( $? == 0 );
     }
 }
