@@ -141,6 +141,9 @@ contains
     ! Check for zero velocity spheroid.
     if (spheroidVelocity <= 0.0d0) then
        Star_Formation_Timescale_Spheroid_Dynamical_Time=0.0d0 ! No well defined answer in this case.
+    else if (starFormationSpheroidEfficiency == 0.0d0) then
+       ! No star formation occurs if the efficiency is zero.
+       Star_Formation_Timescale_Spheroid_Dynamical_Time=0.0d0
     else
        ! Get the dynamical time in Gyr.
        dynamicalTime=Mpc_per_km_per_s_To_Gyr*Tree_Node_Spheroid_Radius(thisNode)/spheroidVelocity

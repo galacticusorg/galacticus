@@ -140,6 +140,9 @@ contains
     ! Check for zero velocity disk.
     if (diskVelocity <= 0.0d0) then
        Star_Formation_Timescale_Disk_Dynamical_Time=0.0d0 ! No well defined answer in this case.
+    else if (starFormationDiskEfficiency == 0.0d0) then
+       ! No star formation occurs if the efficiency is zero.
+       Star_Formation_Timescale_Disk_Dynamical_Time=0.0d0
     else
        ! Get the dynamical time in Gyr.
        dynamicalTime=Mpc_per_km_per_s_To_Gyr*Tree_Node_Disk_Radius(thisNode)/diskVelocity
