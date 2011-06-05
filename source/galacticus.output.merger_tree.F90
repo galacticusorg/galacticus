@@ -206,14 +206,14 @@ contains
        call Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
        
        ! Create references for this tree.
-       if (integerPropertyCount > 0) then
+       if (integerPropertyCount > 0 .and. integerPropertiesWritten > 0) then
           do iProperty=1,integerPropertyCount
              toDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,integerPropertyNames(iProperty))
              call thisTree%hdf5Group%createReference1D(toDataset,integerPropertyNames(iProperty),referenceStart+1,referenceLength)
              call toDataset%close()
           end do
        end if
-       if (doublePropertyCount > 0) then
+       if (doublePropertyCount > 0  .and. doublePropertiesWritten  > 0) then
           do iProperty=1,doublePropertyCount
              toDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,doublePropertyNames(iProperty))
              call thisTree%hdf5Group%createReference1D(toDataset,doublePropertyNames(iProperty),referenceStart+1,referenceLength)
