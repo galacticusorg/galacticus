@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -57,6 +57,7 @@
 !!    1200 E. California Blvd.
 !!    Pasadena, California 91125
 !!    http://www.ott.caltech.edu
+
 
 !% Contains a driver program for reading CSV files of merger trees from the Millennium Simulation database and converting to
 !% \glc's HDF5 format merger tree files.
