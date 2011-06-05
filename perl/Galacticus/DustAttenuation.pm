@@ -58,7 +58,7 @@ sub Get_Dust_Attenuated_Luminosity {
 	$extrapolateInSize = 1;
     }
     if ( exists(${$dataSet}{'dustAtlasExtrapolateInTau'}) ) {
-	$extrapolateInSize = ${$dataSet}{'dustAtlasExtrapolateInTau'};
+	$extrapolateInTau = ${$dataSet}{'dustAtlasExtrapolateInTau'};
 	if ( lc($extrapolateInTau) eq "yes" ) {$extrapolateInTau = 1};
 	if ( lc($extrapolateInTau) eq "no"  ) {$extrapolateInTau = 0};
     } else {
