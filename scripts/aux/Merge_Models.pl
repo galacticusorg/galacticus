@@ -50,7 +50,7 @@ foreach $mergeFile ( @mergeFiles ) {
 	    $outputsGroup    = $mergeFile->group($rootGroup);
 	    $newOutputsGroup = $outputFile->group($rootGroup);
 	    # Get a list of subgroups to search.
-	    if ( $groupsWithTrees{$rootGroup} == "." ) {
+	    if ( $groupsWithTrees{$rootGroup} eq "." ) {
 		undef(@outputGroups);
 		@outputGroups[0] = $outputsGroup;
 	    } else {
@@ -59,7 +59,7 @@ foreach $mergeFile ( @mergeFiles ) {
 	    # Loop over subgroups.
 	    foreach $outputGroup ( @outputGroups ) {
 		# Get groups into which trees will be stored.
-		if ( $groupsWithTrees{$rootGroup} == "." ) {
+		if ( $groupsWithTrees{$rootGroup} eq "." ) {
 		    $thisOutputGroup = $outputsGroup;
 		    $newOutputGroup  = $newOutputsGroup;
 		} else {
