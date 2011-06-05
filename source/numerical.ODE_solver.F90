@@ -59,7 +59,10 @@
 !!    http://www.ott.caltech.edu
 
 
+!% Contains a module which provides an interface to the GNU Scientific Library ODEIV differential equation solvers.
+
 module ODE_Solver
+  !% Contains an interface to the GNU Scientific Library ODEIV differential equation solvers.
   use ODE_Solver_Error_Codes
   use FGSL
   use, intrinsic :: ISO_C_Binding
@@ -69,7 +72,8 @@ module ODE_Solver
 contains
   
   subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odeFunction,parameterPointer&
-       &,toleranceAbsolute,toleranceRelative,reset)
+       &,toleranceAbsolute,toleranceRelative,yScale,reset)
+    !% Interface to the GNU Scientific Library ODEIV differential equation solvers.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
@@ -77,12 +81,14 @@ contains
     type(c_ptr),              intent(in)              :: parameterPointer
     integer,                  intent(in)              :: yCount
     double precision,         intent(inout)           :: x0,y(yCount)
+    double precision,         intent(in),    optional :: yScale(yCount)
     type(fgsl_odeiv_step),    intent(inout)           :: odeStepper
     type(fgsl_odeiv_control), intent(inout)           :: odeController
     type(fgsl_odeiv_evolve),  intent(inout)           :: odeEvolver
     type(fgsl_odeiv_system),  intent(inout)           :: odeSystem
     logical,                  intent(inout), optional :: reset
     integer(kind=4),          external                :: odeFunction
+    double precision,         parameter               :: yScaleUniform=1.0d0, dydtScaleUniform=0.0d0
     integer                                           :: status
     integer(c_size_t)                                 :: odeNumber
     double precision                                  :: x,h,x1Internal
@@ -98,10 +104,14 @@ contains
        reset=.false.
     end if
     if (resetActual.or..not.FGSL_Well_Defined(odeSystem)) then
-       odeStepper   =FGSL_ODEiv_Step_Alloc   (FGSL_ODEiv_Step_RKF45,odeNumber)
-       odeController=FGSL_ODEiv_Control_y_New(toleranceAbsolute,toleranceRelative)
-       odeEvolver   =FGSL_ODEiv_Evolve_Alloc (odeNumber)
-       odeSystem    =FGSL_ODEiv_System_Init  (odeFunction,odeNumber,parameterPointer)
+       odeStepper      =FGSL_ODEiv_Step_Alloc        (FGSL_ODEiv_Step_RKCK,odeNumber)
+       if (present(yScale)) then
+          odeController=FGSL_ODEiv_Control_Scaled_New(toleranceAbsolute,toleranceRelative,yScaleUniform,dydtScaleUniform,yScale,odeNumber)
+       else
+          odeController=FGSL_ODEiv_Control_y_New     (toleranceAbsolute,toleranceRelative                                                )
+       end if
+       odeEvolver      =FGSL_ODEiv_Evolve_Alloc      (odeNumber)
+       odeSystem       =FGSL_ODEiv_System_Init       (odeFunction,odeNumber,parameterPointer)
     end if
 
     ! Keep a local copy of the end point as we may reset it.

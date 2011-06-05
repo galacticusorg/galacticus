@@ -68,7 +68,7 @@ module Tree_Node_Methods_Basic_Standard
   private
   public :: Tree_Node_Methods_Basic_Initialize_Standard, Tree_Node_Basic_Promote_Standard, Halo_Mass_Accretion_Rate_Standard, Tree_Node_Mass_Stop_Accretion_Standard,&
        & Galacticus_Output_Tree_Basic_Names_Standard, Galacticus_Output_Tree_Basic_Property_Count_Standard, Galacticus_Output_Tree_Basic_Standard,&
-       & Tree_Node_Methods_Basic_Dump_Standard
+       & Tree_Node_Methods_Basic_Dump_Standard, Basic_Standard_Scale_Set
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -271,6 +271,30 @@ contains
     return
   end function Tree_Node_Time_Last_Isolated_Basic
 
+  !# <scaleSetTask>
+  !#  <unitName>Basic_Standard_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Basic_Standard_Scale_Set(thisNode)
+    !% Set scales for properties of {\tt thisNode}.
+    implicit none
+    type(treeNode),   pointer, intent(inout)       :: thisNode
+    double precision, parameter                    :: timeScale        =1.0d-3
+    double precision, parameter                    :: scaleMassRelative=1.0d-6
+    integer                                        :: thisIndex
+ 
+    ! Determine if method is active and a basic component exists.
+    if (methodSelected.and.thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Basic_Index(thisNode)
+
+       ! Set scale for time.
+       thisNode%components(thisIndex)%properties(timeIndex,propertyScale)=timeScale
+
+       ! Set scale for mass.
+       thisNode%components(thisIndex)%properties(massIndex,propertyScale)=Tree_Node_Mass(thisNode)*scaleMassRelative
+
+    end if
+    return
+  end subroutine Basic_Standard_Scale_Set
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Halo_Mass_Accretion_Rate_Standard</unitName>

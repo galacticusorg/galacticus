@@ -68,7 +68,8 @@ module Tree_Node_Methods_Black_Hole
   private
   public :: Tree_Node_Methods_Black_Hole_Initialize, Galacticus_Output_Tree_Black_Hole_Standard,&
        & Galacticus_Output_Tree_Black_Hole_Standard_Property_Count, Galacticus_Output_Tree_Black_Hole_Standard_Names,&
-       & Tree_Node_Black_Hole_Reset_Standard, Black_Hole_Satellite_Merging, Tree_Node_Methods_Black_Hole_Standard_Dump
+       & Tree_Node_Black_Hole_Reset_Standard, Black_Hole_Satellite_Merging, Tree_Node_Methods_Black_Hole_Standard_Dump,&
+       & Black_Hole_Standard_Scale_Set
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -444,6 +445,30 @@ contains
 
     return
   end subroutine Tree_Node_Black_Hole_Spin_Rate_Compute_Standard
+
+  !# <scaleSetTask>
+  !#  <unitName>Black_Hole_Standard_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Black_Hole_Standard_Scale_Set(thisNode)
+    !% Set scales for properties of {\tt thisNode}.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision, parameter              :: scaleMassRelative=1.0d-4
+    integer                                  :: thisIndex
+ 
+    ! Determine if method is active and a black hole component exists.
+    if (methodSelected.and.thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+
+       ! Set scale for mass.
+       thisNode%components(thisIndex)%properties(massIndex,propertyScale)=max(Tree_Node_Spheroid_Stellar_Mass(thisNode)*scaleMassRelative,Tree_Node_Black_Hole_Mass(thisNode))
+
+       ! Set scale for spin.
+       thisNode%components(thisIndex)%properties(spinIndex,propertyScale)=1.0d0
+
+    end if
+    return
+  end subroutine Black_Hole_Standard_Scale_Set
 
   !# <satelliteMergerTask>
   !#  <unitName>Black_Hole_Satellite_Merging</unitName>

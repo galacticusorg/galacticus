@@ -70,8 +70,8 @@ module Tree_Node_Methods_Hot_Halo
   public :: Tree_Node_Methods_Hot_Halo_Initialize, Hot_Halo_Starve, Hot_Halo_Remove_Before_Satellite_Merging,&
        & Tree_Node_Hot_Halo_Promote, Hot_Halo_Subresolution_Initialize, Galacticus_Output_Tree_Hot_Halo_Standard,&
        & Galacticus_Output_Tree_Hot_Halo_Standard_Property_Count, Galacticus_Output_Tree_Hot_Halo_Standard_Names,&
-       & Tree_Node_Hot_Halo_Reset_Standard, Tree_Node_Hot_Halo_Post_Evolve_Standard,&
-       & Tree_Node_Methods_Hot_Halo_Standard_Dump
+       & Tree_Node_Hot_Halo_Reset_Standard, Tree_Node_Hot_Halo_Post_Evolve_Standard, Tree_Node_Methods_Hot_Halo_Standard_Dump,&
+       & Hot_Halo_Scale_Set
   
   ! Internal count of abundances.
   integer :: abundancesCount
@@ -880,6 +880,34 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Compute_Standard
 
+  !# <scaleSetTask>
+  !#  <unitName>Hot_Halo_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Hot_Halo_Scale_Set(thisNode)
+    !% Set scales for properties of {\tt thisNode}.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision, parameter              :: scaleMassRelative=1.0d-6
+    integer                                  :: thisIndex
+    double precision                         :: massVirial,radiusVirial,velocityVirial
+
+    ! Determine if method is active and a hot halo component exists.
+    if (methodSelected.and.thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+       massVirial    =Tree_Node_Mass                  (thisNode)
+       radiusVirial  =Dark_Matter_Halo_Virial_Radius  (thisNode)
+       velocityVirial=Dark_Matter_Halo_Virial_Velocity(thisNode)
+       thisNode%components(thisIndex)%properties(massIndex                                           ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%properties(outflowedMassIndex                                  ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%properties(unaccretedMassIndex                                 ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%properties(hotAbundancesIndex      :hotAbundancesIndexEnd      ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%properties(angularMomentumIndex                                ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
+       thisNode%components(thisIndex)%properties(outflowedAngularMomentumIndex                       ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
+    end if
+    return
+  end subroutine Hot_Halo_Scale_Set
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Hot_Halo_Subresolution_Initialize</unitName>

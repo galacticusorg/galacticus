@@ -85,8 +85,8 @@ contains
   !#  <unitName>Stellar_Population_Properties_Noninstantaneous_Initialize</unitName>
   !# </stellarPopulationPropertiesMethod>
   subroutine Stellar_Population_Properties_Noninstantaneous_Initialize(stellarPopulationPropertiesMethod &
-       &,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_History_Count_Get&
-       &,Stellar_Population_Properties_History_Create_Do)
+       &,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get&
+       &,Stellar_Population_Properties_History_Count_Get ,Stellar_Population_Properties_History_Create_Do)
     !% Initializes the noninstantaneous recycling stellar population properties module.
     use ISO_Varying_String
     use Input_Parameters
@@ -94,10 +94,12 @@ contains
     implicit none
     type(varying_string),          intent(in)    :: stellarPopulationPropertiesMethod
     procedure(integer),   pointer, intent(inout) :: Stellar_Population_Properties_History_Count_Get
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_History_Create_Do
+    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get&
+         &,Stellar_Population_Properties_History_Create_Do,Stellar_Population_Properties_Scales_Get
     
     if (stellarPopulationPropertiesMethod == 'noninstantaneous') then
        Stellar_Population_Properties_Rates_Get         => Stellar_Population_Properties_Rates_Noninstantaneous    
+       Stellar_Population_Properties_Scales_Get        => Stellar_Population_Properties_Scales_Noninstantaneous    
        Stellar_Population_Properties_History_Count_Get => Stellar_Population_Properties_History_Count_Noninstantaneous    
        Stellar_Population_Properties_History_Create_Do => Stellar_Population_Properties_History_Create_Noninstantaneous
        !@ <inputParameter>
@@ -247,6 +249,50 @@ contains
     end do
     return
   end subroutine Stellar_Population_Properties_Rates_Noninstantaneous
+
+  subroutine Stellar_Population_Properties_Scales_Noninstantaneous(thisHistory,stellarMass,stellarAbundances)
+    !% Set the scalings for error control on the absolute values of stellar population properties.
+    use Histories
+    use Stellar_Feedback
+    use Abundances_Structure
+    use Memory_Management
+    implicit none
+    double precision,          intent(in)                            :: stellarMass
+    type(abundancesStructure), intent(in)                            :: stellarAbundances
+    type(history),             intent(inout)                         :: thisHistory
+    double precision,          parameter                             :: stellarMassMinimum      =1.0d0
+    double precision,          parameter                             :: stellarAbundancesMinimum=1.0d0
+    double precision,          dimension(elementsCount)              :: abundances
+    double precision,          dimension(:            ), allocatable :: timeSteps
+    integer                                                          :: scaleIndex
+
+    ! Get timesteps.
+    call thisHistory%timeSteps(timeSteps)
+
+    ! Get abundances.
+    call stellarAbundances%unpack(abundances)
+
+    ! Set scaling factors for recycled mass.
+    thisHistory   %scales(:,recycledRateIndex   )=max(stellarMass,stellarMassMinimum      )                                       /timeSteps
+
+    ! Set scaling factors for metal recycling rates.
+    forall(scaleIndex=returnedMetalRateBeginIndex:returnedMetalRateEndIndex)
+       thisHistory%scales(:,scaleIndex          )=max(abundances ,stellarAbundancesMinimum)                                       /timeSteps
+    end forall
+
+    ! Set scaling factors for metal yield rates.
+    forall(scaleIndex=metalYieldRateBeginIndex   :metalYieldRateEndIndex)
+       thisHistory%scales(:,scaleIndex          )=max(abundances ,stellarAbundancesMinimum)                                       /timeSteps
+    end forall
+    
+    ! Set scaling factors for energy input rates.
+    thisHistory   %scales(:,energyInputRateIndex)=max(stellarMass,stellarMassMinimum      )*feedbackEnergyInputAtInfinityCanonical/timeSteps
+
+    ! Destroy temporary array.
+    call Dealloc_Array(timeSteps)
+
+    return
+  end subroutine Stellar_Population_Properties_Scales_Noninstantaneous
 
   subroutine Stellar_Population_Properties_History_Create_Noninstantaneous(thisNode,thisHistory)
     !% Create any history required for storing stellar population properties.

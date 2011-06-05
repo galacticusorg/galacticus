@@ -75,7 +75,8 @@ module Components
      type(component),  pointer                     :: nextComponentOfType
   end type component
 
-  ! Indices for second dimension of properties array used to store value and derivative of each property.
-  integer, public, parameter :: propertyValue=1,propertyDerivative=2
+  ! Indices for second dimension of properties array used to store value, derivative and scale of each property.
+  integer, public, parameter :: labelValue   =1,labelDerivative   =2,labelScale   =3
+  integer, public, parameter :: propertyValue=1,propertyDerivative=2,propertyScale=2
 
 end module Components

@@ -289,7 +289,7 @@
   </parameter>
   <parameter>
     <name>odeToleranceAbsolute</name>
-    <value>1e-30</value>
+    <value>0.01</value>
   </parameter>
   <parameter>
     <name>odeToleranceRelative</name>

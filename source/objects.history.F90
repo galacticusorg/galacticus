@@ -71,6 +71,8 @@ module Histories
      double precision, allocatable, dimension(:  ) :: time
      double precision, allocatable, dimension(:,:) :: data
      double precision, allocatable, dimension(:,:) :: rates
+     double precision, allocatable, dimension(:,:) :: scales
+     integer                                       :: rangeType
 
    contains
      
@@ -100,13 +102,18 @@ module Histories
      !@     <method>exists</method>
      !@     <description>Returns true if the given history has been created.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>timeSteps</method>
+     !@     <description>Returns an array with the timesteps (i.e. the intervals between successive times) in the given history.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create  => History_Create
-     procedure :: destroy => History_Destroy
-     procedure :: trim    => History_Trim
-     procedure :: add     => History_Add
-     procedure :: reset   => History_Reset
-     procedure :: exists  => History_Exists
+     procedure :: create    => History_Create
+     procedure :: destroy   => History_Destroy
+     procedure :: trim      => History_Trim
+     procedure :: add       => History_Add
+     procedure :: reset     => History_Reset
+     procedure :: exists    => History_Exists
+     procedure :: timeSteps => History_Timesteps
   end type history
 
   ! Operators for history object.
@@ -123,8 +130,9 @@ module Histories
   double precision, public            :: historyStorageLatestTime  =15.0d0
 
   ! Labels for targets when adding to histories.
-  integer,          public, parameter :: historyData =1
-  integer,          public, parameter :: historyRates=2
+  integer,          public, parameter :: historyData  =1
+  integer,          public, parameter :: historyRates =2
+  integer,          public, parameter :: historyScales=3
 
 contains
 
@@ -157,10 +165,11 @@ contains
     if (allocated(thisHistory%time)) then
        call Galacticus_Error_Report('History_Create','this history appears to have been created already')
     else
-       allocate(thisHistory%time (timesCount             ))
-       allocate(thisHistory%data (timesCount,historyCount))
-       allocate(thisHistory%rates(timesCount,historyCount))
-       call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data)+sizeof(thisHistory%rates),memoryType=memoryTypeNodes,blockCount=3)
+       allocate(thisHistory%time  (timesCount             ))
+       allocate(thisHistory%data  (timesCount,historyCount))
+       allocate(thisHistory%rates (timesCount,historyCount))
+       allocate(thisHistory%scales(timesCount,historyCount))
+       call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data)+sizeof(thisHistory%rates)+sizeof(thisHistory%scales),memoryType=memoryTypeNodes,blockCount=3)
        if (present(timeBegin)) then
           if (.not.present(timeEnd)) call Galacticus_Error_Report('History_Create','an end time must be given if a begin time is given')
           if (present(rangeType)) then
@@ -169,6 +178,7 @@ contains
              rangeTypeActual=rangeTypeLogarithmic
           end if
           thisHistory%time=Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
+          thisHistory%rangeType=rangeTypeActual
        else
           thisHistory%time=0.0d0
        end if
@@ -193,10 +203,11 @@ contains
     if (allocated(thisHistory%time)) then
        timesCount  =size(thisHistory%time      )
        historyCount=size(thisHistory%data,dim=2)
-       call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data)+sizeof(thisHistory%rates),memoryType=memoryTypeNodes,addRemove=-1,blockCount=3)
-       deallocate(thisHistory%time )
-       deallocate(thisHistory%data )
-       deallocate(thisHistory%rates)
+       call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data)+sizeof(thisHistory%rates)+sizeof(thisHistory%scales),memoryType=memoryTypeNodes,addRemove=-1,blockCount=3)
+       deallocate(thisHistory%time  )
+       deallocate(thisHistory%data  )
+       deallocate(thisHistory%rates )
+       deallocate(thisHistory%scales)
     end if
     return
   end subroutine History_Destroy
@@ -212,8 +223,9 @@ contains
 #endif
     
     if (allocated(thisHistory%time)) then
-       thisHistory%data =0.0d0
-       thisHistory%rates=0.0d0
+       thisHistory%data  =0.0d0
+       thisHistory%rates =0.0d0
+       thisHistory%scales=0.0d0
     end if
     return
   end subroutine History_Reset
@@ -279,25 +291,29 @@ contains
     ! Check if there are enough removable points to warrant actually doing the removal.
     if (iTrim >= minimumPointsToRemoveActual) then
        ! Move current history to temporary storage.
-       call Move_Alloc(thisHistory%time ,temporaryHistory%time )
-       call Move_Alloc(thisHistory%data ,temporaryHistory%data )
-       call Move_Alloc(thisHistory%rates,temporaryHistory%rates)
+       call Move_Alloc(thisHistory%time  ,temporaryHistory%time  )
+       call Move_Alloc(thisHistory%data  ,temporaryHistory%data  )
+       call Move_Alloc(thisHistory%rates ,temporaryHistory%rates )
+       call Move_Alloc(thisHistory%scales,temporaryHistory%scales)
        ! Reallocate the history arrays.
        newPointCount=currentPointCount-iTrim
        historyCount =size(temporaryHistory%data,dim=2)
-       allocate(thisHistory%time (newPointCount             ))
-       allocate(thisHistory%data (newPointCount,historyCount))
-       allocate(thisHistory%rates(newPointCount,historyCount))
+       allocate(thisHistory%time  (newPointCount             ))
+       allocate(thisHistory%data  (newPointCount,historyCount))
+       allocate(thisHistory%rates (newPointCount,historyCount))
+       allocate(thisHistory%scales(newPointCount,historyCount))
        ! Copy the data back into the new arrays.
-       thisHistory%time (:  )=temporaryHistory%time (iTrim+1:currentPointCount  )
-       thisHistory%data (:,:)=temporaryHistory%data (iTrim+1:currentPointCount,:)
-       thisHistory%rates(:,:)=temporaryHistory%rates(iTrim+1:currentPointCount,:)
+       thisHistory%time  (:  )=temporaryHistory%time  (iTrim+1:currentPointCount  )
+       thisHistory%data  (:,:)=temporaryHistory%data  (iTrim+1:currentPointCount,:)
+       thisHistory%rates (:,:)=temporaryHistory%rates (iTrim+1:currentPointCount,:)
+       thisHistory%scales(:,:)=temporaryHistory%scales(iTrim+1:currentPointCount,:)
        ! Deallocate the temporary arrays.
-       deallocate(temporaryHistory%time )
-       deallocate(temporaryHistory%data )
-       deallocate(temporaryHistory%rates)
+       deallocate(temporaryHistory%time  )
+       deallocate(temporaryHistory%data  )
+       deallocate(temporaryHistory%rates )
+       deallocate(temporaryHistory%scales)
        ! Account for change in memory usage.
-       call Memory_Usage_Record(int(iTrim*(1+2*historyCount),C_SIZE_T)*sizeof(thisHistory%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
+       call Memory_Usage_Record(int(iTrim*(1+3*historyCount),C_SIZE_T)*sizeof(thisHistory%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
     end if
     return
   end subroutine History_Trim
@@ -387,6 +403,7 @@ contains
     if (allocated(History_Division_Double%data)) History_Division_Double%data=History_Division_Double%data/divisor
     return
   end function History_Division_Double
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Histories_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -414,5 +431,37 @@ contains
     read (stateFile) historyStorageEarliestTime,historyStorageLatestTime
     return
   end subroutine Histories_State_Retrieve
+
+  subroutine History_Timesteps(thisHistory,timeSteps)
+    !% Return an array of time intervals in {\tt thisHistory}.
+    use Memory_Management
+    use Numerical_Ranges
+    implicit none
+#ifdef GCC45
+    class(history),   intent(in)                               :: thisHistory
+#else
+    type(history),    intent(in)                               :: thisHistory
+#endif
+    double precision, intent(inout), allocatable, dimension(:) :: timeSteps
+    integer                                                    :: iTime
+    double precision                                           :: ratio
+
+    call Alloc_Array(timeSteps,shape(thisHistory%time))
+    select case (thisHistory%rangeType)
+    case (rangeTypeLogarithmic)
+       ratio=thisHistory%time(2)/thisHistory%time(1)
+       forall(iTime=1:size(thisHistory%time))
+          timeSteps(iTime)=thisHistory%time(1)*(ratio**(dble(iTime)-0.5d0)-ratio**(dble(iTime)-1.5d0))
+       end forall
+    case (rangeTypeLinear     )
+       timeSteps=thisHistory%time(2)-thisHistory%time(1)
+    case default
+       timeSteps(1)=thisHistory%time(1)
+       forall(iTime=2:size(thisHistory%time))
+          timeSteps(iTime)=thisHistory%time(iTime)-thisHistory%time(iTime-1)
+       end forall
+    end select
+    return
+  end subroutine History_Timesteps
   
 end module Histories
