@@ -113,6 +113,8 @@ $plot1->gnuplot_set_xlabel("M_{bulge} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
 $plot1->gnuplot_set_ylabel("M_{black hole} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
 $plot1->gnuplot_set_title("Black hole mass vs. bulge mass");
 $plot1->gnuplot_cmd("set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.6, screen 0.2");
+$plot1->gnuplot_cmd("set xrange [1.0e8:1.0e13]");
+$plot1->gnuplot_cmd("set yrange [1.0e6:1.0e10]");
 $plot1->gnuplot_cmd("set key left");
 $plot1->gnuplot_cmd("set logscale xy");
 $plot1->gnuplot_cmd("set mxtics 10");
