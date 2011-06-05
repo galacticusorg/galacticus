@@ -1111,7 +1111,10 @@ contains
 !   end subroutine Merger_Tree_Walk_Tree_With_Satellites_Same_Node
 
   subroutine Merger_Tree_Walk_Tree_With_Satellites(thisNode,nextNode)
-    !% Merger tree walk function which also descends through satellite nodes.
+    !% Merger tree walk function which also descends through satellite nodes. Note that it is important that the walk descends to
+    !% satellites before descending to children: the routines that destroy merger tree branches rely on this since child nodes are
+    !% used in testing whether a node is a satellite---if they are destroyed prior to the test being made then problems with
+    !% dangling pointers will occur.
     implicit none
 #ifdef GCC45
     class (treeNode), target , intent(inout) :: thisNode
@@ -1133,40 +1136,41 @@ contains
 
     if (.not.associated(workNode%parentNode)) then
        ! This is the base of the merger tree.
-       do while (associated(workNode%childNode))
-          workNode => workNode%childNode
-       end do
        ! Descend through any satellite nodes.
        do while (associated(workNode%satelliteNode))
           workNode => workNode%satelliteNode
+       end do
+       ! Descend through any child nodes.
+       do while (associated(workNode%childNode))
+          workNode => workNode%childNode
        end do
        if (associated(workNode,thisNodeActual)) nullify(workNode)
     else
        if (associated(workNode%siblingNode)) then
           workNode => workNode%siblingNode
-          do while (associated(workNode%childNode))
-             workNode => workNode%childNode
-          end do
           ! Descend through any satellite nodes.
           do while (associated(workNode%satelliteNode))
              workNode => workNode%satelliteNode
           end do
+          ! Descend through any child nodes.
+          do while (associated(workNode%childNode))
+             workNode => workNode%childNode
+          end do
        else
           ! About to move back up the tree. Check if the node we're moving up from is a satellite.
           if (workNode%isSatellite()) then
-             ! It is a satellite, so all satellites and children of the parent must have been processed. Therefore, move to the
-             ! parent.
-             workNode => workNode%parentNode
-          else
-             ! It is not a satellite. Therefore, the parent may have satellites that have yet to be visited. Check if the parent
-             ! has satellites.
-             if (associated(workNode%parentNode%satelliteNode)) then
-                ! Parent does have satellites, so move to the first one.
-                workNode => workNode%parentNode%satelliteNode
+             ! It is a satellite. Therefore, the parent may have children that have yet to be visited. Check if the parent has
+             ! children.
+             if (associated(workNode%parentNode%childNode)) then
+                ! Parent does have children, so move to the first one.
+                workNode => workNode%parentNode%childNode
              else
-                ! Parent has no satellites, so move to the parent.
+                ! Parent has no children, so move to the parent.
                 workNode => workNode%parentNode
              end if
+          else
+             ! It is not a satellite, so all satellites and children have been processed.
+             workNode => workNode%parentNode
           end if
           if (.not.associated(workNode%parentNode)) workNode => null() ! Terminate when back at tree base.
        end if
@@ -1221,11 +1225,14 @@ contains
   end subroutine Merger_Tree_Walk_Branch
 
   subroutine Merger_Tree_Walk_Branch_With_Satellites(thisNode,startNode,nextNode)
-    !% This function provides a mechanism for walking through the branches of the merger tree. Given a pointer {\tt thisNode}
-    !% to a branch of the tree, it will return the next node that should be visited in the tree. Thus, if {\tt thisNode} is
-    !% initially set to the base of the merger tree and {\tt Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node
-    !% of the branch. Once the entire branch has been walked, a {\tt null()} pointer will be returned, indicating that there
-    !% are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
+    !% This function provides a mechanism for walking through the branches of the merger tree. Given a pointer {\tt thisNode} to a
+    !% branch of the tree, it will return the next node that should be visited in the tree. Thus, if {\tt thisNode} is initially
+    !% set to the base of the merger tree and {\tt Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every
+    !% node of the branch. Once the entire branch has been walked, a {\tt null()} pointer will be returned, indicating that there
+    !% are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way. Note that it
+    !% is important that the walk descends to satellites before descending to children: the routines that destroy merger tree
+    !% branches rely on this since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to
+    !% the test being made then problems with dangling pointers will occur.
     implicit none
 #ifdef GCC45
     class (treeNode), target,  intent(inout) :: thisNode
@@ -1246,41 +1253,42 @@ contains
     workNode => thisNode
     
     if (associated(thisNode,startNode)) then
-       ! Descend to any children.
-       do while (associated(workNode%childNode))
-          workNode => workNode%childNode
-       end do
        ! Descend through any satellite nodes.
        do while (associated(workNode%satelliteNode))
           workNode => workNode%satelliteNode
+       end do
+       ! Descend to any children.
+       do while (associated(workNode%childNode))
+          workNode => workNode%childNode
        end do
        if (associated(workNode,thisNode)) nullify(workNode)
     else
        if (associated(workNode%siblingNode)) then
           workNode => workNode%siblingNode
-          do while (associated(workNode%childNode))
-             workNode => workNode%childNode
-          end do
           ! Descend through any satellite nodes.
           do while (associated(workNode%satelliteNode))
              workNode => workNode%satelliteNode
           end do
+          ! Descend to any children.
+          do while (associated(workNode%childNode))
+             workNode => workNode%childNode
+          end do
        else
           ! About to move back up the tree. Check if the node we're moving up from is a satellite.
           if (workNode%isSatellite()) then
-             ! It is a satellite, so all satellites and children of the parent must have been processed. Therefore, move to the
-             ! parent.
-             workNode => workNode%parentNode
-          else
-             ! It is not a satellite. Therefore, the parent may have satellites that have yet to be visited. Check if the parent
-             ! has satellites.
-             if (associated(workNode%parentNode%satelliteNode)) then
-                ! Parent does have satellites, so move to the first one.
-                workNode => workNode%parentNode%satelliteNode
+             ! It is a satellite. Therefore, the parent may have children that have yet to be visited. Check if the parent
+             ! has childern.
+             if (associated(workNode%parentNode%childNode)) then
+                ! Parent does have children, so move to the first one.
+                workNode => workNode%parentNode%childNode
              else
                 ! Parent has no satellites, so move to the parent.
                 workNode => workNode%parentNode
              end if
+          else
+             ! It is not a satellite, so all satellites and children of the parent must have been processed. Therefore, move to the
+             ! parent.
+             workNode => workNode%parentNode
           end if
           if (associated(workNode,startNode)) workNode => null() ! Terminate when back at starting node.
        end if
