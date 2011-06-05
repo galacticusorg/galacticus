@@ -67,6 +67,12 @@ module Merger_Trees_Evolve
   private
   public :: Merger_Tree_Evolve_To
 
+  ! Flag indicating if evolver routine has been initialized.
+  logical          :: mergerTreeEvolveToInitialized=.false.
+
+  ! Flag indicating whether or not to fail for trees which do not exist at the final output time.
+  logical          :: allTreesExistAtFinalTime
+
   ! Variables which limit extent to which satellites can evolve past their parent.
   logical          :: evolveToTimeInitialized=.false.
   double precision :: timestepHostAbsolute,timestepHostRelative
@@ -81,6 +87,7 @@ contains
     use Events_Interrupts
     use Galacticus_Error
     use Galacticus_Display
+    use Input_Parameters
     implicit none
     type(mergerTree),                         intent(inout) :: thisTree
     double precision,                         intent(in)    :: endTime
@@ -95,6 +102,26 @@ contains
     logical                                                 :: interrupted,didEvolve
     character(len=35)                                       :: message
 
+    ! Check if this routine is initialized.
+    !$omp critical(Merger_Tree_Evolve_To_Initialize)
+    if (.not.mergerTreeEvolveToInitialized) then
+       ! Read parameters.
+       !@ <inputParameter>
+       !@   <name>allTreesExistAtFinalTime</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
+       !@     then trees which finish before a given output time will be ignored.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('allTreesExistAtFinalTime',allTreesExistAtFinalTime,defaultValue=.true.)
+
+       ! Flag that this routine is now initialized.
+       mergerTreeEvolveToInitialized=.true.
+    end if
+    !$omp end critical(Merger_Tree_Evolve_To_Initialize)
+
     ! Initialize the tree if necessary.
     call Merger_Tree_Initialize(thisTree)
 
@@ -102,8 +129,14 @@ contains
     if (endTime > Tree_Node_Time(thisTree%baseNode)) then
        ! Final time is exceeded. Check if by a significant factor.
        if (endTime > Tree_Node_Time(thisTree%baseNode)*(1.0d0+timeTolerance)) then
-          ! Exceeded by a significant factor - report an error.
-          call Galacticus_Error_Report('Merger_Tree_Evolve_To','requested time exceeds the final time in the tree')
+          ! Exceeded by a significant factor - report an error. Check if such behavior is expected.
+          if (allTreesExistAtFinalTime) then
+             ! It is not, write an error and exit.
+             call Galacticus_Error_Report('Merger_Tree_Evolve_To','requested time exceeds the final time in the tree')
+          else
+             ! It is, so simply ignore this tree.
+             return
+          end if
        else
           ! Not exceeded by a significant factor (can happen due to approximation errors). Simply reset to actual time requested.
           call Tree_Node_Time_Set(thisTree%baseNode,endTime)
@@ -288,6 +321,15 @@ contains
     do while (associated(satelliteNode))
        Evolve_To_Time=min(Evolve_To_Time,Tree_Node_Time(satelliteNode))
        satelliteNode => satelliteNode%siblingNode
+    end do
+
+    ! Also ensure that this node is not evolved beyond the time at which any of its mergees merge. In some cases, the node may
+    ! already be in the future of a mergee. In such cases, simply freeze it at the current time.
+    satelliteNode => thisNode%mergeeNode
+    time=Tree_Node_Time(thisNode)
+    do while (associated(satelliteNode))
+        Evolve_To_Time=min(Evolve_To_Time,max(Tree_Node_Satellite_Time_of_Merging(satelliteNode),time))
+        satelliteNode => satelliteNode%nextMergee
     end do
 
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.

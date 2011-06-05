@@ -135,7 +135,7 @@ contains
     logical                                          :: errorCondition
 
     ! Get the host node.
-    hostNode => thisNode%parentNode
+    call thisNode%mergesWith(hostNode)
 
     ! Get properties of the merging systems.
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &

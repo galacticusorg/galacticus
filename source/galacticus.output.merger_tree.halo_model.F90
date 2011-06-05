@@ -323,14 +323,16 @@ contains
     use Memory_Management
     use Dark_Matter_Profiles
     use Cosmology_Functions
+    use Kind_Numbers
     implicit none
-    type(treeNode),      intent(inout), pointer      :: thisNode
-    integer,             intent(in)                  :: iOutput,treeIndex
-    double precision,    allocatable,   dimension(:) :: fourierProfile
-    integer                                          :: iWavenumber
-    double precision                                 :: expansionFactor
-    type(varying_string)                             :: groupName
-    type(hdf5Object)                                 :: profilesGroup,treeGroup,outputGroup
+    type(treeNode),          intent(inout), pointer      :: thisNode
+    integer,                 intent(in)                  :: iOutput
+    integer(kind=kind_int8), intent(in)                  :: treeIndex
+    double precision,        allocatable,   dimension(:) :: fourierProfile
+    integer                                              :: iWavenumber
+    double precision                                     :: expansionFactor
+    type(varying_string)                                 :: groupName
+    type(hdf5Object)                                     :: profilesGroup,treeGroup,outputGroup
  
     ! If halo model output was requested, output the Fourier-space halo profiles.
     if (outputHaloModelData.and..not.thisNode%isSatellite()) then

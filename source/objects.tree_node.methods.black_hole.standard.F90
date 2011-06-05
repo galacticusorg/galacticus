@@ -458,8 +458,8 @@ contains
 
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
        
-       ! Find the host node.
-       hostNode => thisNode%parentNode
+       ! Find the node to merge with.
+       call thisNode%mergesWith(hostNode)
 
        call Black_Hole_Binary_Merger(Tree_Node_Black_Hole_Mass_Standard(thisNode), &
             &                        Tree_Node_Black_Hole_Mass_Standard(hostNode), &

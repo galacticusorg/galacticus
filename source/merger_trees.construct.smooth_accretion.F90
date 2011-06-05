@@ -168,12 +168,13 @@ contains
     !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
     use Tree_Nodes
     use Cosmology_Functions
+    use Kind_Numbers
     implicit none
-    type(mergerTree), intent(inout) :: thisTree
-    logical,          intent(in)    :: skipTree
-    type(treeNode),   pointer       :: currentNode,newNode
-    integer                         :: nodeIndex
-    double precision                :: expansionFactor,mergerTreeBaseTime,expansionFactorBase,nodeMass,nodeTime
+    type(mergerTree),       intent(inout) :: thisTree
+    logical,                intent(in)    :: skipTree
+    type(treeNode),         pointer       :: currentNode,newNode
+    integer(kind=kind_int8)               :: nodeIndex
+    double precision                      :: expansionFactor,mergerTreeBaseTime,expansionFactorBase,nodeMass,nodeTime
 
     ! Build the merger tree.
     !$omp critical (Merger_Tree_Build_Do)
@@ -181,7 +182,8 @@ contains
        ! Give the tree an index.
        thisTree%index=1
        ! Create the base node.
-       call thisTree%createNode(thisTree%baseNode,1)
+       nodeIndex=1
+       call thisTree%createNode(thisTree%baseNode,nodeIndex)
        ! Assign an arbitrary weight to the tree.
        thisTree%volumeWeight=1.0
        ! Assign a mass to the base node.

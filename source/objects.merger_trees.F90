@@ -79,7 +79,7 @@ module Merger_Trees
 
   type mergerTree
      !% The merger tree object type.
-     integer                   :: index
+     integer(kind=kind_int8)   :: index
      type(hdf5Object)          :: hdf5Group
      double precision          :: volumeWeight
      logical                   :: initialized
@@ -235,18 +235,18 @@ contains
   end subroutine Merger_Tree_Destroy_Branch
 
   subroutine Tree_Node_Create(thisTree,thisNode,index)
-    !% Return a pointer to a newly created and initialize a tree node.
+    !% Return a pointer to a newly created and initialized tree node.
     use Galacticus_Error
     use Memory_Management
     implicit none
 #ifdef GCC45
-    class(mergerTree),          intent(inout)        :: thisTree
+    class(mergerTree),                intent(inout)        :: thisTree
 #else
-    type(mergerTree),           intent(inout)        :: thisTree
+    type(mergerTree),                 intent(inout)        :: thisTree
 #endif
-    type(treeNode),    pointer, intent(inout)        :: thisNode
-    integer,                    intent(in), optional :: index
-    integer                                          :: allocErr
+    type(treeNode),          pointer, intent(inout)        :: thisNode
+    integer(kind=kind_int8),          intent(in), optional :: index
+    integer                                                :: allocErr
 
     ! Initialize tree node methods if necessary.
     !$omp critical (Tree_Node_Create_Initialize)
@@ -264,7 +264,7 @@ contains
     thisNode%componentIndex=-1
 
     ! Ensure pointers are nullified.
-    nullify(thisNode%parentNode,thisNode%childNode,thisNode%siblingNode,thisNode%satelliteNode)
+    nullify(thisNode%parentNode,thisNode%childNode,thisNode%siblingNode,thisNode%satelliteNode,thisNode%mergeNode,thisNode%mergeeNode,thisNode%nextMergee)
 
     ! Assign index if supplied.
     if (present(index)) call thisNode%indexSet(index)

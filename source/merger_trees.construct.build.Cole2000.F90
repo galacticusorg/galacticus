@@ -136,13 +136,14 @@ contains
     use Critical_Overdensity
     use Merger_Tree_Branching
     use Pseudo_Random
+    use Kind_Numbers
     implicit none
-    type(mergerTree), intent(inout) :: thisTree
-    type(treeNode),   pointer       :: thisNode,newNode1,newNode2
-    integer                         :: nodeIndex
-    double precision                :: branchingProbability,accretionFraction,deltaCritical,collapseTime,uniformRandom ,deltaW &
-         &,nodeMass1,nodeMass2
-    logical                         :: doBranch
+    type(mergerTree),       intent(inout) :: thisTree
+    type(treeNode),         pointer       :: thisNode,newNode1,newNode2
+    integer(kind=kind_int8)               :: nodeIndex
+    double precision                      :: branchingProbability,accretionFraction,deltaCritical,collapseTime,uniformRandom &
+         &,deltaW ,nodeMass1,nodeMass2
+    logical                               :: doBranch
 
     nodeIndex=1                   ! Initialize the node index counter to unity.
     thisNode => thisTree%baseNode ! Point to the base node.

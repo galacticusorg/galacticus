@@ -308,9 +308,74 @@ where the ``parent'' subscript indicates a property of the parent node in the me
 
 \noindent\emph{Node promotion:} $M_{\rm node}$ is updated to the node mass of the parent prior to promotion.\\
 
+\section{Position}\label{sec:ComponentPosition}
+
+The position component implements the position and velocity of each galaxy.
+
+\subsection{``Null'' Implementation}
+
+The null position implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off positions. Of course, this is safe only if none of the other active components, functions or tasks expect to get or set position properties (or if they rely on a sensible implementation of position evolution).
+
+\subsection{``Preset'' Implemenation}
+
+\subsubsection{Properties}
+
+The preset position implementation defines the following properties:
+\begin{description}
+ \item [{\tt Position}] The 3-D position of the node: ${\bf x}$ [{\tt position[X|Y|Z]}].
+ \item [{\tt Velocity}] The 3-D velocity of the node: ${\bf v}$ [{\tt velocity[X|Y|Z]}].
+ \item [{\tt Position\_6D\_History}] The history of the node's position in 6-D phase space, usually used for satellite nodes.
+\end{description}
+
+\subsubsection{Initialization}
+
+None---all properties are assumed to have been preset, usually by the merger tree construction routine.
+
+\subsubsection{Differential Evolution}
+
+None. Positions and velocities do not evolve for a given node. When output, if a 6-D position history is available than the position and velocity from the history entry closest to the output time will be used\footnote{While interpolation could be used this is usually a bad idea. For nodes that are satellites in a halo for example, no simple interpolation algorithm can correctly account for the complex orbital dynamics by which the position and velocity is actually evolving.}.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} The position and velocity are updated to those of the parent node.\\
+
 \section{Satellite Node Orbit}
 
 This component tracks the orbital properties of subhalos.
+
+\subsection{``Preset'' Implementation}
+
+\subsubsection{Properties}
+
+The preset satellite orbit implementation defines the following properties:
+\begin{description}
+ \item [{\tt Satellite\_Merge\_Time}] The time until the satellite will merge with its host: $t_{\rm satellite, merge}$ [{\tt timeToMerge}].
+ \item [{\tt Satellite\_Time\_Of\_Merging}] The cosmological time at which the satellite will merge with its host: $T_{\rm satellite, merge}$.
+ \item [{\tt Bound\_Mass}] The remaining, total bound mass of the satellite (this property is read only---it is determined from the {\tt Bound\_Mass\_History} property).
+ \item [{\tt Bound\_Mass\_History}] A history time-series of the total bound mass of the satellite.
+\end{description}
+
+Note that the {\tt Satellite\_Merge\_Time} and {\tt Satellite\_Time\_Of\_Merging} effectively provide the same information. For that reason, setting one of them will automatically set the other accordingly.
+
+\subsubsection{Initialization}
+
+None. This method assumes that merging times and bound mass histories will be set externally (usually when the merger tree is constructed).
+
+\subsubsection{Differential Evolution}
+
+None.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} None.\\
 
 \subsection{``Simple'' Implementation}
 

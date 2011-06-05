@@ -72,9 +72,8 @@ module Tree_Nodes
 
   type treeNode
      !% The tree node object type.
-     integer,                 private                   :: nodeIndex
-     integer(kind=kind_int8), private                   :: nodeUniqueID
-     type(treeNode),          pointer                   :: parentNode,childNode,siblingNode,satelliteNode
+     integer(kind=kind_int8), private                   :: nodeIndex,nodeUniqueID
+     type(treeNode),          pointer                   :: parentNode,childNode,siblingNode,satelliteNode,mergeNode,mergeeNode,nextMergee
      integer,                 allocatable, dimension(:) :: componentIndex
      type(component),         allocatable, dimension(:) :: components
    contains
@@ -166,6 +165,10 @@ module Tree_Nodes
      !@     <method>isOnMainBranch</method>
      !@     <description>Return true if the node is on the main branch of its tree.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>mergesWith</method>
+     !@     <description>Return a pointer to the node with which this node merges.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure                                  ::                           Tree_Node_Is_Progenitor_Of_Index
      procedure                                  ::                           Tree_Node_Is_Progenitor_Of_Node 
@@ -177,6 +180,8 @@ module Tree_Nodes
      generic                                    :: isPrimaryProgenitorOf  => Tree_Node_Is_Primary_Progenitor_Of_Index,&
           &                                                                  Tree_Node_Is_Primary_Progenitor_Of_Node
      procedure                                  :: isOnMainBranch         => Tree_Node_Is_On_Main_Branch
+     procedure                                  :: mergesWith             => Tree_Node_Merge_Node
+
      ! Tree walk methods.
      !@ <objectMethods>
      !@   <object>treeNode</object>
@@ -225,13 +230,23 @@ module Tree_Nodes
      !@     <description>Removes {\tt thisNode} from its hosts list of satellites.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>removeFromMergee</method>
+     !@     <description>Removes {\tt thisNode} from its merge target's list of mergees.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>lastSatellite</method>
      !@     <description>Returns a pointer to the last attached satellite of {\tt thisNode}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>earliestProgenitor</method>
+     !@     <description>Returns a pointer to the earliest progenitor (along the main branch) of {\tt thisNode}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure                                  :: isSatellite            => Tree_Node_Is_Satellite
      procedure                                  :: removeFromHost         => Satellite_Remove_from_Host
+     procedure                                  :: removeFromMergee       => Satellite_Remove_from_Mergee
      procedure                                  :: lastSatellite          => Get_Last_Satellite
+     procedure                                  :: earliestProgenitor     => Get_Earliest_Progenitor
   end type treeNode
 
   type treeNodeList
@@ -368,7 +383,7 @@ contains
     return
   end subroutine Tree_Node_Unique_ID_Set
 
-  integer function Tree_Node_Index(thisNode)
+  integer(kind=kind_int8) function Tree_Node_Index(thisNode)
     !% Returns the index of {\tt thisNode}.
     implicit none
 #ifdef GCC45
@@ -398,11 +413,11 @@ contains
     !% Set the index of {\tt thisNode}.
     implicit none
 #ifdef GCC45
-    class(treeNode), intent(inout) :: thisNode
+    class(treeNode),         intent(inout) :: thisNode
 #else
-    type(treeNode),  intent(inout) :: thisNode
+    type(treeNode),          intent(inout) :: thisNode
 #endif
-    integer,         intent(in)    :: index
+    integer(kind=kind_int8), intent(in)    :: index
 
     thisNode%nodeIndex=index
     return
@@ -639,12 +654,12 @@ contains
     !% Return true if {\tt thisNode} is a progenitor of the node with index {\tt targetNodeIndex}.
     implicit none
 #ifdef GCC45
-    class(treeNode), intent(in), target :: thisNode
+    class(treeNode),         intent(in), target  :: thisNode
 #else
-    type(treeNode),  intent(in), pointer :: thisNode
+    type(treeNode),          intent(in), pointer :: thisNode
 #endif
-    integer,         intent(in)          :: targetNodeIndex
-    type(treeNode),              pointer :: workNode
+    integer(kind=kind_int8), intent(in)          :: targetNodeIndex
+    type(treeNode),                      pointer :: workNode
 
     Tree_Node_Is_Primary_Progenitor_Of_Index=.false.
 #ifdef GCC45
@@ -701,12 +716,12 @@ contains
     !% Return true if {\tt thisNode} is a progenitor of the node with index {\tt targetNodeIndex}.
     implicit none
 #ifdef GCC45
-    class(treeNode), intent(in), target  :: thisNode
+    class(treeNode),         intent(in), target  :: thisNode
 #else
-    type(treeNode),  intent(in), pointer :: thisNode
+    type(treeNode),          intent(in), pointer :: thisNode
 #endif
-    integer,         intent(in)          :: targetNodeIndex
-    type(treeNode),              pointer :: workNode
+    integer(kind=kind_int8), intent(in)          :: targetNodeIndex
+    type(treeNode),                      pointer :: workNode
 
     Tree_Node_Is_Progenitor_Of_Index=.false.
 #ifdef GCC45
@@ -822,6 +837,23 @@ contains
     return
   end function Tree_Node_Is_Satellite
 
+  subroutine Tree_Node_Merge_Node(thisNode,mergesWith)
+    !% Returns a pointer to the node with which {\tt thisNode} will merge.
+    implicit none
+    type(treeNode), pointer, intent(in)    :: thisNode
+    type(treeNode), pointer, intent(inout) :: mergesWith
+
+    ! Check if a specific merge node has been set.
+    if (associated(thisNode%mergeNode)) then
+       ! One has, so simply return it.
+       mergesWith => thisNode%mergeNode
+    else
+       ! No specific merge node has been set, assume merging with the parent node.
+       mergesWith => thisNode%parentNode
+    end if
+    return
+  end subroutine Tree_Node_Merge_Node
+
   subroutine Satellite_Remove_from_Host(satelliteNode)
     !% Remove {\tt satelliteNode} from the linked list of its host node's satellites.
     use Galacticus_Display
@@ -845,6 +877,7 @@ contains
     end select
 #endif
 
+    ! Remove from the parent node satellite list.
     hostNode => satelliteNodeActual%parentNode
     message='Satellite node ['
     message=message//satelliteNodeActual%index()//'] being removed from host node ['//hostNode%index()//']'
@@ -862,11 +895,47 @@ contains
              exit
           end if
           previousNode => thisNode
-          thisNode => thisNode%siblingNode
+          thisNode     => thisNode%siblingNode
        end do
     end if
     return
   end subroutine Satellite_Remove_from_Host
+
+  subroutine Satellite_Remove_from_Mergee(mergeeNode)
+    !% Remove {\tt mergeeNode} from the linked list of its host node's satellites.
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    type(treeNode),      pointer, intent(in) :: mergeeNode
+    type(treeNode),      pointer             :: hostNode,thisNode,previousNode
+    type(varying_string)                     :: message
+
+    ! Remove from the mergee list of any merge target.
+    if (associated(mergeeNode%mergeNode)) then
+       hostNode => mergeeNode%mergeNode
+       message='Satellite node ['
+       message=message//mergeeNode%index()//'] being removed from merge target ['//hostNode%index()//']'
+       call Galacticus_Display_Message(message,verbosityInfo)
+       if (associated(hostNode%mergeeNode,mergeeNode)) then
+          ! This is the first mergee, unlink it, and link to any sibling.
+          hostNode%mergeeNode => mergeeNode%nextMergee
+       else
+          thisNode     => hostNode%mergeeNode
+          previousNode => null()
+          do while (associated(thisNode))
+             if (associated(thisNode,mergeeNode)) then
+                ! Found our node, link its older sibling to its younger sibling.
+                previousNode%nextMergee => thisNode%nextMergee
+                exit
+             end if
+             previousNode => thisNode
+             thisNode     => thisNode%nextMergee
+          end do
+       end if
+    end if
+    return
+  end subroutine Satellite_Remove_from_Mergee
 
   subroutine Get_Last_Satellite(thisNode,satelliteNode)
     !% Returns a pointer to the final satellite node associated with {\tt thisNode}.
@@ -909,6 +978,20 @@ contains
 !     call Merger_Tree_Walk_Tree(thisNode,thisNodeActual)
 !     return
 !   end subroutine Merger_Tree_Walk_Tree_Same_Node
+
+  subroutine Get_Earliest_Progenitor(thisNode,progenitorNode)
+    !% Returns a pointer to the earliest progenitor of with {\tt thisNode}.
+    implicit none
+    type(treeNode), intent(in),    pointer :: thisNode
+    type(treeNode), intent(inout), pointer :: progenitorNode
+
+
+    progenitorNode => thisNode
+    do while (associated(progenitorNode%childNode))
+       progenitorNode => progenitorNode%childNode
+    end do
+    return
+  end subroutine Get_Earliest_Progenitor
 
   subroutine Merger_Tree_Walk_Tree(thisNode,nextNode)
     !% This function provides a mechanism for walking through an entire merger tree. Given a pointer {\tt thisNode}

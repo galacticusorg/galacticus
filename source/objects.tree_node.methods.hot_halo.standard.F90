@@ -975,8 +975,8 @@ contains
     ! Determine if starvation is to be applied.
     if (methodSelected.and..not.starveSatellites.and.thisNode%componentExists(componentIndex)) then
        
-       ! Find the host node.
-       hostNode => thisNode%parentNode
+       ! Find the node to merge with.
+       call thisNode%mergesWith(hostNode)
        
        ! Move the hot halo to the host.
        call Tree_Node_Hot_Halo_Mass_Set_Standard(hostNode,Tree_Node_Hot_Halo_Mass_Standard(hostNode) &
