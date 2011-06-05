@@ -82,7 +82,7 @@ contains
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     parameterDoc => parseFile(char(parameterFile),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Input_Parameters_File_Open','Unable to find parameter file')
+    if (ioErr /= 0) call Galacticus_Error_Report('Input_Parameters_File_Open','Unable to find or parse parameter file')
     parameterList => getElementsByTagname(parameterDoc,"parameter")
     parameterCount=getLength(parameterList)
     !$omp end critical (FoX_DOM_Access)
