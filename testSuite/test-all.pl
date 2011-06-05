@@ -139,10 +139,12 @@ if ( $#failLines == -1 ) {
     print lHndl "\n\n:-> All tests were successful.\n";
     print       "All tests were successful.\n";
     $emailSubject .= " [success]";
+    $exitStatus = 0;
 } else {
     print lHndl "\n\n:-> Failures found. See following lines in log file:\n\t".join("\n\t",@failLines)."\n";
     print $hasFailures." failure(s) found - see ".$logFile." for details.\n";
     $emailSubject .= " [FAILURE]";
+    $exitStatus = 1;
 }
 close(lHndl);
 
@@ -184,7 +186,7 @@ if ( $config->{'contact'}->{'email'} =~ m/\@/ ) {
     }
 }
 
-exit;
+exit $exitStatus;
 
 sub runTestScript {
     # Run a test script.
