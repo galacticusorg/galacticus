@@ -110,6 +110,7 @@ contains
        &,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get&
        &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get)
     !% Initialize the module.
+    use Numerical_Comparison
     use ISO_Varying_String
     use ODE_Solver
     implicit none
@@ -119,6 +120,7 @@ contains
          &,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get&
          &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get
     double precision,     parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
+    double precision,     parameter              :: omegaTolerance=1.0d-9
     double precision                             :: cubicTerm1,cubicTerm5,cubicTerm9,cubicTerm21Squared,cubicTerm21 &
          &,cubicTerm25Cubed,cubicTerm25,aMaximum,aDominant,timeMaximum(1),densityPower,Omega_Dominant
     type(c_ptr)                                  :: parameterPointer
@@ -143,8 +145,8 @@ contains
        ! Determine if this universe will collapse. We take the Friedmann equation, which gives H^2 as a function of expansion factor,
        ! a, and solve for where H^2=0. If this has a real solution, then we have a collapsing universe.
        collapsingUniverse=.false.
-       if (Omega_K() == 0.0d0) then
-          if (Omega_DE() == 0.0d0) then
+       if (Values_Agree(Omega_K(),0.0d0,absTol=omegaTolerance)) then
+          if (Values_Agree(Omega_DE(),0.0d0,absTol=omegaTolerance)) then
              ! Einstein-de Sitter case. Always expands to infinity.
              collapsingUniverse=.false.
           else
@@ -158,7 +160,7 @@ contains
              end if
           end if
        else
-          if (Omega_DE() == 0.0d0) then
+          if (Values_Agree(Omega_DE(),0.0d0,absTol=omegaTolerance)) then
              ! Simple case for a matter-only universe.
              collapsingUniverse=Omega_0() > 1.0d0
              if (collapsingUniverse) aExpansionMax=Omega_0()/(Omega_0()-1.0d0)
