@@ -201,7 +201,7 @@ contains
        thisNode%components(thisIndex)%data(spinIndex)=Tree_Node_Spin_Random(parentNode)
     end if
     return
-  end subroutine
+  end subroutine Tree_Node_Spin_Random_Promote
 
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Spin_Random_Names</unitName>
