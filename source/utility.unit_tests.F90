@@ -827,11 +827,19 @@ contains
        end if
        thisResult => thisResult%nextResult
     end do
-    percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
+    if (passCount+FailCount > 0) then
+       percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
+    else
+       percentage=100.0d0
+    end if
     message="Tests passed: "
     message=message//passCount//" ("//percentage//"%)"
     call Galacticus_Display_Message(message)
-    percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
+    if (passCount+FailCount > 0) then
+       percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
+    else
+       percentage=100.0d0
+    end if
     message="Tests failed: "
     message=message//failCount//" ("//percentage//"%)"
     call Galacticus_Display_Message(message)
