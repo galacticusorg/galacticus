@@ -60,25 +60,28 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     $heliumAbundancePrimordial = 0.072;
     $heliumAbundanceSolar      = 0.100;
     
+    # Specify Cloudy version.
+    $cloudyVersion = "c10.00_rc1";
+
     # Download the code.
-    unless ( -e "aux/c08.00.tar.gz" ) {
+    unless ( -e "aux/".$cloudyVersion.".tar.gz" ) {
 	print "Cloudy_Driver.pl: downloading Cloudy code.\n";
-	system("wget \"http://viewvc.nublado.org/index.cgi/tags/release/c08.00.tar.gz?root=cloudy&view=tar\" -O aux/c08.00.tar.gz");
-	die("Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e "aux/c08.00.tar.gz" );
+	system("wget \"http://viewvc.nublado.org/index.cgi/tags/develop/".$cloudyVersion.".tar.gz?root=cloudy&view=tar\" -O aux/".$cloudyVersion.".tar.gz");
+	die("Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e "aux/".$cloudyVersion.".tar.gz" );
     }
     
     # Unpack the code.
-    unless ( -e "aux/c08.00" ) {
+    unless ( -e "aux/".$cloudyVersion ) {
 	print "Cloudy_Driver.pl: unpacking Cloudy code.\n";
-	system("tar -x -v -z -C aux -f aux/c08.00.tar.gz");
-	die("Cloudy_Driver.pl: FATAL - failed to unpack Cloudy code.") unless ( -e "aux/c08.00" );
+	system("tar -x -v -z -C aux -f aux/".$cloudyVersion.".tar.gz");
+	die("Cloudy_Driver.pl: FATAL - failed to unpack Cloudy code.") unless ( -e "aux/".$cloudyVersion );
     }
     
     # Build the code.
-    unless ( -e "aux/c08.00/source/cloudy.exe" ) {
+    unless ( -e "aux/".$cloudyVersion."/source/cloudy.exe" ) {
 	print "Cloudy_Driver.pl: compiling Cloudy code.\n";
-	system("cd aux/c08.00/source; chmod u=wrx precompile.pl; make");
-	die("Cloudy_Driver.pl: FATAL - failed to build Cloudy code.") unless ( -e "aux/c08.00/source/cloudy.exe" );
+	system("cd aux/".$cloudyVersion."/source; chmod u=wrx configure.sh capabilities.pl; make");
+	die("Cloudy_Driver.pl: FATAL - failed to build Cloudy code.") unless ( -e "aux/".$cloudyVersion."/source/cloudy.exe" );
     }
    
     # Temporary files for Cloudy data.
@@ -88,6 +91,9 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     # Counter for number of cooling functions and ionization states tabulated.
     $iCoolingFunction = -1;
     $iIonizationState = -1;
+
+    # Write message.
+    print "Computing cooling functions and ionization states using Cloudy (this may take a long time)...\n";
     
     # Loop over metallicities.
     foreach $logMetallicity ( @logMetallicities ) {
@@ -110,51 +116,50 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'metallicity'} = $logMetallicity;
 	${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'metallicity'} = $logMetallicity;
 	
-	# Loop over temperatures.
-	for($logTemperature=$logTemperatureMinimum;$logTemperature<=$logTemperatureMaximum;$logTemperature+=$logTemperatureDelta) {
-	    $temperature = 10.0**$logTemperature;
+	# Run Cloudy.
+	open(cloudyPipe,"|aux/".$cloudyVersion."/source/cloudy.exe 1> /dev/null");
+	print cloudyPipe "print off\n";
+	print cloudyPipe "background, z=0\n";            # Use a very low level incident continuum.
+	print cloudyPipe "cosmic rays background\n";     # Include cosmic ray background ionization rate.
+	print cloudyPipe "stop zone 1\n";                # Stop after a single zone.
+	print cloudyPipe "no photoionization\n";         # Do threee iterations to ensure convergence is reached.
+	print cloudyPipe "hden 0.0\n";
+	if ( $logMetallicity <= -999.0 ) {
+	    print cloudyPipe "abundances primordial\n";
+	} else {
+	    print cloudyPipe "metals _log ".$logMetallicity."\n";
+	    # Assume a linear growth of helium abundance with metallicity.
+	    $heliumAbundance = $heliumAbundancePrimordial+($heliumAbundanceSolar-$heliumAbundancePrimordial)*(10.0**$logMetallicity);
+	    print cloudyPipe "element abundance linear helium ".$heliumAbundance."\n";
+	}
+	print cloudyPipe "constant temper ".$logTemperatureMinimum." vary\n";
+	print cloudyPipe "grid ".$logTemperatureMinimum." to ".$logTemperatureMaximum." step ".$logTemperatureDelta."\n";
+	print cloudyPipe "no molecules\n";
+	print cloudyPipe "set trim -20\n";
+	print cloudyPipe "punch cooling \"".$coolingTempFile."\"\n";
+	print cloudyPipe "punch overview \"".$overviewTempFile."\"\n";
+	close(cloudyPipe);
 
-	    # Run Cloudy.
-	    open(cloudyPipe,"|aux/c08.00/source/cloudy.exe");
-	    print cloudyPipe "print off\n";
-	    print cloudyPipe "background 0\n";
-	    print cloudyPipe "cosmic ray background\n";
-	    print cloudyPipe "stop zone 1\n";
-	    print cloudyPipe "hden 0.0\n";
-	    if ( $logMetallicity <= -999.0 ) {
-		print cloudyPipe "abundances primordial\n";
-	    } else {
-		print cloudyPipe "metals _log ".$logMetallicity."\n";
-		# Assume a linear growth of helium abundance with metallicity.
-		$heliumAbundance = $heliumAbundancePrimordial+($heliumAbundanceSolar-$heliumAbundancePrimordial)*(10.0**$logMetallicity);
-		print cloudyPipe "element abundance linear helium ".$heliumAbundance."\n";
-	    }
-	    print cloudyPipe "constant temper ".$logTemperature."\n";
-	    print cloudyPipe "no molecules\n";
-	    print cloudyPipe "set trim -20\n";
-	    print cloudyPipe "punch cooling \"".$coolingTempFile."\"\n";
-	    print cloudyPipe "punch overview \"".$overviewTempFile."\"\n";
-	    close(cloudyPipe);
-
-	    # Store the temperature in an array.
-	    $temperatures[++$#temperatures] = $temperature;
-	    
-	    # Extract the cooling rate.
-	    open(coolHandle,$coolingTempFile);
-	    $headerLine = <coolHandle>;
-	    $dataLine   = <coolHandle>;
-	    close(coolHandle);
-	    unlink($coolingTempFile);
+	# Extract the cooling rate.
+	open(coolHandle,$coolingTempFile);
+	$headerLine = <coolHandle>;
+	while ( $dataLine = <coolHandle> ) {
+	    $separator   = <coolHandle>;
 	    @dataColumns = split(/\s+/,$dataLine);
+	    $temperature = $dataColumns[1];
+	    $heatingRate = $dataColumns[2];
 	    $coolingRate = $dataColumns[3];
+	    $temperatures[++$#temperatures] = $temperature;
 	    $coolingRates[++$#coolingRates] = $coolingRate;
+	}
+	close(coolHandle);
+	unlink($coolingTempFile);
 
-	    # Extract the electron and hydrogen density.
-	    open(overviewHandle,$overviewTempFile);
-	    $headerLine = <overviewHandle>;
-	    $dataLine   = <overviewHandle>;
-	    close(overviewHandle);
-	    unlink($overviewTempFile);
+	# Extract the electron and hydrogen density.
+	open(overviewHandle,$overviewTempFile);
+	$headerLine = <overviewHandle>;
+	while ( $dataLine = <overviewHandle> ) {
+	    $separator   = <overviewHandle>;
 	    @dataColumns = split(/\s+/,$dataLine);
 	    $electronDensity = 10.0**$dataColumns[4];
 	    $electronDensities[++$#electronDensities] = $electronDensity;
@@ -162,9 +167,10 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	    $hiDensities      [++$#hiDensities      ] = $hiDensity;
 	    $hiiDensity      = 10.0**$dataColumns[7];
 	    $hiiDensities     [++$#hiiDensities     ] = $hiiDensity;
-
 	}
-	
+	close(overviewHandle);
+	unlink($overviewTempFile);
+
 	# Store cooling function data.
 	@{${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'coolingRate'}->{'datum'}}     = @coolingRates;
 	@{${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'temperature'}->{'datum'}}     = @temperatures;
@@ -189,7 +195,7 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
     ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "power law";
     # Add some description.
-    $coolingFunctions{'description'} = "CIE cooling functions computed by Cloudy 08.00";
+    $coolingFunctions{'description'} = "CIE cooling functions computed by Cloudy ".$cloudyVersion;
     ${$coolingFunctions{'units'}}[0] = "Temperature: Kelvin";
     ${$coolingFunctions{'units'}}[1] = "Cooling rate: Lambda(T)/ergs cm^3 s^-1";
   
@@ -224,6 +230,10 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	print ionizationStateOutHndl $xmlOutput->XMLout($ionizationStates);
 	close(ionizationStateOutHndl);
     }
+
+    # Write message.
+    print "...done\n";
+    
 }
     
 exit;
