@@ -70,6 +70,7 @@ module Merger_Trees
   use               Events_Interrupts
   use               HDF5
   use               ISO_Varying_String
+  use               Kind_Numbers
   !# <include directive="treeNodeCreateInitialize" type="moduleUse">
   include 'objects.tree_node.create.modules.inc'
   !# </include>
@@ -140,6 +141,9 @@ module Merger_Trees
 
   ! Flag to indicate if the tree node create routines have been initialized.
   logical :: treeNodeCreateInitialized=.false.
+
+  ! Unique ID counter.
+  integer(kind=kind_int8) :: uniqueIDCount=0
 
   ! Count of number of different possible component types.
   integer :: componentTypesCount=0
@@ -244,6 +248,11 @@ contains
 
     ! Assign index if supplied.
     if (present(index)) call thisNode%indexSet(index)
+
+    ! Assign a unique ID.
+    !$omp atomic
+    uniqueIDCount=uniqueIDCount+1
+    call thisNode%uniqueIDSet(uniqueIDCount)
 
     return
   end subroutine Tree_Node_Create
@@ -706,9 +715,7 @@ contains
   subroutine Tree_Node_Compute_Derivatives(thisNode,interrupt,interruptProcedureReturn)
     !% Call routines to set alls derivatives for {\tt thisNode}.
     use Tree_Node_Methods
-    !# <include directive="preDerivativeComputeTask" type="moduleUse">
-    include 'objects.tree_node.prederivatives.modules.inc'
-    !# </include>
+    use Galacticus_Calculations_Resets
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(out)   :: interrupt
@@ -720,10 +727,8 @@ contains
     interruptProcedure => null()
 
     ! Call component routines to indicate that derivative calculation is commencing.
-    !# <include directive="preDerivativeComputeTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode</subroutineArgs>
-    include 'objects.tree_node.prederivatives.inc'
-    !# </include>
+    call Galacticus_Calculations_Reset(thisNode)
+
     ! Call component routines to compute derivatives.
     !# <include directive="treeNodeMethodsPointer" type="derivatives">
     include 'objects.tree_node.derivatives.inc'

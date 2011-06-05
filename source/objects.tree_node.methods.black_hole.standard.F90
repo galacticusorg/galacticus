@@ -69,7 +69,7 @@ module Tree_Node_Methods_Black_Hole
   private
   public :: Tree_Node_Methods_Black_Hole_Initialize, Galacticus_Output_Tree_Black_Hole_Standard,&
        & Galacticus_Output_Tree_Black_Hole_Standard_Property_Count, Galacticus_Output_Tree_Black_Hole_Standard_Names,&
-       & Tree_Node_Black_Hole_PreDerivatives_Standard, Black_Hole_Satellite_Merging, Black_Hole_Hot_Halo_Heating,&
+       & Tree_Node_Black_Hole_Reset_Standard, Black_Hole_Satellite_Merging, Black_Hole_Hot_Halo_Heating,&
        & Tree_Node_Methods_Black_Hole_Standard_Dump
   
   ! The index used as a reference for this component.
@@ -213,17 +213,17 @@ contains
   end subroutine Tree_Node_Methods_Black_Hole_Initialize
   
 
-  !# <preDerivativeComputeTask>
-  !# <unitName>Tree_Node_Black_Hole_PreDerivatives_Standard</unitName>
-  !# </preDerivativeComputeTask>
-  subroutine Tree_Node_Black_Hole_PreDerivatives_Standard(thisNode)
+  !# <calculationResetTask>
+  !# <unitName>Tree_Node_Black_Hole_Reset_Standard</unitName>
+  !# </calculationResetTask>
+  subroutine Tree_Node_Black_Hole_Reset_Standard(thisNode)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
 
     gotAccretionRate=.false.
     return
-  end subroutine Tree_Node_Black_Hole_PreDerivatives_Standard
+  end subroutine Tree_Node_Black_Hole_Reset_Standard
 
   double precision function Tree_Node_Black_Hole_Mass_Standard(thisNode)
     !% Return the node black hole mass.

@@ -2792,6 +2792,27 @@ where {\tt thisNode} is the node about to be promoted.
 
 Tasks are any processing which must be performed on a node as a result of some specific event (such as a merger).
 
+\subsubsection{Calculation Reset Tasks}\label{sec:CalculationResetTask}
+
+Additional methods for calculation reset tasks (i.e. things that should be done just prior to the computation of derivatives or properties for a node) can be added using the {\tt calculationResetTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
+\begin{verbatim}
+  !# <calculationResetTask>
+  !#  <unitName>Tree_Node_Hot_Halo_Reset_Standard</unitName>
+  !# </calculationResetTask>
+\end{verbatim}
+Here, {\tt Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+\begin{verbatim}
+   subroutine Reset_Task(thisNode)
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    .
+    .
+    .
+    return
+  end subroutine Prederivative_Task
+\end{verbatim}
+where {\tt thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives or resetting the state so that stored quantities will be recomputed as needed.
+
 \subsubsection{Evolution Timestep Tasks}
 
 Merger tree nodes are evolved over some fixed timestep before evolution is stopped and other processing is allowed. The timestep is always sufficiently small such that the node does not evolve past the time of its parent node, nor does it evolve past the time of any of its satellite nodes. An arbitrary number of other criteria can be used to adjust the timestep. Such a criterion can be added using the {\tt timeStepsTask} directive. For example, the {\tt simple} timestep task adds itself using
@@ -3009,27 +3030,6 @@ The {\tt unitName} tags specify subroutines that are called to register the \IMF
 The first routine should increment the {\tt imfAvailableCount} counter by 1 and keep a record of the resulting index---this will be the index by which the \IMF\ is referred to. The second routine should store the name of the \IMF\ in the appropriate position in the supplied {\tt imfNames()} array.
 
 Each registered \IMF\ should supply a set of functions as described in \S\ref{sec:IMF_functions}.
-
-\subsubsection{Pre-derivative Computation Tasks}
-
-Additional methods for pre-derivative computation tasks (i.e. things that should be done just prior to the computation of derivatives for the properties of a node) can be added using the {\tt preDerivativeComputeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
-\begin{verbatim}
-  !# <preDerivativeComputeTask>
-  !#  <unitName>Tree_Node_Hot_Halo_PreDerivatives_Standard</unitName>
-  !# </preDerivativeComputeTask>
-\end{verbatim}
-Here, {\tt Tree\_Node\_Hot\_Halo\_PreDerivatives\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Prederivative_Task(thisNode)
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    .
-    .
-    .
-    return
-  end subroutine Prederivative_Task
-\end{verbatim}
-where {\tt thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives.
 
 \subsubsection{Merger Tree Output Tasks}
 
