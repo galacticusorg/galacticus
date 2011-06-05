@@ -300,6 +300,7 @@ contains
 
        ! Allocate work arrays for abundances.
        call Alloc_Array(abundancesWork       ,[abundancesCount])
+       call Alloc_Array(abundancesHost       ,[abundancesCount])
        call Alloc_Array(abundancesParent     ,[abundancesCount])
        call Alloc_Array(abundancesCoolingRate,[abundancesCount])
        call Alloc_Array(abundancesReturnRate ,[abundancesCount])
