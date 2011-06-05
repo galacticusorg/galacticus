@@ -51,6 +51,10 @@ Properties of nodes at density contrasts other than the virial density can be ou
 
 Masses enclosed within specific radii can be output by setting {\tt [outputMassProfileData]}$=${\tt true}. When selected, this output option requires that a list of radii, $r$ (in Mpc), be given in the {\tt [outputMassProfileRadii]} input parameter. For each specified radius, the total (dark + baryonic) mass will be output as {\tt massProfile}$r$.
 
+\section{Half-Light Radii Data}\index{mass profile!half-light radius}\index{half-light radius}
+
+Half-light radii and masses enclosed within them can be output by setting {\tt [outputHalfLightData]}$=${\tt true}. When selected the half-light radius in each specified luminosity band is output as {\tt [halfLightRadius\{luminosityID\}]} (in Mpc), where {\tt\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass within that radius is output as {\tt [halfLightMass\{luminosityID\}]} (in $M_\odot$).
+
 \section{Cooling Data}\index{cooling}\index{cooling!output}\index{cooling!radius}\index{cooling!rate}
 
 Properties associated with cooling in hot halos can be output by setting {\tt hotHaloOutputCooling}$=${\tt true}. Currently, two additional properties are output for each node when this option is selected:

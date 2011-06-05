@@ -85,6 +85,11 @@ module Galactic_Structure_Options
   integer,          parameter :: coordinateSystemCylindrical=2
   integer,          parameter :: coordinateSystemCartesian  =3
 
+  ! Weighting options.
+  integer,          parameter :: weightByMass      =0
+  integer,          parameter :: weightByLuminosity=1
+  integer,          parameter :: weightIndexNull   =0
+
   ! Suitably large value to represent infinite radius.
   double precision, parameter :: radiusLarge=1.0d10
 

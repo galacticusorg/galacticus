@@ -3804,9 +3804,9 @@ The function {\tt Galactic\_Structure\_Enclosed\_Mass()} computes the mass withi
 \end{verbatim}
 where {\tt Enclosed\_Mass\_Procedure} is the name of a subroutine with the following template
 \begin{verbatim}
- subroutine Enclosed_Mass_Procedure(thisNode,radius,massType,componentType,componentMass)
+ subroutine Enclosed_Mass_Procedure(thisNode,radius,massType,componentType,weightBy,weightIndex,componentMass)
     type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType
+    integer,          intent(in)             :: massType,componentType,weightBy,weightIndex
     double precision, intent(in)             :: radius
     double precision, intent(out)            :: componentMass
     .
@@ -3815,7 +3815,7 @@ where {\tt Enclosed\_Mass\_Procedure} is the name of a subroutine with the follo
     return
  end subroutine Enclosed_Mass_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentMass}, the mass of the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} can take on the following values:
+If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentMass}, the ``mass'' of the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} can take on the following values:
 \begin{description}
  \item [{\tt componentTypeAll}] All components are matched;
  \item [{\tt componentTypeDisk}] Only disk components are matched;
@@ -3830,7 +3830,11 @@ If {\tt componentType} is a match to the component then the procedure should ret
  \item [{\tt massTypeGaseous}] Only gaseous mass is included.
  \item [{\tt massTypeStellar}] Only stellar mass is included.
 \end{description}
-If {\tt radius} is equal to or greater than {\tt radiusLarge} the routine should the total mass (i.e. mass within infinite radius).
+If {\tt radius} is equal to or greater than {\tt radiusLarge} the routine should the total ``mass'' (i.e. ``mass'' within infinite radius). In the above ``mass'' can actually refer to different quantities depending on the values of {\tt weightBy} (and {\tt weightIndex}):
+\begin{description}
+\item [{\tt weightByMass}] The actual mass should be returned (the value of {\tt weightIndex} is irrelevant);
+\item [{\tt weightByLuminosity}] The {\tt weightIndex}$^{\rm th}$ luminosity should be returned.
+\end{description}
 
 \subsubsection{Galactic Component Rotation Curve}
 

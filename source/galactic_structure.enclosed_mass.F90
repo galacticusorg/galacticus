@@ -71,14 +71,14 @@ module Galactic_Structure_Enclosed_Masses
   public :: Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
 
   ! Variables used in root finding.
-  integer                  :: massTypeRoot,componentTypeRoot
+  integer                  :: massTypeRoot,componentTypeRoot,weightByRoot,weightIndexRoot
   double precision         :: massRoot
   type(treeNode),  pointer :: activeNode
-  !$omp threadprivate(massRoot,massTypeRoot,componentTypeRoot,activeNode)
+  !$omp threadprivate(massRoot,massTypeRoot,componentTypeRoot,weightByRoot,weightIndexRoot,activeNode)
 
 contains
 
-  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,massType,componentType)
+  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
     use Galacticus_Error
@@ -88,9 +88,9 @@ contains
     !# </include>
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: massType,componentType
+    integer,          intent(in),    optional :: massType,componentType,weightBy,weightIndex
     double precision, intent(in),    optional :: radius
-    integer                                   :: massTypeActual,componentTypeActual
+    integer                                   :: massTypeActual,componentTypeActual,weightByActual,weightIndexActual
     double precision                          :: radiusActual,componentMass
 
     ! Determine which radius to use.
@@ -107,6 +107,18 @@ contains
        massTypeActual=massTypeAll
     end if
 
+    ! Determine which weighting to use.
+    if (present(weightBy)) then
+       weightByActual=weightBy
+       select case (weightByActual)
+       case (weightByLuminosity)
+          if (.not.present(weightIndex)) call Galacticus_Error_Report('Galactic_Structure_Enclosed_Mass','weightIndex should be specified for luminosity weighting')
+          weightIndexActual=weightIndex
+       end select
+    else
+       weightByActual=weightByMass
+    end if
+
     ! Determine which component type to use.
     if (present(componentType)) then
        componentTypeActual=componentType
@@ -119,7 +131,7 @@ contains
 
     ! Call routines to supply the masses for all components.
     !# <include directive="enclosedMassTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,radiusActual,massTypeActual,componentTypeActual,componentMass</subroutineArgs>
+    !#  <subroutineArgs>thisNode,radiusActual,massTypeActual,componentTypeActual,weightByActual,weightIndexActual,componentMass</subroutineArgs>
     !#  <subroutineAction>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</subroutineAction>
     include 'galactic_structure.enclosed_mass.tasks.inc'
     !# </include>
@@ -127,7 +139,7 @@ contains
     return
   end function Galactic_Structure_Enclosed_Mass
   
-  double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,massType,componentType)
+  double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,massType,componentType,weightBy,weightIndex)
     !% Return the radius enclosing a given mass (or fractional mass) in {\tt thisNode}.
     use Galacticus_Error
     use Root_Finder
@@ -138,7 +150,7 @@ contains
     use String_Handling
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode
-    integer,                 intent(in),    optional :: massType,componentType
+    integer,                 intent(in),    optional :: massType,componentType,weightBy,weightIndex
     double precision,        intent(in),    optional :: mass,fractionalMass
     type(fgsl_function),     save                    :: rootFunction
     type(fgsl_root_fsolver), save                    :: rootFunctionSolver
@@ -162,6 +174,18 @@ contains
        componentTypeRoot=componentTypeAll
     end if
 
+    ! Determine which weighting to use.
+    if (present(weightBy)) then
+       weightByRoot=weightBy
+       select case (weightByRoot)
+       case (weightByLuminosity)
+          if (.not.present(weightIndex)) call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','weightIndex should be specified for luminosity weighting')
+          weightIndexRoot=weightIndex
+       end select
+    else
+       weightByRoot=weightByMass
+    end if
+
     ! Determine what mass to use.
     if (present(mass)) then
        if (present(fractionalMass)) call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','only one mass or&
@@ -172,7 +196,7 @@ contains
           Galactic_Structure_Radius_Enclosing_Mass=radiusLarge
           return
        end if
-       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeRoot)
+       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeRoot,weightBy=weightByRoot,weightIndex=weightIndexRoot)
     else
        call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','either mass or fractionalMass must be specified')
     end if
@@ -192,7 +216,7 @@ contains
        message=message//') at zero radius (was seeking '//trim(massLabel)
        message=message//') - expect a crash.'
        call Galacticus_Display_Message(message,1)
-     end if
+    end if
     radiusMaximum=Dark_Matter_Halo_Virial_Radius(thisNode)
     do while (Enclosed_Mass_Root(radiusMaximum,parameterPointer) <= 0.0d0)
        radiusMaximum=radiusMaximum*2.0d0
@@ -210,7 +234,7 @@ contains
     real(c_double)          :: Enclosed_Mass_Root
    
     ! Evaluate the root function.
-    Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,massTypeRoot,componentTypeRoot)-massRoot
+    Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,massTypeRoot,componentTypeRoot,weightByRoot,weightIndexRoot)-massRoot
   end function Enclosed_Mass_Root
 
 end module Galactic_Structure_Enclosed_Masses
