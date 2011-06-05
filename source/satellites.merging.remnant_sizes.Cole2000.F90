@@ -187,10 +187,14 @@ contains
        ! Check if host has finite mass.
        if (hostSpheroidMass > 0.0d0) then
           ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
-          progenitorsEnergy= satelliteSpheroidMass                 **2/ satelliteRadius                &
-               &            +                      hostSpheroidMass**2/                 hostRadius     &
-               &            +satelliteSpheroidMass*hostSpheroidMass   /(satelliteRadius+hostRadius)    &
-               &            *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
+       progenitorsEnergy=0.0d0
+       if (hostRadius                 > 0.0d0)                                                                           &
+            & progenitorsEnergy=progenitorsEnergy+                      hostSpheroidMass**2/                 hostRadius
+       if (           satelliteRadius > 0.0d0)                                                                           & 
+            & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMass                 **2/ satelliteRadius  
+       if (hostRadius+satelliteRadius > 0.0d0)                                                                           &
+            & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMass*hostSpheroidMass   /(satelliteRadius+hostRadius) &
+            &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
           remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/progenitorsEnergy
        else
           remnantRadius=satelliteRadius
