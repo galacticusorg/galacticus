@@ -113,6 +113,7 @@ contains
     use Molecular_Abundances_Structure
     use Radiation_Structure
     use Cooling_Functions
+    use Ionization_States
     implicit none
     double precision,                   intent(in) :: temperature,density
     type(abundancesStructure),          intent(in) :: abundances
@@ -125,8 +126,9 @@ contains
     ! Compute number density of hydrogen (in cm^-3).
     numberDensityHydrogen=density*abundances%hydrogenMassFraction()*massSolar/massHydrogenAtom/(hecto*megaParsec)**3
 
-    ! Get the number density of all species.
-    numberDensityAllSpecies=numberDensityHydrogen/abundances%hydrogenNumberFraction()
+    ! Get the number density of all species, including electrons.
+    numberDensityAllSpecies= numberDensityHydrogen/abundances%hydrogenNumberFraction() &
+         &                  +Electron_Density(temperature,numberDensityHydrogen,abundances,radiation)
 
     ! Get the cooling function (in ergs cm^-3 s^-1).
     coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)

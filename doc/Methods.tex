@@ -889,7 +889,7 @@ Here, {\tt Cooling\_Time\_Simple\_Initialize} is the name of a subroutine which 
 \end{verbatim}
 where {\tt myMethod} is the name of this method as will be specified by the {\tt coolingTimeMethod} input parameter. The procedure pointer {\tt Cooling\_Time\_Get} must be set to point to a function which returns the cooling function as described below while the other two pointers should point to functions which return the appropriate logarithmic slope. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The cooling radius function must have the form:
+The cooling time function must have the form:
 \begin{verbatim}
  double precision function Cooling_Time_Get(temperature,density,abundances,molecularDensities,radiation)
     implicit none
