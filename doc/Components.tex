@@ -27,14 +27,14 @@ In the standard black implementation the mass and spin evolve as:
 \dot{M}_\bullet &=& (1-\epsilon_{\rm radiation}) \dot{M}_0 \\
 \dot{j}_\bullet &=& \dot{j}(M_\bullet,j_\bullet,\dot{M}_0),
 \end{eqnarray}
-where $\dot{M}_0$ is the rest mass accretion rate, $\epsilon_{\rm radiation}$ is the radiative efficiency of the accretion flow feeding the black hole and $\dot{j}(M_\bullet,j_\bullet,\dot{M}_0)$ is the spin-up function of that accretion flow (see \S\ref{sec:AccretionDisks}). The rest mass accretion rate is computed assuming Bondi-Hoyle-Lyttleton accretion from the spheroid gas reservoir (with an assumed temperature of {\tt bondiHoyleAccretionTemperature}) enhanced by a factor of {\tt bondiHoyleAccretionEnhancement}. The rest mass accretion rate is removed (as a mass sink) from the spheroid component. The black hole is assumed to cause feedback in two ways:
+where $\dot{M}_0$ is the rest mass accretion rate, $\epsilon_{\rm radiation}$ is the radiative efficiency of the accretion flow feeding the black hole and $\dot{j}(M_\bullet,j_\bullet,\dot{M}_0)$ is the spin-up function of that accretion flow (see \S\ref{sec:AccretionDisks}). The rest mass accretion rate is computed assuming Bondi-Hoyle-Lyttleton accretion from the spheroid gas reservoir (with an assumed temperature of {\tt [bondiHoyleAccretionTemperatureSpheroid]}) enhanced by a factor of {\tt [bondiHoyleAccretionEnhancementSpheroid]} and from the host halo (with whatever temperature that hot halo temperature profile specifies; see \S\ref{sec:HotHaloTemperature}) enhanced by a factor of {\tt [bondiHoyleAccretionEnhancementHotHalo]}. The rest mass accretion rate is removed (as a mass sink) from the spheroid component. The black hole is assumed to cause feedback in two ways:
 \begin{description}
- \item [Radio-mode] Any jet power from the black hole-accretion disk system (see \S\ref{sec:CircumnuclearDisks}) is included in the hot halo heating rate;
+ \item [Radio-mode] Any jet power from the black hole-accretion disk system (see \S\ref{sec:CircumnuclearDisks}) is included in the hot halo heating rate providing that the halo is in the slow cooling regime (i.e. if the cooling radius is smaller than the virial radius; see, for example, \citealt{benson_cold_2010});
  \item [Quasar-mode] A mechanical wind luminosity of \citep{ostriker_momentum_2010}
 \begin{equation}
- L_{\rm wind} = \epsilon_{\bullet, wind} \dot{M}_0 \clight^2
+ L_{\rm wind} = \epsilon_{\bullet, wind} \dot{M}_0 \clight^2,
 \end{equation}
-is added to the gas component of the spheroid (which, presumably, will respond with an outflow for example) if and only if the wind pressure (at the spheroid characteristic radius) is less than the typical thermal pressure in the spheroid gas \citep{ciotti_feedbackcentral_2009}, i.e.
+where $\epsilon_{\bullet wind}=${\tt [blackHoleWindEfficiency]} is the black hole wind efficiency, is added to the gas component of the spheroid (which, presumably, will respond with an outflow for example) if and only if the wind pressure (at the spheroid characteristic radius) is less than the typical thermal pressure in the spheroid gas \citep{ciotti_feedbackcentral_2009}, i.e.
 \begin{eqnarray}
  P_{\rm wind} &<& P_{\rm ISM} \nonumber \\
  \frac{1}{2}\rho_{\rm wind} V_{\rm wind}^2 &<& {3 {\rm k_B} T_{\rm ISM} \langle \rho_{\rm ISM}\rangle \over 2 m_{\rm H}}.
@@ -82,6 +82,13 @@ The standard hot halo implementation defines the following properties:
  \item [{\tt Hot\_Halo\_Outflowed\_Ang\_Mom}] The angular momentum of the outflowed gas in the hot halo, $J_{\rm outflowed}$ {\tt [outflowedAngularMomentum]}.
  \item [{\tt Hot\_Halo\_Outflowed\_Abundances}] The mass(es) of heavy elements in outflowed gas, $M_{Z, {\rm outflowed}}$ {\tt [outflowed\{abundanceName\}]}.
 \end{description}
+and the following pipes:
+\begin{description}
+ \item [Energy Input] Energy sent through this pipe is added to the hot halo and used to offset the cooling rate (see below).
+ \item [Cooling Gas] The net cooling rate of gas mass (and metal content and angular momentum) is sent through this pipe. Any component may claim this pipe and connect to it, allowing it to receive the cooling gas.
+ \item [Gas Outflow] Galactic components that wish to expel gas due to an outflow can send that mass (plus metals and angular momentum) through this pipe, where it will be received into the hot halo component. 
+ \item [Gas Mass Sink] Removes gas (and proportionate amounts of angular momentum and elements) from the hot gas halo.
+\end{description}
 
 \subsubsection{Initialization}
 
@@ -92,14 +99,18 @@ At initialization, any nodes with no children are assigned a hot halo mass, and 
 In the standard hot halo implementation the hot gas mass and heavy element mass(es) evolves as:
 \begin{eqnarray}
  \dot{M}_{\rm failed} &=& \dot{M}_{\rm failed~accretion} \\
- \dot{M}_{\rm hot} &=& \dot{M}_{\rm accretion} - \dot{M}_{\rm cooling~rate} + \dot{M}_{\rm outflow,return}, \\
- \dot{M}_{Z, {\rm hot}} &=& - \dot{M}_{\rm cooling~rate} {M_{Z, {\rm hot}}\over M_{\rm hot}} + \dot{M}_{Z, {\rm outflow,return}}, \\
+ \dot{M}_{\rm hot} &=& \dot{M}_{\rm accretion} - \dot{M}_{\rm cooling} + \dot{M}_{\rm outflow,return}, \\
+ \dot{M}_{Z, {\rm hot}} &=& - \dot{M}_{\rm cooling} {M_{Z, {\rm hot}}\over M_{\rm hot}} + \dot{M}_{Z, {\rm outflow,return}}, \\
 \end{eqnarray}
-where $\dot{M}_{\rm accretion}$ is the rate of growth of the hot component due to accretion from the \IGM\ and $\dot{M}_{\rm failed~accretion}$ is the rate of failed accretion from the \IGM\ (these may include a component due to transfer of mass from the failed to accreted reservoirs). The angular momentum of the hot gas evolves as:
+where $\dot{M}_{\rm accretion}$ is the rate of growth of the hot component due to accretion from the \IGM\ and $\dot{M}_{\rm failed~accretion}$ is the rate of failed accretion from the \IGM\ (these may include a component due to transfer of mass from the failed to accreted reservoirs) and $\dot{M}_{\rm cooling}$ is the rate of mass loss from the hot halo due to cooling (see \S\ref{sec:CoolingRate}) minus any heating rate defined as
 \begin{equation}
- \dot{J}_{\rm hot} = {\dot{M}_{\rm accretion} \over M_{\rm node}} \dot{J}_{\rm node} - \dot{M}_{\rm cooling~rate} r_{\rm cool} V_{\rm rotate} + \dot{J}_{\rm outflow,return}.
+ \dot{M}_{\rm heating} = \dot{E}{\rm input} / V_{\rm virial}^2,
 \end{equation}
-For the outflowed components:
+where $\dot{E}$ is the rate at which energy is being sent through the ``energy input'' pipe and $V_{\rm virial}$ is the virial velocity of the halo.\footnote{The net cooling rate is never allowed to drop below zero. If the mass heating rate exceeds the mass cooling rate then the excess energy is not used.} The angular momentum of the hot gas evolves as:
+\begin{equation}
+ \dot{J}_{\rm hot} = \dot{M}_{\rm accretion} {\dot{J}_{\rm node} \over \dot{M}_{\rm node}} - \dot{M}_{\rm cooling} r_{\rm cool} V_{\rm rotate} + \dot{J}_{\rm outflow,return},
+\end{equation}
+where $\dot{M}_{\rm node}$ and $\dot{J}_{\rm node}$ are defined in \S\ref{sec:ComponentBasicProperties}. For the outflowed components:
 \begin{eqnarray}
  \dot{M}_{\rm outflowed} &=& - \dot{M}_{\rm outflow,return} + \dot{M}_{\rm outflows}, \\
  \dot{M}_{Z, {\rm outflowed}} &=& - \dot{M}_{Z, {\rm outflow,return}} + \dot{M}_{Z, {\rm outflows}}, \\
@@ -116,7 +127,7 @@ where $\alpha_{\rm outflow~return~rate}=(${\tt hotHaloOutflowReturnRate}) is an 
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} If the {\tt starveSatellites} parameter is true, then any hot halo properties of the minor node are added to those of the major node and the hot halo component removed from the minor node.\\
+\noindent\emph{Node mergers:} If the {\tt starveSatellites} parameter is true, then any hot halo properties of the minor node are added to those of the major node and the hot halo component removed from the minor node. Additionally in this case, any material outflowed from the the satellite galaxy to its hot halo is transferred to the hot halo of the host dark matter halo after each timestep.\\
 
 \noindent\emph{Satellite merging:} If the {\tt starveSatellites} parameter is false, then any hot halo properties of the satellite node are added to those of the host node and the hot halo component removed from the satellite node.\\
 
@@ -128,7 +139,9 @@ where $\alpha_{\rm outflow~return~rate}=(${\tt hotHaloOutflowReturnRate}) is an 
 
 The null disk implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off disks. Of course, this is safe only if none of the other active components expect to get or set disk properties (or if they rely on a sensible implementation of disk evolution).
 
-\subsection{``Exponential'' Implementation}
+\subsection{``Exponential'' Implementation}\label{sec:DiskExponential}
+
+This implementation assumes a disk with an exponential surface density profile in which stars trace gas.
 
 \subsubsection{Properties}
 
@@ -152,20 +165,20 @@ No initialization is performed---disks are created as needed.
 
 In the exponential galactic disk implementation the gas mass evolves as:
 \begin{equation}
- \dot{M}_{\rm disk, gas} = \dot{M}_{\rm cooling~rate} - \dot{M}_{\rm outflow, disk} - \dot{M}_{\rm stars, disk},
+ \dot{M}_{\rm disk, gas} = \dot{M}_{\rm cooling} - \dot{M}_{\rm outflow, disk} - \dot{M}_{\rm stars, disk} - M_{\rm disk, gas}/\tau_{\rm bar},
 \end{equation}
 where the rate of change of stellar mass is
 \begin{equation}
- \dot{M}_{\rm stars, disk} = \Psi - \dot{R}
+ \dot{M}_{\rm stars, disk} = \Psi - \dot{R} - M_{\rm stars,disk}/\tau_{\rm bar},
 \end{equation}
 with
 \begin{equation}
  \Psi = {M_{\rm disk, gas} \over \tau_{\rm disk, star~formation}}
 \end{equation}
-with $\tau_{\rm disk, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars.
+with $\tau_{\rm disk, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars and $\tau_{\rm bar}$ is a bar instability timescale (see \S\ref{sec:DiskStability}). The mass removed from the disk by the bar instability mechanism is added to the active spheroid component.
 Element abundances (including total metals) evolve according to:
 \begin{equation}
-  \dot{M}_{Z, {\rm disk, gas}} = \dot{M}_{Z {\rm cooling~rate}} - \dot{M}_{Z, {\rm outflow, disk}} - \dot{M}_{Z, {\rm stars, disk}} + \dot{y},
+  \dot{M}_{Z, {\rm disk, gas}} = \dot{M}_{Z {\rm cooling}} - \dot{M}_{Z, {\rm outflow, disk}} - \dot{M}_{Z, {\rm stars, disk}} + \dot{y},
 \end{equation}
 and
 \begin{equation}
@@ -173,17 +186,17 @@ and
 \end{equation}
 where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the rate of element recycling. The angular momentum evolves as:
 \begin{equation}
- \dot{J}_{\rm disk} = \dot{J}_{\rm cooling~rate}.
+ \dot{J}_{\rm disk} = \dot{J}_{\rm cooling} - \left[ \dot{M}_{\rm outflow, disk} + {M_{\rm disk, gas}  + M_{\rm disk, stars} \over \tau_{\rm bar}}\right] {J_{\rm disk} \over M_{\rm disk, gas} + M_{\rm disk, stars}}.
 \end{equation}
 The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}).
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} If the {\tt starveSatellites} parameter is true, then any hot halo properties of the minor node are added to those of the major node and the hot halo component removed from the minor node.\\
+\noindent\emph{Node mergers:} None\\
 
-\noindent\emph{Satellite merging:} If the {\tt starveSatellites} parameter is false, then any hot halo properties of the satellite node are added to those of the host node and the hot halo component removed from the satellite node.\\
+\noindent\emph{Satellite merging:} Disks may be destroyed (or, potentially, created or otherwise modified) as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see \S\ref{sec:MergingMassMovements}).\\
 
-\noindent\emph{Node promotion:} Any hot halo properties of the parent node are added to those of the node prior to promotion.\\
+\noindent\emph{Node promotion:} None\\
 
 \section{Galactic Spheroid}
 
@@ -192,6 +205,8 @@ The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current sta
 The null spheroid implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off spheroids. Of course, this is safe only if none of the other active components expect to get or set spheroid properties (or if they rely on a sensible implementation of spheroid evolution).
 
 \subsection{``Hernquist'' Implementation}
+
+This implementation assumes a Hernquist profile \citep{hernquist_analytical_1990} for the spheroidal component of a galaxy in which stars trace gas.
 
 \subsubsection{Properties}
 
@@ -202,7 +217,7 @@ The Hernquist galactic spheroid implementation defines the following properties:
  \item [{\tt Spheroid\_Stellar\_Mass}] The mass of stars in the spheroid: $M_{\rm spheroid, stars}$ [{\tt spheroidStellarMass}].
  \item [{\tt Spheroid\_Stellar\_Abundances}] The mass of elements in the stellar spheroid: $M_{Z, {\rm spheroid, stars}}$ [{\tt spheroidStellar\{abundanceName\}}].
  \item [{\tt Spheroid\_Stellar\_Luminosities}] The luminosities (in multiple bands) of the stellar spheroid: $L_{\rm spheroid, stars}$ [{\tt spheroidStellar\{luminosityName\}}].
- \item [{\tt Spheroid\_Angular\_Momentum}] The pseudo-angular momentum of the spheroid, $J_{\rm spheroid}$ [{\tt spheroidAngularMomentum}].
+ \item [{\tt Spheroid\_Angular\_Momentum}] The pseudo-angular momentum\footnote{Effectively the angular momentum that the spheroid would have, were it rotationally supported rather than pressure supported.} of the spheroid, $J_{\rm spheroid}$ [{\tt spheroidAngularMomentum}].
  \item [{\tt Spheroid\_Radius}] The radial scale length of the spheroid, $r_{\rm spheroid}$ [{\tt spheroidScaleLength}].
  \item [{\tt Spheroid\_Velocity}] The circular velocity of the spheroid at $r_{\rm spheroid}$, $V_{\rm spheroid}$ [{\tt spheroidCircularVelocity}].
 \end{description}
@@ -218,7 +233,7 @@ No initialization is performed---spheroids are created as needed.
 
 \subsubsection{Differential Evolution}
 
-In the Hernquist galactic spheroid implementation the gas mass evolves as:
+In the Hernquist galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk component via the bar instability mechanism (see \S\protect\ref{sec:DiskExponential}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk component and so applies equally to any spheroid component implementation.}:
 \begin{equation}
  \dot{M}_{\rm spheroid, gas} = - \dot{M}_{\rm outflow, spheroid} - \dot{M}_{\rm stars, spheroid},
 \end{equation}
@@ -257,7 +272,9 @@ where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is
 
 \noindent\emph{Node promotion:} None.\\
 
-\section{Basic Properties}
+\section{Basic Properties}\label{sec:ComponentBasicProperties}
+
+Basic properties are the total mass of a node and the cosmic time at which it currently exists.
 
 \subsection{``Simple'' Implemenation}
 
@@ -279,8 +296,9 @@ All basic properties are required to be initialized by the merger tree construct
 Properties are evolved according to:
 \begin{eqnarray}
  \dot{M}_{\rm node} &=& \left\{\begin{array}{ll}{M_{\rm node, parent} - M_{\rm node} \over t_{\rm node, parent} - t_{\rm node}} & \hbox{ if primary progenitor} \\ 0 & \hbox{ otherwise}, \end{array} \right. \\
- \dot{t}_{\rm node} &=& 1.
+ \dot{t}_{\rm node} &=& 1,
 \end{eqnarray}
+where the ``parent'' subscript indicates a property of the parent node in the merger tree.
 
 \subsubsection{Event Evolution}
 
@@ -291,6 +309,8 @@ Properties are evolved according to:
 \noindent\emph{Node promotion:} $M_{\rm node}$ is updated to the node mass of the parent prior to promotion.\\
 
 \section{Satellite Node Orbit}
+
+This component tracks the orbital properties of subhalos.
 
 \subsection{``Simple'' Implementation}
 
@@ -353,6 +373,8 @@ The spin parameter does not evolve.
 
 \section{Dark Matter Profile}
 
+This component stores dynamic properties associated with dark matter halo density profiles.
+
 \subsection{``Null'' Implementation}
 
 The null profile implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off profiles. Of course, this is safe only if none of the other active components expect to get or set profile properties (or if they rely on a sensible implementation of profile evolution).
@@ -369,7 +391,7 @@ The scale dark matter profile implementation defines the following properties:
 
 \subsubsection{Initialization}
 
-The scale length of each node, if not already assigned, is assigned using the concentration parameter function such that the scale length is equal to the virial radius divided by that concentration. The value is propagated in both directions along the primary child branch from the node.
+The scale length of each node, if not already assigned, is assigned using the concentration parameter function (see \S\ref{sec:DarkMatterProfileConcentration}), but is not allowed to drop below {\tt [darkMatterProfileMinimumConcentration]}, such that the scale length is equal to the virial radius divided by that concentration. The value is propagated in both directions along the primary child branch from the node.
 
 \subsubsection{Differential Evolution}
 

@@ -585,6 +585,7 @@ Currently defined cooling function methods are:
  \end{description}
  If the cooling function is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first cooling function is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and cooling function. Otherwise, interpolation is linear in these quantities. The cooling function is scaled assuming a quadratic dependence on hydrogen density.
  \item [{\tt atomic CIE Cloudy}] Uses the {\sc Cloudy} software to compute a cooling function for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the cooling function suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}. Figure~\ref{fig:atomicCIECloudyCoolingFunction} shows the cooling function from this method.
+ \item [{\tt CMB Compton}] Computes the cooling function due to Compton scattering off of \CMB\ photons.
 \end{description}
 
 \begin{figure}
@@ -634,7 +635,7 @@ The function must return the cooling radius (in units of Mpc) for {\tt thisNode}
 
 Currently defined cooling radius methods are:
 \begin{description}
- \item [\hyperlink{cooling.cooling_radius.simple.F90:cooling_radii_simple:cooling_radius_simple}{{\tt simple}}] Computes the cooling radius by seeking the radius at which the time available for cooling equals the cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotinc function of radius.
+ \item [\hyperlink{cooling.cooling_radius.simple.F90:cooling_radii_simple:cooling_radius_simple}{{\tt simple}}] Computes the cooling radius by seeking the radius at which the time available for cooling equals the cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
 \end{description}
 
 \subsubsection{Cooling Rate}
@@ -729,7 +730,7 @@ Currently defined cooling time methods are:
  \item [\hyperlink{cooling.cooling_time.simple.F90:cooling_times_simple:cooling_time_simple}{{\tt simple}}] Compute the cooling time as the ratio of the gas thermal energy density to the volume rate of radiative energy loss. The gas is assumed to have an effective number of degrees of freedom specified by the {\tt coolingTimeSimpleDegreesOfFreedom} parameter.
 \end{description}
 
-\subsubsection{Cosmology}
+\subsubsection{Cosmology}\label{sec:CosmologyMethods}
 
 Additional methods for cosmology can be added using the {\tt cosmologyMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt matter + lambda} method is described by a directive:
 \begin{verbatim}
@@ -977,6 +978,89 @@ Currently defined critical overdensity methods are:
  \item [{\tt spherical top hat}] The critical overdensity is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
 \end{description}
 
+\subsubsection{Dark Matter Density Profile}
+
+Additional methods for the dark matter density profile can be added using the {\tt darkMatterProfileMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt NFW} method is described by a directive:
+\begin{verbatim}
+ !# <darkMatterProfileMethod>
+ !#  <unitName>Dark_Matter_Profile_NFW_Initialize</unitName>
+ !# </darkMatterProfileMethod>
+\end{verbatim}
+Here, {\tt Dark\_Matter\_Profile\_NFW\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get&
+       & ,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get &
+       & ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get&
+       & ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: darkMatterProfileMethod
+    procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get&
+         &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
+         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get
+    
+    if (darkMatterProfileMethod == 'myMethod') then
+       Dark_Matter_Profile_Energy_Get                                => My_Dark_Matter_Profile_Energy
+       Dark_Matter_Profile_Energy_Growth_Rate_Get                    => My_Dark_Matter_Profile_Energy_Growth_Rate
+       Dark_Matter_Profile_Rotation_Normalization_Get                => My_Dark_Matter_Profile_Rotation_Normalization
+       Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get => My_Radius_from_Specific_Angular_Momentum
+       Dark_Matter_Profile_Circular_Velocity_Get                     => My_Dark_Matter_Profile_Circular_Velocity
+       Dark_Matter_Profile_Potential_Get                             => My_Dark_Matter_Profile_Potential
+       Dark_Matter_Profile_Enclosed_Mass_Get                         => My_Dark_Matter_Profile_Enclosed_Mass
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterProfileMethod} input parameter. The procedure pointers must be set to point to functions which return properties of the dark matter density profile as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The enclosed mass, potential and circular velocity functions must have the form:
+\begin{verbatim}
+  double precision function My_Dark_Matter_Profile_Property(thisNode,radius)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+    .
+    .
+    .
+    return
+  end function My_Dark_Matter_Profile_Property
+\end{verbatim}
+These functions should compute and return the enclosed dark matter mass (in units of $M_\odot$), gravitational potential (in units of (km/s)$^2$) and circular velocity (in units of km/s) due to dark matter at the given {\tt radius} (in units of Mpc) for {\tt thisNode} respectively.
+
+The energy, energy growth rate and rotation velocity normalization functions must have the form:
+\begin{verbatim}
+  double precision function My_Dark_Matter_Profile_Property(thisNode)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+  end function My_Dark_Matter_Profile_Property
+\end{verbatim}
+The energy functions should compute and return the energy (potential plus kinetic; in units of $M_\odot$ (km/s)$^2$) of the dark matter halo out to the virial radius of {\tt thisNode} and the rate of change of that energy (in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$) respectively. The rotation normalization function should compute and return the normalization between rotation speed and mean specific angular momentum (in units of Mpc$^{-1}$) of {\tt thisNode} assuming that the dark matter halo rotates at the same velocity at all radii.
+
+Finally, the radius from specific angular momentum functin must have the form:
+\begin{verbatim}
+  double precision function My_Dark_Matter_Profile_Radius_From_Specific_Angular_Momentum(thisNode,specificAngularMomentum)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: specificAngularMomentum
+    .
+    .
+    .
+    return
+  end function My_Dark_Matter_Profile_Radius_From_Specific_Angular_Momentum
+\end{verbatim}
+This function should compute and return the radius (in units of Mpc) in {\tt thisNode} at which a circular orbit would have the given {\tt specificAngularMomentum} (in units of km/s Mpc).
+
+Currently defined dark matter density profile methods are:
+\begin{description}
+ \item [{\tt Isothermal}] The density profile is a singular isothermal sphere;
+\end{description}
+
 \subsubsection{Dark Matter Density Profile Concentration}
 
 Additional methods for the dark matter density profile concentration can be added using the {\tt darkMatterConcentrationMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Gao2008} method is described by a directive:
@@ -1001,7 +1085,7 @@ Here, {\tt Dark\_Matter\_Concentrations\_Gao20008\_Initialize} is the name of a 
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt criticalOverdensityMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Profile\_Concentration\_Get} must be set to point to a function which returns the concentration of a node. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterConcentrationMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Profile\_Concentration\_Get} must be set to point to a function which returns the concentration of a node. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The concentration function must have the form:
 \begin{verbatim}
@@ -1016,9 +1100,54 @@ The concentration function must have the form:
 \end{verbatim}
 The function should compute and return the concentration for {\tt thisNode}.
 
-Currently defined critical overdensity methods are:
+Currently defined darl matter profile concentration methods are:
 \begin{description}
  \item [{\tt Gao2008}] The concentration is computed using a fitting function from \cite{gao_redshift_2008}.
+\end{description}
+
+\subsubsection{Dark Matter Halo Spin Distribution}\label{sec:HaloSpinDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
+
+Additional methods for the dark matter density profile concentration can be added using the {\tt haloSpinDistributionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Gao2008} method is described by a directive:
+\begin{verbatim}
+ !# <haloSpinDistributionMethod>
+ !#  <unitName>Halo_Spin_Distribution_Bett2007_Initialize</unitName>
+ !# </haloSpinDistributionMethod>
+\end{verbatim}
+Here, {\tt Halo\_Spin\_Distribution\_Bett2007\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(haloSpinDistributionMethod,Halo_Spin_Sample_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: haloSpinDistributionMethod
+    procedure(),          pointer, intent(inout) :: Halo_Spin_Sample_Get
+    
+    if (haloSpinDistributionMethod == 'myMethod') then
+       Halo_Spin_Sample_Get => My_Spin_Sample_Get
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt haloSpinDistributionMethod} input parameter. The procedure pointer {\tt Halo\_Spin\_Sample\_Get} must be set to point to a function which returns a spin parameter drawn at random from a distribution. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The spin parameter function must have the form:
+\begin{verbatim}
+  double precision function My_Spin_Distribution_Sample(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+  end function My_Spin_Distribution_Sample
+\end{verbatim}
+The function should compute and return a spin parameter for {\tt thisNode} drawn at random from a distribution.
+
+Currently defined spin distribution methods are:
+\begin{description}
+ \item [{\tt lognormal}] The spin is drawn from a lognormal distribution with median {\tt [lognormalSpinDistributionMedian]} and width {\tt [lognormalSpinDistributionSigma]}.
+ \item [{\tt Bett2007}] The spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$ and $\alpha$ parameter of Bett et al.'s distribution are set by the {\tt [spinDistributionBett2007Lambda0]} and {\tt [spinDistributionBett2007Alpha]} input parameters.
 \end{description}
 
 \subsubsection{Bar Instabilities}
