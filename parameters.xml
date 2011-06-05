@@ -88,8 +88,8 @@
     <value>100</value>
   </parameter>
   <parameter>
-    <name>coolingFunctionMethod</name>
-    <value>atomic CIE Cloudy</value>
+    <name>coolingFunctionMethods</name>
+    <value>atomic_CIE_Cloudy</value>
   </parameter>
   <parameter>
     <name>coolingRadiusMethod</name>

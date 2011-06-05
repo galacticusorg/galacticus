@@ -390,7 +390,7 @@ contains
     ! Extract data from first ionization state and count number of temperatures present.
     thisIonizationState  => item(ionizationStateList,0)
     thisTemperature      => item(getElementsByTagname(thisIonizationState,"temperature"),0)
-    temperatureDatumList => getElementsByTagname(thisIonizationState,"datum")
+    temperatureDatumList => getElementsByTagname(thisTemperature,"datum")
     ionizationStateTemperatureNumberPoints=getLength(temperatureDatumList)
 
     ! Allocate space for the table.
@@ -411,7 +411,7 @@ contains
        ! Extract the data.
        thisTemperature      => item(getElementsByTagname(thisIonizationState,"temperature"),0)
        temperatureDatumList =>      getElementsByTagname(thisTemperature    ,"datum"      )
-       thisElectronDensity  => item(getElementsByTagname(thisIonizationState,"coolingRate"),0)
+       thisElectronDensity  => item(getElementsByTagname(thisIonizationState,"electronDensity"),0)
        ionizationDatumList  =>      getElementsByTagname(thisElectronDensity,"datum"      )
        ! Check that number of temperatures is consistent.
        if (getLength(temperatureDatumList) /= ionizationStateTemperatureNumberPoints) call&
