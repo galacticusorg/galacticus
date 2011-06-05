@@ -90,11 +90,12 @@ module Galacticus_Output_Merger_Tree
   integer,                         dimension(:,:), allocatable :: integerBuffer
   double precision,                dimension(:,:), allocatable :: doubleBuffer
   integer,                         dimension(:),   allocatable :: integerPropertyIDs,doublePropertyIDs
+  logical,                         dimension(:),   allocatable :: integerPropertyIsNew,doublePropertyIsNew
   character(len=nameLengthMax),    dimension(:),   allocatable :: integerPropertyNames,doublePropertyNames
   character(len=commentLengthMax), dimension(:),   allocatable :: integerPropertyComments,doublePropertyComments
   !$omp threadprivate(integerPropertiesWritten,doublePropertiesWritten,integerBufferCount,doubleBufferCount,integerBuffer)
   !$omp threadprivate(doubleBuffer,integerPropertyIDs,doublePropertyIDs,integerPropertyNames,doublePropertyNames)
-  !$omp threadprivate(integerPropertyComments,doublePropertyComments)
+  !$omp threadprivate(integerPropertyComments,doublePropertyComments,integerPropertyIsNew,doublePropertyIsNew)
 
 contains
 
@@ -215,8 +216,9 @@ contains
     ! Write integer data from the buffer.
     if (integerPropertyCount > 0) then
        do iProperty=1,integerPropertyCount
-          call Galacticus_Output_Dataset(thisTree%hdf5GroupID,integerPropertyIDs(iProperty),integerPropertyNames(iProperty)&
-               &,integerPropertyComments(iProperty),integerBuffer(1:integerBufferCount,iProperty),isExtendable=.true.)
+          call Galacticus_Output_Dataset(thisTree%hdf5GroupID,integerPropertyIDs(iProperty),integerPropertyNames(iProperty) &
+               &,integerPropertyComments(iProperty),integerBuffer(1:integerBufferCount,iProperty),isExtendable=.true.,isNew&
+               &=integerPropertyIsNew(iProperty))
        end do
        integerPropertiesWritten=integerPropertiesWritten+integerBufferCount
        integerBufferCount=0
@@ -235,7 +237,7 @@ contains
     if (doublePropertyCount > 0) then
        do iProperty=1,doublePropertyCount
           call Galacticus_Output_Dataset(thisTree%hdf5GroupID,doublePropertyIDs(iProperty),doublePropertyNames(iProperty)&
-               &,doublePropertyComments(iProperty),doubleBuffer(1:doubleBufferCount,iProperty),isExtendable=.true.)
+               &,doublePropertyComments(iProperty),doubleBuffer(1:doubleBufferCount,iProperty),isExtendable=.true.,isNew=doublePropertyIsNew(iProperty))
        end do
        doublePropertiesWritten=doublePropertiesWritten+doubleBufferCount
        doubleBufferCount=0
@@ -269,28 +271,34 @@ contains
        if (allocated(integerBuffer)) then
           call Dealloc_Array(integerBuffer          )
           call Dealloc_Array(integerPropertyIDs     )
+          call Dealloc_Array(integerPropertyIsNew   )
           call Dealloc_Array(integerPropertyNames   )
           call Dealloc_Array(integerPropertyComments)
        end if
        call Alloc_Array(integerBuffer          ,[bufferSize,integerPropertyCount])
        call Alloc_Array(integerPropertyIDs                ,[integerPropertyCount])
+       call Alloc_Array(integerPropertyIsNew              ,[integerPropertyCount])
        call Alloc_Array(integerPropertyNames              ,[integerPropertyCount])
        call Alloc_Array(integerPropertyComments           ,[integerPropertyCount])
     end if
-    integerPropertyIDs=0
+    integerPropertyIDs  =0
+    integerPropertyIsNew=.true.
     if (doublePropertyCount  > 0 .and. (.not.allocated(doubleBuffer ) .or. doublePropertyCount  > size(doublePropertyIDs ))) then
        if (allocated(doubleBuffer )) then
           call Dealloc_Array(doubleBuffer           )
           call Dealloc_Array(doublePropertyIDs      )
+          call Dealloc_Array(doublePropertyIsNew    )
           call Dealloc_Array(doublePropertyNames    )
           call Dealloc_Array(doublePropertyComments )
        end if
        call Alloc_Array(doubleBuffer           ,[bufferSize,doublePropertyCount])
        call Alloc_Array(doublePropertyIDs                 ,[doublePropertyCount])
+       call Alloc_Array(doublePropertyIsNew               ,[doublePropertyCount])
        call Alloc_Array(doublePropertyNames               ,[doublePropertyCount])
        call Alloc_Array(doublePropertyComments            ,[doublePropertyCount])
     end if
-    doublePropertyIDs=0
+    doublePropertyIDs  =0
+    doublePropertyIsNew=.true.
     return
   end subroutine Allocate_Buffers
 
