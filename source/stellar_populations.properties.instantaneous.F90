@@ -116,7 +116,7 @@ contains
     use Stellar_Feedback
     implicit none
     double precision,          intent(out)                 :: stellarMassRate,fuelMassRate,energyInputRate
-    type(abundancesStructure), intent(out)                 :: stellarAbundancesRates,fuelAbundancesRates
+    type(abundancesStructure), intent(inout)               :: stellarAbundancesRates,fuelAbundancesRates
     double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
     double precision,          intent(in)                  :: starFormationRate
     type(abundancesStructure), intent(in)                  :: fuelAbundances
