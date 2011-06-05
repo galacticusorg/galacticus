@@ -924,9 +924,6 @@ contains
     type(treeNode),   pointer                      :: hostNode
     double precision, dimension(abundancesCount)   :: thisAbundances,hostAbundances
     double precision, dimension(luminositiesCount) :: thisLuminosities,hostLuminosities
-    double precision, parameter                    :: spheroidAngularMomentumRatio=0.5595552243d0 ! Ratio of specific angular
-                                                                                                  ! momentum at half-mass radius to
-                                                                                                  ! global mean.
     type(history)                                  :: historyDisk,historySpheroid,thisHistory
     double precision                               :: spheroidSpecificAngularMomentum,diskSpecificAngularMomentum,angularMomentum&
          &,spheroidMass
@@ -1124,7 +1121,10 @@ contains
        
        ! Set the angular momentum of the spheroid.
        if (remnantSpecificAngularMomentum /= remnantNoChangeValue) then
-          angularMomentum=(remnantSpecificAngularMomentum/spheroidAngularMomentumRatio)*(Tree_Node_Spheroid_Gas_Mass(hostNode)&
+          ! Note that the remnant specific angular momentum computed by the merger remnant modules automatically gives the mean
+          ! specific angular momentum of the component by virtue of the fact that it computes the ratio of the actual angular
+          ! momentum to the contribution from the component's own rotation curve at its scale radius.
+          angularMomentum=remnantSpecificAngularMomentum*(Tree_Node_Spheroid_Gas_Mass(hostNode) &
                &+Tree_Node_Spheroid_Stellar_Mass(hostNode))
           call Tree_Node_Spheroid_Angular_Momentum_Set_Hernquist(hostNode,angularMomentum)
        end if
