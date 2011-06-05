@@ -238,8 +238,10 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        call parametersGroup%writeAttribute(trim(parameterValue),trim(parameterName))
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_Char
@@ -304,8 +306,10 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_Char_Array
@@ -362,8 +366,10 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        call parametersGroup%writeAttribute(parameterValue,trim(parameterName))    
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_VarString
@@ -428,8 +434,10 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_VarString_Array
@@ -486,8 +494,10 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_Double
@@ -544,8 +554,10 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_Double_Array
@@ -602,8 +614,10 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_Integer
@@ -660,8 +674,10 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_Integer_Array
@@ -719,6 +735,7 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        select case (parameterValue)
        case (.false.)
@@ -727,7 +744,8 @@ contains
           datasetValue='true'
        end select
        call parametersGroup%writeAttribute(datasetValue,trim(parameterName))
-   end if
+       !$omp end critical(HDF5_Access)
+    end if
     return
   end subroutine Get_Input_Parameter_Logical
 
@@ -784,6 +802,7 @@ contains
        writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
     end if
     if (writeOutputActual) then
+       !$omp critical(HDF5_Access)
        call Make_Parameters_Group
        where (parameterValue)
           datasetValue='true'
@@ -791,6 +810,7 @@ contains
           datasetValue='false'
        end where
        call parametersGroup%writeAttribute(datasetValue,trim(parameterName))
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Get_Input_Parameter_Logical_Array

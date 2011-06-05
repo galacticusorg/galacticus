@@ -94,7 +94,7 @@ contains
     !% Initializes the ``atomic CIE ionization state from {\sc Cloudy}'' module.
     implicit none
     type(varying_string),          intent(in)    :: ionizationStateMethod
-    procedure(),          pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get&
+    procedure(double precision), pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get&
          &,Electron_Density_Density_Log_Slope_Get
  
     ! Check if this ionization state has been selected.

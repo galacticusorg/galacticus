@@ -135,6 +135,10 @@ contains
     ! Finally remove the satellite node from the host and destroy it.
     call thisNode%removeFromHost()
     call thisNode%destroy
+#ifdef GCC45
+    ! <gfortran 4.6> The destroy method cannot disassociate the pointer (since it can't accept a pointer input), so we do it manually here.
+    thisNode => null()
+#endif
     return
   end subroutine Satellite_Merger_Process
 

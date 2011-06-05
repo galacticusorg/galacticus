@@ -114,16 +114,17 @@ contains
     use ISO_Varying_String
     use ODE_Solver
     implicit none
-    type(varying_string),          intent(in)    :: cosmologyMethod
-    procedure(),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get &
-         &,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get,Omega_Dark_Energy_Get &
-         &,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get&
-         &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get
-    double precision,     parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
-    double precision,     parameter              :: omegaTolerance=1.0d-9
-    double precision                             :: cubicTerm1,cubicTerm5,cubicTerm9,cubicTerm21Squared,cubicTerm21 &
+    type(varying_string),                 intent(in)    :: cosmologyMethod
+    procedure(),                 pointer, intent(inout) :: Early_Time_Density_Scaling_Get
+    procedure(logical),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get
+    procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get&
+         &,Omega_Matter_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get&
+         &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get
+    double precision,            parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
+    double precision,            parameter              :: omegaTolerance=1.0d-9
+    double precision                                    :: cubicTerm1,cubicTerm5,cubicTerm9,cubicTerm21Squared,cubicTerm21 &
          &,cubicTerm25Cubed,cubicTerm25,aMaximum,aDominant,timeMaximum(1),densityPower,Omega_Dominant
-    type(c_ptr)                                  :: parameterPointer
+    type(c_ptr)                                         :: parameterPointer
 
     ! Check if our method is selected.
     if (cosmologyMethod == 'matter + lambda') then
@@ -282,9 +283,11 @@ contains
     !$omp end critical(Cosmology_Functions_Initialize)
 
     ! Interpolate to get cosmic time.
+    !$omp critical(Cosmology_Functions_Interpolate)
     Cosmology_Age_Matter_Lambda=Interpolate(ageTableNumberPoints,ageTableExpansionFactor&
          &,ageTableTime,interpolationObject,interpolationAccelerator&
          &,aExpansion,reset=resetInterpolation)
+    !$omp end critical(Cosmology_Functions_Interpolate)
     if (collapsingPhaseActual) Cosmology_Age_Matter_Lambda=tCosmologicalMax-Cosmology_Age_Matter_Lambda
 
     return
@@ -326,8 +329,10 @@ contains
     else
        tEffective=tCosmological
     end if
+    !$omp critical(Cosmology_Functions_Interpolate)
     Expansion_Factor_Matter_Lambda=Interpolate(ageTableNumberPoints,ageTableTime,ageTableExpansionFactor,interpolationObject&
          &,interpolationAccelerator,tEffective,reset=resetInterpolation)
+    !$omp end critical(Cosmology_Functions_Interpolate)
     return
   end function Expansion_Factor_Matter_Lambda
   
@@ -345,6 +350,7 @@ contains
     double precision                       :: densityPower,aDominant,Omega_Dominant,tDominant,time,aExpansion(1)
     type(c_ptr)                            :: parameterPointer
     
+    !$omp critical(Cosmology_Functions_Interpolate)
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call Early_Time_Density_Scaling_Matter_Lambda(dominateFactor,densityPower,aDominant,Omega_Dominant)
 
@@ -396,6 +402,7 @@ contains
     
     ! Flag that the table is now initialized.
     ageTableInitialized=.true.
+    !$omp end critical(Cosmology_Functions_Interpolate)
     return
   end subroutine Make_Expansion_Factor_Table
   
