@@ -74,6 +74,29 @@ module Histories
 
    contains
      
+     !@ <objectMethods>
+     !@   <object>history</object>
+     !@   <objectMethod>
+     !@     <method>create</method>
+     !@     <description>Creates a history object with a specified range of times.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroys a history object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>trim</method>
+     !@     <description>Removes any times in a history which have become outdated.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>add</method>
+     !@     <description>Adds two histories.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <description>Resets all entries in a history to zero.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: create  => History_Create
      procedure :: destroy => History_Destroy
      procedure :: trim    => History_Trim
