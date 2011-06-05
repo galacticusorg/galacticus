@@ -200,7 +200,7 @@ sub Get_Dataset {
 		    }
 		}	
 		# Exit if the dataset was not matched.
-		die("Dataset ".$dataSetName." was not found or match to any derived property") unless ( $foundMatch == 1 );		
+		die("Dataset ".$dataSetName." was not found or matched to any derived property") unless ( $foundMatch == 1 );		
 	    }
 	}
     }
