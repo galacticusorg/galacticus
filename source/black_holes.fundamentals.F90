@@ -103,7 +103,15 @@ module Black_Hole_Fundamentals
      module procedure Black_Hole_Horizon_Radius_Node
      module procedure Black_Hole_Horizon_Radius_Spin
   end interface
-  
+  interface Black_Hole_Static_Radius
+     module procedure Black_Hole_Static_Radius_Node
+     module procedure Black_Hole_Static_Radius_Spin
+  end interface
+  interface Black_Hole_ISCO_Specific_Energy
+     module procedure Black_Hole_ISCO_Specific_Energy_Node
+     module procedure Black_Hole_ISCO_Specific_Energy_Spin
+  end interface Black_Hole_ISCO_Specific_Energy
+
 contains
 
   double precision function Black_Hole_ISCO_Radius_Spin(blackHoleSpin,orbit)
@@ -198,7 +206,7 @@ contains
     return
   end function Black_Hole_ISCO_Radius_Node
 
-  double precision function Black_Hole_ISCO_Specific_Energy(thisNode,units,orbit)
+  double precision function Black_Hole_ISCO_Specific_Energy_Node(thisNode,units,orbit)
     !% Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
     !% stable circular orbit for the black hole in {\tt thisNode}.
     use Galacticus_Error
@@ -206,11 +214,7 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in),    optional :: units,orbit
-    ! Maximum spin above which we use series solution.
-    double precision, parameter               :: maximumSpin=0.99999d0
-    ! Coefficients in the expansion of ISCO energy with spin close to maximal spin.
-    double precision, parameter               :: coefficientZeroth=0.5773502693d0, coefficientFirst=0.9164864242d0
-    integer                                   :: unitsActual,orbitActual
+    integer                                   :: unitsActual
     double precision                          :: blackHoleSpin,blackHoleIscoRadius
  
     ! Determine what system of units to use.
@@ -220,31 +224,44 @@ contains
        unitsActual=unitsPhysical
     end if
 
-    ! Determine what orbit to use.
-    if (present(orbit)) then
-       orbitActual=orbit
-    else
-       orbitActual=orbitPrograde
-    end if
-
-    ! Get black hole spin and ISCO radius.
+    ! Get the black hole spin.
     blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
-    blackHoleIscoRadius=Black_Hole_ISCO_Radius(thisNode,units=unitsGravitational,orbit=orbitActual)
+
+    ! Get the dimensionless ISCO energy.
+    Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Spin(blackHoleSpin,orbit)
+
+    ! Convert to physical units if necessary.
+    if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Node&
+         &*gravitationalConstantGalacticus*Tree_Node_Black_Hole_Mass(thisNode)**2/Black_Hole_Gravitational_Radius(thisNode)
+    return
+  end function Black_Hole_ISCO_Specific_Energy_Node
+
+  double precision function Black_Hole_ISCO_Specific_Energy_Spin(blackHoleSpin,orbit)
+    !% Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
+    !% stable circular orbit for a black hole of given {\tt blackHoleSpin}.
+    implicit none
+    double precision, intent(inout)          :: blackHoleSpin
+    integer,          intent(in),   optional :: orbit
+    ! Maximum spin above which we use series solution.
+    double precision, parameter              :: maximumSpin=0.99999d0
+    ! Coefficients in the expansion of ISCO energy with spin close to maximal spin.
+    double precision, parameter              :: coefficientZeroth=0.5773502693d0, coefficientFirst=0.9164864242d0
+    double precision                         :: blackHoleIscoRadius
+ 
+    ! Get black hole ISCO radius.
+    blackHoleIscoRadius=Black_Hole_ISCO_Radius(blackHoleSpin,orbit)
 
     ! Compute the specific energy in gravitational units.
     if (blackHoleSpin >= maximumSpin) then
-       Black_Hole_ISCO_Specific_Energy=coefficientZeroth+coefficientFirst*(1.0d0-blackHoleSpin)**(1.0d0/3.0d0)
+       Black_Hole_ISCO_Specific_Energy_Spin=coefficientZeroth+coefficientFirst*(1.0d0-blackHoleSpin)**(1.0d0/3.0d0)
     else
-       Black_Hole_ISCO_Specific_Energy=(blackHoleIscoRadius**2-2.0d0*blackHoleIscoRadius+blackHoleSpin &
+       Black_Hole_ISCO_Specific_Energy_Spin=(blackHoleIscoRadius**2-2.0d0*blackHoleIscoRadius+blackHoleSpin &
             &*dsqrt(blackHoleIscoRadius))/blackHoleIscoRadius/dsqrt(blackHoleIscoRadius**2-3.0d0*blackHoleIscoRadius+2.0d0 &
             &*blackHoleSpin*dsqrt(blackHoleIscoRadius))
     end if
 
-    ! Convert to physical units if necessary.
-    if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Energy=Black_Hole_ISCO_Specific_Energy&
-         &*gravitationalConstantGalacticus*Tree_Node_Black_Hole_Mass(thisNode)**2/Black_Hole_Gravitational_Radius(thisNode)
     return
-  end function Black_Hole_ISCO_Specific_Energy
+  end function Black_Hole_ISCO_Specific_Energy_Spin
 
   double precision function Black_Hole_ISCO_Specific_Angular_Momentum(thisNode,units,orbit)
     !% Returns the specific angular momentum (in physical or gravitational units and for a prograde or retorgrade orbit) of the
@@ -480,16 +497,15 @@ contains
     return
   end function Black_Hole_Horizon_Radius_Spin
   
-  double precision function Black_Hole_Static_Radius(thisNode,theta,units)
+  double precision function Black_Hole_Static_Radius_Node(thisNode,theta,units)
     !% Return the radius of the static limit for a Kerr metric for the black hole in {\tt thisNode} and angle {\tt theta}.
     use Galacticus_Error
-    use Numerical_Constants_Math
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in),    optional :: units
     double precision, intent(in),    optional :: theta
+    double precision                          :: blackHoleSpin,radiusDimensionless
     integer                                   :: unitsActual
-    double precision                          :: blackHoleSpin,radiusDimensionless,thetaActual
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -497,6 +513,32 @@ contains
     else
        unitsActual=unitsPhysical
     end if
+
+    ! Get the black hole spin.
+    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+
+    ! Get the dimensionless static radius.
+    radiusDimensionless=Black_Hole_Static_Radius_Spin(blackHoleSpin,theta)
+ 
+    ! Convert to the appropriate units.
+    select case (unitsActual)
+    case (unitsGravitational)
+       Black_Hole_Static_Radius_Node=radiusDimensionless
+    case (unitsPhysical)
+       Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisNode)
+    case default
+       call Galacticus_Error_Report('Black_Hole_Static_Radius_Node','unrecognized units')
+    end select
+    return
+  end function Black_Hole_Static_Radius_Node
+
+  double precision function Black_Hole_Static_Radius_Spin(blackHoleSpin,theta)
+    !% Return the radius of the static limit for a Kerr metric for a black hole of given {\tt blackHoleSpin} and angle {\tt theta}.
+    use Numerical_Constants_Math
+    implicit none
+    double precision, intent(in)           :: blackHoleSpin
+    double precision, intent(in), optional :: theta
+    double precision                       :: thetaActual
 
     ! Determine what angle to use.
     if (present(theta)) then
@@ -506,20 +548,9 @@ contains
        thetaActual=Pi/2.0d0
     end if
 
-    ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
-
-    radiusDimensionless=1.0d0+dsqrt(1.0d0-(blackHoleSpin*dcos(thetaActual))**2)
-    select case (unitsActual)
-    case (unitsGravitational)
-       Black_Hole_Static_Radius=radiusDimensionless
-    case (unitsPhysical)
-       Black_Hole_Static_Radius=radiusDimensionless*Black_Hole_Gravitational_Radius(thisNode)
-    case default
-       call Galacticus_Error_Report('Black_Hole_Static_Radius','unrecognized units')
-    end select
+    Black_Hole_Static_Radius_Spin=1.0d0+dsqrt(1.0d0-(blackHoleSpin*dcos(thetaActual))**2)
     return
-  end function Black_Hole_Static_Radius
+  end function Black_Hole_Static_Radius_Spin
 
   double precision function A1(blackHoleSpin)
     !% Return the function $A_1(j)$ that appears in the Kerr metric with spin {\tt blackHoleSpin}.
