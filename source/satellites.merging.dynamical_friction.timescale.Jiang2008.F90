@@ -83,38 +83,39 @@ contains
     return
   end subroutine Satellite_Time_Until_Merging_Jiang2008_Initialize
 
-  double precision function Satellite_Time_Until_Merging_Jiang2008(thisNode)
+  double precision function Satellite_Time_Until_Merging_Jiang2008(thisNode,thisOrbit)
     !% Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Virial_Orbits
     use Numerical_Constants_Math
     use Dark_Matter_Profiles
     use Dynamical_Friction_Timescale_Utilities
+    use Kepler_Orbits_Structure
+    use Satellite_Orbits
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    type(treeNode),   pointer                :: hostNode
-    logical,          parameter              :: acceptUnboundOrbits=.false.
-    double precision, parameter              :: a=0.94d0, b=0.60d0, C=0.43d0, d=0.60d0 ! Fitting parameters from Jiang's paper.
-    double precision                         :: angularMomentum,orbitalEnergy,equivalentCircularOrbitRadius,orbitalCircularity &
-         &,velocityScale,radialScale,massRatio
+    type(treeNode),    pointer, intent(inout) :: thisNode
+    type(keplerOrbit),          intent(inout) :: thisOrbit
+    type(treeNode),    pointer                :: hostNode
+    logical,           parameter              :: acceptUnboundOrbits=.false.
+    double precision,  parameter              :: a=0.94d0, b=0.60d0, C=0.43d0, d=0.60d0 ! Fitting parameters from Jiang's paper.
+    double precision                          :: equivalentCircularOrbitRadius,orbitalCircularity ,velocityScale,radialScale&
+         &,massRatio
 
     ! Find the host node.
     hostNode => thisNode%parentNode
-    ! Get orbital parameters for this satellite.
-    call Virial_Orbital_Parameters(thisNode,acceptUnboundOrbits,angularMomentum=angularMomentum,orbitalEnergy=orbitalEnergy&
-         &,equivalentCircularOrbitRadius=equivalentCircularOrbitRadius)
+    ! Get the equivalent circular orbit.
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit)
     ! Get velocity scale.
     velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
     radialScale  =Dark_Matter_Halo_Virial_Radius  (hostNode)
     ! Compute orbital circularity.
-    orbitalCircularity=angularMomentum/equivalentCircularOrbitRadius/Dark_Matter_Profile_Circular_Velocity(hostNode&
+    orbitalCircularity=thisOrbit%angularMomentum()/equivalentCircularOrbitRadius/Dark_Matter_Profile_Circular_Velocity(hostNode&
          &,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
     massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)-1.0d0
     ! Compute dynamical friction timescale.
     Satellite_Time_Until_Merging_Jiang2008=Dynamical_Friction_Timescale_Multiplier()&
-         &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*dsqrt(equivalentCircularOrbitRadius /radialScale)*((a&
+         &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*dsqrt(equivalentCircularOrbitRadius/radialScale)*((a&
          &*(orbitalCircularity**b)+d)/2.0/C)*massRatio/dlog(1.0d0+massRatio)
     return
   end function Satellite_Time_Until_Merging_Jiang2008

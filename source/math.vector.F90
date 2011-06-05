@@ -59,71 +59,34 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements satellite orbital parameters at virial radius crossing.
+!% Contains a module which implements calculations of vectors.
 
-module Virial_Orbits
-  !% Implements satellite orbital parameters at virial radius crossing.
-  use ISO_Varying_String
-  use Tree_Nodes
+module Vectors
+  !% Implements calculations of vectors.
   private
-  public :: Virial_Orbital_Parameters
+  public :: Vector_Magnitude, Vector_Product
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                        :: virialOrbitsInitialized=.false.
-
-  ! Name of virial overdensity method used.
-  type(varying_string)                           :: virialOrbitsMethod
-
-  ! Pointer to the function that returns virial orbital parameters.
-  procedure(Virial_Orbital_Parameters), pointer :: Virial_Orbital_Parameters_Get => null()
- 
 contains
-
-  function Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
-    !% Returns virial orbital parameters.
-    use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error
-    use Input_Parameters
-    use Root_Finder
-    use FGSL
-    use Dark_Matter_Halo_Scales
-    use Kepler_Orbits_Structure
-    !# <include directive="virialOrbitsMethod" type="moduleUse">
-    include 'satellites.merging.virial_orbits.modules.inc'
-    !# </include>
+  
+  double precision function Vector_Magnitude(vector1)
+    !% Computes the magnitude of {\tt vector1}.
     implicit none
-    type(keplerOrbit)                         :: thisOrbit
-    type(treeNode),   intent(inout), pointer  :: thisNode,hostNode
-    logical,          intent(in)              :: acceptUnboundOrbits
-    
-    !$omp critical(virialOrbitsInitialized)
-    if (.not.virialOrbitsInitialized) then
-       ! Get the virial orbits method parameter.
-       !@ <inputParameter>
-       !@   <name>virialOrbitsMethod</name>
-       !@   <defaultValue>Benson2005</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects the method to be used for finding orbital parameters of satellites at virial radius crossing.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('virialOrbitsMethod',virialOrbitsMethod,defaultValue='Benson2005')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="virialOrbitsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>virialOrbitsMethod,Virial_Orbital_Parameters_Get</subroutineArgs>
-       include 'satellites.merging.virial_orbits.inc'
-       !# </include>
-       if (.not.associated(Virial_Orbital_Parameters_Get)) call Galacticus_Error_Report('Virial_Orbital_Parameters','method ' &
-            &//char(virialOrbitsMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       virialOrbitsInitialized=.true.
-    end if
-    !$omp end critical(virialOrbitsInitialized)
+    double precision, dimension(3), intent(in) :: vector1
 
-    ! Call the routine to get the orbital parameters.
-    thisOrbit=Virial_Orbital_Parameters_Get(thisNode,hostNode,acceptUnboundOrbits)
-
+    Vector_Magnitude=dsqrt(sum(vector1**2))
     return
-  end function Virial_Orbital_Parameters
+  end function Vector_Magnitude
+  
+ function Vector_Product(vector1,vector2) result(vector3)
+    !% Computes the vector product of {\tt vector1} and {\tt vector2}.
+    implicit none
+    double precision, dimension(3)             :: vector3
+    double precision, dimension(3), intent(in) :: vector1,vector2
 
-end module Virial_Orbits
+    vector3(1)=vector1(2)*vector2(3)-vector1(3)*vector2(2)
+    vector3(2)=vector1(3)*vector2(1)-vector1(1)*vector2(3)
+    vector3(3)=vector1(1)*vector2(2)-vector1(2)*vector2(1)
+    return
+  end function Vector_Product
+  
+end module Vectors

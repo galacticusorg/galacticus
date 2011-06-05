@@ -399,6 +399,7 @@ The simple satellite orbit implementation defines the following properties:
 \begin{description}
  \item [{\tt Satellite\_Merge\_Time}] The time until the satellite will merge with its host: $t_{\rm satellite, merge}$ [{\tt timeToMerge}].
  \item [{\tt Bound\_Mass}] The remaining, total bound mass of the satellite: $M_{\rm node,bound}$ [{\tt nodeBoundMass}].
+ \item[{\tt Satellite\_Virial\_Orbit}] The orbit (returned as a {\tt keplerOrbit} object; see \S\ref{sec:KeplerOrbits}) of the satellite at the point of virial radius crossing.
 \end{description}
 
 \subsubsection{Initialization}
@@ -411,11 +412,11 @@ Properties are evolved according to:
 \begin{equation}
  \dot{t}_{\rm satellite, merge} = -1,
 \end{equation}
-with $\dot{M}_{\rm node,bound}$ set to the rate given by the {\tt darkMatterHaloMassLossRateMethod} method (see \S\ref{sec:HaloMassLossRates}).
+with $\dot{M}_{\rm node,bound}$ set to the rate given by the {\tt darkMatterHaloMassLossRateMethod} method (see \S\ref{sec:HaloMassLossRates}). The virial orbit is a fixed quantity and does not evolve.
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} The component is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node.\\
+\noindent\emph{Node mergers:} The component is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\tt satelliteOrbitStoreOrbitalParameters}$=${\tt true} then a virial orbit is selected using the {\tt virialOrbitsMethod} (see \S\ref{sec:SatelliteVirialOrbits}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested).\\
 
 \noindent\emph{Satellite merging:} None.\\
 

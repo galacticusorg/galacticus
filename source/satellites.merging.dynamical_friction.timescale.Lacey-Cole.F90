@@ -82,32 +82,30 @@ contains
     return
   end subroutine Satellite_Time_Until_Merging_Lacey_Cole_Initialize
 
-  double precision function Satellite_Time_Until_Merging_Lacey_Cole(thisNode)
+  double precision function Satellite_Time_Until_Merging_Lacey_Cole(thisNode,thisOrbit)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Virial_Orbits
     use Numerical_Constants_Math
     use Dynamical_Friction_Timescale_Utilities
+    use Kepler_Orbits_Structure
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    type(treeNode),   pointer                :: hostNode
-    logical,          parameter              :: acceptUnboundOrbits=.false.
-    double precision, parameter              :: inverseTwoB1=1.169335453d0 ! 1/2/B(1).
-    double precision                         :: angularMomentum,orbitalEnergy,equivalentCircularOrbitRadius,orbitalCircularity &
-         &,velocityScale,radialScale,massRatio
+    type(treeNode),    pointer, intent(inout) :: thisNode
+    type(keplerOrbit),          intent(inout) :: thisOrbit
+    type(treeNode),    pointer                :: hostNode
+    double precision,  parameter              :: inverseTwoB1=1.169335453d0 ! 1/2/B(1).
+    double precision                          :: equivalentCircularOrbitRadius,orbitalCircularity ,velocityScale,radialScale&
+         &,massRatio
 
     ! Find the host node.
     hostNode => thisNode%parentNode
-    ! Get orbital parameters for this satellite.
-    call Virial_Orbital_Parameters(thisNode,acceptUnboundOrbits,angularMomentum=angularMomentum,orbitalEnergy=orbitalEnergy)
     ! Get velocity scale.
     velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
-    radialScale=Dark_Matter_Halo_Virial_Radius(hostNode)
+    radialScale  =Dark_Matter_Halo_Virial_Radius  (hostNode)
     ! Compute radius of orbit with same energy.
-    equivalentCircularOrbitRadius=exp(orbitalEnergy/velocityScale**2+0.5d0)
+    equivalentCircularOrbitRadius=dexp(thisOrbit%energy()/velocityScale**2+0.5d0)
     ! Compute orbital circularity.
-    orbitalCircularity=angularMomentum/velocityScale/radialScale/equivalentCircularOrbitRadius
+    orbitalCircularity=thisOrbit%angularMomentum()/velocityScale/radialScale/equivalentCircularOrbitRadius
     ! Compute mass ratio.
     massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)
     ! Compute dynamical friction timescale.

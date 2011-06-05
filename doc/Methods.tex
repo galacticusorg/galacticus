@@ -2987,16 +2987,17 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The merging timescale function must have the form:
 \begin{verbatim}
- double precision function Satellite_Time_Until_Merging(thisNode)
+ double precision function Satellite_Time_Until_Merging(thisNode,thisOrbit)
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),    pointer, intent(inout) :: thisNode
+    type(keplerOrbit),          intent(inout) :: thisOrbit
     .
     .
     .
     return
  end function Satellite_Time_Until_Merging
 \end{verbatim}
-The function must return the merging timescale for {\tt thisNode} orbitting in {\tt thisNode\%parentNode} in units of Gyr.
+The function must return the merging timescale for {\tt thisNode} orbitting with {\tt thisOrbit} at virial radius crossing in {\tt thisNode\%parentNode} in units of Gyr.
 
 Currently defined satellite virial orbit methods are:
 \begin{description}
@@ -3006,7 +3007,7 @@ Currently defined satellite virial orbit methods are:
  \item [\hyperlink{satellites.merging.preset.F90:satellite_merging_times_preset:satellite_time_until_merging_preset}{{\tt preset}}] This method assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time.
 \end{description}
 
-\subsubsection{Satellite Virial Orbits}
+\subsubsection{Satellite Virial Orbits}\label{sec:SatelliteVirialOrbits}
 
 Additional methods for the satellite virial orbits (i.e. orbital parameters at virial radius crossing) can be added using the {\tt virialOrbitsMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Benson2005} method is described by a directive:
 \begin{verbatim}
@@ -3029,18 +3030,18 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The orbital parameter subroutine must have the form:
 \begin{verbatim}
-  subroutine Virial_Orbital_Parameters(thisNode,acceptUnboundOrbits,velocityRadial,velocityTangential,angularMomentum&
-       &,orbitalEnergy,eccentricity,semimajorAxis)
+  function Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
     implicit none
-    type(treeNode),   intent(inout), pointer  :: thisNode
+    type(keplerOrbit)                         :: thisOrbit
+    type(treeNode),   intent(inout), pointer  :: thisNode,hostNode
     logical,          intent(in)              :: acceptUnboundOrbits
-    double precision, intent(out),   optional :: velocityRadial,velocityTangential,angularMomentum,orbitalEnergy,eccentricity&
-         &,semimajorAxis
-
+    .
+    .
+    .
     return
   end subroutine Virial_Orbital_Parameters
 \end{verbatim}
-The subroutine must return orbital parameters for {\tt thisNode} orbitting in {\tt thisNode\%parentNode}, for whichever of the arguments are present in the subroutine call. If {\tt acceptUnboundOrbits} is true, then unbound orbits may be returned, otherwise, the routine must ensure that the returned orbit is bound. Velocities should be return in units of km/s, lengthscales in units of Mpc.
+The subroutine must return a fully-defined Kepler orbit object (i.e. the orbit must have at least three parameters defined in addition to the node masses) initialized to the orbital parameters for {\tt thisNode} orbitting in {\tt hostNode} at the point of virial radius crossing. If {\tt acceptUnboundOrbits} is true, then unbound orbits may be returned, otherwise, the routine must ensure that the returned orbit is bound. Velocities should be returned in units of km/s, lengthscales in units of Mpc and masses in $M_\odot$. Note that the usual conventions of the {\tt keplerOrbit} object should be followed, namely the that orbitting bodies are treated as point masses, with the host being stationary and the usual reduced mass used.
 
 Currently defined satellite virial orbit methods are:
 \begin{description}
@@ -4513,6 +4514,15 @@ DATASET "metallicities" {
 \section{Subsystems}
 
 This section describes some of the subsystems within \glc\ that support various physical entities or processes.
+
+\subsection{Kepler Orbits}\label{sec:KeplerOrbits}
+
+The {\tt keplerOrbit} object (provided by the \href{objects.kepler_orbits.F90:kepler_orbits_structure}{{\tt Kepler\_Orbits\_Structure}} module) stores the parameters of a single Keplerian orbit. It internally handles computation of additional/alternate orbital parameters once an orbit has been fully defined. Currently, the orientation of orbits (i.e. the unit vector normal to the orbital plane and the argument of periapsis) is not tracked. As such, orbits are fully defined by three parameters (in addition to the masses of the orbitting bodies). The following limitations presently apply to the {\tt keplerOrbit} object:
+\begin{itemize}
+ \item If an orbit is overdefined (i.e. if more than three parameters are set manually) no checking is performed to ensure that the parameters are consistent with a Keplerian orbit;
+ \item Not all interconversions between parameters are supported\footnote{The {\tt keplerOrbit} object works by trying to convert to the combination radius, radial and tengential velocities. Once these are defined, all other parameters can be computed. However, for orbits defined in terms of other parameters, the {\tt keplerOrbit} object does not know how to convert from every such combination of parameters.}. If a conversion cannot be performed, an error message will be given. 
+\end{itemize}
+A {\tt keplerOrbit} object can be reset by calling the {\tt reset()} method, and its defined/undefined status can be tested with the {\tt isDefined()} method or asserted with the {\tt assertIsDefined()} method. The following orbital parameters are supported, each method returning the value of the parameter and a corresponding method suffixed with {\tt Set} can be used to set the parameter: {\tt radius}, {\tt velocityRadial}, {\tt velocityTengentail}, {\tt energy}, {\tt angularMomentum}, {\tt eccentricity}, {\tt semiMajorAxis}, {\tt radiusPericenter}, {\tt radiusApocenter}. Additionally, the masses of the orbitting bodies are provided by the {\tt hostMass()} and {\tt reducedMassSpecific()}$=M_{\rm host}/(M_{\rm host}+M_{\rm satellite})$ methods. Finally, the {\tt velocityScale()} method returns ${\rm G}M_{\rm host}/r$ where $r$ is the radius of the orbit.
 
 \subsection{Molecules}\label{sec:MolecularSubsystem}
 
