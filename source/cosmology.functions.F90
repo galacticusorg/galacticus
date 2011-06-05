@@ -76,7 +76,7 @@ module Cosmology_Functions
        logical,          intent(in), optional :: collapsingPhase
      end function Cosmology_Double_Function_ddCollapse_Template
   end interface
-
+  
   abstract interface
      logical function Cosmology_Logical_Function_Double_Template(inputParameter)
        double precision, intent(in) :: inputParameter
@@ -84,11 +84,11 @@ module Cosmology_Functions
   end interface
   
   abstract interface
-     logical function Cosmology_Density_Scaling_Template(dominateFactor,densityPower,aDominant,Omega_Dominant)
+     subroutine Cosmology_Density_Scaling_Template(dominateFactor,densityPower,aDominant,Omega_Dominant)
        double precision, intent(in)            :: dominateFactor
        double precision, intent(out)           :: densityPower,aDominant
        double precision, intent(out), optional :: Omega_Dominant
-     end function Cosmology_Density_Scaling_Template
+     end subroutine Cosmology_Density_Scaling_Template
   end interface
 
 contains
