@@ -50,10 +50,12 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     
     # Generate metallicities array.
     @logMetallicities = ( -999.0 ); # Proxy for zero metallicity.
-    for($logMetallicity=$logMetallicityMinimum;$logMetallicity<=$logMetallicityMaximum;$logMetallicity+=$logMetallicityDelta) {
+    $logMetallicity = $logMetallicityMinimum-$logMetallicityDelta;
+    while ( $logMetallicity < $logMetallicityMaximum ) {
+	$logMetallicity += $logMetallicityDelta;	
 	$logMetallicities[++$#logMetallicities] = $logMetallicity;
     }
-    
+
     # Specify Solar and primodial helium abundances (as used in Cloudy).
     $heliumAbundancePrimordial = 0.072;
     $heliumAbundanceSolar      = 0.100;
