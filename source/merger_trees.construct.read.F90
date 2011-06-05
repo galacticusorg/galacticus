@@ -1237,7 +1237,7 @@ contains
                 historyCount=0
                 ! Select the subset which have a subhalo as a descendent.
                 historyBuildSubhaloSelect: if (nodes(iNode)%descendentNode%isSubhalo) then
-                   ! Trace descendents until merging or final time.
+                  ! Trace descendents until merging or final time.
                    thisNode    => nodes(iNode)%descendentNode
                    endOfBranch =.false.
                    historyBuildBranchWalk: do while (.not.endOfBranch)
@@ -1279,7 +1279,7 @@ contains
                       call Tree_Node_Bound_Mass_History_Set(firstProgenitor,subhaloHistory)
                    end if
                 end if historyBuildSubhaloSelect
-                
+
                 ! Set the position history for this node.
                 if (mergerTreeReadPresetPositions.and..not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
                    ! Check if particle data is available for this node.
@@ -1332,12 +1332,6 @@ contains
                       end do
                       ! Increment the history count for this node.
                       historyCount=historyCount+thisNode%particleIndexCount
-                      call subhaloHistory%destroy()
-                      call subhaloHistory%create(6,historyCount)
-                      subhaloHistory%time(:    )=          historyTime(    1:historyCount)
-                      subhaloHistory%data(:,1:3)=transpose(position   (1:3,1:historyCount))
-                      subhaloHistory%data(:,4:6)=transpose(velocity   (1:3,1:historyCount))
-                      call Tree_Node_Position_6D_History_Set(nodeList(iIsolatedNode)%node,subhaloHistory)
                    end if
                    call subhaloHistory%destroy()
                    call subhaloHistory%create(6,int(historyCount))
