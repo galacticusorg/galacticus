@@ -169,11 +169,17 @@ yum install make
 \end{verbatim}
 Alternatively, GNU Make can be downloaded and installed from source as described online.
 
- \item [GFortran] $\star$ \glc\ is written in Fortran using various aspects of the Fortran 2003 specification. We use \href{http://gcc.gnu.org/fortran/}{GNU Fortran} to compile \glc. You can use other Fortran compilers, but we make no claims as to whether they will support all required features of the Fortran language, or that they will produce correctly working code. On Fedora the following (as root) will install GNU Fortran:
+ \item [GFortran] $\star$ \glc\ is written primarily in Fortran using various aspects of the Fortran 2003 specification. We use \href{http://gcc.gnu.org/fortran/}{GNU Fortran} to compile \glc. You can use other Fortran compilers, but we make no claims as to whether they will support all required features of the Fortran language, or that they will produce correctly working code. On Fedora the following (as root) will install GNU Fortran:
 \begin{verbatim}
 yum install gcc-gfortran
 \end{verbatim}
-Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.4 or higher of {\tt gcc-gfortran}. On some systems (e.g. RHEL5) this is available in package {\tt gcc44-gfortran}.
+Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.4 of {\tt gcc-gfortran}. On some systems (e.g. RHEL5) this is available in package {\tt gcc44-gfortran}.
+
+ \item [g++] $\star$ \glc\ contains some C++ components. We use \href{http://gcc.gnu.org/projects/cxx0x.html}{GNU C++} to compile \glc. You can use other C++ compilers, but we make no claims as to whether they will produce correctly working code. On Fedora the following (as root) will install GNU C++:
+\begin{verbatim}
+yum install gcc-c++
+\end{verbatim}
+Alternatively, GNU C++ can be downloaded and installed from source as described online.
 
  \item [FoX] $\star$ \href{http://uszla.me.uk/space/software/FoX/}{FoX} is an XML parser for Fortran. The source can be downloaded from the link above\footnote{Alternatively, the source can be downloaded from \href{http://www.ctcp.caltech.edu/galacticus/tools/FoX-4.0.4-full.tar.gz}{\tt http://www.ctcp.caltech.edu/galacticus/tools/FoX-4.0.4-full.tar.gz}, since the FoX website is frequently down.}. We recommend following the instructions provided with the download for install. We use FoX v4.0.4.
 
@@ -319,7 +325,7 @@ make
 make check
 make install
 
-! Install GFortran:
+! Install GFortran, GCC and G++:
 
 wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.4.4/gcc-4.4.4.tar.bz2"
 tar xvfj gcc-4.4.4.tar.bz2
