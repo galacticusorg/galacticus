@@ -64,7 +64,7 @@
 module Coordinate_Systems
   !% Implements calculations related to coordinate systems and transformations.
   private
-  public :: Coordinates_Cylindrical_To_Spherical, Coordinates_Cartesian_To_Spherical, Coordinates_Spherical_To_Cylindrical
+  public :: Coordinates_Cylindrical_To_Spherical, Coordinates_Cartesian_To_Spherical, Coordinates_Spherical_To_Cylindrical, Coordinates_Cartesian_To_Cylindrical
 
 contains
 
@@ -83,6 +83,21 @@ contains
     Coordinates_Cartesian_To_Spherical(3)=datan2(cartesianPosition(2),cartesianPosition(1))
     return
   end function Coordinates_Cartesian_To_Spherical
+
+  function Coordinates_Cartesian_To_Cylindrical(cartesianPosition)
+    !% Convert $(x,y,z)$ in Cartesian coordinates into $(r,\phi,z)$ in cylindrical coordinates, with $\phi=0$ corresponding to the $x$-axis.
+    implicit none
+    double precision, dimension(3)             :: Coordinates_Cartesian_To_Cylindrical
+    double precision, dimension(3), intent(in) :: cartesianPosition
+
+    ! Cylindrical radius.
+    Coordinates_Cartesian_To_Cylindrical(1)=dsqrt(cartesianPosition(1)**2+cartesianPosition(2)**2)
+    ! Spherical phi.
+    Coordinates_Cartesian_To_Cylindrical(2)=datan2(cartesianPosition(2),cartesianPosition(1))
+    ! Spherical z.
+    Coordinates_Cartesian_To_Cylindrical(3)=cartesianPosition(3)
+    return
+  end function Coordinates_Cartesian_To_Cylindrical
 
   function Coordinates_Cylindrical_To_Spherical(cylindricalPosition)
     !% Convert $(R,\phi,z)$ in cylindrical coordinates into $(r,\theta,\phi)$ in spherical coordinates, with $\phi=0$
