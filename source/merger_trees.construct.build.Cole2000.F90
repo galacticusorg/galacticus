@@ -147,6 +147,8 @@ contains
 
     nodeIndex=1                   ! Initialize the node index counter to unity.
     thisNode => thisTree%baseNode ! Point to the base node.
+    ! Return immediately if the base node is below the mass resolution.
+    if (Tree_Node_Mass(thisNode) <= mergerTreeBuildCole2000MassResolution) return
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
     deltaCritical=Critical_Overdensity_for_Collapse(Tree_Node_Time(thisNode))
     call Tree_Node_Time_Set(thisNode,deltaCritical)
@@ -160,6 +162,13 @@ contains
           ! Find accretion rate.
           accretionFraction=Tree_Subresolution_Fraction(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode)&
                &,mergerTreeBuildCole2000MassResolution)
+          ! A negative accretion fraction indicates that the node is so close to the resolution limit that
+          ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
+          ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
+          if (accretionFraction < 0.0d0) then
+             call thisNode%walkTreeConstruction()
+             cycle
+          end if
           ! Finding maximum allowed step in w.
           deltaW=min(mergerTreeBuildCole2000AccretionLimit/accretionFraction,Tree_Maximum_Step(Tree_Node_Mass(thisNode)&
                &,Tree_Node_Time(thisNode),mergerTreeBuildCole2000MassResolution))

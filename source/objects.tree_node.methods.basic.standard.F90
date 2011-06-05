@@ -312,11 +312,17 @@ contains
 
        ! Determine if this node has a descendent.
        if (.not.associated(thisNode%parentNode)) then
-          ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the progenitor.
-          ! Ensure the child has a mass growth rate computed.
-          call Halo_Mass_Accretion_Rate_Standard(thisNode%childNode)
-          ! Get the growth rate of the child.
-          thisNode%components(thisIndex)%data(rateIndex)=Tree_Node_Mass_Accretion_Rate_Basic(thisNode%childNode)
+          ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the
+          ! progenitor, if it has one.
+          if (associated(thisNode%childNode)) then
+             ! Ensure the child has a mass growth rate computed.
+             call Halo_Mass_Accretion_Rate_Standard(thisNode%childNode)
+             ! Get the growth rate of the child.
+             thisNode%components(thisIndex)%data(rateIndex)=Tree_Node_Mass_Accretion_Rate_Basic(thisNode%childNode)
+          else
+             ! Parentless node has no child - set a zero growth rate.
+             thisNode%components(thisIndex)%data(rateIndex)=0.0d0
+          end if
        else
           ! Compute the unresolved mass.
           massUnresolved=Unresolved_Mass(thisNode%parentNode)
