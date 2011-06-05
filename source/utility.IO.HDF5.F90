@@ -98,7 +98,7 @@ module IO_HDF5
      private
      logical                   :: isOpenValue
      logical                   :: isOverwritable
-     integer(kind=HID_T),public:: objectID
+     integer(kind=HID_T)       :: objectID
      type(varying_string)      :: objectLocation
      type(varying_string)      :: objectName
      integer                   :: hdf5ObjectType
