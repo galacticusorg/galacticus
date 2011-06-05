@@ -83,8 +83,7 @@ module Cooling_Functions_CIE_File
   double precision     :: metallicityMinimum,metallicityMaximum,temperatureMinimum,temperatureMaximum
 
   ! Extrapolation methods.
-  integer, parameter :: extrapolateZero=0, extrapolateFixed=1, extrapolatePowerLaw=2
-  integer            :: extrapolateTemperatureLow,extrapolateTemperatureHigh,extrapolateMetallicityLow,extrapolateMetallicityHigh
+  integer              :: extrapolateTemperatureLow,extrapolateTemperatureHigh,extrapolateMetallicityLow,extrapolateMetallicityHigh
 
   ! The cooling function tables.
   logical                                       :: logarithmicTable,firstMetallicityIsZero
@@ -248,6 +247,7 @@ contains
     use Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Astronomical
+    use IO_XML
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
     type(abundancesStructure), intent(in) :: abundances
@@ -326,6 +326,7 @@ contains
     use Radiation_Structure
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
+    use IO_XML
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
     type(abundancesStructure), intent(in) :: abundances
@@ -413,16 +414,17 @@ contains
     use Memory_Management
     use Numerical_Comparison
     use Galacticus_Display
+    use IO_XML
     implicit none
     type(varying_string), intent(in)            :: coolingFunctionFileToRead
     double precision,     intent(out), optional :: metallicityMaximumTabulated
     type(Node),           pointer               :: doc,datum,thisCoolingFunction,metallicityElement,extrapolationElement&
-         &,extrapolation,limitElement,methodElement,thisTemperature,thisCoolingRate
+         &,extrapolation,thisTemperature,thisCoolingRate
     type(NodeList),       pointer               :: temperatureDatumList,coolingDatumList,coolingFunctionList&
          &,metallicityExtrapolationList ,temperatureExtrapolationList
     integer                                     :: iDatum,ioErr,iCoolingFunction,iExtrapolation,extrapolationMethod
     double precision                            :: datumValues(1)
-    character(len=32)                           :: limitType,methodType
+    character(len=32)                           :: limitType
 
     !$omp critical (FoX_DOM_Access)
     ! Parse the XML file.
@@ -493,20 +495,7 @@ contains
     metallicityExtrapolationList => getElementsByTagname(extrapolationElement,"metallicity")
     do iExtrapolation=0,getLength(metallicityExtrapolationList)-1
        extrapolation => item(metallicityExtrapolationList,iExtrapolation)
-       limitElement  => item(getElementsByTagname(extrapolation,"limit"),0)
-       call extractDataContent(limitElement,limitType)
-       methodElement  => item(getElementsByTagname(extrapolation,"method"),0)
-       call extractDataContent(methodElement,methodType)
-       select case (trim(methodType))
-       case ('zero')
-          extrapolationMethod=extrapolateZero
-       case ('fixed')
-          extrapolationMethod=extrapolateFixed
-       case ('power law')
-          extrapolationMethod=extrapolatePowerLaw
-       case default
-          call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','unrecognized extrapolation method')
-       end select
+       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolateZero,extrapolateFixed,extrapolatePowerLaw])
        select case (trim(limitType))
        case ('low')
           extrapolateMetallicityLow=extrapolationMethod
@@ -520,20 +509,7 @@ contains
     temperatureExtrapolationList => getElementsByTagname(extrapolationElement,"temperature")
     do iExtrapolation=0,getLength(temperatureExtrapolationList)-1
        extrapolation => item(temperatureExtrapolationList,iExtrapolation)
-       limitElement  => item(getElementsByTagname(extrapolation,"limit"),0)
-       call extractDataContent(limitElement,limitType)
-       methodElement  => item(getElementsByTagname(extrapolation,"method"),0)
-       call extractDataContent(methodElement,methodType)
-       select case (trim(methodType))
-       case ('zero')
-          extrapolationMethod=extrapolateZero
-       case ('fixed')
-          extrapolationMethod=extrapolateFixed
-       case ('power law')
-          extrapolationMethod=extrapolatePowerLaw
-       case default
-          call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','unrecognized extrapolation method')
-       end select
+       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolateZero,extrapolateFixed,extrapolatePowerLaw])
        select case (trim(limitType))
        case ('low')
           extrapolateTemperatureLow=extrapolationMethod
