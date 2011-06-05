@@ -106,6 +106,10 @@ vpath %.F90 source
 ./work/build/utility.memory_management.postcontain.inc:
 	@touch ./work/build/utility.memory_management.postcontain.inc
 
+# Rules for version routines.
+./work/build/galacticus.output.version.revision.inc: $(wildcard .bzr/branch/*)
+	@if [ -d .bzr ] ; then bzr version-info --custom --template="integer, parameter :: bazaarRevision={revno}\n" > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: bazaarRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
+
 # Rules for cleaning up.
 clean: tidy
 	rm -f *.exe

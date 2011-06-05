@@ -55,6 +55,9 @@ outputFile.hdf5
  |    +-> versionMajor                        Dataset {1}
  |    +-> versionMinor                        Dataset {1}
  |    +-> versionRevision                     Dataset {1}
+ |    +-> bazaarRevision                      Dataset {1}
+ |    +-> runByName                           Dataset {1}
+ |    +-> runByEmail                          Dataset {1}
  |
  +-> globalHistory                            Group
       |
@@ -73,7 +76,7 @@ The {\tt Parameters} group contains a record of all parameter values (either inp
 
 \subsection{Version}
 
-The {\tt Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers and the revision number. Additionally, the time at which the model was run is stored.
+The {\tt Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\sc Bazaar} revision (if the code is being maintained using {\sc Bazaar}, otherwise a value of $-1$ is entered). Additionally, the time at which the model was run is stored and, if the {\tt galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
 
 \subsection{globalHistory}
 

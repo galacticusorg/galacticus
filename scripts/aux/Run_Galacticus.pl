@@ -20,9 +20,9 @@ $xml = new XML::Simple;
 $modelsToRun = $xml->XMLin($runFile, KeyAttr => "", ForceArray => 1);
 
 # Read in any configuration options.
-if ( -e "runGalacticus.xml" ) {
+if ( -e "galacticusConfig.xml" ) {
     $xml = new XML::Simple;
-    $config = $xml->XMLin("runGalacticus.xml");
+    $config = $xml->XMLin("galacticusConfig.xml");
 }
 
 # Determine root directory for models.
@@ -134,7 +134,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
  		}
  		closedir(gDir);
  		# If we have an e-mail address to send a report to, then do so.
- 		if ( $config->{'errorReport'}->{'email'} =~ m/\@/ ) {
+ 		if ( $config->{'contact'}->{'email'} =~ m/\@/ ) {
  		    $message  = "A Galacticus model failed to finish:\n\n";
  		    $message .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
  		    $message .= "  User:\t".$ENV{"USER"}."\n\n";
@@ -142,7 +142,7 @@ foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
  		    $message .= "Log file is attached.\n";
  		    $msg = MIME::Lite->new(
  					   From    => '',
- 					   To      => $config->{'errorReport'}->{'email'},
+ 					   To      => $config->{'contact'}->{'email'},
  					   Subject => 'Galacticus model failed',
  					   Type    => 'TEXT',
  					   Data    => $message
