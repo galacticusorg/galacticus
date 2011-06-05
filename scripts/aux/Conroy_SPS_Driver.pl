@@ -52,10 +52,10 @@ unless ( -e $stellarPopulationFile ) {
     # Build the code.
     unless ( -e "aux/FSPS_v2.2/src/autosps.exe" ) {
 	print "Conroy_SPS_Driver.pl: compiling autosps.exe code.\n";
-	system("cd aux/FSPS_v2.2/src; export SPS_HOME=`pwd`; make");
+	system("cd aux/FSPS_v2.2/src; export SPS_HOME=`pwd`; make -j 1");
 	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e "aux/FSPS_v2.2/src/autosps.exe" );
     }
-    exit;
+
     # Read the wavelength array.
     undef(%data);
     open(lambdaFile,"aux/FSPS_v2.2/SPECTRA/BaSeL3.1/basel.lambda");
