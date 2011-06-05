@@ -519,6 +519,7 @@ contains
 #else
     type(abundancesStructure),  intent(in) :: abundances
 #endif
+    double precision,           parameter  :: massFractionMinimum=0.7d0
 
     ! Ensure module is initialized.
     call Abundances_Initialize
@@ -527,8 +528,8 @@ contains
     select type (abundances)
     type is (abundancesStructure)
 #endif
-    Abundances_Hydrogen_Mass_Fraction=(abundances%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
-         &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial
+    Abundances_Hydrogen_Mass_Fraction=max((abundances%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
+         &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial,massFractionMinimum)
 #ifdef GCC45
     end select
 #endif
