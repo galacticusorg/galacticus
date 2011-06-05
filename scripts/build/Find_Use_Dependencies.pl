@@ -202,7 +202,9 @@ foreach $srcdir ( @sourcedirs ) {
 		
 # Output the dependencies
 		if ($#sortedinc >= 0 || $#extra_includes >= 0) {
-		    print outfile ".".$workDir.$base.$oname,": .",join(".",@sortedinc)," Makefile .new_compiler";
+		    print outfile ".".$workDir.$base.$oname,": ";
+		    if ( $#sortedinc >= 0 ) {print outfile ".",join(".",@sortedinc)};
+		    print outfile " Makefile";
 		    foreach $extra_include ( @extra_includes ) {
 			print outfile " $extra_include";
 		    }
@@ -212,10 +214,16 @@ foreach $srcdir ( @sourcedirs ) {
 		    }
 		    $dname = $oname;
 		    $dname =~ s/.o$/.d/;
-		    print outfile ".".$workDir.$base.$dname,": .",join(".",@sortedinc),"\n";
+		    print outfile ".".$workDir.$base.$dname,": ";
+		    if ( $#sortedinc >= 0 ) {print outfile ".",join(".",@sortedinc)};
+		    print outfile "\n";
 		    print outfile "\t\@echo .$workDir$base$oname > .$workDir$base$dname\n";
 		    foreach $extra_include ( @extra_includes ) {
+			if ( $extra_include =~ m/\// ) {
+			print outfile "\t\@echo $extra_include >> .$workDir$base$dname\n";
+			} else {
 			print outfile "\t\@echo .$workDir$extra_include >> .$workDir$base$dname\n";
+			}
 		    }
 		    foreach $item (@sortedinc) {
 			$item =~ s/\s+$//;

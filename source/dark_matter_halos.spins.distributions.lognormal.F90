@@ -1,0 +1,115 @@
+!% Contains a module which implements a lognormal halo spin distribution.
+
+module Halo_Spin_Distributions_Lognormal
+  !% Implements a lognormal halo spin distribution.
+  use FGSL
+  use Tree_Nodes
+  private
+  public :: Halo_Spin_Distribution_Lognormal_Initialize, Halo_Spin_Distribution_Lognormal_Snapshot,&
+       & Halo_Spin_Distribution_Lognormal_State_Store, Halo_Spin_Distribution_Lognormal_State_Retrieve
+
+  ! Parameters of the spin distribution.
+  double precision :: lognormalSpinDistributionMedian,lognormalSpinDistributionSigma
+
+  ! Random number objects
+  type(fgsl_rng) :: randomSequenceObject,clonedPseudoSequenceObject
+  logical        :: resetRandomSequence=.true.,resetRandomSequenceSnapshot
+  !$omp threadprivate(resetRandomSequence,randomSequenceObject)
+
+contains
+
+  !# <haloSpinDistributionMethod>
+  !#  <unitName>Halo_Spin_Distribution_Lognormal_Initialize</unitName>
+  !# </haloSpinDistributionMethod>
+  subroutine Halo_Spin_Distribution_Lognormal_Initialize(haloSpinDistributionMethod,Halo_Spin_Sample_Get)
+    !% Initializes the ``Lognormal'' halo spin distribution module.
+    use ISO_Varying_String
+    use Input_Parameters
+    implicit none
+    type(varying_string),          intent(in)    :: haloSpinDistributionMethod
+    procedure(),          pointer, intent(inout) :: Halo_Spin_Sample_Get
+    
+    if (haloSpinDistributionMethod == 'lognormal') then
+       Halo_Spin_Sample_Get => Halo_Spin_Distribution_Lognormal
+       !@ <inputParameter>
+       !@   <name>lognormalSpinDistributionMedian</name>
+       !@   <defaultValue>0.03687 \citep{bett_spin_2007}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The median in a lognormal halo spin distribution.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('lognormalSpinDistributionMedian',lognormalSpinDistributionMedian,defaultValue=0.03687d0)
+       !@ <inputParameter>
+       !@   <name>lognormalSpinDistributionSigma</name>
+       !@   <defaultValue>0.2216 \citep{bett_spin_2007}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The dispersion in a lognormal halo spin distribution.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('lognormalSpinDistributionSigma' ,lognormalSpinDistributionSigma ,defaultValue=0.51025d0)
+       lognormalSpinDistributionMedian=dlog(lognormalSpinDistributionMedian)
+    end if
+    return
+  end subroutine Halo_Spin_Distribution_Lognormal_Initialize
+
+  double precision function Halo_Spin_Distribution_Lognormal(thisNode)
+    !% Return a halo spin from a lognormal distribution.
+    use Tree_Nodes
+    use Gaussian_Random
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision                         :: randomDeviate,logLambda
+
+    randomDeviate=Gaussian_Random_Get(randomSequenceObject,lognormalSpinDistributionSigma,resetRandomSequence)
+    logLambda=lognormalSpinDistributionMedian+randomDeviate
+    Halo_Spin_Distribution_Lognormal=dexp(logLambda)
+    return
+  end function Halo_Spin_Distribution_Lognormal
+
+  !# <galacticusStateSnapshotTask>
+  !#  <unitName>Halo_Spin_Distribution_Lognormal_Snapshot</unitName>
+  !# </galacticusStateSnapshotTask>
+  subroutine Halo_Spin_Distribution_Lognormal_Snapshot
+    !% Store a snapshot of the random number generator internal state.
+    implicit none
+
+    if (.not.resetRandomSequence) clonedPseudoSequenceObject=FGSL_Rng_Clone(randomSequenceObject)
+    resetRandomSequenceSnapshot=resetRandomSequence
+    return
+  end subroutine Halo_Spin_Distribution_Lognormal_Snapshot
+  
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Halo_Spin_Distribution_Lognormal_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Halo_Spin_Distribution_Lognormal_State_Store(stateFile,fgslStateFile)
+    !% Write the stored snapshot of the random number state to file.
+    use FGSL
+    use Pseudo_Random
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) resetRandomSequenceSnapshot
+    if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+    return
+  end subroutine Halo_Spin_Distribution_Lognormal_State_Store
+  
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Halo_Spin_Distribution_Lognormal_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Halo_Spin_Distribution_Lognormal_State_Retrieve(stateFile,fgslStateFile)
+    !% Write the stored snapshot of the random number state to file.
+    use FGSL
+    use Pseudo_Random
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    read (stateFile) resetRandomSequence
+    if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
+    return
+  end subroutine Halo_Spin_Distribution_Lognormal_State_Retrieve
+    
+end module Halo_Spin_Distributions_Lognormal

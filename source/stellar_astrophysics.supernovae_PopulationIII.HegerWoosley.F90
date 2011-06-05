@@ -1,0 +1,111 @@
+!% Contains a module which implements calculations related to Population III supernovae.
+
+module Supernovae_Population_III_HegerWoosley
+  !% Implements calculations related to Population III supernovae.
+  private
+  public :: Supernovae_Population_III_HegerWoosley_Initialize
+  
+  ! Variables holding the supernovae data tables.
+  integer                                     :: supernovaeTableCount
+  double precision, allocatable, dimension(:) :: supernovaeTableHeliumCoreMass,supernovaeTableEnergy
+
+contains
+
+  !# <supernovaePopIIIMethod>
+  !#  <unitName>Supernovae_Population_III_HegerWoosley_Initialize</unitName>
+  !# </supernovaePopIIIMethod>
+  subroutine Supernovae_Population_III_HegerWoosley_Initialize(supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get)
+    !% Initialize the ``HegerWoosley'' Population III supernovae module.
+    use Numerical_Constants_Units
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
+    use ISO_Varying_String
+    use Galacticus_Error
+    use FoX_dom
+    use Memory_Management
+    implicit none
+    type(varying_string), intent(in) :: supernovaePopIIIMethod
+    procedure(),          pointer    :: SNePopIII_Cumulative_Energy_Get
+    type(Node),           pointer    :: doc,massElement,energyElement,thisDatum
+    type(NodeList),       pointer    :: massList,energyList,massDataList,energyDataList
+    integer                          :: ioErr,iSupernovae
+
+    if (supernovaePopIIIMethod == 'Heger + Woosley') then
+       ! Set up pointers to our procedures.
+       SNePopIII_Cumulative_Energy_Get => SNePopIII_Cumulative_Energy_HegerWoosley
+
+       ! Read in pair instability supernova energies.
+       !$omp critical (FoX_DOM_Access)
+       ! Open the XML file containing yields.
+       doc => parseFile('data/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
+       if (ioErr /= 0) call Galacticus_Error_Report('Supernovae_Population_III_HegerWoosley_Initialize','Unable to parse supernovae file')
+
+       ! Get the mass and energy elements.
+       massList       => getElementsByTagname(doc,"heliumCoreMass")
+       massElement    => item(massList,0)
+       massDataList   => getElementsByTagname(massElement,"data")
+       energyList     => getElementsByTagname(doc,"supernovaEnergy")
+       energyElement  => item(massList,0)
+       energyDataList => getElementsByTagname(energyElement,"data")
+
+       ! Count how many elements are present and allocate arrays.
+       supernovaeTableCount=getLength(massDataList)
+       call Alloc_Array(supernovaeTableHeliumCoreMass,supernovaeTableCount,'supernovaeTableHeliumCoreMass')
+       call Alloc_Array(supernovaeTableEnergy        ,supernovaeTableCount,'supernovaeTableEnergy'        )
+
+       ! Loop through isotopes and compute the net metal yield.
+       do iSupernovae=0,getLength(massDataList)-1
+          thisDatum => item(massDataList  ,iSupernovae)
+          call extractDataContent(thisDatum,supernovaeTableHeliumCoreMass(iSupernovae+1))
+          thisDatum => item(energyDataList,iSupernovae)
+          call extractDataContent(thisDatum,supernovaeTableEnergy        (iSupernovae+1))
+       end do
+
+       ! Convert energies to MSolar (km/s)^2.
+       supernovaeTableEnergy=supernovaeTableEnergy*(1.0d51*ergs/massSolar/kilo**2)
+
+       ! Destroy the document.
+       call destroy(doc)
+
+       !$omp end critical (FoX_DOM_Access)
+    end if
+    return
+  end subroutine Supernovae_Population_III_HegerWoosley_Initialize
+
+  double precision function SNePopIII_Cumulative_Energy_HegerWoosley(initialMass,age,metallicity)
+    !% Compute the cumulative energy input from Population III star pair instability supernovae using the results of
+    !% \cite{heger_nucleosynthetic_2002}.
+    use Stellar_Astrophysics
+    use Numerical_Interpolation
+    use FGSL
+    implicit none
+    double precision,        intent(in) :: initialMass,age,metallicity
+    double precision                    :: lifetime,massHeliumCore
+    type(fgsl_interp),       save       :: interpolationObject
+    type(fgsl_interp_accel), save       :: interpolationAccelerator
+    logical,                 save       :: interpolationReset=.true.
+    !$omp threadprivate(interpolationObject,interpolationAccelerator,interpolationReset)
+
+    ! Get the lifetime of a star of this initial mass and metallicity.
+    lifetime=Star_Lifetime(initialMass,metallicity)
+
+    ! Check if star has reached end of life.
+    if (lifetime <= age) then
+       ! Star has reached end of life. Compute core helium mass using simple scaling given by Heger & Woosley.
+       massHeliumCore=(13.0d0/24.0d0)*(initialMass-20.0d0)
+       ! Check if this is within the range tabulated.
+       if (massHeliumCore >= supernovaeTableHeliumCoreMass(1) .and. massHeliumCore <= supernovaeTableHeliumCoreMass(supernovaeTableCount)) then
+          SNePopIII_Cumulative_Energy_HegerWoosley=Interpolate(supernovaeTableCount,supernovaeTableHeliumCoreMass&
+               &,supernovaeTableEnergy,interpolationObject,interpolationAccelerator,massHeliumCore ,reset=interpolationReset)
+       else
+          SNePopIII_Cumulative_Energy_HegerWoosley=0.0d0
+       end if
+    else
+       ! Star has not gone supernova yet.
+       SNePopIII_Cumulative_Energy_HegerWoosley=0.0d0
+    end if
+       
+    return
+  end function SNePopIII_Cumulative_Energy_HegerWoosley
+
+end module Supernovae_Population_III_HegerWoosley

@@ -1,0 +1,1056 @@
+<dataSets>
+    <description>Disk scalelength distribution from Mathewson sample as found by Dejong &amp; Lacey (2000).</description>
+    <url>http://adsabs.harvard.edu/abs/2000ApJ...545..781D</url>
+    <label>Dejong &amp; Lacey (2000)</label>
+    <source>Cedric Lacey</source>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -16 &lt; M &lt; -15.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-16</minimum>
+	<maximum>-15</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.1670E-01</data>
+	  <data>8.0153E-02</data>
+	  <data>5.8718E-02</data>
+	  <data>4.6629E-02</data>
+	  <data>4.0933E-02</data>
+	  <data>4.0657E-02</data>
+	  <data>4.6878E-02</data>
+	  <data>6.4418E-02</data>
+	  <data>1.0822E-01</data>
+	  <data>2.2747E-01</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -17 &lt; M &lt; -16.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-17</minimum>
+	<maximum>-16</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>6.1589E-02</data>
+	  <data>3.8992E-02</data>
+	  <data>2.5824E-02</data>
+	  <data>1.8080E-02</data>
+	  <data>1.3566E-02</data>
+	  <data>1.1099E-02</data>
+	  <data>1.0109E-02</data>
+	  <data>1.0503E-02</data>
+	  <data>1.2778E-02</data>
+	  <data>1.8678E-02</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.0246E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>7.8863E-01</data>
+	  <data>1.0362E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>2.6021E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.4476E+00</data>
+	  <data>2.9170E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>2.0000E+00</data>
+	  <data>1.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.8794E-02</data>
+	  <data>0.0000E+00</data>
+	  <data>3.6079E-03</data>
+	  <data>2.4135E-03</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -18 &lt; M &lt; -17.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-18</minimum>
+	<maximum>-17</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>3.6094E-02</data>
+	  <data>2.1559E-02</data>
+	  <data>1.3301E-02</data>
+	  <data>8.5347E-03</data>
+	  <data>5.7470E-03</data>
+	  <data>4.1073E-03</data>
+	  <data>3.1617E-03</data>
+	  <data>2.6711E-03</data>
+	  <data>2.5311E-03</data>
+	  <data>2.7582E-03</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>3.9212E-01</data>
+	  <data>3.1761E-01</data>
+	  <data>4.7078E-01</data>
+	  <data>7.7825E-01</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>7.8898E-01</data>
+	  <data>5.3978E-01</data>
+	  <data>1.3336E+00</data>
+	  <data>1.3924E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>8.0000E+00</data>
+	  <data>1.2000E+01</data>
+	  <data>5.0000E+00</data>
+	  <data>2.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>3.1021E-02</data>
+	  <data>2.4098E-02</data>
+	  <data>7.6368E-03</data>
+	  <data>2.9129E-04</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -19 &lt; M &lt; -18.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-19</minimum>
+	<maximum>-18</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>2.2844E-02</data>
+	  <data>1.3069E-02</data>
+	  <data>7.6597E-03</data>
+	  <data>4.6201E-03</data>
+	  <data>2.8842E-03</data>
+	  <data>1.8775E-03</data>
+	  <data>1.2867E-03</data>
+	  <data>9.4013E-04</data>
+	  <data>7.4401E-04</data>
+	  <data>6.5053E-04</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>3.8155E-01</data>
+	  <data>2.5534E-01</data>
+	  <data>2.1307E-01</data>
+	  <data>3.9726E-01</data>
+	  <data>6.2774E-01</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>8.1385E-01</data>
+	  <data>3.8674E-01</data>
+	  <data>2.9520E-01</data>
+	  <data>8.0264E-01</data>
+	  <data>9.4567E-01</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>7.0000E+00</data>
+	  <data>1.8000E+01</data>
+	  <data>2.8000E+01</data>
+	  <data>8.0000E+00</data>
+	  <data>3.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>2.6553E-02</data>
+	  <data>2.4022E-02</data>
+	  <data>1.5909E-02</data>
+	  <data>2.8660E-03</data>
+	  <data>8.7710E-04</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -20 &lt; M &lt; -19.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-20</minimum>
+	<maximum>-19</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.5326E-02</data>
+	  <data>8.4842E-03</data>
+	  <data>4.7850E-03</data>
+	  <data>2.7577E-03</data>
+	  <data>1.6303E-03</data>
+	  <data>9.9360E-04</data>
+	  <data>6.2803E-04</data>
+	  <data>4.1515E-04</data>
+	  <data>2.9001E-04</data>
+	  <data>2.1699E-04</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>6.5140E-01</data>
+	  <data>2.2070E-01</data>
+	  <data>1.5909E-01</data>
+	  <data>1.7826E-01</data>
+	  <data>4.4025E-01</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.0153E+00</data>
+	  <data>3.0812E-01</data>
+	  <data>1.9966E-01</data>
+	  <data>2.3125E-01</data>
+	  <data>1.2398E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>3.0000E+00</data>
+	  <data>2.7000E+01</data>
+	  <data>5.6000E+01</data>
+	  <data>4.3000E+01</data>
+	  <data>5.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>4.6769E-03</data>
+	  <data>2.1920E-02</data>
+	  <data>1.7798E-02</data>
+	  <data>8.4035E-03</data>
+	  <data>7.2028E-04</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -21 &lt; M &lt; -20.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-21</minimum>
+	<maximum>-20</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.0761E-02</data>
+	  <data>5.8054E-03</data>
+	  <data>3.1782E-03</data>
+	  <data>1.7694E-03</data>
+	  <data>1.0045E-03</data>
+	  <data>5.8340E-04</data>
+	  <data>3.4805E-04</data>
+	  <data>2.1447E-04</data>
+	  <data>1.3739E-04</data>
+	  <data>9.2327E-05</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>2.6493E-01</data>
+	  <data>1.2567E-01</data>
+	  <data>1.1684E-01</data>
+	  <data>2.1632E-01</data>
+	  <data>8.8294E-01</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>4.0229E-01</data>
+	  <data>1.4925E-01</data>
+	  <data>1.3729E-01</data>
+	  <data>3.0161E-01</data>
+	  <data>1.8035E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.8000E+01</data>
+	  <data>9.7000E+01</data>
+	  <data>1.0900E+02</data>
+	  <data>2.7000E+01</data>
+	  <data>1.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>7.3330E-03</data>
+	  <data>2.0882E-02</data>
+	  <data>1.1003E-02</data>
+	  <data>1.7636E-03</data>
+	  <data>7.8430E-05</data>
+	  <data>0.0000E+00</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -22 &lt; M &lt; -21.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-22</minimum>
+	<maximum>-21</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>7.8363E-03</data>
+	  <data>4.1407E-03</data>
+	  <data>2.2140E-03</data>
+	  <data>1.1998E-03</data>
+	  <data>6.6022E-04</data>
+	  <data>3.6976E-04</data>
+	  <data>2.1136E-04</data>
+	  <data>1.2376E-04</data>
+	  <data>7.4557E-05</data>
+	  <data>4.6482E-05</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>4.4831E-01</data>
+	  <data>1.9393E-01</data>
+	  <data>1.1336E-01</data>
+	  <data>1.6917E-01</data>
+	  <data>5.1903E-01</data>
+	  <data>1.0246E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.2621E+00</data>
+	  <data>2.5655E-01</data>
+	  <data>1.3232E-01</data>
+	  <data>2.1626E-01</data>
+	  <data>7.1373E-01</data>
+	  <data>2.6021E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>5.0000E+00</data>
+	  <data>3.8000E+01</data>
+	  <data>1.1900E+02</data>
+	  <data>4.8000E+01</data>
+	  <data>4.0000E+00</data>
+	  <data>1.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.0280E-03</data>
+	  <data>4.6927E-03</data>
+	  <data>7.0684E-03</data>
+	  <data>1.3994E-03</data>
+	  <data>1.0147E-04</data>
+	  <data>3.7279E-05</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -23 &lt; M &lt; -22.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-23</minimum>
+	<maximum>-22</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>5.8788E-03</data>
+	  <data>3.0539E-03</data>
+	  <data>1.6020E-03</data>
+	  <data>8.4957E-04</data>
+	  <data>4.5613E-04</data>
+	  <data>2.4836E-04</data>
+	  <data>1.3739E-04</data>
+	  <data>7.7428E-05</data>
+	  <data>4.4586E-05</data>
+	  <data>2.6332E-05</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.9480E-01</data>
+	  <data>1.4303E-01</data>
+	  <data>2.2325E-01</data>
+	  <data>8.2576E-01</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>2.5856E-01</data>
+	  <data>1.7714E-01</data>
+	  <data>3.6255E-01</data>
+	  <data>1.7000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>3.7000E+01</data>
+	  <data>6.2000E+01</data>
+	  <data>1.5000E+01</data>
+	  <data>1.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.3580E-03</data>
+	  <data>1.0762E-03</data>
+	  <data>1.0679E-04</data>
+	  <data>8.6153E-06</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -24 &lt; M &lt; -23.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-24</minimum>
+	<maximum>-23</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>4.5207E-03</data>
+	  <data>2.3154E-03</data>
+	  <data>1.1955E-03</data>
+	  <data>6.2290E-04</data>
+	  <data>3.2787E-04</data>
+	  <data>1.7454E-04</data>
+	  <data>9.4107E-05</data>
+	  <data>5.1491E-05</data>
+	  <data>2.8648E-05</data>
+	  <data>1.6251E-05</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>6.0799E-01</data>
+	  <data>5.4344E-01</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>9.7796E-01</data>
+	  <data>7.6200E-01</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>2.0000E+00</data>
+	  <data>4.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>1.6134E-05</data>
+	  <data>2.9828E-05</data>
+	  <data>0.0000E+00</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+    <sizeDistribution>
+      <description>Disk scalelength size distribution for -25 &lt; M &lt; -24.</description>
+      <magnitudeRange>
+	<hubble>100.0</hubble>
+	<minimum>-25</minimum>
+	<maximum>-24</maximum>
+      </magnitudeRange>
+      <columns>
+	<distributionUpperLimit>
+	  <description>Upper limit on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>3.5499E-03</data>
+	  <data>1.7963E-03</data>
+	  <data>9.1531E-04</data>
+	  <data>4.6997E-04</data>
+	  <data>2.4335E-04</data>
+	  <data>1.2719E-04</data>
+	  <data>6.7178E-05</data>
+	  <data>3.5903E-05</data>
+	  <data>1.9446E-05</data>
+	  <data>1.0694E-05</data>
+	</distributionUpperLimit>
+	<distributionErrorUp>
+	  <description>Upper error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorUp>
+	<scaleLength>
+	  <description>Disk exponential scale length.</description>
+	  <units>kpc</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>1.8810E-01</data>
+	  <data>2.9821E-01</data>
+	  <data>4.7280E-01</data>
+	  <data>7.4959E-01</data>
+	  <data>1.1884E+00</data>
+	  <data>1.8842E+00</data>
+	  <data>2.9873E+00</data>
+	  <data>4.7361E+00</data>
+	  <data>7.5088E+00</data>
+	  <data>1.1905E+01</data>
+	</scaleLength>
+	<distributionErrorDown>
+	  <description>Lower error on distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distributionErrorDown>
+	<objectCount>
+	  <description>Number of galaxies in bin.</description>
+	  <units>dimensionless</units>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</objectCount>
+	<distribution>
+	  <description>Distribution function for disk scalelengths.</description>
+	  <units>Galaxies per Mpc^3 per magnitude per log10(scalelength)</units>
+	  <hubble>100.0</hubble>
+	  <scaling>linear</scaling>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	  <data>0.0000E+00</data>
+	</distribution>
+      </columns>
+    </sizeDistribution>
+</dataSets>

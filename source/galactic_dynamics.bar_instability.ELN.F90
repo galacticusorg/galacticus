@@ -1,0 +1,107 @@
+!% Contains a module which implements calculations of bar instability based on the \cite{efstathiou_stability_1982} criterion.
+
+module Galactic_Dynamics_Bar_Instabilities_ELN
+  !% Implements calculations of bar instability based on the \cite{efstathiou_stability_1982} criterion.
+  use Tree_Nodes
+  private
+  public :: Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
+
+  ! Stability parameters for stellar and gaseous disks.
+  double precision :: stabilityThresholdStellar,stabilityThresholdGaseous
+
+contains
+
+  !# <barInstabilityMethod>
+  !#  <unitName>Galactic_Dynamics_Bar_Instabilities_ELN_Initialize</unitName>
+  !# </barInstabilityMethod>
+  subroutine Galactic_Dynamics_Bar_Instabilities_ELN_Initialize(barInstabilityMethod,Bar_Instability_Timescale_Get)
+    !% Initializes the ``ELN'' bar instability module.
+    use ISO_Varying_String
+    use Input_Parameters
+    implicit none
+    type(varying_string),          intent(in)    :: barInstabilityMethod
+    procedure(),          pointer, intent(inout) :: Bar_Instability_Timescale_Get
+    
+    if (barInstabilityMethod == 'ELN') then
+       Bar_Instability_Timescale_Get => Bar_Instability_Timescale_ELN
+       ! Read in stability threshold parameters.
+       !@ <inputParameter>
+       !@   <name>stabilityThresholdStellar</name>
+       !@   <defaultValue>1.1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely stellar disks.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stabilityThresholdStellar',stabilityThresholdStellar,defaultValue=1.1d0)
+       !@ <inputParameter>
+       !@   <name>stabilityThresholdGaseous</name>
+       !@   <defaultValue>0.9</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely gaseous disks.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stabilityThresholdGaseous',stabilityThresholdGaseous,defaultValue=0.9d0)
+    end if
+  
+    return
+  end subroutine Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
+
+  double precision function Bar_Instability_Timescale_ELN(thisNode)
+    !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
+    !% \cite{efstathiou_stability_1982}.
+    use Tree_Nodes
+    use Tree_Node_Methods
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, parameter              :: stabilityIsolatedDisk=0.6221297315d0
+    ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
+    ! appears in stability criterion.
+    double precision, parameter              :: velocityBoostFactor  =1.180023758d0
+    double precision                         :: stabilityEstimator,stabilityThreshold,dynamicalTime,gasFraction,diskMass
+
+    ! Assume infinite timescale (i.e. no instability) initially.
+    Bar_Instability_Timescale_ELN=-1.0d0
+
+    ! Compute the disk mass.
+    diskMass=Tree_Node_Disk_Gas_Mass(thisNode)+Tree_Node_Disk_Stellar_Mass(thisNode)
+    ! Return if there is no disk.
+    if (diskMass <= 0.0d0) return
+
+    ! Return if disk has unphysical angular momentum.
+    if (Tree_Node_Disk_Angular_Momentum(thisNode) <= 0.0d0) return
+
+    ! Return if disk has unphysical velocity or radius.
+    if (Tree_Node_Disk_Velocity(thisNode) <= 0.0d0 .or. Tree_Node_Disk_Radius(thisNode) <= 0.0d0) return
+
+    ! Compute the gas fraction in the disk.
+    gasFraction=Tree_Node_Disk_Gas_Mass(thisNode)/diskMass
+
+    ! Compute the stability threshold.
+    stabilityThreshold=stabilityThresholdStellar*(1.0d0-gasFraction)+stabilityThresholdGaseous*gasFraction
+
+    ! Compute the stability estimator for this node.
+    stabilityEstimator=velocityBoostFactor*Tree_Node_Disk_Velocity(thisNode)/dsqrt(gravitationalConstantGalacticus*diskMass&
+         &/Tree_Node_Disk_Radius(thisNode))
+    
+    ! Check if the disk is bar unstable.
+    if (stabilityEstimator < stabilityThreshold) then
+       ! Disk is unstable, compute a timescale for depletion.
+       
+       ! Begin by finding the disk dynamical time.
+       dynamicalTime=(megaParsec/kilo/gigaYear)*Tree_Node_Disk_Radius(thisNode)/Tree_Node_Disk_Velocity(thisNode)
+
+       ! Simple scaling which gives infinite timescale at the threshold, decreasing to dynamical time for a maximally unstable
+       ! disk.
+       Bar_Instability_Timescale_ELN=dynamicalTime*(stabilityThreshold-stabilityIsolatedDisk)/(stabilityThreshold&
+            &-stabilityEstimator)
+
+    end if
+
+    return
+  end function Bar_Instability_Timescale_ELN
+  
+end module Galactic_Dynamics_Bar_Instabilities_ELN

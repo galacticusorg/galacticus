@@ -1,0 +1,54 @@
+<filter>
+  <description>SDSS g vacuum (filter+CCD +0 air mass)</description>
+  <name>SDSS g</name>
+  <origin>Michael Blanton</origin>
+  <response>
+    <datum>   3630.000      0.0000000E+00</datum>
+    <datum>   3680.000      2.2690000E-03</datum>
+    <datum>   3730.000      5.4120002E-03</datum>
+    <datum>   3780.000      9.8719997E-03</datum>
+    <datum>   3830.000      2.9449999E-02</datum>
+    <datum>   3880.000      9.1899998E-02</datum>
+    <datum>   3930.000      0.1904000    </datum>
+    <datum>   3980.000      0.3063000    </datum>
+    <datum>   4030.000      0.4165000    </datum>
+    <datum>   4080.000      0.5012000    </datum>
+    <datum>   4130.000      0.5633000    </datum>
+    <datum>   4180.000      0.6098000    </datum>
+    <datum>   4230.000      0.6470000    </datum>
+    <datum>   4280.000      0.6797000    </datum>
+    <datum>   4330.000      0.7096000    </datum>
+    <datum>   4380.000      0.7380000    </datum>
+    <datum>   4430.000      0.7629000    </datum>
+    <datum>   4480.000      0.7836000    </datum>
+    <datum>   4530.000      0.8040000    </datum>
+    <datum>   4580.000      0.8280000    </datum>
+    <datum>   4630.000      0.8515000    </datum>
+    <datum>   4680.000      0.8698000    </datum>
+    <datum>   4730.000      0.8846000    </datum>
+    <datum>   4780.000      0.8988000    </datum>
+    <datum>   4830.000      0.9138000    </datum>
+    <datum>   4880.000      0.9305000    </datum>
+    <datum>   4930.000      0.9485000    </datum>
+    <datum>   4980.000      0.9673000    </datum>
+    <datum>   5030.000      0.9850000    </datum>
+    <datum>   5080.000       1.000000    </datum>
+    <datum>   5130.000       1.008000    </datum>
+    <datum>   5180.000       1.007000    </datum>
+    <datum>   5230.000      0.9779000    </datum>
+    <datum>   5280.000      0.8005000    </datum>
+    <datum>   5330.000      0.5282000    </datum>
+    <datum>   5380.000      0.2634000    </datum>
+    <datum>   5430.000      8.5869998E-02</datum>
+    <datum>   5480.000      3.2800000E-02</datum>
+    <datum>   5530.000      1.4840000E-02</datum>
+    <datum>   5580.000      6.2739998E-03</datum>
+    <datum>   5630.000      3.6760001E-03</datum>
+    <datum>   5680.000      2.6779999E-03</datum>
+    <datum>   5730.000      1.8710000E-03</datum>
+    <datum>   5780.000      8.3859998E-04</datum>
+    <datum>   5830.000      0.0000000E+00</datum>
+  </response>
+  <effectiveWavelength>4727.02994472695</effectiveWavelength>
+  <vegaOffset>0.107430167298754</vegaOffset>
+</filter>

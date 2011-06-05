@@ -1,0 +1,134 @@
+<filter>
+  <description>UKIRT K filter</description>
+  <name>UKIRT K</name>
+  <origin>unknown</origin>
+  <response>
+    <datum>   18800.00      0.0000000E+00</datum>
+    <datum>   18850.00      2.4999999E-03</datum>
+    <datum>   18900.00      4.9999999E-03</datum>
+    <datum>   18950.00      7.5000003E-03</datum>
+    <datum>   19000.00      9.9999998E-03</datum>
+    <datum>   19050.00      9.5312502E-03</datum>
+    <datum>   19100.00      9.3749994E-03</datum>
+    <datum>   19150.00      9.5312502E-03</datum>
+    <datum>   19200.00      9.9999998E-03</datum>
+    <datum>   19250.00      1.3593750E-02</datum>
+    <datum>   19300.00      1.8124998E-02</datum>
+    <datum>   19350.00      2.3593750E-02</datum>
+    <datum>   19400.00      2.9999999E-02</datum>
+    <datum>   19450.00      3.0468751E-02</datum>
+    <datum>   19500.00      3.5624996E-02</datum>
+    <datum>   19550.00      4.5468748E-02</datum>
+    <datum>   19600.00      5.9999999E-02</datum>
+    <datum>   19650.00      8.6093754E-02</datum>
+    <datum>   19700.00      0.1231250    </datum>
+    <datum>   19750.00      0.1710938    </datum>
+    <datum>   19800.00      0.2300000    </datum>
+    <datum>   19850.00      0.3240625    </datum>
+    <datum>   19900.00      0.4187500    </datum>
+    <datum>   19950.00      0.5140625    </datum>
+    <datum>   20000.00      0.6100000    </datum>
+    <datum>   20050.00      0.6720313    </datum>
+    <datum>   20100.00      0.7243750    </datum>
+    <datum>   20150.00      0.7670312    </datum>
+    <datum>   20200.00      0.8000000    </datum>
+    <datum>   20250.00      0.8259375    </datum>
+    <datum>   20300.00      0.8462499    </datum>
+    <datum>   20350.00      0.8609375    </datum>
+    <datum>   20400.00      0.8700000    </datum>
+    <datum>   20450.00      0.8757813    </datum>
+    <datum>   20500.00      0.8793750    </datum>
+    <datum>   20550.00      0.8807813    </datum>
+    <datum>   20600.00      0.8800000    </datum>
+    <datum>   20650.00      0.8823437    </datum>
+    <datum>   20700.00      0.8831250    </datum>
+    <datum>   20750.00      0.8823437    </datum>
+    <datum>   20800.00      0.8800000    </datum>
+    <datum>   20850.00      0.8709375    </datum>
+    <datum>   20900.00      0.8612500    </datum>
+    <datum>   20950.00      0.8509375    </datum>
+    <datum>   21000.00      0.8400000    </datum>
+    <datum>   21050.00      0.8317187    </datum>
+    <datum>   21100.00      0.8256250    </datum>
+    <datum>   21150.00      0.8217188    </datum>
+    <datum>   21200.00      0.8200000    </datum>
+    <datum>   21250.00      0.8232812    </datum>
+    <datum>   21300.00      0.8293750    </datum>
+    <datum>   21350.00      0.8382813    </datum>
+    <datum>   21400.00      0.8500000    </datum>
+    <datum>   21450.00      0.8684375    </datum>
+    <datum>   21500.00      0.8862500    </datum>
+    <datum>   21550.00      0.9034375    </datum>
+    <datum>   21600.00      0.9200000    </datum>
+    <datum>   21650.00      0.9239063    </datum>
+    <datum>   21700.00      0.9268750    </datum>
+    <datum>   21750.00      0.9289063    </datum>
+    <datum>   21800.00      0.9300000    </datum>
+    <datum>   21850.00      0.9395313    </datum>
+    <datum>   21900.00      0.9493750    </datum>
+    <datum>   21950.00      0.9595313    </datum>
+    <datum>   22000.00      0.9700000    </datum>
+    <datum>   22050.00      0.9773438    </datum>
+    <datum>   22100.00      0.9831251    </datum>
+    <datum>   22150.00      0.9873438    </datum>
+    <datum>   22200.00      0.9900000    </datum>
+    <datum>   22250.00      0.9879688    </datum>
+    <datum>   22300.00      0.9856250    </datum>
+    <datum>   22350.00      0.9829688    </datum>
+    <datum>   22400.00      0.9800000    </datum>
+    <datum>   22450.00      0.9815626    </datum>
+    <datum>   22500.00      0.9837500    </datum>
+    <datum>   22550.00      0.9865626    </datum>
+    <datum>   22600.00      0.9900000    </datum>
+    <datum>   22650.00      0.9967188    </datum>
+    <datum>   22700.00       1.000625    </datum>
+    <datum>   22750.00       1.001719    </datum>
+    <datum>   22800.00       1.000000    </datum>
+    <datum>   22850.00      0.9814063    </datum>
+    <datum>   22900.00      0.9618750    </datum>
+    <datum>   22950.00      0.9414062    </datum>
+    <datum>   23000.00      0.9200000    </datum>
+    <datum>   23050.00      0.9103125    </datum>
+    <datum>   23100.00      0.9037499    </datum>
+    <datum>   23150.00      0.9003124    </datum>
+    <datum>   23200.00      0.9000000    </datum>
+    <datum>   23250.00      0.9064062    </datum>
+    <datum>   23300.00      0.9118749    </datum>
+    <datum>   23350.00      0.9164062    </datum>
+    <datum>   23400.00      0.9200000    </datum>
+    <datum>   23450.00      0.9107813    </datum>
+    <datum>   23500.00      0.8993750    </datum>
+    <datum>   23550.00      0.8857813    </datum>
+    <datum>   23600.00      0.8700000    </datum>
+    <datum>   23650.00      0.8570312    </datum>
+    <datum>   23700.00      0.8443750    </datum>
+    <datum>   23750.00      0.8320312    </datum>
+    <datum>   23800.00      0.8200000    </datum>
+    <datum>   23850.00      0.8146875    </datum>
+    <datum>   23900.00      0.8062500    </datum>
+    <datum>   23950.00      0.7946875    </datum>
+    <datum>   24000.00      0.7800000    </datum>
+    <datum>   24050.00      0.7560937    </datum>
+    <datum>   24100.00      0.7231250    </datum>
+    <datum>   24150.00      0.6810937    </datum>
+    <datum>   24200.00      0.6300000    </datum>
+    <datum>   24250.00      0.5521875    </datum>
+    <datum>   24300.00      0.4712500    </datum>
+    <datum>   24350.00      0.3871875    </datum>
+    <datum>   24400.00      0.3000000    </datum>
+    <datum>   24450.00      0.2239062    </datum>
+    <datum>   24500.00      0.1568750    </datum>
+    <datum>   24550.00      9.8906256E-02</datum>
+    <datum>   24600.00      5.0000001E-02</datum>
+    <datum>   24650.00      2.8749999E-02</datum>
+    <datum>   24700.00      1.4999998E-02</datum>
+    <datum>   24750.00      8.7499991E-03</datum>
+    <datum>   24800.00      9.9999998E-03</datum>
+    <datum>   24850.00      5.6250002E-03</datum>
+    <datum>   24900.00      2.4999999E-03</datum>
+    <datum>   24950.00      6.2500016E-04</datum>
+    <datum>   25000.00      0.0000000E+00</datum>
+  </response>
+  <effectiveWavelength>22114.6367484517</effectiveWavelength>
+  <vegaOffset>-1.89129672301486</vegaOffset>
+</filter>

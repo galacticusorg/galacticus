@@ -33,7 +33,7 @@ module Galacticus_Tasks
 contains
 
   subroutine Galacticus_Task_Do()
-    !% Performs {\sc Galacticus} tasks.
+    !% Performs \glc\ tasks.
     use Galacticus_Evolve_To_Module
     !# <include directive="galacticusTask" type="moduleUse">
     include 'galacticus.tasks.task_rules.modules.inc'

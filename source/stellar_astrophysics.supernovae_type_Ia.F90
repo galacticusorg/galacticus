@@ -1,0 +1,88 @@
+!% Contains a module which provides calculations of Type Ia supernovae.
+
+module Supernovae_Type_Ia
+  !% Provides calculations of Type Ia supernovae.
+  use ISO_Varying_String
+  private
+  public :: SNeIa_Cumulative_Number, SNeIa_Cumulative_Yield
+
+  ! Flag indicating whether this module has been initialized.
+  logical              :: supernovaeIaInitialized=.false.
+
+  ! Name of cooling rate available method used.
+  type(varying_string) :: supernovaeIaMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(SNeIa_Cumulative_Template), pointer :: SNeIa_Cumulative_Number_Get => null()
+  procedure(SNeIa_Cumulative_Template), pointer :: SNeIa_Cumulative_Yield_Get  => null()
+  abstract interface
+    double precision function SNeIa_Cumulative_Template(initialMass,age,metallicity)
+      double precision, intent(in) :: initialMass,age,metallicity
+    end function SNeIa_Cumulative_Template
+  end interface
+
+contains
+
+  subroutine Supernovae_Type_Ia_Initialize
+    !% Initialize the Type Ia supernovae module.
+    use Galacticus_Error
+    use Input_Parameters
+    !# <include directive="supernovaeIaMethod" type="moduleUse">
+    include 'stellar_astrophysics.supernovae_type_Ia.modules.inc'
+    !# </include>
+    implicit none
+
+    !$omp critical(Supernovae_Type_Ia_Initialization) 
+    ! Initialize if necessary.
+    if (.not.supernovaeIaInitialized) then
+       ! Get the halo spin distribution method parameter.
+       !@ <inputParameter>
+       !@   <name>supernovaeIaMethod</name>
+       !@   <defaultValue>Nagashima</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The method to use for computing properties of Type Ia supernovae.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('supernovaeIaMethod',supernovaeIaMethod,defaultValue='Nagashima')
+       ! Include file that makes calls to all available method initialization routines.
+       !# <include directive="supernovaeIaMethod" type="code" action="subroutine">
+       !#  <subroutineArgs>supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get</subroutineArgs>
+       include 'stellar_astrophysics.supernovae_type_Ia.inc'
+       !# </include>
+       if (.not.(associated(SNeIa_Cumulative_Number_Get).and.associated(SNeIa_Cumulative_Yield_Get))) call Galacticus_Error_Report('Supernovae_Type_Ia_Initialize'&
+            &,'method '//char(supernovaeIaMethod)//' is unrecognized')
+       supernovaeIaInitialized=.true.
+    end if
+    !$omp end critical(Supernovae_Type_Ia_Initialization) 
+
+    return
+  end subroutine Supernovae_Type_Ia_Initialize
+
+  double precision function SNeIa_Cumulative_Number(initialMass,age,metallicity)
+    !% Return the cumulative number of Type Ia supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    implicit none
+    double precision, intent(in) :: initialMass,age,metallicity
+
+    ! Ensure module is initialized.
+    call Supernovae_Type_Ia_Initialize
+
+    ! Simply call the function which does the actual work.
+    SNeIa_Cumulative_Number=SNeIa_Cumulative_Number_Get(initialMass,age,metallicity)
+    return
+  end function SNeIa_Cumulative_Number
+
+  double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity)
+    !% Return the cumulative yield of Type Ia supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    implicit none
+    double precision, intent(in) :: initialMass,age,metallicity
+
+    ! Ensure module is initialized.
+    call Supernovae_Type_Ia_Initialize
+
+    ! Simply call the function which does the actual work.
+    SNeIa_Cumulative_Yield=SNeIa_Cumulative_Yield_Get(initialMass,age,metallicity)
+    return
+  end function SNeIa_Cumulative_Yield
+
+end module Supernovae_Type_Ia

@@ -1,0 +1,114 @@
+<dataSets>
+  <massFunction>
+    <description>HI mass function data from Zwaan et al. (2003).</description>
+    <url>http://adsabs.harvard.edu/abs/2003AJ....125.2842Z</url>
+    <label>Zwaan et al. (2003)</label>
+    <source>Data points read from figure by Andrew Benson (27-Oct-2009).</source>
+    <columns>
+      <mass>
+	<description>HI gas mass</description>
+	<units>Solar masses</units>
+	<hubble>75.0</hubble>
+	<scaling>log10</scaling>
+	<data> 6.8</data>
+	<data> 7.0</data>
+	<data> 7.2</data>
+	<data> 7.4</data>
+	<data> 7.6</data>
+	<data> 7.8</data>
+	<data> 8.0</data>
+	<data> 8.2</data>
+	<data> 8.4</data>
+	<data> 8.6</data>
+	<data> 8.8</data>
+	<data> 9.0</data>
+	<data> 9.2</data>
+	<data> 9.4</data>
+	<data> 9.6</data>
+	<data> 9.8</data>
+	<data>10.0</data>
+	<data>10.2</data>
+	<data>10.4</data>
+	<data>10.6</data>
+      </mass>
+      <massFunction>
+	<description>HI gas mass function</description>
+	<units>Mpc^-3 per log10(HI gas mass)</units>
+	<hubble>75.0</hubble>
+	<scaling>log10</scaling>
+	<data>-1.20</data>
+	<data>-1.01</data>
+	<data>-0.79</data>
+	<data>-1.14</data>
+	<data>-1.13</data>
+	<data>-0.92</data>
+	<data>-1.28</data>
+	<data>-1.14</data>
+	<data>-1.22</data>
+	<data>-1.29</data>
+	<data>-1.50</data>
+	<data>-1.30</data>
+	<data>-1.64</data>
+	<data>-1.72</data>
+	<data>-1.91</data>
+	<data>-2.17</data>
+	<data>-2.46</data>
+	<data>-2.84</data>
+	<data>-3.72</data>
+	<data>-4.38</data>
+      </massFunction>
+      <upperError>
+	<description>HI gas mass function upper error</description>
+	<units>Mpc^-3 per log10(HI gas mass)</units>
+	<hubble>75.0</hubble>
+	<scaling>log10</scaling>
+	<data>0.21</data>
+	<data>0.23</data>
+	<data>0.18</data>
+	<data>0.16</data>
+	<data>0.16</data>
+	<data>0.09</data>
+	<data>0.12</data>
+	<data>0.10</data>
+	<data>0.09</data>
+	<data>0.07</data>
+	<data>0.10</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.09</data>
+	<data>0.19</data>
+      </upperError>
+      <lowerError>
+	<description>HI gas mass function lower error</description>
+	<units>Mpc^-3 per log10(HI gas mass)</units>
+	<hubble>75.0</hubble>
+	<scaling>log10</scaling>
+	<data>0.51</data>
+	<data>0.47</data>
+	<data>0.29</data>
+	<data>0.26</data>
+	<data>0.12</data>
+	<data>0.16</data>
+	<data>0.18</data>
+	<data>0.09</data>
+	<data>0.12</data>
+	<data>0.12</data>
+	<data>0.06</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.05</data>
+	<data>0.12</data>
+	<data>0.29</data>
+      </lowerError>
+    </columns>
+  </massFunction>
+</dataSets>

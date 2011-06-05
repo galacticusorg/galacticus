@@ -1,0 +1,71 @@
+*** tmp/cmbfast4.5.1/cmbflat.F	2003-10-21 13:19:02.000000000 -0700
+--- cmbfast4.5.1/cmbflat.F	2010-04-26 21:49:24.000000000 -0700
+***************
+*** 616,621 ****
+--- 616,622 ----
+  
+              ak=ak0(ik)
+  
++ 
+  c     TESTING. Output ks and betas where the source is calculated.
+  c            write(68,*)ik,ak
+  
+***************
+*** 877,883 ****
+                 tau=tautf(itf)
+                endif
+  c
+!                      if(indtau(itf).ne.0) then
+                        call outtransf(nvar,y,0.0d0,ik,indtau(itf))
+                       else
+                        if (lensflag.ne.0) then
+--- 878,884 ----
+                 tau=tautf(itf)
+                endif
+  c
+!                     if(indtau(itf).ne.0) then
+                        call outtransf(nvar,y,0.0d0,ik,indtau(itf))
+                       else
+                        if (lensflag.ne.0) then
+***************
+*** 947,965 ****
+  
+                 closestknum=istore(1)-1
+              else
+!                call dverk(nvar,fderivs,tau,y,tautf(1),tol,
+       2              ind,c,nw,w)
+                   if(indtau(itf).ne.0) then
+                     call outtransf(nvar,y,0.0d0,ik,indtau(itf))
+                   endif
+                 do 1353 itf=2,ntf
+                   if(indtau(itf).ne.0) then
+!                   growthfactor=(omegac*power(6*closestknum+2,indtau(itf))
+       $                 +omegab*power(6*closestknum+3,indtau(itf))
+       $                 +omegan*power(6*closestknum+6,indtau(itf))
+       $                 /(omegac*power(6*closestknum+2,1)
+       $                 +omegab*power(6*closestknum+3,1)
+!      $                 +omegan*power(6*closestknum+6,1))
+  c     k
+                    power(6*istore(indtau(itf))+1,itf)=
+       1            power(6*istore(indtau(itf))+1,1)
+--- 948,967 ----
+  
+                 closestknum=istore(1)-1
+              else
+!                 itf=1
+!                 call dverk(nvar,fderivs,tau,y,tautf(1),tol,
+       2              ind,c,nw,w)
+                   if(indtau(itf).ne.0) then
+                     call outtransf(nvar,y,0.0d0,ik,indtau(itf))
+                   endif
+                 do 1353 itf=2,ntf
+                   if(indtau(itf).ne.0) then
+!                  growthfactor=(omegac*power(6*closestknum+2,indtau(itf))
+       $                 +omegab*power(6*closestknum+3,indtau(itf))
+       $                 +omegan*power(6*closestknum+6,indtau(itf))
+       $                 /(omegac*power(6*closestknum+2,1)
+       $                 +omegab*power(6*closestknum+3,1)
+!      $                 +omegan*power(6*closestknum+6,1)))
+  c     k
+                    power(6*istore(indtau(itf))+1,itf)=
+       1            power(6*istore(indtau(itf))+1,1)

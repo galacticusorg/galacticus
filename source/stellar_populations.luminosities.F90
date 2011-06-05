@@ -1,0 +1,234 @@
+!% Contains a module which implements calculations of stellar population luminosities in the AB magnitude system.
+
+module Stellar_Population_Luminosities
+  !% Implements calculations of stellar population luminosities in the AB magnitude system.
+  use FGSL
+  use, intrinsic :: ISO_C_Binding                             
+  use Stellar_Population_Luminosities_Table_Type
+  use Abundances_Structure
+  private
+  public :: Stellar_Population_Luminosity
+
+  ! Array of simple stellar population luminosity tables.
+  type(luminosityTable), allocatable, dimension(:) :: luminosityTables
+
+  ! Module global variables used in integrations.
+  double precision          :: ageTabulate,redshiftTabulate
+  integer                   :: filterIndexTabulate,imfIndexTabulate
+  type(abundancesStructure) :: abundancesTabulate
+  !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate)
+
+contains
+  
+  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,imfIndex,abundances,age,redshift)
+    !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} and {\tt age} drawn from IMF
+    !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}.
+    use Memory_Management
+    use Abundances_Structure
+    use Stellar_Population_Spectra
+    use Instruments_Filters
+    use Numerical_Integration
+    use Numerical_Interpolation
+    use Numerical_Constants_Astronomical
+    use Galacticus_Error
+    implicit none
+    integer,                   intent(in)                                    :: luminosityIndex(:),filterIndex(:),imfIndex
+    double precision,          intent(in)                                    :: age(:),redshift(:)
+    type(abundancesStructure), intent(in)                                    :: abundances
+    double precision,                       dimension(size(luminosityIndex)) :: Stellar_Population_Luminosity
+    type(luminosityTable),     allocatable, dimension(:)                     :: luminosityTablesTemporary
+    double precision,          allocatable, dimension(:,:,:)                 :: luminosityTemporary
+    logical,                   allocatable, dimension(:)                     :: isTabulatedTemporary
+    double precision,                       dimension(2)                     :: wavelengthRange
+    double precision,                       dimension(0:1)                   :: hAge,hMetallicity
+    integer                                                                  :: iLuminosity,iAge,iMetallicity,jAge,jMetallicity
+    logical                                                                  :: computeTable
+    double precision                                                         :: normalization,metallicity,ageLast
+    type(c_ptr)                                                              :: parameterPointer                         
+    type(fgsl_function)                                                      :: integrandFunction
+    type(fgsl_integration_workspace)                                         :: integrationWorkspace
+
+    ! Determine if we have created space for this IMF yet.
+    !$omp critical (Luminosity_Tables_Initialize)
+    if (allocated(luminosityTables)) then
+       if (size(luminosityTables) < imfIndex) then
+          call Move_Alloc (luminosityTables,luminosityTablesTemporary)
+          call Alloc_Array(luminosityTables,imfIndex,'luminosityTables')
+          luminosityTables(1:size(luminosityTablesTemporary))=luminosityTablesTemporary
+          call Dealloc_Array(luminosityTablesTemporary)
+       end if
+    else
+       call Alloc_Array(luminosityTables,imfIndex,'luminosityTables')
+    end if
+    
+    ! Determine if we have tabulated luminosities for this luminosityIndex in this IMF yet.
+    do iLuminosity=1,size(luminosityIndex)
+       if (allocated(luminosityTables(imfIndex)%isTabulated)) then
+          if (size(luminosityTables(imfIndex)%isTabulated) >= luminosityIndex(iLuminosity)) then
+             computeTable=.not.luminosityTables(imfIndex)%isTabulated(luminosityIndex(iLuminosity))
+          else
+             call Move_Alloc (luminosityTables(imfIndex)%isTabulated,isTabulatedTemporary)
+             call Move_Alloc (luminosityTables(imfIndex)%luminosity ,luminosityTemporary )
+             call Alloc_Array(luminosityTables(imfIndex)%isTabulated,luminosityIndex(iLuminosity)&
+                  &,'luminosityTables()%isTabulated')
+             call Alloc_Array(luminosityTables(imfIndex)%luminosity ,luminosityIndex(iLuminosity)&
+                  &,luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%metallicitiesCount&
+                  &,'luminosityTables()%luminosity')
+             luminosityTables(imfIndex)%isTabulated(1:size(isTabulatedTemporary)    )=isTabulatedTemporary
+             luminosityTables(imfIndex)%isTabulated(  size(isTabulatedTemporary)+1:luminosityIndex(iLuminosity))=.false.
+             luminosityTables(imfIndex)%luminosity (1:size(isTabulatedTemporary),:,:)=luminosityTemporary
+             call Dealloc_Array(isTabulatedTemporary)
+             call Dealloc_Array(luminosityTemporary)
+             computeTable=.true.
+          end if
+       else
+          call Alloc_Array(luminosityTables(imfIndex)%isTabulated,luminosityIndex(iLuminosity),'luminosityTables()%isTabulated')
+          luminosityTables(imfIndex)%isTabulated=.false.
+          ! Since we have not yet tabulated any luminosities yet for this IMF, we need to get a list of suitable metallicities and
+          ! ages at which to tabulate.
+          call Stellar_Population_Spectrum_Tabulation(imfIndex,luminosityTables(imfIndex)%agesCount &
+               &,luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%age&
+               &,luminosityTables(imfIndex)%metallicity)
+          where (luminosityTables(imfIndex)%metallicity > 0.0d0)
+             luminosityTables(imfIndex)%metallicity=dlog10(luminosityTables(imfIndex)%metallicity/metallicitySolar)
+          elsewhere
+             luminosityTables(imfIndex)%metallicity=logMetallicityZero
+          end where
+          call Alloc_Array(luminosityTables(imfIndex)%luminosity,luminosityIndex(iLuminosity)&
+               &,luminosityTables(imfIndex)%agesCount ,luminosityTables(imfIndex)%metallicitiesCount&
+               &,'luminosityTables()%luminosity')
+          computeTable=.true.
+       end if
+       
+       ! If we haven't, do so now.
+       if (computeTable) then
+          
+          ! Get wavelength extent of the filter.
+          wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
+          
+          ! Integrate over the wavelength range.
+          filterIndexTabulate=filterIndex(iLuminosity)
+          imfIndexTabulate=imfIndex
+          redshiftTabulate=redshift(iLuminosity)
+          do iAge=1,luminosityTables(imfIndex)%agesCount
+             ageTabulate=luminosityTables(imfIndex)%age(iAge)
+             do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
+                call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
+                     &,metallicityType=logarithmicByMassSolar)
+                luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge,iMetallicity)&
+                     &=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand,parameterPointer&
+                     &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+             end do
+          end do
+          
+          ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
+          normalization=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB,parameterPointer &
+               &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+          
+          ! Normalize the luminosity.
+          luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)&
+               &=luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)/normalization
+          
+          ! Flag that calculations have been performed for this filter.
+          luminosityTables(imfIndex)%isTabulated(luminosityIndex(iLuminosity))=.true.
+       end if
+    end do
+ 
+    ! Get interpolation in metallicity.
+    metallicity=Abundances_Get_Metallicity(abundances,metallicityType=logarithmicByMassSolar)
+    if (metallicity == logMetallicityZero .or. metallicity < luminosityTables(imfIndex)%metallicity(1)) then
+       iMetallicity=1
+       hMetallicity=[1.0d0,0.0d0]
+    else if (metallicity > luminosityTables(imfIndex)%metallicity(luminosityTables(imfIndex)%metallicitiesCount)) then
+       iMetallicity=luminosityTables(imfIndex)%metallicitiesCount-1
+       hMetallicity=[0.0d0,1.0d0]
+    else
+       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%metallicity &
+            &,luminosityTables(imfIndex)%interpolationAcceleratorMetallicity,metallicity &
+            &,luminosityTables(imfIndex)%resetMetallicity)
+       hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicitiesCount &
+            &,luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
+    end if
+    
+    ! Do the interpolation.
+    Stellar_Population_Luminosity(:)=0.0d0
+    do iLuminosity=1,size(luminosityIndex)
+       ! Only compute luminosities for entries with positive age (negative age implies that the luminosity required is for a
+       ! population observed prior to the formation of this population).
+       if (age(iLuminosity) > 0.0d0) then
+          ! Get interpolation in age if the age for this luminosity differs from the previous one.
+          if (iLuminosity == 1 .or. age(iLuminosity) /= ageLast) then
+             ! Check for out of range age.
+             if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) call&
+                  & Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
+             iAge=Interpolate_Locate(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age &
+                  &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
+             hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age,iAge&
+                  &,age(iLuminosity))
+             ageLast=age(iLuminosity)
+          end if
+          do jAge=0,1  
+             do jMetallicity=0,1
+                Stellar_Population_Luminosity(iLuminosity)=Stellar_Population_Luminosity(iLuminosity)&
+                     &+luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge +jAge,iMetallicity+jMetallicity)&
+                     &*hAge(jAge)*hMetallicity(jMetallicity)
+             end do
+          end do
+       end if
+    end do
+    !$omp end critical (Luminosity_Tables_Initialize)
+
+    ! Prevent interpolation from returning negative fluxes.
+    Stellar_Population_Luminosity=max(Stellar_Population_Luminosity,0.0d0)
+    
+    return
+  end function Stellar_Population_Luminosity
+  
+  function Filter_Luminosity_Integrand(wavelength,parameterPointer) bind(c)
+    !% Integrand for the luminosity through a given filter.
+    use Stellar_Population_Spectra
+    use Instruments_Filters
+    implicit none
+    real(c_double)         :: Filter_Luminosity_Integrand
+    real(c_double),  value :: wavelength
+    type(c_ptr),     value :: parameterPointer
+    double precision       :: wavelengthRedshifted
+
+    ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
+    ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
+    ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
+    ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
+    ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
+    ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
+    ! bolometer/calorimeter type detector.
+    wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
+    Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*Stellar_Population_Spectrum(abundancesTabulate &
+         &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)/wavelength
+    return
+  end function Filter_Luminosity_Integrand
+  
+  function Filter_Luminosity_Integrand_AB(wavelength,parameterPointer) bind(c)
+    !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+    use Stellar_Population_Spectra
+    use Instruments_Filters
+    use Numerical_Constants_Math
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Units
+    use Numerical_Constants_Prefixes
+    implicit none
+    real(c_double)              :: Filter_Luminosity_Integrand_AB
+    real(c_double),   value     :: wavelength
+    type(c_ptr),      value     :: parameterPointer
+    ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz. The AB magnitude system is defined such that:
+    !   m = -2.5log10(F_nu/[ergs/s/cm^2/Hz])-48.57
+    ! Computing the flux at 10pc gives us the zero point for the absolute magnitude scale.
+    double precision, parameter :: offsetAB=48.57d0
+    double precision, parameter :: zeroPointAB=(10.0d0**(-offsetAB/2.5d0))*4.0d0*Pi*((10.0d0*parsec*hecto)**2)*ergs/luminositySolar
+
+    Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*zeroPointAB/wavelength
+    return
+  end function Filter_Luminosity_Integrand_AB
+  
+end module Stellar_Population_Luminosities

@@ -1,0 +1,31 @@
+<supernovaData>
+  <description>Energies of pair instability supernovae as a function of helium core mass.</description>
+  <source>Heger &amp; Woosley (2002; ApJ; 567; 532; Figure 1) [manual read from table]</source>
+  <url>http://adsabs.harvard.edu/abs/2002ApJ...567..532H</url>
+  <heliumCoreMass>
+    <units>Solar masses</units>
+    <data>64.0000</data>
+    <data>74.3636</data>
+    <data>84.6182</data>
+    <data>90.8364</data>
+    <data>102.836</data>
+    <data>112.109</data>
+    <data>120.509</data>
+    <data>128.036</data>
+    <data>130.982</data>
+    <data>133.055</data>
+  </heliumCoreMass>
+  <supernovaEnergy>
+    <units>1e51 ergs</units>
+    <data>4.63023</data>
+    <data>13.3762</data>
+    <data>23.1511</data>
+    <data>30.3537</data>
+    <data>46.3023</data>
+    <data>59.4212</data>
+    <data>72.0257</data>
+    <data>84.6302</data>
+    <data>89.7749</data>
+    <data>93.6334</data>
+  </supernovaEnergy>
+</supernovaData>
