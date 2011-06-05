@@ -47,6 +47,10 @@ The structure of each merger tree can optionally be dumped to a file suitable fo
 
 Properties of nodes at density contrasts other than the virial density can be output by setting {\tt [outputDensityContrastData]}$=${\tt true}. When selected, this output option requires that a list of density contrasts, $Delta$ (defined in units of the mean density of the Universe), be given in the {\tt [outputDensityContrastValues]} input parameter. For each specified density contrast, two properties are output for each node: {\tt nodeRadius}$\Delta$ and {\tt nodeMass}$\Delta$ which give the radius enclosing a mean density contrast of $\Delta$ and the mass enclosed within that radius. The parameter {\tt [outputDensityContrastDataDarkOnly]} controls whether density contrasts are measured for total mass ({\tt false}) or dark matter mass only ({\tt true}). In the latter case, density contrasts are defined relative to the mean dark matter density of the Universe.
 
+\section{Mass Profile Data}\index{mass profile}
+
+Masses enclosed within specific radii can be output by setting {\tt [outputMassProfileData]}$=${\tt true}. When selected, this output option requires that a list of radii, $r$ (in Mpc), be given in the {\tt [outputMassProfileRadii]} input parameter. For each specified radius, the total (dark + baryonic) mass will be output as {\tt massProfile}$r$.
+
 \section{Cooling Data}\index{cooling}\index{cooling!output}\index{cooling!radius}\index{cooling!rate}
 
 Properties associated with cooling in hot halos can be output by setting {\tt hotHaloOutputCooling}$=${\tt true}. Currently, two additional properties are output for each node when this option is selected:
