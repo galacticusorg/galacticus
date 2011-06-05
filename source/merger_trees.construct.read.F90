@@ -137,6 +137,11 @@ module Merger_Tree_Read
   integer,                 parameter                 :: nodeIsUnreachable=-1
   integer,                 parameter                 :: nodeIsReachable  = 0
 
+  ! Internal list of output times and the relative tolerance used to "snap" nodes to output times.
+  integer                                            :: outputTimesCount
+  double precision                                   :: mergerTreeReadOutputTimeSnapTolerance
+  double precision,        allocatable, dimension(:) :: outputTimes
+
   ! Type used to store raw data.
   type nodeData
      !% Structure used to store raw data read from merger tree files.
@@ -159,14 +164,16 @@ contains
     use Input_Parameters
     use Galacticus_Error
     use Galacticus_Display
+    use Galacticus_Output_Times
     use Numerical_Comparison
     use Cosmological_Parameters
     use CDM_Power_Spectrum
     use Numerical_Constants_Astronomical
+    use Memory_Management
     implicit none
     type(varying_string),          intent(in)    :: mergerTreeConstructMethod
     procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
-    integer                                      :: treesAreSelfContained,hubbleExponent,haloMassesIncludeSubhalosInteger
+    integer                                      :: treesAreSelfContained,hubbleExponent,haloMassesIncludeSubhalosInteger,iOutput
     double precision                             :: cosmologicalParameter,lengthSimulationBox
     character(len=14)                            :: valueString
     type(varying_string)                         :: message
@@ -224,9 +231,24 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadBeginAt',mergerTreeReadBeginAt,defaultValue=-1)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadOutputTimeSnapTolerance</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The relative tolerance required to ``snap'' a node time to the closest output time.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadOutputTimeSnapTolerance',mergerTreeReadOutputTimeSnapTolerance,defaultValue=0.0d0)
 
        ! Validate input parameters.
        if (mergerTreeReadPresetMergerNodes.and..not.mergerTreeReadPresetMergerTimes) call Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting of merger target nodes requires that merger times also be preset")
+
+       ! Get array of output times.
+       outputTimesCount=Galacticus_Output_Time_Count()
+       call Alloc_Array(outputTimes,[outputTimesCount])
+       do iOutput=1,outputTimesCount
+          outputTimes(iOutput)=Galacticus_Output_Time(iOutput)
+       end do
 
        ! Read basic data from the merger tree file.
        ! Open the file.
@@ -573,10 +595,13 @@ contains
     !% Read node data from an HDF5 file.
     use Galacticus_Error
     use Cosmology_Functions
+    use Arrays_Search
+    use Numerical_Comparison
     implicit none
     type(nodeData),        intent(inout), dimension(:) :: nodes
     integer(kind=HSIZE_T), intent(in),    dimension(1) :: nodeCount,firstNodeIndex
     integer(kind=kind_int8)                            :: iNode
+    integer                                            :: iOutput
 
     ! nodeIndex
     call haloTreesGroup%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
@@ -609,6 +634,18 @@ contains
     else
        call Galacticus_Error_Report("Merger_Tree_Read_Do","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
     end if
+
+    ! Snap node times to output times if a tolerance has been specified.
+    if (mergerTreeReadOutputTimeSnapTolerance > 0.0d0) then
+       ! Loop over all nodes.
+       do iNode=1,nodeCount(1)
+          ! Find closest output time to the node time.
+          iOutput=Search_Array_For_Closest(outputTimes,nodes(iNode)%nodeTime)
+          ! Test if this time is sufficiently close that we should snap the node time to it.
+          if (Values_Agree(nodes(iNode)%nodeTime,outputTimes(iOutput),relTol=mergerTreeReadOutputTimeSnapTolerance)) nodes(iNode)%nodeTime=outputTimes(iOutput)
+       end do
+    end if
+
     return
   end subroutine Read_Node_Data
   
@@ -1297,6 +1334,12 @@ contains
                       end do
                       ! Increment the history count for this node.
                       historyCount=historyCount+thisNode%particleIndexCount
+                      call subhaloHistory%destroy()
+                      call subhaloHistory%create(6,historyCount)
+                      subhaloHistory%time(:    )=          historyTime(    1:historyCount)
+                      subhaloHistory%data(:,1:3)=transpose(position   (1:3,1:historyCount))
+                      subhaloHistory%data(:,4:6)=transpose(velocity   (1:3,1:historyCount))
+                      call Tree_Node_Position_6D_History_Set(nodeList(iIsolatedNode)%node,subhaloHistory)
                    end if
                    call subhaloHistory%destroy()
                    call subhaloHistory%create(6,int(historyCount))
