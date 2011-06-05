@@ -1,7 +1,7 @@
 <parameters>
   <parameter>
     <name>mergerTreeBuildTreesPerDecade</name>
-    <value>100</value>
+    <value>1000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildHaloMassMinimum</name>
@@ -62,5 +62,13 @@
   <parameter>
     <name>galacticusOutputFile</name>
     <value>progenitorMassFunctionTest.hdf5</value>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionMethod</name>
+    <value>Tinker2008</value>
+  </parameter>
+  <parameter>
+    <name>transferFunctionMethod</name>
+    <value>Eisenstein + Hu</value>
   </parameter>
 </parameters>
