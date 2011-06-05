@@ -191,7 +191,7 @@ contains
     return
   end function Interpolate_Derivative
 
-  integer function Interpolate_Locate(nPoints,xArray,interpolationAccelerator,x,reset)
+  integer function Interpolate_Locate(nPoints,xArray,interpolationAccelerator,x,reset,closest)
     !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding value in {\tt yArray()}.
     use Galacticus_Error
     implicit none
@@ -200,8 +200,18 @@ contains
     type(fgsl_interp_accel), intent(inout)               :: interpolationAccelerator
     double precision,        intent(in)                  :: x
     logical,                 intent(inout), optional     :: reset
+    logical,                 intent(in),    optional     :: closest
     integer(c_size_t)                                    :: nPointsC
-    logical                                              :: resetActual
+    logical                                              :: resetActual,closestActual
+
+    ! Abort on non-positive sized arrays.
+    if (nPoints <= 0) call Galacticus_Error_Report('Interpolate_Locate','array has non-positive size')
+
+    ! If array has just one point, always return it.
+    if (nPoints == 1) then
+       Interpolate_Locate=1
+       return
+    end if
 
     ! Decide whether to reset.
     resetActual=.false.
@@ -209,6 +219,14 @@ contains
        resetActual=reset
        reset=.false.
     end if
+
+    ! Determine if we want the closest point.
+    if (present(closest)) then
+       closestActual=closest
+    else
+       closestActual=.false.
+    end if
+
     ! Check if this interpolation needs initializing.
     if (resetActual.or..not.fgsl_well_defined(interpolationAccelerator)) then
        ! Allocate the accelerator.
@@ -219,6 +237,10 @@ contains
     nPointsC=nPoints
     Interpolate_Locate=fgsl_interp_accel_find(interpolationAccelerator,xArray,nPointsC,x)
     Interpolate_Locate=max(min(Interpolate_Locate,nPointsC-1),1)
+
+    ! If we want the closest point, find it.
+    if (closestActual .and. dabs(x-xArray(Interpolate_Locate+1)) < dabs(x-xArray(Interpolate_Locate))) Interpolate_Locate=Interpolate_Locate+1
+
     return
   end function Interpolate_Locate
 
