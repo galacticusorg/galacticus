@@ -128,9 +128,9 @@ contains
     double precision,        parameter               :: relativeMassTolerance  =1.0d-9
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
          &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,darkMatterFactor,remnantSpheroidGasMass&
-         &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy
+         &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy,finalEnergy
     character(len= 2)                                :: joinString
-    character(len=40)                                :: dataString
+    character(len=70)                                :: dataString
     type(varying_string)                             :: message
     logical                                          :: errorCondition
 
@@ -170,24 +170,38 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if ((hostRadius <= 0.0d0 .and. hostMass > 0.0d0) .or. hostMass < -absoluteMassTolerance .or. hostSpheroidMass < -absoluteMassTolerance) then
-          write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') hostRadius,hostMass,hostSpheroidMass
+       if     (                                                     &
+            &       (hostRadius <= 0.0d0 .and. hostMass > 0.0d0)    &
+            &  .or. hostMass               < -absoluteMassTolerance &
+            &  .or. hostSpheroidMass       < -absoluteMassTolerance &
+            &  .or. remnantSpheroidGasMass < -absoluteMassTolerance &
+            &  .or. remnantSpheroidMass    < -absoluteMassTolerance &
+            & ) then
+          write (dataString,'(e12.6,":",e12.6,":",e12.6,":",e12.6,":",e12.6)') hostRadius,hostMass,hostSpheroidMass,remnantSpheroidGasMass,remnantSpheroidMass
           message='Host galaxy ['
           message=message//hostNode%index()//'] has '
           joinString=""
-          if (hostRadius       <= 0.0d0         ) then
+          if (hostRadius             <= 0.0d0         ) then
              message=message//trim(joinString)//'non-positive radius'
              joinString=", "
           end if
-          if (hostMass         <  -absoluteMassTolerance) then
+          if (hostMass               <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative mass'
              joinString=", "
           end if
-          if (hostSpheroidMass <  -absoluteMassTolerance) then
+          if (hostSpheroidMass       <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative spheroid mass'
              joinString=", "
           end if
-          message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+          if (remnantSpheroidGasMass <  -absoluteMassTolerance) then
+             message=message//trim(joinString)//'negative remnant spheroid gas mass'
+             joinString=", "
+          end if
+         if (remnantSpheroidMass    <  -absoluteMassTolerance) then
+             message=message//trim(joinString)//'negative remnant spheroid mass'
+             joinString=", "
+          end if
+          message=message//' (radius:mass:spheroidMass:remnantSpheroidGasMass:remnantSpheroidMass='//trim(dataString)//')'
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
@@ -204,6 +218,14 @@ contains
           gasFractionInitial=remnantSpheroidGasMass/remnantSpheroidMass
           ! Compute the energy lost through radiation.
           radiatedEnergy=mergerRemnantRadiativeEfficiency*gasFractionInitial*progenitorsEnergy
+
+          ! Compute the final energy.
+          finalEnergy=progenitorsEnergy+radiatedEnergy
+          if (finalEnergy <= 0.0d0) then
+             write (dataString,'(e12.6,":",e12.6)') progenitorsEnergy,radiatedEnergy
+             message='remnant becomes unbound (progenitorsEnergy:radiatedEnergy='//trim(dataString)//')'
+             call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008',message)
+          end if
 
           ! Compute the remnant radius.
           remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/(progenitorsEnergy+radiatedEnergy)
