@@ -57,9 +57,6 @@ contains
     use Root_Finder
     use FGSL
     use Dark_Matter_Halo_Scales
-
-    use Dark_Matter_Profiles
-
     !# <include directive="virialOrbitsMethod" type="moduleUse">
     include 'satellites.merging.virial_orbits.modules.inc'
     !# </include>
