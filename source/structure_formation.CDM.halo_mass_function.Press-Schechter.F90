@@ -125,8 +125,11 @@ contains
        haloMassFunctionLogAbundance(iMass)=(Omega_0()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0/Pi)*nu&
             &*dexp(-0.5d0*nu**2)
     end do
-    haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
-    
+    where (haloMassFunctionLogAbundance > 0.0d0)
+       haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
+    elsewhere
+       haloMassFunctionLogAbundance=-1000.0d0
+    end where
     return
   end subroutine Halo_Mass_Function_Press_Schechter_Tabulate
   
