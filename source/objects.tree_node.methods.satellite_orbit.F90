@@ -141,13 +141,13 @@ contains
     ! Get the satellite merging timescale method.
     !@ <inputParameter>
     !@   <name>satelliteMergingMethod</name>
-    !@   <defaultValue>Lacey-Cole</defaultValue>
+    !@   <defaultValue>Jiang2008</defaultValue>
     !@   <attachedTo>module</attachedTo>
     !@   <description>
     !@     The name of the method to be used to compute satellite merging timescales.
     !@   </description>
     !@ </inputParameter>
-    call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Lacey-Cole')
+    call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
     ! Include file that makes calls to all available method initialization routines.
     !# <include directive="satelliteMergingMethod" type="code" action="subroutine">
     !#  <subroutineArgs>satelliteMergingMethod,Satellite_Time_Until_Merging</subroutineArgs>

@@ -98,16 +98,16 @@ contains
        !@     The mass ratio above which mergers are considered to be ``major'' in the simple merger mass movements method.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter("majorMergerMassRatio",majorMergerMassRatio,defaultValue=0.3d0)
+       call Get_Input_Parameter("majorMergerMassRatio",majorMergerMassRatio,defaultValue=0.1d0)
        !@ <inputParameter>
        !@   <name>minorMergerGasMovesTo</name>
-       !@   <defaultValue>disk</defaultValue>
+       !@   <defaultValue>spheroid</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The component to which satellite galaxy gas moves to as a result of a minor merger.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter("minorMergerGasMovesTo",minorMergerGasMovesTo,defaultValue="disk")
+       call Get_Input_Parameter("minorMergerGasMovesTo",minorMergerGasMovesTo,defaultValue="spheroid")
        select case (trim(minorMergerGasMovesTo))
        case ("disk")
           minorMergerGasMovesToValue=movesToDisk

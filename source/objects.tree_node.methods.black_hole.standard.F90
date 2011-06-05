@@ -188,14 +188,14 @@ contains
        ! Get temperature of accreting gas.
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionTemperatureSpheroid</name>
-       !@   <defaultValue>$10^4$</defaultValue>
+       !@   <defaultValue>$10^2$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter("bondiHoyleAccretionTemperatureSpheroid",bondiHoyleAccretionTemperatureSpheroid,defaultValue&
-            &=1.0d4)
+            &=1.0d2)
 
        ! Get temperature of accreting gas.
        !@ <inputParameter>

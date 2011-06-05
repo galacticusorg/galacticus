@@ -251,13 +251,13 @@ contains
        ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
        !@ <inputParameter>
        !@   <name>hotHaloOutflowReturnRate</name>
-       !@   <defaultValue>0.1</defaultValue>
+       !@   <defaultValue>1.26027</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical time.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=0.1d0)
+       call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=1.26027d0)
 
     end if
     return

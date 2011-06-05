@@ -180,13 +180,13 @@ contains
     ! Get the transfer function method parameter.
     !@ <inputParameter>
     !@   <name>haloMassFunctionMethod</name>
-    !@   <defaultValue>Sheth-Tormen</defaultValue>
+    !@   <defaultValue>Tinker2008</defaultValue>
     !@   <attachedTo>module</attachedTo>
     !@   <description>
     !@     The name of the method to be used for computing the dark matter halo mass function.
     !@   </description>
     !@ </inputParameter>
-    call Get_Input_Parameter('haloMassFunctionMethod',haloMassFunctionMethod,defaultValue='Sheth-Tormen')
+    call Get_Input_Parameter('haloMassFunctionMethod',haloMassFunctionMethod,defaultValue='Tinker2008')
     ! Include file that makes calls to all available method initialization routines.
     !# <include directive="haloMassFunctionMethod" type="code" action="subroutine">
     !#  <subroutineArgs>haloMassFunctionMethod,Halo_Mass_Function_Tabulate</subroutineArgs>

@@ -121,13 +121,13 @@ contains
     if (.not.adafInitialized) then
        !@ <inputParameter>
        !@   <name>adafRadiativeEfficiency</name>
-       !@   <defaultValue>0</defaultValue>
+       !@   <defaultValue>0.01</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies the radiative efficiency of an ADAF (i.e. the fraction of $\dot{M}\clight^2$ that is emitted in radiation).
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter("adafRadiativeEfficiency",adafRadiativeEfficiency,defaultValue=0.0d0)
+       call Get_Input_Parameter("adafRadiativeEfficiency",adafRadiativeEfficiency,defaultValue=0.01d0)
        !@ <inputParameter>
        !@   <name>adafEnergyOption</name>
        !@   <defaultValue>pure ADAF</defaultValue>

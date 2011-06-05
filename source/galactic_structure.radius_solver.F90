@@ -104,13 +104,13 @@ contains
        ! Get the galactic structure radii solver method parameter.
        !@ <inputParameter>
        !@   <name>galacticStructureRadiusSolverMethod</name>
-       !@   <defaultValue>simple</defaultValue>
+       !@   <defaultValue>adiabatic</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Selects the method to be used for solving for galactic structure.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('galacticStructureRadiusSolverMethod',galacticStructureRadiusSolverMethod,defaultValue='simple')
+       call Get_Input_Parameter('galacticStructureRadiusSolverMethod',galacticStructureRadiusSolverMethod,defaultValue='adiabatic')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="galacticStructureRadiusSolverMethod" type="code" action="subroutine">
        !#  <subroutineArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</subroutineArgs>
