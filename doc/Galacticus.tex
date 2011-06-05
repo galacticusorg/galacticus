@@ -232,6 +232,139 @@ The {\tt Makefile} contains a few options that you may want to adjust:
  \item[{\tt F03FLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
 \end{description}
 
+\section{Installing Without Root Access}
+
+It is possible to install \glc\ without root access to your computer. The following approach has worked in many cases---some adjustments may be required for your specific system. Depending on what is already installed on your system, you may be able to skip some of the following installs. (Or, alternatively, you may need to install additional tools.) Choose a location to install that has at least 4Gb of free space. In the following, this install location is referred to as {\tt /your/install/path}.
+
+\lstdefinelanguage{simple}{morecomment=[l]!}
+\begin{lstlisting}[language=simple,stringstyle=\ttfamily,commentstyle=\itshape]
+! Install Perl local::lib for local installs of modules:
+
+mkdir .cpan
+mkdir perl5
+ln -sf /your/install/path/.cpan $HOME/
+ln -sf /your/install/path/perl5 $HOME/
+wget http://search.cpan.org/CPAN/authors/id/M/MS/MSTROUT/local-lib-1.006000.tar.gz
+tar xvfz local-lib-1.006000.tar.gz 
+cd local-lib-1.006000
+perl Makefile.PL --bootstrap
+make
+make test
+make install
+perl -I$HOME/perl5/lib/perl5 -Mlocal::lib >> $HOME/.cshrc
+
+! Install Perl modules:
+
+perl -MCPAN -e "install Sort::Topological"
+perl -MCPAN -e "install LaTeX::Encode"
+perl -MCPAN -e "install XML::Simple"
+perl -MCPAN -e "install Math::SigFigs"
+perl -MCPAN -e "install GraphViz"
+perl -MCPAN -e 'force("install","Astro::Cosmology")'
+
+! Install GnuPlot:
+
+wget "http://downloads.sourceforge.net/project/gnuplot/gnuplot/4.4.0/gnuplot-4.4.0.tar.gz"
+tar xvfz gnuplot-4.4.0.tar.gz
+cd gnuplot-4.4.0
+./configure --prefix=/your/install/path
+make
+make install
+
+! Install GraphViz:
+
+wget "http://www.graphviz.org/pub/graphviz/stable/SOURCES/graphviz-2.26.3.tar.gz"
+tar xvfz graphviz-2.26.3.tar.gz
+cd graphviz-2.26.3
+./configure --prefix=/your/install/path
+make
+make check
+make install
+
+! Install GSL:
+
+wget "http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-1.14.tar.gz"
+tar xvfz gsl-1.14.tar.gz
+cd  gsl-1.14
+./configure --prefix=/your/install/path
+make
+make check
+make install
+
+! Install GFortran:
+
+wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.4.4/gcc-4.4.4.tar.bz2"
+tar xvfj gcc-4.4.4.tar.bz2
+mkdir gcc-build
+cd gcc-build
+../gcc-4.4.4/configure --prefix=/your/install/path/gcc-trunk --enable-languages=c,c++,fortran --disable-multilib
+make
+make install
+
+! Add to .cshrc (or equivalent):
+
+setenv PATH /your/install/path:$PATH                                                                                           
+setenv LD_LIBRARY_PATH /your/install/path/gcc-trunk/lib:/your/install/path/lib:$LD_LIBRARY_PATH                                                                     
+
+! Install FGSL:
+
+wget "http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/fgsl-0.9.3.tar.gz"
+tar xvfz fgsl-0.9.3.tar.gz
+./configure --f90 gfortran --gsl /your/install/path
+make
+make install
+
+! Install zlib:
+
+wget "http://zlib.net/zlib-1.2.5.tar.gz"
+tar xvfz zlib-1.2.5.tar.gz
+cd zlib-1.2.5
+./configure --prefix=/your/install/path
+make
+make check
+make install
+
+! Install HDF5:
+
+wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.4-patch1.tar.bz2
+tar xvfz hdf5-1.8.4-patch1.tar.bz2
+cd hdf5-1.8.4-patch1
+setenv F9X gfortran
+./configure --prefix=/your/install/path --enable-fortran --enable-production --with-zlib=/your/install/path
+make
+make check
+make install
+
+! Install FoX:
+
+wget "http://www.uszla.me.uk/FoX/source/FoX-4.0.4-full.tar.gz"
+tar xvfz FoX-4.0.4-full.tar.gz
+cd FoX-4.0.4
+setenv FC gfortran
+./configure --prefix=/your/install/path
+make
+make check
+make install
+
+! Install Bazaar:
+
+wget "http://launchpad.net/bzr/2.2/2.2b3/+download/bzr-2.2b3.tar.gz"
+tar xvfz bzr-2.2b3.tar.gz
+python setup.py install --home /your/install/path
+
+! Install Galacticus:
+
+wget "http://www.ctcp.caltech.edu/galacticus/galacticus_v0.0.1.tar.bz2"
+tar xvfj galacticus_v0.0.1.tar.bz2
+cd Galacticus/v0.0.1
+
+! Add to Makefile (below the F03FLAGS = line):
+
+F03FLAGS += -fintrinsic-modules-path /your/install/path/finclude -fintrinsic-modules-path /your/install/path/include/gfortran -fintrinsic-modules-path /your/install/path -fintrinsic-modules-path /your/install/path/include -L /your/install/path/lib
+\end{lstlisting}
+
+It should then be possible to compile and run \glc.
+
 \chapter{Running Galacticus}
 
 \section{Parameter Files}
