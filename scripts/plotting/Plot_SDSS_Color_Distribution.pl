@@ -95,8 +95,13 @@ for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
 }
 
 for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
-    $errorGalacticus($iMagnitude,:) .= sqrt($countGalacticus($iMagnitude,:))/(sum($countGalacticus($iMagnitude,:))*$magnitudeBin*$colorBin);
-    $countGalacticus($iMagnitude,:) .= $countGalacticus($iMagnitude,:)/(sum($countGalacticus($iMagnitude,:))*$magnitudeBin*$colorBin);
+    if ( sum($countGalacticus($iMagnitude,:)) > 0.0 ) {
+	$errorGalacticus($iMagnitude,:) .= sqrt($countGalacticus($iMagnitude,:))/(sum($countGalacticus($iMagnitude,:))*$magnitudeBin*$colorBin);
+	$countGalacticus($iMagnitude,:) .= $countGalacticus($iMagnitude,:)/(sum($countGalacticus($iMagnitude,:))*$magnitudeBin*$colorBin);
+    } else {
+	$errorGalacticus($iMagnitude,:) .= 0.0;
+	$countGalacticus($iMagnitude,:) .= 0.0;
+    }
 }
 
 # Compute chi^2.
@@ -114,10 +119,9 @@ if ( $showFit == 1 ) {
 
 # Make the plot.
 open(pHndl,"|gnuplot");
-print pHndl "set output 'contour.dat'\n";
+print pHndl "set table 'contour.dat'\n";
 print pHndl "unset surface\n";
 print pHndl "set contour base; set cntrparam level 10\n";
-print pHndl "set terminal table\n";
 print pHndl "splot '-'\n";
 for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     for($iColor=0;$iColor<$colorPoints;++$iColor) {
@@ -126,6 +130,7 @@ for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     print pHndl "\n" unless ( $iMagnitude == $magnitudePoints-1 );
 }
 print pHndl "e\n";
+print pHndl "unset table\n";
 close(pHndl);
 system("awk \"NF<2{printf\\\"\\n\\\"}{print}\" <contour.dat >contour1.dat");
 
