@@ -398,8 +398,9 @@ contains
     type(treeNodeList),      allocatable, dimension(:)         :: thisNodeList
     logical,                 allocatable, dimension(:)         :: childIsSubhalo
     integer(kind=HSIZE_T),                dimension(1)         :: nodeCount,firstNodeIndex
-    integer                                                    :: iNode,isolatedNodeCount,primaryRootIndex,iExtraTree&
-         &,historyCountMaximum
+    integer                                                    :: isolatedNodeCount,primaryRootIndex,iExtraTree
+    integer(kind=kind_int8)                                    :: iNode,historyCountMaximum
+    logical                                                    :: haveTree
 
     !$omp critical(mergerTreeReadTree)
     ! Do we have some queued trees to process?
@@ -429,122 +430,129 @@ contains
           call haloTreesGroup%close()
           ! Close the file.
           call mergerTreeFile%close()
-          return
+          ! Flag that we do not have a tree.
+          haveTree=.false.
+       else
+          ! Flag that we do have a tree.
+          haveTree=.true.
        end if
 
-       ! If the tree is to be skipped, do not read it.
-       if (skipTree) then
-          ! Simply allocate a base node to indicate that the tree exists.
-          call thisTree%createNode(thisTree%baseNode)
-       else
-          ! Set tree properties.
-          ! treeIndex
-          thisTree%index=mergerTreeIndex(nextTreeToRead)
-          ! volumeWeight
-          if (allocated(treeVolumeWeight)) then
-             ! Use the tree-specific weight if available.
-             treeVolumeWeightCurrent=treeVolumeWeight(nextTreeToRead)
+       ! Continue only if we have a tree.
+       if (haveTree) then
+          ! If the tree is to be skipped, do not read it.
+          if (skipTree) then
+             ! Simply allocate a base node to indicate that the tree exists.
+             call thisTree%createNode(thisTree%baseNode)
           else
-             ! Otherwise use the same weight for all trees.
-             treeVolumeWeightCurrent=treeVolumeWeightUniform
+             ! Set tree properties.
+             ! treeIndex
+             thisTree%index=mergerTreeIndex(nextTreeToRead)
+             ! volumeWeight
+             if (allocated(treeVolumeWeight)) then
+                ! Use the tree-specific weight if available.
+                treeVolumeWeightCurrent=treeVolumeWeight(nextTreeToRead)
+             else
+                ! Otherwise use the same weight for all trees.
+                treeVolumeWeightCurrent=treeVolumeWeightUniform
+             end if
+             thisTree%volumeWeight=treeVolumeWeightCurrent
+             
+             ! Get the start index and extent of the datasets for this tree.
+             firstNodeIndex(1)=mergertreeFirstNodeIndex(nextTreeToRead)
+             nodeCount     (1)=mergerTreeNodeCount     (nextTreeToRead)
+             
+             ! Allocate temporary arrays to hold the merger tree data.
+             allocate(nodes(nodeCount(1)))
+             call Memory_Usage_Record(sizeof(nodes))
+             
+             ! Read data from the file.
+             call Read_Node_Data(nodes,firstNodeIndex,nodeCount)
+             
+             ! Convert masses to Galacticus internal units.
+             nodes%nodeMass=nodes%nodeMass*unitConversionMass
+             if (scaleFactorExponentMass /= 0) then
+                do iNode=1,nodeCount(1)
+                   nodes(iNode)%nodeMass=nodes(iNode)%nodeMass*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentMass
+                end do
+             end if
+             
+             ! Read optional datasets.
+             call Read_Particle_Data(nodes,firstNodeIndex,nodeCount,position,velocity)
+             
+             ! Identify subhalos.
+             nodes%isSubhalo=nodes%nodeIndex /= nodes%hostIndex
+             
+             ! Build pointers to descendent nodes.
+             call Build_Descendent_Pointers(nodes)
+             
+             ! Find cases where something that was a subhalo stops being a subhalo.
+             call Enforce_Subhalo_Status(nodes)
+             
+             ! If necessary, add masses of subhalos to host halos.
+             if (.not.haloMassesIncludeSubhalos) then
+                do iNode=1,nodeCount(1)
+                   if (nodes(iNode)%hostNode%nodeIndex /= nodes(iNode)%nodeIndex) nodes(iNode)%hostNode%nodeMass= &
+                        &                                                         nodes(iNode)%hostNode%nodeMass+nodes(iNode)%nodeMass
+                end do
+             end if
+             
+             ! Associate parent pointers with the descendent host.
+             call Build_Parent_Pointers(nodes)
+             
+             ! Create an array of standard nodes.
+             call Create_Node_Array(thisTree,nodes,thisNodeList,isolatedNodeCount,childIsSubhalo)
+             
+             ! Assign nodes to individual trees.
+             call Assign_Nodes_To_Trees(nodes,iExtraTree,primaryRootIndex)
+             
+             ! Assign parent pointers and properties.
+             call Build_Isolated_Parent_Pointers(thisTree,nodes,thisNodeList,primaryRootIndex,iExtraTree)
+             
+             ! Now build child and sibling links.
+             call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
+             
+             ! Check that all required properties exist.
+             if (mergerTreeReadPresetPositions) then
+                ! Position and velocity methods are required.
+                if (.not.(associated(Tree_Node_Position_Set).and.associated(Tree_Node_Velocity_Set))) call&
+                     & Galacticus_Error_Report('Merger_Tree_Read_Do','presetting positions requires a component that supports&
+                     & position and velocity setting')
+             end if
+             
+             ! Assign isolated node indices to subhalos.
+             call Assign_Isolated_Node_Indices(nodes,thisNodeList)
+             
+             ! Scan subhalos to determine when and how they merge.
+             call Scan_For_Mergers(nodes,thisNodeList,historyCountMaximum)
+             
+             ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
+             call Assign_Mergers(nodes,thisNodeList)
+             
+             ! Allocate arrays for history building.
+             if (historyCountMaximum > 0) then
+                if (allocated(position)) call Dealloc_Array(position)
+                if (allocated(velocity)) call Dealloc_Array(velocity)
+                call Alloc_Array(historyTime,[int(historyCountMaximum)])
+                if (mergerTreeReadPresetSubhaloMasses) call Alloc_Array(historyMass,[  int(historyCountMaximum)])
+                if (mergerTreeReadPresetPositions    ) call Alloc_Array(position   ,[3,int(historyCountMaximum)])
+                if (mergerTreeReadPresetPositions    ) call Alloc_Array(velocity   ,[3,int(historyCountMaximum)])
+             end if
+             
+             ! Build subhalo mass histories if required.
+             call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyMass,position,velocity)
+             
+             ! Deallocate history building arrays.
+             if (allocated(historyTime)) call Dealloc_Array(historyTime)
+             if (allocated(historyMass)) call Dealloc_Array(historyMass)
+             if (allocated(position   )) call Dealloc_Array(position   )
+             if (allocated(velocity   )) call Dealloc_Array(velocity   )
+             
+             ! Deallocate the temporary arrays.
+             call Memory_Usage_Record(sizeof(nodes       ),addRemove=-1)
+             deallocate(nodes)
+             call Memory_Usage_Record(sizeof(thisNodeList),addRemove=-1)
+             deallocate(thisNodeList)
           end if
-          thisTree%volumeWeight=treeVolumeWeightCurrent
-
-          ! Get the start index and extent of the datasets for this tree.
-          firstNodeIndex(1)=mergertreeFirstNodeIndex(nextTreeToRead)
-          nodeCount     (1)=mergerTreeNodeCount     (nextTreeToRead)
-
-          ! Allocate temporary arrays to hold the merger tree data.
-          allocate(nodes(nodeCount(1)))
-          call Memory_Usage_Record(sizeof(nodes))
-
-          ! Read data from the file.
-          call Read_Node_Data(nodes,firstNodeIndex,nodeCount)
-
-          ! Convert masses to Galacticus internal units.
-          nodes%nodeMass=nodes%nodeMass*unitConversionMass
-          if (scaleFactorExponentMass /= 0) then
-             do iNode=1,nodeCount(1)
-                nodes(iNode)%nodeMass=nodes(iNode)%nodeMass*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentMass
-             end do
-          end if
-
-          ! Read optional datasets.
-          call Read_Particle_Data(nodes,firstNodeIndex,nodeCount,position,velocity)
-
-          ! Identify subhalos.
-          nodes%isSubhalo=nodes%nodeIndex /= nodes%hostIndex
-
-          ! Build pointers to descendent nodes.
-          call Build_Descendent_Pointers(nodes)
-
-          ! Find cases where something that was a subhalo stops being a subhalo.
-          call Enforce_Subhalo_Status(nodes)
-
-          ! If necessary, add masses of subhalos to host halos.
-          if (.not.haloMassesIncludeSubhalos) then
-             do iNode=1,nodeCount(1)
-                if (nodes(iNode)%hostNode%nodeIndex /= nodes(iNode)%nodeIndex) nodes(iNode)%hostNode%nodeMass= &
-                     &                                                         nodes(iNode)%hostNode%nodeMass+nodes(iNode)%nodeMass
-             end do
-          end if
-
-          ! Associate parent pointers with the descendent host.
-          call Build_Parent_Pointers(nodes)
-
-          ! Create an array of standard nodes.
-          call Create_Node_Array(thisTree,nodes,thisNodeList,isolatedNodeCount,childIsSubhalo)
-
-          ! Assign nodes to individual trees.
-          call Assign_Nodes_To_Trees(nodes,iExtraTree,primaryRootIndex)
-
-          ! Assign parent pointers and properties.
-          call Build_Isolated_Parent_Pointers(thisTree,nodes,thisNodeList,primaryRootIndex,iExtraTree)
-
-          ! Now build child and sibling links.
-          call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
-
-          ! Check that all required properties exist.
-          if (mergerTreeReadPresetPositions) then
-             ! Position and velocity methods are required.
-             if (.not.(associated(Tree_Node_Position_Set).and.associated(Tree_Node_Velocity_Set))) call&
-                  & Galacticus_Error_Report('Merger_Tree_Read_Do','presetting positions requires a component that supports&
-                  & position and velocity setting')
-          end if
-
-          ! Assign isolated node indices to subhalos.
-          call Assign_Isolated_Node_Indices(nodes,thisNodeList)
- 
-          ! Scan subhalos to determine when and how they merge.
-          call Scan_For_Mergers(nodes,thisNodeList,historyCountMaximum)
-
-          ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
-          call Assign_Mergers(nodes,thisNodeList)
-
-          ! Allocate arrays for history building.
-          if (historyCountMaximum > 0) then
-             if (allocated(position)) call Dealloc_Array(position)
-             if (allocated(velocity)) call Dealloc_Array(velocity)
-             call Alloc_Array(historyTime,[historyCountMaximum  ])
-             if (mergerTreeReadPresetSubhaloMasses) call Alloc_Array(historyMass,[historyCountMaximum  ])
-             if (mergerTreeReadPresetPositions    ) call Alloc_Array(position   ,[3,historyCountMaximum])
-             if (mergerTreeReadPresetPositions    ) call Alloc_Array(velocity   ,[3,historyCountMaximum])
-          end if
-
-          ! Build subhalo mass histories if required.
-          call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyMass,position,velocity)
-
-          ! Deallocate history building arrays.
-          if (allocated(historyTime)) call Dealloc_Array(historyTime)
-          if (allocated(historyMass)) call Dealloc_Array(historyMass)
-          if (allocated(position   )) call Dealloc_Array(position   )
-          if (allocated(velocity   )) call Dealloc_Array(velocity   )
-
-          ! Deallocate the temporary arrays.
-          call Memory_Usage_Record(sizeof(nodes       ),addRemove=-1)
-          deallocate(nodes)
-          call Memory_Usage_Record(sizeof(thisNodeList),addRemove=-1)
-          deallocate(thisNodeList)
        end if
     end if
     !$omp end critical(mergerTreeReadTree)
@@ -558,7 +566,7 @@ contains
     implicit none
     type(nodeData),        intent(inout), dimension(:) :: nodes
     integer(kind=HSIZE_T), intent(in),    dimension(1) :: nodeCount,firstNodeIndex
-    integer                                            :: iNode
+    integer(kind=kind_int8)                            :: iNode
 
     ! nodeIndex
     call haloTreesGroup%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
@@ -602,7 +610,7 @@ contains
     type(nodeData),        intent(inout), dimension(:) :: nodes
     integer(kind=HSIZE_T), intent(in),    dimension(1) :: nodeCount,firstNodeIndex
     double precision,      intent(inout), dimension(:,:), allocatable :: position,velocity
-    integer                                            :: iNode
+    integer(kind=kind_int8)                            :: iNode
     
     if (mergerTreeReadPresetPositions) then
        ! position.
@@ -645,7 +653,7 @@ contains
     use Galacticus_Error
     implicit none
     type(nodeData),      intent(inout), dimension(:), target :: nodes
-    integer                                                  :: iNode,jNode
+    integer(kind=kind_int8)                                  :: iNode,jNode
     type(varying_string)                                     :: message
     
     do iNode=1,size(nodes)
@@ -676,7 +684,7 @@ contains
     implicit none
     type(nodeData), intent(inout), dimension(:), target  :: nodes
     type(nodeData),                              pointer :: descendentNode,previousNode,thisNode
-    integer                                              :: iNode
+    integer(kind=kind_int8)                              :: iNode
 
     do iNode=1,size(nodes)
        if (nodes(iNode)%isSubhalo) then
@@ -738,7 +746,7 @@ contains
     implicit none
     type(nodeData), intent(inout), dimension(:), target  :: nodes
     type(nodeData),                              pointer :: parentNode
-    integer                                              :: iNode
+    integer(kind=kind_int8)                              :: iNode
     type(varying_string)                                 :: message
 
     do iNode=1,size(nodes)
@@ -775,7 +783,8 @@ contains
     type(treeNodeList), intent(inout), dimension(:), allocatable :: nodeList
     logical,            intent(inout), dimension(:), allocatable :: childIsSubhalo
     integer,            intent(out)                              :: isolatedNodeCount
-    integer                                                      :: iNode,iIsolatedNode
+    integer(kind=kind_int8)                                      :: iNode
+    integer                                                      :: iIsolatedNode
 
     ! Determine how many nodes are isolated (i.e. not subhalos).
     isolatedNodeCount=count(.not.nodes%isSubhalo)
@@ -981,15 +990,16 @@ contains
   subroutine Scan_For_Mergers(nodes,nodeList,historyCountMaximum)
     !% Scan for and record mergers between nodes.
     implicit none
-    type(nodeData),     intent(inout), dimension(:) :: nodes
-    type(treeNodeList), intent(inout), dimension(:) :: nodeList
-    integer,            intent(out)                 :: historyCountMaximum
-    type(nodeData),     pointer                     :: thisNode
-    type(treeNode),     pointer                     :: firstProgenitor
-    double precision,   parameter                   :: timeUntilMergingInfinite=1.0d30
-    integer                                         :: iNode,jNode,iIsolatedNode,historyCount
-    logical                                         :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge
-    double precision                                :: timeSubhaloMerges
+    type(nodeData),          intent(inout), dimension(:) :: nodes
+    type(treeNodeList),      intent(inout), dimension(:) :: nodeList
+    integer(kind=kind_int8), intent(out)                 :: historyCountMaximum
+    type(nodeData),          pointer                     :: thisNode
+    type(treeNode),          pointer                     :: firstProgenitor
+    double precision,        parameter                   :: timeUntilMergingInfinite=1.0d30
+    integer                                              :: iNode,jNode,iIsolatedNode
+    integer(kind=kind_int8)                              :: historyCount
+    logical                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge
+    double precision                                     :: timeSubhaloMerges
     
     iIsolatedNode        = 0
     historyCountMaximum  = 0
@@ -1153,17 +1163,18 @@ contains
     use Cosmology_Functions
     use Histories
     implicit none
-    type(nodeData),     intent(inout), dimension(:), target :: nodes
-    type(treeNodeList), intent(inout), dimension(:) :: nodeList
-    double precision, intent(inout), dimension(:) :: historyTime,historyMass
-    double precision, intent(inout), dimension(:,:) :: position,velocity
-    type(nodeData), pointer :: thisNode
-    type(treeNode), pointer :: firstProgenitor
-    integer :: iIsolatedNode,iNode,jNode,historyCount,iAxis,iTime
-    logical :: endOfBranch
-    double precision :: expansionFactor
-    type(varying_string) :: message
-    type(history)                                              :: subhaloHistory
+    type(nodeData),     intent(inout), dimension(:),  target  :: nodes
+    type(treeNodeList), intent(inout), dimension(:)           :: nodeList
+    double precision,   intent(inout), dimension(:)           :: historyTime,historyMass
+    double precision,   intent(inout), dimension(:,:)         :: position,velocity
+    type(nodeData),                                   pointer :: thisNode
+    type(treeNode),                                   pointer :: firstProgenitor
+    integer                                                   :: iIsolatedNode,iNode,jNode,iAxis
+    integer(kind=kind_int8)                                   :: iTime,historyCount
+    logical                                                   :: endOfBranch
+    double precision                                          :: expansionFactor
+    type(varying_string)                                      :: message
+    type(history)                                             :: subhaloHistory
     
     if (mergerTreeReadPresetSubhaloMasses.or.mergerTreeReadPresetPositions) then
        ! Check that preset subhalo masses are supported.
@@ -1216,7 +1227,7 @@ contains
                    ! Set the mass history for this node.
                    if (mergerTreeReadPresetSubhaloMasses) then
                       call subhaloHistory%destroy()
-                      call subhaloHistory%create(1,historyCount)
+                      call subhaloHistory%create(1,int(historyCount))
                       subhaloHistory%time(:  )=historyTime(1:historyCount)
                       subhaloHistory%data(:,1)=historyMass(1:historyCount)
                       call nodeList(iIsolatedNode)%node%earliestProgenitor(firstProgenitor)
@@ -1278,7 +1289,7 @@ contains
                       historyCount=historyCount+thisNode%particleIndexCount
                    end if
                    call subhaloHistory%destroy()
-                   call subhaloHistory%create(6,historyCount)
+                   call subhaloHistory%create(6,int(historyCount))
                    subhaloHistory%time(:    )=          historyTime(    1:historyCount)
                    subhaloHistory%data(:,1:3)=transpose(position   (1:3,1:historyCount))
                    subhaloHistory%data(:,4:6)=transpose(velocity   (1:3,1:historyCount))

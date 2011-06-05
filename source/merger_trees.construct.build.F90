@@ -272,6 +272,7 @@ contains
     type(mergerTree),        intent(inout) :: thisTree
     logical,                 intent(in)    :: skipTree
     integer(kind=kind_int8), parameter     :: baseNodeIndex=1
+    integer(kind=kind_int8)                :: thisTreeIndex
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.

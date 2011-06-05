@@ -145,7 +145,6 @@ contains
 
   double precision function Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)
     !% Returns the growth rate of the virial velocity scale for {\tt thisNode}.
-    use Numerical_Constants_Physical
     implicit none
     type(treeNode),  intent(inout), pointer :: thisNode
 

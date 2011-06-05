@@ -75,8 +75,8 @@ contains
     !% Determine if this method is to be used and set pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(in)    :: satelliteMergingMethod
-    procedure(), pointer, intent(inout) :: Satellite_Time_Until_Merging
+    type(varying_string),                 intent(in)    :: satelliteMergingMethod
+    procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
 
     if (satelliteMergingMethod == 'preset') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Preset
     return
