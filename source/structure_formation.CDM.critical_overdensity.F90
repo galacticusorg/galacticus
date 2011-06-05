@@ -67,7 +67,8 @@ module Critical_Overdensity
   use ISO_Varying_String
   use FGSL
   private
-  public :: Critical_Overdensity_for_Collapse, Time_of_Collapse, Critical_Overdensity_State_Retrieve, Critical_Overdensity_Collapsing_Mass
+  public :: Critical_Overdensity_for_Collapse, Critical_Overdensity_for_Collapse_Time_Gradient, Time_of_Collapse,&
+       & Critical_Overdensity_State_Retrieve, Critical_Overdensity_Collapsing_Mass
 
   ! Flag to indicate if this module and tables have been initialized.
   logical                                        :: deltaCriticalInitialized=.false., tablesInitialized=.false.
@@ -219,7 +220,7 @@ contains
     end if
 
     ! Check if we need to recompute our table.
-    !$omp critical(DeltaCrit_Factor_Initialize)
+    !$omp critical(Critical_Overdensity_for_Collapse_Interp)
     if (deltaCriticalInitialized.and.tablesInitialized) then
        remakeTable=(time<deltaCritTableTime(1).or.time>deltaCritTableTime(deltaCritTableNumberPoints))
     else
@@ -232,15 +233,66 @@ contains
        reverseResetInterpolation=.true.
        deltaCriticalInitialized=.true.
     end if
-    !$omp end critical(DeltaCrit_Factor_Initialize)
 
     ! Interpolate to get the expansion factor.
-    !$omp critical(Critical_Overdensity_for_Collapse_Interp)
     Critical_Overdensity_for_Collapse=Interpolate(deltaCritTableNumberPoints,deltaCritTableTime,deltaCritTableDeltaCrit&
          &,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
     !$omp end critical(Critical_Overdensity_for_Collapse_Interp)
     return
   end function Critical_Overdensity_for_Collapse
+
+  double precision function Critical_Overdensity_for_Collapse_Time_Gradient(time,aExpansion,collapsing)
+    !% Return the derivative with respect to time of the linear theory critical overdensity for collapse at the given cosmic time.
+    use Numerical_Interpolation
+    use Cosmology_Functions
+    use Galacticus_Error
+    implicit none
+    double precision,        intent(in), optional :: aExpansion,time
+    logical,                 intent(in), optional :: collapsing
+    logical                                       :: collapsingActual,remakeTable
+    double precision                              :: timeActual
+
+    ! Determine which type of input we have.
+    if (present(time)) then
+       if (present(aExpansion)) then
+          call Galacticus_Error_Report('Critical_Overdensity_for_Collapse_Time_Gradient','only one argument can be specified')
+       else
+          timeActual=time
+       end if
+    else
+       if (present(aExpansion)) then
+          if (present(collapsing)) then
+             collapsingActual=collapsing
+          else
+             collapsingActual=.false.
+          end if
+          timeActual=Cosmology_Age(aExpansion,collapsingActual)
+       else
+          call Galacticus_Error_Report('Critical_Overdensity_for_Collapse_Time_Gradient','at least one argument must be given')
+       end if
+    end if
+
+    ! Check if we need to recompute our table.
+    !$omp critical(Critical_Overdensity_for_Collapse_Interp)
+    if (deltaCriticalInitialized.and.tablesInitialized) then
+       remakeTable=(time<deltaCritTableTime(1).or.time>deltaCritTableTime(deltaCritTableNumberPoints))
+    else
+       remakeTable=.true.
+    end if
+    if (remakeTable) then
+       call Critical_Overdensity_Initialize(timeActual)
+       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
+       resetInterpolation=.true.
+       reverseResetInterpolation=.true.
+       deltaCriticalInitialized=.true.
+    end if
+
+    ! Interpolate to get the derivative.
+    Critical_Overdensity_for_Collapse_Time_Gradient=Interpolate_Derivative(deltaCritTableNumberPoints,deltaCritTableTime&
+         &,deltaCritTableDeltaCrit ,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    !$omp end critical(Critical_Overdensity_for_Collapse_Interp)
+    return
+  end function Critical_Overdensity_for_Collapse_Time_Gradient
 
   double precision function Time_of_Collapse(criticalOverdensity)
     !% Returns the time of collapse for a perturbation of linear theory overdensity {\tt criticalOverdensity}.
@@ -251,7 +303,7 @@ contains
     double precision                       :: time
 
     ! Check if we need to recompute our table.
-    !$omp critical(DeltaCrit_Factor_Initialize)
+    !$omp critical(Critical_Overdensity_for_Collapse_Interp)
     do while (.not.deltaCriticalInitialized.or.criticalOverdensity>deltaCritTableDeltaCrit(1).or.criticalOverdensity&
          &<deltaCritTableDeltaCrit(deltaCritTableNumberPoints))
        if (.not.(deltaCriticalInitialized.and.tablesInitialized)) then
@@ -269,7 +321,6 @@ contains
        resetInterpolation=.true.
        deltaCriticalInitialized=.true.
     end do
-    !$omp end critical(DeltaCrit_Factor_Initialize)
     
     ! Interpolate to get the expansion factor.
     !$omp critical(Time_of_Collapse_Interp)	
