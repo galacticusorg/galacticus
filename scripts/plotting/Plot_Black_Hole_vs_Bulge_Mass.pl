@@ -4,6 +4,7 @@ use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use Graphics::GnuplotIF;
+use GnuPlot::LaTeX;
 use Galacticus::HDF5;
 use Galacticus::Magnitudes;
 use Math::SigFigs;
@@ -67,24 +68,37 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weight);
     }
 
+    # Define constants.
+    $solarMass = pdl 1.98892e30;
+    $kilo      = pdl 1.0e3;
+
     # Read the XML data file.
+    $x      = pdl [];
+    $y      = pdl [];
+    $yError = pdl [];
     $xml = new XML::Simple;
-    $data = $xml->XMLin("data/Black_Hole_Mass_vs_Galaxy_Properties.xml");
-    $columns = $data->{'blackHoleData'}->{'columns'};
-    $x = pdl @{$columns->{'bulgeMass'}->{'data'}};
-    $y = pdl @{$columns->{'blackHoleMass'}->{'data'}};
-    $yErrorUp = pdl @{$columns->{'blackHoleMassErrorUp'}->{'data'}};
-    $yErrorDown = pdl @{$columns->{'blackHoleMassErrorDown'}->{'data'}};
-    $yErrorUp = $y+$yErrorUp;
-    $yErrorDown = $y-$yErrorDown;
-    $x = $x*($columns->{'bulgeMass'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})**2;
-    $y = $y*($columns->{'blackHoleMass'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
-    $yErrorUp = $yErrorUp*($columns->{'blackHoleMass'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
-    $yErrorDown = $yErrorDown*($columns->{'blackHoleMass'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
-    $logSpheroidMass       = log10($x);
-    $logBlackHoleMass      = log10($y);
-    $logError = 0.5*($yErrorUp-$yErrorDown)/$y/log(10.0);
-    $weights = 1.0/$logError**2;
+    $data = $xml->XMLin("data/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
+    foreach $parameter ( @{$data->{'cosmology'}->{'parameter'}} ) {
+	$cosmology{$parameter->{'name'}} = $parameter->{'value'};
+    }
+    foreach $system ( @{$data->{'galaxies'}->{'system'}} ) {
+	$x      = $x     ->append($system->{'spheroidMass'      });
+	$y      = $y     ->append($system->{'blackHoleMass'     });
+	$yError = $yError->append($system->{'blackHoleMassError'});
+    }
+    $x               .= $x     *$data->{'units'}->{'mass'    }->{'unitsInSI'}/$solarMass;
+    $y               .= $y     *$data->{'units'}->{'velocity'}->{'unitsInSI'}/$kilo;
+    $yError          .= $yError*$data->{'units'}->{'velocity'}->{'unitsInSI'}/$kilo;
+    if ( exists($cosmology{'H_0'}) ) {
+	$x      .= $x     *($dataSet{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'mass'    }->{'hubbleExponent'};
+	$y      .= $y     *($dataSet{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
+	$yError .= $yError*($dataSet{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
+    }
+    $xError           = $x*(10.0**0.18-1.0);
+    $logSpheroidMass  = log10($x);
+    $logBlackHoleMass = log10($y);
+    $logError         = $yError/$y/log(10.0);
+    $weights          = 1.0/$logError**2;
     ($logBlackHoleMassMean,$logBlackHoleMassMeanError,$logBlackHoleMassSigma,$logBlackHoleMassSigmaError)
 	= &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
     
@@ -99,7 +113,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     }
     
     if ( $showFit == 1 ) {
-	$fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";
+	$fitData{'name'} = "Feoli & Mancini (2009) black hole vs. bulge mass relation";
 	$fitData{'chiSquared'} = $chiSquared;
 	$fitData{'degreesOfFreedom'} = $degreesOfFreedom;
 	$fitData{'fileName'} = $fileName;
@@ -108,34 +122,36 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     }
     
     # Make the plot.
-    $plot1  = Graphics::GnuplotIF->new();
-    $plot1->gnuplot_hardcopy( '| ps2pdf - '.$outputFile, 
-			      'postscript enhanced', 
-			      'color lw 3 solid' );
-    $plot1->gnuplot_set_xlabel("M_{bulge} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
-    $plot1->gnuplot_set_ylabel("M_{black hole} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
-    $plot1->gnuplot_set_title("Black hole mass vs. bulge mass");
-    $plot1->gnuplot_cmd("set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.6, screen 0.2");
-    $plot1->gnuplot_cmd("set key left");
-    $plot1->gnuplot_cmd("set logscale xy");
-    $plot1->gnuplot_cmd("set mxtics 10");
-    $plot1->gnuplot_cmd("set mytics 10");
-    $plot1->gnuplot_cmd("set format x \"10^{\%L}\"");
-    $plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
-    $plot1->gnuplot_cmd("set pointsize 1.0");
-    $plotCommand = "plot '-' with errorbars pt 6 title \"".$data->{'blackHoleData'}->{'label'}."\"";
+    ($outputFileEPS = $outputFile) =~ s/\.pdf$/.eps/;
+    open(gnuPlot,"|gnuplot");
+    print gnuPlot "set terminal epslatex color lw 3 solid 7\n";
+    print gnuPlot "set output '".$outputFileEPS."'\n";
+    print gnuPlot "set xlabel '\$M_{\\star,\\rm bulge} [M_\\odot]\$'\n";
+    print gnuPlot "set ylabel '\$M_\\bullet [M_\\odot]\$' 3,0\n";
+    print gnuPlot "set title 'Black hole mass vs. bulge mass'\n";
+    print gnuPlot "set label '\$\\chi^2=".FormatSigFigs($chiSquared,4)."\$ [".$degreesOfFreedom."]' at screen 0.73, screen 0.2\n";
+    print gnuPlot "set key left\n";
+    print gnuPlot "set logscale xy\n";
+    print gnuPlot "set mxtics 10\n";
+    print gnuPlot "set mytics 10\n";
+    print gnuPlot "set format x '\$10^{\%L}\$'\n";
+    print gnuPlot "set format y '\$10^{\%L}\$'\n";
+    print gnuPlot "set pointsize 1.0\n";
+    $plotCommand = "plot '-' with xyerrorbars pt 6 title \"".$data->{'label'}."\"";
     if ( nelem($logSpheroidMass) > 0 ) {$plotCommand .= ", '-' pt 4 title \"Galacticus\""};
-    $plot1->gnuplot_cmd($plotCommand);
+    print gnuPlot $plotCommand."\n";
     for ($i=0;$i<nelem($x);++$i) {
-	$plot1->gnuplot_cmd($x->index($i)." ".$y->index($i)." ".$yErrorDown->index($i)." ".$yErrorUp->index($i));
+	print gnuPlot $x->index($i)." ".$y->index($i)." ".$xError->index($i)." ".$yError->index($i)."\n";
     }
-    $plot1->gnuplot_cmd("e");
+    print gnuPlot "e\n";
     if ( nelem($logSpheroidMass) > 0 ) {
 	for ($i=0;$i<nelem($spheroidMass);++$i) {
-	    $plot1->gnuplot_cmd($spheroidMass->index($i)." ".$blackHoleMass->index($i));
+	    print gnuPlot $spheroidMass->index($i)." ".$blackHoleMass->index($i)."\n";
 	}
-	$plot1->gnuplot_cmd("e");
+	print gnuPlot "e\n";
     }
 }
+close(gnuPlot);
+&LaTeX::GnuPlot2PDF($outputFileEPS);
 
 exit;

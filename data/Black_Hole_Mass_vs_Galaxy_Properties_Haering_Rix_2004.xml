@@ -1,7 +1,7 @@
 <dataSets>
   <blackHoleData>
     <description>Black hole data from Haering and Rix (2004; table 1).</description>
-    <url></url>
+    <url>http://adsabs.harvard.edu/abs/2004ApJ...604L..89H</url>
     <label>Haering and Rix (2004)</label>
     <source>Publication.</source>
     <columns>
