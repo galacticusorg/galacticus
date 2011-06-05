@@ -95,9 +95,9 @@ contains
     ! Get the host node.
     hostNode => thisNode%parentNode
 
-    ! Solve for the radii of the host node, to ensure they are computed and up to date. (Those for the satellite will always be up to
-    ! date, as they are computed as the satellite is evolved in time.)
+    ! Solve for the radii of the host and satellite nodes, to ensure they are computed and up to date.
     call Galactic_Structure_Radii_Solve(hostNode)
+    call Galactic_Structure_Radii_Solve(thisNode)
 
     ! Find the baryonic masses of the two galaxies.
     satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)
