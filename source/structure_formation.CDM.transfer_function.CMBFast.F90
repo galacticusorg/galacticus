@@ -73,9 +73,6 @@ module Transfer_Function_CMBFast
   ! File name for the transfer function data.
   type(varying_string) :: transferFunctionFile
 
-  ! Helium mass fraction.
-  double precision     :: Y_He
-
   ! Smallest maximum wavenumber to tabulate.
   double precision, parameter :: logWavenumberMaximumDefault=dlog(10.0d0)
 
@@ -86,23 +83,11 @@ contains
   !# </transferFunctionMethod>
   subroutine Transfer_Function_CMBFast_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
     !% Initializes the ``transfer function from CMBFast'' module.
-    use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: transferFunctionMethod
     procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
     
-    if (transferFunctionMethod == 'CMBFast') then
-       Transfer_Function_Tabulate => Transfer_Function_CMBFast_Make
-       !@ <inputParameter>
-       !@   <name>Y_He</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>0.2477 \citep{peimbert_primordial_2008}</defaultValue>
-       !@   <description>
-       !@     The mass fraction of helium in the primordial plasma for calculations of the transfer function using {\sc CMBFast}.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('Y_He',Y_He,defaultValue=0.2477d0)
-    end if
+    if (transferFunctionMethod == 'CMBFast') Transfer_Function_Tabulate => Transfer_Function_CMBFast_Make
     return
   end subroutine Transfer_Function_CMBFast_Initialize
 
@@ -143,7 +128,7 @@ contains
     write (parameterLabel,'(f5.3)') T_CMB()
     transferFunctionFile=transferFunctionFile//'_TCMB'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"T_CMB",parameterLabel)
-    write (parameterLabel,'(f4.2)') Y_He
+    write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     transferFunctionFile=transferFunctionFile//'_YHe'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"Y_He",parameterLabel)
     transferFunctionFile=transferFunctionFile//'.xml'
