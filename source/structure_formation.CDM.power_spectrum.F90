@@ -82,7 +82,7 @@ module CDM_Power_Spectrum
   integer                                        :: sigmaTableNPoints=-1
   double precision,    allocatable, dimension(:) :: sigmaTableLogMass, sigmaTable
   double precision                               :: sigmaTableLogMassMinimum=dlog(1.0d6), sigmaTableLogMassMaximum=dlog(1.0d15)
-  integer,             parameter                 :: sigmaTableNPointsPerDecade=100
+  integer,             parameter                 :: sigmaTableNPointsPerDecade=10
   type(fgsl_interp)                              :: interpolationObject
   type(fgsl_interp_accel)                        :: interpolationAccelerator
   logical                                        :: resetInterpolation=.true.
