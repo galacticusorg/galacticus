@@ -64,7 +64,7 @@
 module Factorials
   !% Implements calculations of factorials
   private
-  public :: Factorial
+  public :: Factorial, Logarithmic_Double_Factorial
 
 contains
 
@@ -77,5 +77,20 @@ contains
     Factorial=FGSL_SF_Fact(argument)
     return
   end function Factorial
+
+  double precision function Logarithmic_Double_Factorial(argument)
+    !% Computes the natural logarithm of the double factorial, $k!!$.
+    implicit none
+    integer, intent(in) :: argument
+    integer             :: i
+
+    Logarithmic_Double_Factorial=0.0d0
+    i=argument
+    do while (i >= 2)
+       Logarithmic_Double_Factorial=Logarithmic_Double_Factorial+dlog(dble(i))
+       i=i-2
+    end do
+    return
+  end function Logarithmic_Double_Factorial
   
 end module Factorials
