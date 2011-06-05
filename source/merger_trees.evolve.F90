@@ -73,6 +73,9 @@ module Merger_Trees_Evolve
   ! Flag indicating whether or not to fail for trees which do not exist at the final output time.
   logical          :: allTreesExistAtFinalTime
 
+  ! Flag indicating whether to dump merger tree structure after each evolutionary step.
+  logical          :: mergerTreesDumpStructure
+
   ! Variables which limit extent to which satellites can evolve past their parent.
   logical          :: evolveToTimeInitialized=.false.
   double precision :: timestepHostAbsolute,timestepHostRelative
@@ -84,6 +87,7 @@ contains
     use Merger_Trees_Evolve_Timesteps_Template
     use Merger_Trees
     use Merger_Trees_Initialize  
+    use Merger_Trees_Dump
     use Events_Interrupts
     use Galacticus_Error
     use Galacticus_Display
@@ -116,7 +120,16 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('allTreesExistAtFinalTime',allTreesExistAtFinalTime,defaultValue=.true.)
-
+       !@ <inputParameter>
+       !@   <name>mergerTreesDumpStructure</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\sc dot} file.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreesDumpStructure',mergerTreesDumpStructure,defaultValue=.false.)
+  
        ! Flag that this routine is now initialized.
        mergerTreeEvolveToInitialized=.true.
     end if
@@ -181,6 +194,9 @@ contains
 
              ! Update tree progress counter.
              nodesEvolvedCount=nodesEvolvedCount+1
+
+             ! Dump the merger tree structure for later plotting.
+             if (mergerTreesDumpStructure) call Merger_Tree_Dump(thisTree%index,thisTree%baseNode,[thisNode%index()])
 
              ! Evolve the node, handling interrupt events. We keep on evolving it until no interrupt is returned (in which case
              ! the node has reached the requested end time) or the node no longer exists (e.g. if it was destroyed).

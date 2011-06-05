@@ -36,4 +36,6 @@ The following quantities related to the virialized region of each node are outpu
  \item [{\tt nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
 \end{description}
 
+\section{Merger Tree Structure}\index{merger tree!structure}
 
+The structure of each merger tree can optionally be dumped to a file suitable for post-processing with \href{http://www.graphviz.org/}{\sc dot} after every step of evolution. To request this output set {\tt [mergerTreesDumpStructure]}$=${\tt true}. After each evolution step the tree structure will be dumped to a file named {\tt mergerTreeDump:$\langle$treeIndex$\rangle$:$\langle$outputIndex$\rangle$.gv} where $\langle${\tt treeIndex}$\rangle$ is the index of the tree and $\langle${\tt outputIndex}$\rangle$ is an incremental counter that tracks the number of outputs for this tree. These files can be processed with \href{http://www.graphviz.org/}{\sc dot} to produce a diagram of the tree structure. The node currently being evolved will be highlighted in green. This output option makes use of the \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump}{\tt Merger\_Trees\_Dump} module to create the outputs.
