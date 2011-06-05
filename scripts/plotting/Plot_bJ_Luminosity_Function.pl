@@ -29,6 +29,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/bJ_Luminosity_Function.pdf";
 }
+($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
 $dataSet{'file'} = $galacticusFile;
@@ -74,6 +75,7 @@ if ( $showFit == 1 ) {
     $fitData{'name'} = "Norberg et al. (2002) bJ-band luminosity function";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
+    $fitData{'fileName'} = $fileName;
     $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }

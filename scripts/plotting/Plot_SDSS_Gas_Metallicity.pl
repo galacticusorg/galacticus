@@ -27,6 +27,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/SDSS_Gas_Metallicity.pdf";
 }
+($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Specify Solar metallicity and oxygen abundance.
 $solarMetallicity = pdl 0.0189;
@@ -159,6 +160,7 @@ if ( $showFit == 1 ) {
     $fitData{'name'} = "Tremonti et al. (2004) SDSS gas-phase metallicity distributions";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
+    $fitData{'fileName'} = $fileName;
     $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }

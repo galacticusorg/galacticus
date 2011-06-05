@@ -30,6 +30,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/SDSS_Tully_Fisher.pdf";
 }
+($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Define magnitude bins.
 $magnitudePoints = pdl 10;
@@ -86,6 +87,7 @@ if ( $showFit == 1 ) {
     $fitData{'name'} = "Pizagno et al. (2007) SDSS Tully-Fisher relation";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
+    $fitData{'fileName'} = $fileName;
     $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }
