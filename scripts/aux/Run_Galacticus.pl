@@ -1,174 +1,340 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 use lib "./perl";
+use Thread;
 use XML::Simple;
 use Data::Dumper;
 use Data::Compare;
 use File::Copy;
 use File::Slurp qw( slurp );
 use System::Redirect;
+use Sys::CPU;
 use MIME::Lite;
 use IO::Compress::Simple;
+use Switch;
 
-# Script to run sets of Galacticus models, looping through sets of parameters and performing analysis on the results.
-# Contains error reporting functionality.
+# Script to run sets of Galacticus models, looping through sets of parameters and performing analysis
+# on the results. Supports launching of multiple threads (each with a different model) on a single
+# machine and submission of jobs to a Condor cluster. Contains error reporting functionality.
 # Andrew Benson (11-June-2010)
 
 # Get command line arguments.
 if ( $#ARGV != 0 ) {die("Usage: Run_Galacticus.pl <runFile>")};
-$runFile = $ARGV[0];
+my $runFile = $ARGV[0];
 
 # Read in the file of models to be run.
-$xml = new XML::Simple;
-$modelsToRun = $xml->XMLin($runFile, KeyAttr => "", ForceArray => 1);
+my $xml         = new XML::Simple;
+my $modelsToRun = $xml->XMLin($runFile, KeyAttr => "", ForceArray => [ "value", "parameter", "parameters", "requirement" ]);
 
 # Read in any configuration options.
+my $config;
 if ( -e "galacticusConfig.xml" ) {
-    $xml = new XML::Simple;
+    my $xml = new XML::Simple;
     $config = $xml->XMLin("galacticusConfig.xml");
 }
 
 # Determine root directory for models.
-$rootDirectory = "models";
-if ( exists($modelsToRun->{'modelRootDirectory'}) ) {$rootDirectory  = ${$modelsToRun->{'modelRootDirectory'}}[0]};
+my $rootDirectory = "models";
+if ( exists($modelsToRun->{'modelRootDirectory'}) ) {$rootDirectory  = $modelsToRun->{'modelRootDirectory'}};
 
 # Determine the base set of parameters to use.
-if ( exists($modelsToRun->{'baseParameters'}    ) ) {$baseParameters = ${$modelsToRun->{'baseParameters'}    }[0]};
+my $baseParameters = "";
+if ( exists($modelsToRun->{'baseParameters'    }) ) {$baseParameters = $modelsToRun->{'baseParameters'    }};
+
+# Determine how many threads to launch.
+my $threadCount = 1;
+if ( exists($modelsToRun->{'threadCount'       }) ) {
+    $threadCount = $modelsToRun->{'threadCount'};
+    $threadCount = Sys::CPU::cpu_count() if ( $threadCount eq "maximum" );
+}
+
+# Determine how to run the models.
+my $launchMethod = "local";
+$launchMethod    = "condor"
+    if (
+	exists($modelsToRun->{'condor'})
+	&& exists($modelsToRun->{'condor'}->{'useCondor'})
+	&&        $modelsToRun->{'condor'}->{'useCondor'} eq "true"
+	);
 
 # Record where we are running.
-$pwd = `pwd`;
+my $pwd = `pwd`;
 chomp($pwd);
 
-# Set initial value of random seed.
-$randomSeed = 219;
+# Define a hash for Condor job IDs.
+my %condorJobs;
 
-# Loop through all model sets.
-$iModelSet = -1;
-foreach $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
-    # Increment model set counter.
-    ++$iModelSet;
-
-    if ( exists($parameterSet->{'label'}) ) {
-	$modelBaseName = ${$parameterSet->{'label'}}[0];
-    } else {
-	$modelBaseName = "galacticus";
+# Launch threads.
+if ( $threadCount <= 1 || $launchMethod eq "condor" ) {
+    &Launch_Models($modelsToRun);
+} else {
+    my @threads = ();
+    for(my $iThread=0;$iThread<$threadCount;++$iThread) {
+	$threads[++$#threads] = new Thread \&Launch_Models, $modelsToRun;
+	sleep 1; # Adds a pause to minimize file race conditions.
     }
+    foreach my $thread ( @threads ) {
+	my @returnData = $thread->join;
+    }
+}
 
-    # Create an array of hashes giving the parameters for this parameter set.
-    @parameterHashes = &Create_Parameter_Hashes($parameterSet);
-
-    # Loop over all models and run them.
-    $iModel = 0;
-    foreach $parameterHash ( @parameterHashes ) {
-	++$iModel;
-
-	# Increment random seed.
-	++$randomSeed;
-
-	# Specify the output directory.
-	$galacticusOutputDirectory = $rootDirectory."/".$modelBaseName."_".$iModelSet.":".$iModel;
-	$galacticusOutputDirectory .= "_".$parameterHash->{'label'} if ( exists($parameterHash->{'label'}) );
-	system("mkdir -p ".$galacticusOutputDirectory);
-
-	# Specify the output file.
-	$galacticusOutputFile = $galacticusOutputDirectory."/galacticus.hdf5";
-
-	# If the output file does not exist, then generate it.
-	unless ( -e $galacticusOutputFile || -e $galacticusOutputFile.".bz2" ) {
-
-	    # Read the default set of parameters.
-	    unless ( $baseParameters eq "" ) {
-		$xml = new XML::Simple;
-		$data = $xml->XMLin($baseParameters,ForceArray => 1);
-		@parameterArray = @{$data->{'parameter'}};
-		for($i=0;$i<=$#parameterArray;++$i) {
-		    $parameterHash{${$parameterArray[$i]->{'name'}}[0]} = ${$parameterArray[$i]->{'value'}}[0];
+# Wait for Condor models to finish.
+if ( $launchMethod eq "condor" ) {
+    print "Waiting for Condor jobs to finish...\n";
+    while ( scalar(keys %condorJobs) > 0 ) {
+	# Find all Condor jobs that are running.
+	my %runningCondorJobs;
+	undef(%runningCondorJobs);
+	my $condorQuerySuccess = 0;
+	open(pHndl,"condor_q|");
+	while ( my $line = <pHndl> ) {
+	    if ( $line =~ m/^\s*(\d+\.\d+)\s/ ) {$runningCondorJobs{$1} = 1};
+	    if ( $line =~ m/^\d+\s+jobs;/ ) {$condorQuerySuccess = 1};
+	}
+	close(pHndl);
+	if ( $condorQuerySuccess == 1 ) {
+	    foreach my $jobID ( keys(%condorJobs) ) {
+		unless ( exists($runningCondorJobs{$jobID}) ) {
+		    print "Condor job ".$jobID." has finished. Post-processing....\n";
+		    &Model_Finalize(
+				    $condorJobs{$jobID}->{'directory'},
+				    $condorJobs{$jobID}->{'directory'}."/galacticus.hdf5",
+				    0
+				    );
+		    # Remove any temporary files associated with this job.
+		    unlink(@{$condorJobs{$jobID}->{'temporaryFiles'}});
+		    # Remove the job ID from the list of active Condor jobs.
+		    delete($condorJobs{$jobID});
 		}
 	    }
-
-	    # Set the output file name.
-	    $parameterHash{'galacticusOutputFileName'} = $galacticusOutputFile;
-
-	    # Set the random seed.
-	    $parameterHash{'randomSeed'} = $randomSeed unless ( exists($parameterHash{'randomSeed'}) );
-
-	    # Set a state restore file.
-	    ($stateFile = $galacticusOutputFile) =~ s/\.hdf5//;
-	    $parameterHash{'stateFileRoot'}      = $stateFile;
-
-	    # Transfer parameters for this model from the array of model parameter hashes to the active hash.
-	    foreach $parameter ( keys(%{$parameterHash}) ) {
-		$parameterHash{$parameter} = ${$parameterHash}{$parameter};
-	    }
-	    
-	    # Transfer values from the active hash to an array suitable for XML output.
-	    delete($data->{'parameter'});
-	    undef(@parameterArray);
-	    foreach $name ( keys(%parameterHash) ) {
-		unless ( $name eq "label" ) {
-		    $parameterArray[++$#parameterArray]->{'name'}  = $name;
-		    $parameterArray[  $#parameterArray]->{'value'} = $parameterHash{$name};
-		}
-	    }
-	    $data->{'parameter'} = \@parameterArray;
-
-	    # Output the parameters as an XML file.
-	    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
-	    open(outHndl,">".$galacticusOutputDirectory."/newParameters.xml");
-	    print outHndl $xmlOutput->XMLout($data);
-	    close(outHndl);
-	    undef($data);
-	    undef(%parameterHash);
-
- 	    # Run Galacticus.
-	    &SystemRedirect::tofile("ulimit -t unlimited; ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; time Galacticus.exe "
-				    .$galacticusOutputDirectory."/newParameters.xml",$galacticusOutputDirectory."/galacticus.log");
- 	    if ( $? == 0 ) {
- 		# Model finished successfully.
- 		# Generate plots.
- 		system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory) unless ( ${$modelsToRun->{'doAnalysis'}}[0] eq "no" );
- 	    } else {
- 		# The run failed for some reason.
- 		# Move the core file to the output directory.
- 		opendir(gDir,".");
- 		while ( $file = readdir(gDir) ) {
- 		    if ( $file =~ m/core\.\d+/ ) {move($file,$galacticusOutputDirectory."/core")};
- 		}
- 		closedir(gDir);
- 		# Report the model failure (by e-mail if we have an e-mail address to send a report to and if so requested).
-		$message  = "FAILED: A Galacticus model failed to finish:\n\n";
-		$message .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
-		$message .= "  User:\t".$ENV{"USER"}."\n\n";
-		$message .= "Model output is in: ".$pwd."/".$galacticusOutputDirectory."\n\n";
- 		if ( $config->{'contact'}->{'email'} =~ m/\@/ && ${$modelsToRun->{'emailReport'}}[0] eq "yes" ) {
- 		    $message .= "Log file is attached.\n";
- 		    $msg = MIME::Lite->new(
- 					   From    => '',
- 					   To      => $config->{'contact'}->{'email'},
- 					   Subject => 'Galacticus model failed',
- 					   Type    => 'TEXT',
- 					   Data    => $message
- 					   );
- 		    $msg->attach(
- 				 Type     => "text/plain",
- 				 Path     => $galacticusOutputDirectory."/galacticus.log",
- 				 Filename => "galacticus.log"
- 				 );
- 		    $msg->send;
- 		} else {
-		    print $message;
-		    print "Log follows:\n";
-		    print slurp($galacticusOutputDirectory."/galacticus.log");
-		}
- 	    }
-
- 	    # Compress all files in the output directory.
-	    &Simple::Compress_Directory($galacticusOutputDirectory);
-
+	    sleep 5;
+	} else {
+	    sleep 10;
 	}
     }
 }
 
 exit;
+
+sub Launch_Models {
+    # Grab input arguments.
+    my $modelsToRun = shift;
+
+    # Set initial value of random seed.
+    my $randomSeed = 219;
+
+    # Initialize a model counter.
+    my $modelCounter = -1;
+
+    # Loop through all model sets.
+    my $iModelSet = -1;
+    foreach my $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
+	# Increment model set counter.
+	++$iModelSet;
+	
+	# Set base model name.
+	my $modelBaseName = "galacticus";
+	$modelBaseName = ${$parameterSet->{'label'}}[0] if ( exists($parameterSet->{'label'}) );
+	
+	# Create an array of hashes giving the parameters for this parameter set.
+	my @parameterHashes = &Create_Parameter_Hashes($parameterSet);
+	
+	# Loop over all models and run them.
+	my $iModel = 0;
+	foreach my $parameterData ( @parameterHashes ) {
+	    ++$iModel;
+	    ++$modelCounter;
+	    
+	    # Increment random seed.
+	    ++$randomSeed;
+	    
+	    # Specify the output directory.
+	    my $galacticusOutputDirectory = $rootDirectory."/".$modelBaseName."_".$iModelSet.":".$iModel;
+	    $galacticusOutputDirectory .= "_".$parameterData->{'label'} if ( exists($parameterData->{'label'}) );
+	    # If the output directory does not exist, then create it.
+	    unless ( -e $galacticusOutputDirectory ) {		
+		system("mkdir -p ".$galacticusOutputDirectory);
+		
+		# Specify the output file.
+		my $galacticusOutputFile = $galacticusOutputDirectory."/galacticus.hdf5";
+		
+		# Read the default set of parameters.
+		my %parameters;
+		unless ( $baseParameters eq "" ) {
+		    my $xml = new XML::Simple;
+		    my $data = $xml->XMLin($baseParameters,ForceArray => 1);
+		    my @parameterArray = @{$data->{'parameter'}};
+		    for(my $i=0;$i<=$#parameterArray;++$i) {
+			$parameters{${$parameterArray[$i]->{'name'}}[0]} = ${$parameterArray[$i]->{'value'}}[0];
+		    }
+		}
+		
+		# Set the output file name.
+		switch ( $launchMethod ) {
+		    case ( "local"  ) {
+			$parameters{'galacticusOutputFileName'} = $galacticusOutputFile;
+		    }
+		    case ( "condor" ) {
+			$parameters{'galacticusOutputFileName'} = "galacticus.hdf5";
+		    }
+		}
+
+		# Set the random seed.
+		$parameters{'randomSeed'} = $randomSeed unless ( exists($parameters{'randomSeed'}) );
+		
+		# Set a state restore file.
+		(my $stateFile = $parameters{'galacticusOutputFileName'}) =~ s/\.hdf5//;
+		$parameters{'stateFileRoot'}      = $stateFile;
+		
+		# Transfer parameters for this model from the array of model parameter hashes to the active hash.
+		foreach my $parameter ( keys(%{$parameterData}) ) {
+		    $parameters{$parameter} = ${$parameterData}{$parameter};
+		}
+		
+		# Transfer values from the active hash to an array suitable for XML output.
+		my $data;
+		my @parameterArray;
+		undef($data);
+		undef(@parameterArray);
+		foreach my $name ( sort(keys(%parameters)) ) {
+		    unless ( $name eq "label" ) {
+			$parameterArray[++$#parameterArray]->{'name'}  = $name;
+			$parameterArray[  $#parameterArray]->{'value'} = $parameters{$name};
+		    }
+		}
+		$data->{'parameter'} = \@parameterArray;
+		
+		# Output the parameters as an XML file.
+		my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+		open(outHndl,">".$galacticusOutputDirectory."/newParameters.xml");
+		print outHndl $xmlOutput->XMLout($data);
+		close(outHndl);
+		undef($data);
+		undef(%parameters);
+
+		# Launch the model.
+		switch ( $launchMethod ) {
+		    case ( "local" ) {
+			&SystemRedirect::tofile("ulimit -t unlimited; ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; time Galacticus.exe "
+						.$galacticusOutputDirectory."/newParameters.xml",$galacticusOutputDirectory."/galacticus.log");
+			my $exitStatus = $?;
+			&Model_Finalize($galacticusOutputDirectory,$galacticusOutputFile,$exitStatus);
+		    }
+		    case ( "condor" ) {
+			# Extract Condor options.
+			my $condorGalacticusDirectory = "/home/condor/Galacticus/v0.9.0";
+			$condorGalacticusDirectory    =   $modelsToRun->{'condor'}->{'galacticusDirectory'}  if ( exists($modelsToRun->{'condor'}->{'galacticusDirectory'}) );
+			my $condorUniverse            = "vanilla";
+			$condorUniverse               =   $modelsToRun->{'condor'}->{'universe'           }  if ( exists($modelsToRun->{'condor'}->{'universe'           }) );
+			my $condorEnvironment         = "";
+			$condorEnvironment            =   $modelsToRun->{'condor'}->{'environment'        }  if ( exists($modelsToRun->{'condor'}->{'environment'        }) );
+			my @condorRequirements;
+			@condorRequirements           = @{$modelsToRun->{'condor'}->{'requirement'        }} if ( exists($modelsToRun->{'condor'}->{'requirement'        }) );
+			# Create the script that Condor will execute.
+			my $condorScript = "condor_run_".$modelCounter."_".$$.".csh";
+			open(oHndl,">".$condorScript);
+			print oHndl "#!/bin/csh\n";
+			print oHndl "ln -sf ".$condorGalacticusDirectory."/aux\n";
+			print oHndl "ln -sf ".$condorGalacticusDirectory."/data\n";
+			print oHndl "ln -sf ".$condorGalacticusDirectory."/perl\n";
+			print oHndl "ln -sf ".$condorGalacticusDirectory."/scripts\n";
+			print oHndl "ln -sf ".$condorGalacticusDirectory."/work\n";
+			print oHndl "exec ./Galacticus.exe newParameters.xml\n";
+			print oHndl "rm -f aux data perl scripts work\n";
+			print oHndl "exit\n";
+			close(oHndl);
+			# Creat a submit file.
+			my $condorSubmit = "condor_submit_".$modelCounter."_".$$.".txt";
+			open(oHndl,">".$condorSubmit);
+			print oHndl "Executable              = ".$condorScript."\n";
+			print oHndl "Error                   = condor.err\n";
+			print oHndl "Output                  = condor.out\n";
+			print oHndl "Log                     = condor.log\n";
+			print oHndl "InitialDir              = ".$galacticusOutputDirectory."\n";
+			print oHndl "Should_Transfer_Files   = YES\n";
+			print oHndl "When_To_Transfer_Output = ON_EXIT\n";
+			print oHndl "Transfer_Input_Files    = ".$pwd."/Galacticus.exe,newParameters.xml\n";
+			print oHndl "Universe                = ".$condorUniverse."\n";
+			print oHndl "Allow_Startup_Script    = True\n" if ( $condorUniverse eq "standard" );
+			print oHndl "Environment             = ".$condorEnvironment."\n" unless ( $condorEnvironment eq "" );
+			print oHndl "Requirements            = (".join(") && (",@condorRequirements).")\n" if ( $#condorRequirements >= 0 );
+			print oHndl "Queue\n";
+			close(oHndl);
+
+			# Submit the job - capture the job number?
+			open(pHndl,"condor_submit -verbose ".$condorSubmit."|");
+			my $jobID = "";
+			while ( my $line = <pHndl> ) {
+			    if ( $line =~ m/^\*\*\s+Proc\s+([\d\.]+):/ ) {$jobID = $1};
+			}
+			close(pHndl);
+
+                        # Add job number to active job hash
+			unless ( $jobID eq "" ) {
+			    $condorJobs{$jobID}->{'directory'} = $galacticusOutputDirectory;
+			    @{$condorJobs{$jobID}->{'temporaryFiles'}} = [$condorScript,$condorSubmit];
+			}
+
+		    }
+		}
+
+	    }
+
+	}
+
+    }
+
+}
+
+sub Model_Finalize {
+    # Finalize a model by performing analysis and compressing.
+    my ($galacticusOutputDirectory,$galacticusOutputFile,$exitStatus) = @_;
+    
+    if ( $exitStatus == 0 ) {
+	# Model finished successfully.
+	# Generate plots.
+	system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory)
+	    unless ( $modelsToRun->{'doAnalysis'} eq "no" );
+    } else {
+	# The run failed for some reason.
+	# Move the core file to the output directory.
+	opendir(gDir,".");
+	while ( my $file = readdir(gDir) ) {
+	    if ( $file =~ m/core\.\d+/ ) {move($file,$galacticusOutputDirectory."/core")};
+	}
+	closedir(gDir);
+	# Report the model failure (by e-mail if we have an e-mail address to send a report to and if so requested).
+	my $message  = "FAILED: A Galacticus model failed to finish:\n\n";
+	$message .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
+	$message .= "  User:\t".$ENV{"USER"}."\n\n";
+	$message .= "Model output is in: ".$pwd."/".$galacticusOutputDirectory."\n\n";
+	if ( $config->{'contact'}->{'email'} =~ m/\@/ && $modelsToRun->{'emailReport'} eq "yes" ) {
+	    $message .= "Log file is attached.\n";
+	    my $msg = MIME::Lite->new(
+		From    => '',
+		To      => $config->{'contact'}->{'email'},
+		Subject => 'Galacticus model failed',
+		Type    => 'TEXT',
+		Data    => $message
+		);
+	    $msg->attach(
+		Type     => "text/plain",
+		Path     => $galacticusOutputDirectory."/galacticus.log",
+		Filename => "galacticus.log"
+		);
+	    $msg->send;
+	} else {
+	    print $message;
+	    print "Log follows:\n";
+	    print slurp($galacticusOutputDirectory."/galacticus.log");
+	}
+    }
+    
+    # Compress all files in the output directory.
+    &Simple::Compress_Directory($galacticusOutputDirectory);
+    
+}
 
 sub Create_Parameter_Hashes {
     # Create an array of hashes which give the parameter values for each model.
@@ -198,23 +364,22 @@ sub Create_Parameter_Hashes {
 	    $thisParameterArrays[0] = $parameterPointer[$processedParameter]->{'parameter'};
 	} elsif ( exists($parameterPointer[$processedParameter]->{'value'}) ) {
 	    foreach my $valueElement ( @{$parameterPointer[$processedParameter]->{'value'}} ) {
-		if ( exists($valueElement->{'parameter'}) ) {
-		    $thisParameterArrays[++$#thisParameterArrays] = $valueElement->{'parameter'};
-		}
+		$thisParameterArrays[++$#thisParameterArrays] = $valueElement->{'parameter'}
+		if ( UNIVERSAL::isa($valueElement,"HASH") && exists($valueElement->{'parameter'}) );
 	    }
 	}
-	if ( defined(@thisParameterArrays) ) {
+	if ( @thisParameterArrays ) {
 	    # Add any detected parameter arrays to the list.
 	    foreach my $thisParameterArray ( @thisParameterArrays ) {
 		# Loop over each parameter in the array.
-		foreach $parameter ( @{$thisParameterArray} ) {
+		foreach my $parameter ( @{$thisParameterArray} ) {
 		    # Store a pointer to the parameter.
 		    $parameterPointer[++$#parameterPointer] = $parameter;
 		    # Set an index counter (for its <value> elements) to zero.
-		    $parameter->{'index'}  = 0;
+		    $parameter->{'index'} = 0;
 		    # Set a unique ID for this parameter.
 		    ++$parameterID;
-		    $parameter->{'ID'}     = $parameterID;
+		    $parameter->{'ID'}    = $parameterID;
 		}
 	    }
 	}
@@ -237,9 +402,7 @@ sub Create_Parameter_Hashes {
 		$thisParameterArray = $currentParameterPointer[$currentProcessedParameter]->{'parameter'};
 	    } elsif ( exists($currentParameterPointer[$currentProcessedParameter]->{'value'}) ) {
 		my $valueElement = ${$currentParameterPointer[$currentProcessedParameter]->{'value'}}[$currentParameterPointer[$currentProcessedParameter]->{'index'}];
-		if ( exists($valueElement->{'parameter'}) ) {
-		    $thisParameterArray = $valueElement->{'parameter'};
-		}
+		$thisParameterArray = $valueElement->{'parameter'} if ( UNIVERSAL::isa( $valueElement, "HASH" ) && exists($valueElement->{'parameter'}) );
 	    }
 	    if ( defined($thisParameterArray) ) {
 		my $iParameter = -1;
@@ -254,19 +417,20 @@ sub Create_Parameter_Hashes {
 	my %parameters;
 	my $label  = "";
 	my $joiner = "";
-	foreach $parameter ( @currentParameterPointer ) {
+	foreach my $parameter ( @currentParameterPointer ) {
 	    if ( exists($parameter->{'name'}) ) {
-		if ( exists(${$parameter->{'value'}}[$parameter->{'index'}]->{'content'}) ) {
+		my $value;
+		if ( UNIVERSAL::isa(${$parameter->{'value'}}[$parameter->{'index'}], "HASH" ) && exists(${$parameter->{'value'}}[$parameter->{'index'}]->{'content'}) ) {
 		    $value = ${$parameter->{'value'}}[$parameter->{'index'}]->{'content'};
 		    $value =~ s/^\s*//;
 		    $value =~ s/\s*$//;
 		} else {
 		    $value = ${$parameter->{'value'}}[$parameter->{'index'}];
 		}
-		$parameters{${$parameter->{'name'}}[0]} = $value;
+		$parameters{$parameter->{'name'}} = $value;
 		$label .= ":".$parameter->{'ID'}.".".$parameter->{'index'};
-		if ( ${$parameter->{'label'}}[0] eq "yes" ) {
-		    $parameters{'label'} .= $joiner.${$parameter->{'name'}}[0]."=".$value;
+		if ( exists($parameter->{'label'}) && ${$parameter->{'label'}}[0] eq "yes" ) {
+		    $parameters{'label'} .= $joiner.$parameter->{'name'}."=".$value;
 		    $joiner = ":";
 		}
 	    }
@@ -280,10 +444,10 @@ sub Create_Parameter_Hashes {
 
 	# See if we find a parameter to increment.
 	$done = 1;
-	for($iParameter=$#parameterPointer;$iParameter>0;--$iParameter) {
+	for(my $iParameter=$#parameterPointer;$iParameter>0;--$iParameter) {
 	    if ( $parameterPointer[$iParameter]->{'index'} < $#{$parameterPointer[$iParameter]->{'value'}} ) {
 		++$parameterPointer[$iParameter]->{'index'};
-		for($jParameter=$iParameter+1;$jParameter<=$#parameterPointer;++$jParameter) {
+		for(my $jParameter=$iParameter+1;$jParameter<=$#parameterPointer;++$jParameter) {
 		    $parameterPointer[$jParameter]->{'index'} = 0;
 		}
 		$done = 0;
