@@ -114,9 +114,10 @@ module Galacticus_Output_Star_Formation_Histories
   ! Pointer to the subroutine that outputs the star formation history.
   procedure(Star_Formation_History_Output_Template), pointer :: Star_Formation_History_Output_Do => null()
   abstract interface
-     subroutine Star_Formation_History_Output_Template(thisNode,thisHistory,iOutput,treeIndex,componentLabel)
+     subroutine Star_Formation_History_Output_Template(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
        import treeNode, history, abundancesStructure, kind_int8
        type(treeNode),          intent(inout), pointer :: thisNode
+       logical,                 intent(in)             :: nodePassesFilter
        type(history),           intent(in)             :: thisHistory
        integer,                 intent(in)             :: iOutput
        integer(kind=kind_int8), intent(in)             :: treeIndex
@@ -199,12 +200,13 @@ contains
     return
   end subroutine Star_Formation_History_Record
 
-  subroutine Star_Formation_History_Output(thisNode,thisHistory,iOutput,treeIndex,componentLabel)
+  subroutine Star_Formation_History_Output(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
     !% Output the star formation history for {\tt thisNode}.
     use Histories
     use Tree_Nodes
     implicit none
     type(treeNode),          intent(inout), pointer :: thisNode
+    logical,                 intent(in)             :: nodePassesFilter
     type(history),           intent(inout)          :: thisHistory
     integer,                 intent(in)             :: iOutput
     integer(kind=kind_int8), intent(in)             :: treeIndex
@@ -214,7 +216,7 @@ contains
     call Galacticus_Output_Star_Formation_Histories_Initialize
 
     ! Simply call the function which does the actual work.
-    call Star_Formation_History_Output_Do(thisNode,thisHistory,iOutput,treeIndex,componentLabel)
+    call Star_Formation_History_Output_Do(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
 
     return
   end subroutine Star_Formation_History_Output

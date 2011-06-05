@@ -1926,7 +1926,7 @@ contains
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Hernquist_Spheroid_Star_Formation_History_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Hernquist_Spheroid_Star_Formation_History_Output(thisNode,iOutput,treeIndex)
+  subroutine Hernquist_Spheroid_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use Kind_Numbers
     use Tree_Nodes
@@ -1935,13 +1935,14 @@ contains
     type(treeNode),          intent(inout), pointer      :: thisNode
     integer,                 intent(in)                  :: iOutput
     integer(kind=kind_int8), intent(in)                  :: treeIndex
+    logical,                 intent(in)                  :: nodePassesFilter
     integer                                              :: thisIndex
 
     ! Output the star formation history if a spheroid exists for this component.
     if (methodSelected .and. thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       call Star_Formation_History_Output(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex),iOutput&
-            &,treeIndex,'spheroid')
+       call Star_Formation_History_Output(thisNode,nodePassesFilter,thisNode%components(thisIndex)&
+            &%histories(starFormationHistoryIndex),iOutput ,treeIndex,'spheroid')
     end if
     return
   end subroutine Hernquist_Spheroid_Star_Formation_History_Output

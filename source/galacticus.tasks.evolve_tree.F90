@@ -189,6 +189,10 @@ contains
           call thisTree%destroy()
 
        end if
+
+!! AJB HACK
+finished=.true.
+
     end do
     !$omp end parallel
 

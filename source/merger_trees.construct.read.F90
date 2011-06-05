@@ -728,61 +728,55 @@ contains
 
   subroutine Enforce_Subhalo_Status(nodes)
     !% Ensure that any node which was once a subhalo remains a subhalo.
+    use Galacticus_Error
+    use String_Handling
     implicit none
     type(nodeData), intent(inout), dimension(:), target  :: nodes
-    type(nodeData),                              pointer :: descendentNode,previousNode,thisNode
+    type(nodeData),                              pointer :: descendentNode
     integer(kind=kind_int8)                              :: iNode
+    logical                                              :: failed
+    type(varying_string)                                 :: message
 
     do iNode=1,size(nodes)
        if (nodes(iNode)%isSubhalo) then
-          previousNode   => nodes(iNode)
-          descendentNode => previousNode%descendentNode
+          descendentNode => nodes(iNode)%descendentNode
           do while (associated(descendentNode))
              ! Is this node isolated?
              if (.not.descendentNode%isSubhalo) then
                 ! Check if there is any isolated node which descends into this node.
                 if (.not.any(nodes%descendentIndex == descendentNode%nodeIndex .and. nodes%nodeIndex == nodes%hostIndex)) then
-                   ! There is not, so this node is the only descendent of a subhalo. Therefore, we declare it to be a
-                   ! subhalo also, hosted by the descendent of the previous node's host.
-                   
-                   ! First, also check if the proposed host is a subhalo for which the host is our current node. This
-                   ! sometimes occurs in N-body simulation-derived trees as the definition of host/hostee can switch from
-                   ! one step to the next. In such cases, enforce the new host to be an isolated halo.
-                   if (associated(previousNode%hostNode%descendentNode)) then
-                      ! Find a new host that exists at or after the time of the present host.
-                      thisNode => previousNode%hostNode
-                      do while (descendentNode%hostNode%nodeTime > thisNode%nodeTime)
-                         if (thisNode%isSubhalo.and.associated(descendentNode,thisNode%hostNode)) then
-                            thisNode%hostNode  => thisNode
-                            thisNode%hostIndex =  thisNode%nodeIndex
-                            thisNode%isSubhalo =  .false.
-                         end if
-                         thisNode => thisNode%hostNode%descendentNode
-                      end do
-                      ! Make previous node's host's descendent the isolated halo, and our current node the subhalo.
-                      if (thisNode%isSubhalo) then
-                         thisNode%hostNode  => thisNode
-                         thisNode%hostIndex =  thisNode%nodeIndex
-                         thisNode%isSubhalo =  .false.
-                      end if
-                      descendentNode%isSubhalo=.true.
-                      descendentNode%hostNode => thisNode
-                      descendentNode%hostIndex=descendentNode%hostNode%nodeIndex
-                   else
-                      ! The end of a branch has been reached. In this case, always force the node to be a subhalo, but keep
-                      ! the host node the same as that of the previous node.
-                      descendentNode%isSubhalo=.true.
-                      descendentNode%hostNode => previousNode%hostNode
-                      descendentNode%hostIndex=descendentNode%hostNode%nodeIndex
-                   end if
+                   ! Node is isolated, has no isolated node that descends into it. Therefore, our current node is not allowed to be a subhalo.
+                   nodes(iNode)%isSubhalo=.false.
+                   nodes(iNode)%hostNode => nodes(iNode)
+                   nodes(iNode)%hostIndex=nodes(iNode)%nodeIndex                   
                 end if
-             end if
-             ! Jump to the next descendent.
-             previousNode   => descendentNode
+             end if             
              descendentNode => descendentNode%descendentNode
           end do
        end if
     end do
+    ! Check that subhalo enforcement was successful.
+    failed=.false.
+    do iNode=1,size(nodes)
+       ! Find nodes which have no isolated node descending into them.
+       if (any(nodes%descendentIndex == nodes(iNode)%nodeIndex) .and. .not.any(nodes%descendentIndex == nodes(iNode)%nodeIndex .and. nodes%nodeIndex == nodes%hostIndex)) then
+          ! Such nodes must be subhalos. If they are not, report an error
+          if (.not.nodes(iNode)%isSubhalo) then
+             if (failed) then
+                message=message//', '
+             else
+                message='failed to enforce persistent subhalo status for node ['
+             end if
+             message=message//nodes(iNode)%nodeIndex
+             failed=.true.
+          end if
+       end if
+    end do
+    if (failed) then
+       message=message//']'
+       call Galacticus_Error_Report('Enforce_Subhalo_Status',message)
+    end if
+    
     return
   end subroutine Enforce_Subhalo_Status
 
@@ -802,10 +796,10 @@ contains
              ! Find an isolated parent node, by repeatedly jumping from host to host.
              parentNode => nodes(iNode)%descendentNode%hostNode
              do while (parentNode%isSubhalo)
-                if (associated(parentNode,parentNode%hostNode)) then
+              if (associated(parentNode,parentNode%hostNode)) then
                    message='node ['
                    message=message//parentNode%nodeIndex//'] flagged as subhalo is self-hosting - exiting to avoid infinite loop'
-                   call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
+                   call Galacticus_Error_Report('Build_Parent_Pointers',message)
                 end if
                 parentNode => parentNode%hostNode
              end do
@@ -815,6 +809,16 @@ contains
           end if
        else
           nodes(iNode)%parentNode => null()
+       end if
+    end do
+    ! Check for self-parents.
+    do iNode=1,size(nodes)
+       if (associated(nodes(iNode)%parentNode)) then
+          if (nodes(iNode)%nodeIndex == nodes(iNode)%parentNode%nodeIndex) then
+             message='node ['
+             message=message//nodes(iNode)%nodeIndex//'] is its own parent - exiting to avoid infinite loop'
+             call Galacticus_Error_Report('Build_Parent_Pointers',message)
+          end if
        end if
     end do
     return
@@ -1333,12 +1337,14 @@ contains
                       ! Increment the history count for this node.
                       historyCount=historyCount+thisNode%particleIndexCount
                    end if
-                   call subhaloHistory%destroy()
-                   call subhaloHistory%create(6,int(historyCount))
-                   subhaloHistory%time(:    )=          historyTime(    1:historyCount)
-                   subhaloHistory%data(:,1:3)=transpose(position   (1:3,1:historyCount))
-                   subhaloHistory%data(:,4:6)=transpose(velocity   (1:3,1:historyCount))
-                   call Tree_Node_Position_6D_History_Set(nodeList(iIsolatedNode)%node,subhaloHistory)
+                   if (historyCount > 0) then
+                      call subhaloHistory%destroy()
+                      call subhaloHistory%create(6,int(historyCount))
+                      subhaloHistory%time(:    )=          historyTime(    1:historyCount)
+                      subhaloHistory%data(:,1:3)=transpose(position   (1:3,1:historyCount))
+                      subhaloHistory%data(:,4:6)=transpose(velocity   (1:3,1:historyCount))
+                      call Tree_Node_Position_6D_History_Set(nodeList(iIsolatedNode)%node,subhaloHistory)
+                   end if
                 end if
                 
              end if historyBuildHasDescendentSelect
