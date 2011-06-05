@@ -64,8 +64,6 @@ vpath %.F90 source
 # Rule for running *.Inc files through the preprocessor.
 ./work/build/%.inc : ./work/build/%.Inc Makefile
 	$(PREPROCESSOR) $< ./work/build/$*.inc
-./work/build/%.inc90 : ./source/%.Inc90 Makefile
-	$(PREPROCESSOR) $< ./work/build/$*.inc90
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
@@ -99,7 +97,7 @@ vpath %.F90 source
 -include ./work/build/Makefile_Directives
 
 # Rules for memory management routines.
-./work/build/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc90)
+./work/build/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/Find_Allocatable_Arrays.pl `pwd`
 
 ./work/build/utility.memory_management.precontain.inc: ./scripts/build/Make_Memory_Usage_Routines.pl ./work/build/Allocatable_Arrays.xml
@@ -120,13 +118,13 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-./work/build/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 $(wildcard source/*.Inc90)
+./work/build/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
-./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Makefile_Include_Deps source/*.[fF]90 $(wildcard source/*.Inc90)
+./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Makefile_Include_Deps source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE)
 
-./work/build/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 $(wildcard source/*.Inc90)
+./work/build/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90
 	./scripts/build/Code_Directive_Parser.pl `pwd`
 
 ./work/build/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90

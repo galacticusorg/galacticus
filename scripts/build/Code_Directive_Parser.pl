@@ -26,7 +26,7 @@ foreach $srcdir ( @sourcedirs ) {
     opendir(indir,$srcdir) or die "Can't open the source directory: #!";
     while ($fname = readdir indir) {	
 	if ( $fname =~ m/\.[fF](90)??t??$/ && $fname !~ m/^\.\#/ ) {
-	    $fullname = "$srcdir/$fname";
+	    $fullname = $srcdir."/".$fname;
 	    open(infile,$fullname) or die "Can't open input file: #!";
 	    while ($line = <infile>) {
 		if ( $line =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
@@ -58,6 +58,9 @@ foreach $srcdir ( @sourcedirs ) {
 			    ${$includeDirectives{${$data}{'directive'}.".".${$data}{'type'}}}{'fileName'} = $fileName;
 			    ${$includeDirectives{${$data}{'directive'}.".".${$data}{'type'}}}{'xml'} = $xmlOutput->XMLout($data);
 			}
+			else {
+			    $otherDirectives->{$xmlTag}->{$srcdir."/".$fname} = 1;
+			}
 		    }
 		}
 	    }
@@ -66,6 +69,19 @@ foreach $srcdir ( @sourcedirs ) {
     }
     closedir(indir);
 }
+
+# Output a file listing which files contain which directives.
+foreach $xmlTag ( keys(%{$otherDirectives}) ) {
+    undef(@fileNames);
+    foreach $fileName ( keys(%{$otherDirectives->{$xmlTag}} ) ){
+	push(@fileNames,$fileName);
+    }
+    @{$outputDirectives->{$xmlTag}->{'file'}} = @fileNames;
+}
+$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"directives");
+open(directiveHndl,">./work/build/Code_Directive_Locations.xml");
+print directiveHndl $xmlOutput->XMLout($outputDirectives);
+close(directiveHndl);
 
 # Output the Makefile
 open(makefileHndl,">./work/build/Makefile_Directives");
