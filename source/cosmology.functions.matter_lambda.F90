@@ -96,6 +96,16 @@ module Cosmology_Functions_Matter_Lambda
   type(fgsl_interp_accel)                     :: interpolationAccelerator
   logical                                     :: resetInterpolation=.true.
 
+  ! Variables to hold table of distance vs. cosmic time.
+  logical                                     :: distanceTableInitialized=.false.
+  integer                                     :: distanceTableNumberPoints
+  double precision                            :: distanceTableTimeMinimum=1.0d-4, distanceTableTimeMaximum
+  integer,          parameter                 :: distanceTableNPointsPerDecade=100
+  double precision, allocatable, dimension(:) :: distanceTableTime,distanceTableComovingDistance,distanceTableComovingDistanceNegated
+  type(fgsl_interp)                           :: interpolationObjectDistance      ,interpolationObjectDistanceInverse
+  type(fgsl_interp_accel)                     :: interpolationAcceleratorDistance ,interpolationAcceleratorDistanceInverse
+  logical                                     :: resetInterpolationDistance=.true.,resetInterpolationDistanceInverse=.true.
+
   ! Variables used in the ODE solver.
   type(fgsl_odeiv_step)                       :: odeStepper
   type(fgsl_odeiv_control)                    :: odeController
@@ -111,7 +121,7 @@ contains
   subroutine Cosmology_Functions_Matter_Lambda_Initialize(cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get &
        &,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get&
-       &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get)
+       &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get)
     !% Initialize the module.
     use Numerical_Comparison
     use ISO_Varying_String
@@ -120,9 +130,10 @@ contains
     type(varying_string),                 intent(in)    :: cosmologyMethod
     procedure(),                 pointer, intent(inout) :: Early_Time_Density_Scaling_Get
     procedure(logical),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get
-    procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get&
-         &,Omega_Matter_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get&
-         &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get
+    procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get &
+         &,Omega_Matter_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
+         &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get&
+         &,Time_From_Comoving_Distance_Get
     double precision,            parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
     double precision,            parameter              :: omegaTolerance=1.0d-9
     double precision                                    :: cubicTerm1,cubicTerm5,cubicTerm9,cubicTerm21Squared,cubicTerm21 &
@@ -145,6 +156,8 @@ contains
        Epoch_of_Matter_Curvature_Equality_Get   => Epoch_of_Matter_Curvature_Equality_Matter_Lambda
        Epoch_of_Matter_Domination_Get           => Epoch_of_Matter_Domination_Matter_Lambda
        CMB_Temperature_Get                      => CMB_Temperature_Matter_Lambda
+       Comoving_Distance_Get                    => Comoving_Distance_Matter_Lambda
+       Time_From_Comoving_Distance_Get          => Time_From_Comoving_Distance_Matter_Lambda
 
        ! Determine if this universe will collapse. We take the Friedmann equation, which gives H^2 as a function of expansion factor,
        ! a, and solve for where H^2=0. If this has a real solution, then we have a collapsing universe.
@@ -672,6 +685,141 @@ contains
          &=Cosmology_Age_Matter_Lambda(Epoch_of_Matter_Curvature_Equality_Matter_Lambda)
     return
   end function Epoch_of_Matter_Curvature_Equality_Matter_Lambda
+
+  double precision function Time_From_Comoving_Distance_Matter_Lambda(comovingDistance)
+    !% Returns the cosmological time corresponding to given {\tt comovingDistance}.
+    use Numerical_Interpolation
+    use Galacticus_Error
+    implicit none
+    double precision, intent(in) :: comovingDistance
+    double precision             :: tCosmological
+    logical                      :: remakeTable
+
+    ! Quit on invalid input.
+    if (comovingDistance < 0.0d0) call Galacticus_Error_Report('Time_From_Comoving_Distance_Matter_Lambda','comoving distance must be positive')
+
+    !$omp critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+    ! Check if we need to recompute our table.
+    remakeTable=.true.
+    do while (remakeTable)
+       if (distanceTableInitialized) then
+          remakeTable=distanceTableComovingDistance(1) < comovingDistance
+          tCosmological=0.5d0*distanceTableTime(1)
+       else
+          remakeTable=.true.
+          tCosmological=distanceTableTimeMinimum
+       end if
+       ! Remake table if necessary.
+       if (remakeTable) call Make_Distance_Table(tCosmological)
+    end do
+    !$omp end critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+
+    ! Interpolate to get the comoving distance.
+    Time_From_Comoving_Distance_Matter_Lambda=Interpolate(distanceTableNumberPoints,distanceTableComovingDistanceNegated&
+         &,distanceTableTime ,interpolationObjectDistanceInverse ,interpolationAcceleratorDistanceInverse,-comovingDistance,reset &
+         &=resetInterpolationDistanceInverse)
+    return
+  end function Time_From_Comoving_Distance_Matter_Lambda
+
+  double precision function Comoving_Distance_Matter_Lambda(tCosmological)
+    !% Returns the comoving distance to cosmological time {\tt tCosmological}.
+    use Numerical_Interpolation
+    use Galacticus_Error
+    implicit none
+    double precision, intent(in) :: tCosmological
+    logical                      :: remakeTable
+
+    ! Quit on invalid input.
+    if (tCosmological < 0.0d0                             ) call Galacticus_Error_Report('Comoving_Distance_Matter_Lambda','cosmological time must be positive'   )
+    if (tCosmological > Cosmology_Age_Matter_Lambda(1.0d0)) call Galacticus_Error_Report('Comoving_Distance_Matter_Lambda','cosmological time must be in the past')
+
+    !$omp critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+    ! Check if we need to recompute our table.
+    if (distanceTableInitialized) then
+       remakeTable=(tCosmological<distanceTableTime(1).or.tCosmological>distanceTableTime(distanceTableNumberPoints))
+    else
+       remakeTable=.true.
+    end if
+    if (remakeTable) call Make_Distance_Table(tCosmological)
+    !$omp end critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+
+    ! Quit on invalid input.
+    if (collapsingUniverse.and.tCosmological>tCosmologicalMax) call Galacticus_Error_Report('Expansion_Factor','cosmological time&
+         & exceeds that at the Big Crunch')
+
+    ! Interpolate to get the comoving distance.
+    Comoving_Distance_Matter_Lambda=Interpolate(distanceTableNumberPoints,distanceTableTime,distanceTableComovingDistance,interpolationObjectDistance&
+         &,interpolationAcceleratorDistance,tCosmological,reset=resetInterpolationDistance)
+    return
+  end function Comoving_Distance_Matter_Lambda
+  
+  subroutine Make_Distance_Table(tCosmological)
+    !% Builds a table of distance vs. time.
+    use Numerical_Interpolation
+    use Numerical_Ranges
+    use Numerical_Integration
+    use Memory_Management
+    use Array_Utilities
+    implicit none
+    double precision,                intent(in) :: tCosmological
+    double precision,                parameter  :: toleranceAbsolute=1.0d-5, toleranceRelative=1.0d-5
+    integer                                     :: iTime
+    logical                                     :: resetIntegration
+    type(c_ptr)                                 :: parameterPointer
+    type(fgsl_function)                         :: integrandFunction
+    type(fgsl_integration_workspace)            :: integrationWorkspace
+
+    ! Find minimum and maximum times to tabulate.
+    distanceTableTimeMinimum=min(distanceTableTimeMinimum,0.5d0*tCosmological)
+    distanceTableTimeMaximum=Cosmology_Age_Matter_Lambda(1.0d0)
+ 
+    ! Determine number of points to tabulate.
+    distanceTableNumberPoints=int(dlog10(distanceTableTimeMaximum/distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade))+1
+ 
+    ! Deallocate arrays if currently allocated.
+    if (allocated(distanceTableTime                   )) call Dealloc_Array(distanceTableTime                   )
+    if (allocated(distanceTableComovingDistance       )) call Dealloc_Array(distanceTableComovingDistance       )
+    if (allocated(distanceTableComovingDistanceNegated)) call Dealloc_Array(distanceTableComovingDistanceNegated)
+    ! Allocate the arrays to current required size.
+    call Alloc_Array(distanceTableTime                   ,[distanceTableNumberPoints])
+    call Alloc_Array(distanceTableComovingDistance       ,[distanceTableNumberPoints])
+    call Alloc_Array(distanceTableComovingDistanceNegated,[distanceTableNumberPoints])
+    
+    ! Create the range of times.
+    distanceTableTime=Make_Range(distanceTableTimeMinimum,distanceTableTimeMaximum,distanceTableNumberPoints,rangeTypeLogarithmic)
+
+    ! Integrate to get the comoving distance.
+    resetIntegration=.true.
+    do iTime=1,distanceTableNumberPoints
+       distanceTableComovingDistance(iTime)=Integrate(distanceTableTime(iTime),distanceTableTime(distanceTableNumberPoints) &
+            &,Comoving_Distance_Integrand,parameterPointer,integrandFunction ,integrationWorkspace,toleranceAbsolute&
+            &=toleranceAbsolute ,toleranceRelative=toleranceRelative,reset=resetIntegration)
+    end do
+    ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
+    distanceTableComovingDistanceNegated=-distanceTableComovingDistance
+    ! Reset interpolators.
+    call Interpolate_Done(interpolationObjectDistance       ,interpolationAcceleratorDistance       ,resetInterpolationDistance       )
+    call Interpolate_Done(interpolationObjectDistanceInverse,interpolationAcceleratorDistanceInverse,resetInterpolationDistanceInverse)
+    resetInterpolationDistance       =.true.
+    resetInterpolationDistanceInverse=.true.
+    
+    ! Flag that the table is now initialized.
+    distanceTableInitialized=.true.
+    return
+  end subroutine Make_Distance_Table
+  
+  function Comoving_Distance_Integrand(time,parameterPointer) bind(c)
+    !% Integrand function used in computing the comoving distance.
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Astronomical
+    implicit none
+    real(c_double)          :: Comoving_Distance_Integrand
+    real(c_double), value   :: time
+    type(c_ptr),    value   :: parameterPointer
+
+    Comoving_Distance_Integrand=speedLight*gigaYear/megaParsec/Expansion_Factor_Matter_Lambda(time)
+    return
+  end function Comoving_Distance_Integrand
 
   !# <galacticusStateStoreTask>
   !#  <unitName>Cosmology_Matter_Lambda_State_Store</unitName>
