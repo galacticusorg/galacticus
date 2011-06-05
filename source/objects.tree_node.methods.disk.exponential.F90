@@ -96,8 +96,10 @@ module Tree_Node_Methods_Exponential_Disk
   ! Flag to indicate if this method is selected.
   logical :: methodSelected=.false.
 
-contains
+  ! Parameters controlling the physical implementation.
+  double precision :: diskMassToleranceAbsolute
 
+contains
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Exponential_Disk_Initialize</unitName>
@@ -221,6 +223,17 @@ contains
        else
           call Galacticus_Error_Report('Tree_Node_Methods_Exponential_Disk_Initialize','expected to find unclaimed hot halo cooling abundances pipe')
        end if
+
+       ! Read parameters controlling the physical implementation.
+       !@ <inputParameter>
+       !@   <name>diskMassToleranceAbsolute</name>
+       !@   <defaultValue>$10^{-6} M_\odot$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The mass tolerance used to judge whether the disk is physically plausible.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskMassToleranceAbsolute',diskMassToleranceAbsolute,defaultValue=1.0d-6)
 
     end if
     return
@@ -837,7 +850,7 @@ contains
           call Tree_Node_Disk_Stellar_Properties_History_Set(hostNode,hostHistory)
           call thisHistory%reset()
           call Tree_Node_Disk_Stellar_Properties_History_Set(thisNode,thisHistory)
-      case (movesToSpheroid)
+       case (movesToSpheroid)
           call Tree_Node_Spheroid_Stellar_Mass_Set                (hostNode, Tree_Node_Spheroid_Stellar_Mass        (hostNode)     &
                &                                                            +Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)    )
           call Tree_Node_Spheroid_Stellar_Abundances              (hostNode, hostAbundances                                       )
@@ -888,6 +901,8 @@ contains
        componentMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
     case (massTypeGaseous)
        componentMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
+    case (massTypeStellar)
+       componentMass=Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
     end select
     ! Return if no mass.
     if (componentMass <= 0.0d0)                         return
@@ -991,6 +1006,8 @@ contains
        componentDensity=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)+Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
     case (massTypeGaseous)
        componentDensity=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
+    case (massTypeStellar)
+       componentDensity=Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
     end select
     ! Return if no density.
     if (componentDensity <= 0.0d0) return
@@ -1014,9 +1031,13 @@ contains
 
     ! Return immediately if our method is not selected.
     if (.not.methodSelected) return
-
-    if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) < 0.0d0 .or.&
-         & Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) galaxyIsPhysicallyPlausible=.false.
+    
+    if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) < -diskMassToleranceAbsolute) then
+       galaxyIsPhysicallyPlausible=.false.
+    else
+       if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) > 0.0d0 .and.&
+            & Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) galaxyIsPhysicallyPlausible=.false.
+    end if
     return
   end subroutine Exponential_Disk_Radius_Solver_Plausibility
   

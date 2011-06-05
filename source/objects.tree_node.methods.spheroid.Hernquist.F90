@@ -99,12 +99,18 @@ module Tree_Node_Methods_Hernquist_Spheroid
   !# <treeNodePipePointer>
   !#  <pipeName>Tree_Node_Spheroid_Gas_Sink</pipeName>
   !# </treeNodePipePointer>
+  !# <treeNodePipePointer>
+  !#  <pipeName>Tree_Node_Spheroid_Gas_Energy_Input</pipeName>
+  !# </treeNodePipePointer>
 
   ! Flag to indicate if this method is selected.
-  logical :: methodSelected=.false.
+  logical          :: methodSelected=.false.
+
+  ! Parameters controlling the physical implementation.
+  double precision :: spheroidEnergeticOutflowMassRate
+  double precision :: spheroidMassToleranceAbsolute
 
 contains
-
 
   !# <treeNodeCreateInitialize>
   !#  <unitName>Tree_Node_Methods_Hernquist_Spheroid_Initialize</unitName>
@@ -213,7 +219,28 @@ contains
        Tree_Node_Spheroid_Stellar_Properties_History_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy
 
        ! Associate pipes with procedures.
-       Tree_Node_Spheroid_Gas_Sink => Tree_Node_Spheroid_Gas_Sink_Rate_Adjust_Hernquist
+       Tree_Node_Spheroid_Gas_Sink                                => Tree_Node_Spheroid_Gas_Sink_Rate_Adjust_Hernquist
+       Tree_Node_Spheroid_Gas_Energy_Input                        => Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Hernquist
+
+       ! Read parameters controlling the physical implementation.
+       !@ <inputParameter>
+       !@   <name>spheroidEnergeticOutflowMassRate</name>
+       !@   <defaultValue>1.0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\rm spheroid}^2$.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidEnergeticOutflowMassRate',spheroidEnergeticOutflowMassRate,defaultValue=1.0d0)
+       !@ <inputParameter>
+       !@   <name>spheroidMassToleranceAbsolute</name>
+       !@   <defaultValue>$10^{-6} M_\odot$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The mass tolerance used to judge whether the spheroid is physically plausible.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidMassToleranceAbsolute',spheroidMassToleranceAbsolute,defaultValue=1.0d-6)
 
     end if
     return
@@ -307,6 +334,62 @@ contains
     end if
     return
   end subroutine Tree_Node_Spheroid_Gas_Sink_Rate_Adjust_Hernquist
+
+  subroutine Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment)
+    !% Handles input of energy into the spheroid gas from other components (e.g. black holes). The energy input rate should be in
+    !% units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
+    use Galacticus_Error
+    implicit none
+    type(treeNode),   pointer, intent(inout)              :: thisNode
+    logical,                   intent(inout)              :: interrupt
+    procedure(),      pointer, intent(inout)              :: interruptProcedure
+    double precision,          intent(in)                 :: rateAdjustment
+    double precision,          dimension(abundancesCount) :: abundancesOutflowRate
+    integer                                               :: thisIndex
+    double precision                                      :: gasMass,stellarMass,massOutflowRate,angularMomentumOutflowRate&
+         &,spheroidVelocity
+
+    ! If no Hernquist spheroid component currently exists then energy input to it has no effect.
+    if (.not.thisNode%componentExists(componentIndex)) return
+
+    ! Trap cases where an attempt is made to remove energy via this input function.
+    if (rateAdjustment < 0.0d0) call Galacticus_Error_Report('Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Hernquist' &
+         & ,'attempt to remove energy via input pipe in Hernquist spheroid')
+    
+    ! Return if no adjustment is being made.
+    if (rateAdjustment == 0.0d0) return
+    ! Get the index of the component.
+    thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)    
+    ! Get the gas mass present.
+    gasMass    =thisNode%components(thisIndex)%properties(gasMassIndex    ,propertyValue)
+    ! Get the stellar mass present.
+    stellarMass=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+    ! If gas is present, adjust the rates.
+    if (gasMass > 0.0d0) then
+       ! Compute outflow rates of quantities and adjust rates in the spheroid appropriately.
+       spheroidVelocity=Hernquist_Spheroid_Velocity(thisNode)
+       if (spheroidVelocity > 0.0d0) then
+          massOutflowRate=spheroidEnergeticOutflowMassRate*rateAdjustment/spheroidVelocity**2
+          thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative) &
+               &=thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative)-massOutflowRate
+          angularMomentumOutflowRate=massOutflowRate/(gasMass+stellarMass) &
+               & *thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)
+          thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative)&
+               &=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative) &
+               & -angularMomentumOutflowRate
+          abundancesOutflowRate=(massOutflowRate/gasMass) &
+               & *thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)
+          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
+               &=thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative) & 
+               & -abundancesOutflowRate
+          ! Add outflowing rates to the hot halo component.
+          call Tree_Node_Hot_Halo_Outflow_Mass_To            (thisNode,interrupt,interruptProcedure,massOutflowRate           )
+          call Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To(thisNode,interrupt,interruptProcedure,angularMomentumOutflowRate)
+          call Tree_Node_Hot_Halo_Outflow_Abundances_To      (thisNode,interrupt,interruptProcedure,abundancesOutflowRate     )
+       end if
+    end if
+    return
+  end subroutine Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Hernquist
 
   subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment)
     !% Return the node Hernquist spheroid gas mass rate of change.
@@ -980,6 +1063,8 @@ contains
        componentMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
     case (massTypeGaseous)
        componentMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
+    case (massTypeStellar)
+       componentMass=Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
     end select
     ! Return if total mass was requested.  
     if (radius >= radiusLarge)                          return
@@ -1039,6 +1124,8 @@ contains
        componentDensity=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
     case (massTypeGaseous)
        componentDensity=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
+    case (massTypeStellar)
+       componentDensity=Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
     end select
     ! Return if density is zero.
     if (componentDensity <= 0.0d0) return
@@ -1060,8 +1147,14 @@ contains
     ! Return immediately if our method is not selected.
     if (.not.methodSelected) return
 
-    if (Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode) < 0.0d0 .or.&
-         & Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode) < 0.0d0) galaxyIsPhysicallyPlausible=.false.
+    if (Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode) < -spheroidMassToleranceAbsolute) then
+       galaxyIsPhysicallyPlausible=.false.
+    else
+       if (Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode) >&
+            & spheroidMassToleranceAbsolute .and. Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode) < 0.0d0)&
+            & galaxyIsPhysicallyPlausible=.false.
+    end if
+
     return
   end subroutine Hernquist_Spheroid_Radius_Solver_Plausibility
 
@@ -1084,6 +1177,7 @@ contains
 
     ! Determine if thisNode has an active spheroid component supported by this module.    
     componentActive=methodSelected
+
     if (methodSelected) componentActive=thisNode%componentExists(componentIndex)    
     if (componentActive) then
        ! Get the angular momentum.

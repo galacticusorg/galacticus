@@ -64,6 +64,8 @@ module Tree_Node_Methods_Black_Hole
   ! Temperature of accreting gas.
   double precision :: bondiHoyleAccretionTemperatureSpheroid
 
+  ! Feedback parameters.
+  double precision :: blackHoleWindEfficiency
 
   ! Quantities stored to avoid repeated computation.
   logical          :: gotAccretionRate=.false.
@@ -156,6 +158,17 @@ contains
        call Get_Input_Parameter("bondiHoyleAccretionTemperatureSpheroid",bondiHoyleAccretionTemperatureSpheroid,defaultValue&
             &=1.0d4)
 
+       ! Get temperature of accreting gas.
+       !@ <inputParameter>
+       !@   <name>blackHoleWindEfficiency</name>
+       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The efficiency of the black hole-driven wind: $L_{\rm wind} = \epsilon_{\rm wind} \dot{M}_\bullet \clight^2$.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=1.0d-3)
+
     end if
     return
   end subroutine Tree_Node_Methods_Black_Hole_Initialize
@@ -219,16 +232,34 @@ contains
   subroutine Tree_Node_Black_Hole_Mass_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
     !% Compute the black hole node mass rate of change.
     use Accretion_Disks
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Math
+    use Numerical_Constants_Astronomical
+    use Tree_Node_Methods
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
-    procedure(),    pointer                :: interruptProcedurePassed
-    double precision                       :: restMassAccretionRate,massAccretionRate
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    procedure(),      pointer                :: interruptProcedurePassed
+    double precision, parameter              :: windVelocity=1.0d4   ! Velocity of disk wind.
+    double precision, parameter              :: ismTemperature=1.0d4 ! Temperature of the ISM.
+    double precision, parameter              :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0&
+         &/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
+    double precision                         :: restMassAccretionRate,massAccretionRate,radiativeEfficiency,energyInputRate &
+         &,spheroidDensity,spheroidGasMass,spheroidRadius,criticalDensity,windFraction,spheroidDensityOverCriticalDensity
 
-    ! Find the rate of increase of the black hole mass.
+    ! Find the rate of rest mass accretion onto the black hole.
     restMassAccretionRate=Mass_Accretion_Rate(thisNode)
-    massAccretionRate=restMassAccretionRate*(1.0d0-Accretion_Disk_Radiative_Efficiency(thisNode,restMassAccretionRate))
+
+    ! Finish if there is no accretion.
+    if (restMassAccretionRate <= 0.0d0) return
+
+    ! Find the radiative efficiency of the accretion.
+    radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,restMassAccretionRate)
+
+    ! Find the rate of increase in mass of the black hole.
+    massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency)
 
     ! If no black hole component currently exists and we have some accretion then interrupt and create a black hole.
     if (.not.thisNode%componentExists(componentIndex)) then    
@@ -238,14 +269,42 @@ contains
        end if
        return
     end if
-    call Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,massAccretionRate)
+    call Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure, massAccretionRate   )
 
     ! Remove the accreted mass from the spheroid component.
-    call Tree_Node_Spheroid_Gas_Sink(thisNode,interrupt,interruptProcedure,-accretionRate)
+    call Tree_Node_Spheroid_Gas_Sink                   (thisNode,interrupt,interruptProcedure,-accretionRate       )
 
     ! Remove the accreted mass from the hot halo component.
-    call Tree_Node_Hot_Halo_Hot_Gas_Sink(thisNode,interrupt,interruptProcedure,-accretionRateHotHalo)
+    call Tree_Node_Hot_Halo_Hot_Gas_Sink               (thisNode,interrupt,interruptProcedure,-accretionRateHotHalo)
 
+    ! Add energy to the spheroid component.
+    if (blackHoleWindEfficiency > 0.0d0) then
+       spheroidGasMass=Tree_Node_Spheroid_Gas_Mass(thisNode)
+       if (spheroidGasMass > 0.0d0) then
+          spheroidRadius=Tree_Node_Spheroid_Radius(thisNode)
+          if (spheroidRadius > 0.0d0) then
+             spheroidDensity=3.0d0*spheroidGasMass/4.0d0/Pi/spheroidRadius**3
+             criticalDensity=criticalDensityNormalization*blackHoleWindEfficiency*restMassAccretionRate/spheroidRadius**2
+             
+             ! Construct an interpolating factor such that the energy input from the wind drops to zero below half of the critical density.
+             spheroidDensityOverCriticalDensity=spheroidDensity/criticalDensity-0.5d0
+             if (spheroidDensityOverCriticalDensity <= 0.0d0) then
+                ! No energy input below half of critical density.
+                windFraction=0.0d0
+             else if (spheroidDensityOverCriticalDensity >= 1.0d0) then
+                ! Full energy input above 1.5 times critical density.
+                windFraction=1.0d0
+             else
+                ! Smooth polynomial interpolating function between these limits.
+                windFraction=3.0d0*spheroidDensityOverCriticalDensity**2-2.0d0*spheroidDensityOverCriticalDensity**3
+             end if
+             
+             ! Compute the energy input and send it down the spheroid gas energy input pipe.
+             energyInputRate=windFraction*blackHoleWindEfficiency*restMassAccretionRate*(speedLight/kilo)**2
+             call Tree_Node_Spheroid_Gas_Energy_Input(thisNode,interrupt,interruptProcedure,energyInputRate)
+          end if
+       end if
+    end if
     return
   end subroutine Tree_Node_Black_Hole_Mass_Rate_Compute_Standard
 
@@ -439,6 +498,7 @@ contains
           if (gasDensity > 0.0d0) then
              ! Get the Jeans length scale.
              jeansLength=Ideal_Gas_Jeans_Length(bondiHoyleAccretionTemperatureSpheroid,gasDensity)
+
              ! If the Jeans length exceeds the Bondi-Hoyle-Lyttleton accretion radius, then recompute gas density for a larger
              ! radius, as the gas should be smoothly distributed on scales below the Jeans length.
              if (jeansLength > accretionRadius) then
@@ -499,7 +559,8 @@ contains
           end if
 
        else
-          accretionRate=0.0d0
+          accretionRate       =0.0d0
+          accretionRateHotHalo=0.0d0
        end if
        gotAccretionRate=.true.
     end if
