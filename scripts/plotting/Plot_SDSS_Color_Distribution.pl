@@ -125,9 +125,11 @@ $gnuPlotVersionString = `gnuplot -V`;
 unless ( $gnuPlotVersionString =~ m/^gnuplot\s+(\d)+\.(\d)+\s+patchlevel\s+(\d+)/ ) {die ("Plot_SDSS_Colors_Distribution.pl: unable to determine GnuPlot version")};
 @gnuPlotVersion = ( $1, $2, $3 );
 if ( $gnuPlotVersion[0] < 4 || $gnuPlotVersion[0] == 4 && $gnuPlotVersion[1] <= 2 ) {
+    $gnuPlotNew = 0;
     print pHndl "set terminal table\n";
     print pHndl "set output 'contour.dat'\n";
 } else {
+    $gnuPlotNew = 1;
     print pHndl "set table 'contour.dat'\n";
 }
 print pHndl "unset surface\n";
@@ -140,7 +142,7 @@ for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     print pHndl "\n" unless ( $iMagnitude == $magnitudePoints-1 );
 }
 print pHndl "e\n";
-print pHndl "unset table\n";
+print pHndl "unset table\n" if ( $gnuPlotNew == 1);
 close(pHndl);
 system("awk \"NF<2{printf\\\"\\n\\\"}{print}\" <contour.dat >contour1.dat");
 
