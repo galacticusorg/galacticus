@@ -25,11 +25,17 @@ undef(%includeDirectives);
 foreach $srcdir ( @sourcedirs ) {
     opendir(indir,$srcdir) or die "Can't open the source directory: #!";
     while ($fname = readdir indir) {	
-	if ( $fname =~ m/\.[fF](90)??t??$/ && $fname !~ m/^\.\#/ ) {
+	if (
+	    ( $fname =~ m/\.[fF](90)??t??$/ || $fname =~ m/\.c(pp)??$/ || $fname =~ m/\.h$/ )
+	    && $fname !~ m/^\.\#/
+	    ) {
 	    $fullname = $srcdir."/".$fname;
 	    open(infile,$fullname) or die "Can't open input file: #!";
 	    while ($line = <infile>) {
-		if ( $line =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
+		if (
+		    $line =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
+		    || $line =~ m/^\s*\/\/\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
+		    ) {
 		    $xmlCode = $1."\n";
 		    $xmlTag  = $2;
 		    # Read ahead until a matching close tag is found.
@@ -38,6 +44,7 @@ foreach $srcdir ( @sourcedirs ) {
 			until ( $nextLine =~ m/<\/$xmlTag>/ || eof(infile) ) {
 			    $nextLine = <infile>;
 			    $nextLine =~ s/^\s*!\#\s+//;
+			    $nextLine =~ s/^\s*\/\/\#\s+//;
 			    $xmlCode .= $nextLine;
 			}
 		    }
@@ -50,7 +57,7 @@ foreach $srcdir ( @sourcedirs ) {
 		    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>$xmlTag);
 		    switch ( $xmlTag ) {
 			case ( "include" ) {
-			    if ( ${$data}{'content'} =~ m/^\s*include\s*["'](.+)["']/i ) {
+			    if ( ${$data}{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/i ) {
 				($fileName = "work/build/".$1) =~ s/\.inc$/\.Inc/;
 				${$data}{'fileName'} = $fileName;
 			    }

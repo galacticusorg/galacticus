@@ -40,7 +40,7 @@ foreach $srcdir ( @sourcedirs ) {
     opendir(indir,$srcdir) or die "Can't open the source directory: #!";
     while (my $fname = readdir indir) {
 	
-	if ( lc($fname) =~ m/\.f(90)??t??$/ && lc($fname) !~ m/^\.\#/ ) {
+	if ( ( lc($fname) =~ m/\.f(90)??t??$/ || lc($fname) =~ m/\.c(pp)??$/ || lc($fname) =~ m/\.h??$/ ) && lc($fname) !~ m/^\.\#/ ) {
 	    my $pname = $fname;
 	    my $fullname = "$srcdir/$fname";
 	    my $doesio = 0;
@@ -55,10 +55,12 @@ foreach $srcdir ( @sourcedirs ) {
 	    $oname =~ s/\.F90t$/\.o/;
 	    $oname =~ s/\.f$/\.o/;
 	    $oname =~ s/\.F$/\.o/;
+	    $oname =~ s/\.c(pp)$/\.o/;
+	    $oname =~ s/\.h$/\.o/;
 	    @incfiles = ();
 	    while (my $line = <infile>) {
 # Locate any lines which use the "include" statement and extract the name of the file they include
-		if ( $line =~ m/^\s*#??include\s*['"](.+\.inc\d*)['"]/ ) {
+		if ( $line =~ m/^\s*#??include\s*['"](.+\.(inc|h)\d*)['"]/ ) {
 		     my $incfile = $1." ";
 		     if ( $hasincludes == 0 ) {$hasincludes = 1};
 		     @incfiles = ( @incfiles, $incfile);
