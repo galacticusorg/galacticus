@@ -81,7 +81,7 @@ module Radiation_Structure
   type radiationStructure
      !% The radiation structure data type, used to describe radiation fields.
      private
-     double precision                               :: temperatureCosmicMicrowaveBackground
+     double precision                               :: timeValue
      integer,             allocatable, dimension(:) :: radiationType
      type(radiationData), allocatable, dimension(:) :: components
    contains
@@ -120,10 +120,15 @@ module Radiation_Structure
      !@       the wavelengths given in {\tt wavelengthRange} over a cross section specified by the function {\tt crossSectionFunction}.
      !@     </description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>time</method>
+     !@     <description>The cosmic time at which this radiation object was set.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: temperature               => Radiation_Temperature
      procedure :: flux                      => Radiation_Flux
      procedure :: integrateOverCrossSection => Radiation_Integrate_Over_Cross_Section
+     procedure :: time                      => Radiation_Time
   end type radiationStructure
 
   ! Module global variables for use in integrand routines.
@@ -190,6 +195,9 @@ contains
     ! For an unallocated radiation object, return immediately.
     if (.not.allocated(radiation%radiationType)) return
 
+    ! Set the time.
+    radiation%timeValue=Tree_Node_Time(thisNode)
+
     ! Loop over all radiation components.
     do iComponent=1,size(radiation%radiationType)
        ! Call the appropriate routine to set the component.
@@ -200,6 +208,19 @@ contains
     end do
     return
   end subroutine Radiation_Set
+
+  double precision function Radiation_Time(radiation)
+    !% Return the time of the {\tt radiation} object.
+    implicit none
+#ifdef GCC45
+    class(radiationStructure), intent(in) :: radiation
+#else
+    type(radiationStructure),  intent(in) :: radiation
+#endif
+
+    Radiation_Time=radiation%timeValue
+    return
+  end function Radiation_Time
 
   double precision function Radiation_Temperature(radiation,radiationType)
     !% Return the temperature of the {\tt radiation} object.
