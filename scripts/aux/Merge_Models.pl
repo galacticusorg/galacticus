@@ -3,6 +3,7 @@ use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::IO::HDF5::Group;
+use Switch;
 use Data::Dumper;
 
 # Merges Galacticus models.
@@ -11,6 +12,9 @@ use Data::Dumper;
 if ($#ARGV < 1) {die("Usage: Merge_Models.pl <model1> ...... <outputModel>")};
 @mergeFileNames = @ARGV[0..$#ARGV-1];
 $outputFileName = $ARGV[$#ARGV];
+
+# Quit if output file already exists.
+die ("Merge_Models.pl: output file already exists") if ( -e $outputFileName );
 
 # Open all files.
 print "-> Opening output file: ".$outputFileName."\n";
@@ -26,12 +30,7 @@ foreach $groupName ( "Parameters", "Version" ) {
     # Open the groups.
     $group    = $mergeFiles[0]->group($groupName);
     $newGroup = $outputFile   ->group($groupName);
-    # Read and write the attributes.
-    @attributes = $group->attrs();
-    foreach $attribute ( @attributes ) {
-	@attrValue = $group->attrGet($attribute);
-	$newGroup->attrSet($attribute => $attrValue[0]);
-    }
+    &Copy_Attributes($group,$newGroup);
 }
 
 # Copy output group attributes.
@@ -41,11 +40,7 @@ $outputsGroup = $mergeFiles[0]->group("Outputs");
 foreach $outputGroupName ( @outputGroups ) {
     $outputGroup    = $outputsGroup->group($outputGroupName);
     $newOutputGroup = $outputFile->group("Outputs")->group($outputGroupName);
-    @attributes     = $outputGroup->attrs();
-    foreach $attribute ( @attributes ) {
-	@attrValue = $outputGroup->attrGet($attribute);
-	$newOutputGroup->attrSet($attribute => $attrValue[0]);
-    }
+    &Copy_Attributes($outputGroup,$newOutputGroup);
 }
 
 # Modify the parameters to reflect that this is now a complete model.
@@ -92,6 +87,12 @@ foreach $outputGroup ( @outputGroups ) {
 						  );
 	# Write the new dataset back to the output file.
 	$newDataset->set($newDatasetValues);
+
+	# Copy any attributes to the new dataset.
+	$thisDataset = $mergeFiles[0]->group("Outputs")->group($outputGroup)->group("nodeData")->dataset($dataset);
+	&Copy_Attributes($thisDataset,$newDataset);
+
+
     }
 }
 
@@ -136,6 +137,7 @@ foreach $outputGroup ( @outputGroups ) {
 }
 
 # Create references for each tree.
+print "-> Creating merger tree references\n";
 # Get the Outputs group.
 $outputsGroup = $outputFile->group("Outputs");
 # Get a list of subgroups to search.
@@ -169,104 +171,138 @@ foreach $outputGroup ( @outputGroups ) {
     }
 }
 
-# Hash of groups that contain trees.
-%groupsWithTrees = (
-		    "mergerTreeStructures" => "."
-		    );
-
-# Loop over all files to merge, scan for groups containing trees and merge into the output file.
-foreach $mergeFile ( @mergeFiles ) {
-    # Get list of all groups in root group.
-    @rootGroups = $mergeFile->groups;
-    # Loop over all groups in root group.
-    foreach $rootGroup ( @rootGroups ) {
-	# Test if this group may contain trees.
-	if ( exists($groupsWithTrees{$rootGroup}) ) {
-	    print "-> Combining trees in ".$rootGroup." group\n";
-	    # Get the group in the merging and output files.
-	    $outputsGroup    = $mergeFile->group($rootGroup);
-	    $newOutputsGroup = $outputFile->group($rootGroup);
-	    # Get a list of subgroups to search.
-	    if ( $groupsWithTrees{$rootGroup} eq "." ) {
-		undef(@outputGroups);
-		@outputGroups[0] = $outputsGroup;
-	    } else {
-		@outputGroups    = $outputsGroup->groups;
-	    }
-	    # Loop over subgroups.
-	    foreach $outputGroup ( @outputGroups ) {
-		# Get groups into which trees will be stored.
-		if ( $groupsWithTrees{$rootGroup} eq "." ) {
-		    $thisOutputGroup = $outputsGroup;
-		    $newOutputGroup  = $newOutputsGroup;
-		} else {
-		    $thisOutputGroup = $outputsGroup->group($outputGroup);
-		    $newOutputGroup  = $newOutputsGroup->group($outputGroup);
+# Other datasets.
+%outputRules = (
+    globalHistory => {
+	"^historyExpansion\$"                                 => "singleCopy",
+	"^historyTime\$"                                      => "singleCopy",
+	"^historyGasDensity\$"                                => "cumulate",
+	"^historyNodeDensity\$"                               => "cumulate",
+	"^historyStellarDensity\$"                            => "cumulate",
+	"^historyStarFormationRate\$"                         => "cumulate"
+    },
+    haloModel => {
+	"^powerSpectrum\$"                                    => "singleCopy",
+	"^wavenumber\$"                                       => "singleCopy",
+	"^Output\\d+\\/mergerTree\\d+\\/fourierProfile\\d+\$" => "copy"
+    },
+    massAccretionHistories => {
+	"^mergerTree\\d+\\/node*"                             => "copy"
+    },
+    mergerTreeStructures => {
+	"^mergerTree\\d+\\/*"                                 => "copy"
+    }
+    );
+foreach $outputGroup ( keys(%outputRules) ) {
+    # Write message.
+    print "-> Checking for group ".$outputGroup."\n";
+    $foundGroup = 0;
+    # Loop over all merge files.
+    $isFirstFile = 1;
+    foreach $mergeFile ( @mergeFiles ) {
+        # Place the base group on a stack.
+	@groupStack = ( $outputGroup );
+	# Process groups until none remain.
+	while ( $#groupStack >= 0 ) {
+	    # Pop a group from the stack.
+	    $thisGroup = shift @groupStack;
+	    # Get a list of groups.
+	    @groups = $mergeFile->group($thisGroup)->groups;
+	    # Ensure all groups exist.
+	    foreach $group ( @groups ) {
+		$parentGroup = $outputFile->group($thisGroup);
+		unless ( $testID = $parentGroup->group($group)->IDget ) {
+		    $newGroup = new PDL::IO::HDF5::Group( name    => $group,
+							  parent  => $parentGroup,
+							  fileObj => $outputFile
+			);
+		    $originalGroup = $mergeFile->group($thisGroup);
+		    &Copy_Attributes($originalGroup,$newGroup);		    
 		}
-		# Get a list of trees to merge.
-		@treeGroups = $thisOutputGroup->groups;
-		# Loop over trees.
-		foreach $treeGroup ( @treeGroups ) {
-		    # Get tree from merge file.
-		    $thisTree = $thisOutputGroup->group($treeGroup);
-		    # Create group for tree in output file.
-		    $newTree = new PDL::IO::HDF5::Group( name    => $treeGroup,
-							 parent  => $newOutputGroup,
-							 fileObj => $outputFile
-							 );
-		    # Get a list of datasets in this tree.
-		    @datasets = $thisTree->datasets;
-		    foreach $dataset ( @datasets ) {
-			# Get the dataset.
-			$thisDataset = $thisTree->dataset($dataset);
-			$datasetValues = $thisDataset->get;
-			# Create a new dataset in the output file.
+	    }
+	    # Push groups to the stack.
+	    push(@groupStack,map {$thisGroup."/".$_} @groups);
+	    # Get list of datasets.
+	    @datasets = $mergeFile->group($thisGroup)->datasets;
+	    # Loop over all datasets.
+	    foreach $dataset ( @datasets ) {
+		# Write a message.
+		print "  -> processing\n" if ( $foundGroup == 0 );
+		$foundGroup = 1;
+		# Check for a match to an instruction.
+		%instructions = %{$outputRules{$outputGroup}};
+		$action = "";
+		($fullPath = $thisGroup) =~ s/^$outputGroup//;
+		($fullPath .= "/".$dataset) =~ s/^\///;
+		foreach $instruction ( keys(%instructions) ) {
+		    $action = $instructions{$instruction} if ( $fullPath =~ m/$instruction/ );
+		}
+		switch ($action) {
+		    case ( "singleCopy" ) {
+			if ( $isFirstFile == 1 ) {
+			    $thisGroupObject = $outputFile->group($thisGroup);
+			    $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+								      parent  => $thisGroupObject,
+								      fileObj => $outputFile
+				);
+			    $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
+			    $datasetValues = $originalDataset->get;
+			    $newDataset->set($datasetValues);
+			    &Copy_Attributes($originalDataset,$newDataset);
+			}
+		    }
+		    case ( "copy" ) {
+			$thisGroupObject = $outputFile->group($thisGroup);
 			$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
-								  parent  => $newTree,
+								  parent  => $thisGroupObject,
 								  fileObj => $outputFile
-								  );
+			    );
+			$originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
+			$datasetValues = $originalDataset->get;
 			$newDataset->set($datasetValues);
+			&Copy_Attributes($originalDataset,$newDataset);
+		    }
+		    case ( "cumulate" ) {
+			$thisGroupObject = $outputFile->group($thisGroup);
+			$originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
+			$datasetValues = $originalDataset->get;
+			if ( $isFirstFile == 1 ) {
+			    $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+								      parent  => $thisGroupObject,
+								      fileObj => $outputFile
+				);
+			} else {
+			    $newDataset = $thisGroupObject->dataset($dataset);
+			    $datasetValues += $newDataset->get;
+			}
+			$newDataset->set($datasetValues);
+			&Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
 		    }
 		}
 	    }
 	}
-    }
-}
 
-# Cumulate global histories from all files.
-@histories = ( "historyGasDensity", "historyNodeDensity", "historyStellarDensity", "historyStarFormationRate" );
-# Loop over histories.
-print "-> Combining histories\n";
-$newHistoryGroup = $outputFile->group("globalHistory");
-foreach $history ( @histories ) {
-    # Add datasets from all files to merge.
-    undef($newDataValues);
-    foreach $mergeFile ( @mergeFiles ) {
-	$dataValues     = $mergeFile->dataset("globalHistory/".$history)->get;
-	$newDataValues += $dataValues;
+        # Mark that we have processed the first file.
+	$isFirstFile = 0;
+
     }
-    # Store in output file.
-    $newDataset = new PDL::IO::HDF5::Dataset( name    => $history,
-					      parent  => $newHistoryGroup,
-					      fileObj => $outputFile
-					      );
-    $newDataset->set($newDataValues);
-}
-# Non-cumulative history datasets.
-@histories = ( "historyExpansion", "historyTime" );
-$newHistoryGroup = $outputFile->group("globalHistory");
-foreach $history ( @histories ) {
-    # Copy dataset from first file to merge.
-    $newDataValues = $mergeFiles[0]->dataset("globalHistory/".$history)->get;
-    # Store in output file.
-    $newDataset = new PDL::IO::HDF5::Dataset( name    => $history,
-					      parent  => $newHistoryGroup,
-					      fileObj => $outputFile
-					      );
-    $newDataset->set($newDataValues);
 }
 
 # Write completion messsage.
 print "-> Done\n";
 
 exit;
+
+sub Copy_Attributes {
+    # Copy all attributes from an object in the input files to the output file.
+    # Get the objects from and to.
+    $objectFrom = shift;
+    $objectTo   = shift;
+  
+    # Copy all attributes.
+    @attributes = $objectFrom->attrs();
+    foreach $attribute ( @attributes ) {
+	@attrValue = $objectFrom->attrGet($attribute);
+	$objectTo->attrSet($attribute => $attrValue[0]);
+    }
+}
