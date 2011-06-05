@@ -62,13 +62,15 @@
 !% Contains a module that implements calculations of the hot halo gas density profile.
 
 module Hot_Halo_Density_Profile
+  !% Implements calculations of the hot halo gas density profile.
   use ISO_Varying_String
   use Tree_Nodes
   !# <include directive="hotHaloDensityMethod" type="moduleUse">
   include 'hot_halo.density_profile.modules.inc'
   !# </include>
   private
-  public :: Hot_Halo_Density, Hot_Halo_Density_Log_Slope
+  public :: Hot_Halo_Density, Hot_Halo_Density_Log_Slope, Hot_Halo_Enclosed_Mass, Hot_Halo_Profile_Density_Task,&
+       & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: hotHaloDensityInitialized=.false.
@@ -77,8 +79,9 @@ module Hot_Halo_Density_Profile
   type(varying_string) :: hotHaloDensityMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Get => null()
+  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Get           => null()
   procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Log_Slope_Get => null()
+  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Enclosed_Mass_Get     => null()
   abstract interface
      double precision function Hot_Halo_Density_Get_Template(thisNode,radius)
        import treeNode
@@ -110,11 +113,18 @@ contains
        call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='cored isothermal')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="hotHaloDensityMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get</subroutineArgs>
+       !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get</subroutineArgs>
        include 'hot_halo.density_profile.inc'
        !# </include>
-       if (.not.(associated(Hot_Halo_Density_Get).and.associated(Hot_Halo_Density_Log_Slope_Get))) call&
-            & Galacticus_Error_Report('Hot_Halo_Density_Initialize','method ' //char(hotHaloDensityMethod)//' is unrecognized')
+       if     (.not.(     associated(Hot_Halo_Density_Get          )                                 &
+            &        .and.associated(Hot_Halo_Density_Log_Slope_Get)                                 &
+            &        .and.associated(Hot_Halo_Enclosed_Mass_Get    )                                 &
+            &       )                                                                                &
+            & )                                                                                      &
+            & call Galacticus_Error_Report(                                                          &
+            &                               'Hot_Halo_Density_Initialize'                            &
+            &                              ,'method '//char(hotHaloDensityMethod)//' is unrecognized'&
+            &                             )
        hotHaloDensityInitialized=.true.
     end if
     !$omp end critical(Hot_Halo_Density_Initialization) 
@@ -150,5 +160,88 @@ contains
 
     return
   end function Hot_Halo_Density_Log_Slope
+
+  double precision function Hot_Halo_Enclosed_Mass(thisNode,radius)
+    !% Return the enclosed mass of the hot halo in {\tt thisNode} at radius {\tt radius}.
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+
+    ! Initialize the module if necessary.
+    call Hot_Halo_Density_Initialize
+
+    ! Get the cooling time using the selected method.
+    Hot_Halo_Enclosed_Mass=Hot_Halo_Enclosed_Mass_Get(thisNode,radius)
+    
+    return
+  end function Hot_Halo_Enclosed_Mass
+  
+  !# <enclosedMassTask>
+  !#  <unitName>Hot_Halo_Profile_Enclosed_Mass_Task</unitName>
+  !# </enclosedMassTask>
+  subroutine Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,componentMass)
+    !% Computes the mass within a given radius for a dark matter profile.
+    use Galactic_Structure_Options
+    use Cosmological_Parameters
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentMass
+
+    ! Return zero mass if the requested mass type or component is not matched.
+    componentMass=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
+
+    ! Return the enclosed mass.
+    componentMass=Hot_Halo_Enclosed_Mass(thisNode,radius)
+    return
+  end subroutine Hot_Halo_Profile_Enclosed_Mass_Task
+
+  !# <rotationCurveTask>
+  !#  <unitName>Hot_Halo_Profile_Rotation_Curve_Task</unitName>
+  !# </rotationCurveTask>
+  subroutine Hot_Halo_Profile_Rotation_Curve_Task(thisNode,radius,massType,componentType,componentVelocity)
+    !% Computes the rotation curve at a given radius for a dark matter profile.
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentVelocity
+    double precision                         :: componentMass
+
+    ! Set to zero by default.
+    componentVelocity=0.0d0
+
+    ! Compute if a spheroid is present.
+    if (radius > 0.0d0) then
+       call Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,componentMass)
+       if (componentMass > 0.0d0) componentVelocity=dsqrt(gravitationalConstantGalacticus*componentMass)/dsqrt(radius)
+    end if
+    return
+  end subroutine Hot_Halo_Profile_Rotation_Curve_Task
+
+  !# <densityTask>
+  !#  <unitName>Hot_Halo_Profile_Density_Task</unitName>
+  !# </densityTask>
+  subroutine Hot_Halo_Profile_Density_Task(thisNode,positionSpherical,massType,componentType,componentDensity)
+    !% Computes the density at a given position for a dark matter profile.
+    use Galactic_Structure_Options
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: positionSpherical(3)
+    double precision, intent(out)            :: componentDensity
+    
+    componentDensity=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
+
+    componentDensity=Hot_Halo_Density(thisNode,positionSpherical(1))
+    return
+  end subroutine Hot_Halo_Profile_Density_Task
 
 end module Hot_Halo_Density_Profile

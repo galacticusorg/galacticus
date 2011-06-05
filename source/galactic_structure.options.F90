@@ -78,11 +78,12 @@ module Galactic_Structure_Options
   integer,          parameter :: componentTypeDisk    =1
   integer,          parameter :: componentTypeSpheroid=2
   integer,          parameter :: componentTypeHotHalo =3
+  integer,          parameter :: componentTypeDarkHalo=4
 
   ! Coordinate system options.
-  integer,          parameter  :: coordinateSystemSpherical  =1
-  integer,          parameter  :: coordinateSystemCylindrical=2
-  integer,          parameter  :: coordinateSystemCartesian  =3
+  integer,          parameter :: coordinateSystemSpherical  =1
+  integer,          parameter :: coordinateSystemCylindrical=2
+  integer,          parameter :: coordinateSystemCartesian  =3
 
   ! Suitably large value to represent infinite radius.
   double precision, parameter :: radiusLarge=1.0d10

@@ -112,21 +112,23 @@ contains
   !# <darkMatterProfileMethod>
   !#  <unitName>Dark_Matter_Profile_NFW_Initialize</unitName>
   !# </darkMatterProfileMethod>
-  subroutine Dark_Matter_Profile_NFW_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get&
-       &,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get &
-       &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get&
-       &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get)
+  subroutine Dark_Matter_Profile_NFW_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get&
+       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get&
+       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
+       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
+       &,Dark_Matter_Profile_kSpace_Get)
     !% Initializes the ``NFW'' halo profile module.
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type(varying_string),          intent(in)    :: darkMatterProfileMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get&
-         &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
-         &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
-         &,Dark_Matter_Profile_kSpace_Get
+    type(varying_string),                 intent(in)    :: darkMatterProfileMethod
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
+         &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
+         &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
+         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get
     
     if (darkMatterProfileMethod == 'NFW') then
+       Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_NFW
        Dark_Matter_Profile_Energy_Get                                => Dark_Matter_Profile_Energy_NFW
        Dark_Matter_Profile_Energy_Growth_Rate_Get                    => Dark_Matter_Profile_Energy_Growth_Rate_NFW
        Dark_Matter_Profile_Rotation_Normalization_Get                => Dark_Matter_Profile_Rotation_Normalization_NFW
@@ -267,6 +269,24 @@ contains
     return
   end subroutine Dark_Matter_Profile_NFW_Inverse_Angular_Momentum
 
+  double precision function Dark_Matter_Profile_Density_NFW(thisNode,radius)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
+    !% in units of Mpc).
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius
+
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    radiusOverScaleRadius      =radius                                  /scaleRadius
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+    Dark_Matter_Profile_Density_NFW=Density_NFW_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
+         &*Tree_Node_Mass(thisNode)/scaleRadius**3
+    return
+  end function Dark_Matter_Profile_Density_NFW
+  
   double precision function Dark_Matter_Profile_Enclosed_Mass_NFW(thisNode,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).

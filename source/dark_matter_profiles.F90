@@ -68,8 +68,8 @@ module Dark_Matter_Profiles
   private
   public :: Dark_Matter_Profile_Rotation_Normalization, Dark_Matter_Profile_Energy, Dark_Matter_Profile_Energy_Growth_Rate,&
        & Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum,Dark_Matter_Profile_Circular_Velocity&
-       &,Dark_Matter_Profile_Potential,Dark_Matter_Profile_Enclosed_Mass,Dark_Matter_Profile_kSpace
-
+       &,Dark_Matter_Profile_Potential,Dark_Matter_Profile_Enclosed_Mass,Dark_Matter_Profile_kSpace,&
+       & Dark_Matter_Profile_Density_Task, Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Enclosed_Mass_Task
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: darkMatterProfileInitialized=.false.
@@ -79,8 +79,8 @@ module Dark_Matter_Profiles
 
   ! Pointer to the function that actually does the calculation.
   procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Rotation_Normalization_Get => null()
-  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Energy_Get => null()
-  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Energy_Growth_Rate_Get => null()
+  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Energy_Get                 => null()
+  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Energy_Growth_Rate_Get     => null()
   abstract interface
      double precision function Dark_Matter_Profile_Template(thisNode)
        import treeNode
@@ -93,6 +93,7 @@ module Dark_Matter_Profiles
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Potential_Get         => null()
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get     => null()
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_kSpace_Get            => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Density_Get           => null()
   abstract interface
      double precision function Dark_Matter_Profile_Parameter_Template(thisNode,inputParameter)
        import treeNode
@@ -127,10 +128,11 @@ contains
        call Get_Input_Parameter('darkMatterProfileMethod',darkMatterProfileMethod,defaultValue='NFW')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="darkMatterProfileMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get</subroutineArgs>
+       !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get</subroutineArgs>
        include 'dark_matter_profiles.inc'
        !# </include>
-       if (.not.(     associated(Dark_Matter_Profile_Energy_Get                               )   &
+       if (.not.(     associated(Dark_Matter_Profile_Density_Get                              )   &
+            &    .and.associated(Dark_Matter_Profile_Energy_Get                               )   & 
             &    .and.associated(Dark_Matter_Profile_Energy_Growth_Rate_Get                   )   & 
             &    .and.associated(Dark_Matter_Profile_Rotation_Normalization_Get               )   &
             &    .and.associated(Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get)   &
@@ -162,6 +164,22 @@ contains
 
     return
   end function Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum
+
+  double precision function Dark_Matter_Profile_Density(thisNode,radius)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
+    !% in units of Mpc).
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: radius
+
+    ! Initialize the module.
+    call Dark_Matter_Profile_Initialize
+
+    ! Get the enclosed mass using the selected method.
+    Dark_Matter_Profile_Density=Dark_Matter_Profile_Density_Get(thisNode,radius)
+
+    return
+  end function Dark_Matter_Profile_Density
 
   double precision function Dark_Matter_Profile_Enclosed_Mass(thisNode,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
@@ -269,5 +287,78 @@ contains
 
     return
   end function Dark_Matter_Profile_kSpace
+
+  !# <enclosedMassTask>
+  !#  <unitName>Dark_Matter_Profile_Enclosed_Mass_Task</unitName>
+  !# </enclosedMassTask>
+  subroutine Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,componentMass)
+    !% Computes the mass within a given radius for a dark matter profile.
+    use Galactic_Structure_Options
+    use Cosmological_Parameters
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentMass
+    
+    componentMass=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
+
+    if (radius >= radiusLarge) then
+       ! Return the total mass of the halo in this case.
+       componentMass=Tree_Node_Mass(thisNode)
+    else
+       ! Return the mass within the specified radius.
+       componentMass=Dark_Matter_Profile_Enclosed_Mass(thisNode,radius)
+    end if
+    ! Scale to account for just the dark component.
+    componentMass=componentMass*(Omega_0()-Omega_b())/Omega_0()
+    return
+  end subroutine Dark_Matter_Profile_Enclosed_Mass_Task
+
+  !# <rotationCurveTask>
+  !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Task</unitName>
+  !# </rotationCurveTask>
+  subroutine Dark_Matter_Profile_Rotation_Curve_Task(thisNode,radius,massType,componentType,componentVelocity)
+    !% Computes the rotation curve at a given radius for a dark matter profile.
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentVelocity
+    double precision                         :: componentMass
+
+    ! Set to zero by default.
+    componentVelocity=0.0d0
+
+    ! Compute if a spheroid is present.
+    if (radius > 0.0d0) then
+       call Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,componentMass)
+       if (componentMass > 0.0d0) componentVelocity=dsqrt(gravitationalConstantGalacticus*componentMass)/dsqrt(radius)
+    end if
+    return
+  end subroutine Dark_Matter_Profile_Rotation_Curve_Task
+
+  !# <densityTask>
+  !#  <unitName>Dark_Matter_Profile_Density_Task</unitName>
+  !# </densityTask>
+  subroutine Dark_Matter_Profile_Density_Task(thisNode,positionSpherical,massType,componentType,componentDensity)
+    !% Computes the density at a given position for a dark matter profile.
+    use Galactic_Structure_Options
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: positionSpherical(3)
+    double precision, intent(out)            :: componentDensity
+    
+    componentDensity=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
+
+    return
+  end subroutine Dark_Matter_Profile_Density_Task
 
 end module Dark_Matter_Profiles
