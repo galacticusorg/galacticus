@@ -416,7 +416,7 @@ with $\dot{M}_{\rm node,bound}$ set to the rate given by the {\tt darkMatterHalo
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} The component is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\tt satelliteOrbitStoreOrbitalParameters}$=${\tt true} then a virial orbit is selected using the {\tt virialOrbitsMethod} (see \S\ref{sec:SatelliteVirialOrbits}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested).\\
+\noindent\emph{Node mergers:} The component is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\tt satelliteOrbitStoreOrbitalParameters}$=${\tt true} then a virial orbit is selected using the {\tt virialOrbitsMethod} (see \S\ref{sec:SatelliteVirialOrbits}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested). If {\tt [satelliteOrbitResetOnHaloFormation]}$=${\tt true} then satellite orbits will be reset on halo formation events (see \S\ref{sec:ComponentFormationTimes}).\\
 
 \noindent\emph{Satellite merging:} None.\\
 

@@ -70,7 +70,7 @@ module Tree_Node_Methods_Satellite_Orbit
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize, Satellite_Orbit_Create_Simple,&
        & Galacticus_Output_Tree_Satellite_Orbit_Simple, Galacticus_Output_Tree_Satellite_Orbit_Simple_Property_Count,&
        & Galacticus_Output_Tree_Satellite_Orbit_Simple_Names, Tree_Node_Methods_Satellite_Orbit_Simple_Dump,&
-       & Satellite_Orbit_Standard_Scale_Set
+       & Satellite_Orbit_Standard_Scale_Set, Satellite_Orbit_Standard_Formation_Task
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -111,6 +111,9 @@ module Tree_Node_Methods_Satellite_Orbit
 
   ! Flag indicating whether or not satellite virial orbital parameters will be stored.
   logical :: satelliteOrbitStoreOrbitalParameters
+
+  ! Flag indicating whether or not to reset satellite orbits on halo formation events.
+  logical :: satelliteOrbitResetOnHaloFormation
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical, parameter :: acceptUnboundOrbits=.false.
@@ -177,6 +180,17 @@ contains
        call Get_Input_Parameter('satelliteOrbitStoreOrbitalParameters',satelliteOrbitStoreOrbitalParameters,defaultValue=.false.)
        ! Add two data properties if this information is to be stored.
        if (satelliteOrbitStoreOrbitalParameters) dataCount=dataCount+4
+
+       ! Determine if satellite orbits are to be reset on halo formation events.
+       !@ <inputParameter>
+       !@   <name>satelliteOrbitResetOnHaloFormation</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether satellite virial orbital parameters should be reset on halo formation events.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('satelliteOrbitResetOnHaloFormation',satelliteOrbitResetOnHaloFormation,defaultValue=.false.)
 
        ! Get the satellite merging timescale method.
        !@ <inputParameter>
@@ -374,6 +388,29 @@ contains
     return
   end subroutine Satellite_Orbit_Standard_Scale_Set
 
+  !# <haloFormationTask>
+  !#  <unitName>Satellite_Orbit_Standard_Formation_Task</unitName>
+  !# </haloFormationTask>
+  subroutine Satellite_Orbit_Standard_Formation_Task(thisNode)
+    !% Reset the orbits of satellite galaxies on halo formation events.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode), pointer                :: satelliteNode
+
+    ! Return immediately if orbits are not to be reset.
+    if (.not.satelliteOrbitResetOnHaloFormation) return
+
+    ! Loop over all satellites.
+    satelliteNode => thisNode%satelliteNode
+    do while (associated(satelliteNode))
+       ! Create a new orbit for this satellite.
+       call Satellite_Orbit_Create_Simple(satelliteNode)
+       satelliteNode => satelliteNode%siblingNode
+    end do
+
+    return
+  end subroutine Satellite_Orbit_Standard_Formation_Task
+
   !# <nodeMergerTask>
   !#  <unitName>Satellite_Orbit_Create_Simple</unitName>
   !# </nodeMergerTask>
@@ -388,13 +425,20 @@ contains
     implicit none
     type(treeNode),     pointer, intent(inout) :: thisNode
     type(treeNode),     pointer                :: hostNode
+    logical                                    :: isNewSatellite
     integer                                    :: thisIndex
     double precision                           :: mergeTime
     type(keplerOrbit)                          :: thisOrbit
 
     if (methodSelected) then
+       ! Determine if this is a new satellite.
+       isNewSatellite=.not.thisNode%componentExists(componentIndex)
+
        ! Create a satellite orbit component and assign a time until merging.
        call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
+
+       ! Set the bound mass of the satellite.
+       if (isNewSatellite) call Tree_Node_Bound_Mass_Set_Simple(thisNode,Tree_Node_Mass(thisNode))
 
        ! Get an orbit for this satellite.
        hostNode => thisNode%parentNode
@@ -413,8 +457,6 @@ contains
        mergeTime=Satellite_Time_Until_Merging(thisNode,thisOrbit)
        if (mergeTime >= 0.0d0) call Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime)
 
-       ! Set the bound mass of the satellite.
-       call Tree_Node_Bound_Mass_Set_Simple(thisNode,Tree_Node_Mass(thisNode))
     end if
     return
   end subroutine Satellite_Orbit_Create_Simple
