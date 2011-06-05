@@ -870,13 +870,16 @@ contains
   !# </scaleSetTask>
   subroutine Exponential_Disk_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
+    use Abundances_Structure
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision, parameter              :: massMinimum           =1.0d0
-    double precision, parameter              :: angularMomentumMinimum=0.1d0
-    double precision, parameter              :: luminosityMinimum     =1.0d0
-    integer                                  :: thisIndex
-    double precision                         :: mass,angularMomentum
+    type(treeNode),            pointer, intent(inout) :: thisNode
+    double precision,          parameter              :: massMinimum           =1.0d0
+    double precision,          parameter              :: angularMomentumMinimum=0.1d0
+    double precision,          parameter              :: luminosityMinimum     =1.0d0
+    type(abundancesStructure), save                   :: stellarAbundances
+    !$omp threadprivate(stellarAbundances)
+    integer                                           :: thisIndex
+    double precision                                  :: mass,angularMomentum
 
     ! Determine if method is active and a disk component exists.
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
@@ -915,6 +918,10 @@ contains
           thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyScale)=max(luminositiesDisk+luminositiesSpheroid,luminosityMinimum)
        end if
 
+       ! Set scales for stellar population properties history.
+       call Tree_Node_Disk_Stellar_Abundances_Exponential(thisNode,abundancesDisk)
+       call stellarAbundances%pack(abundancesDisk)
+       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%histories(stellarHistoryIndex),Tree_Node_Disk_Stellar_Mass(thisNode),stellarAbundances)
     end if
     return
   end subroutine Exponential_Disk_Scale_Set
