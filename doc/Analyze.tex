@@ -121,9 +121,9 @@ The {\tt Outputs} group contains one or more sub-groups corresponding to the out
 
 The {\tt nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, {\tt unitsInSI}, which gives the units\index{units} of the dataset in the SI system.
 
-\subsubsection{mergerTree datasets}
+\subsubsection{mergerTree datasets}\label{sec:mergerTreeDatasets}
 
-To allow locating of nodes belonging to a given merger tree in the datasets in the {\tt nodeData} group, the {\tt mergerTreeStartIndex} and {\tt mergerTreeCount} datasets list the starting index of each tree's nodes in the {\tt nodeData} datasets, and the number of nodes belonging to each tree respectively. Additionally, the {\tt mergerTreeWeight} dataset lists the {\tt volumeWeight} property for each tree (see \S\ref{sec:mergerTreeSubgroups}) which gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. Finally, the {\tt mergerTreeIndex} dataset gives the index of each tree stored in the {\tt nodeData} datasets.
+To allow locating of nodes belonging to a given merger tree in the datasets in the {\tt nodeData} group, the {\tt mergerTreeStartIndex} and {\tt mergerTreeCount} datasets list the starting index of each tree's nodes in the {\tt nodeData} datasets, and the number of nodes belonging to each tree respectively. Additionally, the {\tt mergerTreeWeight} dataset lists the {\tt volumeWeight} property for each tree (see \S\ref{sec:mergerTreeSubgroups}) which gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample (see \S\ref{sec:volumeLimitedSamples}). Finally, the {\tt mergerTreeIndex} dataset gives the index of each tree stored in the {\tt nodeData} datasets.
 
 \subsubsection{mergerTree subgroups}\label{sec:mergerTreeSubgroups}
 
@@ -251,6 +251,26 @@ A two-point correlation function can be computed from the returned power spectru
         ,$separationMinimum,$separationMaximum,$separationPointsPerDecade);
 \end{verbatim}
 The first two PDLs are those returned by the power spectrum calculation. The final three give the minimum and maximum separations at which to compute the correlation function and the number of points per decade of separation at which to tabulate the correlation function. The returned PDLs give the comoving separtion (in Mpc) and correlation function corresponding to the input power spectrum.
+
+\section{Topics in Analysis of \glc\ Outputs}
+
+\subsection{Building Volume Limited Samples}\label{sec:volumeLimitedSamples}\index{samples!volume limited}\index{galaxies!weighting}\index{{\tt mergerTreeWeight}@mergerTreeWeight}
+
+The {\tt mergerTreeWeight} property (see \S\ref{sec:mergerTreeDatasets}) property specifies the weight to be assigned to each merger tree in a model to construct a representative (i.e. volume limited) sample of galaxies. \glc\ does not typically generate every merger tree in a fixed volume of the Universe (as an N-body simulation might for example) as it's generally a waste of time to simulate millions of low mass halos and only a small number of high mass halos. The {\tt mergerTreeWeight} factors correct for this sampling. If merger trees are being built, then the {\tt mergerTreeWeight}, $w_i$, for each tree of mass $M_i$ (where the trees are ranked in order of increasing mass) is given by
+\begin{equation}
+ w_i = \int_{M_{\rm min}}^{M_{\rm max}} n(M) {\rm d}M,
+\end{equation}
+where $n(M)$ is the dark matter halo mass function and
+\begin{eqnarray}
+ M_{\rm min} &=& \sqrt{M_{i-1}M_i}, \\
+ M_{\rm min} &=& \sqrt{M_i M_{i+1}}.
+\end{eqnarray}
+
+Suppose, for example, that we wish to construct a luminosity function of galaxies. In particular, we consider a luminosity bin $k$ which extends from $L_k-\Delta k/2$ to $L_k+\Delta k/2$. If tree $i$ contains $N_i$ galaxies with luminosities $l_{i,j}$, where $j$ runs from $1$ to $N_i$, then the luminosity function in this bin is given by:
+\begin{equation}
+ \phi_k = \sum_i \sum_{j=1}^{N_i} \left\{ \begin{array}{ll} w_i & \hbox{ if  } L_k-\Delta k/2 < l_{i,j} \le L_k+\Delta k/2 \\ 0 & \hbox{ otherwise.} \end{array} \right.
+\end{equation}
+
 
 \section{Postprocessing Scripts}\label{sec:PostProcessingScripts}
 
