@@ -696,6 +696,10 @@ contains
           doublePropertyNames   (doubleProperty)='blackHoleJetPower'
           doublePropertyComments(doubleProperty)='Power of the black hole-driven jet.'
           doublePropertyUnitsSI (doubleProperty)=massSolar*kilo**2/gigaYear
+          doubleProperty=doubleProperty+1
+          doublePropertyNames   (doubleProperty)='blackHoleRadiativeEfficiency'
+          doublePropertyComments(doubleProperty)='The radiative efficiency of the black hole accretion system.'
+          doublePropertyUnitsSI (doubleProperty)=0.0d0
        end if
     end if
     return
@@ -710,7 +714,7 @@ contains
     implicit none
     double precision, intent(in)    :: time
     integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
-    integer,          parameter     :: extraPropertyCount=2
+    integer,          parameter     :: extraPropertyCount=3
 
     if (methodSelected) then
        doublePropertyCount=doublePropertyCount+propertyCount
@@ -752,7 +756,9 @@ contains
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=restMassAccretionRate
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)
+          doubleBuffer(doubleBufferCount,doubleProperty)=Accretion_Disk_Jet_Power           (thisNode,restMassAccretionRate)
+          doubleProperty=doubleProperty+1
+          doubleBuffer(doubleBufferCount,doubleProperty)=Accretion_Disk_Radiative_Efficiency(thisNode,restMassAccretionRate)
        end if
     end if
     return
