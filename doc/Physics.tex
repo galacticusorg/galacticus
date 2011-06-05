@@ -451,6 +451,10 @@ Selected with {\tt hotHaloDensityMethod}$=${\tt cored isothermal} this method ad
 \end{equation}
 where the core radius, $r_{\rm core}$, is set to be a fixed fraction of the virial radius, that fraction being given by the input parameter {\tt [isothermalCoreRadiusOverVirialRadius]}. The profile is normalized such that the current mass in the hot gas profile is contained within the virial radius.
 
+\subsection{Null}
+
+Selected with {\tt hotHaloDensityMethod}$=${\tt null} this method assumes no hot halo density profile. It is useful, for example, when performing dark matter-only calculations.
+
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 
 The algorithm to be used when determining the hot halo temperature profile is selected via the {\tt hotHaloTemperatureMethod} parameter.
