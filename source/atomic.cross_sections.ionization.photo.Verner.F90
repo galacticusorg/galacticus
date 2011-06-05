@@ -65,7 +65,7 @@ module Atomic_Cross_Sections_Ionization_Photo_Verner
   !% Computes cross sections for photo-ionization for all ionization stages of all atoms from H to Zn
   !% ($Z=30$) by use of the following fit parameters:
   !% \begin{itemize}
-  !% \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996}
+  !% \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996_1}
   !% \item Inner shells of all elements, and outer shells of the non-OP elements: \cite{verner_analytic_1995}
   !% \end{itemize}
   !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\tt phfit2.f}) written by
@@ -1994,7 +1994,7 @@ contains
     !% wavelength} for all ionization stages of all atoms from H to Zn
     !% ($Z=30$) by use of the following fit parameters:
     !% \begin{itemize}
-    !% \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996}
+    !% \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996_1}
     !% \item Inner shells of all elements, and outer shells of the non-OP elements: \cite{verner_analytic_1995}
     !% \end{itemize}
     !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\tt phfit2.f}) written by
