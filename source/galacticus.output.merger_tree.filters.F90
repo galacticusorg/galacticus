@@ -110,7 +110,10 @@ contains
        filtersInitialized=.true.
     end if
 
+    ! Assume galaxy will be output by default.
     Galacticus_Merger_Tree_Output_Filter=.true.
+    ! Return immediately if no filters were defined.
+    if (filterCount == 0) return
     !# <include directive="mergerTreeOutputFilter" type="code" action="subroutine">
     !#  <subroutineArgs>thisNode,mergerTreeOutputFilters,Galacticus_Merger_Tree_Output_Filter</subroutineArgs>
     include 'galacticus.output.merger_tree.filters.inc'
