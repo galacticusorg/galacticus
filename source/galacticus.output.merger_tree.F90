@@ -115,6 +115,7 @@ contains
     !% Write properties of nodes in {\tt thisTree} to the \glc\ output file.
     use Tree_Nodes
     use Galacticus_Output_Open
+    use Galacticus_Merger_Tree_Output_Filters
     use Input_Parameters
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
@@ -145,7 +146,7 @@ contains
        !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    
+       !@    Specifies whether or not references to individual merger tree datasets should be output.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeOutputReferences',mergerTreeOutputReferences,defaultValue=.true.)
@@ -174,33 +175,34 @@ contains
     thisNode => thisTree%baseNode
     do while (associated(thisNode))
        if (Tree_Node_Time(thisNode) == time) then
-
-          ! Establish node link properties.
-          if (integerPropertyCount > 0) then
-             integerProperty=0
-             integerBufferCount=integerBufferCount+1     
+          if (Galacticus_Merger_Tree_Output_Filter(thisNode)) then
+             ! Establish node link properties.
+             if (integerPropertyCount > 0) then
+                integerProperty=0
+                integerBufferCount=integerBufferCount+1     
+             end if
+             if (doublePropertyCount > 0) then
+                doubleProperty=0
+                doubleBufferCount=doubleBufferCount+1
+             end if
+             
+             ! Establish all other properties.
+             !# <include directive="mergerTreeOutputTask" type="code" action="subroutine">
+             !#  <subroutineArgs>thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time</subroutineArgs>
+             include 'galacticus.output.merger_tree.tasks.inc'
+             !# </include>
+             
+             ! If buffer is full, dump it to file.
+             if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(iOutput)
+             if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (iOutput)
+             
+             ! Do any extra output tasks.
+             !# <include directive="mergerTreeExtraOutputTask" type="code" action="subroutine">
+             !#  <subroutineArgs>thisNode,iOutput,thisTree%index</subroutineArgs>
+             include 'galacticus.output.merger_tree.tasks.extra.inc'
+             !# </include>
+             
           end if
-          if (doublePropertyCount > 0) then
-             doubleProperty=0
-             doubleBufferCount=doubleBufferCount+1
-          end if
-          
-          ! Establish all other properties.
-          !# <include directive="mergerTreeOutputTask" type="code" action="subroutine">
-          !#  <subroutineArgs>thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time</subroutineArgs>
-          include 'galacticus.output.merger_tree.tasks.inc'
-          !# </include>
-          
-          ! If buffer is full, dump it to file.
-          if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(iOutput)
-          if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (iOutput)
-
-          ! Do any extra output tasks.
-          !# <include directive="mergerTreeExtraOutputTask" type="code" action="subroutine">
-          !#  <subroutineArgs>thisNode,iOutput,thisTree%index</subroutineArgs>
-          include 'galacticus.output.merger_tree.tasks.extra.inc'
-          !# </include>
-
        end if
        call thisNode%walkTreeWithSatellites(thisNode)
     end do
