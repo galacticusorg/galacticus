@@ -1168,8 +1168,12 @@ contains
           if (associated(nodes(iNode)%descendentNode)) then
              ! Flag indicating if this is a node for which a merging time should be set.
              nodeWillMerge=.false.
-             ! Select the subset which have a subhalo as a descendent.
-             if (nodes(iNode)%descendentNode%isSubhalo) then
+             ! Select the subset which have a subhalo as a descendent and which are not primary progenitors.
+             if     (                                                         &
+                  &   nodes(iNode)%descendentNode%isSubhalo                   &
+                  &  .and.                                                    &
+                  &   .not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor() &
+                  & ) then
                 ! Trace descendents until merging or final time.
                 thisNode        => nodes(iNode)%descendentNode
                 endOfBranch     =.false.
@@ -1346,9 +1350,13 @@ contains
                 thisNode => nodes(iNode)
                 ! Set initial number of times in the history to zero.
                 historyCount=0
-                ! Select the subset which have a subhalo as a descendent.
-                historyBuildSubhaloSelect: if (nodes(iNode)%descendentNode%isSubhalo) then
-                  ! Trace descendents until merging or final time.
+                ! Select the subset which have a subhalo as a descendent and are not the primary progenitor.
+                historyBuildSubhaloSelect: if (                                                         &
+                     &                          nodes(iNode)%descendentNode%isSubhalo                   & 
+                     &                         .and.                                                    &
+                     &                          .not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor() &
+                     &                        ) then
+                   ! Trace descendents until merging or final time.
                    thisNode    => nodes(iNode)%descendentNode
                    endOfBranch =.false.
                    historyBuildBranchWalk: do while (.not.endOfBranch)
