@@ -95,6 +95,14 @@ module Histories
      !@     <description>Adds two histories.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>combine</method>
+     !@     <description>Combines two histories.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>extend</method>
+     !@     <description>Extends the time range of a history to encompass the specified limits.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>reset</method>
      !@     <description>Resets all entries in a history to zero.</description>
      !@   </objectMethod>
@@ -107,12 +115,14 @@ module Histories
      !@     <description>Returns an array with the timesteps (i.e. the intervals between successive times) in the given history.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create    => History_Create
-     procedure :: destroy   => History_Destroy
-     procedure :: trim      => History_Trim
-     procedure :: add       => History_Add
-     procedure :: reset     => History_Reset
-     procedure :: exists    => History_Exists
+     procedure :: create  => History_Create
+     procedure :: destroy => History_Destroy
+     procedure :: trim    => History_Trim
+     procedure :: extend  => History_Extend
+     procedure :: add     => History_Add
+     procedure :: combine => History_Combine
+     procedure :: reset   => History_Reset
+     procedure :: exists  => History_Exists
      procedure :: timeSteps => History_Timesteps
   end type history
 
@@ -177,9 +187,10 @@ contains
           else
              rangeTypeActual=rangeTypeLogarithmic
           end if
-          thisHistory%time=Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
+          thisHistory%time     =Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
           thisHistory%rangeType=rangeTypeActual
        else
+          thisHistory%rangeType=rangeTypeUndefined
           thisHistory%time=0.0d0
        end if
        thisHistory%data =0.0d0
@@ -204,10 +215,10 @@ contains
        timesCount  =size(thisHistory%time      )
        historyCount=size(thisHistory%data,dim=2)
        call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data)+sizeof(thisHistory%rates)+sizeof(thisHistory%scales),memoryType=memoryTypeNodes,addRemove=-1,blockCount=3)
-       deallocate(thisHistory%time  )
-       deallocate(thisHistory%data  )
-       deallocate(thisHistory%rates )
-       deallocate(thisHistory%scales)
+       deallocate(thisHistory%time)
+       if (allocated(thisHistory%data  )) deallocate(thisHistory%data  )
+       if (allocated(thisHistory%rates )) deallocate(thisHistory%rates )
+       if (allocated(thisHistory%scales)) deallocate(thisHistory%scales)
     end if
     return
   end subroutine History_Destroy
@@ -319,7 +330,9 @@ contains
   end subroutine History_Trim
 
   subroutine History_Add(thisHistory,addHistory,addTo)
-    !% Adds the data in {\tt addHistory} to that in {\tt thisHistory}.
+    !% Adds the data in {\tt addHistory} to that in {\tt thisHistory}. This function is designed for histories that track
+    !% instantaneous rates. The rates in {\tt addHistory} are interpolated to the times in {\tt thisHistory} and added to the
+    !% rates in {\tt thisHistory}.
     use FGSL
     use Numerical_Interpolation
     use Galacticus_Error
@@ -335,62 +348,189 @@ contains
     double precision                                 :: interpolationFactors(2)
     type(fgsl_interp_accel)                          :: interpolationAccelerator
     logical                                          :: interpolationReset
-    
-    ! Return if addHistory does not exist.
-    if (.not.allocated(addHistory%time)) return
-    
-    ! Get size of addHistory.
-    addHistoryPointCount=size(addHistory%time)
-    
-    ! Return if addHistory has zero size.
-    if (addHistoryPointCount == 0) return
 
-    ! addHistory must have at least two points to permit interpolation.
-    if (addHistoryPointCount  < 2) call Galacticus_Error_Report('History_Add','history to add must have at least two points')
-
-    ! The two objects must contain the same number of histories.
-    if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('History_Add','two objects contain differing numbers of histories')
-
-    ! Determine which part of the history object we are adding to.
-    if (present(addTo)) then
-       addToActual=addTo
-       if (addToActual /= historyData .and. addToActual /= historyRates) call Galacticus_Error_Report('History_Add','unrecognized addTo location')
-    else
-       addToActual=historyData
-    end if
-
-    ! Loop over each entry in thisHistory.
-    interpolationReset=.true.
-    do iPoint=1,size(thisHistory%time)
-
-       ! If within range of history spanned by addHistory then....
-       if (thisHistory%time(iPoint) >= addHistory%time(1) .and. thisHistory%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
-
-          ! Interpolate addHistory to point in thisHistory.
-          interpolationPoint  =Interpolate_Locate(addHistoryPointCount,addHistory%time,interpolationAccelerator&
-               &,thisHistory%time(iPoint),interpolationReset)
-          interpolationFactors=Interpolate_Linear_Generate_Factors(addHistoryPointCount,addHistory%time,interpolationPoint&
-               &,thisHistory%time(iPoint))
-
-          ! Add them.
-          select case (addToActual)
-          case (historyData )
-             forall(iHistory=1:size(thisHistory%data,dim=2))
-                thisHistory%data (iPoint,iHistory)=thisHistory%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
-                     &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
-             end forall
-          case (historyRates)
-             forall(iHistory=1:size(thisHistory%data,dim=2))
-                thisHistory%rates(iPoint,iHistory)=thisHistory%rates(iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
-                  &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
-             end forall
-          end select          
+#ifdef GCC45
+    select type (thisHistory)
+    type is (history)
+#endif
+       
+       ! Return if addHistory does not exist.
+       if (.not.allocated(addHistory%time)) return
+       
+       ! Get size of addHistory.
+       addHistoryPointCount=size(addHistory%time)
+       
+       ! Return if addHistory has zero size.
+       if (addHistoryPointCount == 0) return
+       
+       ! If thisHistory does not exist, just replace it with addHistory.
+       if (.not.allocated(thisHistory%time)) then
+          call thisHistory%destroy()
+          thisHistory=addHistory
+          return
        end if
+       
+       ! If thisHistory has zero size, just replace it with addHistory.
+       if (size(thisHistory%time) == 0) then
+          call thisHistory%destroy()
+          thisHistory=addHistory
+          return
+       end if
+       
+       ! addHistory must have at least two points to permit interpolation.
+       if (addHistoryPointCount  < 2) call Galacticus_Error_Report('History_Add','history to add must have at least two points')
+       
+       ! The two objects must contain the same number of histories.
+       if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('History_Add','two objects contain differing numbers of histories')
+       
+       ! Determine which part of the history object we are adding to.
+       if (present(addTo)) then
+          addToActual=addTo
+          if (addToActual /= historyData .and. addToActual /= historyRates) call Galacticus_Error_Report('History_Add','unrecognized addTo location')
+       else
+          addToActual=historyData
+       end if
+       
+       ! Loop over each entry in thisHistory.
+       interpolationReset=.true.
+       do iPoint=1,size(thisHistory%time)
+          
+          ! If within range of history spanned by addHistory then....
+          if (thisHistory%time(iPoint) >= addHistory%time(1) .and. thisHistory%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
+             
+             ! Interpolate addHistory to point in thisHistory.
+             interpolationPoint  =Interpolate_Locate(addHistoryPointCount,addHistory%time,interpolationAccelerator&
+                  &,thisHistory%time(iPoint),interpolationReset)
+             interpolationFactors=Interpolate_Linear_Generate_Factors(addHistoryPointCount,addHistory%time,interpolationPoint&
+                  &,thisHistory%time(iPoint))
+             
+             ! Add them.
+             select case (addToActual)
+             case (historyData )
+                forall(iHistory=1:size(thisHistory%data,dim=2))
+                   thisHistory%data (iPoint,iHistory)=thisHistory%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
+                        &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
+                end forall
+             case (historyRates)
+                forall(iHistory=1:size(thisHistory%data,dim=2))
+                   thisHistory%rates(iPoint,iHistory)=thisHistory%rates(iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
+                        &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
+                end forall
+             end select
+          end if
+          
+       end do
 
-    end do
+#ifdef GCC45
+    end select
+#endif
 
     return
   end subroutine History_Add
+
+  subroutine History_Combine(thisHistory,combineHistory,addTo)
+    !% Combines the data in {\tt combineHistory} with that in {\tt thisHistory}. This function is designed for histories that
+    !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\tt thisHistory} will be
+    !% extended if necessary to span the range of {\tt combineHistory}. Then, the data from {\tt combineHistory} will be added to
+    !% that in {\tt thisHistory} by finding the fraction of each timestep in {\tt combineHistory} that overlaps with each timestep
+    !% in {\tt thisHistory} and assuming that the corresponding fraction of the data value should be added to {\tt thisHistory}.
+    use Galacticus_Error
+    use Arrays_Search
+    use Numerical_Ranges
+    implicit none
+#ifdef GCC45
+    class(history),          intent(inout)               :: thisHistory
+#else
+    type(history),           intent(inout)               :: thisHistory
+#endif
+    type(history),           intent(in)                  :: combineHistory
+    integer,                 intent(in),  optional       :: addTo
+    double precision,        allocatable, dimension(:,:) :: historyDataTemporary
+    integer                                              :: combineHistoryPointCount,iPoint,jPoint,interpolationPoint &
+         &,timeBeginIndex ,timeEndIndex,rangeType,historyCount,timeCount,combineCount,addCount,addToActual
+    double precision                                     :: timeBegin,timeEnd,timeDelta,fractionContributed
+
+#ifdef GCC45
+    select type (thisHistory)
+    type is (history)
+#endif
+       
+       ! Return if combineHistory does not exist.
+       if (.not.allocated(combineHistory%time)) return
+       
+       ! Get size of combineHistory.
+       combineHistoryPointCount=size(combineHistory%time)
+       
+       ! Return if combineHistory has zero size.
+       if (combineHistoryPointCount == 0) return
+       
+       ! If thisHistory does not exist, simply replace it with combineHistory.
+       if (.not.allocated(thisHistory%time)) then
+          call thisHistory%destroy()
+          thisHistory=combineHistory
+          return
+       end if
+       
+       ! If thisHistory has zero size, simply replace it with combineHistory.
+       if (size(thisHistory%time) == 0) then
+          call thisHistory%destroy()
+          thisHistory=combineHistory
+          return
+       end if
+       
+       ! The two objects must contain the same number of histories.
+       if (size(thisHistory%data,dim=2) /= size(combineHistory%data,dim=2)) call Galacticus_Error_Report('History_Combine','two objects contain differing numbers of histories')
+       
+       ! Determine which part of the history object we are adding to.
+       if (present(addTo)) then
+          addToActual=addTo
+          if (addToActual /= historyData .and. addToActual /= historyRates) call Galacticus_Error_Report('History_Combine','unrecognized addTo location')
+       else
+          addToActual=historyData
+       end if
+       
+       ! Determine if we need to extend the time range in thisHistory.
+       combineCount=size(combineHistory%time)
+       if (thisHistory%rangeType == rangeTypeUndefined) then
+          ! The history has no defined range type, so pass the time array of the history being combined to use as a template for new times.
+          call thisHistory%extend(times=combineHistory%time)
+       else
+          ! The history has a defined range type, so simply pass the required extent of the range.
+          call thisHistory%extend([combineHistory%time(1),combineHistory%time(combineCount)])
+       end if
+       
+       ! Transfer each entry from combineHistory to thisHistory.
+       do iPoint=2,combineCount
+          ! Find indices in thisHistory spanned by combineHistory point.
+          if (iPoint > 2) then
+             ! Reuse the end index from the previous loop iteration if available.
+             timeBeginIndex=timeEndIndex
+          else
+             timeBeginIndex=Search_Array(thisHistory%time,combineHistory%time(iPoint-1))
+          end if
+          timeEndIndex=min(Search_Array(thisHistory%time,combineHistory%time(iPoint))+1,size(thisHistory%time))    
+          ! Loop over all points in thisHistory to which we need to add this contribution.
+          do jPoint=timeBeginIndex,timeEndIndex
+             if (jPoint == 1) then
+                timeBegin=                               combineHistory%time(iPoint-1)
+             else
+                timeBegin=max(thisHistory%time(jPoint-1),combineHistory%time(iPoint-1))
+             end if
+             timeEnd     =min(thisHistory%time(jPoint  ),combineHistory%time(iPoint  ))
+             fractionContributed=(timeEnd-timeBegin)/(combineHistory%time(iPoint)-combineHistory%time(iPoint-1))
+             select case (addToActual)
+             case (historyData )
+                thisHistory%data (jPoint,:)=thisHistory%data (jPoint,:)+combineHistory%data(iPoint,:)*fractionContributed
+             case (historyRates)
+                thisHistory%rates(jPoint,:)=thisHistory%rates(jPoint,:)+combineHistory%data(iPoint,:)*fractionContributed
+             end select
+          end do
+       end do
+#ifdef GCC45
+    end select
+#endif
+    return
+  end subroutine History_Combine
 
   function History_Division_Double(thisHistory,divisor)
     !% Divides history data by a double precision {\tt divisor}.
@@ -403,6 +543,128 @@ contains
     if (allocated(History_Division_Double%data)) History_Division_Double%data=History_Division_Double%data/divisor
     return
   end function History_Division_Double
+
+  subroutine History_Extend(thisHistory,timeRange,times)
+    !% Extends a history to encompass the given time range.
+    use Numerical_Ranges
+    use Galacticus_Error
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+#ifdef GCC45
+    class(history),   intent(inout)                         :: thisHistory
+#else
+    type(history),    intent(inout)                         :: thisHistory
+#endif
+    double precision, intent(in),  dimension(2  ), optional :: timeRange
+    double precision, intent(in),  dimension(:  ), optional :: times
+    double precision, allocatable, dimension(:  )           :: newTimes
+    double precision, allocatable, dimension(:,:)           :: historyDataTemporary
+    double precision,              dimension(2  )           :: timeRangeActual
+    integer                                                 :: timeCount,timeBeginIndex,timeEndIndex,rangeType,historyCount&
+         &,addCount,addCountStart,addCountEnd,newTimesAtStart,newTimesAtEnd
+    logical                                                 :: useRange
+    double precision                                        :: timeBegin,timeEnd,timeDelta
+    type(varying_string)                                    :: message
+
+    ! Determine the range of times that must be covered.
+    if (present(timeRange)) then
+       timeRangeActual=timeRange
+    else
+       if (present(times)) then
+          timeRangeActual(1)=times(1          )
+          timeRangeActual(2)=times(size(times))
+       else
+          call Galacticus_Error_Report('History_Extend','either timeRange or times must be specified')
+       end if
+    end if
+    
+    ! Determine if we need to extend the time range in thisHistory.
+    timeCount     =size(thisHistory%time           )
+    timeBegin     =     thisHistory%time(1        )
+    timeEnd       =     thisHistory%time(timeCount)
+    timeBeginIndex=1
+    timeEndIndex  =timeCount
+    if (.not.present(times)) then
+       select case (thisHistory%rangeType)
+       case (rangeTypeLinear     )
+          timeDelta=(timeEnd-timeBegin)/dble(timeCount-1)
+       case (rangeTypeLogarithmic)
+          timeDelta=dlog(timeEnd/timeBegin)/dble(timeCount-1)
+       case default
+          if (thisHistory%rangeType == rangeTypeUndefined) then
+             message='undefined range type: '//char(10)
+          else
+             message='unrecognized range type: '
+             message=message//thisHistory%rangeType//char(10)
+          end if
+          message=message//' -> known types are: '//char(10)//' --> linear      : '//rangeTypeLinear//char(10)//' --> logarithmic : '//rangeTypeLogarithmic
+          call Galacticus_Error_Report('History_Extend',message)
+       end select
+       if (timeRangeActual(1) < timeBegin) then
+          select case (thisHistory%rangeType)
+          case (rangeTypeLinear)
+             addCountStart =int(    (timeBegin-timeRangeActual(1))/timeDelta)+1
+             timeBegin=timeBegin      -dble(addCountStart)*timeDelta
+          case (rangeTypeLogarithmic)
+             addCountStart =int(dlog(timeBegin/timeRangeActual(1))/timeDelta)+1
+             timeBegin=timeBegin*dexp(-dble(addCountStart)*timeDelta)
+          end select
+          timeBeginIndex=timeBeginIndex+addCountStart
+          timeEndIndex  =timeEndIndex  +addCountStart
+       else
+          addCountStart=0
+       end if
+       if (timeRangeActual(2) > timeEnd  ) then
+          select case (thisHistory%rangeType)
+          case (rangeTypeLinear)
+             addCountEnd =int(    (timeRangeActual(2)-timeEnd)/timeDelta)+1
+             timeEnd  =timeEnd        +dble(addCountEnd)*timeDelta
+          case (rangeTypeLogarithmic)
+             addCountEnd =int(dlog(timeRangeActual(2)/timeEnd)/timeDelta)+1
+             timeEnd  =timeEnd  *dexp(+dble(addCountEnd)*timeDelta)
+          end select
+       else
+          addCountEnd=0
+       end if
+       addCount=addCountStart+addCountEnd
+       useRange=.true.
+    else
+       newTimesAtStart=count(times < thisHistory%time(1                     ))
+       newTimesAtEnd  =count(times > thisHistory%time(size(thisHistory%time)))
+       timeBeginIndex=timeBeginIndex+newTimesAtStart
+       timeEndIndex  =timeEndIndex  +newTimesAtStart
+       addCount=newTimesAtStart+newTimesAtEnd
+       allocate(newTimes(size(thisHistory%time)+addCount))
+       if (newTimesAtStart > 0) newTimes(1             :             newTimesAtStart)=times(1                          :newTimesAtStart)
+       if (newTimesAtEnd   > 0) newTimes(timeEndIndex+1:timeEndIndex+newTimesAtEnd  )=times(size(times)-newTimesAtEnd+1:size(times)    )
+       newTimes(timeBeginIndex:timeEndIndex)=thisHistory%time
+       useRange=.false.
+    end if
+
+    ! Create new arrays.
+    if (addCount > 0) then
+       ! Create copies of current histories.
+       call Move_Alloc(thisHistory%data,historyDataTemporary)
+       ! Store range type and number of histories.
+       rangeType   =thisHistory%rangeType
+       historyCount=size(historyDataTemporary,dim=2)
+       ! Destroy the history and make a new one.
+       call thisHistory%destroy()
+       select case (useRange)
+       case (.true. )
+          call thisHistory%create(historyCount,timeCount+addCount,timeBegin,timeEnd,rangeType)
+       case (.false.)
+          call thisHistory%create(historyCount,timeCount+addCount)
+          thisHistory%time=newTimes
+          deallocate(newTimes)
+       end select
+       ! Copy data back to relevant location.
+       thisHistory%data(timeBeginIndex:timeEndIndex,:)=historyDataTemporary
+       deallocate(historyDataTemporary)
+    end if
+    return
+  end subroutine History_Extend
 
   !# <galacticusStateStoreTask>
   !#  <unitName>Histories_State_Store</unitName>
