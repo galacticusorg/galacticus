@@ -74,7 +74,7 @@ module Merger_Trees
   include 'objects.tree_node.create.modules.inc'
   !# </include>
   private
-  public :: mergerTree
+  public :: mergerTree, Tree_Node_Is_Accurate
 
   type mergerTree
      !% The merger tree object type.
@@ -338,29 +338,9 @@ contains
     return
   end subroutine Tree_Node_Promote
 
-
-  subroutine Tree_Node_Evolve(thisTree,thisNode,endTime,interrupted,interruptProcedure)
-    !% Evolves {\tt thisNode} to time {\tt endTime}, or until evolution is interrupted.
-    use Tree_Node_Methods
-    use ODE_Solver
+  subroutine Tree_Node_Evolve_Initialize
+    !% Initializes the tree evolving routines by reading in parameters
     use Input_Parameters
-    !# <include directive="postEvolveTask" type="moduleUse">
-    include 'objects.tree_node.post_evolve.modules.inc'
-    !# </include>
-    implicit none
-    type(mergerTree),                        intent(inout)          :: thisTree
-    type(treeNode),                          intent(inout), pointer :: thisNode
-    double precision,                        intent(in)             :: endTime
-    logical,                                 intent(out)            :: interrupted
-    procedure(Interrupt_Procedure_Template),                pointer :: interruptProcedure
-    double precision                                                :: startTimeThisNode
-    ! Variables used in the ODE solver.
-    type(fgsl_odeiv_step)                                           :: odeStepper
-    type(fgsl_odeiv_control)                                        :: odeController
-    type(fgsl_odeiv_evolve)                                         :: odeEvolver
-    type(fgsl_odeiv_system)                                         :: odeSystem
-    logical                                                         :: odeReset
-    type(c_ptr)                                                     :: parameterPointer
 
     ! Initialize if necessary.
     !$omp critical (Tree_Node_Evolve_Initialize)
@@ -388,6 +368,33 @@ contains
        evolverInitialized=.true.
     end if
     !$omp end critical (Tree_Node_Evolve_Initialize)
+    return
+  end subroutine Tree_Node_Evolve_Initialize
+
+  subroutine Tree_Node_Evolve(thisTree,thisNode,endTime,interrupted,interruptProcedure)
+    !% Evolves {\tt thisNode} to time {\tt endTime}, or until evolution is interrupted.
+    use Tree_Node_Methods
+    use ODE_Solver
+    !# <include directive="postEvolveTask" type="moduleUse">
+    include 'objects.tree_node.post_evolve.modules.inc'
+    !# </include>
+    implicit none
+    type(mergerTree),                        intent(inout)          :: thisTree
+    type(treeNode),                          intent(inout), pointer :: thisNode
+    double precision,                        intent(in)             :: endTime
+    logical,                                 intent(out)            :: interrupted
+    procedure(Interrupt_Procedure_Template),                pointer :: interruptProcedure
+    double precision                                                :: startTimeThisNode
+    ! Variables used in the ODE solver.
+    type(fgsl_odeiv_step)                                           :: odeStepper
+    type(fgsl_odeiv_control)                                        :: odeController
+    type(fgsl_odeiv_evolve)                                         :: odeEvolver
+    type(fgsl_odeiv_system)                                         :: odeSystem
+    logical                                                         :: odeReset
+    type(c_ptr)                                                     :: parameterPointer
+
+    ! Initialize.
+    call Tree_Node_Evolve_Initialize()
 
     ! Determine the end time for this node - either the specified end time, or the time associated with the parent node, whichever
     ! occurs first.
@@ -443,7 +450,21 @@ contains
  
     return
   end subroutine Tree_Node_Evolve
-  
+
+  logical function Tree_Node_Is_Accurate(valueNode,valueExpected)  
+    !% Return true if a tree node property is within expected accuracy of a given value.
+    use Numerical_Comparison
+    implicit none
+    double precision, intent(in) :: valueNode,valueExpected
+
+    ! Initialize.
+    call Tree_Node_Evolve_Initialize()
+
+    ! Compare values.
+    Tree_Node_Is_Accurate=Values_Agree(valueNode,valueExpected,odeToleranceAbsolute,odeToleranceRelative)
+    return
+  end function Tree_Node_Is_Accurate
+
   function Tree_Node_ODEs(time,y,dydt,parameterPointer) bind(c)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
