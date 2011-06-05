@@ -199,6 +199,7 @@ contains
     !% removal can be slow this allows for some optimization).
     use Galacticus_Error
     use Memory_Management
+    use, intrinsic :: ISO_C_Binding 
     implicit none
     type(history),    intent(inout)        :: thisHistory
     double precision, intent(in)           :: currentTime
@@ -253,7 +254,7 @@ contains
        deallocate(temporaryHistory%data )
        deallocate(temporaryHistory%rates)
        ! Account for change in memory usage.
-       call Memory_Usage_Record(iTrim*(1+2*historyCount),memoryType=memoryTypeNodes,addRemove=-sizeof(thisHistory%time(1)),blockCount=0)
+       call Memory_Usage_Record(int(iTrim*(1+2*historyCount),C_SIZE_T)*sizeof(thisHistory%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
     end if
     return
   end subroutine History_Trim
