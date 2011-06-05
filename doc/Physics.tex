@@ -286,13 +286,21 @@ Selected with {\tt darkMatterProfileMethod}$=${\tt isothermal}, under this metho
 \end{equation}
 normalized such that the total mass of the node is enclosed with the virial radius.
 
-\subsubsection{NFW}
+\subsubsection{NFW}\index{Navarro-Frenk-White profile}\index{density profile!Navarro-Frenk-White}
 
 Selected with {\tt darkMatterProfileMethod}$=${\tt NFW}, under this method the \NFW\ density profile \citep{navarro_universal_1997} is used
 \begin{equation}
   \rho_{\rm dark matter}(r) \propto \left({r\over r_{\rm s}}\right)^{-1} \left[1 + \left({r\over r_{\rm s}}\right) \right]^{-2},
 \end{equation}
 normalized such that the total mass of the node is enclosed with the virial radius and with the scale length $r_{\rm s} = r_{\rm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}).
+
+\subsubsection{Einasto}\index{Einasto profile}\index{density profile!Einasto}
+
+Selected with {\tt darkMatterProfileMethod}$=${\tt Einasto}, under this method the Einasto density profile (e.g. \citealt{cardone_spherical_2005}) is used
+\begin{equation}
+  \rho_{\rm dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1 \right] \right),
+\end{equation}
+normalized such that the total mass of the node is enclosed with the virial radius and with the characteristic length $r_{-2} = r_{\rm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method (see \S\ref{sec:DarkMatterProfileShape}).
 
 \subsection{Density Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
 
@@ -330,6 +338,18 @@ a &=& wz-m, \\
 b &=& {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
 \end{eqnarray}
 where $w=0.029$, $m=0.097$, $\alpha=-110.001$, $\beta=2469.720$, $\gamma=16.885$.
+
+\subsection{Density Profile Shape}\label{sec:DarkMatterProfileShape}\index{dark matter profile!shape}
+
+The method used to compute any shape parameter of dark matter profiles is selected via the {\tt darkMatterShapeMethod} parameter.
+
+\subsubsection{Gao (2008)}
+
+Selected with {\tt darkMatterShapeMethod}$=${\tt Gao 2008}, under this method the shape parameter for Einasto density profiles\index{Einasto profile}\index{density profile!Einasto} is computed using a fitting function from \cite{gao_redshift_2008}:
+\begin{equation}
+\alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
+\end{equation}
+where $\nu=\delta_{\rm c}(t)/\sigma(M)$ is the peak height of the halo. The truncation at $\alpha = 0.3$ is included since \cite{gao_redshift_2008}'s fits do not probe this region and extremely large values of $\alpha$ are numerically troublesome.
 
 \subsection{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
 

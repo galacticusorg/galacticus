@@ -1,0 +1,947 @@
+!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+!!
+!!
+!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
+!!
+!!    The California Institute of Technology shall allow RECIPIENT to use and
+!!    distribute this software subject to the terms of the included license
+!!    agreement with the understanding that:
+!!
+!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
+!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
+!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
+!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
+!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
+!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
+!!    USED.
+!!
+!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
+!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
+!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
+!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
+!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
+!!
+!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
+!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
+!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
+!!    USE OF THE SOFTWARE.
+!!
+!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
+!!    to provide technical support for the Software.
+!!
+!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
+!!    of Derivative Works, public display or redistribution of the Software
+!!    other than those specified in the included license and the requirement
+!!    that all copies of the Software released be marked with the language
+!!    provided in this notice.
+!!
+!!    This software is separately available under negotiable license terms
+!!    from:
+!!    California Institute of Technology
+!!    Office of Technology Transfer
+!!    1200 E. California Blvd.
+!!    Pasadena, California 91125
+!!    http://www.ott.caltech.edu
+
+
+!% Contains a module which implements Einasto halo profiles.
+
+module Dark_Matter_Profiles_Einasto
+  !% Implements Einasto halo profiles.
+  use Tree_Nodes
+  use FGSL
+  private
+  public :: Dark_Matter_Profile_Einasto_Initialize, Dark_Matter_Profiles_Einasto_State_Store, Dark_Matter_Profiles_Einasto_State_Retrieve
+
+  ! Module scope variables used in integrations.
+  double precision                              :: concentrationParameter,alphaParameter,wavenumberParameter
+
+  ! Tables for specific angular momentum vs. radius table
+  double precision                              :: angularMomentumTableRadiusMinimum        = 1.0d-3
+  double precision                              :: angularMomentumTableRadiusMaximum        =20.0d+0
+  integer,          parameter                   :: angularMomentumTableRadiusPointsPerDecade=100
+  double precision                              :: angularMomentumTableAlphaMinimum         = 0.1d+0
+  double precision                              :: angularMomentumTableAlphaMaximum         = 0.3d+0
+  integer,          parameter                   :: angularMomentumTableAlphaPointsPerUnit   =100
+  logical                                       :: angularMomentumTableInitialized          =.false.
+  integer                                       :: angularMomentumTableAlphaCount,angularMomentumTableRadiusCount
+  double precision, allocatable, dimension(:  ) :: angularMomentumTableRadius,angularMomentumTableAlpha
+  double precision, allocatable, dimension(:,:) :: angularMomentumTable
+  type(fgsl_interp)                             :: angularMomentumTableRadiusInterpolationObject
+  type(fgsl_interp_accel)                       :: angularMomentumTableAlphaInterpolationAccelerator,   &
+       &                                           angularMomentumTableRadiusInterpolationAccelerator
+  logical                                       :: angularMomentumTableAlphaInterpolationReset =.true., &
+       &                                           angularMomentumTableRadiusInterpolationReset=.true.
+
+  ! Tables for energy as a function of concentration and alpha.
+  double precision                              :: energyTableConcentrationMinimum        = 2.0d0
+  double precision                              :: energyTableConcentrationMaximum        =20.0d0
+  integer,          parameter                   :: energyTableConcentrationPointsPerDecade=100
+  double precision                              :: energyTableAlphaMinimum                = 0.1d0
+  double precision                              :: energyTableAlphaMaximum                = 0.3d0
+  integer,          parameter                   :: energyTableAlphaPointsPerUnit          =100
+  logical                                       :: energyTableInitialized                 =.false.
+  integer                                       :: energyTableAlphaCount,energyTableConcentrationCount
+  double precision, allocatable, dimension(:  ) :: energyTableConcentration,energyTableAlpha
+  double precision, allocatable, dimension(:,:) :: energyTable
+  type(fgsl_interp)                             :: energyTableConcentrationInterpolationObject,       &
+                                                   energyTableAlphaInterpolationObject
+  type(fgsl_interp_accel)                       :: energyTableAlphaInterpolationAccelerator,          &
+       &                                           energyTableConcentrationInterpolationAccelerator
+  logical                                       :: energyTableAlphaInterpolationReset        =.true., &
+       &                                           energyTableConcentrationInterpolationReset=.true.
+
+  ! Tables for specific Fourier transform of density profile as a function of alpha and radius.
+  double precision                                :: fourierProfileTableConcentrationMinimum        = 2.0d0
+  double precision                                :: fourierProfileTableConcentrationMaximum        =20.0d0
+  integer,          parameter                     :: fourierProfileTableConcentrationPointsPerDecade=10
+  double precision                                :: fourierProfileTableWavenumberMinimum           =1.0d-3
+  double precision                                :: fourierProfileTableWavenumberMaximum           =1.0d+3
+  integer,          parameter                     :: fourierProfileTableWavenumberPointsPerDecade   =10
+  double precision                                :: fourierProfileTableAlphaMinimum                =0.1d+0
+  double precision                                :: fourierProfileTableAlphaMaximum                =0.3d+0
+  integer,          parameter                     :: fourierProfileTableAlphaPointsPerUnit          =100
+  logical                                         :: fourierProfileTableInitialized                 =.false.
+  integer                                         :: fourierProfileTableAlphaCount,fourierProfileTableWavenumberCount&
+       &,fourierProfileTableConcentrationCount
+  double precision, allocatable, dimension(:    ) :: fourierProfileTableWavenumber,fourierProfileTableAlpha&
+       &,fourierProfileTableConcentration
+  double precision, allocatable, dimension(:,:,:) :: fourierProfileTable
+  type(fgsl_interp)                               :: fourierProfileTableWavenumberInterpolationObject
+  type(fgsl_interp_accel)                         :: fourierProfileTableAlphaInterpolationAccelerator,        &
+       &                                             fourierProfileTableWavenumberInterpolationAccelerator,   &
+       &                                             fourierProfileTableConcentrationInterpolationAccelerator
+  logical                                         :: fourierProfileTableAlphaInterpolationReset        =.true., &
+       &                                             fourierProfileTableWavenumberInterpolationReset   =.true., &
+       &                                             fourierProfileTableConcentrationInterpolationReset=.true.
+
+contains
+
+  !# <darkMatterProfileMethod>
+  !#  <unitName>Dark_Matter_Profile_Einasto_Initialize</unitName>
+  !# </darkMatterProfileMethod>
+  subroutine Dark_Matter_Profile_Einasto_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get&
+       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get&
+       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
+       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
+       &,Dark_Matter_Profile_kSpace_Get)
+    !% Initializes the ``Einasto'' halo profile module.
+    use ISO_Varying_String
+    use Galacticus_Error
+    implicit none
+    type(varying_string),          intent(in)    :: darkMatterProfileMethod
+    procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
+         &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
+         &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
+         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get
+    
+    if (darkMatterProfileMethod == 'Einasto') then
+       Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_Einasto
+       Dark_Matter_Profile_Energy_Get                                => Dark_Matter_Profile_Energy_Einasto
+       Dark_Matter_Profile_Energy_Growth_Rate_Get                    => Dark_Matter_Profile_Energy_Growth_Rate_Einasto
+       Dark_Matter_Profile_Rotation_Normalization_Get                => Dark_Matter_Profile_Rotation_Normalization_Einasto
+       Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get => Radius_from_Specific_Angular_Momentum_Einasto
+       Dark_Matter_Profile_Circular_Velocity_Get                     => Dark_Matter_Profile_Circular_Velocity_Einasto
+       Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_Einasto
+       Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_Einasto       
+       Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_Einasto
+       ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
+       ! a treeNode to process, it should have been initialized by now.
+       if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call&
+            & Galacticus_Error_Report('Dark_Matter_Profile_Einasto_Initialize','Einasto dark matter profile requires a dark matter&
+            & profile component that supports the "scale" property')
+       if (.not.associated(Tree_Node_Dark_Matter_Profile_Shape)) call&
+            & Galacticus_Error_Report('Dark_Matter_Profile_Einasto_Initialize','Einasto dark matter profile requires a dark matter&
+            & profile component that supports the "shape" property')
+    end if
+    return
+  end subroutine Dark_Matter_Profile_Einasto_Initialize
+
+  double precision function Dark_Matter_Profile_Density_Einasto(thisNode,radius)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
+    !% in units of Mpc).
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha
+
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    radiusOverScaleRadius      =radius                                  /scaleRadius
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+    Dark_Matter_Profile_Density_Einasto=Density_Einasto_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
+         &*Tree_Node_Mass(thisNode)/scaleRadius**3
+    return
+  end function Dark_Matter_Profile_Density_Einasto
+  
+  double precision function Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,radius)
+    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
+    !% units of Mpc).
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha
+
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    radiusOverScaleRadius      =radius                                  /scaleRadius
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+    Dark_Matter_Profile_Enclosed_Mass_Einasto=Enclosed_Mass_Einasto_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
+         &*Tree_Node_Mass(thisNode)
+    return
+  end function Dark_Matter_Profile_Enclosed_Mass_Einasto
+
+  double precision function Dark_Matter_Profile_Circular_Velocity_Einasto(thisNode,radius)
+    !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
+    !% units of Mpc).
+    use Tree_Nodes
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+
+    if (radius > 0.0d0) then
+       Dark_Matter_Profile_Circular_Velocity_Einasto=dsqrt(gravitationalConstantGalacticus&
+            &*Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,radius)/radius)
+    else
+       Dark_Matter_Profile_Circular_Velocity_Einasto=0.0d0
+    end if
+    return
+  end function Dark_Matter_Profile_Circular_Velocity_Einasto
+
+  double precision function Dark_Matter_Profile_Potential_Einasto(thisNode,radius)
+    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
+    !% units of Mpc).
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha
+
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    radiusOverScaleRadius      =radius                                  /scaleRadius
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+    Dark_Matter_Profile_Potential_Einasto=                                                                   &
+         & ( Potential_Einasto_Scale_Free(radiusOverScaleRadius      ,virialRadiusOverScaleRadius,alpha)     &
+         &  -Potential_Einasto_Scale_Free(virialRadiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)     &
+         &  -1.0d0/                                                   virialRadiusOverScaleRadius            &
+         & )                                                                                                 &
+         & *gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)/scaleRadius
+    return
+  end function Dark_Matter_Profile_Potential_Einasto
+    
+  double precision function Radius_from_Specific_Angular_Momentum_Einasto(thisNode,specificAngularMomentum)
+    !% Returns the radius (in Mpc) in {\tt thisNode} at which a circular orbit has the given {\tt specificAngularMomentum} (given
+    !% in units of km s$^{-1}$ Mpc).
+    use Tree_Nodes
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: specificAngularMomentum
+    double precision                         :: scaleRadius,specificAngularMomentumScaleFree,alpha
+  
+    ! Get the scale radius of the halo.
+    scaleRadius=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    ! Get the shape parameter of the halo.
+    alpha      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    ! Compute the specific angular momentum in scale free units.
+    specificAngularMomentumScaleFree=specificAngularMomentum/dsqrt(gravitationalConstantGalacticus*scaleRadius&
+         &*Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,scaleRadius))
+    ! Compute the corresponding radius.
+    Radius_from_Specific_Angular_Momentum_Einasto=scaleRadius*Radius_from_Specific_Angular_Momentum_Scale_Free(alpha&
+         &,specificAngularMomentumScaleFree)
+    return
+  end function Radius_from_Specific_Angular_Momentum_Einasto
+
+  double precision function Radius_from_Specific_Angular_Momentum_Scale_Free(alpha,specificAngularMomentumScaleFree)
+    !% Comptue the radius at which a circular orbit has the given {\tt specificAngularMomentumScaleFree} in a scale free Einasto
+    !% profile.
+    use Numerical_Interpolation
+    implicit none
+    double precision, intent(in)     :: alpha,specificAngularMomentumScaleFree
+    integer,          dimension(0:1) :: jAlpha
+    double precision, dimension(0:1) :: hAlpha
+    integer                          :: iAlpha
+
+    ! Return immediately for zero angular momentum.
+    if (specificAngularMomentumScaleFree <= 0.0d0) then
+       Radius_from_Specific_Angular_Momentum_Scale_Free=0.0d0
+       return
+    end if
+
+    ! Ensure the table exists and is sufficiently tabulated.
+    call Radius_from_Specific_Angular_Momentum_Table_Make(alpha,specificAngularMomentumScaleFree)
+
+    ! Get interpolating factors in alpha.
+    jAlpha(0)=Interpolate_Locate(angularMomentumTableAlphaCount,angularMomentumTableAlpha&
+         &,angularMomentumTableAlphaInterpolationAccelerator,alpha,reset=angularMomentumTableAlphaInterpolationReset)
+    jAlpha(1)=jAlpha(0)+1
+    hAlpha=Interpolate_Linear_Generate_Factors(angularMomentumTableAlphaCount,angularMomentumTableAlpha,jAlpha(0),alpha)
+
+    ! Interpolate in specific angular momentum to get radius.
+    Radius_from_Specific_Angular_Momentum_Scale_Free=0.0d0
+    do iAlpha=0,1
+       Radius_from_Specific_Angular_Momentum_Scale_Free=                       &
+            &  Radius_from_Specific_Angular_Momentum_Scale_Free                &
+            & +Interpolate( angularMomentumTableRadiusCount                    &
+            &              ,angularMomentumTable(:,jAlpha(iAlpha))             &
+            &              ,angularMomentumTableRadius                         &
+            &              ,angularMomentumTableRadiusInterpolationObject      &
+            &              ,angularMomentumTableRadiusInterpolationAccelerator &
+            &              ,specificAngularMomentumScaleFree                   &
+            &              ,reset=angularMomentumTableRadiusInterpolationReset &
+            &             )                                                    &
+            & *hAlpha(iAlpha)
+    end do
+
+    return
+  end function Radius_from_Specific_Angular_Momentum_Scale_Free
+
+  subroutine Radius_from_Specific_Angular_Momentum_Table_Make(alphaRequired,specificAngularMomentumRequired)
+    !% Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.
+    use Numerical_Interpolation
+    use Numerical_Ranges
+    use Gamma_Functions
+    use Memory_Management
+    implicit none
+    double precision, intent(in) :: alphaRequired,specificAngularMomentumRequired
+    integer                      :: iAlpha,iRadius
+    logical                      :: makeTable
+    double precision             :: alpha,radius,enclosedMass
+
+    !$omp critical (Einasto_Radius_from_Specific_Angular_Momentum_Table_Make)
+    ! Always check if we need to make the table.
+    makeTable=.true.
+    do while (makeTable)
+       ! Assume table does not need remaking.
+       makeTable=.false.
+       ! Check for uninitialized table.
+       if (.not.angularMomentumTableInitialized) then
+          makeTable=.true.
+          ! Check for alpha out of range.
+       else if (alphaRequired < angularMomentumTableAlpha(1) .or. alphaRequired >&
+            & angularMomentumTableAlpha(angularMomentumTableAlphaCount)) then
+          makeTable=.true.
+          ! Compute the range of tabulation and number of points to use.
+          angularMomentumTableAlphaMinimum =min(angularMomentumTableAlphaMinimum,0.9d0*alphaRequired)
+          angularMomentumTableAlphaMaximum =max(angularMomentumTableAlphaMaximum,1.1d0*alphaRequired)
+          ! Check for angular momentum below minimum tabulated value.
+       else if (any(specificAngularMomentumRequired < angularMomentumTable(1,:))) then
+          makeTable=.true.
+          angularMomentumTableRadiusMinimum=0.5d0*angularMomentumTableRadiusMinimum
+          ! Check for angular momentum above maximum tabulated value.
+       else if (any(specificAngularMomentumRequired > angularMomentumTable(angularMomentumTableRadiusCount,:))) then
+          makeTable=.true.
+          angularMomentumTableRadiusMaximum=2.0d0*angularMomentumTableRadiusMaximum
+       end if
+       ! Remake the table if necessary.
+       if (makeTable) then
+          ! Allocate arrays to the appropriate sizes.
+          angularMomentumTableAlphaCount =int(      (angularMomentumTableAlphaMaximum -angularMomentumTableAlphaMinimum )&
+               &*dble(angularMomentumTableAlphaPointsPerUnit   ))+1
+          angularMomentumTableRadiusCount=int(dlog10(angularMomentumTableRadiusMaximum/angularMomentumTableRadiusMinimum)&
+               &*dble(angularMomentumTableRadiusPointsPerDecade))+1
+          if (allocated(angularMomentumTableAlpha )) call Dealloc_Array(angularMomentumTableAlpha )
+          if (allocated(angularMomentumTableRadius)) call Dealloc_Array(angularMomentumTableRadius)
+          if (allocated(angularMomentumTable      )) call Dealloc_Array(angularMomentumTable      )
+          call Alloc_Array(angularMomentumTableAlpha ,[                                angularMomentumTableAlphaCount])
+          call Alloc_Array(angularMomentumTableRadius,[angularMomentumTableRadiusCount                               ])
+          call Alloc_Array(angularMomentumTable      ,[angularMomentumTableRadiusCount,angularMomentumTableAlphaCount])
+          ! Create ranges of alpha and radius.
+          angularMomentumTableAlpha =Make_Range(angularMomentumTableAlphaMinimum ,angularMomentumTableAlphaMaximum &
+               &,angularMomentumTableAlphaCount ,rangeType=rangeTypeLinear     )
+          angularMomentumTableRadius=Make_Range(angularMomentumTableRadiusMinimum,angularMomentumTableRadiusMaximum&
+               &,angularMomentumTableRadiusCount,rangeType=rangeTypeLogarithmic)
+          ! Tabulate the radius vs. specific angular momentum relation.
+          do iAlpha=1,angularMomentumTableAlphaCount    
+             alpha=angularMomentumTableAlpha(iAlpha)
+             do iRadius=1,angularMomentumTableRadiusCount
+                radius=angularMomentumTableRadius(iRadius)
+                enclosedMass= Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius**alpha/alpha) &
+                     &       /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0              /alpha)
+                angularMomentumTable(iRadius,iAlpha)=dsqrt(enclosedMass*radius)
+             end do             
+          end do
+          ! Reset interpolators. 
+          call Interpolate_Done(angularMomentumTableRadiusInterpolationObject,angularMomentumTableRadiusInterpolationAccelerator &
+               &,angularMomentumTableRadiusInterpolationReset)
+          call Interpolate_Done(interpolationAccelerator=angularMomentumTableAlphaInterpolationAccelerator &
+               &,reset=angularMomentumTableAlphaInterpolationReset)
+          angularMomentumTableRadiusInterpolationReset=.true.
+          angularMomentumTableAlphaInterpolationReset =.true.
+          ! Flag that the table is now initialized.
+          angularMomentumTableInitialized=.true.
+       end if
+    end do
+    !$omp end critical (Einasto_Radius_from_Specific_Angular_Momentum_Table_Make)
+    return
+  end subroutine Radius_from_Specific_Angular_Momentum_Table_Make
+
+  double precision function Dark_Matter_Profile_Rotation_Normalization_Einasto(thisNode)
+    !% Return the rotation normalization of an Einasto halo density profile.
+    use Tree_Nodes
+    use Numerical_Constants_Math
+    use Gamma_Functions
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision                         :: scaleRadius,virialRadiusOverScaleRadius,alpha
+
+    ! Get scale radius, shape and concentration.
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+
+    ! Compute the rotation normalization.
+    Dark_Matter_Profile_Rotation_Normalization_Einasto=                                                         &
+         &  (4.0d0/Pi/scaleRadius)                                                                              &
+         & *(2.0d0/alpha)**(1.0d0/alpha)                                                                        &
+         & *Gamma_Function                         (3.0d0/alpha                                               ) &
+         & /Gamma_Function                         (4.0d0/alpha                                               ) &
+         & *Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha) &
+         & /Gamma_Function_Incomplete_Complementary(4.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha)
+
+    return
+  end function Dark_Matter_Profile_Rotation_Normalization_Einasto
+  
+  double precision function Dark_Matter_Profile_Energy_Einasto(thisNode)
+    !% Return the energy of an Einasto halo density profile.
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Interpolation
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          dimension(0:1)         :: jAlpha
+    double precision, dimension(0:1)         :: hAlpha
+    integer                                  :: iAlpha
+    double precision                         :: scaleRadius,virialRadiusOverScaleRadius,alpha
+    
+    ! Get scale radius, shape parameter and concentration.
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+
+    ! Ensure the table exists and is sufficiently tabulated.
+    call Energy_Table_Make(virialRadiusOverScaleRadius,alpha)
+
+    !$omp critical(NFW_Interpolation)
+    ! Get interpolating factors in alpha.
+    jAlpha(0)=Interpolate_Locate(energyTableAlphaCount,energyTableAlpha,energyTableAlphaInterpolationAccelerator,alpha,reset&
+         &=energyTableAlphaInterpolationReset)
+    jAlpha(1)=jAlpha(0)+1
+    hAlpha=Interpolate_Linear_Generate_Factors(energyTableAlphaCount,energyTableAlpha,jAlpha(0),alpha)
+
+    ! Find the energy by interpolation.
+    Dark_Matter_Profile_Energy_Einasto=0.0d0
+    do iAlpha=0,1
+       Dark_Matter_Profile_Energy_Einasto=Dark_Matter_Profile_Energy_Einasto+Interpolate(energyTableConcentrationCount&
+            &,energyTableConcentration,energyTable(:,jAlpha(iAlpha)),energyTableConcentrationInterpolationObject &
+            &,energyTableConcentrationInterpolationAccelerator,virialRadiusOverScaleRadius,reset&
+            &=energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
+    end do
+
+    ! Scale to dimensionful units.
+    Dark_Matter_Profile_Energy_Einasto=Dark_Matter_Profile_Energy_Einasto*Tree_Node_Mass(thisNode) &
+         &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+    !$omp end critical(NFW_Interpolation)
+    return
+  end function Dark_Matter_Profile_Energy_Einasto
+  
+  double precision function Dark_Matter_Profile_Energy_Growth_Rate_Einasto(thisNode)
+    !% Return the energy of an Einasto halo density profile.
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Interpolation
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          dimension(0:1)         :: jAlpha
+    double precision, dimension(0:1)         :: hAlpha
+    integer                                  :: iAlpha
+    double precision                         :: scaleRadius,virialRadiusOverScaleRadius,energy,energyGradient,alpha
+    
+    ! Get scale radius, shape parameter and concentration.
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+    
+    ! Ensure the table exists and is sufficiently tabulated.
+    call Energy_Table_Make(virialRadiusOverScaleRadius,alpha)
+    
+    !$omp critical(NFW_Interpolation)
+    ! Get interpolating factors in alpha.
+    jAlpha(0)=Interpolate_Locate(energyTableAlphaCount,energyTableAlpha,energyTableAlphaInterpolationAccelerator,alpha,reset&
+         &=energyTableAlphaInterpolationReset)
+    jAlpha(1)=jAlpha(0)+1
+    hAlpha=Interpolate_Linear_Generate_Factors(energyTableAlphaCount,energyTableAlpha,jAlpha(0),alpha)
+
+    ! Find the energy gradient by interpolation.
+    !$omp critical(NFW_Interpolation)
+    energy        =0.0d0
+    energyGradient=0.0d0
+    do iAlpha=0,1
+       energy        =energy        +Interpolate           (energyTableConcentrationCount,energyTableConcentration,energyTable(:&
+            &,jAlpha(iAlpha)),energyTableConcentrationInterpolationObject ,energyTableConcentrationInterpolationAccelerator&
+            &,virialRadiusOverScaleRadius,reset=energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
+       energyGradient=energyGradient+Interpolate_Derivative(energyTableConcentrationCount,energyTableConcentration,energyTable(:&
+            &,jAlpha(iAlpha)),energyTableConcentrationInterpolationObject ,energyTableConcentrationInterpolationAccelerator&
+            &,virialRadiusOverScaleRadius,reset=energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
+    end do
+    !$omp end critical(NFW_Interpolation)
+
+    ! Compute the energy growth rate.
+    Dark_Matter_Profile_Energy_Growth_Rate_Einasto=Dark_Matter_Profile_Energy_Einasto(thisNode)&
+         &*(Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)+2.0d0 &
+         &*Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)/Dark_Matter_Halo_Virial_Velocity(thisNode)+(energyGradient&
+         &*virialRadiusOverScaleRadius/energy)*(Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)&
+         &/Dark_Matter_Halo_Virial_Radius(thisNode) -Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate(thisNode)&
+         &/Tree_Node_Dark_Matter_Profile_Scale(thisNode)))
+
+    return
+  end function Dark_Matter_Profile_Energy_Growth_Rate_Einasto
+  
+  subroutine Energy_Table_Make(concentrationRequired,alphaRequired)
+    !% Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Interpolation
+    use Numerical_Integration
+    use Numerical_Ranges
+    use Memory_Management
+    use Numerical_Constants_Math
+    implicit none
+    double precision,                intent(in) :: concentrationRequired,alphaRequired
+    integer                                     :: iConcentration,iAlpha
+    logical                                     :: makeTable
+    double precision                            :: concentration,alpha,radiusMinimum,radiusMaximum,potentialEnergyIntegral&
+         &,potentialEnergy ,jeansEquationIntegral,kineticEnergyIntegral,kineticEnergy
+    type(c_ptr)                                 :: parameterPointer
+    type(fgsl_function)                         :: integrandFunction
+    type(fgsl_integration_workspace)            :: integrationWorkspace
+
+    !$omp critical (Einasto_Energy_Table_Make)
+    ! Assume table does not need remaking.
+    makeTable=.false.
+    ! Check for uninitialized table.
+    if (.not.energyTableInitialized) makeTable=.true.
+    ! Check for alpha out of range.
+    if (alphaRequired < energyTableAlphaMinimum .or. alphaRequired > energyTableAlphaMaximum) then
+       makeTable=.true.
+       ! Compute the range of tabulation and number of points to use.
+       energyTableAlphaMinimum =min(energyTableAlphaMinimum,0.9d0*alphaRequired)
+       energyTableAlphaMaximum =max(energyTableAlphaMaximum,1.1d0*alphaRequired)
+    end if
+    ! Check for concentration below minimum tabulated value.
+    if (concentrationRequired < energyTableConcentrationMinimum .or. concentrationRequired > energyTableConcentrationMaximum) then
+       makeTable=.true.
+       energyTableConcentrationMinimum=min(energyTableConcentrationMinimum,0.5d0*energyTableConcentrationMinimum)
+       energyTableConcentrationMaximum=max(energyTableConcentrationMaximum,2.0d0*energyTableConcentrationMaximum)
+    end if
+    ! Remake the table if necessary.
+    if (makeTable) then
+       ! Allocate arrays to the appropriate sizes.
+       energyTableAlphaCount        =int(      (energyTableAlphaMaximum        -energyTableAlphaMinimum        ) &
+            &*dble(energyTableAlphaPointsPerUnit          ))+1
+       energyTableConcentrationCount=int(dlog10(energyTableConcentrationMaximum/energyTableConcentrationMinimum) &
+            &*dble(energyTableConcentrationPointsPerDecade))+1
+       if (allocated(energyTableAlpha        )) call Dealloc_Array(energyTableAlpha        )
+       if (allocated(energyTableConcentration)) call Dealloc_Array(energyTableConcentration)
+       if (allocated(energyTable             )) call Dealloc_Array(energyTable             )
+       call Alloc_Array(energyTableAlpha        ,[                              energyTableAlphaCount])
+       call Alloc_Array(energyTableConcentration,[energyTableConcentrationCount                      ])
+       call Alloc_Array(energyTable             ,[energyTableConcentrationCount,energyTableAlphaCount])
+       ! Create ranges of alpha and concentration.
+       energyTableAlpha        =Make_Range(energyTableAlphaMinimum        ,energyTableAlphaMaximum         &
+            &,energyTableAlphaCount        ,rangeType=rangeTypeLinear     )
+       energyTableConcentration=Make_Range(energyTableConcentrationMinimum,energyTableConcentrationMaximum &
+            &,energyTableConcentrationCount,rangeType=rangeTypeLogarithmic)
+       ! Tabulate the radius vs. specific angular momentum relation.
+       do iAlpha=1,energyTableAlphaCount    
+          alpha=energyTableAlpha(iAlpha)
+          do iConcentration=1,energyTableConcentrationCount
+             concentration=energyTableConcentration(iConcentration)
+             
+             ! Compute the potential energy.
+             radiusMinimum         =0.0d0
+             radiusMaximum         =concentration
+             concentrationParameter=concentration
+             alphaParameter        =alpha
+             potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,Potential_Energy_Integrand_Einasto&
+                  &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
+             
+             ! Compute the velocity dispersion at the virial radius.
+             radiusMinimum         =        concentration
+             radiusMaximum         =100.0d0*concentration
+             concentrationParameter=        concentration
+             alphaParameter        =alpha
+             jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,Jeans_Equation_Integrand_Einasto&
+                  &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             
+             ! Compute the kinetic energy.
+             radiusMinimum         =0.0d0
+             radiusMaximum         =concentration
+             concentrationParameter=concentration
+             alphaParameter        =alpha
+             kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,Kinetic_Energy_Integrand_Einasto&
+                  &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
+             
+             ! Compute the total energy.
+             energyTable(iConcentration,iAlpha)=(potentialEnergy+kineticEnergy)*concentration
+             
+          end do
+       end do
+       ! Reset interpolators. 
+       call Interpolate_Done(energyTableConcentrationInterpolationObject,energyTableConcentrationInterpolationAccelerator &
+            &,energyTableConcentrationInterpolationReset)
+       call Interpolate_Done(energyTableAlphaInterpolationObject        ,energyTableAlphaInterpolationAccelerator         &
+            &,energyTableAlphaInterpolationReset        )
+       energyTableConcentrationInterpolationReset=.true.
+       energyTableAlphaInterpolationReset        =.true.
+    ! Flag that the table is now initialized.
+       energyTableInitialized=.true.
+    end if
+    !$omp end critical (Einasto_Energy_Table_Make)
+    return
+  end subroutine Energy_Table_Make
+
+  function Potential_Energy_Integrand_Einasto(radius,parameterPointer) bind(c)
+    !% Integrand for Einasto profile potential energy.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)          :: Potential_Energy_Integrand_Einasto
+    real(c_double), value   :: radius
+    type(c_ptr),    value   :: parameterPointer
+    
+    Potential_Energy_Integrand_Einasto=(Enclosed_Mass_Einasto_Scale_Free(radius,concentrationParameter,alphaParameter)/radius)**2
+    return
+  end function Potential_Energy_Integrand_Einasto
+  
+  function Kinetic_Energy_Integrand_Einasto(radius,parameterPointer) bind(c)
+    !% Integrand for Einasto profile kinetic energy.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)          :: Kinetic_Energy_Integrand_Einasto
+    real(c_double), value   :: radius
+    type(c_ptr),    value   :: parameterPointer
+
+    Kinetic_Energy_Integrand_Einasto=Enclosed_Mass_Einasto_Scale_Free(radius,concentrationParameter,alphaParameter)&
+         &*Density_Einasto_Scale_Free(radius,concentrationParameter,alphaParameter)*radius
+    return
+  end function Kinetic_Energy_Integrand_Einasto
+
+  function Jeans_Equation_Integrand_Einasto(radius,parameterPointer) bind(c)
+    !% Integrand for Einasto profile Jeans equation.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)          :: Jeans_Equation_Integrand_Einasto
+    real(c_double), value   :: radius
+    type(c_ptr),    value   :: parameterPointer
+    
+    Jeans_Equation_Integrand_Einasto=Enclosed_Mass_Einasto_Scale_Free(radius,concentrationParameter,alphaParameter)&
+         &*Density_Einasto_Scale_Free(radius ,concentrationParameter,alphaParameter)/radius**2
+    return
+  end function Jeans_Equation_Integrand_Einasto
+
+  double precision function Enclosed_Mass_Einasto_Scale_Free(radius,concentration,alpha)
+    !% Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\tt concentration} at the
+    !% given {\tt radius} (given in units of the scale radius).
+    use Gamma_Functions
+    implicit none
+    double precision, intent(in) :: radius,concentration,alpha
+ 
+    if (radius >= concentration) then
+       Enclosed_Mass_Einasto_Scale_Free=1.0d0
+    else
+       Enclosed_Mass_Einasto_Scale_Free=                                                             &
+            &  Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha) &
+            & /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
+    end if
+    return
+  end function Enclosed_Mass_Einasto_Scale_Free
+  
+  double precision function Density_Einasto_Scale_Free(radius,concentration,alpha)
+    !% Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with
+    !% given {\tt concentration} and {\tt alpha} at the given {\tt radius} (given in units of the scale radius).
+    use Numerical_Constants_Math
+    use Gamma_Functions
+    implicit none
+    double precision, intent(in) :: radius,concentration,alpha
+    double precision             :: densityNormalization
+
+    densityNormalization= (alpha/4.0d0/Pi)                                                                      &
+         &               *    ((2.0d0/alpha)                   **(3.0d0/alpha)                                ) &
+         &               *dexp(-2.0d0/alpha                                                                   ) &
+         &               /Gamma_Function                         (3.0d0/alpha                                 ) &
+         &               /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
+    Density_Einasto_Scale_Free=densityNormalization*dexp(-(2.0d0/alpha)*(radius**alpha-1.0d0))
+    return
+  end function Density_Einasto_Scale_Free
+  
+  double precision function Potential_Einasto_Scale_Free(radius,concentration,alpha)
+    !% Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter
+    !% profile with given {\tt concentration} and {\tt alpha} at the given {\tt radius} (given in units of the scale radius).
+    use Numerical_Constants_Math
+    use Gamma_Functions
+    implicit none
+    double precision, intent(in) :: radius,concentration,alpha
+ 
+    Potential_Einasto_Scale_Free=                                                                                 &
+         & -(                                                                                                     &
+         &           Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha)/radius &
+         &   +((2.0d0/alpha)**(1.0d0/alpha))                                                                      &
+         &   *(1.0d0+Gamma_Function_Incomplete              (2.0d0/alpha,2.0d0*radius       **alpha/alpha))       &
+         &   *       Gamma_Function                         (2.0d0/alpha                                 )        &
+         &   /       Gamma_Function                         (3.0d0/alpha                                 )        &
+         &  )                                                                                                     &
+         & /         Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
+    return
+   end function Potential_Einasto_Scale_Free
+  
+  double precision function Dark_Matter_Profile_kSpace_Einasto(thisNode,wavenumber)
+    !% Returns the Fourier transform of the Einasto density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$)).
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Interpolation
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: wavenumber
+    integer,          dimension(0:1)         :: jAlpha,jConcentration
+    double precision, dimension(0:1)         :: hAlpha,hConcentration
+    integer                                  :: iAlpha,iConcentration
+    double precision                         :: scaleRadius,virialRadiusOverScaleRadius,wavenumberScaleFree,alpha
+  
+    ! Get scale radius, shape parameter and concentration.
+    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+    wavenumberScaleFree        =wavenumber*scaleRadius
+
+    ! Ensure the table exists and is sufficiently tabulated.
+    call Fourier_Profile_Table_Make(wavenumberScaleFree,virialRadiusOverScaleRadius,alpha)
+
+    !$omp critical(NFW_Interpolation)
+    ! Get interpolating factors in alpha.
+    jAlpha(0)=Interpolate_Locate(fourierProfileTableAlphaCount,fourierProfileTableAlpha&
+         &,fourierProfileTableAlphaInterpolationAccelerator,alpha,reset=fourierProfileTableAlphaInterpolationReset)
+    jAlpha(1)=jAlpha(0)+1
+    hAlpha=Interpolate_Linear_Generate_Factors(fourierProfileTableAlphaCount,fourierProfileTableAlpha,jAlpha(0),alpha)
+
+    ! Get interpolating factors in concentration.
+    jConcentration(0)=Interpolate_Locate(fourierProfileTableConcentrationCount,fourierProfileTableConcentration &
+         &,fourierProfileTableConcentrationInterpolationAccelerator,virialRadiusOverScaleRadius,reset &
+         &=fourierProfileTableConcentrationInterpolationReset)
+    jConcentration(1)=jConcentration(0)+1
+    hConcentration=Interpolate_Linear_Generate_Factors(fourierProfileTableConcentrationCount,fourierProfileTableConcentration&
+         &,jConcentration(0),virialRadiusOverScaleRadius)
+
+    ! Find the Fourier profile by interpolation.
+    Dark_Matter_Profile_kSpace_Einasto=0.0d0
+    do iAlpha=0,1
+       do iConcentration=0,1
+          Dark_Matter_Profile_kSpace_Einasto=Dark_Matter_Profile_kSpace_Einasto+Interpolate(fourierProfileTableWavenumberCount &
+               &,fourierProfileTableWavenumber,fourierProfileTable(:,jConcentration(iConcentration),jAlpha(iAlpha))&
+               &,fourierProfileTableWavenumberInterpolationObject ,fourierProfileTableWavenumberInterpolationAccelerator&
+               &,wavenumberScaleFree,reset =fourierProfileTableWavenumberInterpolationReset)*hAlpha(iAlpha)*hConcentration(iConcentration)
+       end do
+    end do
+    !$omp end critical(NFW_Interpolation)
+    return
+  end function Dark_Matter_Profile_kSpace_Einasto
+
+  subroutine Fourier_Profile_Table_Make(wavenumberRequired,concentrationRequired,alphaRequired)
+    !% Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
+    !% dimensionless wavenumber.
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Interpolation
+    use Numerical_Integration
+    use Numerical_Ranges
+    use Memory_Management
+    use Numerical_Constants_Math
+    use Galacticus_Display
+    implicit none
+    double precision,                intent(in) :: wavenumberRequired,concentrationRequired,alphaRequired
+    integer                                     :: iWavenumber,iAlpha,iConcentration,percentage
+    logical                                     :: makeTable
+    double precision                            :: wavenumber,alpha,concentration,radiusMinimum,radiusMaximum
+    type(c_ptr)                                 :: parameterPointer
+    type(fgsl_function)                         :: integrandFunction
+    type(fgsl_integration_workspace)            :: integrationWorkspace
+
+    !$omp critical (Einasto_Fourier_Profile_Table_Make)
+    ! Assume table does not need remaking.
+    makeTable=.false.
+    ! Check for uninitialized table.
+    if (.not.fourierProfileTableInitialized) makeTable=.true.
+    ! Check for alpha out of range.
+    if (alphaRequired         < fourierProfileTableAlphaMinimum         .or. alphaRequired         > fourierProfileTableAlphaMaximum        ) then
+       makeTable=.true.
+       ! Compute the range of tabulation and number of points to use.
+       fourierProfileTableAlphaMinimum        =min(fourierProfileTableAlphaMinimum     ,0.9d0*alphaRequired           )
+       fourierProfileTableAlphaMaximum        =max(fourierProfileTableAlphaMaximum     ,1.1d0*alphaRequired           )
+    end if
+    ! Check for concentration out of range.
+    if (concentrationRequired < fourierProfileTableConcentrationMinimum .or. concentrationRequired > fourierProfileTableConcentrationMaximum ) then
+       makeTable=.true.
+       ! Compute the range of tabulation and number of points to use.
+       fourierProfileTableConcentrationMinimum=min(fourierProfileTableConcentrationMinimum,0.5d0*concentrationRequired)
+       fourierProfileTableConcentrationMaximum=max(fourierProfileTableConcentrationMaximum,2.0d0*concentrationRequired)
+    end if
+    ! Check for wavenumber below minimum tabulated value.
+    if (wavenumberRequired    < fourierProfileTableWavenumberMinimum    .or. wavenumberRequired    > fourierProfileTableWavenumberMaximum    ) then
+       makeTable=.true.
+       fourierProfileTableWavenumberMinimum   =min(fourierProfileTableWavenumberMinimum   ,0.5d0*wavenumberRequired   )
+       fourierProfileTableWavenumberMaximum   =max(fourierProfileTableWavenumberMaximum   ,2.0d0*wavenumberRequired   )
+    end if
+    ! Remake the table if necessary.
+    if (makeTable) then
+       ! Display a message.
+       call Galacticus_Display_Indent('Constructing Einasto profile Fourier transform lookup table...',verbosityInfo)
+       ! Allocate arrays to the appropriate sizes.
+       fourierProfileTableAlphaCount        =int(      (fourierProfileTableAlphaMaximum        -fourierProfileTableAlphaMinimum        ) &
+            &*dble(fourierProfileTableAlphaPointsPerUnit          ))+1
+       fourierProfileTableConcentrationCount=int(dlog10(fourierProfileTableConcentrationMaximum/fourierProfileTableConcentrationMinimum) &
+            &*dble(fourierProfileTableConcentrationPointsPerDecade))+1
+       fourierProfileTableWavenumberCount   =int(dlog10(fourierProfileTableWavenumberMaximum   /fourierProfileTableWavenumberMinimum   ) &
+            &*dble(fourierProfileTableWavenumberPointsPerDecade   ))+1
+       if (allocated(fourierProfileTableAlpha        )) call Dealloc_Array(fourierProfileTableAlpha        )
+       if (allocated(fourierProfileTableConcentration)) call Dealloc_Array(fourierProfileTableConcentration)
+       if (allocated(fourierProfileTableWavenumber   )) call Dealloc_Array(fourierProfileTableWavenumber   )
+       if (allocated(fourierProfileTable             )) call Dealloc_Array(fourierProfileTable             )
+       call Alloc_Array(fourierProfileTableAlpha        ,[                                                                         fourierProfileTableAlphaCount])
+       call Alloc_Array(fourierProfileTableConcentration,[                                   fourierProfileTableConcentrationCount                              ])
+       call Alloc_Array(fourierProfileTableWavenumber   ,[fourierProfileTableWavenumberCount                                                                    ])
+       call Alloc_Array(fourierProfileTable             ,[fourierProfileTableWavenumberCount,fourierProfileTableConcentrationCount,fourierProfileTableAlphaCount])
+       ! Create ranges of alpha and wavenumber.
+       fourierProfileTableAlpha        =Make_Range(fourierProfileTableAlphaMinimum        ,fourierProfileTableAlphaMaximum         &
+            &,fourierProfileTableAlphaCount        ,rangeType=rangeTypeLinear     )
+       fourierProfileTableConcentration=Make_Range(fourierProfileTableConcentrationMinimum,fourierProfileTableConcentrationMaximum &
+            &,fourierProfileTableConcentrationCount,rangeType=rangeTypeLogarithmic)
+       fourierProfileTableWavenumber   =Make_Range(fourierProfileTableWavenumberMinimum   ,fourierProfileTableWavenumberMaximum    &
+            &,fourierProfileTableWavenumberCount   ,rangeType=rangeTypeLogarithmic)
+       ! Tabulate the Fourier profile.
+       do iAlpha=1,fourierProfileTableAlphaCount
+          alpha=fourierProfileTableAlpha(iAlpha)
+          do iConcentration=1,fourierProfileTableConcentrationCount    
+             concentration=fourierProfileTableConcentration(iConcentration)
+             
+             ! Show progress.
+             percentage=int(100.0d0*dble((iAlpha-1)*fourierProfileTableConcentrationCount+iConcentration-1)&
+                  &/dble(fourierProfileTableAlphaCount*fourierProfileTableConcentrationCount))
+             call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iConcentration == 1,verbosityInfo)
+
+             do iWavenumber=1,fourierProfileTableWavenumberCount
+                wavenumber=fourierProfileTableWavenumber(iWavenumber)
+                ! Compute the potential fourierProfile.
+                radiusMinimum         =0.0d0
+                radiusMaximum         =concentration
+                wavenumberParameter   =wavenumber
+                alphaParameter        =alpha
+                concentrationParameter=concentration
+                fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum&
+                     &,Fourier_Profile_Integrand_Einasto ,parameterPointer,integrandFunction,integrationWorkspace&
+                     &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000)
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+             
+             end do
+          end do
+       end do
+       call Galacticus_Display_Counter_Clear(verbosityInfo)
+       ! Reset interpolators. 
+       call Interpolate_Done(fourierProfileTableWavenumberInterpolationObject,fourierProfileTableWavenumberInterpolationAccelerator &
+            &,fourierProfileTableWavenumberInterpolationReset)
+       call Interpolate_Done(interpolationAccelerator=fourierProfileTableAlphaInterpolationAccelerator         &
+            &,reset=fourierProfileTableAlphaInterpolationReset        )
+       call Interpolate_Done(interpolationAccelerator=fourierProfileTableConcentrationInterpolationAccelerator &
+            &,reset=fourierProfileTableConcentrationInterpolationReset)
+       fourierProfileTableWavenumberInterpolationReset   =.true.
+       fourierProfileTableAlphaInterpolationReset        =.true.
+       fourierProfileTableConcentrationInterpolationReset=.true.
+       ! Flag that the table is now initialized.
+       fourierProfileTableInitialized=.true.
+       ! Display a message.
+       call Galacticus_Display_Unindent('done',verbosityInfo)
+    end if
+    !$omp end critical (Einasto_Fourier_Profile_Table_Make)
+    return
+  end subroutine Fourier_Profile_Table_Make
+
+  function Fourier_Profile_Integrand_Einasto(radius,parameterPointer) bind(c)
+    !% Integrand for Einasto Fourier profile.
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Constants_Math
+    implicit none
+    real(c_double)          :: Fourier_Profile_Integrand_Einasto
+    real(c_double), value   :: radius
+    type(c_ptr),    value   :: parameterPointer
+    
+    Fourier_Profile_Integrand_Einasto=4.0d0*Pi*radius*dsin(wavenumberParameter*radius)*Density_Einasto_Scale_Free(radius&
+         &,concentrationParameter,alphaParameter)/wavenumberParameter
+    return
+  end function Fourier_Profile_Integrand_Einasto
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Dark_Matter_Profiles_Einasto_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Dark_Matter_Profiles_Einasto_State_Store(stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) angularMomentumTableRadiusMinimum,angularMomentumTableRadiusMaximum,angularMomentumTableAlphaMinimum &
+         &,angularMomentumTableAlphaMaximum,energyTableConcentrationMinimum,energyTableConcentrationMaximum &
+         &,energyTableAlphaMinimum,energyTableAlphaMaximum,fourierProfileTableWavenumberMinimum &
+         &,fourierProfileTableWavenumberMaximum,fourierProfileTableAlphaMinimum,fourierProfileTableAlphaMaximum&
+         &,fourierProfileTableConcentrationMinimum,fourierProfileTableConcentrationMaximum
+
+    return
+  end subroutine Dark_Matter_Profiles_Einasto_State_Store
+  
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Dark_Matter_Profiles_Einasto_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Dark_Matter_Profiles_Einasto_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    ! Read the minimum and maximum tabulated times.
+    read (stateFile) angularMomentumTableRadiusMinimum,angularMomentumTableRadiusMaximum,angularMomentumTableAlphaMinimum &
+         &,angularMomentumTableAlphaMaximum,energyTableConcentrationMinimum,energyTableConcentrationMaximum &
+         &,energyTableAlphaMinimum,energyTableAlphaMaximum,fourierProfileTableWavenumberMinimum &
+         &,fourierProfileTableWavenumberMaximum ,fourierProfileTableAlphaMinimum,fourierProfileTableAlphaMaximum&
+         &,fourierProfileTableConcentrationMinimum,fourierProfileTableConcentrationMaximum
+    ! Retabulate.
+    angularMomentumTableInitialized=.false.
+    energyTableInitialized         =.false.
+    fourierProfileTableInitialized =.false.
+    return
+  end subroutine Dark_Matter_Profiles_Einasto_State_Retrieve
+  
+end module Dark_Matter_Profiles_Einasto
