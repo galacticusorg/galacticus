@@ -467,25 +467,28 @@ contains
        ! Compute the star formation rate.
        starFormationRate=Exponential_Disk_SFR(thisNode)
        
-       ! If rate is finite, then compute related rates.
-       if (starFormationRate > 0.0d0) then
-          ! Get the available fuel mass.
-          fuelMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
-             
-          ! Find the metallicity of the fuel supply.
+       ! Get the available fuel mass.
+       fuelMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
+       
+       ! Find the metallicity of the fuel supply.
+       if (fuelMass > 0.0d0) then
           call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundanceMasses)
           abundanceMasses=max(min(abundanceMasses/fuelMass,1.0d0),0.0d0)
-          call fuelAbundances%pack(abundanceMasses)
-
-          ! Get the component index.
-          thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-
-          ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-          call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,thisNode&
-               &,thisNode%components(thisIndex)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates&
-               &,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
-
-          ! Adjust rates.
+       else
+          abundanceMasses=0.0d0
+       end if
+       call fuelAbundances%pack(abundanceMasses)
+       
+       ! Get the component index.
+       thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+       
+       ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
+       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,thisNode&
+            &,thisNode%components(thisIndex)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates&
+            &,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
+       
+       ! Adjust rates.
+       if (starFormationRate > 0.0d0) then
           call Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure&
                &,stellarMassRate)
           call Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential            (thisNode,interrupt,interruptProcedure,fuelMassRate &
@@ -567,11 +570,13 @@ contains
           call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,-luminositiesTransferRate)
           call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust          (thisNode,interrupt,interruptProcedure, luminositiesTransferRate)
           ! Stellar properties history.
-          thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-          historyTransferRate=thisNode%components(thisIndex)%histories(stellarHistoryIndex)/barInstabilityTimescale
-          thisNode%components(thisIndex)%histories(stellarHistoryIndex)%rates&
-               &=thisNode%components(thisIndex)%histories(stellarHistoryIndex)%rates-historyTransferRate%data
-          call Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust    (thisNode,interrupt,interruptProcedure, historyTransferRate     )
+          if (thisNode%components(thisIndex)%histories(stellarHistoryIndex)%exists()) then
+             thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+             historyTransferRate=thisNode%components(thisIndex)%histories(stellarHistoryIndex)/barInstabilityTimescale
+             thisNode                    %components(thisIndex)%histories(stellarHistoryIndex)%rates                          &
+                  &             =thisNode%components(thisIndex)%histories(stellarHistoryIndex)%rates-historyTransferRate%data
+             call Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust (thisNode,interrupt,interruptProcedure, historyTransferRate     )
+          end if
        end if
 
     end if
