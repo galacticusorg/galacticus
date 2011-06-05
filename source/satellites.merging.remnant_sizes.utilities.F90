@@ -84,7 +84,8 @@ contains
     double precision, intent(out)            :: satelliteMass,hostMass,satelliteSpheroidMass,hostSpheroidMass,hostSpheroidMassPreMerger&
          &,satelliteRadius,hostRadius,darkMatterFactor,remnantSpheroidMass,remnantSpheroidGasMass
     double precision                         :: componentMass,hostSpheroidDarkMatterFactor,hostDiskDarkMatterFactor&
-         &,satelliteSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor
+         &,satelliteSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor,hostSpheroidHalfMassRadius,hostDiskHalfMassRadius&
+         &,satelliteSpheroidHalfMassRadius,satelliteDiskHalfMassRadius
 
     ! Solve for the radii of the host and satellite nodes, to ensure they are computed and up to date.
     call Galactic_Structure_Radii_Solve(hostNode     )
@@ -94,39 +95,38 @@ contains
     satelliteMass=Galactic_Structure_Enclosed_Mass(satelliteNode,massType=massTypeGalactic)
     hostMass     =Galactic_Structure_Enclosed_Mass(hostNode     ,massType=massTypeGalactic)
 
-    ! Find the half-mass radii of the two galaxies.
-    satelliteRadius=Galactic_Structure_Radius_Enclosing_Mass(satelliteNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-    hostRadius     =Galactic_Structure_Radius_Enclosing_Mass(hostNode     ,fractionalMass=0.5d0,massType=massTypeGalactic)
-
-
-    ! Compute dark matter factors. These are the specific angular momenta of components divided by sqrt(G M / r) where M is the
+    ! Compute dark matter factors. These are the specific angular momenta of components divided by sqrt(G M r) where M is the
     ! component mass and r its half-mass radius. We use a weighted average of these factors to infer the specific angular momentum
     ! of the remnant from its mass and radius.
     componentMass=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
-    if (Tree_Node_Spheroid_Half_Mass_Radius(hostNode) > 0.0d0 .and. componentMass > 0.0d0) then
+    hostSpheroidHalfMassRadius=Tree_Node_Spheroid_Half_Mass_Radius(hostNode)
+    if (hostSpheroidHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
        hostSpheroidDarkMatterFactor=Tree_Node_Spheroid_Angular_Momentum(hostNode)/(componentMass**1.5d0) &
-            &/dsqrt(gravitationalConstantGalacticus*Tree_Node_Spheroid_Half_Mass_Radius(hostNode))
+            &/dsqrt(gravitationalConstantGalacticus*hostSpheroidHalfMassRadius)
     else
        hostSpheroidDarkMatterFactor=0.0d0
     end if
     componentMass=Tree_Node_Disk_Stellar_Mass(hostNode) +Tree_Node_Disk_Gas_Mass(hostNode)
-    if (Tree_Node_Disk_Half_Mass_Radius(hostNode) > 0.0d0 .and. componentMass > 0.0d0) then
+    hostDiskHalfMassRadius=Tree_Node_Disk_Half_Mass_Radius(hostNode)
+    if (hostDiskHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
        hostDiskDarkMatterFactor=Tree_Node_Disk_Angular_Momentum(hostNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus *Tree_Node_Disk_Half_Mass_Radius(hostNode))
+            &/dsqrt(gravitationalConstantGalacticus*hostDiskHalfMassRadius)
     else
        hostDiskDarkMatterFactor=0.0d0
     end if
     componentMass=Tree_Node_Spheroid_Stellar_Mass(satelliteNode) +Tree_Node_Spheroid_Gas_Mass(satelliteNode)
-    if (Tree_Node_Spheroid_Half_Mass_Radius(satelliteNode) > 0.0d0 .and. componentMass > 0.0d0) then
+    satelliteSpheroidHalfMassRadius=Tree_Node_Spheroid_Half_Mass_Radius(satelliteNode)
+    if (satelliteSpheroidHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
        satelliteSpheroidDarkMatterFactor=Tree_Node_Spheroid_Angular_Momentum(satelliteNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus *Tree_Node_Spheroid_Half_Mass_Radius(satelliteNode))
+            &/dsqrt(gravitationalConstantGalacticus*satelliteSpheroidHalfMassRadius)
     else
        satelliteSpheroidDarkMatterFactor=0.0d0
     end if
     componentMass=Tree_Node_Disk_Stellar_Mass(satelliteNode) +Tree_Node_Disk_Gas_Mass(satelliteNode)
-    if (Tree_Node_Disk_Half_Mass_Radius(satelliteNode) > 0.0d0 .and. componentMass > 0.0d0) then
+    satelliteDiskHalfMassRadius=Tree_Node_Disk_Half_Mass_Radius(satelliteNode)
+    if (satelliteDiskHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
        satelliteDiskDarkMatterFactor=Tree_Node_Disk_Angular_Momentum(satelliteNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus *Tree_Node_Disk_Half_Mass_Radius(satelliteNode))
+            &/dsqrt(gravitationalConstantGalacticus*satelliteDiskHalfMassRadius)
     else
        satelliteDiskDarkMatterFactor=0.0d0
     end if
@@ -135,74 +135,88 @@ contains
     select case (thisHostGasMovesTo)
     case (movesToSpheroid)
        hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
+       hostRadius            =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidHalfMassRadius  +Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskHalfMassRadius
        darkMatterFactor      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskDarkMatterFactor
        remnantSpheroidGasMass=Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
        remnantSpheroidMass   =Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
     case (movesToDisk)
        hostSpheroidMass      =0.0d0
+       hostRadius            =0.0d0
        darkMatterFactor      =0.0d0
        remnantSpheroidGasMass=0.0d0
        remnantSpheroidMass   =0.0d0
     case (doesNotMove)
        hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)
+       hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidHalfMassRadius
        darkMatterFactor      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor
        remnantSpheroidGasMass=Tree_Node_Spheroid_Gas_Mass(hostNode)
        remnantSpheroidMass   =Tree_Node_Spheroid_Gas_Mass(hostNode)
     case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008','unrecognized moveTo descriptor')
+       call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
     select case (thisHostStarsMoveTo)
     case (movesToSpheroid)
        hostSpheroidMass   =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
+       hostRadius         =hostRadius         +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidHalfMassRadius  +Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskHalfMassRadius
        darkMatterFactor   =darkMatterFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskDarkMatterFactor
        remnantSpheroidMass=remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
     case (movesToDisk)
        hostSpheroidMass=hostSpheroidMass
+       hostRadius      =hostRadius
        darkMatterFactor=darkMatterFactor
     case (doesNotMove)
        hostSpheroidMass   =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)
+       hostRadius         =hostRadius         +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidHalfMassRadius
        darkMatterFactor   =darkMatterFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor
        remnantSpheroidMass=remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)
     case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008','unrecognized moveTo descriptor')
+       call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
     select case (thisMergerGasMovesTo)
     case (movesToSpheroid)
-       satelliteSpheroidMass=                        Tree_Node_Spheroid_Gas_Mass(satelliteNode)                                  +Tree_Node_Disk_Gas_Mass(satelliteNode)
+       satelliteSpheroidMass =                       Tree_Node_Spheroid_Gas_Mass(satelliteNode)                                  +Tree_Node_Disk_Gas_Mass(satelliteNode)
+       satelliteRadius       =                       Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidHalfMassRadius  +Tree_Node_Disk_Gas_Mass(satelliteNode)*satelliteDiskHalfMassRadius
        darkMatterFactor      =darkMatterFactor      +Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(satelliteNode)*satelliteDiskDarkMatterFactor
        remnantSpheroidGasMass=remnantSpheroidGasMass+Tree_Node_Spheroid_Gas_Mass(satelliteNode)                                  +Tree_Node_Disk_Gas_Mass(satelliteNode)
        remnantSpheroidMass   =remnantSpheroidMass   +Tree_Node_Spheroid_Gas_Mass(satelliteNode)                                  +Tree_Node_Disk_Gas_Mass(satelliteNode)
     case (movesToDisk)
        satelliteSpheroidMass =0.0d0
+       satelliteRadius       =0.0d0
        darkMatterFactor      =darkMatterFactor
     case (doesNotMove)
        satelliteSpheroidMass=                        Tree_Node_Spheroid_Gas_Mass(satelliteNode)
+       satelliteRadius       =                       Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidHalfMassRadius
        darkMatterFactor      =darkMatterFactor      +Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor
        remnantSpheroidGasMass=remnantSpheroidGasMass+Tree_Node_Spheroid_Gas_Mass(satelliteNode)
        remnantSpheroidMass   =remnantSpheroidMass   +Tree_Node_Spheroid_Gas_Mass(satelliteNode)
     case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008','unrecognized moveTo descriptor')
+       call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
     select case (thisMergerStarsMoveTo)
     case (movesToSpheroid)
        satelliteSpheroidMass=satelliteSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(satelliteNode)                                  +Tree_Node_Disk_Stellar_Mass(satelliteNode)
+       satelliteRadius      =satelliteRadius      +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidHalfMassRadius  +Tree_Node_Disk_Stellar_Mass(satelliteNode)*satelliteDiskHalfMassRadius
        darkMatterFactor     =darkMatterFactor     +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(satelliteNode)*satelliteDiskDarkMatterFactor
        remnantSpheroidMass  =remnantSpheroidMass  +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)                                  +Tree_Node_Disk_Stellar_Mass(satelliteNode)
     case (movesToDisk)
        satelliteSpheroidMass=satelliteSpheroidMass
+       satelliteRadius      =satelliteRadius
        darkMatterFactor     =darkMatterFactor
     case (doesNotMove)
        satelliteSpheroidMass=satelliteSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(satelliteNode)
+       satelliteRadius      =satelliteRadius      +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidHalfMassRadius
        darkMatterFactor     =darkMatterFactor     +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor
        remnantSpheroidMass  =remnantSpheroidMass  +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)
     case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008','unrecognized moveTo descriptor')
+       call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
     if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
        darkMatterFactor=darkMatterFactor/(satelliteSpheroidMass+hostSpheroidMass)
     else
        darkMatterFactor=1.0d0
     end if
+    if (hostSpheroidMass      > 0.0d0) hostRadius     =hostRadius     /hostSpheroidMass
+    if (satelliteSpheroidMass > 0.0d0) satelliteRadius=satelliteRadius/satelliteSpheroidMass
 
     ! Compute the mass of the host spheroid before the merger.
     hostSpheroidMassPreMerger=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
