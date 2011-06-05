@@ -76,11 +76,16 @@ module Tree_Node_Methods_Exponential_Disk
        & Exponential_Disk_Radius_Solver_Plausibility, Tree_Node_Methods_Exponential_Disk_State_Store,&
        & Tree_Node_Methods_Exponential_Disk_State_Retrieve, Exponential_Disk_Scale_Set
   
-  ! Internal count of abundances.
-  integer :: abundancesCount
+  ! Internal count of abundances and work arrays.
+  integer                                     :: abundancesCount
+  double precision, allocatable, dimension(:) :: abundancesTransferRate,abundancesOutflowRate,abundancesValue,abundancesDisk,abundancesSpheroid
+  !$omp threadprivate(abundancesTransferRate,abundancesOutflowRate,abundancesValue,abundancesDisk,abundancesSpheroid)
 
-  ! Internal count of luminosities.
-  integer :: luminositiesCount
+  ! Internal count of luminosities and work arrays.
+  integer                                     :: luminositiesCount
+  double precision, allocatable, dimension(:) :: stellarLuminositiesRates,luminositiesTransferRate,luminositiesValue&
+       &,luminositiesDisk,luminositiesSpheroid
+  !$omp threadprivate(stellarLuminositiesRates,luminositiesTransferRate,luminositiesValue,luminositiesDisk,luminositiesSpheroid)
 
   ! Property indices.
   integer, parameter :: propertyCountBase=3, dataCountBase=2, historyCount=1
@@ -159,6 +164,7 @@ contains
     use Galacticus_Error
     use Stellar_Population_Properties_Luminosities
     use Abundances_Structure
+    use Memory_Management
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
@@ -183,6 +189,24 @@ contains
 
        ! Get number of luminosity properties.
        luminositiesCount=Stellar_Population_Luminosities_Count()
+
+       ! Allocate work arrays for abundances.
+       !$omp parallel
+       call Alloc_Array(abundancesTransferRate,[abundancesCount])
+       call Alloc_Array(abundancesOutflowRate ,[abundancesCount])
+       call Alloc_Array(abundancesValue       ,[abundancesCount])
+       call Alloc_Array(abundancesDisk        ,[abundancesCount])
+       call Alloc_Array(abundancesSpheroid    ,[abundancesCount])
+       !$omp end parallel
+
+       ! Allocate work arrays for luminosities.
+       !$omp parallel
+       call Alloc_Array(stellarLuminositiesRates,[luminositiesCount])
+       call Alloc_Array(luminositiesTransferRate,[luminositiesCount])
+       call Alloc_Array(luminositiesValue       ,[luminositiesCount])
+       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
+       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
+       !$omp end parallel
 
        ! Determine number of properties needed, including those for stars etc.
        propertyCount=propertyCountBase+2*abundancesCount+luminositiesCount
@@ -440,19 +464,17 @@ contains
     use Galactic_Dynamics_Bar_Instabilities
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),            pointer, intent(inout)       :: thisNode
-    logical,                            intent(inout)       :: interrupt
-    procedure(),               pointer, intent(inout)       :: interruptProcedureReturn
-    procedure(),               pointer                      :: interruptProcedure
-    double precision,          dimension(luminositiesCount) :: stellarLuminositiesRates,luminositiesTransferRate,luminosities
-    double precision,          dimension(abundancesCount)   :: abundanceMasses,abundancesOutflowRate,abundancesTransferRate
-    integer                                                 :: thisIndex 
-    double precision                                        :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass &
-         &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate&
+    type(treeNode),            pointer, intent(inout) :: thisNode
+    logical,                            intent(inout) :: interrupt
+    procedure(),               pointer, intent(inout) :: interruptProcedureReturn
+    procedure(),               pointer                :: interruptProcedure
+    integer                                           :: thisIndex 
+    double precision                                  :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass &
+         &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate &
          &,diskDynamicalTime
-    type(abundancesStructure), save                         :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
-    !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    type(history)                                           :: historyTransferRate
+    type(abundancesStructure), save                   :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
+    !$omp threadprivate(fuelAbundances,stellarAbundans,fuelAbundancesRates)
+    type(history)                                     :: historyTransferRate
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
@@ -473,8 +495,8 @@ contains
        fuelMass=Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
        
        ! Find the metallicity of the fuel supply.
-       call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundanceMasses)
-       call fuelAbundances%pack(abundanceMasses)
+       call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundancesValue)
+       call fuelAbundances%pack(abundancesValue)
        call fuelAbundances%massToMassFraction(fuelMass)
 
        ! Get the component index.
@@ -488,10 +510,10 @@ contains
        ! Adjust rates.
        call Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure,stellarMassRate         )
        call Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential            (thisNode,interrupt,interruptProcedure,fuelMassRate            )
-       call stellarAbundancesRates%unpack(abundanceMasses)
-       call Tree_Node_Disk_Stellar_Abundances_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,abundanceMasses         )
-       call fuelAbundancesRates%unpack(abundanceMasses)
-       call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential      (thisNode,interrupt,interruptProcedure,abundanceMasses         )
+       call stellarAbundancesRates%unpack(abundancesValue)
+       call Tree_Node_Disk_Stellar_Abundances_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,abundancesValue         )
+       call fuelAbundancesRates%unpack(abundancesValue)
+       call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential      (thisNode,interrupt,interruptProcedure,abundancesValue         )
        call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,stellarLuminositiesRates)
 
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
@@ -508,8 +530,8 @@ contains
           ! Compute the angular momentum outflow rate.
           angularMomentumOutflowRate=massOutflowRate*Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)/diskMass
           if (gasMass > 0.0d0) then
-             call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundanceMasses)
-             abundancesOutflowRate=massOutflowRate*abundanceMasses/gasMass
+             call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundancesValue)
+             abundancesOutflowRate=massOutflowRate*abundancesValue/gasMass
           else
              abundancesOutflowRate=0.0d0
           end if
@@ -546,18 +568,18 @@ contains
           call Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential      (thisNode,interrupt,interruptProcedure,-transferRate            )
           call Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust              (thisNode,interrupt,interruptProcedure, transferRate            )
           ! Gas abundances.
-          call Tree_Node_Disk_Gas_Abundances_Exponential                    (thisNode,abundanceMasses)
-          abundancesTransferRate=max(0.0d0,abundanceMasses)/barInstabilityTimescale
+          call Tree_Node_Disk_Gas_Abundances_Exponential                    (thisNode,abundancesValue)
+          abundancesTransferRate=max(0.0d0,abundancesValue)/barInstabilityTimescale
           call Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential        (thisNode,interrupt,interruptProcedure,-abundancesTransferRate  )
           call Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust                (thisNode,interrupt,interruptProcedure, abundancesTransferRate  )
           ! Stellar abundances.
-          call Tree_Node_Disk_Stellar_Abundances_Exponential                (thisNode,abundanceMasses)
-          abundancesTransferRate=max(0.0d0,abundanceMasses)/barInstabilityTimescale
+          call Tree_Node_Disk_Stellar_Abundances_Exponential                (thisNode,abundancesValue)
+          abundancesTransferRate=max(0.0d0,abundancesValue)/barInstabilityTimescale
           call Tree_Node_Disk_Stellar_Abundances_Rate_Adjust_Exponential    (thisNode,interrupt,interruptProcedure,-abundancesTransferRate  )
           call Tree_Node_Spheroid_Stellar_Abundances_Rate_Adjust            (thisNode,interrupt,interruptProcedure, abundancesTransferRate  )
           ! Stellar luminosities.
-          call Tree_Node_Disk_Stellar_Luminosities_Exponential              (thisNode,luminosities)
-          luminositiesTransferRate=max(0.0d0,luminosities)/barInstabilityTimescale
+          call Tree_Node_Disk_Stellar_Luminosities_Exponential              (thisNode,luminositiesValue)
+          luminositiesTransferRate=max(0.0d0,luminositiesValue)/barInstabilityTimescale
           call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,-luminositiesTransferRate)
           call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust          (thisNode,interrupt,interruptProcedure, luminositiesTransferRate)
           ! Stellar properties history.
@@ -848,14 +870,12 @@ contains
   subroutine Exponential_Disk_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
     implicit none
-    type(treeNode),   pointer, intent(inout)       :: thisNode
-    double precision, parameter                    :: massMinimum           =1.0d0
-    double precision, parameter                    :: angularMomentumMinimum=0.1d0
-    double precision, parameter                    :: luminosityMinimum     =1.0d0
-    double precision, dimension(abundancesCount)   :: abundancesDisk,abundancesSpheroid
-    double precision, dimension(luminositiesCount) :: luminositiesDisk,luminositiesSpheroid
-    integer                                        :: thisIndex
-    double precision                               :: mass,angularMomentum
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision, parameter              :: massMinimum           =1.0d0
+    double precision, parameter              :: angularMomentumMinimum=0.1d0
+    double precision, parameter              :: luminosityMinimum     =1.0d0
+    integer                                  :: thisIndex
+    double precision                         :: mass,angularMomentum
 
     ! Determine if method is active and a disk component exists.
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
