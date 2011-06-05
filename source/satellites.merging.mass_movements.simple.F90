@@ -24,11 +24,15 @@
 
 module Satellite_Merging_Mass_Movements_Simple
   !% Implements a simple model of mass movements during satellite mergers.
+  use Satellite_Merging_Mass_Movements_Descriptors
   private
   public :: Satellite_Merging_Mass_Movements_Simple_Initialize
 
   ! Mass ratio above which a merger is considered to be "major".
   double precision :: majorMergerMassRatio
+
+  ! Location to which gas from satellite galaxy in minor merger is moved.
+  integer          :: minorMergerGasMovesToValue
 
 contains
 
@@ -39,10 +43,12 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     use Input_Parameters
+    use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: satelliteMergingMassMovementsMethod
     procedure(),          pointer, intent(inout) :: Satellite_Merging_Mass_Movement_Get
-    
+    character(len=10)                            :: minorMergerGasMovesTo
+
     if (satelliteMergingMassMovementsMethod == 'simple') then
        Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Simple
        !@ <inputParameter>
@@ -54,6 +60,23 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter("majorMergerMassRatio",majorMergerMassRatio,defaultValue=0.3d0)
+       !@ <inputParameter>
+       !@   <name>minorMergerGasMovesTo</name>
+       !@   <defaultValue>disk</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The component to which satellite galaxy gas moves to as a result of a minor merger.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("minorMergerGasMovesTo",minorMergerGasMovesTo,defaultValue="disk")
+       select case (trim(minorMergerGasMovesTo))
+       case ("disk")
+          minorMergerGasMovesToValue=movesToDisk
+       case ("spheroid")
+          minorMergerGasMovesToValue=movesToSpheroid
+       case default
+          call Galacticus_Error_Report('Satellite_Merging_Mass_Movements_Simple_Initialize','unrecognized location for minor merger satellite gas')
+       end select
     end if
     return
   end subroutine Satellite_Merging_Mass_Movements_Simple_Initialize
@@ -64,7 +87,6 @@ contains
     use Tree_Node_Methods
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
-    use Satellite_Merging_Mass_Movements_Descriptors
     implicit none
     type(treeNode), intent(inout), pointer  :: thisNode
     integer,        intent(out)             :: gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo
@@ -85,7 +107,7 @@ contains
        hostGasMovesTo =movesToSpheroid
        hostStarsMoveTo=movesToSpheroid
     else
-       gasMovesTo     =movesToDisk
+       gasMovesTo     =minorMergerGasMovesToValue
        starsMoveTo    =movesToSpheroid
        hostGasMovesTo =doesNotMove
        hostStarsMoveTo=doesNotMove
