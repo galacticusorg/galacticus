@@ -220,8 +220,8 @@ The \glc\ code base can be used for other calculations. Some examples of such us
 
 The {\tt Halo\_Mass\_Functions} code will generate an HDF5 output file which contains a variety of measures of the dark matter halo mass function tabulated as a function of mass and at a variety of redshifts. The code is built and run as follows:
 \begin{verbatim}
-make Halo_Mass_Function.exe
-Halo_Mass_Function.exe <parameterFile> <outputFile>
+make Halo_Mass_Functions.exe
+Halo_Mass_Functions.exe <parameterFile> <outputFile>
 \end{verbatim}
 where {\tt parameterFile} is a file of parameters in \glc's usual XML format and {\tt outputFile} is the name of the file to which the halo mass function data will be written. The parameter file can specify any parameters needed for computing the mass function (they will be set to default values in cases where a paramter is not included). The redshifts at which to output halo mass functions are given by the {\tt [outputRedshifts]} parameter. In addition to the usual \glc\ parameters three additional parameters control behavior:
 \begin{description}
