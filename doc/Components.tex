@@ -66,6 +66,45 @@ where $x=\rho_{\rm ISM}/\rho_{\rm wind,critical}-1/2$.
 
 If the {\tt [blackHoleOutputAccretion]}\index{black holes!accretion}\index{accretion!black holes} input parameter is set to true, then rest mass accretion rate (in $M_\odot$ Gyr$^{-1}$), jet power (in $M_\odot$ km$^2$ s$^{-1}$ Gyr$^{-1}$) and radiative efficiency of the black hole\footnote{Technically of the black hole plus accretion disk system.} are output as {\tt blackHoleAccretionRate}, {\tt blackHoleJetPower} and {\tt blackHoleRadiativeEfficiency} respectively.
 
+\subsection{``Simple'' Implementation}
+
+\subsubsection{Properties}
+
+The simple black hole implementation defines the following property:
+\begin{description}
+ \item [{\tt Black\_Hole\_Mass}] The mass of the black hole: $M_\bullet$ {\tt [blackHoleMass]}.
+\end{description}
+
+\subsubsection{Initialization}
+
+Black holes are not initialized, they are created (with a seed mass given by {\tt blackHoleSeedMass}) as needed.
+
+\subsubsection{Differential Evolution}
+
+In the simple black hole implementation the mass evolves as:
+\begin{eqnarray}
+\dot{M}_\bullet &=& (1-\epsilon_{\rm wind}-\epsilon_{\rm heat}) \epsilon_{\rm BH} \dot{M}_{\star,s{\rm pheroid}} \\
+\end{eqnarray}
+where $\epsilon_{\rm BH}$ is the ratio of rates at which the black hole and stellar spheroid grow. The black hole is assumed to cause ``radio mode'' feedback if {\tt [blackHoleHeatsHotHalo]}$=${\tt true} then a power $\epsilon_{\rm heat}=${\tt [blackHoleHeatingEfficiency]} is included in the hot halo heating rate providing that the halo is in the slow cooling regime\index{feedback!AGN}\index{active galactic nuclei (AGN)!feedback} (i.e. if the cooling radius is smaller than the virial radius; see, for example, \citealt{benson_cold_2010});
+ \item [Quasar-mode] A mechanical wind luminosity of \citep{ostriker_momentum_2010}
+\begin{equation}
+ L_{\rm wind} = \epsilon_{\bullet, wind} \dot{M}_0 \clight^2,
+\end{equation}
+where $\epsilon_{\bullet wind}=${\tt [blackHoleWindEfficiency]} is the black hole wind efficiency, is added to the gas component of the spheroid (which, presumably, will respond with an outflow for example).
+\end{description}
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} The black holes in the two merging galaxies are instantaneously merged. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:BlackHoleBinaryMergers}).\\
+
+\noindent\emph{Node promotion:} None.\\
+
+\subsubsection{Additional Output}
+
+If the {\tt [blackHoleOutputAccretion]}\index{black holes!accretion}\index{accretion!black holes} input parameter is set to true, then rest mass accretion rate (in $M_\odot$ Gyr$^{-1}$) is output as {\tt blackHoleAccretionRate}.
+
 \section{Hot Halo}
 
 \subsection{``Null'' Implementation}
