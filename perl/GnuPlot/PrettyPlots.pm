@@ -267,7 +267,7 @@ sub Prepare_Dataset {
     foreach my $phase ( keys(%phaseRules) ) {
 	# Initialize phase prefix if necessary.
 	${$plot}->{$phase}->{'prefix'} = "plot" unless ( exists(${$plot}->{$phase}->{'prefix'}) );
-	# Branch depending on style of dataset, points or lines.
+	# Branch depending on style of dataset, points, boxes or lines.
 	switch ( $style ) {
 	    case ("line") {
 		# Check if we are asked to plot just a single level.
@@ -284,6 +284,30 @@ sub Prepare_Dataset {
 		    # Plot the actual data.
 		    foreach my $level ( 'lower', 'upper' ) {
 			${$plot}->{$phase}->{'data'} .= "plot '-' with lines notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+			for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
+			    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
+			}
+			${$plot}->{$phase}->{'data'} .= $endPoint;
+		    }
+		}
+	    }
+	    case ("boxes") {
+		# Check if we are asked to plot just a single level.
+		if ( exists($phaseRules{$phase}->{'level'}) ) {
+		    # Plot just a single level, no real data.
+		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with boxes".$title
+			.$lineType  {$phaseRules{$phase}->{'level'}}
+		        .$lineColor {$phaseRules{$phase}->{'level'}}
+		        .$lineWeight{$phaseRules{$phase}->{'level'}};
+		    ${$plot}->{$phase}->{'data'   } .= $dummyPoint;
+		    ${$plot}->{$phase}->{'data'   } .= $endPoint;
+		    ${$plot}->{$phase}->{'prefix'} = ",";
+		} else {
+		    # Plot the actual data.
+		    foreach my $level ( 'lower', 'upper' ) {
+			${$plot}->{$phase}->{'data'} .= "set boxwidth 0.9 relative\n";
+			${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0\n";
+			${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
 			for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
 			}

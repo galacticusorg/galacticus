@@ -53,7 +53,7 @@ close($gnuPlot);
 The process begins by opening a pipe to {\sc GnuPlot} and specifying the {\tt epslatex} terminal along with {\tt color} and {\tt colortext} options, any line weight preferences and the output EPS file. This is followed by commands to set up the plot, including labels, ranges etc. Note that you \emph{must} specify margins manually\footnote{The {\tt GnuPlot::PrettyPlots} module works by generating multiple layers of plotting which are overlaid. Axes are only drawn for the first layer. If you do not specify margins manually, they will be computed automatically for each layer and so will not match up between all layers. This will result in data being plotted incorrectly.}. Following this are calls to {\tt \&PrettyPlots::Prepare\_Dataset} which prepares instructions for plotting of a single dataset. The first argument is a reference to a structure which will store the instructions, while the second and third arguments are PDLs containing the $x$ and $y$ data to be plotted. Following this are multiple options as follows:
 \begin{description}
 \item[{\tt title}] Gives the title of the dataset for inclusion in the plot key;
-\item[{\tt style}] Specifies how the dataset should be drawn: either {\tt line} or {\tt point};
+\item[{\tt style}] Specifies how the dataset should be drawn: either {\tt line}, {\tt point} or {\tt boxes};
 \item{{\tt linePattern}} Specifies the line pattern (as defined for {\sc GnuPlot}'s {\tt lt} option) to use;
 \item[{\tt symbol}] A two element list giving the symbol indices that should be used to plot the border and inner parts of each point respectively;
 \item[{\tt weight}] A two element list giving the line weights to be used for border and inner parts of each point/line respectively;
