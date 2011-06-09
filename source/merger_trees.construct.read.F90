@@ -129,6 +129,7 @@ module Merger_Tree_Read
   logical                                            :: mergerTreeReadPresetSubhaloMasses
   logical                                            :: mergerTreeReadPresetPositions
   logical                                            :: mergerTreeReadPresetScaleRadii
+  logical                                            :: mergerTreeReadPresetSpins
 
   ! Buffer to hold additional merger trees.
   type(mergerTree),        allocatable, dimension(:) :: mergerTreesQueued
@@ -153,7 +154,7 @@ module Merger_Tree_Read
      !% Structure used to store raw data read from merger tree files.
      integer(kind=kind_int8)                         :: nodeIndex,hostIndex,descendentIndex,particleIndexStart,particleIndexCount&
           &,isolatedNodeIndex,mergesWithIndex,treeIndex
-     double precision                                :: nodeMass,nodeTime,halfMassRadius
+     double precision                                :: nodeMass,nodeTime,halfMassRadius,angularMomentum
      double precision,       dimension(3)            :: position,velocity
      logical                                         :: isSubhalo,childIsSubhalo
      type(nodeData),         pointer                 :: descendentNode,parentNode,hostNode
@@ -237,6 +238,14 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetScaleRadii',mergerTreeReadPresetScaleRadii,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetSpins</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether node spins should be preset when reading merger trees from a file.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetSpins',mergerTreeReadPresetSpins,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadBeginAt</name>
        !@   <attachedTo>module</attachedTo>
@@ -400,6 +409,12 @@ contains
                & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting scale radii requires that halfMassRadius dataset be present in merger tree file")
        end if
 
+       ! Check that angular momentum information is present if required.
+       if (mergerTreeReadPresetSpins) then
+          if (.not.haloTreesGroup%hasDataset("angularMomentum")) call&
+               & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting spins requires that the angularMomentum dataset be present in merger tree file")
+       end if
+
        ! Reset first node indices to Fortran array standard.
        mergerTreeFirstNodeIndex=mergerTreeFirstNodeIndex+1
 
@@ -558,9 +573,6 @@ contains
              ! Now build child and sibling links.
              call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
 
-             ! Assign scale radii.
-             call Assign_Scale_Radii(nodes,thisNodeList)
-             
              ! Check that all required properties exist.
              if (mergerTreeReadPresetPositions) then
                 ! Position and velocity methods are required.
@@ -578,6 +590,17 @@ contains
                 if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale_Set)) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
                      & 'presetting scale radii requires a component that supports setting of scale radii')
              end if
+             if (mergerTreeReadPresetSpins      ) then
+                ! Spin property is required.
+                if (.not.associated(Tree_Node_Spin_Set                     )) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
+                     & 'presetting spins requires a component that supports setting of spins')
+             end if
+
+             ! Assign scale radii.
+             if (mergerTreeReadPresetScaleRadii) call Assign_Scale_Radii    (nodes,thisNodeList)
+             
+             ! Assign spin parameters.
+             if (mergerTreeReadPresetSpins     ) call Assign_Spin_Parameters(nodes,thisNodeList)
 
              ! Assign isolated node indices to subhalos.
              call Assign_Isolated_Node_Indices(nodes,thisNodeList)
@@ -625,11 +648,14 @@ contains
     use Cosmology_Functions
     use Arrays_Search
     use Numerical_Comparison
+    use Vectors
+    use Memory_Management
     implicit none
-    type(nodeData),        intent(inout), dimension(:) :: nodes
-    integer(kind=HSIZE_T), intent(in),    dimension(1) :: nodeCount,firstNodeIndex
-    integer(kind=kind_int8)                            :: iNode
-    integer                                            :: iOutput
+    type(nodeData),        intent(inout), dimension(:)   :: nodes
+    integer(kind=HSIZE_T), intent(in),    dimension(1)   :: nodeCount,firstNodeIndex
+    double precision,      allocatable,   dimension(:,:) :: angularMomentum
+    integer(kind=kind_int8)                              :: iNode
+    integer                                              :: iOutput,scaleFactorExponentAngularMomentum
 
     ! nodeIndex
     call haloTreesGroup%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
@@ -665,6 +691,22 @@ contains
     ! Half-mass radius.
     if (mergerTreeReadPresetScaleRadii) call haloTreesGroup%readDatasetStatic("halfMassRadius",nodes%halfMassRadius&
          &,firstNodeIndex,nodeCount)
+    ! Halo spin.
+    if (mergerTreeReadPresetSpins     ) then
+       call haloTreesGroup%readDataset("angularMomentum",angularMomentum,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+       angularMomentum=angularMomentum*unitConversionLength*unitConversionVelocity*unitConversionMass
+       scaleFactorExponentAngularMomentum=scaleFactorExponentLength+scaleFactorExponentVelocity+scaleFactorExponentMass
+       if (scaleFactorExponentAngularMomentum /= 0) then
+          do iNode=1,nodeCount(1)
+             angularMomentum(:,iNode)=angularMomentum(:,iNode)*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentAngularMomentum
+          end do
+       end if
+       ! Transfer to nodes.
+       forall(iNode=1:nodeCount(1))
+          nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum(:,iNode))
+       end forall
+       call Dealloc_Array(angularMomentum)
+    end if
 
     ! Snap node times to output times if a tolerance has been specified.
     if (mergerTreeReadOutputTimeSnapTolerance > 0.0d0) then
@@ -1087,6 +1129,33 @@ contains
     end if
     return
   end subroutine Assign_Scale_Radii
+
+  subroutine Assign_Spin_Parameters(nodes,nodeList)
+    !% Assign spin parameters to nodes.
+    use Numerical_Constants_Physical
+    use Dark_Matter_Profiles
+    implicit none
+    type(nodeData),          intent(inout), dimension(:) :: nodes
+    type(treeNodeList),      intent(inout), dimension(:) :: nodeList
+    integer                                              :: iNode,iIsolatedNode
+    double precision                                     :: spin
+
+    iIsolatedNode=0
+    do iNode=1,size(nodes)
+       ! Only process if this is an isolated node.
+       if (nodes(iNode)%nodeIndex == nodes(iNode)%hostNode%nodeIndex) then
+          iIsolatedNode=iIsolatedNode+1
+          ! Compute the spin parameter.
+          spin=                                         nodes(iNode)%angularMomentum           &
+               & *dsqrt(dabs(Dark_Matter_Profile_Energy(nodeList(iIsolatedNode)%node)))        &
+               & /gravitationalConstantGalacticus                                              &
+               & /Tree_Node_Mass(                       nodeList(iIsolatedNode)%node  )**2.5d0
+          ! Assign to the node.
+          call Tree_Node_Spin_Set(nodeList(iIsolatedNode)%node,spin)
+       end if
+    end do
+    return
+  end subroutine Assign_Spin_Parameters
 
   function Half_Mass_Radius_Root(radius,parameterPointer) bind(c)
     !% Function used to find scale radius of dark matter halos given their half-mass radius.

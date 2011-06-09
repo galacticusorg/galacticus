@@ -424,7 +424,7 @@ with $\dot{M}_{\rm node,bound}$ set to the rate given by the {\tt darkMatterHalo
 
 \noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
 
-\section{Dark Matter Halo Spin}
+\section{Dark Matter Halo Spin}\label{sec:DarkMatterHaloSpinComponent}
 
 \subsection{``Null'' Implementation}
 
@@ -454,6 +454,32 @@ The spin parameter does not evolve.
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} The spin is updated to equal that of the parent node. (The two will differ only if this is a case where the new halo node was sufficiently more massive than the node for which a spin was last selected that a new spin value was chosen.)\\
+
+\subsection{``Preset'' Implementation}
+
+\subsubsection{Properties}
+
+The preset dark matter halo spin implementation defines the following properties:
+\begin{description}
+ \item [{\tt Spin}] The spin parameter of the halo: $\lambda$ [{\tt nodeSpin}].
+ \item [{\tt Spin\_Growth\_Rate}] The growth rate spin parameter of the halo (in units of Gyr$^{-1}$).
+\end{description}
+
+\subsubsection{Initialization}
+
+The spin parameter of each node is assumed to have been preset prior to merger tree initialization. The growth rate is comptued assuming linear growth with time along each branch.
+
+\subsubsection{Differential Evolution}
+
+The spin parameter evolves linearly with time between node and parent node.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} The spin and growth rate are updated to equal those of the parent node.\\
 
 \section{Dark Matter Profile}\label{sec:DarkMatterProfileComponent}
 

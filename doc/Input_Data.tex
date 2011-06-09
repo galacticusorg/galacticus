@@ -127,3 +127,6 @@ If {\tt [mergerTreeReadPresetScaleRadii]}$=${\tt true} and the {\tt halfMassRadi
 
 If {\tt [mergerTreeReadPresetMergerTimes]}$=${\tt true} then merger times for satellites will be computed directly from the merger tree data read from file. When a subhalo has an isolated halo as a descendent it is assumed to undergo a merger with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger times (e.g. {\tt [treeNodeMethodSatelliteOrbit]}$=${\tt preset}).
 
+\subsubsection{Dark Matter Halo Spins}\index{dark matter halo!spin}
+
+If {\tt [mergerTreeReadPresetSpins]}$=${\tt true} and the {\tt angularMomentum} dataset is available within the {\tt haloTrees} group (see \S\ref{sec:HaloTreesGroup}) then the spin parameters of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see \S\ref{sec:DarkMatterHaloSpinComponent}).
