@@ -96,16 +96,17 @@ module Unit_Tests
      module procedure Assert_Integer8_Scalar
      module procedure Assert_Character_Scalar
      module procedure Assert_VarString_Scalar
+     module procedure Assert_Logical_Scalar
      module procedure Assert_Double_1D_Array
      module procedure Assert_Integer_1D_Array
      module procedure Assert_Integer8_1D_Array
      module procedure Assert_Character_1D_Array
      module procedure Assert_VarString_1D_Array
+     module procedure Assert_Logical_1D_Array
      module procedure Assert_Double_2D_Array
      module procedure Assert_Double_3D_Array
      module procedure Assert_Double_4D_Array
      module procedure Assert_Double_5D_Array
-     module procedure Assert_Logical_Scalar
   end interface Assert
 
 contains
@@ -645,6 +646,44 @@ contains
 
     return
   end subroutine Assert_Integer_1D_Array
+
+
+
+  subroutine Assert_Logical_1D_Array(testName,value1,value2,compare)
+    !% Assess and record an assertion about integer arguments.
+    implicit none
+    character(len=*),   intent(in)               :: testName
+    logical,            intent(in), dimension(:) :: value1,value2
+    integer,            intent(in), optional     :: compare
+    type(assertResult), pointer                  :: thisResult
+    integer                                      :: compareActual
+    logical                                      :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals  )
+       passed=all(value1 .eqv.  value2)
+    case (compareNotEqual)
+       passed=all(value1 .neqv. value2)
+    end select
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+
+    return
+  end subroutine Assert_Logical_1D_Array
+
 
   subroutine Assert_Integer8_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
