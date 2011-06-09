@@ -583,6 +583,26 @@ program Tests_IO_HDF5
      call groupObject%readDataset("double5dReference",doubleValueArray5dReread,int([2,2,1,1,4],kind=HSIZE_T),int([1,2,3,2,4],kind=HSIZE_T))
      call Assert("re-read part of referenced 5-D array double dataset to allocatable array",doubleValueArray5d(4:4,6:7,2:4,6:7,5:8),doubleValueArray5dReread(1:1,1:2,1:3,1:2,1:4))
 
+     ! Write a character 1-D array dataset to the group.
+     characterValueArray='aAbBcCdDeEfFgGhH'
+     call groupObject%writeDataset(characterValueArray,"characterDataset1dArray")
+     ! Read the character 1-D array dataset back.
+     call groupObject%readDataset("characterDataset1dArray",characterValueArrayReread)
+     call Assert("re-read 1-D array character dataset",characterValueArray,characterValueArrayReread)
+     ! Read the character 1-D array dataset back to a static array.
+     call groupObject%readDatasetStatic("characterDataset1dArray",characterValueArrayRereadStatic)
+     call Assert("re-read 1-D array character dataset to static array",characterValueArray,characterValueArrayRereadStatic)
+
+     ! Write a varying string 1-D array dataset to the group.
+     varStringValueArray='qazwsxedcrfvtgbyhnujmikolp'
+     call groupObject%writeDataset(varStringValueArray,"varStringDataset1dArray")
+     ! Read the varying string 1-D array dataset back.
+     call groupObject%readDataset("varStringDataset1dArray",varStringValueArrayReread)
+     call Assert("re-read 1-D array varString dataset",varStringValueArray,varStringValueArrayReread)
+     ! Read the varying string 1-D array dataset back to a static array.
+     call groupObject%readDatasetStatic("varStringDataset1dArray",varStringValueArrayRereadStatic)
+     call Assert("re-read 1-D array varString dataset to static array",varStringValueArray,varStringValueArrayRereadStatic)
+
      ! Close the group.
      call groupObject%close()
 
