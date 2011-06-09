@@ -73,7 +73,7 @@ module Tree_Node_Methods_Hot_Halo
        & Galacticus_Output_Tree_Hot_Halo_Standard, Galacticus_Output_Tree_Hot_Halo_Standard_Property_Count,&
        & Galacticus_Output_Tree_Hot_Halo_Standard_Names, Tree_Node_Hot_Halo_Reset_Standard,&
        & Tree_Node_Hot_Halo_Post_Evolve_Standard, Tree_Node_Methods_Hot_Halo_Standard_Dump, Hot_Halo_Scale_Set&
-       &,Hot_Halo_Formation_Task
+       &,Hot_Halo_Formation_Task, Hot_Halo_Standard_Property_Identifiers_Decode
   
   ! Internal count of abundances and molecules.
   integer                                     :: abundancesCount,moleculesCount
@@ -1745,4 +1745,45 @@ contains
     return
   end subroutine Tree_Node_Methods_Hot_Halo_Standard_Dump
 
+  !# <decodePropertyIdentifiersTask>
+  !#  <unitName>Hot_Halo_Standard_Property_Identifiers_Decode</unitName>
+  !# </decodePropertyIdentifiersTask>
+  subroutine Hot_Halo_Standard_Property_Identifiers_Decode(propertyComponent,propertyObject,propertyIndex,matchedProperty,propertyName)
+    !% Decodes property identifiers to property names for the standard hot halo module.
+    use ISO_Varying_String
+    implicit none
+    integer,              intent(in)    :: propertyComponent,propertyObject,propertyIndex
+    logical,              intent(inout) :: matchedProperty
+    type(varying_string), intent(inout) :: propertyName
+
+    if (methodSelected.and..not.matchedProperty) then
+       if (propertyComponent == componentIndex) then
+          matchedProperty=.true.
+          propertyName="hotHalo:"
+          select case (propertyObject)
+          case (objectTypeProperty)
+             if      (propertyIndex == massIndex                                                                   ) then
+                propertyName=propertyName//":hotGasMass"
+             else if (propertyIndex == angularMomentumIndex                                                        ) then
+                propertyName=propertyName//":hotGasAngularMomentum"
+             else if (propertyIndex == outflowedMassIndex                                                          ) then
+                propertyName=propertyName//":outflowedMass"
+             else if (propertyIndex == outflowedAngularMomentumIndex                                               ) then
+                propertyName=propertyName//":outflowedAngularMomentum"
+             else if (propertyIndex == unaccretedMassIndex                                                         ) then
+                propertyName=propertyName//":unaccretedMass"
+             else if (propertyIndex >= hotAbundancesIndex       .and. propertyIndex <= hotAbundancesIndexEnd       ) then
+                propertyName=propertyName//":hotGasAbundances"
+             else if (propertyIndex >= outflowedAbundancesIndex .and. propertyIndex <= outflowedAbundancesIndexEnd ) then
+                propertyName=propertyName//":outflowedAbundances"
+             else if (propertyIndex >= hotMoleculesIndex        .and. propertyIndex <= hotMoleculesIndexEnd        ) then
+                propertyName=propertyName//":hotGasMolecules"
+             end if
+          end select
+       end if
+    end if
+
+    return
+  end subroutine Hot_Halo_Standard_Property_Identifiers_Decode
+  
 end module Tree_Node_Methods_Hot_Halo

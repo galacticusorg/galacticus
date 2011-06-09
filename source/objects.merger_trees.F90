@@ -75,7 +75,7 @@ module Merger_Trees
   include 'objects.tree_node.create.modules.inc'
   !# </include>
   private
-  public :: mergerTree, Tree_Node_Is_Accurate, Tree_Node_Get
+  public :: mergerTree, Tree_Node_Is_Accurate, Tree_Node_Get, Merger_Tree_Evolve_Meta_Output
 
   type mergerTree
      !% The merger tree object type.
@@ -158,6 +158,11 @@ module Merger_Trees
   integer                                     :: nPropertiesMax=0, nProperties
   double precision, allocatable, dimension(:) :: propertyValues,propertyScales
   !$omp threadprivate(nPropertiesMax,nProperties,propertyValues,propertyScales)
+#ifdef PROFILE
+  logical                                     :: profileOdeEvolver
+  integer,          allocatable, dimension(:) :: propertyComponent,propertyObject,propertyIndex
+  !$omp threadprivate(propertyComponent,propertyObject,propertyIndex)
+#endif
 
   ! Module global pointer to the node being processed.
   type(treeNode),   pointer                   :: activeNode
@@ -183,7 +188,7 @@ module Merger_Trees
        type(treeNode), intent(inout), pointer :: thisNode
      end subroutine Node_Mergers_Template
   end interface
-  
+
 contains
 
   subroutine Merger_Tree_Destroy(thisTree)
@@ -397,6 +402,17 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('odeToleranceRelative',odeToleranceRelative,defaultValue=1.0d-2)
+#ifdef PROFILE
+       !@ <inputParameter>
+       !@   <name>profileOdeEvolver</name>
+       !@   <defaultValue>0.01</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not to profile the ODE evolver.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('profileOdeEvolver',profileOdeEvolver,defaultValue=.false.)
+#endif
        ! Flag that the module is now initialized.
        evolverInitialized=.true.
     end if
@@ -425,6 +441,9 @@ contains
     type(fgsl_odeiv_system)                                         :: odeSystem
     logical                                                         :: odeReset
     type(c_ptr)                                                     :: parameterPointer
+#ifdef PROFILE
+    procedure(),                                            pointer :: My_Error_Analyzer
+#endif
 
     ! Initialize.
     call Tree_Node_Evolve_Initialize()
@@ -443,11 +462,31 @@ contains
           deallocate(propertyValues)
           call Memory_Usage_Record(sizeof(propertyScales),addRemove=-1)
           deallocate(propertyScales)
+#ifdef PROFILE
+          if (profileOdeEvolver) then
+             call Memory_Usage_Record(sizeof(propertyComponent),addRemove=-1)
+             deallocate(propertyComponent)
+             call Memory_Usage_Record(sizeof(propertyObject   ),addRemove=-1)
+             deallocate(propertyObject   )
+             call Memory_Usage_Record(sizeof(propertyIndex    ),addRemove=-1)
+             deallocate(propertyIndex    )
+          end if
+#endif
        end if
        allocate(propertyValues(nProperties))
        call Memory_Usage_Record(sizeof(propertyValues))
        allocate(propertyScales(nProperties))
        call Memory_Usage_Record(sizeof(propertyScales))
+#ifdef PROFILE
+       if (profileOdeEvolver) then
+          allocate(propertyComponent(nProperties))
+          call Memory_Usage_Record(sizeof(propertyComponent))
+          allocate(propertyObject   (nProperties))
+          call Memory_Usage_Record(sizeof(propertyObject   ))
+          allocate(propertyIndex    (nProperties))
+          call Memory_Usage_Record(sizeof(propertyIndex    ))
+       end if
+#endif
        nPropertiesMax=nProperties
     end if
 
@@ -476,8 +515,26 @@ contains
     ! Call ODE solver routines.
     startTimeThisNode=Tree_Node_Time(thisNode)
     odeReset=.true.
-    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,startTimeThisNode,endTime,nProperties,propertyValues,Tree_Node_ODEs&
-         & ,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,propertyScales,reset=odeReset)
+#ifdef PROFILE
+    if (profileOdeEvolver) then
+       My_Error_Analyzer => Tree_Node_Evolve_Error_Analyzer
+    else
+       My_Error_Analyzer => null()
+    end if
+#endif
+    call ODE_Solve(                                               &
+         &         odeStepper,odeController,odeEvolver,odeSystem, &
+         &         startTimeThisNode,endTime,                     &
+         &         nProperties,propertyValues,                    &
+         &         Tree_Node_ODEs,                                &
+         &         parameterPointer,                              &
+         &         odeToleranceAbsolute,odeToleranceRelative,     &
+#ifdef PROFILE
+         &         Error_Analyzer=My_Error_Analyzer,              &
+#endif
+         &         yScale        =propertyScales,                 &
+         &         reset         =odeReset                        &
+         &        )
     call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
 
     ! Extract values.
@@ -691,6 +748,13 @@ contains
           do iProperty=1,size(thisNode%components(iComponent)%properties,dim=1)
              propertyCounter=propertyCounter+1
              propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%properties(iProperty,propertyTypeActual)
+#ifdef PROFILE
+             if (profileOdeEvolver) then
+                propertyComponent(propertyCounter)=iComponent
+                propertyObject   (propertyCounter)=objectTypeProperty
+                propertyIndex    (propertyCounter)=iProperty
+             end if
+#endif
           end do
        end if
        if (allocated(thisNode%components(iComponent)%histories)) then
@@ -707,6 +771,13 @@ contains
                       case (labelScale     )
                          propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%scales(iTime,iValue)
                       end select
+#ifdef PROFILE
+                      if (profileOdeEvolver) then
+                         propertyComponent(propertyCounter)=iComponent
+                         propertyObject   (propertyCounter)=objectTypeHistory
+                         propertyIndex    (propertyCounter)=iHistory
+                      end if
+#endif
                    end do
                 end do
              end if
@@ -718,6 +789,13 @@ contains
              do iProperty=1,size(thisComponent%properties,dim=1)
                 propertyCounter=propertyCounter+1
                 propertyValuesODE(propertyCounter)=thisComponent%properties(iProperty,propertyTypeActual)
+#ifdef PROFILE
+                if (profileOdeEvolver) then
+                   propertyComponent(propertyCounter)=iComponent
+                   propertyObject   (propertyCounter)=objectTypeProperty
+                   propertyIndex    (propertyCounter)=iProperty
+                end if
+#endif
              end do
           end if
           if (allocated(thisComponent%histories)) then
@@ -734,6 +812,13 @@ contains
                          case (labelScale     )
                             propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%scales(iTime,iValue)
                          end select
+#ifdef PROFILE
+                         if (profileOdeEvolver) then
+                            propertyComponent(propertyCounter)=iComponent
+                            propertyObject   (propertyCounter)=objectTypeHistory
+                            propertyIndex    (propertyCounter)=iHistory
+                         end if
+#endif
                       end do
                    end do
                 end if
@@ -742,6 +827,21 @@ contains
           thisComponent => thisComponent%nextComponentOfType
        end do
     end do
+
+#ifdef PROFILE
+    ! Invert the component index mapping.
+    if (profileOdeEvolver) then
+       do while (propertyCounter > 0)
+          do iProperty=1,size(thisNode%componentIndex)
+             if (thisNode%componentIndex(iProperty) == propertyComponent(propertyCounter)) then
+                propertyComponent(propertyCounter)=iProperty
+                exit
+             end if
+          end do
+          propertyCounter=propertyCounter-1
+       end do
+    end if
+#endif
     return
   end subroutine Map_Properties_To_ODE_Array
 
@@ -833,7 +933,50 @@ contains
 
     return
   end subroutine Tree_Node_Compute_Derivatives
+  
+#ifdef PROFILE
+  subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus)
+    !% Profiles ODE solver step sizes and errors.
+    use FGSL
+    use ISO_Varying_String
+    use Galacticus_Meta_Evolver_Profiler
+    !# <include directive="decodePropertyIdentifiersTask" type="moduleUse">
+    include 'objects.merger_trees.decode_property_identifiers.modules.inc'
+    !# </include>
+    implicit none
+    double precision,        intent(in), dimension(nProperties) :: currentPropertyValue
+    real(fgsl_double),       intent(in), dimension(nProperties) :: currentPropertyError
+    double precision,        intent(in)                         :: timeStep
+    integer,                 intent(in)                         :: stepStatus
+    double precision                                            :: scaledErrorMaximum,scaledError
+    integer                                                     :: iProperty,limitingProperty
+    logical                                                     :: matchedProperty
+    type(varying_string)                                        :: propertyName
 
+    ! Find the property with the largest error (i.e. that which is limiting the step).
+    scaledErrorMaximum=0.0d0    
+    do iProperty=1,nProperties
+       scaledError=currentPropertyError(iProperty)/(odeToleranceAbsolute*propertyScales(iProperty)+odeToleranceRelative&
+            &*dabs(currentPropertyValue(iProperty)))
+       if (scaledError > scaledErrorMaximum) then
+          scaledErrorMaximum=scaledError
+          limitingProperty=iProperty
+       end if
+    end do
+
+    ! Decode the step limiting property.
+    matchedProperty=.false.
+    propertyName="unknown"
+    !# <include directive="decodePropertyIdentifiersTask" type="code" action="subroutine">
+    !#  <subroutineArgs>propertyComponent(limitingProperty),propertyObject(limitingProperty),propertyIndex(limitingProperty),matchedProperty,propertyName</subroutineArgs>
+    include 'objects.merger_trees.decode_property_identifiers.inc'
+    !# </include>
+
+    ! Record this information.
+    call Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
+    return
+  end subroutine Tree_Node_Evolve_Error_Analyzer
+#endif
 
   subroutine Events_Node_Merger(thisTree,thisNode)
     !% Handles instances where {\tt thisNode} is about to merge with its parent node.

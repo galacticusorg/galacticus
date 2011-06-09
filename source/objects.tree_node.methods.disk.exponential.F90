@@ -76,7 +76,7 @@ module Tree_Node_Methods_Exponential_Disk
        & Tree_Node_Disk_Post_Evolve_Exponential, Tree_Node_Methods_Exponential_Disk_Dump,&
        & Exponential_Disk_Radius_Solver_Plausibility, Tree_Node_Methods_Exponential_Disk_State_Store,&
        & Tree_Node_Methods_Exponential_Disk_State_Retrieve, Exponential_Disk_Scale_Set,&
-       & Exponential_Disk_Star_Formation_History_Output
+       & Exponential_Disk_Star_Formation_History_Output, Exponential_Disk_Property_Identifiers_Decode
   
   ! Internal count of abundances and work arrays.
   integer                                     :: abundancesCount
@@ -1800,5 +1800,49 @@ contains
     end if
     return
   end subroutine Exponential_Disk_Star_Formation_History_Output
+
+  !# <decodePropertyIdentifiersTask>
+  !#  <unitName>Exponential_Disk_Property_Identifiers_Decode</unitName>
+  !# </decodePropertyIdentifiersTask>
+  subroutine Exponential_Disk_Property_Identifiers_Decode(propertyComponent,propertyObject,propertyIndex,matchedProperty,propertyName)
+    !% Decodes property identifiers to property names for the exponential disk module.
+    use ISO_Varying_String
+    implicit none
+    integer,              intent(in)    :: propertyComponent,propertyObject,propertyIndex
+    logical,              intent(inout) :: matchedProperty
+    type(varying_string), intent(inout) :: propertyName
+
+    if (methodSelected.and..not.matchedProperty) then
+       if (propertyComponent == componentIndex) then
+          matchedProperty=.true.
+          propertyName="exponentialDisk:"
+          select case (propertyObject)
+          case (objectTypeProperty)
+             if      (propertyIndex == angularMomentumIndex                                                       ) then
+                propertyName=propertyName//":angularMomentum"
+             else if (propertyIndex == gasMassIndex                                                               ) then
+                propertyName=propertyName//":gasMass"
+             else if (propertyIndex == stellarMassIndex                                                           ) then
+                propertyName=propertyName//":stellarMass"
+             else if (propertyIndex >= gasAbundancesIndex       .and. propertyIndex <= gasAbundancesIndexEnd      ) then
+                propertyName=propertyName//":gasAbundances"
+             else if (propertyIndex >= stellarAbundancesIndex   .and. propertyIndex <= stellarAbundancesIndexEnd  ) then
+                propertyName=propertyName//":stellarAbundances"
+             else if (propertyIndex >= stellarLuminositiesIndex .and. propertyIndex <= stellarLuminositiesIndexEnd) then
+                propertyName=propertyName//":stellarLuminosities"
+             end if
+          case (objectTypeHistory)
+             select case (propertyIndex)
+             case (stellarHistoryIndex)
+                propertyName=propertyName//":stellarHistory"
+             case (starFormationHistoryIndex)
+                propertyName=propertyName//":starFormationHistory"
+             end select
+          end select
+       end if
+    end if
+
+    return
+  end subroutine Exponential_Disk_Property_Identifiers_Decode
   
 end module Tree_Node_Methods_Exponential_Disk

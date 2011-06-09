@@ -72,7 +72,7 @@ module ODE_Solver
 contains
   
   subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odeFunction,parameterPointer&
-       &,toleranceAbsolute,toleranceRelative,yScale,reset)
+       &,toleranceAbsolute,toleranceRelative,Error_Analyzer,yScale,reset)
     !% Interface to the GNU Scientific Library ODEIV differential equation solvers.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
@@ -87,12 +87,16 @@ contains
     type(fgsl_odeiv_evolve),  intent(inout)           :: odeEvolver
     type(fgsl_odeiv_system),  intent(inout)           :: odeSystem
     logical,                  intent(inout), optional :: reset
+    procedure(),              pointer,       optional :: Error_Analyzer
     integer(kind=4),          external                :: odeFunction
     double precision,         parameter               :: yScaleUniform=1.0d0, dydtScaleUniform=0.0d0
     integer                                           :: status
     integer(c_size_t)                                 :: odeNumber
     double precision                                  :: x,h,x1Internal
     logical                                           :: resetActual,forwardEvolve
+#ifdef PROFILE
+    real(fgsl_double),        dimension(yCount)       :: yError
+#endif
 
     ! Number of ODEs to solve.
     odeNumber=yCount
@@ -125,6 +129,17 @@ contains
     ! Evolve the system until the final time is reached.
     do while ((forwardEvolve.and.x<x1Internal).or.(.not.forwardEvolve.and.x>x1Internal))
        status=FGSL_ODEiv_Evolve_Apply(odeEvolver,odeController,odeStepper,odeSystem,x,x1Internal,h,y)
+
+#ifdef PROFILE
+       ! If profiling is being performed, extract errors and send them to the specified error analysis function.
+       if (present(Error_Analyzer) .and. x /= x0) then
+          if (associated(Error_Analyzer)) then
+             call FGSL_ODEiv_Evolve_Error(odeEvolver,yError)
+             call Error_Analyzer(y,yError,h,status)
+          end if
+       end if
+#endif
+
        select case (status)
        case (FGSL_Success)
           ! Successful completion of the step - do nothing.

@@ -79,4 +79,8 @@ module Components
   integer, public, parameter :: labelValue   =1,labelDerivative   =2,labelScale   =3
   integer, public, parameter :: propertyValue=1,propertyDerivative=2,propertyScale=2
 
+  ! Labels for object types.
+  integer, public, parameter :: objectTypeProperty=1
+  integer, public, parameter :: objectTypeHistory =2
+
 end module Components

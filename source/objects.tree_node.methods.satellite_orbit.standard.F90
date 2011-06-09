@@ -70,7 +70,7 @@ module Tree_Node_Methods_Satellite_Orbit
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize, Satellite_Orbit_Create_Simple,&
        & Galacticus_Output_Tree_Satellite_Orbit_Simple, Galacticus_Output_Tree_Satellite_Orbit_Simple_Property_Count,&
        & Galacticus_Output_Tree_Satellite_Orbit_Simple_Names, Tree_Node_Methods_Satellite_Orbit_Simple_Dump,&
-       & Satellite_Orbit_Standard_Scale_Set, Satellite_Orbit_Standard_Formation_Task
+       & Satellite_Orbit_Standard_Scale_Set, Satellite_Orbit_Standard_Formation_Task, Satellite_Orbit_Standard_Property_Identifiers_Decode
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -559,4 +559,34 @@ contains
     return
   end subroutine Tree_Node_Methods_Satellite_Orbit_Simple_Dump
 
+  !# <decodePropertyIdentifiersTask>
+  !#  <unitName>Satellite_Orbit_Standard_Property_Identifiers_Decode</unitName>
+  !# </decodePropertyIdentifiersTask>
+  subroutine Satellite_Orbit_Standard_Property_Identifiers_Decode(propertyComponent,propertyObject,propertyIndex,matchedProperty,propertyName)
+    !% Decodes property identifiers to property names for the standard satellite orbit module.
+    use ISO_Varying_String
+    implicit none
+    integer,              intent(in)    :: propertyComponent,propertyObject,propertyIndex
+    logical,              intent(inout) :: matchedProperty
+    type(varying_string), intent(inout) :: propertyName
+
+    if (methodSelected.and..not.matchedProperty) then
+       if (propertyComponent == componentIndex) then
+          matchedProperty=.true.
+          propertyName="satelliteOrbit:"
+          select case (propertyObject)
+          case (objectTypeProperty)
+             select case (propertyIndex)
+             case (mergeTimeIndex)
+                propertyName=propertyName//":mergeTime"
+             case (boundMassIndex)
+                propertyName=propertyName//":boundMass"
+             end select
+          end select
+       end if
+    end if
+
+    return
+  end subroutine Satellite_Orbit_Standard_Property_Identifiers_Decode
+  
 end module Tree_Node_Methods_Satellite_Orbit

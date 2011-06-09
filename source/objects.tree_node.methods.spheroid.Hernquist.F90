@@ -74,7 +74,7 @@ module Tree_Node_Methods_Hernquist_Spheroid
        & Hernquist_Spheroid_Radius_Solver, Hernquist_Spheroid_Enclosed_Mass, Hernquist_Spheroid_Density,&
        & Hernquist_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Hernquist, Tree_Node_Methods_Hernquist_Spheroid_Dump,&
        & Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set, Hernquist_Spheroid_Post_Evolve,&
-       & Hernquist_Spheroid_Star_Formation_History_Output
+       & Hernquist_Spheroid_Star_Formation_History_Output, Hernquist_Spheroid_Property_Identifiers_Decode
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -1978,5 +1978,49 @@ contains
     end if
     return
   end subroutine Hernquist_Spheroid_Star_Formation_History_Output
+
+  !# <decodePropertyIdentifiersTask>
+  !#  <unitName>Hernquist_Spheroid_Property_Identifiers_Decode</unitName>
+  !# </decodePropertyIdentifiersTask>
+  subroutine Hernquist_Spheroid_Property_Identifiers_Decode(propertyComponent,propertyObject,propertyIndex,matchedProperty,propertyName)
+    !% Decodes property identifiers to property names for the Hernquist spheroid module.
+    use ISO_Varying_String
+    implicit none
+    integer,              intent(in)    :: propertyComponent,propertyObject,propertyIndex
+    logical,              intent(inout) :: matchedProperty
+    type(varying_string), intent(inout) :: propertyName
+
+    if (methodSelected.and..not.matchedProperty) then
+       if (propertyComponent == componentIndex) then
+          matchedProperty=.true.
+          propertyName="hernquistSpheroid:"
+          select case (propertyObject)
+          case (objectTypeProperty)
+             if      (propertyIndex == angularMomentumIndex                                                       ) then
+                propertyName=propertyName//":angularMomentum"
+             else if (propertyIndex == gasMassIndex                                                               ) then
+                propertyName=propertyName//":gasMass"
+             else if (propertyIndex == stellarMassIndex                                                           ) then
+                propertyName=propertyName//":stellarMass"
+             else if (propertyIndex >= gasAbundancesIndex       .and. propertyIndex <= gasAbundancesIndexEnd      ) then
+                propertyName=propertyName//":gasAbundances"
+             else if (propertyIndex >= stellarAbundancesIndex   .and. propertyIndex <= stellarAbundancesIndexEnd  ) then
+                propertyName=propertyName//":stellarAbundances"
+             else if (propertyIndex >= stellarLuminositiesIndex .and. propertyIndex <= stellarLuminositiesIndexEnd) then
+                propertyName=propertyName//":stellarLuminosities"
+             end if
+          case (objectTypeHistory)
+             select case (propertyIndex)
+             case (stellarHistoryIndex)
+                propertyName=propertyName//":stellarHistory"
+             case (starFormationHistoryIndex)
+                propertyName=propertyName//":starFormationHistory"
+             end select
+          end select
+       end if
+    end if
+
+    return
+  end subroutine Hernquist_Spheroid_Property_Identifiers_Decode
 
 end module Tree_Node_Methods_Hernquist_Spheroid

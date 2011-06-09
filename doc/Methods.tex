@@ -3900,6 +3900,40 @@ Here, {\tt Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name of a subroutine w
 \end{verbatim}
 where {\tt thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives or resetting the state so that stored quantities will be recomputed as needed.
 
+
+
+
+
+
+
+
+
+
+
+
+\subsubsection{Decode Property Identifier Tasks}\label{sec:DecodePropertyIndentifierTask}
+
+Additional property identifier decoding tasks (i.e. determining the name of a property from a set of integer identifiers) can be added using the {\tt decodePropertyIdentifiersTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the Hernquist spheroid component adds a task as follows:
+\begin{verbatim}
+  !# <decodePropertyIdentifiersTask>
+  !#  <unitName>Hernquist_Spheroid_Property_Identifiers_Decode</unitName>
+  !# </decodePropertyIdentifiersTask>
+\end{verbatim}
+Here, {\tt Hernquist\_Spheroid\_Property\_Identifiers\_Decode} is the name of a subroutine which will be called to perform the decoding task. The subroutine must have the following form:
+\begin{verbatim}
+   subroutine Property_Identifier_Decode_Task(propertyComponent,propertyObject,propertyIndex,matchedProperty,propertyName)
+    implicit none
+    integer,              intent(in)    :: propertyComponent,propertyObject,propertyIndex
+    logical,              intent(inout) :: matchedProperty
+    type(varying_string), intent(inout) :: propertyName
+    .
+    .
+    .
+    return
+  end subroutine Property_Identifier_Decode_Task
+\end{verbatim}
+The task should check whether {\tt propertyComponent} matches its stored {\tt componentIndex} value. If it does, it should set {\tt propertyName} to a suitable name (e.g. {\tt hernquistSpheroid::stellarMass}) and set {\tt matchedProperty}$=${\tt true}. The value of {\tt propertyObject} will be either {\tt objectTypeProperty} indicating that the object in question is a standard property, or {\tt objectTypeHistory} indicating that it is a history. The value of {\tt propertyIndex} then gives the position of the object in question in the array of properties or histories.
+
 \subsubsection{Evolution Timestep Tasks}
 
 Merger tree nodes are evolved over some fixed timestep before evolution is stopped and other processing is allowed. The timestep is always sufficiently small such that the node does not evolve past the time of its parent node, nor does it evolve past the time of any of its satellite nodes. An arbitrary number of other criteria can be used to adjust the timestep. Such a criterion can be added using the {\tt timeStepsTask} directive. For example, the {\tt simple} timestep task adds itself using

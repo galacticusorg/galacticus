@@ -349,3 +349,17 @@ where {\tt fileNameRoot} is the name of the parameter file you created without t
 \end{enumerate}
 
 Future versions of \glc\ will automate this process, allowing galaxies to be processed and their full SEDs or fluxes at particular wavelengths to be written back into the \glc\ output file.
+
+\subsection{Meta-Analysis of \glc}\index{analysis!meta}\index{analysis!{\sc Galacticus}@analysis!galacticus}
+
+\glc\ contains modules which allow it to analyze and profile its own performance.
+
+\subsubsection{ODE Evolver Profiler}
+
+The \hyperlink{galacticus.meta.evolver_profiler.F90:galacticus_meta_evolver_profiler}{{\tt Galacticus\_Meta\_Evolver\_Profiler}} module records statistics on the performance of the main ODE solver used to advance galaxies through time. 
+
+\emph{Note:} Currently, this profiler requires access to features of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} that are not implemeted within \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL}. As such, this functionallity is normally \emph{not} compiled with \glc. If you want to use the profiler, contact \href{mailto:abenson@caltech.edu}{Andrew Benson} and request a copy of the modified FGSL source code. Once this is installed, the profiler can be activated by including {\tt -DPROFILE} in the compilation options (e.g. add this to your {\tt GALACTICUS\_FLAGS} environment variable).
+
+When active, setting {\tt [profileOdeEvolver]}$=${\tt true} will activate profiling. Each step taken by the ODE evolver is then analyzed. First, a record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to determine step size) is determined and a record of this is kept.
+
+At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\tt treeEvolverMetaData}. A histogram of time step sizes is written to {\tt metaProfileTimeStepCount} with bins specified in {\tt metaProfileTimeStep}---these bins can be adjusted using {\tt [metaProfileTimeStepMinimum]}, {\tt [metaProfileTimeStepMaximum]} and {\tt [metaProfileTimeStepPointsPerDecade]}. A histogram of which properties limited step size is written to {\tt metaProfilePropertyHitCount} with the associated property names written to {\tt [metaProfilePropertyNames]}. Property names can only be determined if the component to which they belong supports the {\tt decodePropertyIdentifiersTask} directive (see \S\ref{sec:DecodePropertyIndentifierTask}). Properties which could not be decoded in this way are listed as {\tt unknown}.
