@@ -68,7 +68,7 @@ module Vectors
 
 contains
   
-  double precision function Vector_Magnitude(vector1)
+  pure double precision function Vector_Magnitude(vector1)
     !% Computes the magnitude of {\tt vector1}.
     implicit none
     double precision, dimension(3), intent(in) :: vector1
@@ -77,7 +77,7 @@ contains
     return
   end function Vector_Magnitude
   
- function Vector_Product(vector1,vector2) result(vector3)
+  pure function Vector_Product(vector1,vector2) result(vector3)
     !% Computes the vector product of {\tt vector1} and {\tt vector2}.
     implicit none
     double precision, dimension(3)             :: vector3
