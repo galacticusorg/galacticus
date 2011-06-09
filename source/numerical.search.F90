@@ -66,9 +66,15 @@ module Arrays_Search
   private
   public :: Search_Array, Search_Array_For_Closest
 
+  interface Search_Array
+     !% Generic interface for array searching routines.
+     module procedure Search_Array_Double
+     module procedure Search_Array_VarString
+  end interface Search_Array
+
 contains
 
-  integer function Search_Array(arrayToSearch,valueToFind)
+  integer function Search_Array_Double(arrayToSearch,valueToFind)
     !% Searches an array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
     use FGSL
     implicit none
@@ -76,9 +82,54 @@ contains
     double precision, intent(in)               :: valueToFind
     
     ! Call the FGSL routine to do the search.
-    Search_Array=FGSL_Interp_BSearch(arrayToSearch,valueToFind,int(lbound(arrayToSearch,dim=1),kind=fgsl_size_t)-1,int(ubound(arrayToSearch,dim=1),kind=fgsl_size_t)-1)
+    Search_Array_Double=FGSL_Interp_BSearch(arrayToSearch,valueToFind,int(lbound(arrayToSearch,dim=1),kind=fgsl_size_t)-1,int(ubound(arrayToSearch,dim=1),kind=fgsl_size_t)-1)
     return
-  end function Search_Array
+  end function Search_Array_Double
+  
+  integer function Search_Array_VarString(arrayToSearch,valueToFind)
+    !% Searches an array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) = v$.
+    use ISO_Varying_String
+    implicit none
+    type(varying_string), intent(in), dimension(:) :: arrayToSearch
+    type(varying_string), intent(in)               :: valueToFind   
+    integer                                        :: jLower,jMidpoint,jUpper,j
+    logical                                        :: isInside
+
+    isInside=.true.
+    ! Check whether valueToFind is outside range of arrayToSearch().
+    if (arrayToSearch(size(arrayToSearch)) >= arrayToSearch(1)) then ! arrayToSearch() is in ascending order.
+       if      (valueToFind < arrayToSearch(1                  )) then
+          isInside=.false.
+          Search_Array_VarString=0
+       else if (valueToFind > arrayToSearch(size(arrayToSearch))) then
+          isInside=.false.
+          Search_Array_VarString=size(arrayToSearch)+1
+       end if
+    else ! arrayToSearch() is in descending order.
+       if      (valueToFind > arrayToSearch(1                  )) then
+          isInside=.false.
+          Search_Array_VarString=0
+       else if (valueToFind < arrayToSearch(size(arrayToSearch))) then
+          isInside=.false.
+          Search_Array_VarString=size(arrayToSearch)+1
+       end if
+    end if
+    ! Binary search in array if valueToFind lies within array range.
+    if (isInside) then
+       jLower=0
+       jUpper=size(arrayToSearch)+1
+       do while (jUpper-jLower > 1)
+          jMidpoint=(jUpper+jLower)/2
+          if ((arrayToSearch(size(arrayToSearch)) >= arrayToSearch(1)) .eqv. (valueToFind >= arrayToSearch(jMidpoint))) then
+             jLower=jMidpoint
+          else
+             jUpper=jMidpoint
+          endif
+       end do
+       Search_Array_VarString=jLower
+    end if
+    return
+  end function Search_Array_VarString
   
   integer function Search_Array_For_Closest(arrayToSearch,valueToFind,tolerance)
     !% Searches an array, $x=(${\tt arrayToSearch}$)$, for the entry closest to value, $v(=${\tt valueToFind}$)$ and returns the
