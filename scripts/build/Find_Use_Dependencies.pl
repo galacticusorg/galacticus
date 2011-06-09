@@ -24,10 +24,10 @@ $workDir = "/work/build/";
     );
 
 # Open the compiler options file and find preprocessor flags.
-foreach $makefile ( "./work/build/Makefile_Compiler_Options", "./work/build/Makefile_New_Rules" ) {
+foreach $makefile ( "Makefile" ) {
     open(ophndl,$makefile);
     while ( $line = <ophndl> ) {
-        if ( $line =~ m/^\s*F90_options\s*\+??=/ ) {
+        if ( $line =~ m/^\s*F03FLAGS\s*\+??=/ ) {
             while ( $line =~ s/\s\-D([0-9A-Z]+)\s// ) {
                 $preprocs[++$#preprocs] = $1;
             }
