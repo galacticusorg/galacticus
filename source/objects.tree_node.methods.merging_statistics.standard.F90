@@ -68,18 +68,28 @@ module Tree_Node_Methods_Merging_Stats_Standard
   private
   public :: Tree_Node_Methods_Merging_Stats_Standard_Initialize, Galacticus_Output_Tree_Merging_Stats_Standard,&
        & Galacticus_Output_Tree_Merging_Stats_Standard_Property_Count, Galacticus_Output_Tree_Merging_Stats_Standard_Names,&
-       & Tree_Node_Methods_Merging_Stats_Standard_Dump, Tree_Node_Merging_Stats_Standard_Record
+       & Tree_Node_Methods_Merging_Stats_Standard_Dump, Tree_Node_Merging_Stats_Standard_Record,&
+       & Tree_Node_Merging_Stats_Standard_Node_Record, Tree_Node_Merging_Stats_Standard_Node_Promote,&
+       & Tree_Node_Merging_Stats_Standard_Initialize
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
 
   ! Property indices.
-  integer, parameter :: propertyCount=0, dataCount=1, historyCount=0
-  integer, parameter :: majorMergerTimeIndex=1
+  integer, parameter :: propertyCount=0, dataCount=3, historyCount=0
+  integer, parameter :: majorMergerTimeIndex    =1
+  integer, parameter :: nodeMajorMergerTimeIndex=2
+  integer, parameter :: nodeFormationTimeIndex  =3
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
-  !#  <methodName>Tree_Node_Major_Merger_Time</methodName>
+  !#  <methodName>Tree_Node_Galaxy_Major_Merger_Time</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer>
+  !#  <methodName>Tree_Node_Node_Major_Merger_Time</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer>
+  !#  <methodName>Tree_Node_Node_Formation_Time</methodName>
   !# </treeNodeMethodsPointer>
 
   ! Flag to indicate if this method is selected.
@@ -87,6 +97,9 @@ module Tree_Node_Methods_Merging_Stats_Standard
 
   ! Flag to indicate whether or not to track merging statistics.
   logical          :: trackMergerStatistics=.false.
+
+  ! Parameters controlling the statistics gathered.
+  double precision :: nodeMajorMergerFraction,nodeFormationMassFraction
 
 contains
 
@@ -120,49 +133,172 @@ contains
        call Galacticus_Display_Message(message,verbosityInfo)
 
        ! Set up procedure pointers.
-       Tree_Node_Major_Merger_Time              => Tree_Node_Major_Merger_Time_Merging_Stats_Standard
-       Tree_Node_Major_Merger_Time_Set          => null()
-       Tree_Node_Major_Merger_Time_Rate_Adjust  => null()
-       Tree_Node_Major_Merger_Time_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy
+       Tree_Node_Galaxy_Major_Merger_Time              => Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard
+       Tree_Node_Galaxy_Major_Merger_Time_Set          => null()
+       Tree_Node_Galaxy_Major_Merger_Time_Rate_Adjust  => null()
+       Tree_Node_Galaxy_Major_Merger_Time_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy
+       Tree_Node_Node_Major_Merger_Time                => Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard
+       Tree_Node_Node_Major_Merger_Time_Set            => null()
+       Tree_Node_Node_Major_Merger_Time_Rate_Adjust    => null()
+       Tree_Node_Node_Major_Merger_Time_Rate_Compute   => Tree_Node_Rate_Rate_Compute_Dummy
+       Tree_Node_Node_Formation_Time                   => Tree_Node_Node_Formation_Time_Merging_Stats_Standard
+       Tree_Node_Node_Formation_Time_Set               => null()
+       Tree_Node_Node_Formation_Time_Rate_Adjust       => null()
+       Tree_Node_Node_Formation_Time_Rate_Compute      => Tree_Node_Rate_Rate_Compute_Dummy
 
        !@ <inputParameter>
        !@   <name>trackMergerStatistics</name>
        !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Indicates whether or not galaxy merger statistics should be tracked.
+       !@     Indicates whether or not galaxy and node merger statistics should be tracked.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('trackMergerStatistics',trackMergerStatistics,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>nodeMajorMergerFraction</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('nodeMajorMergerFraction',nodeMajorMergerFraction,defaultValue=0.25d0)
+       !@ <inputParameter>
+       !@   <name>nodeFormationMassFraction</name>
+       !@   <defaultValue>0.5</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The mass fraction in the main branch progenitor used to define the formation time of each halo.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('nodeFormationMassFraction',nodeFormationMassFraction,defaultValue=0.5d0)
     end if
     return
   end subroutine Tree_Node_Methods_Merging_Stats_Standard_Initialize
 
-  double precision function Tree_Node_Major_Merger_Time_Merging_Stats_Standard(thisNode)
+  double precision function Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard(thisNode)
     !% Return the time of the last major merger.
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
-    if (thisNode%componentExists(componentIndex)) then
+    if (trackMergerStatistics.and.thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
-       Tree_Node_Major_Merger_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%data(majorMergerTimeIndex)
+       Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%data(majorMergerTimeIndex)
     else
-       Tree_Node_Major_Merger_Time_Merging_Stats_Standard=-1.0d0
+       Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard=-1.0d0
     end if
     return
-  end function Tree_Node_Major_Merger_Time_Merging_Stats_Standard
+  end function Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard
+
+  double precision function Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard(thisNode)
+    !% Return the time of the last major merger of nodes.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    integer                                :: thisIndex
+    
+    if (trackMergerStatistics.and.thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
+       Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%data(nodeMajorMergerTimeIndex)
+    else
+       Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard=-1.0d0
+    end if
+    return
+  end function Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard
+
+  double precision function Tree_Node_Node_Formation_Time_Merging_Stats_Standard(thisNode)
+    !% Return the time of the last major merger of nodes.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    integer                                :: thisIndex
+    
+    if (trackMergerStatistics) then
+       thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
+       Tree_Node_Node_Formation_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%data(nodeFormationTimeIndex)
+    else
+       Tree_Node_Node_Formation_Time_Merging_Stats_Standard=-1.0d0
+    end if
+    return
+  end function Tree_Node_Node_Formation_Time_Merging_Stats_Standard
+
+  !# <mergerTreeInitializeTask>
+  !#  <unitName>Tree_Node_Merging_Stats_Standard_Initialize</unitName>
+  !# </mergerTreeInitializeTask>
+  subroutine Tree_Node_Merging_Stats_Standard_Initialize(thisNode)
+    !% Initialize the merging statistics component by creating components in nodes and computing formation times.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    integer                                :: thisIndex
+
+    ! Simply call the indexing function as this will create the component and initialize it.
+    if (trackMergerStatistics) thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
+    return
+  end subroutine Tree_Node_Merging_Stats_Standard_Initialize
 
   integer function Tree_Node_Merging_Stats_Standard_Index(thisNode)
     !% Ensure the merging statistics component exists and return its position in the components array.
+    use Dark_Matter_Halo_Formation_Times
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
-    
-    call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
-    Tree_Node_Merging_Stats_Standard_Index=thisNode%componentIndex(componentIndex)
+
+    if (.not.thisNode%componentExists(componentIndex)) then
+       call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
+       Tree_Node_Merging_Stats_Standard_Index=thisNode%componentIndex(componentIndex)
+       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%data(majorMergerTimeIndex    )=-1.0d0
+       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%data(nodeMajorMergerTimeIndex)=-1.0d0
+       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%data(nodeFormationTimeIndex  )=Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction)
+    else
+       Tree_Node_Merging_Stats_Standard_Index=thisNode%componentIndex(componentIndex)
+    end if
     return
   end function Tree_Node_Merging_Stats_Standard_Index
   
+  !# <nodeMergerTask>
+  !#  <unitName>Tree_Node_Merging_Stats_Standard_Node_Record</unitName>
+  !# </nodeMergerTask>
+  subroutine Tree_Node_Merging_Stats_Standard_Node_Record(thisNode)
+    !% Record any major merger of {\tt thisNode}.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    integer                                :: thisIndex
+    
+    if (methodSelected.and.trackMergerStatistics) then
+       if (Tree_Node_Mass(thisNode) >= nodeMajorMergerFraction*Tree_Node_Mass(thisNode%parentNode)) then
+          ! Record the merger time.
+          thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode%parentNode)
+          thisNode%parentNode%components(thisIndex)%data(nodeMajorMergerTimeIndex)=Tree_Node_Time(thisNode)
+       end if
+    end if
+    return
+  end subroutine Tree_Node_Merging_Stats_Standard_Node_Record
+  
+  !# <nodePromotionTask>
+  !#  <unitName>Tree_Node_Merging_Stats_Standard_Node_Promote</unitName>
+  !# </nodePromotionTask>
+  subroutine Tree_Node_Merging_Stats_Standard_Node_Promote(thisNode)
+    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    use Galacticus_Error
+    implicit none
+    type(treeNode),   pointer, intent(inout)     :: thisNode
+    type(treeNode),   pointer                    :: parentNode
+    integer                                      :: thisIndex
+
+    ! Check if this method is selected.
+    if (methodSelected.and.trackMergerStatistics) then       
+       ! Get the parent node of this node.
+       parentNode => thisNode%parentNode
+       ! If the parent node has a merging statistic component, then copy the time of the last node merger.
+       if (parentNode%componentExists(componentIndex)) then
+          thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
+          if (Tree_Node_Node_Major_Merger_Time(parentNode) > Tree_Node_Node_Major_Merger_Time(thisNode)) &
+               & thisNode%components(thisIndex)%data(nodeMajorMergerTimeIndex)=Tree_Node_Node_Major_Merger_Time(parentNode)
+          thisNode%components(thisIndex)%data(nodeFormationTimeIndex)=Tree_Node_Node_Formation_Time(parentNode)
+       end if
+    end if
+    return
+  end subroutine Tree_Node_Merging_Stats_Standard_Node_Promote
+
   !# <satelliteMergerTask>
   !#  <unitName>Tree_Node_Merging_Stats_Standard_Record</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
@@ -176,7 +312,7 @@ contains
     integer                                :: thisIndex
 
     ! Determine if we should record.
-    if (trackMergerStatistics) then       
+    if (methodSelected.and.trackMergerStatistics) then       
        ! Record the time of this merger if it is a major merger.
        if (thisMergerIsMajor) then          
           ! Find the node to merge with.
@@ -204,10 +340,18 @@ contains
          &,doublePropertyComments
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
-    if (methodSelected) then
+    if (methodSelected.and.trackMergerStatistics) then
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='majorMergerTimeLapse'
        doublePropertyComments(doubleProperty)='Time since the last major merger.'
+       doublePropertyUnitsSI (doubleProperty)=gigaYear
+       doubleProperty=doubleProperty+1
+       doublePropertyNames   (doubleProperty)='nodeMajorMergerTimeLapse'
+       doublePropertyComments(doubleProperty)='Time since the last node major merger.'
+       doublePropertyUnitsSI (doubleProperty)=gigaYear
+       doubleProperty=doubleProperty+1
+       doublePropertyNames   (doubleProperty)='nodeFormationTime'
+       doublePropertyComments(doubleProperty)='Formation time of the node.'
        doublePropertyUnitsSI (doubleProperty)=gigaYear
     end if
     return
@@ -223,7 +367,7 @@ contains
     double precision, intent(in)    :: time
     integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
 
-    if (methodSelected) doublePropertyCount=doublePropertyCount+1
+    if (methodSelected.and.trackMergerStatistics) doublePropertyCount=doublePropertyCount+3
     return
   end subroutine Galacticus_Output_Tree_Merging_Stats_Standard_Property_Count
 
@@ -244,14 +388,23 @@ contains
     double precision,        intent(inout)          :: doubleBuffer(:,:)
     double precision                                :: mergerTime
 
-    if (methodSelected) then
+    if (methodSelected.and.trackMergerStatistics) then
        doubleProperty=doubleProperty+1
-       mergerTime=Tree_Node_Major_Merger_Time_Merging_Stats_Standard(thisNode)
+       mergerTime=Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard(thisNode)
        if (mergerTime >= 0.0d0) then
           doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Time(thisNode)-mergerTime
        else
           doubleBuffer(doubleBufferCount,doubleProperty)=                         mergerTime
        end if
+       doubleProperty=doubleProperty+1
+       mergerTime=Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard(thisNode)
+       if (mergerTime >= 0.0d0) then
+          doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Time(thisNode)-mergerTime
+       else
+          doubleBuffer(doubleBufferCount,doubleProperty)=                         mergerTime
+       end if
+       doubleProperty=doubleProperty+1
+       doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Node_Formation_Time(thisNode)
     end if
     return
   end subroutine Galacticus_Output_Tree_Merging_Stats_Standard
@@ -264,10 +417,12 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
  
-    if (methodSelected) then
+    if (methodSelected.and.trackMergerStatistics) then
        if (thisNode%componentExists(componentIndex)) then
           write (0,'(1x,a)'           ) 'merging statistics component -> properties:'
-          write (0,'(2x,a50,1x,e12.6)') 'time of last major merger:',Tree_Node_Major_Merger_Time_Merging_Stats_Standard(thisNode)
+          write (0,'(2x,a50,1x,e12.6)') '     time of last major merger:',Tree_Node_Galaxy_Major_Merger_Time(thisNode)
+          write (0,'(2x,a50,1x,e12.6)') 'time of last node major merger:',Tree_Node_Node_Major_Merger_Time  (thisNode)
+          write (0,'(2x,a50,1x,e12.6)') '        formation time of node:',Tree_Node_Node_Formation_Time     (thisNode)
        else
           write (0,'(1x,a)'           ) 'merging statistics component -> nonexistant'
        end if

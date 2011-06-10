@@ -595,24 +595,26 @@ This component records statistics associated with galaxy merging.
 
 The scale dark matter profile implementation defines the following properties:
 \begin{description}
- \item [{\tt Major\_Merger\_Time}] The time of the last major merger associated with this galaxy, output as the time \emph{since} the last major merger [{\tt majorMergerTimeLapse}];
+ \item [{\tt Galaxy\_Major\_Merger\_Time}] The time of the last major merger associated with this galaxy, output as the time \emph{since} the last major merger [{\tt majorMergerTimeLapse}];
+ \item [{\tt Node\_Major\_Merger\_Time}] The time of the last major merger (as defined by the {\tt [nodeMajorMergerFraction]} parameter) between this node and another, output as the time \emph{since} the last major merger [{\tt nodeMajorMergerTimeLapse}];
+ \item [{\tt Node\_Formation\_Time}] The time at which the node is judged to have ``formed'', defined as the time at which its main branch progenitor had a mass equal to a fraction {\tt [nodeFormationMassFraction]} of the node's initial mass in the merger tree;
 \end{description}
 
 \subsubsection{Initialization}
 
-The time of the last merger is stored each time a major merger occurred and this component is created the first time such a merger occurs.
+The times of the last mergers are stored each time a major merger occurrs and this component is created (if necessary) the first time such a merger occurs. Formation times are computed during merger tree initialization.
 
 \subsubsection{Differential Evolution}
 
-The time of the last merger does not evolve.
+The times of the last mergers do not evolve.
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} None.\\
+\noindent\emph{Node mergers:} The time of the last node merger in the parent node is reset to the current time if the merger is major.\\
 
 \noindent\emph{Satellite merging:} The time of the last merger is reset to the current time if the merger is major.\\
 
-\noindent\emph{Node promotion:} None.\\
+\noindent\emph{Node promotion:} The time of the last major node merger is updated to that of the parent if that time is more recent.\\
 
 \section{Formation Times}\label{sec:ComponentFormationTimes}
 
