@@ -59,49 +59,47 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements the \cite{zhao_accurate_2009} NFW halo concentration algorithm.
+!% Contains a module which implements calculations of dark matter halo formation times.
 
-module Dark_Matter_Profiles_Concentrations_Zhao2009
-  !% Implements the \cite{zhao_accurate_2009} NFW halo concentration algorithm.
-  use Tree_Nodes
+module Dark_Matter_Halo_Formation_Times
+  !% Implements calculations of dark matter halo formation times.
   private
-  public :: Dark_Matter_Concentrations_Zhao2009_Initialize
+  public :: Dark_Matter_Halo_Formation_Time
 
 contains
 
-  !# <darkMatterConcentrationMethod>
-  !#  <unitName>Dark_Matter_Concentrations_Zhao2009_Initialize</unitName>
-  !# </darkMatterConcentrationMethod>
-  subroutine Dark_Matter_Concentrations_Zhao2009_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    !% Initializes the ``Zhao 2009'' halo concentration module.
-    use ISO_Varying_String
-    implicit none
-    type(varying_string),                 intent(in)    :: darkMatterConcentrationMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
-    
-    if (darkMatterConcentrationMethod == 'Zhao 2009')                                          &
-         & Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Zhao2009
-  
-    return
-  end subroutine Dark_Matter_Concentrations_Zhao2009_Initialize
-
-  double precision function Dark_Matter_Profile_Concentration_Zhao2009(thisNode)
-    !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{zhao_accurate_2009}.
+  double precision function Dark_Matter_Halo_Formation_Time(thisNode,formationMassFraction)
+    !% Returns the time at which the main branch progenitor of {\tt thisNode} first had a mass equal to {\tt
+    !% formationMassFraction} of the current mass.
     use Tree_Nodes
-    use Dark_Matter_Halo_Formation_Times
+    use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: concentrationMinimum =4.00d0
-    double precision, parameter              :: formationMassFraction=0.04d0
-    double precision                         :: timeNode,timeFormation,massNode
+    double precision, intent(in)             :: formationMassFraction
+    type(treeNode),                  pointer :: workNode,formationNode
+    double precision                         :: timeNode,massNode
 
-    timeNode     =Tree_Node_Time                 (thisNode                      )
-    timeFormation=Dark_Matter_Halo_Formation_Time(thisNode,formationMassFraction)
+    timeNode=Tree_Node_Time(thisNode)
+    massNode=Tree_Node_Mass(thisNode)
 
-    ! Compute the concentration from the formation time using the Zhao et al. (2009) fitting formula.
-    Dark_Matter_Profile_Concentration_Zhao2009=concentrationMinimum*(1.0d0+(timeNode/3.75d0/timeFormation)**8.4d0)**0.125d0
+    workNode => thisNode
+    do while (associated(workNode))
+       formationNode => workNode
+       if (Tree_Node_Mass(workNode) <= formationMassFraction*massNode) exit
+       workNode => workNode%childNode
+    end do
+    if (.not.associated(workNode)) then
+       ! Find the formation time based on the mass accretion history.
+       Dark_Matter_Halo_Formation_Time=Dark_Matter_Halo_Mass_Accretion_Time(formationNode,formationMassFraction*massNode)
+    else
+       ! Interpolate to get the exact time of formation.
+       Dark_Matter_Halo_Formation_Time=                                      Tree_Node_Time(workNode)  &
+            &                          +(Tree_Node_Time(workNode%parentNode)-Tree_Node_Time(workNode)) &
+            &                          *(formationMassFraction*massNode     -Tree_Node_Mass(workNode)) &
+            &                          /(Tree_Node_Mass(workNode%parentNode)-Tree_Node_Mass(workNode))
+    end if
 
     return
-  end function Dark_Matter_Profile_Concentration_Zhao2009
-  
-end module Dark_Matter_Profiles_Concentrations_Zhao2009
+  end function Dark_Matter_Halo_Formation_Time
+
+end module Dark_Matter_Halo_Formation_Times
