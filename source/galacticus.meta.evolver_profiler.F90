@@ -160,28 +160,32 @@ contains
     implicit none
     type(varying_string), allocatable, dimension(:) :: metaProfilePropertyNames
     integer,              allocatable, dimension(:) :: metaProfilePropertyHitCount
-    type(hdf5Object)                                :: metaDataGroup,metaDataDataset
+    type(hdf5Object)                                :: metaDataGroup,profilerDataGroup,metaDataDataset
 
     ! Output tree evolution meta-data if any was collected.
     if (metaProfileInitialized) then
        
-       metaDataGroup=IO_HDF5_Open_Group(galacticusOutputFile,'treeEvolverMetaData','Meta-data on tree evolver.')
+       ! Open output groups.
+       metaDataGroup    =IO_HDF5_Open_Group(galacticusOutputFile,'metaData'       ,'Galacticus meta data.'     )
+       profilerDataGroup=IO_HDF5_Open_Group(metaDataGroup       ,'evolverProfiler','Meta-data on tree evolver.')
        
        ! Write timestep histogram.
-       call metaDataGroup%writeDataset(metaProfileTimeStep     ,"metaProfileTimeStep"     ,"Timestep [Gyr]"        ,datasetReturned=metaDataDataset)
+       call profilerDataGroup%writeDataset(metaProfileTimeStep     ,"metaProfileTimeStep"     ,"Timestep [Gyr]"        ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(gigaYear,"unitsInSI")
        call metaDataDataset%close()
-       call metaDataGroup%writeDataset(metaProfileTimeStepCount,"metaProfileTimeStepCount","Timestep historgram []"                                )
+       call profilerDataGroup%writeDataset(metaProfileTimeStepCount,"metaProfileTimeStepCount","Timestep historgram []"                                )
               
        ! Write property histogram.
        call propertyHits%keys  (metaProfilePropertyNames   )
        call propertyHits%values(metaProfilePropertyHitCount)
-       call metaDataGroup%writeDataset(metaProfilePropertyNames   ,"metaProfilePropertyNames"   ,"Property names"    )
-       call metaDataGroup%writeDataset(metaProfilePropertyHitCount,"metaProfilePropertyHitCount","Property hit count")
+       call profilerDataGroup%writeDataset(metaProfilePropertyNames   ,"metaProfilePropertyNames"   ,"Property names"    )
+       call profilerDataGroup%writeDataset(metaProfilePropertyHitCount,"metaProfilePropertyHitCount","Property hit count")
        deallocate(metaProfilePropertyNames   )
        deallocate(metaProfilePropertyHitCount)
 
-       call metaDataGroup%close()
+       ! Close output groups.
+       call profilerDataGroup%close()
+       call metaDataGroup    %close()
 
     end if
 

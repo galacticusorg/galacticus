@@ -92,9 +92,15 @@ contains
     use Galacticus_Display
     use Input_Parameters
     use Galacticus_Output_Times
-    ! Include modules needed for pre-evolution tasks.
+    ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
+    !# </include>
+    !# <include directive="mergerTreePostEvolveTask" type="moduleUse">
+    include 'galacticus.tasks.evolve_tree.postEvolveTask.moduleUse.inc'
+    !# </include>
+    !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
+    include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
     !# </include>
     implicit none
     type(mergerTree),     save, pointer :: thisTree
@@ -144,6 +150,12 @@ contains
        iTree=iTree+1
        ! Decide whether or not to skip this tree.
        skipTree=.not.(modulo(iTree-1,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
+
+       ! Perform any pre-tree construction tasks.
+       !# <include directive="mergerTreePreTreeConstructionTask" type="code" action="subroutine">
+       include 'galacticus.tasks.evolve_tree.preConstructionTask.inc'
+       !# </include>
+       
        ! Get a tree.
        thisTree => Merger_Tree_Create(skipTree)
        finished=finished.or..not.associated(thisTree)
@@ -188,6 +200,11 @@ contains
           ! Destroy the tree.
           call thisTree%destroy()
 
+          ! Perform any post-evolution tasks on the tree.
+          !# <include directive="mergerTreePostEvolveTask" type="code" action="subroutine">
+          include 'galacticus.tasks.evolve_tree.postEvolveTask.inc'
+          !# </include>
+             
        end if
 
     end do

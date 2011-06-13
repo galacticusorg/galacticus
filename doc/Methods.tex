@@ -4262,9 +4262,49 @@ Additional outputs for merger trees can be added using three directives: {\tt me
 \end{verbatim}
 The {\tt mergerTreeOutputPropertyCount} subroutine must simply increment {\tt integerPropertyCount} and {\tt doublePropertyCount} by the number of integer and double precision properties that will be output respectively. The {\tt mergerTreeOutputNames} subroutine must store the dataset names, comments and units in the SI system\footnote{For dimensionless quantities, the units may be set to zero. In such cases, the {\tt unitsInSI} attribute for the dataset will not be written to the \protect\glc\ output file.} for each integer and double precision property in the supplied arrays. The value of {\tt integerProperty} and {\tt doubleProperty} should be incremented by 1 before each property name/comment is set---these then supply the position within the input arrays in which to store the name. The {\tt mergerTreeOutputTask} subroutine must similarly place the desired property values for {\tt thisNode} into the supplied arrays. The value of {\tt integerProperty} and {\tt doubleProperty} should be incremented by 1 before each property value is set. The value can then be stored in, for example, {\tt integerBuffer(integerBufferCount,integerProperty)}.
 
+\subsubsection{Merger Tree Pre-Construction Tasks}\label{sec:MergerTreePreConstructionTask}
+
+Additional tasks to be performed prior to the construction of each merger tree can be added using the {\tt mergerTreePreTreeConstructionTask} directive. For example, the tree timing task uses this directive as follows:
+\begin{verbatim}
+  !# <mergerTreePreTreeConstructionTask>
+  !#   <unitName>Meta_Tree_Timing_Pre_Construction</unitName>
+  !# </mergerTreePreTreeConstructionTask>
+\end{verbatim}
+Here, {\tt Meta\_Tree\_Timing\_Pre\_Construction} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+\begin{verbatim}
+   subroutine Merger_Tree_PreConstruction_Task()
+    implicit none
+    .
+    .
+    .
+    return
+  end subroutine Merger_Tree_PreConstruction_Task
+\end{verbatim}
+The subroutine will be called once for each tree, before the tree has been constructed.
+
+\subsubsection{Merger Tree Post-Evolution Tasks}\label{sec:MergerTreePostEvolveTask}
+
+Additional tasks to be performed after the evolution (and subsequent destruction) of each merger tree can be added using the {\tt mergerTreePostEvolveTasker} directive. For example, the tree timing task uses this directive as follows:
+\begin{verbatim}
+  !# <mergerTreePostEvolveTask>
+  !#   <unitName>Meta_Tree_Timing_Post_Evolve</unitName>
+  !# </mergerTreePostEvolveTask>
+\end{verbatim}
+Here, {\tt Meta\_Tree\_Timing\_Post\_Evolve} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+\begin{verbatim}
+   subroutine Merger_Tree_PostEvolution_Task()
+    implicit none
+    .
+    .
+    .
+    return
+  end subroutine Merger_Tree_PostEvolution_Task
+\end{verbatim}
+The subroutine will be called once for each tree, after the tree has been evolved and destroyed.
+
 \subsubsection{Merger Tree Pre-Evolution Tasks}\label{sec:MergerTreePreEvolveTask}
 
-Additional tasks to be performed on merger trees prior to their evolution can be added using the {\tt mergerTreePreEvolveTaskerger} directive. For example, the mass accretion history task uses this directive as follows:
+Additional tasks to be performed on merger trees prior to their evolution can be added using the {\tt mergerTreePreEvolveTask} directive. For example, the mass accretion history task uses this directive as follows:
 \begin{verbatim}
   !# <mergerTreePreEvolveTask>
   !#   <unitName>Merger_Tree_Mass_Accretion_History_Output</unitName>

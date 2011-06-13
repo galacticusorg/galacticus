@@ -354,6 +354,15 @@ Future versions of \glc\ will automate this process, allowing galaxies to be pro
 
 \glc\ contains modules which allow it to analyze and profile its own performance.
 
+\subsubsection{Tree Construction/Evolution Timing}\index{run time!tree construction}\index{run time!tree evolution}
+
+The \hyperlink{galacticus.meta.tree_timing.F90:galacticus_meta_tree_timing}{{\tt Galacticus\_Meta\_Tree\_Timing}} module records the time taken to construct and evolve each merger tree. Setting {\tt [metaCollectTimingData]}$=${\tt true} will cause tree timing data to be recorded and output to the {\tt metaData/treeTiming} group. Three datasets are written to this group:
+\begin{description}
+ \item[{\tt treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
+ \item[{\tt treeConstuctTimes}] Gives the time (in seconds) taken to construct each merger tree;
+ \item[{\tt treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
+\end{description}
+
 \subsubsection{ODE Evolver Profiler}
 
 The \hyperlink{galacticus.meta.evolver_profiler.F90:galacticus_meta_evolver_profiler}{{\tt Galacticus\_Meta\_Evolver\_Profiler}} module records statistics on the performance of the main ODE solver used to advance galaxies through time. 
@@ -362,4 +371,4 @@ The \hyperlink{galacticus.meta.evolver_profiler.F90:galacticus_meta_evolver_prof
 
 When active, setting {\tt [profileOdeEvolver]}$=${\tt true} will activate profiling. Each step taken by the ODE evolver is then analyzed. First, a record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to determine step size) is determined and a record of this is kept.
 
-At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\tt treeEvolverMetaData}. A histogram of time step sizes is written to {\tt metaProfileTimeStepCount} with bins specified in {\tt metaProfileTimeStep}---these bins can be adjusted using {\tt [metaProfileTimeStepMinimum]}, {\tt [metaProfileTimeStepMaximum]} and {\tt [metaProfileTimeStepPointsPerDecade]}. A histogram of which properties limited step size is written to {\tt metaProfilePropertyHitCount} with the associated property names written to {\tt [metaProfilePropertyNames]}. Property names can only be determined if the component to which they belong supports the {\tt decodePropertyIdentifiersTask} directive (see \S\ref{sec:DecodePropertyIndentifierTask}). Properties which could not be decoded in this way are listed as {\tt unknown}.
+At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\tt metaData/evolverProfiler}. A histogram of time step sizes is written to {\tt metaProfileTimeStepCount} with bins specified in {\tt metaProfileTimeStep}---these bins can be adjusted using {\tt [metaProfileTimeStepMinimum]}, {\tt [metaProfileTimeStepMaximum]} and {\tt [metaProfileTimeStepPointsPerDecade]}. A histogram of which properties limited step size is written to {\tt metaProfilePropertyHitCount} with the associated property names written to {\tt [metaProfilePropertyNames]}. Property names can only be determined if the component to which they belong supports the {\tt decodePropertyIdentifiersTask} directive (see \S\ref{sec:DecodePropertyIndentifierTask}). Properties which could not be decoded in this way are listed as {\tt unknown}.
