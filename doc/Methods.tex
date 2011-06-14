@@ -2584,13 +2584,14 @@ The construction subroutine should have the following form:
     return
   end subroutine Merger_Tree_Construct_Do
 \end{verbatim}
-and should return a full merger tree in {\tt thisTree}, unless {\tt skipTree} is true, in which case this tree will be skipped (i.e. not evolved or output) and so it suffices to merely allocate the base node---there is no need to create the entire tree (although it is permissible to do so)---and update any internal data (e.g. a count of trees constructed) as required. The tree must have at least masses, times and parent/child/sibling links created. Other properties (e.g. spins) can be optionally included also.
+and should return a full merger tree in {\tt thisTree}, unless {\tt skipTree} is true, in which case this tree will be skipped (i.e. not evolved or output) and so it suffices to merely allocate the base node---there is no need to create the entire tree (although it is permissible to do so)---and update any internal data (e.g. a count of trees constructed) as required. The tree must have at least masses, times and parent/child/sibling links created. Other properties (e.g. spins) can be optionally included also. By default, the tree is assumed to be ``uninitialized'', such that the merger tree initialization function will be called prior to the tree being evolve. If the tree construction method returns a fully initialized tree it should set {\tt thisTree\%initialized=.true.}.
 
-Currently defined merger tree building methods are:
+Currently defined merger tree construction methods are:
 \begin{description}
  \item [{\tt build}] Generates a set of halo masses distributed between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} (with {\tt mergerTreeBuildTreesPerDecade} halos per decade of mass) at redshift {\tt mergerTreeBuildTreesBaseRedshift}, or with masses read from a file, and then uses the selected merger tree build method (see \S\ref{sec:MergerTreeBuildMethod}) to build trees from these base nodes;
  \item [{\tt read}] Reads merger tree data from an HDF5 file (see \S\ref{sec:MergerTreeFiles}). The file to read is specified by the {\tt [mergerTreeReadFileName]} parameter.
  \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). See \S\ref{sec:SmoothAccretion} for details.
+ \item [{\tt state restore}] Intended primarily for debugging purposes, this method will restore a tree whose complete internal state was written to file. See \S\ref{sec:TreeConstructStateRestore} for details of how to use this method.
 \end{description}
 
 \subsubsection{Molecular Reaction Rates}

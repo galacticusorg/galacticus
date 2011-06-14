@@ -719,6 +719,30 @@ In the case of reading root halo masses from a file, the file should be an XML f
 \end{verbatim}
 where each {\tt treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to generate.
 
+\subsection{State Restore}\label{sec:TreeConstructStateRestore}\index{debugging!restoring merger tree internal state}
+
+Selected with {\tt mergerTreeConstructMethod}$=${\tt state restore}, this method will restore a merger tree whose complete internal state was written to file. It is intended primarily for debugging purposes to allow a tree to begin processing just prior to the point of failure. To use this method, the following procedure should be followed:
+\begin{enumerate}
+ \item Identify a point in the evolution of the tree suitably close to, but before, the point of failure;
+ \item Insert approrpiate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
+ \begin{verbatim}
+  use Merger_Trees_State_Store
+  .
+  .
+  .
+  if (<conditions are met>) then
+     call Merger_Tree_State_Store(thisTree,'storedTree.dat')
+     stop 'tree internal state was stored'
+  end if
+ \end{verbatim}
+ \item Run the model ensuring that {\tt [stateFileRoot]} is set to a suitable file root name to allow the internal state of \glc\ to be stored;
+ \item Remove the code inserted above and recompile;
+ \item Run \glc\ with an input parameter file identical to the one used previously except with {\tt [mergerTreeConstructMethod]}$=${\tt state restore}, {\tt [stateFileRoot]} removed, {\tt [stateRetrieveFileRoot]} set to the value previously used for {\tt [stateFileRoot]} and {\tt [mergerTreeStateStoreFile]}$=${\tt storedTree.dat}.
+\end{enumerate}
+This should restore the tree and the internal state of \glc\ precisely from the point where they were saved and produce the same subsequent evolution.
+
+Note that currently this method does not support storing and restoring of trees which contain components that have more than one instance.
+
 \section{Merger Tree Branching}\index{merger trees!branching}
 
 The method to be used for computing branching probabilities in merger trees is specified by the {\tt treeBranchingMethod} parameter.

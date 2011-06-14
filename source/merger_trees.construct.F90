@@ -125,6 +125,10 @@ contains
     call Memory_Usage_Record(sizeof(thisTree))
     thisTree%baseNode => null()
 
+    ! Flag that the tree is uninitialized. Some construction methods may opt to fully initialize the tree, in which case they will
+    ! reset this to true.
+    thisTree%initialized=.false.
+
     ! Call the routine to construct the merger tree.
     call Merger_Tree_Construct(thisTree,skipTree)
 
@@ -133,9 +137,6 @@ contains
        call Memory_Usage_Record(sizeof(thisTree),addRemove=-1)
        deallocate(thisTree)
        thisTree => null()
-    else
-       ! Otherwise flag that the tree is uninitialized.
-       thisTree%initialized=.false.
     end if
     return
   end function Merger_Tree_Create
