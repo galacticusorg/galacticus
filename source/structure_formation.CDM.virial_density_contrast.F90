@@ -66,10 +66,10 @@ module Virial_Density_Contrast
   use ISO_Varying_String
   use FGSL
   private
-  public :: Halo_Virial_Density_Contrast, Halo_Virial_Density_Contrast_Rate_of_Change
+  public :: Halo_Virial_Density_Contrast, Halo_Virial_Density_Contrast_Rate_of_Change, Virial_Density_Contrast_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                        :: deltaVirialInitialized=.false.
+  logical                                        :: deltaVirialInitialized=.false., tablesInitialized=.false.
 
   ! Variables to hold the tabulated virial overdensity data.
   integer                                        :: deltaVirialTableNumberPoints
@@ -123,6 +123,7 @@ contains
             &//char(virialDensityContrastMethod)//' is unrecognized')
        ! Flag that the module is now initialized.
        deltaVirialInitialized=.true.
+       tablesInitialized     =.true.
     end if
 
     ! Call routine to initialize the virial overdensity table.
@@ -138,7 +139,7 @@ contains
 
     ! Check if we need to recompute our table.
     !$omp critical(Delta_Virial_Factor_Initialize)
-    if (deltaVirialInitialized) then
+    if (deltaVirialInitialized.and.tablesInitialized) then
        remakeTable=(time<deltaVirialTableTime(1).or.time>deltaVirialTableTime(deltaVirialTableNumberPoints))
     else
        remakeTable=.true.
@@ -236,4 +237,21 @@ contains
     return
   end function Halo_Virial_Density_Contrast_Rate_of_Change
 
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Virial_Density_Contrast_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Virial_Density_Contrast_State_Retrieve(stateFile,fgslStateFile)
+    !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
+    use Memory_Management
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    deltaVirialTableNumberPoints=0
+    if (allocated(deltaVirialTableTime       )) call Dealloc_Array(deltaVirialTableTime       )
+    if (allocated(deltaVirialTableDeltaVirial)) call Dealloc_Array(deltaVirialTableDeltaVirial)
+    tablesInitialized=.false.
+    return
+  end subroutine Virial_Density_Contrast_State_Retrieve
+  
 end module Virial_Density_Contrast

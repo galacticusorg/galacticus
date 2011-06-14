@@ -830,7 +830,12 @@ contains
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
 
-    write (stateFile) ageTableTimeMinimum,ageTableTimeMaximum
+    ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without knowing the path by which they
+    ! were originally constructed.
+    write (stateFile) ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum
+    write (stateFile) ageTableTime,ageTableExpansionFactor
+    write (stateFile) distanceTableNumberPoints,distanceTableTimeMinimum,distanceTableTimeMaximum
+    write (stateFile) distanceTableTime,distanceTableComovingDistance,distanceTableComovingDistanceNegated
     return
   end subroutine Cosmology_Matter_Lambda_State_Store
   
@@ -839,16 +844,33 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Cosmology_Matter_Lambda_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use Memory_Management
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
     double precision            :: tCosmological
 
-    ! Read the minimum and maximum tabulated times.
-    read (stateFile) ageTableTimeMinimum,ageTableTimeMaximum
-    ! Rebuild the table, choosing a time that won't affect the minimum/maximum tabulated.
-    tCosmological=ageTableTimeMinimum*2.0d0
-    call Make_Expansion_Factor_Table(tCosmological)
+    ! Read the tabulations.
+    read (stateFile) ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum
+    if (allocated(ageTableTime           )) call Dealloc_Array(ageTableTime           )
+    if (allocated(ageTableExpansionFactor)) call Dealloc_Array(ageTableExpansionFactor)
+    call Alloc_Array(ageTableTime           ,[ageTableNumberPoints])
+    call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
+    read (stateFile) ageTableTime,ageTableExpansionFactor
+    read (stateFile) distanceTableNumberPoints,distanceTableTimeMinimum,distanceTableTimeMaximum
+    if (allocated(distanceTableTime                   )) call Dealloc_Array(distanceTableTime                   )
+    if (allocated(distanceTableComovingDistance       )) call Dealloc_Array(distanceTableComovingDistance       )
+    if (allocated(distanceTableComovingDistanceNegated)) call Dealloc_Array(distanceTableComovingDistanceNegated)
+    call Alloc_Array(distanceTableTime                   ,[distanceTableNumberPoints])
+    call Alloc_Array(distanceTableComovingDistance       ,[distanceTableNumberPoints])
+    call Alloc_Array(distanceTableComovingDistanceNegated,[distanceTableNumberPoints])
+    read (stateFile) distanceTableTime,distanceTableComovingDistance,distanceTableComovingDistanceNegated
+    
+    ! Ensure that interpolation objects will get reset.
+    resetInterpolation               =.true.
+    resetInterpolationDistance       =.true.
+    resetInterpolationDistanceInverse=.true.
+
     return
   end subroutine Cosmology_Matter_Lambda_State_Retrieve
   
