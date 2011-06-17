@@ -73,7 +73,7 @@ program Tests_Kepler_Orbits
   double precision     :: valueExpected,valueActual,velocityScale
 
   ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.orbits.size')
+  call Code_Memory_Usage('tests.kepler_orbits.size')
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Orbital parameter conversions")

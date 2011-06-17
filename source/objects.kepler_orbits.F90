@@ -494,9 +494,9 @@ contains
           call thisOrbit%assertIsDefined()
           ! Compute from eccentricity, radius and periapsis if possible.
           if (thisOrbit%eccentricityIsSet.and.thisOrbit%radiusIsSet.and.thisOrbit%radiusPericenterIsSet) then
-             thisOrbit%velocityRadialValue=thisOrbit%velocityScale()*dsqrt(2.0d0*(1.0d0-0.5d0*(1.0d0-thisOrbit%eccentricity())&
-                  &*thisOrbit%radius()/thisOrbit%radiusPericenter())/thisOrbit%specificReducedMass()-(1.0d0&
-                  &+thisOrbit%eccentricity())*thisOrbit%radiusPericenter()/thisOrbit%radius()/thisOrbit%specificReducedMass()**2)
+             thisOrbit%velocityRadialValue=thisOrbit%velocityScale()*dsqrt((2.0d0*(1.0d0-thisOrbit%radius()&
+                  &/thisOrbit%radiusPericenter())+(1.0d0+thisOrbit%eccentricity())*(thisOrbit%radius()/thisOrbit%radiusPericenter()&
+                  &-thisOrbit%radiusPericenter()/thisOrbit%radius()))/thisOrbit%specificReducedMass())
              thisOrbit%velocityRadialIsSet=.true.
           end if
           ! If we were not able to compute the radial velocity, exit.
@@ -527,7 +527,7 @@ contains
           ! Compute from eccentricity, radius and periapsis if possible.
           if (thisOrbit%eccentricityIsSet.and.thisOrbit%radiusIsSet.and.thisOrbit%radiusPericenterIsSet) then
              thisOrbit%velocityTangentialValue=thisOrbit%velocityScale()*dsqrt((1.0d0+thisOrbit%eccentricity())&
-                  &*thisOrbit%radiusPericenter() /thisOrbit%radius() /thisOrbit%specificReducedMass()**2)
+                  &*thisOrbit%radiusPericenter() /thisOrbit%radius() /thisOrbit%specificReducedMass())
              thisOrbit%velocityTangentialIsSet=.true.
           end if
           ! If we were not able to compute the tangential velocity, exit.
