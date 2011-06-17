@@ -111,6 +111,10 @@
       <value>true</value>
     </parameter>
     <parameter>
+      <name>treeNodeMethodSpin</name>
+      <value>preset</value>
+    </parameter>
+    <parameter>
       <name>treeNodeMethodPosition</name>
       <value>preset</value>
     </parameter>
@@ -125,6 +129,14 @@
     <parameter>
       <name>mergerTreeReadPresetPositions</name>
       <value>true</value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeReadPresetSpins</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeReadPresetScaleRadii</name>
+      <value>false</value>
     </parameter>
     <parameter>
       <name>H_0</name>
