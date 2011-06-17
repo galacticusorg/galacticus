@@ -309,7 +309,7 @@ sub Model_Finalize {
 	$message .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
 	$message .= "  User:\t".$ENV{"USER"}."\n\n";
 	$message .= "Model output is in: ".$pwd."/".$galacticusOutputDirectory."\n\n";
-	if ( $config->{'contact'}->{'email'} =~ m/\@/ && $modelsToRun->{'emailReport'} eq "yes" ) {
+	if ( exists($config->{'contact'}->{'email'}) && $config->{'contact'}->{'email'} =~ m/\@/ && $modelsToRun->{'emailReport'} eq "yes" ) {
 	    $message .= "Log file is attached.\n";
 	    my $msg = MIME::Lite->new(
 		From    => '',
