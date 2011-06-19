@@ -9,8 +9,24 @@ We run \glc\ on \href{http://fedoraproject.org/}{Fedora} Linux primarily. Instal
 \begin{verbatim}
 yum install perl perl-CPAN
 \end{verbatim}
- If you need to install from source visit \href{http://www.perl.org/}{\tt http://www.perl.org/} and follow the instructions given there. We currently use Perl v5.10.0. \glc\ requires some Perl modules which probably are not installed by default. We recommend that you install these via \href{http://www.cpan.org/}{CPAN} (which probably is installed by default). The following modules should be installed.
+ If you need to install from source visit \href{http://www.perl.org/}{\tt http://www.perl.org/} and follow the instructions given there. We currently use Perl v5.12.0. \glc\ requires some Perl modules which probably are not installed by default. We recommend that you install these via \href{http://www.cpan.org/}{CPAN} (which probably is installed by default). The following modules should be installed.
  \begin{description}
+  \item [\href{http://search.cpan.org/~rgarcia/Switch-2.16/Switch.pm}{{\tt Switch }}] $\star$ This module implements distributed conditional testing. It is part of the core Perl distribution up to Perl v5.12.0. From Perl v5.14.0 onward it must be installed using
+\begin{verbatim}
+perl -MCPAN -e 'install Switch'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] $\star$ Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
+\begin{verbatim}
+yum install perl-XML-Simple
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install XML::Simple'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~smueller/Data-Dumper-2.131/Dumper.pm}{{\tt Data::Dumper }}] $\star$ This module provides formatted output of arbitrary data structures. It can be installed using
+\begin{verbatim}
+perl -MCPAN -e 'install Data::Dumper'
+\end{verbatim}
   \item [\href{http://search.cpan.org/~kstephens/Data-Match-0.06/lib/Sort/Topological.pm}{{\tt Sort::Topological }}] $\star$ This module implements dependency based sort and is used by the \glc\ build system to ensure that tasks are performed in the correct order. It can be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install Sort::Topological'
@@ -110,14 +126,6 @@ perl -MCPAN -e 'install PDL::MatrixOps'
   \item [\href{http://search.cpan.org/~ellipse/PDL-LinearAlgebra-0.06/LinearAlgebra.pm}{{\tt PDL::LinearAlgebra}}] Provides linear algebra algorithms for PDL. It is used for Cholesky decomposition when generating Monte Carlo samples of parameters from covariance matrices. {\tt PDL::LinearAlgebra} can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install PDL::LinearAlgebra'
-\end{verbatim}
-  \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] $\star$ Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
-\begin{verbatim}
-yum install perl-XML-Simple
-\end{verbatim}
-Alternatively, it can be installed from CPAN using:
-\begin{verbatim}
-perl -MCPAN -e 'install XML::Simple'
 \end{verbatim}
   \item [\href{http://search.cpan.org/~sbeck/Math-SigFigs-1.09/lib/Math/SigFigs.pod}{{\tt Math::SigFigs}}] Provides formatting of numbers to a given number of significant figures. It is used by \glc\ when making plots. It can be installed from CPAN using:
 \begin{verbatim}
