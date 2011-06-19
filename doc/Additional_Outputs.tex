@@ -146,6 +146,20 @@ The following properties are output to permit the merger tree structure to be re
 
 The {\tt nodeIndex} property corresponds by default to the index of the node in the original merger tree. This means that as a galaxy evovles through the tree and, in particular, gets promoted into a new halo the index associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree structure, but does not allow galaxies to be traced from one output to the next using their {\tt nodeIndex} value. By setting {\tt [nodePromotionIndexShift]}$=${\tt true} this behavior can be changed such that the value of {\tt nodeIndex} will reflect the index of the earliest progenitor node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its evolution\index{galaxies!tracing through outputs}\index{galaxies!indices}\index{nodes!indices}\index{indices!nodes}\index{indices!galaxies}.
 
+\section{Merger Tree Data for Rendering}\index{merger tree!rendering}
+
+Data on the structure of a merger tree and its halos useful for rendering the tree as a 3-D structure can be output using the \hyperlink{merger_trees.render.F90:merger_trees_render}{\tt Merger\_Trees\_Render} module. Calling \hyperlink{merger_trees.render.F90:merger_trees_render:merger_trees_render_dump}{\tt Merger\_Trees\_Render\_Dump} with a tree as the only argument will cause the tree structure will be dumped to a file named {\tt render\_$\langle$treeIndex$\rangle$\_$\langle$outputIndex$\rangle$.hdf5} where $\langle${\tt treeIndex}$\rangle$ is the index of the tree and $\langle${\tt outputIndex}$\rangle$ is an incremental counter that tracks the number of outputs for this tree. The output is a simple HDF5 file containing the following datasets:
+\begin{description}
+ \item [{\tt nodeIndex}] Index of the node;
+ \item [{\tt parentIndex}] Index of the parent node;
+ \item [{\tt childIndex}] Index of the child node;
+ \item [{\tt time}] Time of the node;
+ \item [{\tt expansionFactor}] Corresponding expansion factor;
+ \item [{\tt radiusVirial}] Virial radius of the node;
+ \item [{\tt position}] $(x,y,z)$ position of the node.
+\end{description}
+
+
 \section{Merger Tree Structure}\index{merger tree!structure}
 
 The structure of each merger tree can optionally be dumped to a file suitable for post-processing with \href{http://www.graphviz.org/}{\sc dot} after every step of evolution. To request this output set {\tt [mergerTreesDumpStructure]}$=${\tt true}. After each evolution step the tree structure will be dumped to a file named {\tt mergerTreeDump:$\langle$treeIndex$\rangle$:$\langle$outputIndex$\rangle$.gv} where $\langle${\tt treeIndex}$\rangle$ is the index of the tree and $\langle${\tt outputIndex}$\rangle$ is an incremental counter that tracks the number of outputs for this tree. These files can be processed with \href{http://www.graphviz.org/}{\sc dot} to produce a diagram of the tree structure. The node currently being evolved will be highlighted in green. This output option makes use of the \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump}{\tt Merger\_Trees\_Dump} module to create the outputs.
