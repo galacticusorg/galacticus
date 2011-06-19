@@ -108,7 +108,11 @@ contains
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     use Galacticus_Error
+    use Galacticus_Display
     use Input_Parameters
+    use Star_Formation_IMF
+    use ISO_Varying_String
+    use String_Handling
     implicit none
     integer,                   intent(in)                                    :: luminosityIndex(:),filterIndex(:),imfIndex
     double precision,          intent(in)                                    :: age(:),redshift(:)
@@ -125,6 +129,7 @@ contains
     type(c_ptr)                                                              :: parameterPointer                         
     type(fgsl_function)                                                      :: integrandFunction
     type(fgsl_integration_workspace)                                         :: integrationWorkspace
+    type(varying_string)                                                     :: message
 
     ! Determine if we have created space for this IMF yet.
     !$omp critical (Luminosity_Tables_Initialize)
@@ -196,6 +201,12 @@ contains
        ! If we haven't, do so now.
        if (computeTable) then
           
+          ! Display a message and counter.
+          message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
+          message=message//iLuminosity
+          call Galacticus_Display_Indent (message,verbosityWorking)
+          call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+
           ! Get wavelength extent of the filter.
           wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
           
@@ -206,6 +217,23 @@ contains
           do iAge=1,luminosityTables(imfIndex)%agesCount
              ageTabulate=luminosityTables(imfIndex)%age(iAge)
              do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
+
+                ! Update the counter.
+                call Galacticus_Display_Counter(                                                                                               &
+                     &                           int(                                                                                          &
+                     &                                100.0d0                                                                                  &
+                     &                               *dble(                                                                                    &
+                     &                                      luminosityTables(imfIndex)%metallicitiesCount*iAge                                 &
+                     &                                     +                                              iMetallicity                         &
+                     &                                    )                                                                                    &
+                     &                               /dble(                                                                                    &
+                     &                                      luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount &
+                     &                                    )                                                                                    &
+                     &                              )                                                                                          &
+                     &                          ,.false.                                                                                       &
+                     &                          ,verbosityWorking                                                                              &
+                     &                         )
+
                 call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
                      &,metallicityType=logarithmicByMassSolar)
                 luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge,iMetallicity) &
@@ -216,6 +244,10 @@ contains
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do
           end do
+
+          ! Clear the counter and write a completion message.
+          call Galacticus_Display_Counter_Clear(           verbosityWorking)
+          call Galacticus_Display_Unindent     ('finished',verbosityWorking)
           
           ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
           normalization=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB,parameterPointer &

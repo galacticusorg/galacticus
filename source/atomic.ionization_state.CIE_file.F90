@@ -420,7 +420,7 @@ contains
     !$omp critical (FoX_DOM_Access)
 
     ! Parse the XML file.
-    call Galacticus_Display_Indent('Parsing file: '//ionizationStateFileToRead,3)
+    call Galacticus_Display_Indent('Parsing file: '//ionizationStateFileToRead,verbosityDebug)
     doc => parseFile(char(ionizationStateFileToRead),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Ionization_State_CIE_File_Read','Unable to find ionization state file')
 
@@ -552,7 +552,7 @@ contains
     end do
     ! Destroy the document.
     call destroy(doc)
-    call Galacticus_Display_Unindent('done',3)
+    call Galacticus_Display_Unindent('done',verbosityDebug)
     !$omp end critical (FoX_DOM_Access)
 
     ! Store table ranges for convenience.

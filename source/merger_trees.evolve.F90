@@ -376,7 +376,7 @@ contains
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
           message=message//' Gyr) - this should happen infrequently'
-          call Galacticus_Display_Message(message,1)
+          call Galacticus_Display_Message(message,verbosityInfo)
           call Tree_Node_Time_Set(thisNode,Evolve_To_Time)
        end if
     end if

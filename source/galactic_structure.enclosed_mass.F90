@@ -215,7 +215,7 @@ contains
        write (massLabel,'(e10.4)') massRoot
        message=message//') at zero radius (was seeking '//trim(massLabel)
        message=message//') - expect a crash.'
-       call Galacticus_Display_Message(message,1)
+       call Galacticus_Display_Message(message,verbosityInfo)
     end if
     radiusMaximum=Dark_Matter_Halo_Virial_Radius(thisNode)
     do while (Enclosed_Mass_Root(radiusMaximum,parameterPointer) <= 0.0d0)

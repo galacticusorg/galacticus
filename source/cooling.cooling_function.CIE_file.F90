@@ -436,9 +436,11 @@ contains
 
     !$omp critical (FoX_DOM_Access)
     ! Parse the XML file.
-    call Galacticus_Display_Indent('Parsing file: '//coolingFunctionFileToRead,3)
+    call Galacticus_Display_Indent('Parsing file: '//coolingFunctionFileToRead,verbosityWorking)
+    call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     doc => parseFile(char(coolingFunctionFileToRead),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','Unable to find cooling function file')
+    call Galacticus_Display_Counter(50,.false.,verbosityWorking)
     ! Get a list of all <coolingFunction> elements.
     coolingFunctionList => getElementsByTagname(doc,"coolingFunction")
     coolingFunctionMetallicityNumberPoints=getLength(coolingFunctionList)
@@ -476,6 +478,20 @@ contains
             & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','sizes of temperature and cooling rate arrays must match')
        ! Extract data.
        do iDatum=0,getLength(temperatureDatumList)-1
+          ! Report progress.
+          call Galacticus_Display_Counter(                                                                           &
+               &                           int(                                                                      &
+               &                                50.0d0                                                               &
+               &                               +50.0d0                                                               &
+               &                               *dble(                                                                &
+               &                                      getLength(temperatureDatumList)*iDatum                         &
+               &                                     +                                iCoolingFunction               &
+               &                                    )                                                                &
+               &                               /dble(getLength(temperatureDatumList)*getLength(coolingFunctionList)) &
+               &                              )                                                                      &
+               &                          ,.false.                                                                   &
+               &                          ,verbosityWorking                                                          &
+               &                         )
           datum => item(temperatureDatumList,iDatum)
           call extractDataContent(datum,datumValues)
           if (iCoolingFunction == 0) then
@@ -529,7 +545,8 @@ contains
     end do
     ! Destroy the document.
     call destroy(doc)
-    call Galacticus_Display_Unindent('done',3)
+    call Galacticus_Display_Counter_Clear(verbosityWorking)
+    call Galacticus_Display_Unindent('done',verbosityWorking)
     !$omp end critical (FoX_DOM_Access)
   
     ! Store table ranges for convenience.

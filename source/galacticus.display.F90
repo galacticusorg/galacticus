@@ -75,8 +75,11 @@ module Galacticus_Display
   character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
 
   logical                                      :: displayInitialized=.false.
-  integer                                      :: verbosityLevel=1
-  integer,           parameter, public         :: verbosityWarn=2, verbosityInfo=3, verbosityDebug=4
+  integer                                      :: verbosityLevel  =1
+  integer,           parameter, public         :: verbosityWorking=2, &
+       &                                          verbosityWarn   =3, &
+       &                                          verbosityInfo   =4, &
+       &                                          verbosityDebug  =5
 
   interface Galacticus_Display_Message
      module procedure Galacticus_Display_Message_Char

@@ -851,7 +851,7 @@ contains
              ! Show progress.
              percentage=int(100.0d0*dble((iAlpha-1)*fourierProfileTableConcentrationCount+iConcentration-1)&
                   &/dble(fourierProfileTableAlphaCount*fourierProfileTableConcentrationCount))
-             call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iConcentration == 1,verbosityInfo)
+             call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iConcentration == 1,verbosityWorking)
 
              do iWavenumber=1,fourierProfileTableWavenumberCount
                 wavenumber=fourierProfileTableWavenumber(iWavenumber)
@@ -869,7 +869,7 @@ contains
              end do
           end do
        end do
-       call Galacticus_Display_Counter_Clear(verbosityInfo)
+       call Galacticus_Display_Counter_Clear(verbosityWorking)
        ! Reset interpolators. 
        call Interpolate_Done(fourierProfileTableWavenumberInterpolationObject,fourierProfileTableWavenumberInterpolationAccelerator &
             &,fourierProfileTableWavenumberInterpolationReset)

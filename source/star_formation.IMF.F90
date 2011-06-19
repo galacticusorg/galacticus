@@ -453,7 +453,7 @@ contains
        if (File_Exists(fileName)) then
           
           ! Open the XML file containing recycled fractions.
-          call Galacticus_Display_Indent('Parsing file: '//fileName,3)
+          call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','Unable to parse recycled fractions file')
           
@@ -508,12 +508,13 @@ contains
 
           ! Destroy the document.
           call destroy(doc)
-          call Galacticus_Display_Unindent('done',3)
+          call Galacticus_Display_Unindent('done',verbosityDebug)
 
        else
 
-          call Galacticus_Display_Indent('Tabulating mass recycling rate for '//char(imfNames(imfSelected))//' IMF',2)
-          
+          call Galacticus_Display_Indent('Tabulating mass recycling rate for '//char(imfNames(imfSelected))//' IMF',verbosityWorking)
+          call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+
           ! Open an XML file to output the data to.
           call xml_OpenFile(char(fileName),recycledFractionDoc)
           call xml_NewElement(recycledFractionDoc,"stellarPopulation")
@@ -559,9 +560,21 @@ contains
           do iAge=1,recycledFractionTableAgeCount
              lifetime=recycledFractionTableAge(iAge)
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
-             call Galacticus_Display_Message(progressMessage,3)
+             call Galacticus_Display_Message(progressMessage,verbosityDebug)
              do iMetallicity=1,recycledFractionTableMetallicityCount
                 metallicity=recycledFractionTableMetallicity(iMetallicity)
+                ! Update the counter.
+                call Galacticus_Display_Counter(                                                                                &
+                     &                           int(                                                                           &
+                     &                                100.0d0                                                                   &
+                     &                               *dble( recycledFractionTableMetallicityCount*iAge                          &
+                     &                                     +                                      iMetallicity                  &
+                     &                                    )                                                                     &
+                     &                               /dble(recycledFractionTableMetallicityCount*recycledFractionTableAgeCount) &
+                     &                              )                                                                           &
+                     &                          ,.false.                                                                        &
+                     &                          ,verbosityWorking                                                               &
+                     &                         )
                 ! Find the minimum and maximum masses to integrate over for this IMF.
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
@@ -582,7 +595,8 @@ contains
              end do
           end do
           call xml_EndElement(recycledFractionDoc,"recycledFraction")
-          call Galacticus_Display_Unindent('finished',2)
+          call Galacticus_Display_Counter_Clear(           verbosityWorking)
+          call Galacticus_Display_Unindent     ('finished',verbosityWorking)
           call xml_EndElement(recycledFractionDoc,"stellarPopulation")
           call xml_Close(recycledFractionDoc)
        end if
@@ -776,7 +790,7 @@ contains
           fileNameCheck : if (File_Exists(fileName)) then
              
              ! Open the XML file containing metal yields.
-             call Galacticus_Display_Indent('Parsing file: '//fileName,3)
+             call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
              doc => parseFile(char(fileName),iostat=ioErr)
              if (ioErr /= 0) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','Unable to parse metal yields file')
              
@@ -840,19 +854,20 @@ contains
 
              ! Destroy the document.
              call destroy(doc)
-             call Galacticus_Display_Unindent('done',3)
+             call Galacticus_Display_Unindent('done',verbosityDebug)
 
           else
              
              ! Display a message since this calculation will take a long time.
              select case (iElement)
              case (1)
-                call Galacticus_Display_Indent('Tabulating metal yield rate for '//char(imfNames(imfSelected))//' IMF',2)
+                call Galacticus_Display_Indent('Tabulating metal yield rate for '//char(imfNames(imfSelected))//' IMF',verbosityWorking)
              case (2:)
                 call Galacticus_Display_Indent('Tabulating '//char(Abundances_Names(iElement))//' yield rate for '&
-                     &//char(imfNames(imfSelected))//' IMF',2)
+                     &//char(imfNames(imfSelected))//' IMF',verbosityWorking)
              end select
-          
+             call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+
              ! Open an XML file to output the data to.
              call xml_OpenFile(char(fileName),metalYieldDoc)
              call xml_NewElement(metalYieldDoc,"stellarPopulation")
@@ -911,9 +926,22 @@ contains
              do iAge=1,metalYieldTableAgeCount
                 lifetime=metalYieldTableAge(iAge)
                 write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
-                call Galacticus_Display_Message(progressMessage,3)
+                call Galacticus_Display_Message(progressMessage,verbosityDebug)
                 do iMetallicity=1,metalYieldTableMetallicityCount
                    metallicity=metalYieldTableMetallicity(iMetallicity)
+                   ! Update the counter.
+                   call Galacticus_Display_Counter(                                                                    &
+                        &                           int(                                                               &
+                        &                                100.0d0                                                       &
+                        &                               *dble(                                                         &
+                        &                                      metalYieldTableMetallicityCount*iAge                    &
+                        &                                     +                                iMetallicity            &
+                        &                                    )                                                         &
+                        &                               /dble(metalYieldTableMetallicityCount*metalYieldTableAgeCount) &
+                        &                              )                                                               &
+                        &                          ,.false.                                                            &
+                        &                          ,verbosityWorking                                                   &
+                        &                         )
                     ! Find the minimum and maximum masses to integrate over for this IMF.
                     minimumMass=IMF_Minimum_Mass(imfSelected)
                     maximumMass=IMF_Maximum_Mass(imfSelected)
@@ -941,7 +969,8 @@ contains
                 ! Individual element.
                 call xml_EndElement(metalYieldDoc,"elementYield")
              end select
-             call Galacticus_Display_Unindent('finished',2)
+             call Galacticus_Display_Counter_Clear(           verbosityWorking)
+             call Galacticus_Display_Unindent     ('finished',verbosityWorking)
              call xml_EndElement(metalYieldDoc,"stellarPopulation")
              call xml_Close(metalYieldDoc)
           end if fileNameCheck
@@ -1156,7 +1185,7 @@ contains
        if (File_Exists(fileName)) then
           
           ! Open the XML file containing energy input.
-          call Galacticus_Display_Indent('Parsing file: '//fileName,3)
+          call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input file')
           
@@ -1206,12 +1235,13 @@ contains
 
           ! Destroy the document.
           call destroy(doc)
-          call Galacticus_Display_Unindent('done',3)
+          call Galacticus_Display_Unindent('done',verbosityDebug)
           
        else
 
-          call Galacticus_Display_Indent('Tabulating cumulative energy input for '//char(imfNames(imfSelected))//' IMF',2)
-          
+          call Galacticus_Display_Indent('Tabulating cumulative energy input for '//char(imfNames(imfSelected))//' IMF',verbosityWorking)
+          call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+
           ! Open an XML file to output the data to.
           call xml_OpenFile(char(fileName),energyInputDoc)
           call xml_NewElement(energyInputDoc,"stellarPopulation")
@@ -1257,9 +1287,21 @@ contains
           do iAge=1,energyInputTableAgeCount
              lifetime=energyInputTableAge(iAge)
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
-             call Galacticus_Display_Message(progressMessage,3)
+             call Galacticus_Display_Message(progressMessage,verbosityDebug)
              do iMetallicity=1,energyInputTableMetallicityCount
                 metallicity=energyInputTableMetallicity(iMetallicity)
+                   ! Update the counter.
+                   call Galacticus_Display_Counter(                                                                      &
+                        &                           int(                                                                 &
+                        &                                100.0d0                                                         &
+                        &                               *dble( energyInputTableMetallicityCount*iAge                     &
+                        &                                     +                                 iMetallicity             &
+                        &                                    )                                                           &
+                        &                               /dble(energyInputTableMetallicityCount*energyInputTableAgeCount) &
+                        &                              )                                                                 &
+                        &                          ,.false.                                                              &
+                        &                          ,verbosityWorking                                                     &
+                        &                         )
                 ! Find the minimum and maximum masses to integrate over for this IMF.
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
@@ -1280,7 +1322,8 @@ contains
              end do
           end do
           call xml_EndElement(energyInputDoc,"energyInput")
-          call Galacticus_Display_Unindent('finished',2)
+          call Galacticus_Display_Counter_Clear(           verbosityWorking)
+          call Galacticus_Display_Unindent     ('finished',verbosityWorking)
           call xml_EndElement(energyInputDoc,"stellarPopulation")
           call xml_Close(energyInputDoc)
        end if
