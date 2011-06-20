@@ -103,7 +103,7 @@ contains
     integer,                                  parameter     :: verbosityLevel=3
     integer                                                 :: nodesEvolvedCount,treeWalkCount,treeWalkCountPreviousOutput
     double precision                                        :: endTimeThisNode,earliestTimeInTree
-    logical                                                 :: interrupted,didEvolve
+    logical                                                 :: interrupted,didEvolve,treeIsDeadlocked
     character(len=35)                                       :: message
 
     ! Check if this routine is initialized.
@@ -176,6 +176,9 @@ contains
        ! Point to the base of the tree.
        thisNode => thisTree%baseNode
 
+       ! Set the deadlock flag to true initially.
+       treeIsDeadlocked=.true.
+
        ! Check that tree extends beyond end time.
        if (Tree_Node_Time(thisNode) < endTime) call Galacticus_Error_Report('Merger_Tree_Evolve_To','merger tree stops before&
             & requested end time')
@@ -207,6 +210,9 @@ contains
                 ! Find maximum allowed end time for this particular node.
                 endTimeThisNode=Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task)
              
+                ! If this node is able to  evolve by a finite amount, the tree is not deadlocked.
+                if (endTimeThisNode > Tree_Node_Time(thisNode)) treeIsDeadlocked=.false.
+
                 ! Update record of earliest time in the tree.
                 earliestTimeInTree=min(earliestTimeInTree,endTimeThisNode)
 
@@ -260,6 +266,9 @@ contains
              treeWalkCountPreviousOutput=treeWalkCount
           end if
        end if
+
+       ! If some nodes were potentially evolvable, but none actually did evolve, then the tree must be deadlocked.
+       if (didEvolve.and.treeIsDeadlocked) call Galacticus_Error_Report('Merger_Tree_Evolve_To','merger tree appears to be deadlocked - check timestep criteria')
        
     end do outerLoop
 
