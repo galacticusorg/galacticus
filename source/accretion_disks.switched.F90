@@ -75,7 +75,8 @@ module Accretion_Disks_Switched
   integer, parameter :: accretionDiskADAF=1
 
   ! Parameters controlling the range of accretion rates over which the accretion disk will be an ADAF.
-  double precision :: accretionRateThinDiskMinimum,accretionRateThinDiskMaximum
+  double precision :: accretionRateThinDiskMinimum,accretionRateThinDiskMaximum,accretionRateTransitionWidth
+  double precision :: accretionRateThinDiskMinimumLogarithmic,accretionRateThinDiskMaximumLogarithmic
   logical          :: accretionRateThinDiskMinimumExists,accretionRateThinDiskMaximumExists
 
 contains
@@ -112,6 +113,7 @@ contains
        else
           accretionRateThinDiskMinimumExists=.true.
           read (accretionRateThin,*) accretionRateThinDiskMinimum
+          accretionRateThinDiskMinimumLogarithmic=dlog(accretionRateThinDiskMinimum)
        end if
        !@ <inputParameter>
        !@   <name>accretionRateThinDiskMaximum</name>
@@ -127,7 +129,17 @@ contains
        else
           accretionRateThinDiskMaximumExists=.true.
           read (accretionRateThin,*) accretionRateThinDiskMaximum
+          accretionRateThinDiskMaximumLogarithmic=dlog(accretionRateThinDiskMaximum)
        end if
+       !@ <inputParameter>
+       !@   <name>accretionRateTransitionWidth</name>
+       !@   <defaultValue>0.1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The width (in $\ln[\dot{M}/\dot{M}_{\rm Eddington}]$) over which transitions between accretion disk states occur.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("accretionRateTransitionWidth",accretionRateTransitionWidth,defaultValue=0.1d0)
     end if
     return
   end subroutine Accretion_Disks_Switched_Initialize
@@ -139,14 +151,11 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
+    double precision                         :: adafFraction
 
-    select case (Accretion_Disk_Switched_Type(thisNode,massAccretionRate))
-    case (accretionDiskThin)
-       Accretion_Disk_Radiative_Efficiency_Switched=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate)
-    case (accretionDiskADAF)
-       Accretion_Disk_Radiative_Efficiency_Switched=Accretion_Disk_Radiative_Efficiency_ADAF(thisNode,massAccretionRate)
-    end select
-
+    adafFraction=Accretion_Disk_Switched_ADAF_Fraction(thisNode,massAccretionRate)
+    Accretion_Disk_Radiative_Efficiency_Switched= (1.0d0-adafFraction)*Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate) &
+         &                                       +       adafFraction *Accretion_Disk_Radiative_Efficiency_ADAF           (thisNode,massAccretionRate)
     return
   end function Accretion_Disk_Radiative_Efficiency_Switched
 
@@ -156,14 +165,11 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
+    double precision                         :: adafFraction
 
-    select case (Accretion_Disk_Switched_Type(thisNode,massAccretionRate))
-    case (accretionDiskThin)
-       Accretion_Disk_Jet_Power_Switched=Accretion_Disk_Jet_Power_Shakura_Sunyaev(thisNode,massAccretionRate)
-    case (accretionDiskADAF)
-       Accretion_Disk_Jet_Power_Switched=Accretion_Disk_Jet_Power_ADAF(thisNode,massAccretionRate)
-    end select
-
+    adafFraction=Accretion_Disk_Switched_ADAF_Fraction(thisNode,massAccretionRate)
+    Accretion_Disk_Jet_Power_Switched= (1.0d0-adafFraction)*Accretion_Disk_Jet_Power_Shakura_Sunyaev(thisNode,massAccretionRate) &
+         &                            +       adafFraction *Accretion_Disk_Jet_Power_ADAF(thisNode,massAccretionRate)
     return
   end function Accretion_Disk_Jet_Power_Switched
 
@@ -175,51 +181,56 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
+    double precision                         :: adafFraction
 
-    select case (Accretion_Disk_Switched_Type(thisNode,massAccretionRate))
-    case (accretionDiskThin)
-       Black_Hole_Spin_Up_Rate_Switched=Black_Hole_Spin_Up_Rate_Shakura_Sunyaev(thisNode,massAccretionRate)
-    case (accretionDiskADAF)
-       Black_Hole_Spin_Up_Rate_Switched=Black_Hole_Spin_Up_Rate_ADAF(thisNode,massAccretionRate)
-    end select
+    adafFraction=Accretion_Disk_Switched_ADAF_Fraction(thisNode,massAccretionRate)
+
+    Black_Hole_Spin_Up_Rate_Switched= (1.0d0-adafFraction)*Black_Hole_Spin_Up_Rate_Shakura_Sunyaev(thisNode,massAccretionRate) &
+         &                           +       adafFraction* Black_Hole_Spin_Up_Rate_ADAF(thisNode,massAccretionRate)
 
     return
   end function Black_Hole_Spin_Up_Rate_Switched
 
-  integer function Accretion_Disk_Switched_Type(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Switched_ADAF_Fraction(thisNode,massAccretionRate)
     !% Decide which type of accretion disk to use.
     use Tree_Nodes
     use Black_Hole_Fundamentals
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
-    double precision                         :: eddingtonAccretionRate,massAccretionRateDimensionless
+    double precision, parameter              :: exponentialArgumentMaximum=60.0d0
+    double precision                         :: eddingtonAccretionRate,massAccretionRateDimensionless,adafFraction,accretionRateLogarithmic,argument
 
     ! Get the Eddington accretion rate.
     eddingtonAccretionRate=Black_Hole_Eddington_Accretion_Rate(thisNode)
 
     ! Check that a black hole is present.
-    if (eddingtonAccretionRate > 0.0d0) then
+    if (eddingtonAccretionRate > 0.0d0 .and. massAccretionRate > 0.0d0) then
 
        ! Compute the accretion rate in Eddington units.
        massAccretionRateDimensionless=massAccretionRate/eddingtonAccretionRate
-       
-       ! Decide which type of accretion disk to use.
-       if (        (accretionRateThinDiskMinimumExists .and. massAccretionRateDimensionless < accretionRateThinDiskMinimum) &
-            & .or. (accretionRateThinDiskMaximumExists .and. massAccretionRateDimensionless > accretionRateThinDiskMaximum)) then
-          Accretion_Disk_Switched_Type=accretionDiskADAF
-       else
-          Accretion_Disk_Switched_Type=accretionDiskThin
+
+       ! Compute the ADAF fraction.
+       accretionRateLogarithmic=dlog(massAccretionRateDimensionless)
+       adafFraction=0.0d0
+       if (accretionRateThinDiskMinimumExists) then
+          argument=min( (accretionRateLogarithmic-accretionRateThinDiskMinimumLogarithmic)/accretionRateTransitionWidth,exponentialArgumentMaximum)
+          adafFraction=adafFraction+1.0d0/(1.0d0+dexp(argument))
        end if
+       if (accretionRateThinDiskMaximumExists) then
+          argument=min(-(accretionRateLogarithmic-accretionRateThinDiskMaximumLogarithmic)/accretionRateTransitionWidth,exponentialArgumentMaximum)
+          adafFraction=adafFraction+1.0d0/(1.0d0+dexp(argument))
+       end if
+       Accretion_Disk_Switched_ADAF_Fraction=adafFraction
 
     else
        
        ! No black hole present: assume a thin disk.
-       Accretion_Disk_Switched_Type=accretionDiskThin
+       Accretion_Disk_Switched_ADAF_Fraction=0.0d0
 
     end if
 
     return
-  end function Accretion_Disk_Switched_Type
+  end function Accretion_Disk_Switched_ADAF_Fraction
 
 end module Accretion_Disks_Switched
