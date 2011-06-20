@@ -201,6 +201,7 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.false.)
+       !@ <inputParameter>
        !@   <name>mergerTreeBuildTreeMassesFile</name>
        !@   <defaultValue>null</defaultValue>       
        !@   <description>
