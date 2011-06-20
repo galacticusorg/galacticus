@@ -201,6 +201,20 @@ sub Prepare_Dataset {
     # Extract any remaining options.
     my (%options) = @_ if ( $#_ >= 1 );
     
+    # Determine the GnuPlot version.
+    my ($versionMajor,$versionMinor,$versionPatchLevel);
+    my $gnuplotVersion = `gnuplot -V`;
+    chomp($gnuplotVersion);
+    if ( $gnuplotVersion =~ m/gnuplot (\d+)\.(\d+) patchlevel (\d+)/ ) {
+	$versionMajor      = $1;
+	$versionMinor      = $2;
+	$versionPatchLevel = $3;
+    } else {
+	$versionMajor      = -1;
+	$versionMinor      = -1;
+	$versionPatchLevel = -1;
+    }
+
     # Determine the plot style, assuming points by default.
     my $style = "point";
     $style = $options{'style'} if ( exists($options{'style'}) );
@@ -245,7 +259,22 @@ sub Prepare_Dataset {
     $title = " title \"".$options{'title'}."\"" if ( exists($options{'title'}) );
 
     # Define the dummy point and end points.
-    my $dummyPoint = "inf inf\n";
+    my $dummyPoint;
+    if (
+	$versionMajor > 4
+	||
+	( $versionMajor == 4 &&
+	  ( $versionMinor > 4 
+	    ||
+	    ( $versionMinor == 4 && $versionPatchLevel >= 2 )
+	  )
+	)
+       )
+    {
+	$dummyPoint = "0 0\n";
+    } else {
+	$dummyPoint = "inf inf\n";
+    }
     my $endPoint   = "e\n";
 
     # We have three plotting phases:
