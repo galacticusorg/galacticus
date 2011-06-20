@@ -253,7 +253,7 @@ contains
        !@     Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadBeginAt',mergerTreeReadBeginAt,defaultValue=-1)
+       call Get_Input_Parameter('mergerTreeReadBeginAt',mergerTreeReadBeginAt,defaultValue=-1_kind_int8)
        !@ <inputParameter>
        !@   <name>mergerTreeReadOutputTimeSnapTolerance</name>
        !@   <attachedTo>module</attachedTo>

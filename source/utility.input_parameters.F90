@@ -830,7 +830,7 @@ contains
     implicit none
     character(len=*),        intent(in)           :: parameterName
     integer(kind=kind_int8), intent(out)          :: parameterValue
-    integer,                 intent(in), optional :: defaultValue
+    integer(kind=kind_int8), intent(in), optional :: defaultValue
     logical,                 intent(in), optional :: writeOutput
     type(Node),              pointer              :: thisParameter,nameElement,valueElement
     integer                                       :: iParameter
@@ -891,7 +891,7 @@ contains
     implicit none
     character(len=*),        intent(in)           :: parameterName
     integer(kind=kind_int8), intent(out)          :: parameterValue(:)
-    integer,                 intent(in), optional :: defaultValue(:)
+    integer(kind=kind_int8), intent(in), optional :: defaultValue(:)
     logical,                 intent(in), optional :: writeOutput
     type(Node),              pointer              :: thisParameter,nameElement,valueElement
     integer                                       :: iParameter
