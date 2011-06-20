@@ -21,6 +21,20 @@ $sqlPassword = $arguments{"password"};
 # Specify any selection.
 $selection   = $arguments{"select"};
 
+# Specify the haloId property.
+if ( exists($arguments{"haloId"}) ) {
+    $haloId = $arguments{"haloId"};
+} else {
+    $haloId = "haloId";
+}
+
+# Specify the descendantId property.
+if ( exists($arguments{"descendantId"}) ) {
+    $descendantId = $arguments{"descendantId"};
+} else {
+    $descendantId = "descendantId";
+}
+
 # Specify the output file.
 if ( exists($arguments{"output"}) ) {
     $outputFile = $arguments{"output"};
@@ -33,6 +47,13 @@ if ( exists($arguments{"table"}) ) {
     $table = $arguments{"table"};
 } else {
     $table = "millimil..MPAHalo";
+}
+
+# Specify the index table.
+if ( exists($arguments{"indexTable"}) ) {
+    $indexTable = $arguments{"indexTable"};
+} else {
+    $indexTable = $table;
 }
 
 # Specify the snapshot table.
@@ -65,7 +86,7 @@ $getCommandBase .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" );
 $getCommandBase .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 
 # Build the SQL query to retrieve basic node data.
-$sqlQuery = $databaseURL."select node.treeId, node.haloId, node.descendantId, node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.m_tophat, node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root where root.haloId = node.treeId";
+$sqlQuery = $databaseURL."select node.treeId, indexNode.".$haloId.", indexNode.".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.m_tophat, node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
 # Append any required selection.
 $sqlQuery .= " and ".$selection unless ( $selection eq "" );
 # Add an order by statement.
@@ -77,13 +98,13 @@ system($getCommand);
 # Trace particles if requested.
 if ( $traceParticles eq "yes" ) {
     # Build the SQL query to retrieve particle data for lost subhalos.
-    $sqlQuery = $databaseURL."select node.descendantId, count(*) as num into countTable from ".$table." node, ".$table." root where root.haloId = node.treeId"; # and node.descendantId > 0 and node.descendantId >= 0";
+    $sqlQuery = $databaseURL."select indexNode.".$descendantId.", count(*) as num into countTable from ".$indexTable." indexNode";
     # Append any required selection.
     $sqlQuery .= " and ".$selection unless ( $selection eq "" );
     # Append grouping command.
-    $sqlQuery .= " group by node.descendantId";
+    $sqlQuery .= " group by indexNode.".$descendantId;
     # Add command to find nodes which are not the only antescendents.
-    $sqlQuery .= "; select node.mostBoundId, node.snapNum into boundTable from countTable, ".$table." node where countTable.num > 1 and node.descendantId = countTable.descendantId";
+    $sqlQuery .= "; select node.mostBoundId, node.snapNum into boundTable from countTable, ".$table." node where countTable.num > 1 and node.descendantId = countTable.".$descendantId;
     # Add command to select most bound particles trajectories corresponding to these nodes.
     $sqlQuery .= "; select snap.id, times.redshift, snap.x, snap.y, snap.z, snap.vx, snap.vy, snap.vz from boundTable, ".$particleTable." snap, ".$snapshotTable." times where boundTable.mostBoundId = snap.id and boundTable.snapNum <= snap.snapnum and times.snapnum = snap.snapNum";
     # Add commands to drop the temporary tables;
