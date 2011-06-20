@@ -72,6 +72,9 @@ module Merger_Tree_Timesteps_Satellite
   ! Flag indicating if this module is limiting timesteps.
   logical :: limitTimesteps
 
+  ! The largest time difference allowed between satellite and merge target at the time or merging.
+  double precision :: mergeTargetTimeOffsetMaximumAbsolute,mergeTargetTimeOffsetMaximumRelative
+
 contains
 
   !# <timeStepsTask>
@@ -81,11 +84,13 @@ contains
     !% Determines the timestep to go to the time at which the node merges.
     use Tree_Nodes
     use Merger_Trees_Evolve_Timesteps_Template
+    use Input_Parameters
     implicit none
     type(treeNode),                           intent(inout), pointer :: thisNode
     procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
     double precision,                         intent(inout)          :: timeStep
-    double precision                                                 :: timeUntilMerging
+    type(treeNode),                                          pointer :: hostNode
+    double precision                                                 :: timeUntilMerging,timeStepAllowed,mergeTargetTimeMinimum,mergeTargetTimeOffsetMaximum
 
     ! Initialize the module.
     !$omp critical (Merger_Tree_Timestep_Satellite_Initialize)
@@ -93,6 +98,25 @@ contains
        ! Check that the merge time property exists.
        limitTimesteps=associated(Tree_Node_Satellite_Merge_Time)
 
+       ! Get parameters controlling time maximum allowed time difference between galaxies at merging.
+       !@ <inputParameter>
+       !@   <name>mergeTargetTimeOffsetMaximumAbsolute</name>
+       !@   <defaultValue>0.01</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergeTargetTimeOffsetMaximumAbsolute',mergeTargetTimeOffsetMaximumAbsolute,defaultValue=0.010d0)
+       !@ <inputParameter>
+       !@   <name>mergeTargetTimeOffsetMaximumRelative</name>
+       !@   <defaultValue>0.001</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@      The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergeTargetTimeOffsetMaximumRelative',mergeTargetTimeOffsetMaximumRelative,defaultValue=0.001d0)
        ! Flag that the module is initialized.
        mergerTimestepsInitialized=.true.
     end if 
@@ -107,11 +131,31 @@ contains
     ! If time is negative, implies this is not a satellite, so return.
     if (timeUntilMerging < 0.0d0) return
 
-    ! Set return value if our timestep is smaller than current one.
-    if (timeUntilMerging <= timeStep) then
-       timeStep=timeUntilMerging
-       End_Of_Timestep_Task => Satellite_Merger_Process
-    end if
+    ! Compute the minimum time to which the node we will merge with must have been evolved before merging is allowed.
+    mergeTargetTimeOffsetMaximum=min(mergeTargetTimeOffsetMaximumAbsolute,(Tree_Node_Time(thisNode)+timeUntilMerging)&
+         &*mergeTargetTimeOffsetMaximumRelative)
+    mergeTargetTimeMinimum=Tree_Node_Time(thisNode)+timeUntilMerging-mergeTargetTimeOffsetMaximum
+
+    ! Find the node to merge with.
+    call thisNode%mergesWith(hostNode)
+
+     if (Tree_Node_Time(hostNode) < mergeTargetTimeMinimum) then
+        timeStepAllowed=max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)
+
+        ! Set return value if our timestep is smaller than current one. Do not set a end of timestep task in this case - we want to
+        ! wait for the merge target to catch up before triggering a merger.
+        if (timeStepAllowed <= timeStep) then
+           timeStep=timeStepAllowed
+           End_Of_Timestep_Task => null()
+        end if
+     else
+       ! Set return value if our timestep is smaller than current one.
+       if (timeUntilMerging <= timeStep) then
+          timeStep=timeUntilMerging
+          End_Of_Timestep_Task => Satellite_Merger_Process
+       end if
+     end if
+
     return
   end subroutine Merger_Tree_Timestep_Satellite
 
