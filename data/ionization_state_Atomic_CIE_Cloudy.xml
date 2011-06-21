@@ -550,7 +550,7 @@
       <datum>0.00225579692338667</datum>
       <datum>0.00229456307251929</datum>
       <datum>0.00233507051486308</datum>
-      <datum>0.00237903044588062</datum>
+      <datum>0.00237848271693862</datum>
       <datum>0.0024193572366076</datum>
       <datum>0.00246206775302122</datum>
       <datum>0.00250553226648195</datum>
@@ -1063,7 +1063,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -1097,7 +1097,7 @@
       <datum>0.00329989407910835</datum>
       <datum>0.00335814929586442</datum>
       <datum>0.00341821991417658</datum>
-      <datum>0.00347776313854746</datum>
+      <datum>0.00347696244617813</datum>
       <datum>0.00353834356814722</datum>
       <datum>0.00360163750394727</datum>
       <datum>0.00366859694441342</datum>
@@ -1141,7 +1141,7 @@
       <datum>0.0282487997491571</datum>
       <datum>0.0592788814195578</datum>
       <datum>0.119618953880618</datum>
-      <datum>0.221003931734919</datum>
+      <datum>0.223202985857428</datum>
       <datum>0.363663739330847</datum>
       <datum>0.526623214893897</datum>
       <datum>0.677017664051824</datum>
@@ -1326,8 +1326,8 @@
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
       <datum>1.15531390391571</datum>
+      <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
@@ -1636,7 +1636,7 @@
       <datum>0.00391471364848205</datum>
       <datum>0.00398657556040578</datum>
       <datum>0.00405975663251568</datum>
-      <datum>0.00413428108047135</datum>
+      <datum>0.004133329236662</datum>
       <datum>0.00421114310436318</datum>
       <datum>0.00428943409996782</datum>
       <datum>0.00436918063385288</datum>
@@ -2118,7 +2118,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -2172,7 +2172,7 @@
       <datum>0.00471519871336448</datum>
       <datum>0.00479843924063899</datum>
       <datum>0.00488764888661581</datum>
-      <datum>0.00497622489973469</datum>
+      <datum>0.00497507921351441</datum>
       <datum>0.00506757284177283</datum>
       <datum>0.00516416369272071</datum>
       <datum>0.00525896160382461</datum>
@@ -2187,7 +2187,7 @@
       <datum>0.00621584247752522</datum>
       <datum>0.00633140361710816</datum>
       <datum>0.00645505578769006</datum>
-      <datum>0.00659933234263565</datum>
+      <datum>0.0066008520700216</datum>
       <datum>0.00679829490454955</datum>
       <datum>0.00713509894481565</datum>
       <datum>0.00784151540528122</datum>
@@ -2382,13 +2382,13 @@
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
       <datum>1.15557995540213</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
     </electronDensity>
@@ -2713,7 +2713,7 @@
       <datum>0.00607435262863583</datum>
       <datum>0.00619726403928227</datum>
       <datum>0.00632848856925695</datum>
-      <datum>0.00648485097144138</datum>
+      <datum>0.00648335795122057</datum>
       <datum>0.00668343917568615</datum>
       <datum>0.00702586822435099</datum>
       <datum>0.00774283491912459</datum>
@@ -3173,7 +3173,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -3187,7 +3187,7 @@
     <electronDensity>
       <datum>0.00236755458151768</datum>
       <datum>0.00240879588172571</datum>
-      <datum>0.00245075557924382</datum>
+      <datum>0.00244455605318343</datum>
       <datum>0.00249402039140518</datum>
       <datum>0.00253571243264738</datum>
       <datum>0.00258344963925848</datum>
@@ -3207,7 +3207,7 @@
       <datum>0.00329989407910835</datum>
       <datum>0.00335814929586442</datum>
       <datum>0.00341821991417658</datum>
-      <datum>0.00347696244617813</datum>
+      <datum>0.00347616193815381</datum>
       <datum>0.00353834356814722</datum>
       <datum>0.00360163750394727</datum>
       <datum>0.00366859694441342</datum>
@@ -3251,7 +3251,7 @@
       <datum>0.0282487997491571</datum>
       <datum>0.0592788814195578</datum>
       <datum>0.119618953880618</datum>
-      <datum>0.221003931734919</datum>
+      <datum>0.223202985857428</datum>
       <datum>0.363663739330847</datum>
       <datum>0.526623214893897</datum>
       <datum>0.677017664051824</datum>
@@ -3436,15 +3436,15 @@
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
       <datum>1.15557995540213</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
+      <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
     </electronDensity>
     <hiDensity>
@@ -3713,7 +3713,7 @@
     <hiiDensity>
       <datum>0.00221666467310482</datum>
       <datum>0.00225579692338667</datum>
-      <datum>0.00229456307251929</datum>
+      <datum>0.00230091195185176</datum>
       <datum>0.00233507051486308</datum>
       <datum>0.00237903044588062</datum>
       <datum>0.0024193572366076</datum>
@@ -4228,7 +4228,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -4272,7 +4272,7 @@
       <datum>0.00393640704143099</datum>
       <datum>0.00400774425280431</datum>
       <datum>0.0040803742668967</datum>
-      <datum>0.00415910610494022</datum>
+      <datum>0.0041667745222191</datum>
       <datum>0.00422863305181499</datum>
       <datum>0.00430526610491711</datum>
       <datum>0.00438429733974567</datum>
@@ -4297,7 +4297,7 @@
       <datum>0.00621584247752522</datum>
       <datum>0.00633140361710816</datum>
       <datum>0.00645505578769006</datum>
-      <datum>0.00658415429943383</datum>
+      <datum>0.00658112288238899</datum>
       <datum>0.00679829490454955</datum>
       <datum>0.00713509894481565</datum>
       <datum>0.00784151540528122</datum>
@@ -4464,6 +4464,7 @@
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
+      <datum>1.15557995540213</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
@@ -4490,8 +4491,7 @@
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
-      <datum>1.14393144953931</datum>
+      <datum>1.15557995540213</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
       <datum>1.14393144953931</datum>
@@ -4798,7 +4798,7 @@
       <datum>0.00370766084000311</datum>
       <datum>0.00377485261724059</datum>
       <datum>0.00384414711759578</datum>
-      <datum>0.00390840895792402</datum>
+      <datum>0.00390031784475066</datum>
       <datum>0.00398657556040578</datum>
       <datum>0.00405975663251568</datum>
       <datum>0.00413428108047135</datum>
@@ -4823,7 +4823,7 @@
       <datum>0.00607435262863583</datum>
       <datum>0.00619726403928227</datum>
       <datum>0.00632848856925695</datum>
-      <datum>0.00649980009683025</datum>
+      <datum>0.0065027940547237</datum>
       <datum>0.00668343917568615</datum>
       <datum>0.00702586822435099</datum>
       <datum>0.00774283491912459</datum>
@@ -5283,7 +5283,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -5353,7 +5353,7 @@
       <datum>0.00633140361710816</datum>
       <datum>0.00645505578769006</datum>
       <datum>0.00659477525949485</datum>
-      <datum>0.00679672971950456</datum>
+      <datum>0.00679829490454955</datum>
       <datum>0.00713509894481565</datum>
       <datum>0.00784151540528122</datum>
       <datum>0.00962276766092399</datum>
@@ -5822,7 +5822,7 @@
     </hiDensity>
     <hiiDensity>
       <datum>0.00221615432595972</datum>
-      <datum>0.00225372021414598</datum>
+      <datum>0.00225268257657543</datum>
       <datum>0.00229509147602423</datum>
       <datum>0.00233507051486308</datum>
       <datum>0.00238177098317823</datum>
@@ -5886,7 +5886,7 @@
       <datum>0.0145612949861606</datum>
       <datum>0.0282033047380154</datum>
       <datum>0.0592652335240215</datum>
-      <datum>0.119591413769408</datum>
+      <datum>0.119618953880618</datum>
       <datum>0.2209530495573</datum>
       <datum>0.363663739330847</datum>
       <datum>0.526623214893897</datum>
@@ -6338,7 +6338,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -6416,7 +6416,7 @@
       <datum>0.0282422959714411</datum>
       <datum>0.0592788814195578</datum>
       <datum>0.119618953880618</datum>
-      <datum>0.223202985857428</datum>
+      <datum>0.221003931734919</datum>
       <datum>0.363663739330847</datum>
       <datum>0.526623214893897</datum>
       <datum>0.677017664051824</datum>
@@ -6587,6 +6587,10 @@
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
+      <datum>1.15557995540213</datum>
+      <datum>1.14419487981699</datum>
+      <datum>1.14419487981699</datum>
+      <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
@@ -6601,10 +6605,6 @@
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.15557995540213</datum>
-      <datum>1.14419487981699</datum>
-      <datum>1.14419487981699</datum>
-      <datum>1.14419487981699</datum>
-      <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
@@ -6905,7 +6905,7 @@
       <datum>0.00351155924516291</datum>
       <datum>0.00357602050180902</datum>
       <datum>0.00364082663789401</datum>
-      <datum>0.00370595379217955</datum>
+      <datum>0.00370766084000311</datum>
       <datum>0.00377485261724059</datum>
       <datum>0.00384414711759578</datum>
       <datum>0.00391471364848205</datum>
@@ -7393,7 +7393,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -7406,7 +7406,7 @@
   <ionizationState>
     <electronDensity>
       <datum>0.00236700949468691</datum>
-      <datum>0.00240935059133549</datum>
+      <datum>0.00240879588172571</datum>
       <datum>0.00245188445380951</datum>
       <datum>0.00249402039140518</datum>
       <datum>0.00253279476568999</datum>
@@ -7434,10 +7434,10 @@
       <datum>0.00373422085430343</datum>
       <datum>0.00380101864554767</datum>
       <datum>0.00386722998119377</datum>
-      <datum>0.00393731353700851</datum>
+      <datum>0.00393822024133837</datum>
       <datum>0.00400774425280431</datum>
       <datum>0.0040803742668967</datum>
-      <datum>0.00415432051241861</datum>
+      <datum>0.00415336405489074</datum>
       <datum>0.00422863305181499</datum>
       <datum>0.00430526610491711</datum>
       <datum>0.00438429733974567</datum>
@@ -7471,7 +7471,7 @@
       <datum>0.0282422959714411</datum>
       <datum>0.0592788814195578</datum>
       <datum>0.119618953880618</datum>
-      <datum>0.223202985857428</datum>
+      <datum>0.2209530495573</datum>
       <datum>0.363663739330847</datum>
       <datum>0.526623214893897</datum>
       <datum>0.677017664051824</datum>
@@ -7631,8 +7631,6 @@
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
-      <datum>1.14419487981699</datum>
-      <datum>1.14419487981699</datum>
       <datum>1.15557995540213</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
@@ -7654,7 +7652,6 @@
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
-      <datum>1.14419487981699</datum>
       <datum>1.15557995540213</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
@@ -7663,7 +7660,10 @@
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
-      <datum>1.15557995540213</datum>
+      <datum>1.14419487981699</datum>
+      <datum>1.14419487981699</datum>
+      <datum>1.14419487981699</datum>
+      <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
       <datum>1.14419487981699</datum>
     </electronDensity>
@@ -7911,7 +7911,7 @@
       <datum>5.36537399519851e-10</datum>
       <datum>5.04428945952414e-10</datum>
       <datum>4.74241985260245e-10</datum>
-      <datum>4.45964203179319e-10</datum>
+      <datum>4.45861527948071e-10</datum>
       <datum>4.19179465932565e-10</datum>
       <datum>3.94094160732285e-10</datum>
       <datum>3.70424753029958e-10</datum>
@@ -7932,7 +7932,7 @@
     </hiDensity>
     <hiiDensity>
       <datum>0.00221666467310482</datum>
-      <datum>0.00225475832967634</datum>
+      <datum>0.00225320133562948</datum>
       <datum>0.00229456307251929</datum>
       <datum>0.00233507051486308</datum>
       <datum>0.00238067438962545</datum>
@@ -7960,7 +7960,7 @@
       <datum>0.00351155924516291</datum>
       <datum>0.00357602050180902</datum>
       <datum>0.00364082663789401</datum>
-      <datum>0.00370595379217955</datum>
+      <datum>0.00370510056301924</datum>
       <datum>0.00377485261724059</datum>
       <datum>0.00384414711759578</datum>
       <datum>0.00391381235612212</datum>
@@ -7986,7 +7986,7 @@
       <datum>0.00583713852550509</datum>
       <datum>0.00595387894127685</datum>
       <datum>0.00607435262863583</datum>
-      <datum>0.00619583723077655</datum>
+      <datum>0.00619155877593877</datum>
       <datum>0.00632848856925695</datum>
       <datum>0.00648485097144138</datum>
       <datum>0.00668190043410553</datum>
@@ -8448,7 +8448,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -8488,10 +8488,10 @@
       <datum>0.00366944176733716</datum>
       <datum>0.00373422085430343</datum>
       <datum>0.00380101864554767</datum>
-      <datum>0.00386990229190269</datum>
+      <datum>0.00386901131655109</datum>
       <datum>0.00393731353700851</datum>
       <datum>0.00400774425280431</datum>
-      <datum>0.00407943483416096</datum>
+      <datum>0.0040803742668967</datum>
       <datum>0.00415432051241861</datum>
       <datum>0.00422960684266539</datum>
       <datum>0.00430526610491711</datum>
@@ -8502,8 +8502,8 @@
       <datum>0.00471519871336448</datum>
       <datum>0.00479843924063899</datum>
       <datum>0.00488764888661581</datum>
-      <datum>0.00496249406079745</datum>
-      <datum>0.00506290758346022</datum>
+      <datum>0.00496135153585569</datum>
+      <datum>0.00506757284177283</datum>
       <datum>0.00516416369272071</datum>
       <datum>0.00525896160382461</datum>
       <datum>0.00535673299976301</datum>
@@ -8698,26 +8698,26 @@
       <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
-      <datum>1.14445837075871</datum>
       <datum>1.15584606815622</datum>
       <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
-      <datum>1.15584606815622</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
+      <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
       <datum>1.14445837075871</datum>
@@ -9014,7 +9014,7 @@
       <datum>0.0034490540481442</datum>
       <datum>0.00351155924516291</datum>
       <datum>0.00357519718745026</datum>
-      <datum>0.00363747485642632</datum>
+      <datum>0.00363831251239939</datum>
       <datum>0.00370595379217955</datum>
       <datum>0.00377485261724059</datum>
       <datum>0.00384326207190951</datum>
@@ -9028,8 +9028,8 @@
       <datum>0.00444938513974581</datum>
       <datum>0.00453106194978558</datum>
       <datum>0.00461636351540467</datum>
-      <datum>0.00471628455299838</datum>
-      <datum>0.00478960832497788</datum>
+      <datum>0.00471737064268488</datum>
+      <datum>0.00479071130003075</datum>
       <datum>0.00488090101247576</datum>
       <datum>0.00497164373725243</datum>
       <datum>0.00506523967550882</datum>
@@ -9503,7 +9503,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -9537,9 +9537,9 @@
       <datum>0.00329989407910835</datum>
       <datum>0.00335892262734495</datum>
       <datum>0.00341821991417658</datum>
-      <datum>0.00347936507649094</datum>
+      <datum>0.00348016632215004</datum>
       <datum>0.00353834356814722</datum>
-      <datum>0.00360080829173483</datum>
+      <datum>0.00360163750394727</datum>
       <datum>0.00366944176733716</datum>
       <datum>0.00373422085430343</datum>
       <datum>0.00380189396320561</datum>
@@ -9572,16 +9572,16 @@
       <datum>0.00621012011068541</datum>
       <datum>0.00632703154866501</datum>
       <datum>0.00645505578769006</datum>
-      <datum>0.00660389257478545</datum>
+      <datum>0.00660541335232457</datum>
       <datum>0.00679829490454955</datum>
-      <datum>0.00713345621670223</datum>
+      <datum>0.0071285303012652</datum>
       <datum>0.00783610054877811</datum>
       <datum>0.00961833723287217</datum>
-      <datum>0.0146251389195779</datum>
+      <datum>0.0146217717445672</datum>
       <datum>0.028235793691103</datum>
       <datum>0.0592788814195578</datum>
       <datum>0.119618953880618</datum>
-      <datum>0.2209530495573</datum>
+      <datum>0.223202985857428</datum>
       <datum>0.363663739330847</datum>
       <datum>0.526623214893897</datum>
       <datum>0.677017664051824</datum>
@@ -9748,6 +9748,7 @@
       <datum>1.14472192237846</datum>
       <datum>1.14472192237846</datum>
       <datum>1.14472192237846</datum>
+      <datum>1.1561122421921</datum>
       <datum>1.14472192237846</datum>
       <datum>1.14472192237846</datum>
       <datum>1.14472192237846</datum>
@@ -9766,8 +9767,7 @@
       <datum>1.14472192237846</datum>
       <datum>1.14472192237846</datum>
       <datum>1.14472192237846</datum>
-      <datum>1.14472192237846</datum>
-      <datum>1.14472192237846</datum>
+      <datum>1.1561122421921</datum>
       <datum>1.14472192237846</datum>
       <datum>1.14472192237846</datum>
       <datum>1.14472192237846</datum>
@@ -10063,7 +10063,7 @@
       <datum>0.00309741929921658</datum>
       <datum>0.00315355202455072</datum>
       <datum>0.00320996280421069</datum>
-      <datum>0.00326587832172336</datum>
+      <datum>0.00326512641201957</datum>
       <datum>0.00332582964419117</datum>
       <datum>0.00338610171713032</datum>
       <datum>0.0034490540481442</datum>
@@ -10094,13 +10094,13 @@
       <datum>0.00546009249754274</datum>
       <datum>0.00556288394988373</datum>
       <datum>0.0058425172053603</datum>
-      <datum>0.00596348319834126</datum>
-      <datum>0.00607155592988649</datum>
+      <datum>0.00596485649919378</datum>
+      <datum>0.00607295411827024</datum>
       <datum>0.00619726403928227</datum>
       <datum>0.00632703154866501</datum>
-      <datum>0.00648335795122057</datum>
+      <datum>0.00648037294192291</datum>
       <datum>0.00668036204679247</datum>
-      <datum>0.00702263343735764</datum>
+      <datum>0.00702101660240315</datum>
       <datum>0.0077374882051481</datum>
       <datum>0.00953015578708125</datum>
       <datum>0.0145545908058197</datum>
@@ -10558,7 +10558,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -10573,7 +10573,7 @@
       <datum>0.00236700949468691</datum>
       <datum>0.00241046039380842</datum>
       <datum>0.00245075557924382</datum>
-      <datum>0.0024951691947416</datum>
+      <datum>0.00249459472694296</datum>
       <datum>0.00253688044029994</datum>
       <datum>0.00258404456901246</datum>
       <datum>0.00262966242003022</datum>
@@ -10598,8 +10598,8 @@
       <datum>0.00366944176733716</datum>
       <datum>0.00373508078943062</datum>
       <datum>0.00380189396320561</datum>
-      <datum>0.00386366977054069</datum>
-      <datum>0.00393731353700851</datum>
+      <datum>0.00386722998119377</datum>
+      <datum>0.00394457302075278</datum>
       <datum>0.00400774425280431</datum>
       <datum>0.00408131391596972</datum>
       <datum>0.0041581485456158</datum>
@@ -10610,7 +10610,7 @@
       <datum>0.00454778578643692</datum>
       <datum>0.00463126892491875</datum>
       <datum>0.00471628455299838</datum>
-      <datum>0.00479843924063899</datum>
+      <datum>0.00479954424931944</datum>
       <datum>0.00487977727286486</datum>
       <datum>0.00497737084978936</datum>
       <datum>0.00506873982789022</datum>
@@ -10636,7 +10636,7 @@
       <datum>0.0282292929077978</datum>
       <datum>0.0592652335240215</datum>
       <datum>0.119591413769408</datum>
-      <datum>0.223151597387177</datum>
+      <datum>0.2209530495573</datum>
       <datum>0.363663739330847</datum>
       <datum>0.526623214893897</datum>
       <datum>0.677017664051824</datum>
@@ -10690,7 +10690,7 @@
       <datum>1.14498553469019</datum>
       <datum>1.14498553469019</datum>
       <datum>1.14498553469019</datum>
-      <datum>1.14498553469019</datum>
+      <datum>1.15637847752387</datum>
       <datum>1.14498553469019</datum>
       <datum>1.14498553469019</datum>
       <datum>1.14498553469019</datum>
@@ -11124,8 +11124,8 @@
       <datum>0.00344825996552623</datum>
       <datum>0.0035107507718483</datum>
       <datum>0.00357437406264481</datum>
-      <datum>0.00364166506573214</datum>
-      <datum>0.00370510056301924</datum>
+      <datum>0.00363831251239939</datum>
+      <datum>0.00369828179780266</datum>
       <datum>0.00377311463358389</datum>
       <datum>0.00384149259178759</datum>
       <datum>0.00390930900596229</datum>
@@ -11151,7 +11151,7 @@
       <datum>0.00583713852550509</datum>
       <datum>0.00595387894127685</datum>
       <datum>0.00607435262863583</datum>
-      <datum>0.00619869117636061</datum>
+      <datum>0.00620011864208724</datum>
       <datum>0.00632557486352583</datum>
       <datum>0.0064788809526878</datum>
       <datum>0.0066788240136654</datum>
@@ -11613,7 +11613,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -11681,7 +11681,7 @@
       <datum>0.0060939656234012</datum>
       <datum>0.00621012011068541</datum>
       <datum>0.00632848856925695</datum>
-      <datum>0.00645951632269626</datum>
+      <datum>0.00646249172495388</datum>
       <datum>0.00660541335232457</datum>
       <datum>0.00679516489481525</datum>
       <datum>0.0071285303012652</datum>
@@ -11711,7 +11711,7 @@
       <datum>1.06684174234025</datum>
       <datum>1.06905487922266</datum>
       <datum>1.07028638291138</datum>
-      <datum>1.07127260720295</datum>
+      <datum>1.08193208472766</datum>
       <datum>1.07201287175259</datum>
       <datum>1.0725066656157</datum>
       <datum>1.0732477829172</datum>
@@ -11723,7 +11723,7 @@
       <datum>1.10179297754425</datum>
       <datum>1.11147577106051</datum>
       <datum>1.12021143090511</datum>
-      <datum>1.12771666933147</datum>
+      <datum>1.13893778187571</datum>
       <datum>1.13318286793069</datum>
       <datum>1.13710350971065</datum>
       <datum>1.13998726556998</datum>
@@ -11885,7 +11885,7 @@
       <datum>1.1460405911366</datum>
       <datum>1.1460405911366</datum>
       <datum>1.1460405911366</datum>
-      <datum>1.1460405911366</datum>
+      <datum>1.15744403209224</datum>
     </electronDensity>
     <hiDensity>
       <datum>0.997700063822553</datum>
@@ -12126,7 +12126,7 @@
       <datum>7.29289565791723e-10</datum>
       <datum>6.85961908529314e-10</datum>
       <datum>6.45059833284831e-10</datum>
-      <datum>6.06736329588505e-10</datum>
+      <datum>6.06596639468753e-10</datum>
       <datum>5.70558263871128e-10</datum>
       <datum>5.36413871440296e-10</datum>
       <datum>5.04428945952414e-10</datum>
@@ -12192,7 +12192,7 @@
       <datum>0.00436616355297684</datum>
       <datum>0.00444733659389797</datum>
       <datum>0.00452897579903621</datum>
-      <datum>0.00461211364491703</datum>
+      <datum>0.00461423809087644</datum>
       <datum>0.00470002318179801</datum>
       <datum>0.00478850560386518</datum>
       <datum>0.00487865379197478</datum>
@@ -12207,7 +12207,7 @@
       <datum>0.00595799315598138</datum>
       <datum>0.00607295411827024</datum>
       <datum>0.00619298459918043</datum>
-      <datum>0.00631829646691898</datum>
+      <datum>0.00631538745374385</datum>
       <datum>0.0064758980046495</datum>
       <datum>0.0066726754213864</datum>
       <datum>0.0070177840491499</datum>
@@ -12668,7 +12668,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -12711,7 +12711,7 @@
       <datum>0.00386990229190269</datum>
       <datum>0.00393912715446866</datum>
       <datum>0.00401051366086576</datum>
-      <datum>0.0040784956177127</datum>
+      <datum>0.00408131391596972</datum>
       <datum>0.00415623408829861</datum>
       <datum>0.00423155509716616</datum>
       <datum>0.00430923322818626</datum>
@@ -12731,8 +12731,8 @@
       <datum>0.00555904257270404</datum>
       <datum>0.00566239289038253</datum>
       <datum>0.00576766463392251</datum>
-      <datum>0.00586678266401977</datum>
-      <datum>0.00598825105950957</datum>
+      <datum>0.00586543194290265</datum>
+      <datum>0.00599376898326638</datum>
       <datum>0.00609817663998786</datum>
       <datum>0.00621870563798751</datum>
       <datum>0.00633286164452198</datum>
@@ -12740,7 +12740,7 @@
       <datum>0.0066008520700216</datum>
       <datum>0.00679047258205188</datum>
       <datum>0.00712032799999203</datum>
-      <datum>0.00781987840389497</datum>
+      <datum>0.00781807801763586</datum>
       <datum>0.00959400631515934</datum>
       <datum>0.0145847839454789</datum>
       <datum>0.0281838293126445</datum>
@@ -12765,7 +12765,7 @@
       <datum>1.06389801844698</datum>
       <datum>1.06733315426184</datum>
       <datum>1.06979361129085</datum>
-      <datum>1.08168298933793</datum>
+      <datum>1.07102596596607</datum>
       <datum>1.07201287175259</datum>
       <datum>1.07275364783553</datum>
       <datum>1.0732477829172</datum>
@@ -12913,10 +12913,7 @@
       <datum>1.1476249989434</datum>
       <datum>1.1476249989434</datum>
       <datum>1.1476249989434</datum>
-      <datum>1.1476249989434</datum>
-      <datum>1.1476249989434</datum>
-      <datum>1.1476249989434</datum>
-      <datum>1.1476249989434</datum>
+      <datum>1.15904420522272</datum>
       <datum>1.1476249989434</datum>
       <datum>1.1476249989434</datum>
       <datum>1.1476249989434</datum>
@@ -12932,6 +12929,9 @@
       <datum>1.1476249989434</datum>
       <datum>1.1476249989434</datum>
       <datum>1.15904420522272</datum>
+      <datum>1.1476249989434</datum>
+      <datum>1.1476249989434</datum>
+      <datum>1.1476249989434</datum>
       <datum>1.1476249989434</datum>
       <datum>1.1476249989434</datum>
       <datum>1.1476249989434</datum>
@@ -13217,7 +13217,7 @@
       <datum>0.00254683025258504</datum>
       <datum>0.00259059784547587</datum>
       <datum>0.00263693849345347</datum>
-      <datum>0.00268410808354523</datum>
+      <datum>0.00268472619343114</datum>
       <datum>0.00273149242208918</datum>
       <datum>0.0027809936678263</datum>
       <datum>0.00283074011875218</datum>
@@ -13234,10 +13234,10 @@
       <datum>0.00344587881444335</datum>
       <datum>0.00350832646855166</datum>
       <datum>0.00357272838151929</datum>
-      <datum>0.00363663739330847</datum>
+      <datum>0.00363580012300143</datum>
       <datum>0.00370254205400135</datum>
       <datum>0.00377050915833393</datum>
-      <datum>0.00384326207190951</datum>
+      <datum>0.00383530582456859</datum>
       <datum>0.00391020926126814</datum>
       <datum>0.00398107170553497</datum>
       <datum>0.00405601917989914</datum>
@@ -13257,8 +13257,8 @@
       <datum>0.0052541201511008</datum>
       <datum>0.00535303397744143</datum>
       <datum>0.00545506588170373</datum>
-      <datum>0.00556288394988373</datum>
-      <datum>0.00583042213843286</datum>
+      <datum>0.00556416499872997</datum>
+      <datum>0.00582371347943751</datum>
       <datum>0.00594839774069221</datum>
       <datum>0.006068760518768</datum>
       <datum>0.0061887081141903</datum>
@@ -13723,7 +13723,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -13743,8 +13743,8 @@
       <datum>0.0025870212734646</datum>
       <datum>0.0026320855443441</datum>
       <datum>0.00267793480625971</datum>
-      <datum>0.00272834948479012</datum>
-      <datum>0.00277140502451392</datum>
+      <datum>0.0027270933226839</datum>
+      <datum>0.0027720432375777</datum>
       <datum>0.00281968114347069</datum>
       <datum>0.00287011963646444</datum>
       <datum>0.00292078776020715</datum>
@@ -13776,10 +13776,10 @@
       <datum>0.00463446919736288</datum>
       <datum>0.00471954357244604</datum>
       <datum>0.00480286080239691</datum>
-      <datum>0.00488764888661581</datum>
+      <datum>0.00488539855931936</datum>
       <datum>0.00498081028356724</datum>
       <datum>0.00507224239892651</datum>
-      <datum>0.00515584674875055</datum>
+      <datum>0.00515347294020903</datum>
       <datum>0.00525896160382461</datum>
       <datum>0.00535549970840114</datum>
       <datum>0.0054563221016639</datum>
@@ -13801,7 +13801,7 @@
       <datum>0.0281384389371249</datum>
       <datum>0.0591697861958719</datum>
       <datum>0.119508831473627</datum>
-      <datum>0.223100220748196</datum>
+      <datum>0.220902179094387</datum>
       <datum>0.363663739330847</datum>
       <datum>0.526623214893897</datum>
       <datum>0.677017664051824</datum>
@@ -13862,6 +13862,7 @@
       <datum>1.15000571869924</datum>
       <datum>1.15000571869924</datum>
       <datum>1.15027054779011</datum>
+      <datum>1.16171607805857</datum>
       <datum>1.15027054779011</datum>
       <datum>1.15027054779011</datum>
       <datum>1.15027054779011</datum>
@@ -13893,7 +13894,6 @@
       <datum>1.15027054779011</datum>
       <datum>1.15027054779011</datum>
       <datum>1.15027054779011</datum>
-      <datum>1.15027054779011</datum>
       <datum>1.15053543786717</datum>
       <datum>1.15053543786717</datum>
       <datum>1.15053543786717</datum>
@@ -13993,7 +13993,7 @@
       <datum>1.15053543786717</datum>
       <datum>1.15053543786717</datum>
       <datum>1.15053543786717</datum>
-      <datum>1.1619836038698</datum>
+      <datum>1.15053543786717</datum>
       <datum>1.15053543786717</datum>
       <datum>1.15053543786717</datum>
     </electronDensity>
@@ -14269,7 +14269,7 @@
       <datum>0.00241323713700861</datum>
       <datum>0.0024558396112487</datum>
       <datum>0.00250034536169643</datum>
-      <datum>0.00253863346062737</datum>
+      <datum>0.00253980281377282</datum>
       <datum>0.00258761702571244</datum>
       <datum>0.00263390435274731</datum>
       <datum>0.00268163706676073</datum>
@@ -14302,10 +14302,10 @@
       <datum>0.00436013564000399</datum>
       <datum>0.00444119661365589</datum>
       <datum>0.004523764623325</datum>
-      <datum>0.00461211364491703</datum>
+      <datum>0.00461423809087644</datum>
       <datum>0.00469353434317195</datum>
       <datum>0.00478079366149119</datum>
-      <datum>0.00488202501086706</datum>
+      <datum>0.00488427378422925</datum>
       <datum>0.00496477990006068</datum>
       <datum>0.00505941145845937</datum>
       <datum>0.00515347294020903</datum>
@@ -14778,7 +14778,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -14791,7 +14791,7 @@
   <ionizationState>
     <electronDensity>
       <datum>0.00237465214365167</datum>
-      <datum>0.00241379286937296</datum>
+      <datum>0.00241657345143683</datum>
       <datum>0.00245810256508934</datum>
       <datum>0.0025014970784601</datum>
       <datum>0.00254448561514663</datum>
@@ -14828,7 +14828,7 @@
       <datum>0.00439339245644476</datum>
       <datum>0.00447301134824448</datum>
       <datum>0.00455512186165739</datum>
-      <datum>0.00463020265860308</datum>
+      <datum>0.00463126892491875</datum>
       <datum>0.00471845698248157</datum>
       <datum>0.0048072864384397</datum>
       <datum>0.00489440608973125</datum>
@@ -14839,7 +14839,7 @@
       <datum>0.00536290371800858</datum>
       <datum>0.00546260754212695</datum>
       <datum>0.00556288394988373</datum>
-      <datum>0.00563897280334949</datum>
+      <datum>0.00565457540687621</datum>
       <datum>0.00577563846394533</datum>
       <datum>0.00588301559988883</datum>
       <datum>0.00599376898326638</datum>
@@ -14917,7 +14917,7 @@
       <datum>1.15478198468946</datum>
       <datum>1.15504791368285</datum>
       <datum>1.15504791368285</datum>
-      <datum>1.16654098014706</datum>
+      <datum>1.15504791368285</datum>
       <datum>1.15504791368285</datum>
       <datum>1.15504791368285</datum>
       <datum>1.15504791368285</datum>
@@ -14938,7 +14938,7 @@
       <datum>1.15504791368285</datum>
       <datum>1.15504791368285</datum>
       <datum>1.15531390391571</datum>
-      <datum>1.15531390391571</datum>
+      <datum>1.16680961706096</datum>
       <datum>1.15531390391571</datum>
       <datum>1.15531390391571</datum>
       <datum>1.15531390391571</datum>
@@ -15317,11 +15317,11 @@
     </hiDensity>
     <hiiDensity>
       <datum>0.00220648002406029</datum>
-      <datum>0.00224491550756959</datum>
+      <datum>0.002245432477984</datum>
       <datum>0.00228507258538752</datum>
       <datum>0.00232541248587338</datum>
       <datum>0.00236755458151768</datum>
-      <datum>0.00240824129982783</datum>
+      <datum>0.00240768684561245</datum>
       <datum>0.00245019133688078</datum>
       <datum>0.00249402039140518</datum>
       <datum>0.00253804898596378</datum>
@@ -15357,7 +15357,7 @@
       <datum>0.0043581281856073</datum>
       <datum>0.00443608643931433</datum>
       <datum>0.00451647904929112</datum>
-      <datum>0.00460150607789059</datum>
+      <datum>0.00460044666393478</datum>
       <datum>0.00468705446301803</datum>
       <datum>0.00477419331137078</datum>
       <datum>0.00486743319962138</datum>
@@ -15365,7 +15365,7 @@
       <datum>0.00504777513500947</datum>
       <datum>0.00514754319931262</datum>
       <datum>0.00524082912564029</datum>
-      <datum>0.00536784541025512</datum>
+      <datum>0.00535056938173137</datum>
       <datum>0.00544126653615446</datum>
       <datum>0.00554370357180495</datum>
       <datum>0.00581835211048072</datum>
@@ -15833,7 +15833,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -15882,7 +15882,7 @@
       <datum>0.00431916703671043</datum>
       <datum>0.00439541615437824</datum>
       <datum>0.00447404141575596</datum>
-      <datum>0.0045435990492934</datum>
+      <datum>0.00456036915951296</datum>
       <datum>0.00464408328941048</datum>
       <datum>0.00472824530511797</datum>
       <datum>0.00481282421867602</datum>
@@ -15971,7 +15971,7 @@
       <datum>1.16332215731754</datum>
       <datum>1.16332215731754</datum>
       <datum>1.16332215731754</datum>
-      <datum>1.16332215731754</datum>
+      <datum>1.17516811624744</datum>
       <datum>1.16359005298476</datum>
       <datum>1.16359005298476</datum>
       <datum>1.16359005298476</datum>
@@ -16002,9 +16002,9 @@
       <datum>1.16412602941049</datum>
       <datum>1.16412602941049</datum>
       <datum>1.16412602941049</datum>
+      <datum>1.17570942579625</datum>
       <datum>1.16412602941049</datum>
       <datum>1.16412602941049</datum>
-      <datum>1.16412602941049</datum>
       <datum>1.16439411019742</datum>
       <datum>1.16439411019742</datum>
       <datum>1.16439411019742</datum>
@@ -16032,6 +16032,50 @@
       <datum>1.16439411019742</datum>
       <datum>1.16439411019742</datum>
       <datum>1.16439411019742</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
+      <datum>1.16466225271933</datum>
       <datum>1.16466225271933</datum>
       <datum>1.16466225271933</datum>
       <datum>1.16466225271933</datum>
@@ -16058,52 +16102,8 @@
       <datum>1.16466225271933</datum>
       <datum>1.16466225271933</datum>
       <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
-      <datum>1.16466225271933</datum>
+      <datum>1.17625098468472</datum>
+      <datum>1.17625098468472</datum>
       <datum>1.16466225271933</datum>
       <datum>1.16466225271933</datum>
     </electronDensity>
@@ -16380,11 +16380,11 @@
       <datum>0.00244399323814968</datum>
       <datum>0.00248771142100331</datum>
       <datum>0.00253221163528083</datum>
-      <datum>0.00258047704443602</datum>
+      <datum>0.00258107128964594</datum>
       <datum>0.0026254273189937</datum>
       <datum>0.00267177572711795</datum>
       <datum>0.00272019476198438</datum>
-      <datum>0.00277076695838721</datum>
+      <datum>0.00277012903916373</datum>
       <datum>0.00281708531676939</datum>
       <datum>0.00286681719052489</datum>
       <datum>0.00291877084819714</datum>
@@ -16408,7 +16408,7 @@
       <datum>0.00403552460880747</datum>
       <datum>0.00411055061281175</datum>
       <datum>0.00418697145437062</datum>
-      <datum>0.00427562886151586</datum>
+      <datum>0.00425794453582597</datum>
       <datum>0.00434210178786028</datum>
       <datum>0.00442384599808885</datum>
       <datum>0.00450401678168087</datum>
@@ -16888,7 +16888,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -17021,10 +17021,10 @@
       <datum>1.17814840600293</datum>
       <datum>1.17814840600293</datum>
       <datum>1.17841971593314</datum>
+      <datum>1.19014533870385</datum>
       <datum>1.17841971593314</datum>
       <datum>1.17841971593314</datum>
-      <datum>1.17841971593314</datum>
-      <datum>1.17841971593314</datum>
+      <datum>1.19041941134796</datum>
       <datum>1.17869108834196</datum>
       <datum>1.17869108834196</datum>
       <datum>1.19041941134796</datum>
@@ -17037,10 +17037,10 @@
       <datum>1.17896252324379</datum>
       <datum>1.17896252324379</datum>
       <datum>1.17896252324379</datum>
+      <datum>1.1906935471069</datum>
       <datum>1.17896252324379</datum>
       <datum>1.17896252324379</datum>
       <datum>1.17896252324379</datum>
-      <datum>1.17896252324379</datum>
       <datum>1.179234020653</datum>
       <datum>1.179234020653</datum>
       <datum>1.179234020653</datum>
@@ -17061,10 +17061,10 @@
       <datum>1.18004888806897</datum>
       <datum>1.18004888806897</datum>
       <datum>1.18004888806897</datum>
+      <datum>1.19179072158161</datum>
       <datum>1.18004888806897</datum>
       <datum>1.18004888806897</datum>
       <datum>1.18004888806897</datum>
-      <datum>1.18004888806897</datum>
       <datum>1.18032063565173</datum>
       <datum>1.18032063565173</datum>
       <datum>1.18032063565173</datum>
@@ -17083,9 +17083,6 @@
       <datum>1.18032063565173</datum>
       <datum>1.18032063565173</datum>
       <datum>1.18032063565173</datum>
-      <datum>1.18059244581389</datum>
-      <datum>1.18059244581389</datum>
-      <datum>1.18059244581389</datum>
       <datum>1.18059244581389</datum>
       <datum>1.18059244581389</datum>
       <datum>1.18059244581389</datum>
@@ -17135,6 +17132,9 @@
       <datum>1.18059244581389</datum>
       <datum>1.18059244581389</datum>
       <datum>1.19233968788597</datum>
+      <datum>1.18059244581389</datum>
+      <datum>1.18059244581389</datum>
+      <datum>1.18059244581389</datum>
       <datum>1.18059244581389</datum>
       <datum>1.18059244581389</datum>
       <datum>1.18059244581389</datum>
@@ -17431,7 +17431,7 @@
       <datum>0.00226777519156726</datum>
       <datum>0.00230727839804446</datum>
       <datum>0.0023474697253406</datum>
-      <datum>0.00238891116388368</datum>
+      <datum>0.00239001155148473</datum>
       <datum>0.00243220400907382</datum>
       <datum>0.00247400173579256</datum>
       <datum>0.00251883662784174</datum>
@@ -17459,7 +17459,7 @@
       <datum>0.00374024456042405</datum>
       <datum>0.00380978089846419</datum>
       <datum>0.00388329157004955</datum>
-      <datum>0.0039655186799168</datum>
+      <datum>0.00396460569061277</datum>
       <datum>0.00401236099599189</datum>
       <datum>0.00409260659730011</datum>
       <datum>0.00416581519737962</datum>
@@ -17477,7 +17477,7 @@
       <datum>0.00520115743822406</datum>
       <datum>0.00529541498416667</datum>
       <datum>0.00539634863730069</datum>
-      <datum>0.00550047252867634</datum>
+      <datum>0.00549920614387498</datum>
       <datum>0.00577430872713985</datum>
       <datum>0.00586678266401977</datum>
       <datum>0.00600205540387197</datum>
@@ -17943,7 +17943,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -17995,7 +17995,7 @@
       <datum>0.00458247389928456</datum>
       <datum>0.00466766844979402</datum>
       <datum>0.00475335225942805</datum>
-      <datum>0.00484172367584099</datum>
+      <datum>0.00483949449301663</datum>
       <datum>0.00492946741312206</datum>
       <datum>0.00502458271496076</datum>
       <datum>0.00510387465387311</datum>
@@ -18061,7 +18061,7 @@
       <datum>1.19894704047942</datum>
       <datum>1.20032817416267</datum>
       <datum>1.20115761793758</datum>
-      <datum>1.20171089885052</datum>
+      <datum>1.21394776536583</datum>
       <datum>1.20226443461741</datum>
       <datum>1.20254129810778</datum>
       <datum>1.20309521637573</datum>
@@ -18076,24 +18076,24 @@
       <datum>1.20475850253495</datum>
       <datum>1.20475850253495</datum>
       <datum>1.2050359403718</datum>
-      <datum>1.21730666535447</datum>
       <datum>1.20531344209842</datum>
       <datum>1.20531344209842</datum>
       <datum>1.20531344209842</datum>
+      <datum>1.21758699284526</datum>
       <datum>1.20559100772953</datum>
       <datum>1.21758699284526</datum>
       <datum>1.20559100772953</datum>
+      <datum>1.21758699284526</datum>
       <datum>1.20559100772953</datum>
-      <datum>1.20559100772953</datum>
       <datum>1.20586863727986</datum>
       <datum>1.20586863727986</datum>
       <datum>1.20586863727986</datum>
       <datum>1.20586863727986</datum>
-      <datum>1.20586863727986</datum>
+      <datum>1.21814784150735</datum>
       <datum>1.2061463307641</datum>
       <datum>1.2061463307641</datum>
       <datum>1.2061463307641</datum>
-      <datum>1.2061463307641</datum>
+      <datum>1.2184283627084</datum>
       <datum>1.206424088197</datum>
       <datum>1.206424088197</datum>
       <datum>1.206424088197</datum>
@@ -18115,8 +18115,8 @@
       <datum>1.20781383510678</datum>
       <datum>1.20809197654095</datum>
       <datum>1.20809197654095</datum>
+      <datum>1.22011284703193</datum>
       <datum>1.20809197654095</datum>
-      <datum>1.20809197654095</datum>
       <datum>1.20837018202693</datum>
       <datum>1.20837018202693</datum>
       <datum>1.20837018202693</datum>
@@ -18192,7 +18192,6 @@
       <datum>1.20920518294321</datum>
       <datum>1.20920518294321</datum>
       <datum>1.20920518294321</datum>
-      <datum>1.22123713016531</datum>
       <datum>1.20920518294321</datum>
       <datum>1.20920518294321</datum>
       <datum>1.20920518294321</datum>
@@ -18214,7 +18213,8 @@
       <datum>1.20920518294321</datum>
       <datum>1.20920518294321</datum>
       <datum>1.20920518294321</datum>
-      <datum>1.22123713016531</datum>
+      <datum>1.20920518294321</datum>
+      <datum>1.20920518294321</datum>
       <datum>1.20920518294321</datum>
     </electronDensity>
     <hiDensity>
@@ -18516,13 +18516,13 @@
       <datum>0.00384503236709481</datum>
       <datum>0.00391471364848205</datum>
       <datum>0.00399024902362142</datum>
-      <datum>0.00406256198186844</datum>
+      <datum>0.00406349752903903</datum>
       <datum>0.00413047501990161</datum>
       <datum>0.00420823515424823</datum>
       <datum>0.0042854852039744</datum>
       <datum>0.00436515832240166</datum>
-      <datum>0.00444528899122317</datum>
-      <datum>0.00452897579903621</datum>
+      <datum>0.00444426554343995</datum>
+      <datum>0.00452793308387169</datum>
       <datum>0.00461636351540467</datum>
       <datum>0.0047108578542037</datum>
       <datum>0.00478850560386518</datum>
@@ -18998,7 +18998,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -19094,7 +19094,7 @@
       <datum>1.09900583943252</datum>
       <datum>1.10815369781849</datum>
       <datum>1.11403798733062</datum>
-      <datum>1.11763501610879</datum>
+      <datum>1.12875581323824</datum>
       <datum>1.11995352238489</datum>
       <datum>1.12176012974712</datum>
       <datum>1.12279378495093</datum>
@@ -19117,7 +19117,7 @@
       <datum>1.24566138011389</datum>
       <datum>1.24680920515562</datum>
       <datum>1.2476707679815</datum>
-      <datum>1.26066588352444</datum>
+      <datum>1.24824547392454</datum>
       <datum>1.2488204445904</datum>
       <datum>1.24910802923248</datum>
       <datum>1.24968339721122</datum>
@@ -19129,18 +19129,18 @@
       <datum>1.26386300023125</datum>
       <datum>1.25141109180239</datum>
       <datum>1.25198752062488</datum>
-      <datum>1.25227583459714</datum>
-      <datum>1.25256421496379</datum>
-      <datum>1.26531891421386</datum>
-      <datum>1.26561029820637</datum>
-      <datum>1.26561029820637</datum>
+      <datum>1.26473634747115</datum>
+      <datum>1.26502759730727</datum>
+      <datum>1.25285266174012</datum>
+      <datum>1.25314117494142</datum>
+      <datum>1.25314117494142</datum>
       <datum>1.26590174930024</datum>
       <datum>1.25342975458298</datum>
       <datum>1.25342975458298</datum>
       <datum>1.25342975458298</datum>
       <datum>1.26619326751094</datum>
       <datum>1.25371840068012</datum>
-      <datum>1.25371840068012</datum>
+      <datum>1.26648485285392</datum>
       <datum>1.25400711324813</datum>
       <datum>1.25400711324813</datum>
       <datum>1.25400711324813</datum>
@@ -19184,10 +19184,10 @@
       <datum>1.25892541179417</datum>
       <datum>1.25892541179417</datum>
       <datum>1.25892541179417</datum>
+      <datum>1.27145208991706</datum>
       <datum>1.25892541179417</datum>
       <datum>1.25892541179417</datum>
       <datum>1.25892541179417</datum>
-      <datum>1.25892541179417</datum>
       <datum>1.25921532345884</datum>
       <datum>1.25921532345884</datum>
       <datum>1.25921532345884</datum>
@@ -19207,26 +19207,6 @@
       <datum>1.25950530188582</datum>
       <datum>1.25950530188582</datum>
       <datum>1.25950530188582</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
-      <datum>1.2597953470905</datum>
       <datum>1.2597953470905</datum>
       <datum>1.27233068132546</datum>
       <datum>1.2597953470905</datum>
@@ -19253,7 +19233,27 @@
       <datum>1.2597953470905</datum>
       <datum>1.2597953470905</datum>
       <datum>1.2597953470905</datum>
-      <datum>1.27233068132546</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
+      <datum>1.2597953470905</datum>
       <datum>1.2597953470905</datum>
       <datum>1.2597953470905</datum>
       <datum>1.2597953470905</datum>
@@ -19380,7 +19380,7 @@
       <datum>9.28966386779936e-06</datum>
       <datum>8.02047334800666e-06</datum>
       <datum>6.95344461825663e-06</datum>
-      <datum>6.05340874753914e-06</datum>
+      <datum>6.05201505912522e-06</datum>
       <datum>5.28810414931306e-06</datum>
       <datum>4.63553644619851e-06</datum>
       <datum>4.07661783347944e-06</datum>
@@ -19496,7 +19496,7 @@
       <datum>1.80967255478879e-09</datum>
       <datum>1.70372697651327e-09</datum>
       <datum>1.60398388250842e-09</datum>
-      <datum>1.51008015416415e-09</datum>
+      <datum>1.50973248538731e-09</datum>
       <datum>1.42134661647283e-09</datum>
       <datum>1.33751912298561e-09</datum>
       <datum>1.25892541179417e-09</datum>
@@ -20053,7 +20053,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -20088,9 +20088,9 @@
       <datum>0.00333196169489308</datum>
       <datum>0.00339234489541443</datum>
       <datum>0.00345302720505641</datum>
-      <datum>0.00351479500064306</datum>
+      <datum>0.00351398578235399</datum>
       <datum>0.00358096437102636</datum>
-      <datum>0.00363412616064223</datum>
+      <datum>0.00364669968894227</datum>
       <datum>0.00371706366796068</datum>
       <datum>0.00378965783799471</datum>
       <datum>0.00386366977054069</datum>
@@ -20104,7 +20104,7 @@
       <datum>0.00454150712632555</datum>
       <datum>0.00463020265860308</datum>
       <datum>0.0047206304126359</datum>
-      <datum>0.00481836837818896</datum>
+      <datum>0.00481725903559163</datum>
       <datum>0.00491247100450334</datum>
       <datum>0.00500610552528821</datum>
       <datum>0.00510035023959447</datum>
@@ -20140,7 +20140,7 @@
       <datum>0.925124111252552</datum>
       <datum>0.957194071294844</datum>
       <datum>0.978813611335182</datum>
-      <datum>1.00646806643833</datum>
+      <datum>0.996552080134768</datum>
       <datum>1.01507936657269</datum>
       <datum>1.03728954357387</datum>
       <datum>1.06389801844698</datum>
@@ -20175,22 +20175,22 @@
       <datum>1.33014810479408</datum>
       <datum>1.33076080170144</datum>
       <datum>1.33137378083114</datum>
-      <datum>1.34524070514863</datum>
-      <datum>1.34586035405595</datum>
+      <datum>1.33198704231316</datum>
+      <datum>1.33229377897694</datum>
       <datum>1.34617028553561</datum>
       <datum>1.3332144128545</datum>
       <datum>1.3338285221741</datum>
       <datum>1.33413568290311</datum>
-      <datum>1.34803137381309</datum>
+      <datum>1.33475021658095</datum>
       <datum>1.34865230816678</datum>
       <datum>1.3359801332722</datum>
       <datum>1.34989503505598</datum>
-      <datum>1.33721118328042</datum>
+      <datum>1.35051682785504</datum>
       <datum>1.33751912298561</datum>
       <datum>1.3378271336047</datum>
       <datum>1.35145005411756</datum>
       <datum>1.35176127282142</datum>
-      <datum>1.35176127282142</datum>
+      <datum>1.33844336764991</datum>
       <datum>1.35207256319428</datum>
       <datum>1.35207256319428</datum>
       <datum>1.33905988554674</datum>
@@ -20198,26 +20198,26 @@
       <datum>1.33936825098037</datum>
       <datum>1.33936825098037</datum>
       <datum>1.33967668742594</datum>
-      <datum>1.35331844170592</datum>
       <datum>1.3399851948998</datum>
-      <datum>1.35363009067146</datum>
+      <datum>1.3399851948998</datum>
+      <datum>1.34029377341831</datum>
       <datum>1.34029377341831</datum>
       <datum>1.34060242299783</datum>
       <datum>1.35425360392331</datum>
       <datum>1.34091114365473</datum>
       <datum>1.34121993540537</datum>
       <datum>1.34152879826613</datum>
-      <datum>1.34152879826613</datum>
-      <datum>1.35550149217308</datum>
+      <datum>1.35518941235104</datum>
+      <datum>1.34183773225337</datum>
       <datum>1.34214673738349</datum>
       <datum>1.34245581367286</datum>
       <datum>1.34276496113786</datum>
       <datum>1.3430741797949</datum>
-      <datum>1.34338346966037</datum>
+      <datum>1.35675053029986</datum>
       <datum>1.34338346966037</datum>
       <datum>1.34369283075065</datum>
       <datum>1.34400226308216</datum>
-      <datum>1.34431176667131</datum>
+      <datum>1.35800071936322</datum>
       <datum>1.34462134153449</datum>
       <datum>1.35862624582749</datum>
       <datum>1.34555049393243</datum>
@@ -20229,7 +20229,7 @@
       <datum>1.3471005082758</datum>
       <datum>1.3471005082758</datum>
       <datum>1.3474107253444</datum>
-      <datum>1.3474107253444</datum>
+      <datum>1.36081785836246</datum>
       <datum>1.34772101385135</datum>
       <datum>1.34772101385135</datum>
       <datum>1.34772101385135</datum>
@@ -20251,10 +20251,10 @@
       <datum>1.34896288259165</datum>
       <datum>1.34896288259165</datum>
       <datum>1.34927352853716</datum>
+      <datum>1.36269919699487</datum>
       <datum>1.34927352853716</datum>
+      <datum>1.36269919699487</datum>
       <datum>1.34927352853716</datum>
-      <datum>1.34927352853716</datum>
-      <datum>1.34927352853716</datum>
       <datum>1.34958424601978</datum>
       <datum>1.34958424601978</datum>
       <datum>1.34958424601978</datum>
@@ -20289,20 +20289,14 @@
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
+      <datum>1.36332688768635</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
-      <datum>1.34989503505598</datum>
-      <datum>1.34989503505598</datum>
-      <datum>1.34989503505598</datum>
-      <datum>1.34989503505598</datum>
-      <datum>1.34989503505598</datum>
-      <datum>1.34989503505598</datum>
-      <datum>1.34989503505598</datum>
-      <datum>1.34989503505598</datum>
+      <datum>1.36332688768635</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
@@ -20314,6 +20308,12 @@
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.36364084144707</datum>
+      <datum>1.34989503505598</datum>
+      <datum>1.34989503505598</datum>
+      <datum>1.34989503505598</datum>
+      <datum>1.34989503505598</datum>
+      <datum>1.34989503505598</datum>
+      <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
       <datum>1.34989503505598</datum>
@@ -20559,7 +20559,7 @@
       <datum>1.11249994965645e-09</datum>
       <datum>1.04688746554909e-09</datum>
       <datum>9.84917830980816e-10</datum>
-      <datum>9.26403100736398e-10</datum>
+      <datum>9.26616437493746e-10</datum>
       <datum>8.71565438136779e-10</datum>
       <datum>8.19785061237577e-10</datum>
       <datum>7.71080996585858e-10</datum>
@@ -20576,7 +20576,7 @@
       <datum>3.91291127126852e-10</datum>
       <datum>3.67790070422386e-10</datum>
       <datum>3.45620902570127e-10</datum>
-      <datum>3.24862812579201e-10</datum>
+      <datum>3.24788018763537e-10</datum>
       <datum>3.05210872224201e-10</datum>
       <datum>2.86813771266846e-10</datum>
       <datum>2.69463533235048e-10</datum>
@@ -20614,9 +20614,9 @@
       <datum>0.00306549067942579</datum>
       <datum>0.00311888958409394</datum>
       <datum>0.00317321866383614</datum>
-      <datum>0.00322700768751553</datum>
+      <datum>0.00322775081904805</datum>
       <datum>0.00328246421375217</datum>
-      <datum>0.00334734133129236</datum>
+      <datum>0.00333656815138526</datum>
       <datum>0.00339234489541443</datum>
       <datum>0.00344746606573149</datum>
       <datum>0.00350267626913813</datum>
@@ -21108,7 +21108,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -21135,10 +21135,10 @@
       <datum>0.00290402265446445</datum>
       <datum>0.00295460888847934</datum>
       <datum>0.00300676855697218</datum>
-      <datum>0.00305492111321551</datum>
+      <datum>0.00305421777261214</datum>
       <datum>0.00311243291876751</datum>
       <datum>0.00316592046343224</datum>
-      <datum>0.00322181055517711</datum>
+      <datum>0.00322255248988791</datum>
       <datum>0.00327793245300228</datum>
       <datum>0.00333656815138526</datum>
       <datum>0.00339547079984023</datum>
@@ -21154,13 +21154,13 @@
       <datum>0.00408601540813823</datum>
       <datum>0.0041667745222191</datum>
       <datum>0.00425206602972015</datum>
-      <datum>0.00433710563500441</datum>
+      <datum>0.00433810440546589</datum>
       <datum>0.00443506511025305</datum>
       <datum>0.00453523713451445</datum>
-      <datum>0.00463660394080555</datum>
+      <datum>0.00463553644619851</datum>
       <datum>0.00474023639035034</datum>
       <datum>0.00484841738708446</datum>
-      <datum>0.0049545019080479</datum>
+      <datum>0.00495564285562297</datum>
       <datum>0.00505475371359798</datum>
       <datum>0.00516178605496673</datum>
       <datum>0.00526865789697371</datum>
@@ -21224,36 +21224,36 @@
       <datum>1.45512398732424</datum>
       <datum>1.46150397200616</datum>
       <datum>1.46622290610581</datum>
-      <datum>1.48422588006457</datum>
+      <datum>1.46960289897965</datum>
       <datum>1.47231250243272</datum>
       <datum>1.47400854097381</datum>
       <datum>1.4753667784066</datum>
       <datum>1.47672626739858</datum>
-      <datum>1.49245072053374</datum>
-      <datum>1.47842739040067</datum>
+      <datum>1.47740648158961</datum>
+      <datum>1.49313817777069</datum>
       <datum>1.47944900467418</datum>
       <datum>1.49485820656383</datum>
       <datum>1.4955467727444</datum>
       <datum>1.49623565609443</datum>
       <datum>1.48217676203944</datum>
       <datum>1.49795925304488</datum>
-      <datum>1.49899436411221</datum>
+      <datum>1.48422588006457</datum>
       <datum>1.50003019045595</datum>
       <datum>1.50141240575414</datum>
-      <datum>1.48730487004653</datum>
+      <datum>1.50244990299891</datum>
       <datum>1.50314196609002</datum>
-      <datum>1.50348811716899</datum>
+      <datum>1.48867535949236</datum>
       <datum>1.5041806584855</datum>
       <datum>1.50452704875976</datum>
       <datum>1.50487351880251</datum>
       <datum>1.4900471117871</datum>
       <datum>1.50522006863213</datum>
-      <datum>1.49073346186641</datum>
+      <datum>1.50556669826698</datum>
       <datum>1.49107675545272</datum>
       <datum>1.4914201280944</datum>
       <datum>1.49176357980965</datum>
       <datum>1.4921071106167</datum>
-      <datum>1.50730104416313</datum>
+      <datum>1.49245072053374</datum>
       <datum>1.50764815301548</datum>
       <datum>1.49313817777069</datum>
       <datum>1.50834261054048</datum>
@@ -21262,8 +21262,8 @@
       <datum>1.4941699574067</datum>
       <datum>1.49485820656383</datum>
       <datum>1.49520245001706</datum>
-      <datum>1.5104279030039</datum>
-      <datum>1.4958911747641</datum>
+      <datum>1.4955467727444</datum>
+      <datum>1.51077573192499</datum>
       <datum>1.51147163008501</datum>
       <datum>1.49692485676004</datum>
       <datum>1.51216784879177</datum>
@@ -21275,7 +21275,7 @@
       <datum>1.5153048036987</datum>
       <datum>1.50106673257037</datum>
       <datum>1.51670109391634</datum>
-      <datum>1.51705036745934</datum>
+      <datum>1.50210399095008</datum>
       <datum>1.50279589470611</datum>
       <datum>1.50314196609002</datum>
       <datum>1.50383434796136</datum>
@@ -21284,7 +21284,7 @@
       <datum>1.50487351880251</datum>
       <datum>1.50522006863213</datum>
       <datum>1.50556669826698</datum>
-      <datum>1.52089768905205</datum>
+      <datum>1.50591340772544</datum>
       <datum>1.50591340772544</datum>
       <datum>1.5062601970259</datum>
       <datum>1.50660706618674</datum>
@@ -21293,7 +21293,7 @@
       <datum>1.50695401522635</datum>
       <datum>1.50695401522635</datum>
       <datum>1.50730104416313</datum>
-      <datum>1.52229913288042</datum>
+      <datum>1.50730104416313</datum>
       <datum>1.52264969556794</datum>
       <datum>1.50764815301548</datum>
       <datum>1.50764815301548</datum>
@@ -21308,12 +21308,12 @@
       <datum>1.50868995924996</datum>
       <datum>1.50903738794864</datum>
       <datum>1.50903738794864</datum>
-      <datum>1.52440372031744</datum>
+      <datum>1.50903738794864</datum>
       <datum>1.50938489665495</datum>
       <datum>1.50938489665495</datum>
       <datum>1.50938489665495</datum>
       <datum>1.50938489665495</datum>
-      <datum>1.52475476765992</datum>
+      <datum>1.50938489665495</datum>
       <datum>1.50973248538731</datum>
       <datum>1.50973248538731</datum>
       <datum>1.50973248538731</datum>
@@ -21321,13 +21321,13 @@
       <datum>1.50973248538731</datum>
       <datum>1.50973248538731</datum>
       <datum>1.50973248538731</datum>
-      <datum>1.50973248538731</datum>
+      <datum>1.52510589584334</datum>
       <datum>1.50973248538731</datum>
       <datum>1.50973248538731</datum>
       <datum>1.51008015416415</datum>
       <datum>1.51008015416415</datum>
-      <datum>1.51008015416415</datum>
-      <datum>1.51008015416415</datum>
+      <datum>1.52510589584334</datum>
+      <datum>1.52510589584334</datum>
       <datum>1.51008015416415</datum>
       <datum>1.51008015416415</datum>
       <datum>1.51008015416415</datum>
@@ -21343,7 +21343,6 @@
       <datum>1.51008015416415</datum>
       <datum>1.51008015416415</datum>
       <datum>1.52510589584334</datum>
-      <datum>1.52510589584334</datum>
       <datum>1.51008015416415</datum>
       <datum>1.51008015416415</datum>
       <datum>1.51008015416415</datum>
@@ -21352,6 +21351,7 @@
       <datum>1.51008015416415</datum>
       <datum>1.51008015416415</datum>
       <datum>1.51008015416415</datum>
+      <datum>1.51008015416415</datum>
       <datum>1.5104279030039</datum>
       <datum>1.5104279030039</datum>
       <datum>1.5104279030039</datum>
@@ -21370,7 +21370,7 @@
       <datum>1.5104279030039</datum>
       <datum>1.5104279030039</datum>
       <datum>1.5104279030039</datum>
-      <datum>1.5104279030039</datum>
+      <datum>1.52545710488632</datum>
       <datum>1.5104279030039</datum>
       <datum>1.5104279030039</datum>
       <datum>1.5104279030039</datum>
@@ -21500,7 +21500,7 @@
       <datum>2.51130811486805e-06</datum>
       <datum>2.24078402678606e-06</datum>
       <datum>2.00401053375766e-06</datum>
-      <datum>1.79680108017349e-06</datum>
+      <datum>1.79638739906389e-06</datum>
       <datum>1.61435855682649e-06</datum>
       <datum>1.45344967791831e-06</datum>
       <datum>1.31159574775555e-06</datum>
@@ -21584,7 +21584,7 @@
       <datum>6.67421203858478e-09</datum>
       <datum>6.29361250388545e-09</datum>
       <datum>5.93471680553056e-09</datum>
-      <datum>5.59499882939776e-09</datum>
+      <datum>5.5962872738197e-09</datum>
       <datum>5.27594184726996e-09</datum>
       <datum>4.972788632334e-09</datum>
       <datum>4.68813382145265e-09</datum>
@@ -21661,7 +21661,7 @@
       <datum>0.00258404456901246</datum>
       <datum>0.0026320855443441</datum>
       <datum>0.00268225460760849</datum>
-      <datum>0.00273400937850561</datum>
+      <datum>0.00273463897991228</datum>
       <datum>0.00278291537385261</datum>
       <datum>0.0028326962002809</datum>
       <datum>0.00288270366330713</datum>
@@ -21685,7 +21685,7 @@
       <datum>0.00385123482428931</datum>
       <datum>0.00391020926126814</datum>
       <datum>0.0039719154946944</datum>
-      <datum>0.0040345955018983</datum>
+      <datum>0.00403366660889927</datum>
       <datum>0.00410015240506613</datum>
       <datum>0.00417445707826291</datum>
       <datum>0.00424619563946313</datum>
@@ -21711,7 +21711,7 @@
       <datum>0.00965161522875096</datum>
       <datum>0.0213304491314658</datum>
       <datum>0.0514162028135436</datum>
-      <datum>0.111634903165924</datum>
+      <datum>0.111660611011924</datum>
       <datum>0.213697774824524</datum>
       <datum>0.357766769936111</datum>
       <datum>0.522516489016382</datum>
@@ -22163,7 +22163,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -22291,9 +22291,9 @@
       <datum>1.76075933676303</datum>
       <datum>1.74421493156118</datum>
       <datum>1.7458221529205</datum>
-      <datum>1.76481830623216</datum>
+      <datum>1.74743085526732</datum>
       <datum>1.7490410399663</datum>
-      <datum>1.75105585747878</datum>
+      <datum>1.7684793782818</datum>
       <datum>1.75307299597144</datum>
       <datum>1.75468837966791</datum>
       <datum>1.75590089419914</datum>
@@ -22302,7 +22302,7 @@
       <datum>1.75832843743474</datum>
       <datum>1.75913836408266</datum>
       <datum>1.75954346729746</datum>
-      <datum>1.75994866380147</datum>
+      <datum>1.77746067064296</datum>
       <datum>1.76035395361616</datum>
       <datum>1.76075933676303</datum>
       <datum>1.76157038313926</datum>
@@ -22314,13 +22314,13 @@
       <datum>1.78278922257967</datum>
       <datum>1.78319977223292</datum>
       <datum>1.76644451274248</datum>
-      <datum>1.76685129845388</datum>
+      <datum>1.78443198854037</datum>
       <datum>1.76766515092823</datum>
       <datum>1.7684793782818</datum>
       <datum>1.76929398068728</datum>
       <datum>1.77010895831742</datum>
       <datum>1.77051658789575</datum>
-      <datum>1.7893693744453</datum>
+      <datum>1.77133212868698</datum>
       <datum>1.79019359926501</datum>
       <datum>1.7729643374132</datum>
       <datum>1.77418948089017</datum>
@@ -22345,7 +22345,7 @@
       <datum>1.78854552910777</datum>
       <datum>1.78895740435219</datum>
       <datum>1.7893693744453</datum>
-      <datum>1.7893693744453</datum>
+      <datum>1.80717412601093</datum>
       <datum>1.78978143940896</datum>
       <datum>1.78978143940896</datum>
       <datum>1.79019359926501</datum>
@@ -22361,8 +22361,8 @@
       <datum>1.79225582269607</datum>
       <datum>1.79266855236553</datum>
       <datum>1.79266855236553</datum>
+      <datum>1.81092306416406</datum>
       <datum>1.79308137708044</datum>
-      <datum>1.79308137708044</datum>
       <datum>1.7934942968627</datum>
       <datum>1.7934942968627</datum>
       <datum>1.7934942968627</datum>
@@ -22375,10 +22375,6 @@
       <datum>1.79432042171685</datum>
       <datum>1.79432042171685</datum>
       <datum>1.79432042171685</datum>
-      <datum>1.81259175428714</datum>
-      <datum>1.79473362683253</datum>
-      <datum>1.79473362683253</datum>
-      <datum>1.79473362683253</datum>
       <datum>1.79473362683253</datum>
       <datum>1.79473362683253</datum>
       <datum>1.79473362683253</datum>
@@ -22391,6 +22387,9 @@
       <datum>1.79473362683253</datum>
       <datum>1.79473362683253</datum>
       <datum>1.81300916701702</datum>
+      <datum>1.79473362683253</datum>
+      <datum>1.79473362683253</datum>
+      <datum>1.79473362683253</datum>
       <datum>1.79514692710316</datum>
       <datum>1.79514692710316</datum>
       <datum>1.79514692710316</datum>
@@ -22401,24 +22400,16 @@
       <datum>1.79514692710316</datum>
       <datum>1.79514692710316</datum>
       <datum>1.79514692710316</datum>
+      <datum>1.81300916701702</datum>
+      <datum>1.79514692710316</datum>
+      <datum>1.81300916701702</datum>
       <datum>1.79514692710316</datum>
       <datum>1.79514692710316</datum>
       <datum>1.79514692710316</datum>
+      <datum>1.8134266758708</datum>
       <datum>1.79514692710316</datum>
+      <datum>1.8134266758708</datum>
       <datum>1.79514692710316</datum>
-      <datum>1.79514692710316</datum>
-      <datum>1.79514692710316</datum>
-      <datum>1.79514692710316</datum>
-      <datum>1.79514692710316</datum>
-      <datum>1.79556032255065</datum>
-      <datum>1.79556032255065</datum>
-      <datum>1.79556032255065</datum>
-      <datum>1.79556032255065</datum>
-      <datum>1.79556032255065</datum>
-      <datum>1.79556032255065</datum>
-      <datum>1.79556032255065</datum>
-      <datum>1.79556032255065</datum>
-      <datum>1.79556032255065</datum>
       <datum>1.79556032255065</datum>
       <datum>1.79556032255065</datum>
       <datum>1.79556032255065</datum>
@@ -22433,6 +22424,15 @@
       <datum>1.79556032255065</datum>
       <datum>1.79556032255065</datum>
       <datum>1.8134266758708</datum>
+      <datum>1.79556032255065</datum>
+      <datum>1.79556032255065</datum>
+      <datum>1.79556032255065</datum>
+      <datum>1.8134266758708</datum>
+      <datum>1.79556032255065</datum>
+      <datum>1.8134266758708</datum>
+      <datum>1.79556032255065</datum>
+      <datum>1.79556032255065</datum>
+      <datum>1.79556032255065</datum>
       <datum>1.79556032255065</datum>
       <datum>1.79556032255065</datum>
       <datum>1.79556032255065</datum>
@@ -22608,7 +22608,7 @@
       <datum>4.07567926559489e-08</datum>
       <datum>3.84149259178759e-08</datum>
       <datum>3.62076217756673e-08</datum>
-      <datum>3.41271483238687e-08</datum>
+      <datum>3.41350072949311e-08</datum>
       <datum>3.21810344309344e-08</datum>
       <datum>3.0345898438888e-08</datum>
       <datum>2.8615411789812e-08</datum>
@@ -22649,7 +22649,7 @@
       <datum>3.6897759857015e-09</datum>
       <datum>3.47616193815381e-09</datum>
       <datum>3.27491475555579e-09</datum>
-      <datum>3.08531847680638e-09</datum>
+      <datum>3.08602897943606e-09</datum>
       <datum>2.90669859029883e-09</datum>
       <datum>2.73778916243008e-09</datum>
       <datum>2.57869512956588e-09</datum>
@@ -22663,9 +22663,9 @@
       <datum>1.59184214964859e-09</datum>
       <datum>1.49830421062266e-09</datum>
       <datum>1.40993794935872e-09</datum>
-      <datum>1.32678331072416e-09</datum>
+      <datum>1.3270888490465e-09</datum>
       <datum>1.24853292615949e-09</datum>
-      <datum>1.1746270559235e-09</datum>
+      <datum>1.17489755493953e-09</datum>
       <datum>1.10509598233154e-09</datum>
       <datum>1.03968074292752e-09</datum>
       <datum>9.7791250572124e-10</datum>
@@ -22686,16 +22686,16 @@
       <datum>3.87525245441025e-10</datum>
       <datum>3.64166506573213e-10</datum>
       <datum>3.42136966135368e-10</datum>
-      <datum>3.21440059652438e-10</datum>
+      <datum>3.21514082483269e-10</datum>
       <datum>3.01995172040202e-10</datum>
       <datum>2.83726564866257e-10</datum>
       <datum>2.66501709994676e-10</datum>
       <datum>2.50380210375374e-10</datum>
       <datum>2.35125645041772e-10</datum>
-      <datum>2.20851320343482e-10</datum>
+      <datum>2.20902179094387e-10</datum>
       <datum>2.07443580596214e-10</datum>
       <datum>1.94804955329077e-10</datum>
-      <datum>1.82978473429541e-10</datum>
+      <datum>1.82936345929309e-10</datum>
       <datum>1.71790838715759e-10</datum>
       <datum>1.6128723621704e-10</datum>
       <datum>1.51460714070341e-10</datum>
@@ -22721,7 +22721,7 @@
       <datum>0.00268967619956499</datum>
       <datum>0.00272458273325773</datum>
       <datum>0.00278547971437574</datum>
-      <datum>0.0028340010055091</datum>
+      <datum>0.00283465363348967</datum>
       <datum>0.002882039972672</datum>
       <datum>0.00292886935502902</datum>
       <datum>0.00297029784401786</datum>
@@ -23218,7 +23218,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -23292,7 +23292,7 @@
       <datum>0.00393278314568342</datum>
       <datum>0.0038976245309772</datum>
       <datum>0.00422668614265603</datum>
-      <datum>0.00552968000492803</datum>
+      <datum>0.00553222710312372</datum>
       <datum>0.0117543873986156</datum>
       <datum>0.0385655917891393</datum>
       <datum>0.0996093256598079</datum>
@@ -23356,9 +23356,9 @@
       <datum>2.23563036653701</datum>
       <datum>2.23666014946618</datum>
       <datum>2.23769040673712</datum>
-      <datum>2.26099707235047</datum>
-      <datum>2.26151774610836</datum>
-      <datum>2.24026812659387</datum>
+      <datum>2.23872113856834</datum>
+      <datum>2.23923668251236</datum>
+      <datum>2.26255945336186</datum>
       <datum>2.24130004578233</datum>
       <datum>2.24233244029657</datum>
       <datum>2.24336531035555</datum>
@@ -23368,7 +23368,7 @@
       <datum>2.24750155042126</datum>
       <datum>2.24853680149162</datum>
       <datum>2.24957252942252</datum>
-      <datum>2.27300295329098</datum>
+      <datum>2.2506087344336</datum>
       <datum>2.25164541674462</datum>
       <datum>2.25320133562948</datum>
       <datum>2.25423921215243</datum>
@@ -23384,7 +23384,7 @@
       <datum>2.26934225635506</datum>
       <datum>2.27143336065651</datum>
       <datum>2.27300295329098</datum>
-      <datum>2.27457363053619</datum>
+      <datum>2.29773531936064</datum>
       <datum>2.2766695553309</datum>
       <datum>2.27824276625008</datum>
       <datum>2.27981706428029</datum>
@@ -23395,16 +23395,16 @@
       <datum>2.28665160291952</datum>
       <datum>2.28717818453152</datum>
       <datum>2.28823171157501</datum>
-      <datum>2.28875865706236</datum>
+      <datum>2.31206479017559</datum>
       <datum>2.28981291210797</datum>
-      <datum>2.29034022172212</datum>
+      <datum>2.31312978056385</datum>
       <datum>2.29086765276777</datum>
       <datum>2.2913952052729</datum>
       <datum>2.29192287926546</datum>
       <datum>2.29245067477344</datum>
       <datum>2.29245067477344</datum>
       <datum>2.29297859182482</datum>
-      <datum>2.31632769598745</datum>
+      <datum>2.29350663044759</datum>
       <datum>2.29403479066975</datum>
       <datum>2.29456307251929</datum>
       <datum>2.29456307251929</datum>
@@ -23413,7 +23413,7 @@
       <datum>2.29562000121258</datum>
       <datum>2.29614864811236</datum>
       <datum>2.29667741675161</datum>
-      <datum>2.29720630715835</datum>
+      <datum>2.32006418556963</datum>
       <datum>2.29720630715835</datum>
       <datum>2.29773531936064</datum>
       <datum>2.2982644533865</datum>
@@ -23430,12 +23430,12 @@
       <datum>2.30038220828702</datum>
       <datum>2.30091195185176</datum>
       <datum>2.30091195185176</datum>
+      <datum>2.30091195185176</datum>
+      <datum>2.30091195185176</datum>
       <datum>2.32380670251764</datum>
       <datum>2.30091195185176</datum>
       <datum>2.30091195185176</datum>
       <datum>2.30091195185176</datum>
-      <datum>2.30091195185176</datum>
-      <datum>2.30091195185176</datum>
       <datum>2.30144181740851</datum>
       <datum>2.30144181740851</datum>
       <datum>2.30144181740851</datum>
@@ -23463,6 +23463,12 @@
       <datum>2.30197180498536</datum>
       <datum>2.30197180498536</datum>
       <datum>2.30197180498536</datum>
+      <datum>2.30250191461041</datum>
+      <datum>2.30250191461041</datum>
+      <datum>2.32541248587338</datum>
+      <datum>2.30250191461041</datum>
+      <datum>2.30250191461041</datum>
+      <datum>2.30250191461041</datum>
       <datum>2.30250191461041</datum>
       <datum>2.32541248587338</datum>
       <datum>2.30250191461041</datum>
@@ -23473,13 +23479,7 @@
       <datum>2.30250191461041</datum>
       <datum>2.30250191461041</datum>
       <datum>2.30250191461041</datum>
-      <datum>2.30250191461041</datum>
-      <datum>2.30250191461041</datum>
-      <datum>2.30250191461041</datum>
-      <datum>2.30250191461041</datum>
-      <datum>2.30250191461041</datum>
-      <datum>2.30250191461041</datum>
-      <datum>2.30250191461041</datum>
+      <datum>2.32541248587338</datum>
       <datum>2.30250191461041</datum>
       <datum>2.30250191461041</datum>
       <datum>2.30250191461041</datum>
@@ -23566,7 +23566,7 @@
       <datum>0.211933690126401</datum>
       <datum>0.131340903653273</datum>
       <datum>0.0807049178911866</datum>
-      <datum>0.0498654795555797</datum>
+      <datum>0.0498769628285776</datum>
       <datum>0.0312464008580611</datum>
       <datum>0.0199021502227934</datum>
       <datum>0.0129092199361535</datum>
@@ -23695,7 +23695,7 @@
       <datum>6.26613864672336e-09</datum>
       <datum>5.90880965574781e-09</datum>
       <datum>5.57057466941556e-09</datum>
-      <datum>5.25049198674763e-09</datum>
+      <datum>5.25170109640413e-09</datum>
       <datum>4.94994074396934e-09</datum>
       <datum>4.66551940390981e-09</datum>
       <datum>4.39642835287889e-09</datum>
@@ -23727,13 +23727,13 @@
       <datum>9.15587805975786e-10</datum>
       <datum>8.60993752184602e-10</datum>
       <datum>8.09654995908196e-10</datum>
-      <datum>7.6155276627404e-10</datum>
-      <datum>7.15813689911475e-10</datum>
+      <datum>7.61377432456152e-10</datum>
+      <datum>7.15978531081963e-10</datum>
       <datum>6.72976656284317e-10</datum>
       <datum>6.32703154866501e-10</datum>
       <datum>5.94702822917261e-10</datum>
       <datum>5.58984801743851e-10</datum>
-      <datum>5.25412015110079e-10</datum>
+      <datum>5.2553300962692e-10</datum>
       <datum>4.93855619617608e-10</datum>
       <datum>4.6408763780801e-10</datum>
       <datum>4.36113971393064e-10</datum>
@@ -23742,7 +23742,7 @@
       <datum>3.61742886764219e-10</datum>
       <datum>3.39859958465667e-10</datum>
       <datum>3.19227281846218e-10</datum>
-      <datum>2.99916251898765e-10</datum>
+      <datum>2.99985318119079e-10</datum>
       <datum>2.81708531676939e-10</datum>
       <datum>2.64545269472405e-10</datum>
       <datum>2.48484898545301e-10</datum>
@@ -23818,7 +23818,7 @@
       <datum>0.00192619388592495</datum>
       <datum>0.00186939036513748</datum>
       <datum>0.00214387766597351</datum>
-      <datum>0.00334734133129236</datum>
+      <datum>0.00334965439157828</datum>
       <datum>0.00932180470341608</datum>
       <datum>0.0352533181195886</datum>
       <datum>0.0948200107019506</datum>
@@ -24273,7 +24273,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>
@@ -24349,7 +24349,7 @@
       <datum>0.00376443671073645</datum>
       <datum>0.00447816405843938</datum>
       <datum>0.00700164359372975</datum>
-      <datum>0.0245414376313743</datum>
+      <datum>0.0244568207210437</datum>
       <datum>0.0841782707660813</datum>
       <datum>0.192176376292193</datum>
       <datum>0.346258146543792</datum>
@@ -24403,40 +24403,40 @@
       <datum>3.04719326666311</datum>
       <datum>3.05210872224201</datum>
       <datum>3.08816146918451</datum>
-      <datum>3.0945677839874</datum>
+      <datum>3.06407929380605</datum>
       <datum>3.06972873818367</datum>
       <datum>3.07538859881319</datum>
       <datum>3.11028366868514</datum>
-      <datum>3.08318795024935</datum>
+      <datum>3.11386657718256</datum>
       <datum>3.11601830310546</datum>
       <datum>3.11817151590146</datum>
       <datum>3.11960781764676</datum>
       <datum>3.12104478098578</datum>
       <datum>3.0917188938917</datum>
-      <datum>3.09314301094896</datum>
+      <datum>3.12392069366412</datum>
       <datum>3.09528041659398</datum>
       <datum>3.09670617417077</datum>
       <datum>3.12968047156367</datum>
-      <datum>3.13184312511164</datum>
+      <datum>3.10098738853234</datum>
       <datum>3.13400727308386</datum>
       <datum>3.10455958812836</datum>
       <datum>3.13761751011875</datum>
-      <datum>3.10813590273948</datum>
+      <datum>3.13906276913766</datum>
       <datum>3.14123190598619</datum>
       <datum>3.11171633710602</datum>
-      <datum>3.14485046547696</datum>
+      <datum>3.11386657718256</datum>
       <datum>3.11601830310546</datum>
-      <datum>3.14992345278447</datum>
+      <datum>3.11817151590146</datum>
       <datum>3.12104478098578</datum>
-      <datum>3.15427824034436</datum>
+      <datum>3.12320146714921</datum>
       <datum>3.12607936712396</datum>
       <datum>3.12823953225774</datum>
-      <datum>3.13112207459949</datum>
+      <datum>3.16227766016838</datum>
       <datum>3.13328572431559</datum>
       <datum>3.13617291651299</datum>
       <datum>3.13906276913766</datum>
-      <datum>3.14195528464107</datum>
-      <datum>3.17687407064977</datum>
+      <datum>3.17394940856223</datum>
+      <datum>3.14557467743189</datum>
       <datum>3.14847319338738</datum>
       <datum>3.15137438020451</datum>
       <datum>3.15500462337463</datum>
@@ -24449,13 +24449,13 @@
       <datum>3.17394940856223</datum>
       <datum>3.17541140289184</datum>
       <datum>3.17760565716129</datum>
-      <datum>3.21070201056191</datum>
-      <datum>3.17980142769153</datum>
+      <datum>3.17906933564336</datum>
+      <datum>3.21218093398798</datum>
       <datum>3.18126611759617</datum>
       <datum>3.18199871553031</datum>
       <datum>3.18346441755643</datum>
       <datum>3.18419752172612</datum>
-      <datum>3.18493079471873</datum>
+      <datum>3.21662179287904</datum>
       <datum>3.18566423657311</datum>
       <datum>3.18639784732817</datum>
       <datum>3.1871316270228</datum>
@@ -24473,8 +24473,8 @@
       <datum>3.19595017481476</datum>
       <datum>3.19595017481476</datum>
       <datum>3.19668615426732</datum>
-      <datum>3.19742230320493</datum>
-      <datum>3.22998124059563</datum>
+      <datum>3.22923759554869</datum>
+      <datum>3.19815862166661</datum>
       <datum>3.19815862166661</datum>
       <datum>3.1988951096914</datum>
       <datum>3.19963176731835</datum>
@@ -24495,8 +24495,8 @@
       <datum>3.20184275820278</datum>
       <datum>3.20184275820278</datum>
       <datum>3.20184275820278</datum>
+      <datum>3.23444670851447</datum>
       <datum>3.20184275820278</datum>
-      <datum>3.20184275820278</datum>
       <datum>3.20258009462903</datum>
       <datum>3.20258009462903</datum>
       <datum>3.20258009462903</datum>
@@ -24509,6 +24509,8 @@
       <datum>3.20258009462903</datum>
       <datum>3.20331760085281</datum>
       <datum>3.20331760085281</datum>
+      <datum>3.2351915531421</datum>
+      <datum>3.2351915531421</datum>
       <datum>3.20331760085281</datum>
       <datum>3.20331760085281</datum>
       <datum>3.20331760085281</datum>
@@ -24517,8 +24519,6 @@
       <datum>3.20331760085281</datum>
       <datum>3.20331760085281</datum>
       <datum>3.20331760085281</datum>
-      <datum>3.20331760085281</datum>
-      <datum>3.20331760085281</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
@@ -24526,17 +24526,17 @@
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
+      <datum>3.23593656929628</datum>
+      <datum>3.20405527691323</datum>
+      <datum>3.20405527691323</datum>
+      <datum>3.20405527691323</datum>
+      <datum>3.23593656929628</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
-      <datum>3.20405527691323</datum>
-      <datum>3.20405527691323</datum>
-      <datum>3.20405527691323</datum>
-      <datum>3.20405527691323</datum>
-      <datum>3.20405527691323</datum>
-      <datum>3.20405527691323</datum>
+      <datum>3.23593656929628</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
       <datum>3.20405527691323</datum>
@@ -24666,7 +24666,7 @@
       <datum>2.23357222283053e-06</datum>
       <datum>1.99802077676587e-06</datum>
       <datum>1.79143064840602e-06</datum>
-      <datum>1.60953342477746e-06</datum>
+      <datum>1.60916285867504e-06</datum>
       <datum>1.44910548400123e-06</datum>
       <datum>1.30737447016313e-06</datum>
       <datum>1.18222462176146e-06</datum>
@@ -24698,7 +24698,7 @@
       <datum>1.42988134448138e-07</datum>
       <datum>1.33628778948501e-07</datum>
       <datum>1.24968339721122e-07</datum>
-      <datum>1.16949939101987e-07</datum>
+      <datum>1.16976870921149e-07</datum>
       <datum>1.09521655536674e-07</datum>
       <datum>1.02612436519334e-07</datum>
       <datum>9.62055219186215e-08</datum>
@@ -24736,7 +24736,7 @@
       <datum>1.417751123122e-08</datum>
       <datum>1.33751912298561e-08</datum>
       <datum>1.26182753459067e-08</datum>
-      <datum>1.19041941134796e-08</datum>
+      <datum>1.1906935471069e-08</datum>
       <datum>1.12305234754108e-08</datum>
       <datum>1.05949765544345e-08</datum>
       <datum>9.99309463002592e-09</datum>
@@ -24772,7 +24772,7 @@
       <datum>1.67880401812256e-09</datum>
       <datum>1.57979232648838e-09</datum>
       <datum>1.4866200985286e-09</datum>
-      <datum>1.39862085574527e-09</datum>
+      <datum>1.39894293717817e-09</datum>
       <datum>1.31613367118573e-09</datum>
       <datum>1.23794115165511e-09</datum>
       <datum>1.16466225271933e-09</datum>
@@ -24789,17 +24789,17 @@
       <datum>5.91561634175474e-10</datum>
       <datum>5.55904257270403e-10</datum>
       <datum>5.2239618899912e-10</datum>
-      <datum>4.90907876152604e-10</datum>
+      <datum>4.91133999646998e-10</datum>
       <datum>4.61317574560379e-10</datum>
       <datum>4.33411070310177e-10</datum>
       <datum>4.07286485827242e-10</datum>
-      <datum>3.82560388668038e-10</datum>
+      <datum>3.82736604809814e-10</datum>
       <datum>3.59418146314715e-10</datum>
       <datum>3.37598104855425e-10</datum>
       <datum>3.1710274389479e-10</datum>
       <datum>2.97783067962912e-10</datum>
       <datum>2.79704851947809e-10</datum>
-      <datum>2.62663665139289e-10</datum>
+      <datum>2.62724152646885e-10</datum>
       <datum>2.46660722915446e-10</datum>
       <datum>2.31579440322507e-10</datum>
       <datum>2.17470323244036e-10</datum>
@@ -24874,8 +24874,8 @@
       <datum>0.000539883431999212</datum>
       <datum>0.000656145266302906</datum>
       <datum>0.00111378150013467</datum>
-      <datum>0.0032703934175664</datum>
-      <datum>0.0196516943149691</datum>
+      <datum>0.00327114654018266</datum>
+      <datum>0.0195433945577539</datum>
       <datum>0.0764891791007072</datum>
       <datum>0.180925591025382</datum>
       <datum>0.331054884501619</datum>
@@ -25328,7 +25328,7 @@
       <datum>5.6234e+08</datum>
       <datum>5.9566e+08</datum>
       <datum>6.3096e+08</datum>
-      <datum>6.6834e+08</datum>
+      <datum>6.6835e+08</datum>
       <datum>7.0795e+08</datum>
       <datum>7.4989e+08</datum>
       <datum>7.9433e+08</datum>

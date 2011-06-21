@@ -61,12 +61,12 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     $heliumAbundanceSolar      = 0.100;
     
     # Specify Cloudy version.
-    $cloudyVersion = "c10.00_rc1";
+    $cloudyVersion = "c10.00_rc2";
 
     # Download the code.
     unless ( -e "aux/".$cloudyVersion.".tar.gz" ) {
 	print "Cloudy_Driver.pl: downloading Cloudy code.\n";
-	system("wget \"http://viewvc.nublado.org/index.cgi/tags/develop/".$cloudyVersion.".tar.gz?root=cloudy&view=tar\" -O aux/".$cloudyVersion.".tar.gz");
+	system("wget \"http://data.nublado.org/cloudy_releases/".$cloudyVersion.".tar.gz\" -O aux/".$cloudyVersion.".tar.gz");
 	die("Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e "aux/".$cloudyVersion.".tar.gz" );
     }
     
