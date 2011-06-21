@@ -145,22 +145,24 @@ contains
     return
   end subroutine Tree_Node_Methods_Spin_Random_Initialize
 
-  double precision function Tree_Node_Spin_Random(thisNode)
+  double precision function Tree_Node_Spin_Random(thisNode,instance)
     !% Return the node spin mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
     ! Ensure the spin has been initialized.
     call Tree_Node_Methods_Spin_Random_Initialize_Spin(thisNode)
     thisIndex=Tree_Node_Spin_Random_Index(thisNode)
-    Tree_Node_Spin_Random=thisNode%components(thisIndex)%data(spinIndex)
+    Tree_Node_Spin_Random=thisNode%components(thisIndex)%instance(1)%data(spinIndex)
     return
   end function Tree_Node_Spin_Random
 
-  double precision function Tree_Node_Spin_Growth_Rate_Random(thisNode)
+  double precision function Tree_Node_Spin_Growth_Rate_Random(thisNode,instance)
     !% Return the node spin growth rate (always zero in this case).
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
 
     Tree_Node_Spin_Growth_Rate_Random=0.0d0
@@ -193,7 +195,7 @@ contains
            previousSetSpin=Halo_Spin_Distribution_Sample(relatedNode)
            previousSetMass=Tree_Node_Mass               (relatedNode)                
            relatedIndex=Tree_Node_Spin_Random_Index(relatedNode)            
-           relatedNode%components(relatedIndex)%data(spinIndex)=previousSetSpin
+           relatedNode%components(relatedIndex)%instance(1)%data(spinIndex)=previousSetSpin
            do while (relatedNode%isPrimaryProgenitor())
               relatedNode => relatedNode%parentNode
               if (Tree_Node_Mass(relatedNode) > randomSpinResetMassFactor*previousSetMass) then
@@ -201,7 +203,7 @@ contains
                  previousSetMass=Tree_Node_Mass               (relatedNode)                
               end if
               relatedIndex=Tree_Node_Spin_Random_Index(relatedNode)            
-              relatedNode%components(relatedIndex)%data(spinIndex)=previousSetSpin
+              relatedNode%components(relatedIndex)%instance(1)%data(spinIndex)=previousSetSpin
            end do
         end if
      end if
@@ -236,7 +238,7 @@ contains
             & has not been evolved to its parent')
        ! Adjust the mass to that of the parent node.
        thisIndex=Tree_Node_Spin_Random_Index(thisNode)            
-       thisNode%components(thisIndex)%data(spinIndex)=Tree_Node_Spin_Random(parentNode)
+       thisNode%components(thisIndex)%instance(1)%data(spinIndex)=Tree_Node_Spin_Random(parentNode)
     end if
     return
   end subroutine Tree_Node_Spin_Random_Promote

@@ -177,22 +177,24 @@ contains
     return
   end subroutine Tree_Node_Methods_Profile_ScaleShape_Initialize 
  
-  double precision function Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode)
+  double precision function Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode,instance)
     !% Return the node dark matter profile scale length.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
     ! Ensure the spin has been initialized.
     call Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale(thisNode)
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
-    Tree_Node_Dark_Matter_Profile_Scale_ScaleShape=thisNode%components(thisIndex)%properties(scaleIndex,propertyValue)
+    Tree_Node_Dark_Matter_Profile_Scale_ScaleShape=thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyValue)
     return
   end function Tree_Node_Dark_Matter_Profile_Scale_ScaleShape
 
-  subroutine Tree_Node_Dark_Matter_Profile_Scale_Rate_Adjust_ScaleShape(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Dark_Matter_Profile_Scale_Rate_Adjust_ScaleShape(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Adjust the rate of scale radius growth.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
@@ -201,7 +203,7 @@ contains
 
     ! Apply the change in rate.
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
-    thisNode%components(thisIndex)%properties(scaleIndex,propertyDerivative)=thisNode%components(thisIndex)%properties(scaleIndex&
+    thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyDerivative)=thisNode%components(thisIndex)%instance(1)%properties(scaleIndex&
          &,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Dark_Matter_Profile_Scale_Rate_Adjust_ScaleShape
@@ -221,35 +223,38 @@ contains
     return
   end subroutine Tree_Node_Dark_Matter_Profile_Scale_Rate_Compute_ScaleShape
 
-  double precision function Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate_ScaleShape(thisNode)
+  double precision function Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate_ScaleShape(thisNode,instance)
     !% Return the node dark matter profile scale length rate of growth (assumed to be zero).
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     integer                                  :: thisIndex
 
     ! Get component index for this node.
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
     ! Return the pre-computed growth rate.
-    Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate_ScaleShape=thisNode%components(thisIndex)%data(scaleRateIndex)
+    Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate_ScaleShape=thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)
     return
   end function Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate_ScaleShape
 
-  double precision function Tree_Node_Dark_Matter_Profile_Shape_ScaleShape(thisNode)
+  double precision function Tree_Node_Dark_Matter_Profile_Shape_ScaleShape(thisNode,instance)
     !% Return the node dark matter profile shape parameter.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
     ! Ensure the spin has been initialized.
     call Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale(thisNode)
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
-    Tree_Node_Dark_Matter_Profile_Shape_ScaleShape=thisNode%components(thisIndex)%properties(shapeIndex,propertyValue)
+    Tree_Node_Dark_Matter_Profile_Shape_ScaleShape=thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyValue)
     return
   end function Tree_Node_Dark_Matter_Profile_Shape_ScaleShape
 
-  subroutine Tree_Node_Dark_Matter_Profile_Shape_Rate_Adjust_ScaleShape(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Dark_Matter_Profile_Shape_Rate_Adjust_ScaleShape(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Adjust the rate of shape parameter growth.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
@@ -258,7 +263,7 @@ contains
 
     ! Apply the change in rate.
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
-    thisNode%components(thisIndex)%properties(shapeIndex,propertyDerivative)=thisNode%components(thisIndex)%properties(shapeIndex&
+    thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyDerivative)=thisNode%components(thisIndex)%instance(1)%properties(shapeIndex&
          &,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Dark_Matter_Profile_Shape_Rate_Adjust_ScaleShape
@@ -278,16 +283,17 @@ contains
     return
   end subroutine Tree_Node_Dark_Matter_Profile_Shape_Rate_Compute_ScaleShape
 
-  double precision function Tree_Node_Dark_Matter_Profile_Shape_Growth_Rate_ScaleShape(thisNode)
+  double precision function Tree_Node_Dark_Matter_Profile_Shape_Growth_Rate_ScaleShape(thisNode,instance)
     !% Return the node dark matter profile shape parameter rate of growth.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     integer                                  :: thisIndex
 
     ! Get component index for this node.
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
     ! Return the pre-computed growth rate.
-    Tree_Node_Dark_Matter_Profile_Shape_Growth_Rate_ScaleShape=thisNode%components(thisIndex)%data(shapeRateIndex)
+    Tree_Node_Dark_Matter_Profile_Shape_Growth_Rate_ScaleShape=thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)
     return
   end function Tree_Node_Dark_Matter_Profile_Shape_Growth_Rate_ScaleShape
 
@@ -309,9 +315,9 @@ contains
           thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
           ! Set the scale radius of the halo.
           concentration=max(Dark_Matter_Profile_Concentration(thisNode),darkMatterProfileMinimumConcentration)
-          thisNode%components(thisIndex)%properties(scaleIndex,propertyValue)=Dark_Matter_Halo_Virial_Radius(thisNode)/concentration
+          thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyValue)=Dark_Matter_Halo_Virial_Radius(thisNode)/concentration
           ! Set the scale radius of the halo.
-          thisNode%components(thisIndex)%properties(shapeIndex,propertyValue)=Dark_Matter_Profile_Shape(thisNode)
+          thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyValue)=Dark_Matter_Profile_Shape(thisNode)
           ! Check if this node is the primary progenitor.
           if (thisNode%isPrimaryProgenitor()) then
              ! It is, so compute the scale radius growth rate.
@@ -320,18 +326,18 @@ contains
              ! Now compute the growth rate.
              deltaTime=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
              if (deltaTime > 0.0d0) then
-                thisNode%components(thisIndex)%data(scaleRateIndex)=(Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode%parentNode)&
+                thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=(Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode%parentNode)&
                      &-Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode))/deltaTime
-                thisNode%components(thisIndex)%data(shapeRateIndex)=(Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode%parentNode)&
+                thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=(Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode%parentNode)&
                      &-Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode))/deltaTime
              else
-                thisNode%components(thisIndex)%data(scaleRateIndex)=0.0d0
-                thisNode%components(thisIndex)%data(shapeRateIndex)=0.0d0
+                thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=0.0d0
+                thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=0.0d0
              end if
           else
              ! It is not, so set scale radius and shape parameter growth rates to zero.
-             thisNode%components(thisIndex)%data(scaleRateIndex)=0.0d0
-             thisNode%components(thisIndex)%data(shapeRateIndex)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=0.0d0
           end if
        end if
     end if
@@ -358,13 +364,13 @@ contains
        thisIndex  =Tree_Node_Profile_ScaleShape_Index(thisNode)
        parentIndex=Tree_Node_Profile_ScaleShape_Index(parentNode)
        ! Adjust the scale radius to that of the parent node.
-       thisNode%components(thisIndex)%properties(scaleIndex,propertyValue)=parentNode%components(parentIndex)%properties(scaleIndex,propertyValue)
+       thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyValue)=parentNode%components(parentIndex)%instance(1)%properties(scaleIndex,propertyValue)
        ! Adjust the growth rate to that of the parent node.
-       thisNode%components(thisIndex)%data      (scaleRateIndex          )=parentNode%components(parentIndex)%data      (scaleRateIndex          )
+       thisNode%components(thisIndex)%instance(1)%data      (scaleRateIndex          )=parentNode%components(parentIndex)%instance(1)%data      (scaleRateIndex          )
        ! Adjust the shape parameter to that of the parent node.
-       thisNode%components(thisIndex)%properties(shapeIndex,propertyValue)=parentNode%components(parentIndex)%properties(shapeIndex,propertyValue)
+       thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyValue)=parentNode%components(parentIndex)%instance(1)%properties(shapeIndex,propertyValue)
        ! Adjust the growth rate to that of the parent node.
-       thisNode%components(thisIndex)%data      (shapeRateIndex          )=parentNode%components(parentIndex)%data      (shapeRateIndex          )
+       thisNode%components(thisIndex)%instance(1)%data      (shapeRateIndex          )=parentNode%components(parentIndex)%instance(1)%data      (shapeRateIndex          )
     end if
     return
   end subroutine Tree_Node_Dark_Matter_Profile_ScaleShape_Promote
@@ -393,9 +399,9 @@ contains
        thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
 
        ! Set scale for the scale radius.
-       thisNode%components(thisIndex)%properties(scaleIndex,propertyScale)=thisNode%components(thisIndex)%properties(scaleIndex,propertyValue)
+       thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyScale)=thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyValue)
        ! Set scale for the shape parameter.
-       thisNode%components(thisIndex)%properties(shapeIndex,propertyScale)=thisNode%components(thisIndex)%properties(shapeIndex,propertyValue)
+       thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyScale)=thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyValue)
 
     end if
     return

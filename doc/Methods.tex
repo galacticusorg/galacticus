@@ -16,16 +16,15 @@ This section describes the internal structure of node components, and how a comp
 
 \subsection{Component Structure}\index{components!structure}
 
-Each node in the merger tree consists of an arbitrary number of ``components''. A component may represent a dark matter halo, a galactic disk or a black hole. A component has the following structure:
+Each node in the merger tree consists of an arbitrary number of arrays of ``components''. A component may represent a dark matter halo, a galactic disk or a black hole etc. A component has the following structure:
 \begin{verbatim}
  type component
    double precision, allocatable, dimension(:,:) :: properties
    double precision, allocatable, dimension(:)   :: data
    type(history),    allocatable, dimension(:)   :: histories
-   type(component),  pointer                     :: nextComponentOfType
  end type component
 \end{verbatim}
-The {\tt nextComponentOfType} pointer allows components to be strung together in linked lists, useful if, for example, the component represents a black hole and the node in question contains many black holes. The {\tt properties} array is a list of properties that define the component (e.g. mass, radius etc.) and which will be evolved by \glc's ODE solver. In fact, this array will contain both the values of these properties and their time derivatives as needed by the solver. The {\tt data} array contains any internal data needed for this component. Typically, these are things which do not change with time (or, at least, their change is not described by an ODE). The {\tt histories} array contains a set of time series (which can, in fact, be records of the history of the galaxy, records of future behavior or anything else). These are frequently used for holding, for example, the rate of mass recycling from stellar populations at future times in a component.
+The {\tt properties} array is a list of properties that define the component (e.g. mass, radius etc.) and which will be evolved by \glc's ODE solver. In fact, this array will contain both the values of these properties and their time derivatives as needed by the solver. The {\tt data} array contains any internal data needed for this component. Typically, these are things which do not change with time (or, at least, their change is not described by an ODE). The {\tt histories} array contains a set of time series (which can, in fact, be records of the history of the galaxy, records of future behavior or anything else). These are frequently used for holding, for example, the rate of mass recycling from stellar populations at future times in a component.
 
 \subsection{Implementing a New Component}\index{components!implementing}
 
@@ -124,7 +123,7 @@ Typically, we implement component creation within a function which returns the i
 @$\rightarrow$ Get the index within the {\tt components} array at which the component was created.@
        thisIndex=thisNode%componentIndex(componentIndex)
 @$\rightarrow$ For this disk method, we call a routine to create the history component which will be used to store stellar properties.@
-       call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%histories(stellarHistoryIndex))
+       call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex))
     else
 @$\rightarrow$ \ldots it does exist, simply get the index within the {\tt components} array at which the component is stored.@
        thisIndex=thisNode%componentIndex(componentIndex)
@@ -156,36 +155,38 @@ This causes \glc\ to define four procedure pointers. The first two (the second t
 \end{lstlisting}
 The {\tt Tree\_Node\_Disk\_Stellar\_Mass\_Exponential} function must return the value of the stellar mass property and might look like:
 \begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  double precision function Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
+  double precision function Tree_Node_Disk_Stellar_Mass_Exponential(thisNode,instance)
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
+    type(treeNode), pointer,  intent(inout) :: thisNode
+    integer,        optional, intent(in)    :: instance
+    integer                                 :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       Tree_Node_Disk_Stellar_Mass_Exponential=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+       Tree_Node_Disk_Stellar_Mass_Exponential=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
     else
        Tree_Node_Disk_Stellar_Mass_Exponential=0.0d0
     end if
     return
   end function Tree_Node_Disk_Stellar_Mass_Exponential
 \end{lstlisting}
-This function first checks whether or not an exponential disk component exists in this node. If it does, it finds the index of that node and then returns the value of the stellar mass property. If the component does not exist, it returns zero without causing a disk to be created.
+This function first checks whether or not an exponential disk component exists in this node. If it does, it finds the index of that node and then returns the value of the stellar mass property. If the component does not exist, it returns zero without causing a disk to be created. The optional {\tt instance} argument specifies which instance of this component is to be used. In this example its value is ignored as the exponential disk only ever has one instance. In more general cases the function must return the property of the specific instance of the comopnent. If {\tt instance} is not present, the function should do whatever is sensible in the specific case (this might be to return the default instance, exit with an error, or return the instance for which rates are currently being computed\footnote{This approach is rather unsatisfactory. An improved framework for handling multiple instances will be implemented in v0.9.1 of \protect\glc.}).
 
 The {\tt Tree\_Node\_Disk\_Stellar\_Mass\_Set\_Exponential} subroutine must set the stellar mass to the specified value, and might look like:
 \begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  subroutine Tree_Node_Disk_Stellar_Mass_Set_Exponential(thisNode,mass)
+  subroutine Tree_Node_Disk_Stellar_Mass_Set_Exponential(thisNode,mass,instance)
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: mass
-    integer                                  :: thisIndex
+    type(treeNode),   pointer,  intent(inout) :: thisNode
+    double precision,           intent(in)    :: mass
+    integer,          optional, intent(in)    :: instance
+    integer                                   :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Disk_Stellar_Mass_Set_Exponential
 \end{lstlisting}
-Here, we first get the index of our component in the node (which will cause the component to be created if it does not already exist as discussed above) and then set the stellar mass to the input value, {\tt mass}.
+Here, we first get the index of our component in the node (which will cause the component to be created if it does not already exist as discussed above) and then set the stellar mass to the input value, {\tt mass}. Once again, the optional {\tt instance} argument (ignored here) specifies in which instance the value should be set.
 
 Note that both of these procedures can be left {\tt null()}. Any attempt to call them will then cause the code to crash. Alternatively, an unsettable property could simply refuse to honor a request to set its value, either ignoring it, or exiting with an error message.
 
@@ -199,13 +200,14 @@ All component properties are included in \glc's ODE solver as the node is evolve
 
 The ``rate adjust'' subroutine should look something like:
 \begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
-    double precision,          intent(in)    :: rateAdjustment
-    integer                                  :: thisIndex
+    type(treeNode),   pointer,  intent(inout) :: thisNode
+    logical,                    intent(inout) :: interrupt
+    procedure(),      pointer,  intent(inout) :: interruptProcedure
+    double precision,           intent(in)    :: rateAdjustment
+    integer,          optional, intent(in)    :: instance
+    integer                                   :: thisIndex
     
     if (.not.thisNode%componentExists(componentIndex)) then
        if (rateAdjustment /= 0.0d0) then
@@ -215,20 +217,20 @@ The ``rate adjust'' subroutine should look something like:
        return
     end if
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarMassIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential
 \end{lstlisting}
-Here, we first check if an exponential disk component exists. If it does not, and the given {\tt rateAdjustment} is non-zero, then we need to create a disk component before we can adjust the rate. Since we are in the process of solving a set of ODEs which do not currently include the disk properties (since no disk exists) we need to interrupt the evolution and create a disk. This is done by setting {\tt interrupt-.true.} and setting {\tt interruptProcedure} to point to a procedure which will create a disk, and then returning. Interrupts will be discussed in more detail below. If the compoent does already exist, we simply find its index in the {\tt components} array and add {\tt rateAdjustment} to the current rate of change for the stellar mass property.
+Here, we first check if an exponential disk component exists. If it does not, and the given {\tt rateAdjustment} is non-zero, then we need to create a disk component before we can adjust the rate. Since we are in the process of solving a set of ODEs which do not currently include the disk properties (since no disk exists) we need to interrupt the evolution and create a disk. This is done by setting {\tt interrupt-.true.} and setting {\tt interruptProcedure} to point to a procedure which will create a disk, and then returning. Interrupts will be discussed in more detail below. If the compoent does already exist, we simply find its index in the {\tt components} array and add {\tt rateAdjustment} to the current rate of change for the stellar mass property. If present, the {\tt instance} arugment specifies the instance of the component whose rate should be adjusted.
 
 The ``rate compute'' subroutine should simply perform any calculations necessary to determine the rate of change of the property and adjust the rate appropriately\footnote{Actually, a single rate compute subroutine can compute and adjust rates for multiple properties within a component. Often this is convenient as their rates are related. In that case, the rate compute subroutines for those other properties can be left empty, or the relevant pointer let unset (it will be set to point to a dummy rate compute subroutine by default).}. Below is an example of the rate compute subroutine for the stellar mass property of the exponential disk component, with only the basic structure shown:
 \begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
   subroutine Tree_Node_Disk_Stellar_Mass_Rate_Compute_Exponential(thisNode,interrupt,interruptProcedureReturn)
     implicit none
-    type(treeNode),            pointer, intent(inout)       :: thisNode
-    logical,                            intent(inout)       :: interrupt
-    procedure(),               pointer, intent(inout)       :: interruptProcedureReturn
+    type(treeNode),            pointer,  intent(inout)       :: thisNode
+    logical,                             intent(inout)       :: interrupt
+    procedure(),               pointer,  intent(inout)       :: interruptProcedureReturn
  
     if (thisNode%componentExists(componentIndex)) then
       ...
@@ -238,7 +240,17 @@ The ``rate compute'' subroutine should simply perform any calculations necessary
     return
   end subroutine Tree_Node_Disk_Stellar_Mass_Rate_Compute_Exponential
 \end{lstlisting}
-Here, we simply check that the component exists and, if it does, compute the rates of change for one or more properties and then adjust their rates appropriately.
+Here, we simply check that the component exists and, if it does, compute the rates of change for one or more properties and then adjust their rates appropriately. If multiple instances are present, this function should compute rates for all instances. To aid in doing this, it is possible to set an ``active instance'' for the component, using
+\begin{verbatim}
+ call thisNode%components(thisIndex)%activeInstanceSet(iInstance)
+\end{verbatim}
+ where {\tt iInstance} is the instance for which the rate is currently being computed. Other function (notably the {\tt get} methods above) can then use {\tt thisNode\%components(thisIndex)\%activeInstance()} to determine which instance they should work with if no specific {\tt instance} is passed to them as an argument. Once computation of rates is completed
+\begin{verbatim}
+  call thisNode%components(thisIndex)%activeInstanceNullify()
+\end{verbatim}
+will set the active instance to a null value (labelled {\tt instanceNull}) which indicates that no specific instance is active.
+
+\emph{Note: This method for handling multiple instances is very unsatisfactory for a number of reasons. An improved framework for handling multiple instances is planned for v0.9.1 of \glc.}
 
 When evolving ODEs the ODE solver aims to keep the error on property $i$ below
 \begin{equation}
@@ -256,7 +268,7 @@ where $epsilon_{\rm abs}=${\tt [odeToleranceAbsolute]}, $epsilon_{\rm rel}=${\tt
     ! Check that a component of this type is active, otherwise exit.
 
     ! Set the scale factor for each property, e.g.:
-    thisNode%components(thisIndex)%properties(massIndex,propertyScale)=massScale
+    thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyScale)=massScale
 
     ! Set scale factors for history properties, e.g.:
     thisHistory%scales(:,massIndex)=massScale
@@ -581,7 +593,46 @@ Currently defined radiative recombination rate methods are:
  \item [{\tt Verner}]  Computes the rate coefficient of radiative recombination using the compilation of results from Dima Verner as originally encapsulated in \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{{\tt rrfit.f}}.
 \end{description}
 
-\subsubsection{Black Hole Binary Mergers}\label{sec:BlackHoleBinaryMergers}
+\subsubsection{Black Hole Binaries: Initial Separation}
+
+Additional methods for black hole binary initial separation calculations can be added using the {\tt blackHoleBinaryInitialRadiiMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt spheroid radius fraction} method is described by a directive:
+\begin{verbatim}
+ !# <blackHoleBinaryInitialRadiiMethod>
+ !#  <unitName>Black_Hole_Binary_Initial_Radii_Spheroid_Size_Initialize</unitName>
+ !# </blackHoleBinaryInitialRadiiMethod>
+\end{verbatim}
+Here, {\tt Black\_Hole\_Binary\_Initial\_Radii\_Spheroid\_Size\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: blackHoleBinaryInitialRadiiMethod
+    procedure(),          pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
+    
+    if (blackHoleBinaryInitialRadiiMethod == 'myMethod') Black_Hole_Binary_Initial_Radius_Get => My_Method_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt blackHoleBinaryInitialRadiiMethod} input parameter. The procedure pointer {\tt Black\_Hole\_Binary\_Initial\_Radius\_Get} must be set to point to a function which returns the initial separation of a just-formed black hole binary. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The initial separation function must have the form:
+\begin{verbatim}
+ double precision function My_Method_Get(thisNode,hostNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode,hostNode
+    .
+    .
+    .
+    return
+ end subroutine My_Method_Get
+\end{verbatim}
+The function must return the initial separation (in Mpc) of the active black hole in {\tt thisNode} as it merges into {\tt hostNode}.
+
+Currently defined black hole binary initial separation methods are:
+\begin{description}
+ \item [{\tt spheroid radius fraction}] Assumes that the initial separation is equal to a fraction {\tt [blackHoleInitialRadiusSpheroidRadiusRatio]} of the larger of the spheroid scale radii in {\tt thisNode} and {\tt hostNode}.
+\end{description}
+
+\subsubsection{Black Hole Binaries: Mergers}\label{sec:BlackHoleBinaryMergers}
 
 Additional methods for black hole binary merger calculations can be added using the {\tt blackHoleBinaryMergersMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Rezzolla2008} method is described by a directive:
 \begin{verbatim}

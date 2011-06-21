@@ -103,30 +103,36 @@ contains
   subroutine Initialize_Integer_Scalar(thisHash)
     !% Routine to initialize (or re-initialize) an integer hash.
     implicit none
-    type(integerScalarHash), intent(out) :: thisHash
+    class(integerScalarHash), intent(out) :: thisHash
 
-    thisHash%elementCount =0
-    thisHash%allocatedSize=0
-    if (allocated(thisHash%hashValues)) deallocate(thisHash%hashValues)
-    if (allocated(thisHash%hashKeys  )) deallocate(thisHash%hashKeys  )
+    select type (thisHash)
+    type is (integerScalarHash)
+       thisHash%elementCount =0
+       thisHash%allocatedSize=0
+       if (allocated(thisHash%hashValues)) deallocate(thisHash%hashValues)
+       if (allocated(thisHash%hashKeys  )) deallocate(thisHash%hashKeys  )
+    end select
     return
   end subroutine Initialize_Integer_Scalar
 
   integer function Size_Integer_Scalar(thisHash)
     !% Returns the number of elements in the specified {\tt Hash}.
     implicit none
-    type(integerScalarHash), intent(in) :: thisHash
+    class(integerScalarHash), intent(in) :: thisHash
 
-    Size_Integer_Scalar=thisHash%elementCount
+    select type (thisHash)
+    type is (integerScalarHash)
+       Size_Integer_Scalar=thisHash%elementCount
+    end select
     return
   end function Size_Integer_Scalar
 
   logical function Exists_Integer_Scalar_CH(thisHash,keyCH)
     !% Returns true if the specified {\tt key} exists in the specified {\tt thisHash}, false otherwise.
     implicit none
-    type(integerScalarHash), intent(in) :: thisHash
-    character(len=*),        intent(in) :: keyCH
-    type(varying_string),    save       :: key
+    class(integerScalarHash), intent(in) :: thisHash
+    character(len=*),         intent(in) :: keyCH
+    type(varying_string),     save       :: key
     !$omp threadprivate(key)
 
     key=trim(keyCH)
@@ -137,23 +143,26 @@ contains
   logical function Exists_Integer_Scalar_VS(thisHash,key)
     !% Returns true if the specified {\tt key} exists in the specified {\tt thisHash}, false otherwise.
     implicit none
-    type(integerScalarHash), intent(in) :: thisHash
-    type(varying_string),    intent(in) :: key
+    class(integerScalarHash), intent(in) :: thisHash
+    type(varying_string),     intent(in) :: key
 
-    if (thisHash%elementCount > 0) then
-       Exists_Integer_Scalar_VS=any(thisHash%hashKeys(1:thisHash%elementCount) == key)
-    else
-       Exists_Integer_Scalar_VS=.false.
-    end if
+    select type (thisHash)
+    type is (integerScalarHash)
+       if (thisHash%elementCount > 0) then
+          Exists_Integer_Scalar_VS=any(thisHash%hashKeys(1:thisHash%elementCount) == key)
+       else
+          Exists_Integer_Scalar_VS=.false.
+       end if
+    end select
     return
   end function Exists_Integer_Scalar_VS
   
   subroutine Delete_Integer_Scalar_CH(thisHash,keyCH)
     !% Deletes entry {\tt key} from {\tt thisHash}.
     implicit none
-    character(len=*),        intent(in)    :: keyCH
-    type(integerScalarHash), intent(inout) :: thisHash
-    type(varying_string),    save          :: key
+    character(len=*),         intent(in)    :: keyCH
+    class(integerScalarHash), intent(inout) :: thisHash
+    type(varying_string),     save          :: key
     !$omp threadprivate(key)
     
     key=trim(keyCH)
@@ -166,18 +175,21 @@ contains
     use Arrays_Search
     use Galacticus_Error
     implicit none
-    type(varying_string),    intent(in)    :: key
-    type(integerScalarHash), intent(inout) :: thisHash
-    integer,                 save          :: iKey
+    type(varying_string),     intent(in)    :: key
+    class(integerScalarHash), intent(inout) :: thisHash
+    integer,                  save          :: iKey
 
-    if (Exists_Integer_Scalar_VS(thisHash,key)) then
-       iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
-       thisHash%hashKeys  (ikey:thisHash%elementCount-1)=thisHash%hashKeys  (ikey+1:thisHash%elementCount)
-       thisHash%hashValues(ikey:thisHash%elementCount-1)=thisHash%hashValues(ikey+1:thisHash%elementCount)
-       thisHash%elementCount                        =thisHash%elementCount-1
-    else
-       call Galacticus_Error_Report('Delete_Integer_Scalar_VS','key '''//char(key)//''' does not exist in hash')
-    end if
+    select type (thisHash)
+    type is (integerScalarHash)
+       if (Exists_Integer_Scalar_VS(thisHash,key)) then
+          iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
+          thisHash%hashKeys  (ikey:thisHash%elementCount-1)=thisHash%hashKeys  (ikey+1:thisHash%elementCount)
+          thisHash%hashValues(ikey:thisHash%elementCount-1)=thisHash%hashValues(ikey+1:thisHash%elementCount)
+          thisHash%elementCount                        =thisHash%elementCount-1
+       else
+          call Galacticus_Error_Report('Delete_Integer_Scalar_VS','key '''//char(key)//''' does not exist in hash')
+       end if
+    end select
     return
   end subroutine Delete_Integer_Scalar_VS
 
@@ -185,11 +197,14 @@ contains
     !% Returns the key of entry number {\tt index} in {\tt thisHash}.
     use ISO_Varying_String
     implicit none
-    type(varying_string)                :: key
-    integer,                 intent(in) :: indexValue
-    type(integerScalarHash), intent(in) :: thisHash
+    type(varying_string)                 :: key
+    integer,                  intent(in) :: indexValue
+    class(integerScalarHash), intent(in) :: thisHash
     
-    key=thisHash%hashKeys(indexValue)
+    select type (thisHash)
+    type is (integerScalarHash)
+       key=thisHash%hashKeys(indexValue)
+    end select
     return
   end function Key_Integer_Scalar_I
 
@@ -197,43 +212,52 @@ contains
     !% Returns an array of all keys in {\tt thisHash}.
     use ISO_Varying_String
     implicit none
-    type(varying_string),    intent(inout), allocatable, dimension(:) :: keys
-    type(integerScalarHash), intent(in)                               :: thisHash
+    type(varying_string),     intent(inout), allocatable, dimension(:) :: keys
+    class(integerScalarHash), intent(in)                               :: thisHash
     
-    if (allocated(keys)) deallocate(keys)
-    allocate(keys(thisHash%elementCount))
-    keys=thisHash%hashKeys(1:thisHash%elementCount)
+    select type (thisHash)
+    type is (integerScalarHash)
+       if (allocated(keys)) deallocate(keys)
+       allocate(keys(thisHash%elementCount))
+       keys=thisHash%hashKeys(1:thisHash%elementCount)
+    end select
     return
   end subroutine Keys_Integer_Scalar
 
   subroutine Values_Integer_Scalar(thisHash,values)
     !% Returns an array of all values in {\tt thisHash}.
     implicit none
-    integer,                 intent(inout), allocatable, dimension(:) :: values
-    type(integerScalarHash), intent(in)                               :: thisHash
+    integer,                  intent(inout), allocatable, dimension(:) :: values
+    class(integerScalarHash), intent(in)                               :: thisHash
     
-    if (allocated(values)) deallocate(values)
-    allocate(values(thisHash%elementCount))
-    values=thisHash%hashValues(1:thisHash%elementCount)
+    select type (thisHash)
+    type is (integerScalarHash)
+       if (allocated(values)) deallocate(values)
+       allocate(values(thisHash%elementCount))
+       values=thisHash%hashValues(1:thisHash%elementCount)
+    end select
     return
   end subroutine Values_Integer_Scalar
 
   integer function Value_Integer_Scalar_I(thisHash,indexValue)
     !% Returns the value of entry number {\tt index} in {\tt Hash}.
     implicit none
-    type(integerScalarHash), intent(in) :: thisHash
-    integer,                 intent(in) :: indexValue
+    class(integerScalarHash), intent(in) :: thisHash
+    integer,                  intent(in) :: indexValue
     
-    Value_Integer_Scalar_I=thisHash%hashValues(indexValue)
+    select type (thisHash)
+    type is (integerScalarHash)
+       Value_Integer_Scalar_I=thisHash%hashValues(indexValue)
+    end select
     return
   end function Value_Integer_Scalar_I
 
   integer function Value_Integer_Scalar_CH(thisHash,keyCH)
     !% Returns the value of {\tt Key} in {\tt Hash}.
     implicit none
-    character(len=*),        intent(in) :: keyCH
-    type(integerScalarHash), intent(in) :: thisHash
-    type(varying_string),    save       :: key
+    character(len=*),         intent(in) :: keyCH
+    class(integerScalarHash), intent(in) :: thisHash
+    type(varying_string),     save       :: key
     !$omp threadprivate(key)
     
     key=trim(keyCH)
@@ -246,16 +270,19 @@ contains
     use Arrays_Search
     use Galacticus_Error
     implicit none
-    type(integerScalarHash), intent(in) :: thisHash
-    type(varying_string),    intent(in) :: key
-    integer                             :: iKey
+    class(integerScalarHash), intent(in) :: thisHash
+    type(varying_string),     intent(in) :: key
+    integer                              :: iKey
 
-    if (Exists_Integer_Scalar_VS(thisHash,key)) then
-       iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
-       Value_Integer_Scalar_VS=thisHash%hashValues(iKey)
-    else
-       call Galacticus_Error_Report('Value_Integer_Scalar','key '''//char(key)//''' does not exist in hash')
-    end if
+    select type (thisHash)
+    type is (integerScalarHash)
+       if (Exists_Integer_Scalar_VS(thisHash,key)) then
+          iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
+          Value_Integer_Scalar_VS=thisHash%hashValues(iKey)
+       else
+          call Galacticus_Error_Report('Value_Integer_Scalar','key '''//char(key)//''' does not exist in hash')
+       end if
+    end select
     return
   end function Value_Integer_Scalar_VS
 
@@ -263,10 +290,10 @@ contains
     !% Sets the value of {\tt key} in {\tt thisHash} to {\tt value}.
     use Arrays_Search
     implicit none
-    integer,                 intent(in)    :: value
-    character(len=*),        intent(in)    :: keyCH
-    type(integerScalarHash), intent(inout) :: thisHash
-    type(varying_string),    save          :: key
+    integer,                  intent(in)    :: value
+    character(len=*),         intent(in)    :: keyCH
+    class(integerScalarHash), intent(inout) :: thisHash
+    type(varying_string),     save          :: key
 
     key=trim(keyCH)
     call Set_Integer_Scalar_VS(thisHash,key,value)
@@ -277,65 +304,68 @@ contains
     !% Sets the value of {\tt key} in {\tt thisHash} to {\tt value}.
     use Arrays_Search
     implicit none
-    integer,                 intent(in)                :: Value
-    type(varying_string),    intent(in)                :: Key
-    type(integerScalarHash), intent(inout)             :: thisHash
-    integer                                            :: iKey
-    logical                                            :: keyExists
-    integer,                 allocatable, dimension(:) :: valuesTemporary
-    type(varying_string),    allocatable, dimension(:) :: keysTemporary
+    integer,                  intent(in)                :: Value
+    type(varying_string),     intent(in)                :: Key
+    class(integerScalarHash), intent(inout)             :: thisHash
+    integer                                             :: iKey
+    logical                                             :: keyExists
+    integer,                  allocatable, dimension(:) :: valuesTemporary
+    type(varying_string),     allocatable, dimension(:) :: keysTemporary
 
-    ! Check if key already exists.
-    if (thisHash%elementCount > 0) then
-       keyExists=any(thisHash%hashKeys(1:thisHash%elementCount) == key)
-    else
-       keyExists=.false.
-    end if
-    if (keyExists) then
-       iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
-       thisHash%hashValues(iKey)=value
-    else
-       ! Increase hash size if necessary.
-       if (thisHash%elementCount == thisHash%allocatedSize) then
-          if (thisHash%allocatedSize > 0) then
-             allocate(valuesTemporary(thisHash%allocatedSize))
-             allocate(keysTemporary  (thisHash%allocatedSize))
-             valuesTemporary=thisHash%hashValues
-             keysTemporary  =thisHash%hashKeys
-             deallocate(thisHash%hashValues)
-             deallocate(thisHash%hashKeys  )
-             thisHash%allocatedSize=thisHash%allocatedSize+hashSizeIncrement
-             allocate(thisHash%hashValues(thisHash%allocatedSize))
-             allocate(thisHash%hashKeys  (thisHash%allocatedSize))
-             thisHash%hashValues(1:size(valuesTemporary))=valuesTemporary
-             thisHash%hashKeys  (1:size(valuesTemporary))=keysTemporary
-             deallocate(valuesTemporary)
-             deallocate(keysTemporary  )
+    select type (thisHash)
+    type is (integerScalarHash)
+       ! Check if key already exists.
+       if (thisHash%elementCount > 0) then
+          keyExists=any(thisHash%hashKeys(1:thisHash%elementCount) == key)
+       else
+          keyExists=.false.
+       end if
+       if (keyExists) then
+          iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
+          thisHash%hashValues(iKey)=value
+       else
+          ! Increase hash size if necessary.
+          if (thisHash%elementCount == thisHash%allocatedSize) then
+             if (thisHash%allocatedSize > 0) then
+                allocate(valuesTemporary(thisHash%allocatedSize))
+                allocate(keysTemporary  (thisHash%allocatedSize))
+                valuesTemporary=thisHash%hashValues
+                keysTemporary  =thisHash%hashKeys
+                deallocate(thisHash%hashValues)
+                deallocate(thisHash%hashKeys  )
+                thisHash%allocatedSize=thisHash%allocatedSize+hashSizeIncrement
+                allocate(thisHash%hashValues(thisHash%allocatedSize))
+                allocate(thisHash%hashKeys  (thisHash%allocatedSize))
+                thisHash%hashValues(1:size(valuesTemporary))=valuesTemporary
+                thisHash%hashKeys  (1:size(valuesTemporary))=keysTemporary
+                deallocate(valuesTemporary)
+                deallocate(keysTemporary  )
+             else
+                thisHash%allocatedSize=hashSizeIncrement
+                allocate(thisHash%hashValues(thisHash%allocatedSize))
+                allocate(thisHash%hashKeys  (thisHash%allocatedSize))
+             end if
+          end if
+          if (thisHash%elementCount > 0) then
+             iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
           else
-             thisHash%allocatedSize=hashSizeIncrement
-             allocate(thisHash%hashValues(thisHash%allocatedSize))
-             allocate(thisHash%hashKeys  (thisHash%allocatedSize))
+             iKey=1
+          end if
+          if (iKey > thisHash%elementCount) then
+             ! Insert at end.
+             thisHash%elementCount                 =thisHash%elementCount+1
+             thisHash%hashKeys  (thisHash%elementCount)=key
+             thisHash%hashValues(thisHash%elementCount)=value
+          else
+             ! Shift array then insert.
+             thisHash%hashKeys        (iKey+2:thisHash%elementCount+1)=thisHash%hashKeys  (iKey+1:thisHash%elementCount)
+             thisHash%hashValues      (iKey+2:thisHash%elementCount+1)=thisHash%hashValues(iKey+1:thisHash%elementCount)
+             thisHash%hashKeys        (iKey+1                        )=key
+             thisHash%hashValues      (iKey+1                        )=value
+             thisHash%elementCount                                    =thisHash%elementCount+1
           end if
        end if
-       if (thisHash%elementCount > 0) then
-          iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
-       else
-          iKey=1
-       end if
-       if (iKey > thisHash%elementCount) then
-          ! Insert at end.
-          thisHash%elementCount                 =thisHash%elementCount+1
-          thisHash%hashKeys  (thisHash%elementCount)=key
-          thisHash%hashValues(thisHash%elementCount)=value
-       else
-          ! Shift array then insert.
-          thisHash%hashKeys        (iKey+2:thisHash%elementCount+1)=thisHash%hashKeys  (iKey+1:thisHash%elementCount)
-          thisHash%hashValues      (iKey+2:thisHash%elementCount+1)=thisHash%hashValues(iKey+1:thisHash%elementCount)
-          thisHash%hashKeys        (iKey+1                        )=key
-          thisHash%hashValues      (iKey+1                        )=value
-          thisHash%elementCount                                    =thisHash%elementCount+1
-       end if
-    end if
+    end select
     return
   end subroutine Set_Integer_Scalar_VS
 

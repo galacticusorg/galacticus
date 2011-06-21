@@ -216,45 +216,48 @@ contains
     return
   end subroutine Tree_Node_Methods_Satellite_Orbit_Initialize
   
-  double precision function Tree_Node_Satellite_Merge_Time_Simple(thisNode)
+  double precision function Tree_Node_Satellite_Merge_Time_Simple(thisNode,instance)
     !% Return the time until satellite merging.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
+    type(treeNode), intent(inout), pointer  :: thisNode
+    integer,        intent(in),    optional :: instance
+    integer                                 :: thisIndex
 
     if (thisNode%componentExists(componentIndex).and.thisNode%isSatellite()) then
        thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-       Tree_Node_Satellite_Merge_Time_Simple=thisNode%components(thisIndex)%properties(mergeTimeIndex,propertyValue)
+       Tree_Node_Satellite_Merge_Time_Simple=thisNode%components(thisIndex)%instance(1)%properties(mergeTimeIndex,propertyValue)
     else
        Tree_Node_Satellite_Merge_Time_Simple=-1.0d0 ! Negative time indicates that this is not a satellite.
     end if
     return
   end function Tree_Node_Satellite_Merge_Time_Simple
 
-  subroutine Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime)
+  subroutine Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime,instance)
     !% Set the time until satellite merging.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: mergeTime
-    integer                                  :: thisIndex
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    double precision, intent(in)              :: mergeTime
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex
 
     thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-    thisNode%components(thisIndex)%properties(mergeTimeIndex,propertyValue)=mergeTime
+    thisNode%components(thisIndex)%instance(1)%properties(mergeTimeIndex,propertyValue)=mergeTime
     return
   end subroutine Tree_Node_Satellite_Merge_Time_Set_Simple
 
-  subroutine Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the time until satellite merging rate of change.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    logical,                   intent(inout) :: interrupt
-    procedure(), pointer, intent(inout) :: interruptProcedure
-    double precision,          intent(in)    :: rateAdjustment
-    integer                                  :: thisIndex
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    logical,          intent(inout)           :: interrupt
+    procedure(),      intent(inout), pointer  :: interruptProcedure
+    double precision, intent(in)              :: rateAdjustment
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex
 
     thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-    thisNode%components(thisIndex)%properties(mergeTimeIndex,propertyDerivative) &
-         &=thisNode%components(thisIndex)%properties(mergeTimeIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(mergeTimeIndex,propertyDerivative) &
+         &=thisNode%components(thisIndex)%instance(1)%properties(mergeTimeIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple
 
@@ -263,24 +266,25 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(), pointer, intent(inout) :: interruptProcedure
+    procedure(),    pointer, intent(inout) :: interruptProcedure
     
     if (thisNode%componentExists(componentIndex).and.thisNode%isSatellite()) call&
          & Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,-1.0d0)
     return
   end subroutine Tree_Node_Satellite_Merge_Time_Rate_Compute_Simple
 
-  double precision function Tree_Node_Bound_Mass_Simple(thisNode)
+  double precision function Tree_Node_Bound_Mass_Simple(thisNode,instance)
     !% Return the satellite bound mass at the current time.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
+    type(treeNode), intent(inout), pointer  :: thisNode
+    integer,        intent(in),    optional :: instance
+    integer                                 :: thisIndex
 
     ! Check if the component exists.
     if (thisNode%componentExists(componentIndex)) then
        ! Component exists, so return bound mass.
        thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-       Tree_Node_Bound_Mass_Simple=thisNode%components(thisIndex)%properties(boundMassIndex,propertyValue)
+       Tree_Node_Bound_Mass_Simple=thisNode%components(thisIndex)%instance(1)%properties(boundMassIndex,propertyValue)
     else
        ! Component does not exist, so return total node mass.
        Tree_Node_Bound_Mass_Simple=Tree_Node_Mass(thisNode)
@@ -288,30 +292,32 @@ contains
     return
   end function Tree_Node_Bound_Mass_Simple
 
-  subroutine Tree_Node_Bound_Mass_Set_Simple(thisNode,boundMass)
+  subroutine Tree_Node_Bound_Mass_Set_Simple(thisNode,boundMass,instance)
     !% Set the bound mass of the satellite.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: boundMass
-    integer                                  :: thisIndex
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    double precision, intent(in)              :: boundMass
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex
 
     thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-    thisNode%components(thisIndex)%properties(boundMassIndex,propertyValue)=boundMass
+    thisNode%components(thisIndex)%instance(1)%properties(boundMassIndex,propertyValue)=boundMass
     return
   end subroutine Tree_Node_Bound_Mass_Set_Simple
 
-  subroutine Tree_Node_Bound_Mass_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Bound_Mass_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Adjust the satellite mass loss rate.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
-    double precision,          intent(in)    :: rateAdjustment
-    integer                                  :: thisIndex
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    logical,          intent(inout)           :: interrupt
+    procedure(),      intent(inout), pointer  :: interruptProcedure
+    double precision, intent(in)              :: rateAdjustment
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex
 
     thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-    thisNode%components(thisIndex)%properties(boundMassIndex,propertyDerivative) &
-         &=thisNode%components(thisIndex)%properties(boundMassIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(boundMassIndex,propertyDerivative) &
+         &=thisNode%components(thisIndex)%instance(1)%properties(boundMassIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Bound_Mass_Rate_Adjust_Simple
 
@@ -348,11 +354,11 @@ contains
           thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
           call thisOrbit%massesSet            (                                                          &
                &                               Tree_Node_Mass(thisNode)                                , &
-               &                               thisNode%components(thisIndex)%data(hostMassIndex      )  &
+               &                               thisNode%components(thisIndex)%instance(1)%data(hostMassIndex      )  &
                &                              )
-          call thisOrbit%radiusSet            (thisNode%components(thisIndex)%data(virialRadiusIndex  ))
-          call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%data(velocityRadialIndex))
-          call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%data(velocityRadialIndex))
+          call thisOrbit%radiusSet            (thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex  ))
+          call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex))
+          call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex))
        else
           hostNode => thisNode%parentNode
           thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
@@ -378,11 +384,11 @@ contains
        thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
 
        ! Set scale for time.
-       thisNode%components(thisIndex)%properties(mergeTimeIndex,propertyScale)=timeScale
+       thisNode%components(thisIndex)%instance(1)%properties(mergeTimeIndex,propertyScale)=timeScale
 
        ! Set scale for bound mass.
-       thisNode       %components(thisIndex)%properties(boundMassIndex,propertyScale)= &
-            & thisNode%components(thisIndex)%properties(boundMassIndex,propertyValue)
+       thisNode       %components(thisIndex)%instance(1)%properties(boundMassIndex,propertyScale)= &
+            & thisNode%components(thisIndex)%instance(1)%properties(boundMassIndex,propertyValue)
 
     end if
     return
@@ -447,10 +453,10 @@ contains
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) then
           thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-          thisNode%components(thisIndex)%data(hostMassIndex          )=thisOrbit%hostMass          ()
-          thisNode%components(thisIndex)%data(virialRadiusIndex      )=thisOrbit%radius            ()
-          thisNode%components(thisIndex)%data(velocityRadialIndex    )=thisOrbit%velocityRadial    ()
-          thisNode%components(thisIndex)%data(velocityTangentialIndex)=thisOrbit%velocityTangential()
+          thisNode%components(thisIndex)%instance(1)%data(hostMassIndex          )=thisOrbit%hostMass          ()
+          thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex      )=thisOrbit%radius            ()
+          thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex    )=thisOrbit%velocityRadial    ()
+          thisNode%components(thisIndex)%instance(1)%data(velocityTangentialIndex)=thisOrbit%velocityTangential()
        end if
 
        ! Compute and store a time until merging.

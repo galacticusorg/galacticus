@@ -152,15 +152,16 @@ contains
     return
   end subroutine Tree_Node_Methods_Satellite_Orbit_Initialize_Preset
   
-  double precision function Tree_Node_Satellite_Merge_Time_Preset(thisNode)
+  double precision function Tree_Node_Satellite_Merge_Time_Preset(thisNode,instance)
     !% Return the time until satellite merging.
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
+    integer,        intent(in), optional   :: instance
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex).and.thisNode%isSatellite()) then
        thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-       Tree_Node_Satellite_Merge_Time_Preset=max(thisNode%components(thisIndex)%data(mergeTimeIndex)&
+       Tree_Node_Satellite_Merge_Time_Preset=max(thisNode%components(thisIndex)%instance(1)%data(mergeTimeIndex)&
             &-Tree_Node_Time(thisNode),0.0d0)
     else
        Tree_Node_Satellite_Merge_Time_Preset=-1.0d0 ! Negative time indicates that this is not a satellite.
@@ -168,54 +169,58 @@ contains
     return
   end function Tree_Node_Satellite_Merge_Time_Preset
 
-  subroutine Tree_Node_Satellite_Merge_Time_Set_Preset(thisNode,mergeTime)
+  subroutine Tree_Node_Satellite_Merge_Time_Set_Preset(thisNode,mergeTime,instance)
     !% Set the time until satellite merging.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mergeTime
+    integer,        intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-    thisNode%components(thisIndex)%data(mergeTimeIndex)=mergeTime+Tree_Node_Time(thisNode)
+    thisNode%components(thisIndex)%instance(1)%data(mergeTimeIndex)=mergeTime+Tree_Node_Time(thisNode)
 
     return
   end subroutine Tree_Node_Satellite_Merge_Time_Set_Preset
 
-  double precision function Tree_Node_Satellite_Time_of_Merging_Preset(thisNode)
+  double precision function Tree_Node_Satellite_Time_of_Merging_Preset(thisNode,instance)
     !% Return the time of satellite merging.
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
+    integer,        intent(in), optional   :: instance
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-       Tree_Node_Satellite_Time_of_Merging_Preset=thisNode%components(thisIndex)%data(mergeTimeIndex)
+       Tree_Node_Satellite_Time_of_Merging_Preset=thisNode%components(thisIndex)%instance(1)%data(mergeTimeIndex)
     else
        Tree_Node_Satellite_Time_of_Merging_Preset=-1.0d0 ! Negative time indicates that this is not a satellite.
     end if
     return
   end function Tree_Node_Satellite_Time_of_Merging_Preset
 
-  subroutine Tree_Node_Satellite_Time_of_Merging_Set_Preset(thisNode,mergeTime)
+  subroutine Tree_Node_Satellite_Time_of_Merging_Set_Preset(thisNode,mergeTime,instance)
     !% Set the time of satellite merging.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mergeTime
+    integer,        intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-    thisNode%components(thisIndex)%data(mergeTimeIndex)=mergeTime
+    thisNode%components(thisIndex)%instance(1)%data(mergeTimeIndex)=mergeTime
 
     return
   end subroutine Tree_Node_Satellite_Time_of_Merging_Set_Preset
 
-  double precision function Tree_Node_Bound_Mass_Preset(thisNode)
+  double precision function Tree_Node_Bound_Mass_Preset(thisNode,instance)
     !% Return the satellite bound mass at the current time.
     use Histories
     use FGSL
     use Numerical_Interpolation
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
+    integer,        intent(in), optional   :: instance
     integer                                :: iTime
     logical                                :: interpolationReset
     type(history)                          :: thisHistory
@@ -258,9 +263,9 @@ contains
        ! It does, so get the index of the component.
        thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
        ! Check if the component has histories
-       if (allocated(thisNode%components(thisIndex)%histories)) then
+       if (allocated(thisNode%components(thisIndex)%instance(1)%histories)) then
           ! It does, so return that history.
-          Tree_Node_Bound_Mass_History_Preset=thisNode%components(thisIndex)%histories(boundMassIndex)
+          Tree_Node_Bound_Mass_History_Preset=thisNode%components(thisIndex)%instance(1)%histories(boundMassIndex)
        else
           ! It does not, so return a null history.
           Tree_Node_Bound_Mass_History_Preset=nullHistory
@@ -284,14 +289,14 @@ contains
     ! Get the index of this component.
     thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
     ! If this component does not yet have a history associated with it, then create one.
-    if (.not.allocated(thisNode%components(thisIndex)%histories)) then
-       allocate(thisNode%components(thisIndex)%histories(historyCount))
-       call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%histories),memoryType=memoryTypeNodes)
+    if (.not.allocated(thisNode%components(thisIndex)%instance(1)%histories)) then
+       allocate(thisNode%components(thisIndex)%instance(1)%histories(historyCount))
+       call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%instance(1)%histories),memoryType=memoryTypeNodes)
     end if
     ! Destroy the current history.
-    call thisNode%components(thisIndex)%histories(boundMassIndex)%destroy()
+    call thisNode%components(thisIndex)%instance(1)%histories(boundMassIndex)%destroy()
     ! Assign the new history.
-    thisNode%components(thisIndex)%histories(boundMassIndex)=thisHistory
+    thisNode%components(thisIndex)%instance(1)%histories(boundMassIndex)=thisHistory
     return
   end subroutine Tree_Node_Bound_Mass_History_Set_Preset
 

@@ -132,37 +132,40 @@ contains
     return
   end subroutine Tree_Node_Methods_Spin_Preset_Initialize
 
-  subroutine Tree_Node_Spin_Set_Preset(thisNode,spin)
+  subroutine Tree_Node_Spin_Set_Preset(thisNode,spin,instance)
     !% Set the node spin mass.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: spin
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Spin_Preset_Index(thisNode)
-    thisNode%components(thisIndex)%data(spinIndex)=spin
+    thisNode%components(thisIndex)%instance(1)%data(spinIndex)=spin
     return
   end subroutine Tree_Node_Spin_Set_Preset
 
-  double precision function Tree_Node_Spin_Preset(thisNode)
+  double precision function Tree_Node_Spin_Preset(thisNode,instance)
     !% Return the node spin.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
     thisIndex=Tree_Node_Spin_Preset_Index(thisNode)
-    Tree_Node_Spin_Preset=thisNode%components(thisIndex)%data(spinIndex)
+    Tree_Node_Spin_Preset=thisNode%components(thisIndex)%instance(1)%data(spinIndex)
     return
   end function Tree_Node_Spin_Preset
 
-  double precision function Tree_Node_Spin_Growth_Rate_Preset(thisNode)
+  double precision function Tree_Node_Spin_Growth_Rate_Preset(thisNode,instance)
     !% Return the node spin growth rate.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Spin_Preset_Index(thisNode)
-    Tree_Node_Spin_Growth_Rate_Preset=thisNode%components(thisIndex)%data(spinGrowthRateIndex)
+    Tree_Node_Spin_Growth_Rate_Preset=thisNode%components(thisIndex)%instance(1)%data(spinGrowthRateIndex)
     return
   end function Tree_Node_Spin_Growth_Rate_Preset
 
@@ -185,14 +188,14 @@ contains
           ! It is, so compute the spin growth rate.
           deltaTime=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
           if (deltaTime > 0.0d0) then
-             thisNode%components(thisIndex)%data(spinGrowthRateIndex)=(Tree_Node_Spin_Preset(thisNode%parentNode) &
+             thisNode%components(thisIndex)%instance(1)%data(spinGrowthRateIndex)=(Tree_Node_Spin_Preset(thisNode%parentNode) &
                   &-Tree_Node_Spin_Preset(thisNode))/deltaTime
           else
-             thisNode%components(thisIndex)%data(spinGrowthRateIndex)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%data(spinGrowthRateIndex)=0.0d0
           end if
        else
           ! It is not, so set spin growth rate to zero.
-          thisNode%components(thisIndex)%data(spinGrowthRateIndex)=0.0d0
+          thisNode%components(thisIndex)%instance(1)%data(spinGrowthRateIndex)=0.0d0
        end if
     end if
     return
@@ -226,8 +229,8 @@ contains
             & has not been evolved to its parent')
        ! Adjust the spin (and growth rate) to that of the parent node.
        thisIndex=Tree_Node_Spin_Preset_Index(thisNode)            
-       thisNode%components(thisIndex)%data(spinIndex          )=Tree_Node_Spin_Preset            (parentNode)
-       thisNode%components(thisIndex)%data(spinGrowthRateIndex)=Tree_Node_Spin_Growth_Rate_Preset(parentNode)
+       thisNode%components(thisIndex)%instance(1)%data(spinIndex          )=Tree_Node_Spin_Preset            (parentNode)
+       thisNode%components(thisIndex)%instance(1)%data(spinGrowthRateIndex)=Tree_Node_Spin_Growth_Rate_Preset(parentNode)
     end if
     return
   end subroutine Tree_Node_Spin_Preset_Promote

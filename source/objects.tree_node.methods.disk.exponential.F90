@@ -375,23 +375,23 @@ contains
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
 
        ! Trim the stellar populations properties future history.
-       call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%trim(Tree_Node_Time(thisNode))
+       call thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)%trim(Tree_Node_Time(thisNode))
 
        ! Trap negative gas masses.
        if (Tree_Node_Disk_Gas_Mass(thisNode) < 0.0d0) then
           
           ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=dabs(thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue))&
-               &/(thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)&
-               &+dabs(thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)))
+          fractionalError=dabs(thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue))&
+               &/(thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)&
+               &+dabs(thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue)))
           !$omp critical (Exponential_Disk_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.          
              message='Warning: disk has negative gas mass (fractional error exceeds any previously reported):'//char(10)
              message=message//'  Node index        = '//thisNode%index() //char(10)
-             write (valueString,'(e12.6)') thisNode%components(thisIndex)%properties(gasMassIndex    ,propertyValue)
+             write (valueString,'(e12.6)') thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex    ,propertyValue)
              message=message//'  Disk gas mass     = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+             write (valueString,'(e12.6)') thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
              message=message//'  Disk stellar mass = '//trim(valueString)//char(10)
              write (valueString,'(e12.6)') fractionalError
              message=message//'  Error measure     = '//trim(valueString)//char(10)
@@ -409,23 +409,23 @@ contains
           !$omp end critical (Exponential_Disk_Post_Evolve_Check)
           
           ! Get the specific angular momentum of the disk material
-          diskMass= thisNode%components(thisIndex)%properties(gasMassIndex    ,propertyValue) &
-               &   +thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+          diskMass= thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex    ,propertyValue) &
+               &   +thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
           if (diskMass == 0.0d0) then
              specificAngularMomentum=0.0d0
-             thisNode%components(thisIndex)%properties(stellarMassIndex                                    ,propertyValue)=0.0d0
-             thisNode%components(thisIndex)%properties(stellarAbundancesIndex  :stellarAbundancesIndexEnd  ,propertyValue)=0.0d0  
-             thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex                                    ,propertyValue)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex  :stellarAbundancesIndexEnd  ,propertyValue)=0.0d0  
+             thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=0.0d0
           else
-             specificAngularMomentum=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)&
+             specificAngularMomentum=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)&
                   &/diskMass
           end if
 
           ! Reset the gas, abundances and angular momentum of the disk.
-          thisNode%components(thisIndex)%properties(gasMassIndex                            ,propertyValue)=0.0d0
-          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=0.0d0
-          thisNode%components(thisIndex)%properties(angularMomentumIndex                    ,propertyValue)= &
-               & specificAngularMomentum*thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+          thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex                            ,propertyValue)=0.0d0
+          thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=0.0d0
+          thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex                    ,propertyValue)= &
+               & specificAngularMomentum*thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
 
 
        end if
@@ -434,37 +434,40 @@ contains
     return
   end subroutine Tree_Node_Disk_Post_Evolve_Exponential
 
-  double precision function Tree_Node_Disk_Gas_Mass_Exponential(thisNode)
+  double precision function Tree_Node_Disk_Gas_Mass_Exponential(thisNode,instance)
     !% Return the node exponential disk gas mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       Tree_Node_Disk_Gas_Mass_Exponential=thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)
+       Tree_Node_Disk_Gas_Mass_Exponential=thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue)
     else
        Tree_Node_Disk_Gas_Mass_Exponential=0.0d0
     end if
     return
   end function Tree_Node_Disk_Gas_Mass_Exponential
 
-  subroutine Tree_Node_Disk_Gas_Mass_Set_Exponential(thisNode,mass)
+  subroutine Tree_Node_Disk_Gas_Mass_Set_Exponential(thisNode,mass,instance)
     !% Set the node exponential disk gas mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Disk_Gas_Mass_Set_Exponential
 
-  subroutine Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node exponential disk gas mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -481,8 +484,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential
 
@@ -499,37 +502,40 @@ contains
     return
   end subroutine Tree_Node_Disk_Gas_Mass_Rate_Compute_Exponential
 
-  double precision function Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)
+  double precision function Tree_Node_Disk_Stellar_Mass_Exponential(thisNode,instance)
     !% Return the node exponential disk stellar mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       Tree_Node_Disk_Stellar_Mass_Exponential=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+       Tree_Node_Disk_Stellar_Mass_Exponential=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
     else
        Tree_Node_Disk_Stellar_Mass_Exponential=0.0d0
     end if
     return
   end function Tree_Node_Disk_Stellar_Mass_Exponential
 
-  subroutine Tree_Node_Disk_Stellar_Mass_Set_Exponential(thisNode,mass)
+  subroutine Tree_Node_Disk_Stellar_Mass_Set_Exponential(thisNode,mass,instance)
     !% Set the node exponential disk stellar mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Disk_Stellar_Mass_Set_Exponential
 
-  subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node exponential disk stellar mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -546,8 +552,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarMassIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential
 
@@ -603,7 +609,7 @@ contains
        
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,thisNode&
-            &,thisNode%components(thisIndex)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates&
+            &,thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates&
             &,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
 
        ! Adjust rates.
@@ -616,7 +622,7 @@ contains
        call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,stellarLuminositiesRates)
 
        ! Record the star formation history.
-       call Star_Formation_History_Record(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex)&
+       call Star_Formation_History_Record(thisNode,thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)&
             &,fuelAbundances,starFormationRate)
        
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
@@ -696,20 +702,20 @@ contains
           call Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential  (thisNode,interrupt,interruptProcedure,-luminositiesTransferRate)
           call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust          (thisNode,interrupt,interruptProcedure, luminositiesTransferRate)
           ! Stellar properties history.
-          if (thisNode%components(thisIndex)%histories(stellarHistoryIndex)%exists()) then
+          if (thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)%exists()) then
              thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-             historyTransferRate=thisNode%components(thisIndex)%histories(stellarHistoryIndex)/barInstabilityTimescale
-             thisNode                    %components(thisIndex)%histories(stellarHistoryIndex)%rates                          &
-                  &             =thisNode%components(thisIndex)%histories(stellarHistoryIndex)%rates-historyTransferRate%data
+             historyTransferRate=thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)/barInstabilityTimescale
+             thisNode                    %components(thisIndex)%instance(1)%histories(stellarHistoryIndex)%rates                          &
+                  &             =thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)%rates-historyTransferRate%data
              call Tree_Node_Spheroid_Stellar_Properties_History_Rate_Adjust (thisNode,interrupt,interruptProcedure, historyTransferRate     )
              call historyTransferRate%destroy()
           end if
           ! Star formation history.
-          if (thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%exists()) then
+          if (thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%exists()) then
              thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-             historyTransferRate=thisNode%components(thisIndex)%histories(starFormationHistoryIndex)/barInstabilityTimescale
-             thisNode                    %components(thisIndex)%histories(starFormationHistoryIndex)%rates                          &
-                  &             =thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%rates-historyTransferRate%data
+             historyTransferRate=thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)/barInstabilityTimescale
+             thisNode                    %components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%rates                          &
+                  &             =thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%rates-historyTransferRate%data
              call Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust     (thisNode,interrupt,interruptProcedure, historyTransferRate     )
           end if
           
@@ -732,7 +738,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       abundanceMasses(:)=thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd&
+       abundanceMasses(:)=thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd&
             &,propertyValue)
     else
        abundanceMasses(:)=0.0d0
@@ -748,7 +754,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=abundanceMasses(:)
+    thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=abundanceMasses(:)
     return
   end subroutine Tree_Node_Disk_Gas_Abundances_Set_Exponential
 
@@ -772,8 +778,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
+    thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
          &+rateAdjustments(:)
     return
   end subroutine Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential
@@ -787,7 +793,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       abundanceMasses(:)=thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd&
+       abundanceMasses(:)=thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd&
             &,propertyValue)
     else
        abundanceMasses(:)=0.0d0
@@ -803,7 +809,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyValue)=abundanceMasses(:)
+    thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyValue)=abundanceMasses(:)
     return
   end subroutine Tree_Node_Disk_Stellar_Abundances_Set_Exponential
 
@@ -827,8 +833,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyDerivative)&
+    thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyDerivative)&
          &+rateAdjustments(:)
     return
   end subroutine Tree_Node_Disk_Stellar_Abundances_Rate_Adjust_Exponential
@@ -842,7 +848,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       luminosities(:)=thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd&
+       luminosities(:)=thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd&
             &,propertyValue)
     else
        luminosities(:)=0.0d0
@@ -858,7 +864,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=luminosities(:)
+    thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=luminosities(:)
     return
   end subroutine Tree_Node_Disk_Stellar_Luminosities_Set_Exponential
 
@@ -882,46 +888,49 @@ contains
        return
     end if
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyDerivative)&
+    thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyDerivative)&
          &+rateAdjustments(:)
     return
   end subroutine Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential
 
-  double precision function Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)
+  double precision function Tree_Node_Disk_Angular_Momentum_Exponential(thisNode,instance)
     !% Return the node exponential disk gas mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
        ! Force angular momentum to be positive. Can become negative due to rounding errors in ODE solver.
-       if (thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue) < 0.0d0)&
-            & thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)=0.0d0
-       Tree_Node_Disk_Angular_Momentum_Exponential=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)
+       if (thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue) < 0.0d0)&
+            & thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)=0.0d0
+       Tree_Node_Disk_Angular_Momentum_Exponential=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)
     else
        Tree_Node_Disk_Angular_Momentum_Exponential=0.0d0
     end if
     return
   end function Tree_Node_Disk_Angular_Momentum_Exponential
 
-  subroutine Tree_Node_Disk_Angular_Momentum_Set_Exponential(thisNode,angularMomentum)
+  subroutine Tree_Node_Disk_Angular_Momentum_Set_Exponential(thisNode,angularMomentum,instance)
     !% Set the node exponential disk gas mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: angularMomentum
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)=angularMomentum
+    thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)=angularMomentum
     return
   end subroutine Tree_Node_Disk_Angular_Momentum_Set_Exponential
 
-  subroutine Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node exponential disk gas mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -938,8 +947,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative) &
-         &=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative) &
+         &=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential
 
@@ -966,7 +975,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       Tree_Node_Disk_Stellar_Properties_History_Exponential=thisNode%components(thisIndex)%histories(stellarHistoryIndex)
+       Tree_Node_Disk_Stellar_Properties_History_Exponential=thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)
     else
        Tree_Node_Disk_Stellar_Properties_History_Exponential=nullHistory
     end if
@@ -981,8 +990,8 @@ contains
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%destroy()
-    thisNode%components(thisIndex)%histories(stellarHistoryIndex)=thisHistory
+    call thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)%destroy()
+    thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)=thisHistory
     return
   end subroutine Tree_Node_Disk_Stellar_Properties_History_Set_Exponential
 
@@ -996,7 +1005,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       Tree_Node_Disk_Star_Formation_History_Exponential=thisNode%components(thisIndex)%histories(starFormationHistoryIndex)
+       Tree_Node_Disk_Star_Formation_History_Exponential=thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)
     else
        Tree_Node_Disk_Star_Formation_History_Exponential=nullHistory
     end if
@@ -1011,8 +1020,8 @@ contains
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    call thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%destroy()
-    thisNode%components(thisIndex)%histories(starFormationHistoryIndex)=thisHistory
+    call thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%destroy()
+    thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)=thisHistory
     return
   end subroutine Tree_Node_Disk_Star_Formation_History_Set_Exponential
 
@@ -1039,27 +1048,27 @@ contains
 
        ! Set scale for angular momentum.
        angularMomentum=Tree_Node_Spheroid_Angular_Momentum(thisNode)+Tree_Node_Disk_Angular_Momentum(thisNode)
-       thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyScale)=max(angularMomentum,angularMomentumMinimum)
+       thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyScale)=max(angularMomentum,angularMomentumMinimum)
 
        ! Set scale for gas mass.
        mass=Tree_Node_Spheroid_Gas_Mass(thisNode)+Tree_Node_Disk_Gas_Mass(thisNode)
-       thisNode%components(thisIndex)%properties(gasMassIndex,propertyScale)=max(mass,massMinimum)
+       thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyScale)=max(mass,massMinimum)
 
        ! Set scale for stellar mass.
        mass=Tree_Node_Spheroid_Stellar_Mass(thisNode)+Tree_Node_Disk_Stellar_Mass(thisNode)
-       thisNode%components(thisIndex)%properties(stellarMassIndex,propertyScale)=max(mass,massMinimum)
+       thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyScale)=max(mass,massMinimum)
 
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for gas abundances.
           call Tree_Node_Spheroid_Gas_Abundances(thisNode,abundancesSpheroid)
           call Tree_Node_Disk_Gas_Abundances    (thisNode,abundancesDisk    )
-          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
+          thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
           
           ! Set scale for stellar abundances.
           call Tree_Node_Spheroid_Stellar_Abundances(thisNode,abundancesSpheroid)
           call Tree_Node_Disk_Stellar_Abundances    (thisNode,abundancesDisk    )
-          thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
+          thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
        end if
 
        ! Set scales for stellar luminosities if necessary.
@@ -1067,14 +1076,14 @@ contains
           ! Set scale for stellar luminosities.
           call Tree_Node_Spheroid_Stellar_Luminosities(thisNode,luminositiesSpheroid)
           call Tree_Node_Disk_Stellar_Luminosities    (thisNode,luminositiesDisk    )
-          thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyScale)=max(luminositiesDisk+luminositiesSpheroid,luminosityMinimum)
+          thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyScale)=max(luminositiesDisk+luminositiesSpheroid,luminosityMinimum)
        end if
 
        ! Set scales for stellar population properties and star formation histories.
        call Tree_Node_Disk_Stellar_Abundances_Exponential(thisNode,abundancesDisk)
        call stellarAbundances%pack(abundancesDisk)
-       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%histories(stellarHistoryIndex      ),Tree_Node_Disk_Stellar_Mass(thisNode),stellarAbundances)
-       call Star_Formation_History_Scales       (thisNode%components(thisIndex)%histories(starFormationHistoryIndex),Tree_Node_Disk_Stellar_Mass(thisNode),stellarAbundances)
+       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex      ),Tree_Node_Disk_Stellar_Mass(thisNode),stellarAbundances)
+       call Star_Formation_History_Scales       (thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex),Tree_Node_Disk_Stellar_Mass(thisNode),stellarAbundances)
     end if
     return
   end subroutine Exponential_Disk_Scale_Set
@@ -1425,36 +1434,39 @@ contains
   end subroutine Exponential_Disk_Radius_Solver
 
 
-  double precision function Exponential_Disk_Radius(thisNode)
+  double precision function Exponential_Disk_Radius(thisNode,instance)
     !% Return the scale radius of the exponential disk.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       Exponential_Disk_Radius=thisNode%components(thisIndex)%data(radiusIndex)
+       Exponential_Disk_Radius=thisNode%components(thisIndex)%instance(1)%data(radiusIndex)
     else
        Exponential_Disk_Radius=0.0d0
     end if
     return
   end function Exponential_Disk_Radius
 
-  double precision function Exponential_Disk_Half_Mass_Radius(thisNode)
+  double precision function Exponential_Disk_Half_Mass_Radius(thisNode,instance)
     !% Return the half-mass radius of the exponential disk.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    integer,          intent(in), optional   :: instance
     double precision, parameter              :: halfMassRadiusToScaleRadius=1.678346990d0
 
     Exponential_Disk_Half_Mass_Radius=Exponential_Disk_Radius(thisNode)*halfMassRadiusToScaleRadius
     return
   end function Exponential_Disk_Half_Mass_Radius
 
-  double precision function Exponential_Disk_SFR(thisNode)
+  double precision function Exponential_Disk_SFR(thisNode,instance)
     !% Return the star formation rate of the exponential disk.
     use Star_Formation_Timescales_Disks
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
     double precision                         :: starFormationTimescale,gasMass
 
@@ -1479,45 +1491,48 @@ contains
     return
   end function Exponential_Disk_SFR
 
-  subroutine Exponential_Disk_Radius_Set(thisNode,radius)
+  subroutine Exponential_Disk_Radius_Set(thisNode,radius,instance)
     !% Set the scale radius of the exponential disk.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: radius
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       thisNode%components(thisIndex)%data(radiusIndex)=max(radius,0.0d0)
+       thisNode%components(thisIndex)%instance(1)%data(radiusIndex)=max(radius,0.0d0)
     end if
     return
   end subroutine Exponential_Disk_Radius_Set
 
-  double precision function Exponential_Disk_Velocity(thisNode)
+  double precision function Exponential_Disk_Velocity(thisNode,instance)
     !% Return the circular velocity of the exponential disk.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       Exponential_Disk_Velocity=thisNode%components(thisIndex)%data(velocityIndex)
+       Exponential_Disk_Velocity=thisNode%components(thisIndex)%instance(1)%data(velocityIndex)
     else
        Exponential_Disk_Velocity=0.0d0
     end if
     return
   end function Exponential_Disk_Velocity
 
-  subroutine Exponential_Disk_Velocity_Set(thisNode,velocity)
+  subroutine Exponential_Disk_Velocity_Set(thisNode,velocity,instance)
     !% Set the circular velocity of the exponential disk.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: velocity
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       thisNode%components(thisIndex)%data(velocityIndex)=velocity
+       thisNode%components(thisIndex)%instance(1)%data(velocityIndex)=velocity
     end if
     return
   end subroutine Exponential_Disk_Velocity_Set
@@ -1535,9 +1550,9 @@ contains
        ! Get the index for this component.
        thisIndex=thisNode%componentIndex(componentIndex)
        ! Create the stellar properties history.
-       call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%histories(stellarHistoryIndex))
+       call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex))
        ! Create the star formation history.
-       call Star_Formation_History_Create(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex))
+       call Star_Formation_History_Create(thisNode,thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex))
     else
        ! Get the index for this component.
        thisIndex=thisNode%componentIndex(componentIndex)
@@ -1795,7 +1810,7 @@ contains
     ! Output the star formation history if a disk exists for this component.
     if (methodSelected .and. thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       call Star_Formation_History_Output(thisNode,nodePassesFilter,thisNode%components(thisIndex)&
+       call Star_Formation_History_Output(thisNode,nodePassesFilter,thisNode%components(thisIndex)%instance(1)&
             &%histories(starFormationHistoryIndex),iOutput ,treeIndex,'disk')
     end if
     return

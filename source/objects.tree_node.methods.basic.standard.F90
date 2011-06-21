@@ -144,32 +144,35 @@ contains
     return
   end subroutine Tree_Node_Methods_Basic_Initialize_Standard
 
-  double precision function Tree_Node_Mass_Basic(thisNode)
+  double precision function Tree_Node_Mass_Basic(thisNode,instance)
     !% Return the node mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Basic_Index(thisNode)
-    Tree_Node_Mass_Basic=thisNode%components(thisIndex)%properties(massIndex,propertyValue)
+    Tree_Node_Mass_Basic=thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue)
     return
   end function Tree_Node_Mass_Basic
 
-  subroutine Tree_Node_Mass_Set_Basic(thisNode,mass)
+  subroutine Tree_Node_Mass_Set_Basic(thisNode,mass,instance)
     !% Set the node mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Basic_Index(thisNode)
-    thisNode%components(thisIndex)%properties(massIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Mass_Set_Basic
 
-  subroutine Tree_Node_Mass_Rate_Adjust_Basic(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Mass_Rate_Adjust_Basic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node mass rate of change.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -178,7 +181,7 @@ contains
 
     ! Use the stored accretion rate value.
     thisIndex=Tree_Node_Basic_Index(thisNode)
-    thisNode%components(thisIndex)%properties(massIndex,propertyDerivative)=thisNode%components(thisIndex)%properties(massIndex&
+    thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyDerivative)=thisNode%components(thisIndex)%instance(1)%properties(massIndex&
          &,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Mass_Rate_Adjust_Basic
@@ -192,47 +195,51 @@ contains
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Basic_Index(thisNode)
-    call Tree_Node_Mass_Rate_Adjust_Basic(thisNode,interrupt,interruptProcedure,thisNode%components(thisIndex)%data(rateIndex))
+    call Tree_Node_Mass_Rate_Adjust_Basic(thisNode,interrupt,interruptProcedure,thisNode%components(thisIndex)%instance(1)%data(rateIndex))
     return
   end subroutine Tree_Node_Mass_Rate_Compute_Basic
 
-  double precision function Tree_Node_Mass_Accretion_Rate_Basic(thisNode)
+  double precision function Tree_Node_Mass_Accretion_Rate_Basic(thisNode,instance)
     !% Returns the mass accretion rate for {\tt thisNode}.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Basic_Index(thisNode)
-    Tree_Node_Mass_Accretion_Rate_Basic=thisNode%components(thisIndex)%data(rateIndex)
+    Tree_Node_Mass_Accretion_Rate_Basic=thisNode%components(thisIndex)%instance(1)%data(rateIndex)
     return
   end function Tree_Node_Mass_Accretion_Rate_Basic
 
-  double precision function Tree_Node_Time_Basic(thisNode)
+  double precision function Tree_Node_Time_Basic(thisNode,instance)
     !% Return the node time.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Basic_Index(thisNode)
-    Tree_Node_Time_Basic=thisNode%components(thisIndex)%properties(timeIndex,propertyValue)
+    Tree_Node_Time_Basic=thisNode%components(thisIndex)%instance(1)%properties(timeIndex,propertyValue)
     return
   end function Tree_Node_Time_Basic
 
-  subroutine Tree_Node_Time_Set_Basic(thisNode,time)
+  subroutine Tree_Node_Time_Set_Basic(thisNode,time,instance)
     !% Set the node time.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: time
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Basic_Index(thisNode)
-    thisNode%components(thisIndex)%properties(timeIndex,propertyValue)=time
+    thisNode%components(thisIndex)%instance(1)%properties(timeIndex,propertyValue)=time
     return
   end subroutine Tree_Node_Time_Set_Basic
 
-  subroutine Tree_Node_Time_Rate_Adjust_Basic(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Time_Rate_Adjust_Basic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node time rate of change.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -240,7 +247,7 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Basic_Index(thisNode)
-    thisNode%components(thisIndex)%properties(timeIndex,propertyDerivative)=thisNode%components(thisIndex)%properties(timeIndex&
+    thisNode%components(thisIndex)%instance(1)%properties(timeIndex,propertyDerivative)=thisNode%components(thisIndex)%instance(1)%properties(timeIndex&
          &,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Time_Rate_Adjust_Basic
@@ -256,15 +263,16 @@ contains
     return
   end subroutine Tree_Node_Time_Rate_Compute_Basic
 
-  double precision function Tree_Node_Time_Last_Isolated_Basic(thisNode)
+  double precision function Tree_Node_Time_Last_Isolated_Basic(thisNode,instance)
     !% Returns the time at which {\tt thisNode} was last an isolated halo.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%isSatellite()) then
        thisIndex=Tree_Node_Basic_Index(thisNode)
-       Tree_Node_Time_Last_Isolated_Basic=thisNode%components(thisIndex)%data(isolationIndex)
+       Tree_Node_Time_Last_Isolated_Basic=thisNode%components(thisIndex)%instance(1)%data(isolationIndex)
     else
        Tree_Node_Time_Last_Isolated_Basic=Tree_Node_Time_Basic(thisNode)
     end if
@@ -287,10 +295,10 @@ contains
        thisIndex=Tree_Node_Basic_Index(thisNode)
 
        ! Set scale for time.
-       thisNode%components(thisIndex)%properties(timeIndex,propertyScale)=timeScale
+       thisNode%components(thisIndex)%instance(1)%properties(timeIndex,propertyScale)=timeScale
 
        ! Set scale for mass.
-       thisNode%components(thisIndex)%properties(massIndex,propertyScale)=Tree_Node_Mass(thisNode)*scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyScale)=Tree_Node_Mass(thisNode)*scaleMassRelative
 
     end if
     return
@@ -318,10 +326,10 @@ contains
              ! Ensure the child has a mass growth rate computed.
              call Halo_Mass_Accretion_Rate_Standard(thisNode%childNode)
              ! Get the growth rate of the child.
-             thisNode%components(thisIndex)%data(rateIndex)=Tree_Node_Mass_Accretion_Rate_Basic(thisNode%childNode)
+             thisNode%components(thisIndex)%instance(1)%data(rateIndex)=Tree_Node_Mass_Accretion_Rate_Basic(thisNode%childNode)
           else
              ! Parentless node has no child - set a zero growth rate.
-             thisNode%components(thisIndex)%data(rateIndex)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%data(rateIndex)=0.0d0
           end if
        else
           ! Compute the unresolved mass.
@@ -331,10 +339,10 @@ contains
              if (thisNode%isPrimaryProgenitor()) then
                 ! Main progenitor - compute required growth rate.
                 deltaTime=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
-                if (deltaTime > 0.0d0) thisNode%components(thisIndex)%data(rateIndex)=massUnresolved/deltaTime
+                if (deltaTime > 0.0d0) thisNode%components(thisIndex)%instance(1)%data(rateIndex)=massUnresolved/deltaTime
              else
                 ! Non-main progenitor - assume zero growth rate.
-                thisNode%components(thisIndex)%data(rateIndex)=0.0d0
+                thisNode%components(thisIndex)%instance(1)%data(rateIndex)=0.0d0
              end if
           else
              ! Negative mass growth - assume all progenitors lose mass at proportionally equal rates.
@@ -343,7 +351,7 @@ contains
              ! Compute the time available for accretion.
              deltaTime=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
              ! Compute mass growth rate.
-             if (deltaTime > 0.0d0) thisNode%components(thisIndex)%data(rateIndex)=(massUnresolved/deltaTime)&
+             if (deltaTime > 0.0d0) thisNode%components(thisIndex)%instance(1)%data(rateIndex)=(massUnresolved/deltaTime)&
                   &*(Tree_Node_Mass_Basic(thisNode)/progenitorMassTotal)
           end if
       end if
@@ -364,9 +372,9 @@ contains
     if (methodSelected) then
        thisIndex=Tree_Node_Basic_Index(thisNode)
        ! Shut down mass accretion onto the halo now that it is a satellite.
-       thisNode%components(thisIndex)%data(rateIndex)=0.0d0
+       thisNode%components(thisIndex)%instance(1)%data(rateIndex)=0.0d0
        ! Record the time at which the node became a satellite - used for computing halo scales etc.
-       thisNode%components(thisIndex)%data(isolationIndex)=Tree_Node_Time(thisNode)
+       thisNode%components(thisIndex)%instance(1)%data(isolationIndex)=Tree_Node_Time(thisNode)
     end if
     return
   end subroutine Tree_Node_Mass_Stop_Accretion_Standard
@@ -392,7 +400,7 @@ contains
        ! Adjust the accretion rate to that of the parent node.
        thisIndex  =Tree_Node_Basic_Index(thisNode)
        parentIndex=Tree_Node_Basic_Index(parentNode)
-       thisNode%components(thisIndex)%data(rateIndex)=parentNode%components(parentIndex)%data(rateIndex)
+       thisNode%components(thisIndex)%instance(1)%data(rateIndex)=parentNode%components(parentIndex)%instance(1)%data(rateIndex)
     end if
     return
   end subroutine Tree_Node_Basic_Promote_Standard

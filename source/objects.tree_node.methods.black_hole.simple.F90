@@ -207,37 +207,40 @@ contains
     return
   end subroutine Tree_Node_Methods_Black_Hole_Simple_Initialize
 
-  double precision function Tree_Node_Black_Hole_Mass_Simple(thisNode)
+  double precision function Tree_Node_Black_Hole_Mass_Simple(thisNode,instance)
     !% Return the node black hole mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Black_Hole_Simple_Index(thisNode)
-       Tree_Node_Black_Hole_Mass_Simple=thisNode%components(thisIndex)%properties(massIndex,propertyValue)
+       Tree_Node_Black_Hole_Mass_Simple=thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue)
     else
        Tree_Node_Black_Hole_Mass_Simple=blackHoleSeedMass
     end if
     return
   end function Tree_Node_Black_Hole_Mass_Simple
 
-  subroutine Tree_Node_Black_Hole_Mass_Set_Simple(thisNode,mass)
+  subroutine Tree_Node_Black_Hole_Mass_Set_Simple(thisNode,mass,instance)
     !% Set the node black hole mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Black_Hole_Simple_Index(thisNode)
-    thisNode%components(thisIndex)%properties(massIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Black_Hole_Mass_Set_Simple
 
-  subroutine Tree_Node_Black_Hole_Mass_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Black_Hole_Mass_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node black hole mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
@@ -245,7 +248,7 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Black_Hole_Simple_Index(thisNode)
-    thisNode%components(thisIndex)%properties(massIndex,propertyDerivative)=thisNode%components(thisIndex)%properties(massIndex&
+    thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyDerivative)=thisNode%components(thisIndex)%instance(1)%properties(massIndex&
          &,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Black_Hole_Mass_Rate_Adjust_Simple
@@ -327,7 +330,7 @@ contains
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Black_Hole_Simple_Index(thisNode)
        ! Set scale for mass.
-       thisNode%components(thisIndex)%properties(massIndex,propertyScale)=max(Tree_Node_Spheroid_Stellar_Mass(thisNode)&
+       thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyScale)=max(Tree_Node_Spheroid_Stellar_Mass(thisNode)&
             &*blackHoleToSpheroidStellarGrowthRatio,Tree_Node_Black_Hole_Mass(thisNode))
     end if
     return

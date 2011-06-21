@@ -77,7 +77,7 @@ module Tree_Nodes
      integer(kind=kind_int8), private                   :: nodeIndex,nodeUniqueID
      type(treeNode),          pointer                   :: parentNode,childNode,siblingNode,satelliteNode,mergeNode,mergeeNode,nextMergee
      integer,                 allocatable, dimension(:) :: componentIndex
-     type(component),         allocatable, dimension(:) :: components
+     type(componentArray),    allocatable, dimension(:) :: components
    contains
      ! Node indexing methods.
      !@ <objectMethods>
@@ -272,9 +272,10 @@ module Tree_Nodes
   !# </include>
 
   abstract interface
-     double precision function Get_Template(thisNode)
+     double precision function Get_Template(thisNode,instance)
        import treeNode
-       type(treeNode), pointer, intent(inout) :: thisNode
+       type(treeNode), intent(inout), pointer  :: thisNode
+       integer,        intent(in),    optional :: instance
      end function Get_Template
   end interface
   abstract interface
@@ -299,10 +300,11 @@ module Tree_Nodes
      end function Get_Template_Kepler_Orbit
   end interface
   abstract interface
-     subroutine Set_Template(thisNode,value)
+     subroutine Set_Template(thisNode,value,instance)
        import treeNode
-       type(treeNode),   pointer, intent(inout) :: thisNode
-       double precision,          intent(in)    :: value
+       type(treeNode),   intent(inout), pointer  :: thisNode
+       double precision, intent(in)              :: value
+       integer,          intent(in),    optional :: instance
      end subroutine Set_Template
   end interface
   abstract interface
@@ -327,12 +329,13 @@ module Tree_Nodes
      end subroutine Set_Template_Kepler_Orbit
   end interface
   abstract interface
-     subroutine Rate_Adjust_Template(thisNode,interrupt,interruptProcedure,rateAdjustment)
+     subroutine Rate_Adjust_Template(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
        import treeNode
-       type(treeNode),  pointer, intent(inout) :: thisNode
-       logical,                  intent(inout) :: interrupt
-       procedure(),     pointer, intent(inout) :: interruptProcedure
-       double precision,         intent(in)    :: rateAdjustment
+       type(treeNode),   intent(inout), pointer  :: thisNode
+       logical,          intent(inout)           :: interrupt
+       procedure(),      intent(inout), pointer  :: interruptProcedure
+       double precision, intent(in)              :: rateAdjustment
+       integer,          intent(in),    optional :: instance
      end subroutine Rate_Adjust_Template
   end interface
   abstract interface
@@ -425,7 +428,7 @@ contains
     use Memory_Management
     implicit none
     class(treeNode), target,  intent(inout) :: thisNode
-    integer                                 :: iComponent
+    integer                                 :: iComponent,iInstance
     type(treeNode),  pointer                :: workNode
 
     select type (thisNode)
@@ -442,17 +445,21 @@ contains
     ! Deallocate components.
     if (allocated(workNode%components)) then
        do iComponent=1,size(workNode%components)
-          if (allocated(workNode%components(iComponent)%properties)) then
-             call Memory_Usage_Record(sizeof(workNode%components(iComponent)%properties),addRemove=-1,memoryType=memoryTypeNodes)
-             deallocate(workNode%components(iComponent)%properties)
-          end if
-          if (allocated(workNode%components(iComponent)%data)) then
-             call Memory_Usage_Record(sizeof(workNode%components(iComponent)%data),addRemove=-1,memoryType=memoryTypeNodes)
-             deallocate(workNode%components(iComponent)%data)
-          end if
+          do iInstance=1,size(workNode%components(iComponent)%instance)
+             if (allocated(workNode%components(iComponent)%instance(iInstance)%properties)) then
+                call Memory_Usage_Record(sizeof(workNode%components(iComponent)%instance(iInstance)%properties),addRemove=-1,memoryType=memoryTypeNodes)
+                deallocate(workNode%components(iComponent)%instance(iInstance)%properties)
+             end if
+             if (allocated(workNode%components(iComponent)%instance(iInstance)%data)) then
+                call Memory_Usage_Record(sizeof(workNode%components(iComponent)%instance(iInstance)%data),addRemove=-1,memoryType=memoryTypeNodes)
+                deallocate(workNode%components(iComponent)%instance(iInstance)%data)
+             end if
+          end do
+          call Memory_Usage_Record(sizeof(workNode%components(iComponent)%instance),addRemove=-1,memoryType=memoryTypeNodes)
+          deallocate(workNode%components(iComponent)%instance)
        end do
-       deallocate(workNode%components)
        call Memory_Usage_Record(sizeof(workNode%components),addRemove=-1,memoryType=memoryTypeNodes)
+       deallocate(workNode%components)
     end if
 
     ! Deallocate the tree node object.
@@ -476,10 +483,10 @@ contains
     !% Ensure that the component array is allocated with sufficient size.
     use Memory_Management
     implicit none
-    integer,          intent(in)                :: componentIndex,propertyCount,dataCount,historyCount
-    class(treeNode),  intent(inout)             :: thisNode
-    type(component),  allocatable, dimension(:) :: tempComponents
-    integer                                     :: previousSize,thisIndex
+    integer,              intent(in)                :: componentIndex,propertyCount,dataCount,historyCount
+    class(treeNode),      intent(inout)             :: thisNode
+    type(componentArray), allocatable, dimension(:) :: tempComponents
+    integer                                         :: previousSize,thisIndex
 
     if (thisNode%componentIndex(componentIndex) == -1) then
        if (allocated(thisNode%components)) then
@@ -489,27 +496,30 @@ contains
           thisNode%components(1:previousSize)=tempComponents
           deallocate(tempComponents)
           call Memory_Usage_Record(sizeof(thisNode%components(1)),memoryType=memoryTypeNodes,blockCount=0)
+          thisNode%components(previousSize+1)%activeInstanceIndex=instanceNull
        else
           allocate(thisNode%components(1))
           call Memory_Usage_Record(sizeof(thisNode%components),memoryType=memoryTypeNodes)
+          thisNode%components%activeInstanceIndex=instanceNull
        end if
        thisNode%componentIndex(componentIndex)=size(thisNode%components)
        thisIndex=size(thisNode%components)
-       thisNode%components(thisIndex)%nextComponentOfType => null()
-       if (.not.allocated(thisNode%components(thisIndex)%properties)) then
+       allocate(thisNode%components(thisIndex)%instance(1))
+       call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%instance),memoryType=memoryTypeNodes)
+       if (.not.allocated(thisNode%components(thisIndex)%instance(1)%properties)) then
           if (propertyCount > 0) then
-             allocate(thisNode%components(thisIndex)%properties(propertyCount,2))
-             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%properties),memoryType=memoryTypeNodes)
-             thisNode%components(thisIndex)%properties=0.0d0
+             allocate(thisNode%components(thisIndex)%instance(1)%properties(propertyCount,2))
+             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%instance(1)%properties),memoryType=memoryTypeNodes)
+             thisNode%components(thisIndex)%instance(1)%properties=0.0d0
           end if
           if (dataCount > 0) then
-             allocate(thisNode%components(thisIndex)%data(dataCount))
-             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%data),memoryType=memoryTypeNodes)
-             thisNode%components(thisIndex)%data=0.0d0
+             allocate(thisNode%components(thisIndex)%instance(1)%data(dataCount))
+             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%instance(1)%data),memoryType=memoryTypeNodes)
+             thisNode%components(thisIndex)%instance(1)%data=0.0d0
           end if
           if (historyCount > 0) then
-             allocate(thisNode%components(thisIndex)%histories(historyCount))
-             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%histories),memoryType=memoryTypeNodes)
+             allocate(thisNode%components(thisIndex)%instance(1)%histories(historyCount))
+             call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%instance(1)%histories),memoryType=memoryTypeNodes)
           end if
        end if
     end if
@@ -517,25 +527,37 @@ contains
     return
   end subroutine Tree_Node_Allocate_Component
 
-  subroutine Tree_Node_Deallocate_Component(thisNode,componentIndex,propertyCount,dataCount)
+  subroutine Tree_Node_Deallocate_Component(thisNode,componentIndex)
     !% Ensure that the component array is deallocated.
     use Memory_Management
     implicit none
-    integer,         intent(in)                :: componentIndex,propertyCount,dataCount
-    class(treeNode), intent(inout)             :: thisNode
-    type(component), allocatable, dimension(:) :: tempComponents
-    integer                                    :: previousSize,listIndex,timesCount,iHistory
+    integer,              intent(in)                :: componentIndex
+    class(treeNode),      intent(inout)             :: thisNode
+    type(componentArray), allocatable, dimension(:) :: tempComponents
+    integer                                         :: previousSize,listIndex,timesCount,iHistory,iInstance
 
     listIndex=thisNode%componentIndex(componentIndex)
     if (listIndex /= -1) then
        ! Count memory that will be freed.
-       call Memory_Usage_Record(sizeof(thisNode%components(listIndex)           ),addRemove=-1,memoryType=memoryTypeNodes)
-       call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%properties),addRemove=-1,memoryType=memoryTypeNodes)
-       call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%data      ),addRemove=-1,memoryType=memoryTypeNodes)
-       if (allocated(thisNode%components(listIndex)%histories)) then
-          do iHistory=1,size(thisNode%components(listIndex)%histories)
-             call thisNode%components(listIndex)%histories(iHistory)%destroy()
+       if (allocated(thisNode%components(listIndex)%instance)) then
+          do iInstance=1,size(thisNode%components(listIndex)%instance)
+             call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%instance(iInstance)           ),addRemove=-1,memoryType=memoryTypeNodes)
+             if (allocated(thisNode%components(listIndex)%instance(iInstance)%properties)) then
+                call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%instance(iInstance)%properties),addRemove=-1,memoryType=memoryTypeNodes)
+                deallocate(thisNode%components(listIndex)%instance(iInstance)%properties)
+             end if
+             if (allocated(thisNode%components(listIndex)%instance(iInstance)%data      )) then
+                call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%instance(iInstance)%data      ),addRemove=-1,memoryType=memoryTypeNodes)
+                deallocate(thisNode%components(listIndex)%instance(iInstance)%data      )
+             end if
+             if (allocated(thisNode%components(listIndex)%instance(iInstance)%histories )) then
+                do iHistory=1,size(thisNode%components(listIndex)%instance(iInstance)%histories)
+                   call thisNode%components(listIndex)%instance(iInstance)%histories(iHistory)%destroy()
+                end do
+             end if
           end do
+          call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%instance),addRemove=-1,memoryType=memoryTypeNodes)
+          deallocate(thisNode%components(listIndex)%instance)
        end if
        previousSize=size(thisNode%components)
        if (previousSize > 1) then
@@ -564,26 +586,31 @@ contains
     !% Ensure that all components of {\tt thisNode} are deallocated.
     use Memory_Management
     implicit none
-    class(treeNode), intent(inout)             :: thisNode
-    integer                                    :: listIndex,thisIndex,iHistory
+    class(treeNode), intent(inout) :: thisNode
+    integer                        :: listIndex,thisIndex,iHistory,iInstance
 
     ! Deallocate each component and record the memory usage change.
     do thisIndex=1,size(thisNode%componentIndex)
        listIndex=thisNode%componentIndex(thisIndex)
        if (listIndex /= -1) then
-          if (allocated(thisNode%components(listIndex)%properties)) then
-             call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%properties),addRemove=-1,memoryType=memoryTypeNodes)
-             deallocate(thisNode%components(listIndex)%properties)
-          end if
-          if (allocated(thisNode%components(listIndex)%data)) then
-             call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%data),addRemove=-1,memoryType=memoryTypeNodes)
-             deallocate(thisNode%components(listIndex)%data)
-          end if
-          if (allocated(thisNode%components(listIndex)%histories)) then
-             do iHistory=1,size(thisNode%components(listIndex)%histories)
-                call thisNode%components(listIndex)%histories(iHistory)%destroy()
-             end do
-          end if
+          do iInstance=1,size(thisNode%components(listIndex)%instance)
+             if (allocated(thisNode%components(listIndex)%instance(iInstance)%properties)) then
+                call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%instance(iInstance)%properties),addRemove=-1,memoryType=memoryTypeNodes)
+                deallocate(thisNode%components(listIndex)%instance(iInstance)%properties)
+             end if
+             if (allocated(thisNode%components(listIndex)%instance(iInstance)%data)) then
+                call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%instance(iInstance)%data),addRemove=-1,memoryType=memoryTypeNodes)
+                deallocate(thisNode%components(listIndex)%instance(iInstance)%data)
+             end if
+             if (allocated(thisNode%components(listIndex)%instance(iInstance)%histories)) then
+                do iHistory=1,size(thisNode%components(listIndex)%instance(iInstance)%histories)
+                   call thisNode%components(listIndex)%instance(iInstance)%histories(iHistory)%destroy()
+                end do
+             end if
+          end do
+          ! Deallocate the instances array.
+          call Memory_Usage_Record(sizeof(thisNode%components(listIndex)%instance),addRemove=-1,memoryType=memoryTypeNodes)
+          deallocate(thisNode%components(listIndex)%instance)
        end if
     end do
     ! Deallocate the components array.
@@ -897,7 +924,6 @@ contains
     class(treeNode), target,  intent(inout) :: thisNode
     type(treeNode),  pointer, intent(inout) :: progenitorNode
     type(treeNode),  pointer                :: thisNodeActual
-
 
     select type (thisNode)
     type is (treeNode)
@@ -1261,13 +1287,14 @@ contains
     return
   end subroutine Tree_Node_Rate_Rate_Compute_Dummy
 
-  subroutine Tree_Node_Rate_Adjust_Dummy(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Rate_Adjust_Dummy(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% A dummy rate-adjust subroutine that can be pointed to by unconnected pipes.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
+    integer,          intent(in), optional   :: instance
 
     return
   end subroutine Tree_Node_Rate_Adjust_Dummy

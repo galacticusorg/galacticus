@@ -741,8 +741,8 @@ contains
     locationPath=IO_HDF5_Path_To(inObject)
 
     ! Set the parent for the group.
-       select type (inObject)
-       type is (hdf5Object)
+    select type (inObject)
+    type is (hdf5Object)
        groupObject%parentObject => inObject
     end select
 
@@ -3283,7 +3283,7 @@ contains
           ! Assume that a failed attempt to get chunk size indicates that the dataset is not chunked.
           datasetObject%chunkSize=-1
        else
-          datasetObject%chunkSize=chunkDimensions(1)
+          datasetObject%chunkSize=int(chunkDimensions(1))
        end if
        call h5eset_auto_f(1,errorCode)
        if (errorCode /= 0) then
@@ -3325,7 +3325,7 @@ contains
              chunkSizeActual=hdf5ChunkSize
           end if
        end if
-       datasetObject%chunkSize=chunkSizeActual
+       datasetObject%chunkSize=int(chunkSizeActual)
        ! Determine the compression level.
        if (present(compressionLevel)) then
           ! Check that compression level is valid.
@@ -8728,7 +8728,7 @@ contains
     !% Open and write a character 1-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object),      intent(inout), target       :: thisObject
+    class(hdf5Object),     intent(inout), target       :: thisObject
     character(len=*),      intent(in),    optional     :: datasetName,commentText
     character(len=*),      intent(in),    dimension(:) :: datasetValue
     logical,               intent(in),    optional     :: appendTo
@@ -8787,7 +8787,10 @@ contains
           ! Check that the object is a 1D character.
           call thisObject%assertDatasetType([dataTypeID],1)
        end if
-       datasetObject    =thisObject
+       select type (thisObject)
+       type is (hdf5Object)
+          datasetObject    =thisObject
+       end select
        datasetNameActual=thisObject%objectName
        preExisted       =.true.
     else
@@ -8907,7 +8910,7 @@ contains
     !% Open and write a varying string 1-D array dataset in {\tt thisObject}.
     use String_Handling
     implicit none
-    type(hdf5Object),      intent(inout), target       :: thisObject
+    class(hdf5Object),     intent(inout), target       :: thisObject
     character(len=*),      intent(in),    optional     :: datasetName,commentText
     type(varying_string),  intent(in),    dimension(:) :: datasetValue
     logical,               intent(in),    optional     :: appendTo
@@ -8921,29 +8924,13 @@ contains
     return
   end subroutine IO_HDF5_Write_Dataset_VarString_1D
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a character scalar dataset in {\tt thisObject}.
     use Galacticus_Error
     use Memory_Management
     implicit none
     character(len=*),        intent(out),             dimension(:) :: datasetValue
-    type(hdf5Object),        intent(inout)                         :: thisObject
+    class(hdf5Object),       intent(inout)                         :: thisObject
     character(len=*),        intent(in),    optional               :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional, dimension(1) :: readBegin,readCount
     integer(kind=HSIZE_T),                            dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -8997,7 +8984,10 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+       select type (thisObject)
+       type is (hdf5Object)
+          datasetObject=thisObject
+       end select
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -9240,7 +9230,7 @@ contains
     use Memory_Management
     implicit none
     character(len=*),        intent(out),   allocatable, dimension(:) :: datasetValue
-    type(hdf5Object),        intent(inout)                            :: thisObject
+    class(hdf5Object),       intent(inout)                            :: thisObject
     character(len=*),        intent(in),    optional                  :: datasetName
     integer(kind=HSIZE_T),   intent(in),    optional,    dimension(1) :: readBegin,readCount 
     integer(kind=HSIZE_T),                               dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
@@ -9294,7 +9284,10 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+       select type (thisObject)
+       type is (hdf5Object)
+          datasetObject=thisObject
+       end select
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
@@ -9534,7 +9527,7 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),  intent(out),   allocatable, dimension(:) :: datasetValue
-    type(hdf5Object),      intent(inout), target                    :: thisObject
+    class(hdf5Object),     intent(inout), target                    :: thisObject
     character(len=*),      intent(in),    optional                  :: datasetName
     integer(kind=HID_T)                                             :: dataTypeID
     integer(kind=SIZE_T)                                            :: dataTypeSize
@@ -9561,7 +9554,10 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+       select type (thisObject)
+       type is (hdf5Object)
+          datasetObject=thisObject
+       end select
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetName)//"'"
@@ -9615,7 +9611,7 @@ contains
     use Memory_Management
     implicit none
     type(varying_string),        intent(out),   allocatable, dimension(:) :: datasetValue
-    type(hdf5Object),            intent(inout), target                    :: thisObject
+    class(hdf5Object),           intent(inout), target                    :: thisObject
     character(len=*),            intent(in),    optional                  :: datasetName
     integer(kind=SIZE_T),        intent(in)                               :: dataTypeSize
     character(len=dataTypeSize),                allocatable, dimension(:) :: temporaryBuffer
@@ -9637,7 +9633,7 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),  intent(out),   dimension(:) :: datasetValue
-    type(hdf5Object),      intent(inout), target       :: thisObject
+    class(hdf5Object),     intent(inout), target       :: thisObject
     character(len=*),      intent(in),    optional     :: datasetName
     integer(kind=HID_T)                                :: dataTypeID
     integer(kind=SIZE_T)                               :: dataTypeSize
@@ -9664,7 +9660,10 @@ contains
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
-       datasetObject=thisObject
+       select type (thisObject)
+       type is (hdf5Object)
+          datasetObject=thisObject
+       end select
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetName)//"'"
@@ -9717,10 +9716,10 @@ contains
     !% which it can be read.
     use Memory_Management
     implicit none
-    type(varying_string),        intent(out),   dimension(:)                    :: datasetValue
-    type(hdf5Object),            intent(inout), target                          :: thisObject
-    character(len=*),            intent(in),    optional                        :: datasetName
-    integer(kind=SIZE_T),        intent(in)                                     :: dataTypeSize
+    type(varying_string),        intent(out),   dimension(:)                  :: datasetValue
+    class(hdf5Object),           intent(inout), target                        :: thisObject
+    character(len=*),            intent(in),    optional                      :: datasetName
+    integer(kind=SIZE_T),        intent(in)                                   :: dataTypeSize
     character(len=dataTypeSize),                dimension(size(datasetValue)) :: temporaryBuffer
 
     ! Call the character version of this routine to perform the red.

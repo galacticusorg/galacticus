@@ -382,23 +382,23 @@ contains
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
 
        ! Trim the stellar populations properties future history.
-       call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%trim(Tree_Node_Time(thisNode))
+       call thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)%trim(Tree_Node_Time(thisNode))
 
        ! Trap negative gas masses.
        if (Tree_Node_Spheroid_Gas_Mass(thisNode) < 0.0d0) then
           
           ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=dabs(thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue))&
-               &/(thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)&
-               &+dabs(thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)))
+          fractionalError=dabs(thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue))&
+               &/(thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)&
+               &+dabs(thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue)))
           !$omp critical (Hernquist_Spheroid_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.          
              message='Warning: spheroid has negative gas mass (fractional error exceeds any previously reported):'//char(10)
              message=message//'  Node index            = '//thisNode%index() //char(10)
-             write (valueString,'(e12.6)') thisNode%components(thisIndex)%properties(gasMassIndex    ,propertyValue)
+             write (valueString,'(e12.6)') thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex    ,propertyValue)
              message=message//'  Spheroid gas mass     = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+             write (valueString,'(e12.6)') thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
              message=message//'  Spheroid stellar mass = '//trim(valueString)//char(10)
              write (valueString,'(e12.6)') fractionalError
              message=message//'  Error measure         = '//trim(valueString)//char(10)
@@ -416,57 +416,59 @@ contains
           !$omp end critical (Hernquist_Spheroid_Post_Evolve_Check)
           
           ! Get the specific angular momentum of the spheroid material
-          spheroidMass= thisNode%components(thisIndex)%properties(gasMassIndex    ,propertyValue) &
-               &       +thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+          spheroidMass= thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex    ,propertyValue) &
+               &       +thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
           if (spheroidMass == 0.0d0) then
              specificAngularMomentum=0.0d0
-             thisNode%components(thisIndex)%properties(stellarMassIndex                                    ,propertyValue)=0.0d0
-             thisNode%components(thisIndex)%properties(stellarAbundancesIndex  :stellarAbundancesIndexEnd  ,propertyValue)=0.0d0  
-             thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex                                    ,propertyValue)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex  :stellarAbundancesIndexEnd  ,propertyValue)=0.0d0  
+             thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=0.0d0
           else
-             specificAngularMomentum=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)&
+             specificAngularMomentum=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)&
                   &/spheroidMass
           end if
           
           ! Reset the gas, abundances and angular momentum of the spheroid.
-          thisNode%components(thisIndex)%properties(gasMassIndex                            ,propertyValue)=0.0d0
-          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=0.0d0
-          thisNode%components(thisIndex)%properties(angularMomentumIndex                    ,propertyValue)= &
-               & specificAngularMomentum*thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+          thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex                            ,propertyValue)=0.0d0
+          thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=0.0d0
+          thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex                    ,propertyValue)= &
+               & specificAngularMomentum*thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
        end if
        
     end if
     return
   end subroutine Tree_Node_Spheroid_Post_Evolve_Hernquist
 
-  double precision function Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)
+  double precision function Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode,instance)
     !% Return the node Hernquist spheroid gas mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       Tree_Node_Spheroid_Gas_Mass_Hernquist=thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)
+       Tree_Node_Spheroid_Gas_Mass_Hernquist=thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue)
     else
        Tree_Node_Spheroid_Gas_Mass_Hernquist=0.0d0
     end if
     return
   end function Tree_Node_Spheroid_Gas_Mass_Hernquist
 
-  subroutine Tree_Node_Spheroid_Gas_Mass_Set_Hernquist(thisNode,mass)
+  subroutine Tree_Node_Spheroid_Gas_Mass_Set_Hernquist(thisNode,mass,instance)
     !% Set the node Hernquist spheroid gas mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Spheroid_Gas_Mass_Set_Hernquist
 
-  subroutine Tree_Node_Spheroid_Gas_Sink_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Spheroid_Gas_Sink_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Account for a sink of gaseous material in the Hernquist spheroid.
     use Galacticus_Error
     implicit none
@@ -474,6 +476,7 @@ contains
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
     double precision                         :: gasMass,stellarMass
     
@@ -490,26 +493,26 @@ contains
     ! Get the index of the component.
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)    
     ! Get the gas mass present.
-    gasMass=thisNode%components(thisIndex)%properties(gasMassIndex,propertyValue)
+    gasMass=thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyValue)
     ! Get the stellar mass present.
-    stellarMass=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+    stellarMass=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
     ! If gas is present, adjust the rates.
     if (gasMass > 0.0d0 .and. gasMass+stellarMass > 0.0d0) then
-       thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative)&
-            &=thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative)+rateAdjustment
-       thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative)&
-            &=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative) &
+       thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyDerivative)&
+            &=thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyDerivative)+rateAdjustment
+       thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative)&
+            &=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative) &
             & +rateAdjustment/(gasMass+stellarMass) &
-            & *thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)
-       thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
-            &=thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative) & 
+            & *thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)
+       thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
+            &=thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative) & 
             & +(rateAdjustment/gasMass) &
-            & *thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)
+            & *thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)
     end if
     return
   end subroutine Tree_Node_Spheroid_Gas_Sink_Rate_Adjust_Hernquist
 
-  subroutine Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Handles input of energy into the spheroid gas from other components (e.g. black holes). The energy input rate should be in
     !% units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
     use Galacticus_Error
@@ -518,6 +521,7 @@ contains
     logical,                   intent(inout)              :: interrupt
     procedure(),      pointer, intent(inout)              :: interruptProcedure
     double precision,          intent(in)                 :: rateAdjustment
+    integer,          intent(in), optional   :: instance
     double precision,          dimension(abundancesCount) :: abundancesOutflowRate
     integer                                               :: thisIndex
     double precision                                      :: gasMass,stellarMass,massOutflowRate,angularMomentumOutflowRate&
@@ -535,26 +539,26 @@ contains
     ! Get the index of the component.
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)    
     ! Get the gas mass present.
-    gasMass    =thisNode%components(thisIndex)%properties(gasMassIndex    ,propertyValue)
+    gasMass    =thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex    ,propertyValue)
     ! Get the stellar mass present.
-    stellarMass=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+    stellarMass=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
     ! If gas is present, adjust the rates.
     if (gasMass > 0.0d0 .and. gasMass+stellarMass > 0.0d0) then
        ! Compute outflow rates of quantities and adjust rates in the spheroid appropriately.
        spheroidVelocity=Hernquist_Spheroid_Velocity(thisNode)
        if (spheroidVelocity > 0.0d0) then
           massOutflowRate=spheroidEnergeticOutflowMassRate*rateAdjustment/spheroidVelocity**2
-          thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative) &
-               &=thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative)-massOutflowRate
+          thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyDerivative) &
+               &=thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyDerivative)-massOutflowRate
           angularMomentumOutflowRate=massOutflowRate/(gasMass+stellarMass) &
-               & *thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)
-          thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative)&
-               &=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative) &
+               & *thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)
+          thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative)&
+               &=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative) &
                & -angularMomentumOutflowRate
           abundancesOutflowRate=(massOutflowRate/gasMass) &
-               & *thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)
-          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
-               &=thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative) & 
+               & *thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)
+          thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
+               &=thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative) & 
                & -abundancesOutflowRate
           ! Add outflowing rates to the hot halo component.
           call Tree_Node_Hot_Halo_Outflow_Mass_To            (thisNode,interrupt,interruptProcedure,massOutflowRate           )
@@ -565,10 +569,11 @@ contains
     return
   end subroutine Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Hernquist
 
-  subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node Hernquist spheroid gas mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
@@ -585,8 +590,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(gasMassIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Hernquist
 
@@ -603,37 +608,40 @@ contains
     return
   end subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Compute_Hernquist
 
-  double precision function Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
+  double precision function Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode,instance)
     !% Return the node Hernquist spheroid stellar mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       Tree_Node_Spheroid_Stellar_Mass_Hernquist=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)
+       Tree_Node_Spheroid_Stellar_Mass_Hernquist=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
     else
        Tree_Node_Spheroid_Stellar_Mass_Hernquist=0.0d0
     end if
     return
   end function Tree_Node_Spheroid_Stellar_Mass_Hernquist
 
-  subroutine Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist(thisNode,mass)
+  subroutine Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist(thisNode,mass,instance)
     !% Set the node Hernquist spheroid stellar mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarMassIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist
 
-  subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node Hernquist spheroid stellar mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -650,8 +658,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarMassIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(stellarMassIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Adjust_Hernquist
 
@@ -701,7 +709,7 @@ contains
        
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,thisNode&
-            &,thisNode%components(thisIndex)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates &
+            &,thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex),stellarMassRate,stellarAbundancesRates &
             &,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
        
        ! Adjust rates.
@@ -714,7 +722,7 @@ contains
        call Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,stellarLuminositiesRates)
 
        ! Record the star formation history.
-       call Star_Formation_History_Record(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex)&
+       call Star_Formation_History_Record(thisNode,thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)&
             &,fuelAbundances,starFormationRate)
        
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
@@ -769,7 +777,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       abundanceMasses(:)=thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd&
+       abundanceMasses(:)=thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd&
             &,propertyValue)
     else
        abundanceMasses(:)=0.0d0
@@ -785,7 +793,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=abundanceMasses(:)
+    thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyValue)=abundanceMasses(:)
     return
   end subroutine Tree_Node_Spheroid_Gas_Abundances_Set_Hernquist
 
@@ -809,8 +817,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
+    thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyDerivative)&
          &+rateAdjustments(:)
     return
   end subroutine Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Hernquist
@@ -824,7 +832,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       abundanceMasses(:)=thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd&
+       abundanceMasses(:)=thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd&
             &,propertyValue)
     else
        abundanceMasses(:)=0.0d0
@@ -840,7 +848,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyValue)=abundanceMasses(:)
+    thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyValue)=abundanceMasses(:)
     return
   end subroutine Tree_Node_Spheroid_Stellar_Abundances_Set_Hernquist
 
@@ -864,8 +872,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyDerivative)&
+    thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyDerivative)&
          &+rateAdjustments(:)
     return
   end subroutine Tree_Node_Spheroid_Stellar_Abundances_Rate_Adjust_Hernquist
@@ -879,7 +887,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       luminosities(:)=thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd&
+       luminosities(:)=thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd&
             &,propertyValue)
     else
        luminosities(:)=0.0d0
@@ -895,7 +903,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=luminosities(:)
+    thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyValue)=luminosities(:)
     return
   end subroutine Tree_Node_Spheroid_Stellar_Luminosities_Set_Hernquist
 
@@ -919,43 +927,46 @@ contains
        return
     end if
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyDerivative)&
+    thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyDerivative)&
          &+rateAdjustments(:)
     return
   end subroutine Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust_Hernquist
 
-  double precision function Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode)
+  double precision function Tree_Node_Spheroid_Angular_Momentum_Hernquist(thisNode,instance)
     !% Return the node Hernquist spheroid gas mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       Tree_Node_Spheroid_Angular_Momentum_Hernquist=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)
+       Tree_Node_Spheroid_Angular_Momentum_Hernquist=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)
     else
        Tree_Node_Spheroid_Angular_Momentum_Hernquist=0.0d0
     end if
     return
   end function Tree_Node_Spheroid_Angular_Momentum_Hernquist
 
-  subroutine Tree_Node_Spheroid_Angular_Momentum_Set_Hernquist(thisNode,angularMomentum)
+  subroutine Tree_Node_Spheroid_Angular_Momentum_Set_Hernquist(thisNode,angularMomentum,instance)
     !% Set the node Hernquist spheroid gas mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: angularMomentum
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)=angularMomentum
+    thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)=angularMomentum
     return
   end subroutine Tree_Node_Spheroid_Angular_Momentum_Set_Hernquist
 
-  subroutine Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Hernquist(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node Hernquist spheroid gas mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
@@ -972,8 +983,8 @@ contains
        return
     end if
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative) &
-         &=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative) &
+         &=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Hernquist
 
@@ -1000,7 +1011,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       Tree_Node_Spheroid_Stellar_Properties_History_Hernquist=thisNode%components(thisIndex)%histories(stellarHistoryIndex)
+       Tree_Node_Spheroid_Stellar_Properties_History_Hernquist=thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)
     else
        Tree_Node_Spheroid_Stellar_Properties_History_Hernquist=nullHistory
     end if
@@ -1015,8 +1026,8 @@ contains
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%destroy()
-    thisNode%components(thisIndex)%histories(stellarHistoryIndex)=thisHistory
+    call thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)%destroy()
+    thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)=thisHistory
     return
   end subroutine Tree_Node_Spheroid_Stellar_Properties_History_Set_Hernquist
 
@@ -1031,7 +1042,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       Tree_Node_Spheroid_Star_Formation_History_Hernquist=thisNode%components(thisIndex)%histories(starFormationHistoryIndex)
+       Tree_Node_Spheroid_Star_Formation_History_Hernquist=thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)
     else
        Tree_Node_Spheroid_Star_Formation_History_Hernquist=nullHistory
     end if
@@ -1046,8 +1057,8 @@ contains
     integer                                :: thisIndex
 
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-    call thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%destroy()
-    thisNode%components(thisIndex)%histories(starFormationHistoryIndex)=thisHistory
+    call thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%destroy()
+    thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)=thisHistory
     return
   end subroutine Tree_Node_Spheroid_Star_Formation_History_Set_Hernquist
 
@@ -1073,7 +1084,7 @@ contains
     ! Get the index for this component.
     thisIndex=thisNode%componentIndex(componentIndex)
     ! Adjust the rate.
-    call thisNode%components(thisIndex)%histories(stellarHistoryIndex)%add(rateAdjustments,addTo=historyRates)
+    call thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex)%add(rateAdjustments,addTo=historyRates)
     return
   end subroutine Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Hernquist
 
@@ -1101,13 +1112,13 @@ contains
     ! Get the index for this component.
     thisIndex=thisNode%componentIndex(componentIndex)
     ! Ensure that a history already exists in the spheroid.
-    if (.not.thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%exists())                &
+    if (.not.thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%exists())                &
          & call Galacticus_Error_Report('Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust_Hernquist' &
          & ,'no star formation history has been created in spheroid')
     ! Check if the star formation history in the spheroid spans a sufficient range to accept the input rates.
-    if (rateAdjustments%time(1) < thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%time(1) .or.                      &
-         & rateAdjustments%time(size(rateAdjustments%time)) > thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%time( &
-         & size(thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%time))) then
+    if (rateAdjustments%time(1) < thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%time(1) .or.                      &
+         & rateAdjustments%time(size(rateAdjustments%time)) > thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%time( &
+         & size(thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%time))) then
        ! It does not, so interrupt evolution and extend the history.
        if (allocated(starFormationHistoryTemplate)) call Dealloc_Array(starFormationHistoryTemplate)
        call Alloc_Array(starFormationHistoryTemplate,shape(rateAdjustments%time))
@@ -1118,7 +1129,7 @@ contains
     end if
 
     ! Adjust the rate.
-    call thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%combine(rateAdjustments,addTo=historyRates)
+    call thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%combine(rateAdjustments,addTo=historyRates)
     return
   end subroutine Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust_Hernquist
 
@@ -1147,27 +1158,27 @@ contains
 
        ! Set scale for angular momentum.
        angularMomentum=Tree_Node_Spheroid_Angular_Momentum(thisNode)+Tree_Node_Disk_Angular_Momentum(thisNode)
-       thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyScale)=max(angularMomentum,angularMomentumMinimum)
+       thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyScale)=max(angularMomentum,angularMomentumMinimum)
 
        ! Set scale for gas mass.
        mass=Tree_Node_Spheroid_Gas_Mass(thisNode)+Tree_Node_Disk_Gas_Mass(thisNode)
-       thisNode%components(thisIndex)%properties(gasMassIndex,propertyScale)=gasMassScaling*max(mass,massMinimum)
+       thisNode%components(thisIndex)%instance(1)%properties(gasMassIndex,propertyScale)=gasMassScaling*max(mass,massMinimum)
 
        ! Set scale for stellar mass.
        mass=Tree_Node_Spheroid_Stellar_Mass(thisNode)+Tree_Node_Disk_Stellar_Mass(thisNode)
-       thisNode%components(thisIndex)%properties(stellarMassIndex,propertyScale)=max(mass,massMinimum)
+       thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyScale)=max(mass,massMinimum)
 
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for gas abundances.
           call Tree_Node_Spheroid_Gas_Abundances_Hernquist(thisNode,abundancesSpheroid)
           call Tree_Node_Disk_Gas_Abundances              (thisNode,abundancesDisk    )
-          thisNode%components(thisIndex)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyScale)=gasMassScaling*max(abundancesDisk+abundancesSpheroid,massMinimum)
+          thisNode%components(thisIndex)%instance(1)%properties(gasAbundancesIndex:gasAbundancesIndexEnd,propertyScale)=gasMassScaling*max(abundancesDisk+abundancesSpheroid,massMinimum)
           
           ! Set scale for stellar abundances.
           call Tree_Node_Spheroid_Stellar_Abundances_Hernquist(thisNode,abundancesSpheroid)
           call Tree_Node_Disk_Stellar_Abundances              (thisNode,abundancesDisk    )
-          thisNode%components(thisIndex)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
+          thisNode%components(thisIndex)%instance(1)%properties(stellarAbundancesIndex:stellarAbundancesIndexEnd,propertyScale)=max(abundancesDisk+abundancesSpheroid,massMinimum)
        end if
 
        ! Set scales for stellar luminosities if necessary.
@@ -1175,14 +1186,14 @@ contains
           ! Set scale for stellar luminosities.
           call Tree_Node_Spheroid_Stellar_Luminosities_Hernquist(thisNode,luminositiesSpheroid)
           call Tree_Node_Disk_Stellar_Luminosities              (thisNode,luminositiesDisk    )
-          thisNode%components(thisIndex)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyScale)=max(luminositiesDisk+luminositiesSpheroid,luminosityMinimum)
+          thisNode%components(thisIndex)%instance(1)%properties(stellarLuminositiesIndex:stellarLuminositiesIndexEnd,propertyScale)=max(luminositiesDisk+luminositiesSpheroid,luminosityMinimum)
        end if
 
        ! Set scales for stellar population properties history.
        call Tree_Node_Spheroid_Stellar_Abundances_Hernquist(thisNode,abundancesSpheroid)
        call stellarAbundances%pack(abundancesSpheroid)
-       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%histories(stellarHistoryIndex      ),Tree_Node_Spheroid_Stellar_Mass(thisNode),stellarAbundances)
-       call Star_Formation_History_Scales       (thisNode%components(thisIndex)%histories(starFormationHistoryIndex),Tree_Node_Spheroid_Stellar_Mass(thisNode),stellarAbundances)
+       call Stellar_Population_Properties_Scales(thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex      ),Tree_Node_Spheroid_Stellar_Mass(thisNode),stellarAbundances)
+       call Star_Formation_History_Scales       (thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex),Tree_Node_Spheroid_Stellar_Mass(thisNode),stellarAbundances)
     end if
     return
   end subroutine Hernquist_Spheroid_Scale_Set
@@ -1619,11 +1630,12 @@ contains
   end subroutine Hernquist_Spheroid_Radius_Solver
 
 
-  double precision function Hernquist_Spheroid_SFR(thisNode)
+  double precision function Hernquist_Spheroid_SFR(thisNode,instance)
     !% Return the star formation rate of the Hernquist spheroid.
     use Star_Formation_Timescales_Spheroids
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
     double precision                         :: starFormationTimescale,gasMass
 
@@ -1648,70 +1660,75 @@ contains
     return
   end function Hernquist_Spheroid_SFR
 
-  double precision function Hernquist_Spheroid_Radius(thisNode)
+  double precision function Hernquist_Spheroid_Radius(thisNode,instance)
     !% Return the scale radius of the Hernquist spheroid.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       Hernquist_Spheroid_Radius=thisNode%components(thisIndex)%data(radiusIndex)
+       Hernquist_Spheroid_Radius=thisNode%components(thisIndex)%instance(1)%data(radiusIndex)
     else
        Hernquist_Spheroid_Radius=0.0d0
     end if
     return
   end function Hernquist_Spheroid_Radius
 
-  double precision function Hernquist_Spheroid_Half_Mass_Radius(thisNode)
+  double precision function Hernquist_Spheroid_Half_Mass_Radius(thisNode,instance)
     !% Return the scale radius of the Hernquist spheroid.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    integer,          intent(in), optional   :: instance
     double precision, parameter              :: halfMassRadiusToScaleRadius=1.0d0/(dsqrt(2.0d0)-1.0d0)
 
     Hernquist_Spheroid_Half_Mass_Radius=Hernquist_Spheroid_Radius(thisNode)*halfMassRadiusToScaleRadius
     return
   end function Hernquist_Spheroid_Half_Mass_Radius
 
-  subroutine Hernquist_Spheroid_Radius_Set(thisNode,radius)
+  subroutine Hernquist_Spheroid_Radius_Set(thisNode,radius,instance)
     !% Set the scale radius of the Hernquist spheroid.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: radius
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       thisNode%components(thisIndex)%data(radiusIndex)=max(radius,0.0d0)
+       thisNode%components(thisIndex)%instance(1)%data(radiusIndex)=max(radius,0.0d0)
     end if
     return
   end subroutine Hernquist_Spheroid_Radius_Set
 
-  double precision function Hernquist_Spheroid_Velocity(thisNode)
+  double precision function Hernquist_Spheroid_Velocity(thisNode,instance)
     !% Return the circular velocity of the Hernquist spheroid.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       Hernquist_Spheroid_Velocity=thisNode%components(thisIndex)%data(velocityIndex)
+       Hernquist_Spheroid_Velocity=thisNode%components(thisIndex)%instance(1)%data(velocityIndex)
     else
        Hernquist_Spheroid_Velocity=0.0d0
     end if
     return
   end function Hernquist_Spheroid_Velocity
 
-  subroutine Hernquist_Spheroid_Velocity_Set(thisNode,velocity)
+  subroutine Hernquist_Spheroid_Velocity_Set(thisNode,velocity,instance)
     !% Set the circular velocity of the Hernquist spheroid.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: velocity
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       thisNode%components(thisIndex)%data(velocityIndex)=velocity
+       thisNode%components(thisIndex)%instance(1)%data(velocityIndex)=velocity
     end if
     return
   end subroutine Hernquist_Spheroid_Velocity_Set
@@ -1729,9 +1746,9 @@ contains
        ! Get the index for this component.
        thisIndex=thisNode%componentIndex(componentIndex)
        ! Create the stellar properties history.
-       call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%histories(stellarHistoryIndex))
+       call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex))
        ! Create the star formation history.
-       call Star_Formation_History_Create(thisNode,thisNode%components(thisIndex)%histories(starFormationHistoryIndex))
+       call Star_Formation_History_Create(thisNode,thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex))
     else
        ! Get the index for this component.
        thisIndex=thisNode%componentIndex(componentIndex)
@@ -1769,7 +1786,7 @@ contains
     ! Get the index of the component.
     thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
     ! Extend the range as necessary.
-    call thisNode%components(thisIndex)%histories(starFormationHistoryIndex)%extend(times=starFormationHistoryTemplate)
+    call thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)%extend(times=starFormationHistoryTemplate)
     return
   end subroutine Hernquist_Spheroid_Star_Formation_History_Extend
 
@@ -1973,7 +1990,7 @@ contains
     ! Output the star formation history if a spheroid exists for this component.
     if (methodSelected .and. thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hernquist_Spheroid_Index(thisNode)
-       call Star_Formation_History_Output(thisNode,nodePassesFilter,thisNode%components(thisIndex)&
+       call Star_Formation_History_Output(thisNode,nodePassesFilter,thisNode%components(thisIndex)%instance(1)&
             &%histories(starFormationHistoryIndex),iOutput ,treeIndex,'spheroid')
     end if
     return

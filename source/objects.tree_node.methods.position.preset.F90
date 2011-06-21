@@ -162,18 +162,18 @@ contains
        thisIndex=Tree_Node_Position_Index(thisNode)
        ! Check if this node has a position history attached to it.
        usingHistory=.false.
-       if (allocated(thisNode%components(thisIndex)%histories)) then
-          if (thisNode%components(thisIndex)%histories(positionHistoryIndex)%time(1) <= Tree_Node_Time(thisNode)) then
+       if (allocated(thisNode%components(thisIndex)%instance(1)%histories)) then
+          if (thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%time(1) <= Tree_Node_Time(thisNode)) then
              interpolationReset=.true.
-             iTime=Interpolate_Locate(size(thisNode%components(thisIndex)%histories(positionHistoryIndex)%time)&
-                  &,thisNode%components(thisIndex)%histories(positionHistoryIndex)%time,interpolationAccelerator&
+             iTime=Interpolate_Locate(size(thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%time)&
+                  &,thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%time,interpolationAccelerator&
                   &,Tree_Node_Time(thisNode),reset=interpolationReset,closest=.true.)
-             position=thisNode%components(thisIndex)%histories(positionHistoryIndex)%data(iTime,xPositionIndex:zPositionIndex)
+             position=thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%data(iTime,xPositionIndex:zPositionIndex)
              call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)  
              usingHistory=.true.
           end if
        end if
-       if (.not.usingHistory) position=thisNode%components(thisIndex)%data(xPositionIndex:zPositionIndex)
+       if (.not.usingHistory) position=thisNode%components(thisIndex)%instance(1)%data(xPositionIndex:zPositionIndex)
     else
        position=[0.0d0,0.0d0,0.0d0]
     end if
@@ -188,7 +188,7 @@ contains
     integer                                       :: thisIndex
 
     thisIndex=Tree_Node_Position_Index(thisNode)
-    thisNode%components(thisIndex)%data(xPositionIndex:zPositionIndex)=position
+    thisNode%components(thisIndex)%instance(1)%data(xPositionIndex:zPositionIndex)=position
     return
   end subroutine Tree_Node_Position_Set_Preset
   
@@ -207,18 +207,18 @@ contains
        thisIndex=Tree_Node_Position_Index(thisNode)
        ! Check if this node has a position history attached to it.
        usingHistory=.false.
-       if (allocated(thisNode%components(thisIndex)%histories)) then
-          if (thisNode%components(thisIndex)%histories(positionHistoryIndex)%time(1) <= Tree_Node_Time(thisNode)) then
+       if (allocated(thisNode%components(thisIndex)%instance(1)%histories)) then
+          if (thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%time(1) <= Tree_Node_Time(thisNode)) then
              interpolationReset=.true.
-             iTime=Interpolate_Locate(size(thisNode%components(thisIndex)%histories(positionHistoryIndex)%time)&
-                  &,thisNode%components(thisIndex)%histories(positionHistoryIndex)%time,interpolationAccelerator&
+             iTime=Interpolate_Locate(size(thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%time)&
+                  &,thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%time,interpolationAccelerator&
                   &,Tree_Node_Time(thisNode),reset=interpolationReset,closest=.true.)
-             velocity=thisNode%components(thisIndex)%histories(positionHistoryIndex)%data(iTime,xVelocityIndex:zVelocityIndex)
+             velocity=thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%data(iTime,xVelocityIndex:zVelocityIndex)
              call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)  
              usingHistory=.true.
           end if
        end if
-       if (.not.usingHistory) velocity=thisNode%components(thisIndex)%data(xVelocityIndex:zVelocityIndex)
+       if (.not.usingHistory) velocity=thisNode%components(thisIndex)%instance(1)%data(xVelocityIndex:zVelocityIndex)
     else
        velocity=[0.0d0,0.0d0,0.0d0]
     end if
@@ -233,7 +233,7 @@ contains
     integer                                       :: thisIndex
 
     thisIndex=Tree_Node_Position_Index(thisNode)
-    thisNode%components(thisIndex)%data(xVelocityIndex:zVelocityIndex)=position
+    thisNode%components(thisIndex)%instance(1)%data(xVelocityIndex:zVelocityIndex)=position
     return
   end subroutine Tree_Node_Velocity_Set_Preset
 
@@ -250,9 +250,9 @@ contains
        ! It does, so get the index of the component.
        thisIndex=Tree_Node_Position_Index(thisNode)
        ! Check if the component has histories
-       if (allocated(thisNode%components(thisIndex)%histories)) then
+       if (allocated(thisNode%components(thisIndex)%instance(1)%histories)) then
           ! It does, so return that history.
-         Tree_Node_Position_6D_History_Preset =thisNode%components(thisIndex)%histories(positionHistoryIndex)
+         Tree_Node_Position_6D_History_Preset =thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)
        else
           ! It does not, so return a null history.
           Tree_Node_Position_6D_History_Preset=nullHistory
@@ -276,14 +276,14 @@ contains
     ! Get the index of this component.
     thisIndex=Tree_Node_Position_Index(thisNode)
      ! If this component does not yet have a history associated with it, then create one.
-     if (.not.allocated(thisNode%components(thisIndex)%histories)) then
-        allocate(thisNode%components(thisIndex)%histories(historyCount))
-        call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%histories),memoryType=memoryTypeNodes)
+     if (.not.allocated(thisNode%components(thisIndex)%instance(1)%histories)) then
+        allocate(thisNode%components(thisIndex)%instance(1)%histories(historyCount))
+        call Memory_Usage_Record(sizeof(thisNode%components(thisIndex)%instance(1)%histories),memoryType=memoryTypeNodes)
      end if
      ! Destroy the current history.
-     call thisNode%components(thisIndex)%histories(positionHistoryIndex)%destroy()
+     call thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)%destroy()
      ! Assign the new history.
-     thisNode%components(thisIndex)%histories(positionHistoryIndex)=thisHistory
+     thisNode%components(thisIndex)%instance(1)%histories(positionHistoryIndex)=thisHistory
     return
   end subroutine Tree_Node_Position_6D_History_Set_Preset
 
@@ -321,7 +321,7 @@ contains
           call Tree_Node_Velocity_Set(thisNode  ,velocity)
           ! Check if the parent node has a position history attached to it.
           parentIndex=Tree_Node_Position_Index(parentNode)
-          if (allocated(parentNode%components(parentIndex)%histories)) then
+          if (allocated(parentNode%components(parentIndex)%instance(1)%histories)) then
              ! It does, so transfer it to the active node.
              positionHistory=Tree_Node_Position_6D_History(parentNode)
              call Tree_Node_Position_6D_History_Set(thisNode,positionHistory)

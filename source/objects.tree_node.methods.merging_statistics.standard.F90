@@ -177,45 +177,48 @@ contains
     return
   end subroutine Tree_Node_Methods_Merging_Stats_Standard_Initialize
 
-  double precision function Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard(thisNode)
+  double precision function Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard(thisNode,instance)
     !% Return the time of the last major merger.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
     if (trackMergerStatistics.and.thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
-       Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%data(majorMergerTimeIndex)
+       Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%instance(1)%data(majorMergerTimeIndex)
     else
        Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard=-1.0d0
     end if
     return
   end function Tree_Node_Galaxy_Major_Merger_Time_Merging_Stats_Standard
 
-  double precision function Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard(thisNode)
+  double precision function Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard(thisNode,instance)
     !% Return the time of the last major merger of nodes.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
     if (trackMergerStatistics.and.thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
-       Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%data(nodeMajorMergerTimeIndex)
+       Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%instance(1)%data(nodeMajorMergerTimeIndex)
     else
        Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard=-1.0d0
     end if
     return
   end function Tree_Node_Node_Major_Merger_Time_Merging_Stats_Standard
 
-  double precision function Tree_Node_Node_Formation_Time_Merging_Stats_Standard(thisNode)
+  double precision function Tree_Node_Node_Formation_Time_Merging_Stats_Standard(thisNode,instance)
     !% Return the time of the last major merger of nodes.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
     if (trackMergerStatistics) then
        thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
-       Tree_Node_Node_Formation_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%data(nodeFormationTimeIndex)
+       Tree_Node_Node_Formation_Time_Merging_Stats_Standard=thisNode%components(thisIndex)%instance(1)%data(nodeFormationTimeIndex)
     else
        Tree_Node_Node_Formation_Time_Merging_Stats_Standard=-1.0d0
     end if
@@ -245,9 +248,9 @@ contains
     if (.not.thisNode%componentExists(componentIndex)) then
        call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
        Tree_Node_Merging_Stats_Standard_Index=thisNode%componentIndex(componentIndex)
-       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%data(majorMergerTimeIndex    )=-1.0d0
-       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%data(nodeMajorMergerTimeIndex)=-1.0d0
-       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%data(nodeFormationTimeIndex  )=Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction)
+       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%instance(1)%data(majorMergerTimeIndex    )=-1.0d0
+       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%instance(1)%data(nodeMajorMergerTimeIndex)=-1.0d0
+       thisNode%components(Tree_Node_Merging_Stats_Standard_Index)%instance(1)%data(nodeFormationTimeIndex  )=Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction)
     else
        Tree_Node_Merging_Stats_Standard_Index=thisNode%componentIndex(componentIndex)
     end if
@@ -267,7 +270,7 @@ contains
        if (Tree_Node_Mass(thisNode) >= nodeMajorMergerFraction*Tree_Node_Mass(thisNode%parentNode)) then
           ! Record the merger time.
           thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode%parentNode)
-          thisNode%parentNode%components(thisIndex)%data(nodeMajorMergerTimeIndex)=Tree_Node_Time(thisNode)
+          thisNode%parentNode%components(thisIndex)%instance(1)%data(nodeMajorMergerTimeIndex)=Tree_Node_Time(thisNode)
        end if
     end if
     return
@@ -292,8 +295,8 @@ contains
        if (parentNode%componentExists(componentIndex)) then
           thisIndex=Tree_Node_Merging_Stats_Standard_Index(thisNode)
           if (Tree_Node_Node_Major_Merger_Time(parentNode) > Tree_Node_Node_Major_Merger_Time(thisNode)) &
-               & thisNode%components(thisIndex)%data(nodeMajorMergerTimeIndex)=Tree_Node_Node_Major_Merger_Time(parentNode)
-          thisNode%components(thisIndex)%data(nodeFormationTimeIndex)=Tree_Node_Node_Formation_Time(parentNode)
+               & thisNode%components(thisIndex)%instance(1)%data(nodeMajorMergerTimeIndex)=Tree_Node_Node_Major_Merger_Time(parentNode)
+          thisNode%components(thisIndex)%instance(1)%data(nodeFormationTimeIndex)=Tree_Node_Node_Formation_Time(parentNode)
        end if
     end if
     return
@@ -319,7 +322,7 @@ contains
           call thisNode%mergesWith(hostNode)
           ! Record the merger time.
           thisIndex=Tree_Node_Merging_Stats_Standard_Index(hostNode)
-          hostNode%components(thisIndex)%data(majorMergerTimeIndex)=Tree_Node_Time(hostNode)
+          hostNode%components(thisIndex)%instance(1)%data(majorMergerTimeIndex)=Tree_Node_Time(hostNode)
        end if
     end if
     return

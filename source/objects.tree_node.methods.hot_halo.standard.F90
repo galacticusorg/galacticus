@@ -401,34 +401,36 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Post_Evolve_Standard
 
-  double precision function Tree_Node_Hot_Halo_Mass_Standard(thisNode)
+  double precision function Tree_Node_Hot_Halo_Mass_Standard(thisNode,instance)
     !% Return the node hot halo mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       Tree_Node_Hot_Halo_Mass_Standard=thisNode%components(thisIndex)%properties(massIndex,propertyValue)
+       Tree_Node_Hot_Halo_Mass_Standard=thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue)
     else
        Tree_Node_Hot_Halo_Mass_Standard=0.0d0
     end if
     return
   end function Tree_Node_Hot_Halo_Mass_Standard
 
-  subroutine Tree_Node_Hot_Halo_Mass_Set_Standard(thisNode,mass)
+  subroutine Tree_Node_Hot_Halo_Mass_Set_Standard(thisNode,mass,instance)
     !% Set the node hot halo mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(massIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Hot_Halo_Mass_Set_Standard
 
-  subroutine Tree_Node_Hot_Halo_Hot_Gas_Sink_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Hot_Halo_Hot_Gas_Sink_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Account for a sink of gaseous material in the hot halo hot gas.
     use Galacticus_Error
     implicit none
@@ -436,7 +438,8 @@ contains
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: rateAdjustment
-    
+    integer,          intent(in), optional   :: instance
+     
     ! If no hot halo component currently exists and we have some sink from then there is a problem.
     ! spheroid. If sink has zero rate, just return instead.
     if (.not.thisNode%componentExists(componentIndex)) then
@@ -468,35 +471,35 @@ contains
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)    
 
     ! Get the gas mass present.
-    gasMass=thisNode%components(thisIndex)%properties(massIndex,propertyValue)
+    gasMass=thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue)
 
     ! If gas is present, adjust the rates.
     if (gasMass > 0.0d0) then
        ! Mass.
-       thisNode         %components(thisIndex)%properties(massIndex                               ,propertyDerivative) &
-            & = thisNode%components(thisIndex)%properties(massIndex                               ,propertyDerivative) &
+       thisNode         %components(thisIndex)%instance(1)%properties(massIndex                               ,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties(massIndex                               ,propertyDerivative) &
             &  +gasMassRate
        ! Angular momentum.
-       thisNode         %components(thisIndex)%properties(angularMomentumIndex                    ,propertyDerivative) &
-            & = thisNode%components(thisIndex)%properties(angularMomentumIndex                    ,propertyDerivative) &
-            &  +thisNode%components(thisIndex)%properties(angularMomentumIndex                    ,propertyValue     ) &
+       thisNode         %components(thisIndex)%instance(1)%properties(angularMomentumIndex                    ,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex                    ,propertyDerivative) &
+            &  +thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex                    ,propertyValue     ) &
             &  *(gasMassRate/gasMass)
        ! Metal abundances.
-       thisNode         %components(thisIndex)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative) &
-            & = thisNode%components(thisIndex)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative) & 
-            &  +thisNode%components(thisIndex)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyValue     ) &
+       thisNode         %components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative) & 
+            &  +thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyValue     ) &
             &  *(gasMassRate/gasMass)
        ! Molecular abundances.
-       thisNode         %components(thisIndex)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyDerivative) &
-            & = thisNode%components(thisIndex)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyDerivative) & 
-            &  *thisNode%components(thisIndex)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyValue     ) &
+       thisNode         %components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyDerivative) & 
+            &  *thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyValue     ) &
             &  +(gasMassRate/gasMass)
     end if
   
     return
   end subroutine Tree_Node_Hot_Halo_Hot_Gas_All_Rate_Adjust_Standard
 
-  subroutine Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% An incoming pipe that for sources of heating to the hot halo.
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
@@ -506,6 +509,7 @@ contains
     procedure(),      pointer, intent(inout) :: interruptProcedure
     procedure(),      pointer                :: interruptProcedurePassed
     double precision,          intent(in)    :: rateAdjustment
+    integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
     double precision                         :: massHeatingRate
     
@@ -592,10 +596,11 @@ contains
     return
   end subroutine Hot_Halo_Standard_Push_To_Cooling_Pipes
 
-  subroutine Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -603,42 +608,45 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(massIndex,propertyDerivative)=thisNode%components(thisIndex)%properties(massIndex&
+    thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyDerivative)=thisNode%components(thisIndex)%instance(1)%properties(massIndex&
          &,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard
 
-  double precision function Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(thisNode)
+  double precision function Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(thisNode,instance)
     !% Return the node unaccreted hot halo mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       Tree_Node_Hot_Halo_Unaccreted_Mass_Standard=thisNode%components(thisIndex)%properties(unaccretedMassIndex,propertyValue)
+       Tree_Node_Hot_Halo_Unaccreted_Mass_Standard=thisNode%components(thisIndex)%instance(1)%properties(unaccretedMassIndex,propertyValue)
     else
        Tree_Node_Hot_Halo_Unaccreted_Mass_Standard=0.0d0
     end if
     return
   end function Tree_Node_Hot_Halo_Unaccreted_Mass_Standard
 
-  subroutine Tree_Node_Hot_Halo_Unaccreted_Mass_Set_Standard(thisNode,mass)
+  subroutine Tree_Node_Hot_Halo_Unaccreted_Mass_Set_Standard(thisNode,mass,instance)
     !% Set the node unaccreted hot halo mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(unaccretedMassIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(unaccretedMassIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Hot_Halo_Unaccreted_Mass_Set_Standard
 
-  subroutine Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo unaccreted mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -646,7 +654,7 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(unaccretedMassIndex,propertyDerivative)=thisNode%components(thisIndex)%properties(unaccretedMassIndex&
+    thisNode%components(thisIndex)%instance(1)%properties(unaccretedMassIndex,propertyDerivative)=thisNode%components(thisIndex)%instance(1)%properties(unaccretedMassIndex&
          &,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust_Standard
@@ -688,37 +696,40 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Mass_Rate_Compute_Standard
 
-  double precision function Tree_Node_Hot_Halo_Angular_Momentum_Standard(thisNode)
+  double precision function Tree_Node_Hot_Halo_Angular_Momentum_Standard(thisNode,instance)
     !% Return the node hot halo angular momentum.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       Tree_Node_Hot_Halo_Angular_Momentum_Standard=thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)
+       Tree_Node_Hot_Halo_Angular_Momentum_Standard=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)
     else
        Tree_Node_Hot_Halo_Angular_Momentum_Standard=0.0d0
     end if
     return
   end function Tree_Node_Hot_Halo_Angular_Momentum_Standard
 
-  subroutine Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(thisNode,angularMomentum)
+  subroutine Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(thisNode,angularMomentum,instance)
     !% Set the node hot halo angular momentum.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: angularMomentum
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyValue)=angularMomentum
+    thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)=angularMomentum
     return
   end subroutine Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard
 
-  subroutine Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo mass rate of change.
     use Cosmological_Parameters
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -726,8 +737,8 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(angularMomentumIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(angularMomentumIndex ,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex ,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard
 
@@ -774,7 +785,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       abundances(:)=thisNode%components(thisIndex)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyValue)
+       abundances(:)=thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyValue)
     else
        abundances(:)=0.0d0
     end if
@@ -789,7 +800,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyValue)=abundances
+    thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyValue)=abundances
     return
   end subroutine Tree_Node_Hot_Halo_Abundances_Set_Standard
 
@@ -804,8 +815,8 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard
 
@@ -847,7 +858,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       molecules(:)=thisNode%components(thisIndex)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyValue)
+       molecules(:)=thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyValue)
     else
        molecules(:)=0.0d0
     end if
@@ -862,7 +873,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyValue)=molecules
+    thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyValue)=molecules
     return
   end subroutine Tree_Node_Hot_Halo_Molecules_Set_Standard
 
@@ -877,8 +888,8 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Molecules_Rate_Adjust_Standard
 
@@ -957,36 +968,39 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Molecules_Rate_Compute_Standard
 
-  double precision function Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)
+  double precision function Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode,instance)
     !% Return the node hot halo mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       Tree_Node_Hot_Halo_Outflowed_Mass_Standard=thisNode%components(thisIndex)%properties(outflowedMassIndex,propertyValue)
+       Tree_Node_Hot_Halo_Outflowed_Mass_Standard=thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyValue)
     else
        Tree_Node_Hot_Halo_Outflowed_Mass_Standard=0.0d0
     end if
     return
   end function Tree_Node_Hot_Halo_Outflowed_Mass_Standard
 
-  subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,mass)
+  subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,mass,instance)
     !% Set the node hot halo mass.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: mass
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(outflowedMassIndex,propertyValue)=mass
+    thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard
 
-  subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo mass rate of change.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -994,8 +1008,8 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(outflowedMassIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(outflowedMassIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard
 
@@ -1067,37 +1081,40 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Compute_Standard
 
-  double precision function Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode)
+  double precision function Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode,instance)
     !% Return the node hot halo angular momentum.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
        Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard&
-            &=thisNode%components(thisIndex)%properties(outflowedAngularMomentumIndex,propertyValue)
+            &=thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex,propertyValue)
     else
        Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard=0.0d0
     end if
     return
   end function Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard
 
-  subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,angularMomentum)
+  subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,angularMomentum,instance)
     !% Set the node hot halo angular momentum.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: angularMomentum
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(outflowedAngularMomentumIndex,propertyValue)=angularMomentum
+    thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex,propertyValue)=angularMomentum
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard
 
-  subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo mass rate of change.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
@@ -1105,8 +1122,8 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(outflowedAngularMomentumIndex,propertyDerivative) &
-         &=thisNode%components(thisIndex)%properties(outflowedAngularMomentumIndex,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex,propertyDerivative) &
+         &=thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Rate_Adjust_Standard
 
@@ -1141,7 +1158,7 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       abundances(:)=thisNode%components(thisIndex)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyValue)
+       abundances(:)=thisNode%components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyValue)
     else
        abundances(:)=0.0d0
     end if
@@ -1156,7 +1173,7 @@ contains
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyValue)=abundances
+    thisNode%components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyValue)=abundances
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard
 
@@ -1170,8 +1187,8 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyDerivative) &
-         &=thisNode%components(thisIndex)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyDerivative)&
+    thisNode%components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyDerivative) &
+         &=thisNode%components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyDerivative)&
          &+rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Adjust_Standard
@@ -1214,14 +1231,14 @@ contains
        massVirial    =Tree_Node_Mass                  (thisNode)
        radiusVirial  =Dark_Matter_Halo_Virial_Radius  (thisNode)
        velocityVirial=Dark_Matter_Halo_Virial_Velocity(thisNode)
-       thisNode%components(thisIndex)%properties(massIndex                                           ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%properties(outflowedMassIndex                                  ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%properties(unaccretedMassIndex                                 ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%properties(hotAbundancesIndex      :hotAbundancesIndexEnd      ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%properties(hotMoleculesIndex       :hotMoleculesIndexEnd       ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%properties(angularMomentumIndex                                ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
-       thisNode%components(thisIndex)%properties(outflowedAngularMomentumIndex                       ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(massIndex                                           ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex                                  ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(unaccretedMassIndex                                 ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex      :hotAbundancesIndexEnd      ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex       :hotMoleculesIndexEnd       ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex                                ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex                       ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
     end if
     return
   end subroutine Hot_Halo_Scale_Set

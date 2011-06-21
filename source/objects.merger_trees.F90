@@ -612,8 +612,8 @@ contains
              firstInterruptTime      =  time
              firstInterruptProcedure => interruptProcedure
              ! Let the ODE solver know that an interrupt occured, and when it happened.
-             Tree_Node_ODEs=odeSolverInterrupt
-             interruptedAtX=time
+             Tree_Node_ODEs          =  odeSolverInterrupt
+             interruptedAtX          =  time
              return
           end if
        end select
@@ -627,28 +627,26 @@ contains
   subroutine Initialize_Derivatives_to_Zero(thisNode)
     !% Initialize the derivatives of all properties of {\tt thisNode} to zero.
     implicit none
-    type(treeNode),  intent(inout) :: thisNode
-    type(component), pointer       :: thisComponent
-    integer                        :: iComponent,iHistory
+    type(treeNode), intent(inout) :: thisNode
+    integer                       :: iComponent,iHistory,iInstance
 
-    do iComponent=1,size(thisNode%components)
-       if (allocated(thisNode%components(iComponent)%properties)) thisNode%components(iComponent)%properties(:&
-            &,propertyDerivative)=0.0d0
-       if (allocated(thisNode%components(iComponent)%histories )) then
-          do iHistory=1,size(thisNode%components(iComponent)%histories)
-             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time))&
-                  & thisNode%components(iComponent)%histories(iHistory)%rates(:,:)=0.0d0
-          end do
-       end if
-       thisComponent => thisNode%components(iComponent)%nextComponentOfType
-       do while (associated(thisComponent))
-          if (allocated(thisComponent%properties)) thisComponent%properties(:,propertyDerivative)=0.0d0
-          if (allocated(thisComponent%histories )) then
-             do iHistory=1,size(thisComponent%histories)
-                if (allocated(thisComponent%histories(iHistory)%time)) thisComponent%histories(iHistory)%rates(:,:)=0.0d0
+    do    iComponent=1,size(thisNode%components                     )
+       do iInstance =1,size(thisNode%components(iComponent)%instance)
+          if     (allocated(thisNode &
+               &                   %components(iComponent          )       &
+               &                   %instance  (iInstance           )       &
+               &                   %properties                             &
+               &           )                                               &
+               & )          thisNode                                       &
+               &                   %components(iComponent          )       &
+               &                   %instance  (iInstance           )       &
+               &                   %properties(:,propertyDerivative)=0.0d0
+          if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories )) then
+             do iHistory=1,size(thisNode%components(iComponent)%instance(iInstance)%histories)
+                if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time))&
+                     & thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%rates(:,:)=0.0d0
              end do
           end if
-          thisComponent => thisComponent%nextComponentOfType
        end do
     end do
     return
@@ -658,27 +656,18 @@ contains
     !% Initialize the scale of all properties of {\tt thisNode} to unity.
     implicit none
     type(treeNode),  intent(inout) :: thisNode
-    type(component), pointer       :: thisComponent
-    integer                        :: iComponent,iHistory
+    integer                        :: iComponent,iHistory,iInstance
 
-    do iComponent=1,size(thisNode%components)
-       if (allocated(thisNode%components(iComponent)%properties)) thisNode%components(iComponent)%properties(:&
-            &,propertyScale)=1.0d0
-       if (allocated(thisNode%components(iComponent)%histories )) then
-          do iHistory=1,size(thisNode%components(iComponent)%histories)
-             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time))&
-                  & thisNode%components(iComponent)%histories(iHistory)%scales(:,:)=1.0d0
-          end do
-       end if
-       thisComponent => thisNode%components(iComponent)%nextComponentOfType
-       do while (associated(thisComponent))
-          if (allocated(thisComponent%properties)) thisComponent%properties(:,propertyScale)=1.0d0
-          if (allocated(thisComponent%histories )) then
-             do iHistory=1,size(thisComponent%histories)
-                if (allocated(thisComponent%histories(iHistory)%time)) thisComponent%histories(iHistory)%scales(:,:)=1.0d0
+    do    iComponent=1,size(thisNode%components                     )
+       do iInstance =1,size(thisNode%components(iComponent)%instance)
+          if (allocated(thisNode%components(iComponent)%instance(iInstance)%properties)) thisNode%components(iComponent)%instance(iInstance)%properties(:&
+               &,propertyScale)=1.0d0
+          if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories )) then
+             do iHistory=1,size(thisNode%components(iComponent)%instance(iInstance)%histories)
+                if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time))&
+                     & thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%scales(:,:)=1.0d0
              end do
           end if
-          thisComponent => thisComponent%nextComponentOfType
        end do
     end do
     return
@@ -688,30 +677,30 @@ contains
     !% Determine the number of active properties for {\tt thisNode}.
     implicit none
     type(treeNode),  intent(in) :: thisNode
-    type(component), pointer    :: thisComponent
-    integer                     :: iComponent,iHistory
+    integer                     :: iComponent,iHistory,iInstance
 
     Count_Properties=0
-    do iComponent=1,size(thisNode%components)
-       if (allocated(thisNode%components(iComponent)%properties)) Count_Properties=Count_Properties&
-            &+size(thisNode%components(iComponent)%properties,dim=1)
-       if (allocated(thisNode%components(iComponent)%histories)) then
-          do iHistory=1,size(thisNode%components(iComponent)%histories)
-             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time)) Count_Properties=Count_Properties&
-                  &+size(thisNode%components(iComponent)%histories(iHistory)%data,dim=1) &
-                  &*size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
-          end do
-       end if
-       thisComponent => thisNode%components(iComponent)%nextComponentOfType
-       do while (associated(thisComponent))
-          if (allocated(thisComponent%properties)) Count_Properties=Count_Properties+size(thisComponent%properties,dim=1)
-          if (allocated(thisComponent%histories)) then
-             do iHistory=1,size(thisComponent%histories)
-                if (allocated(thisComponent%histories(iHistory)%time)) Count_Properties=Count_Properties&
-                     &+size(thisComponent%histories(iHistory)%data,dim=1) *size(thisComponent%histories(iHistory)%data,dim=2)
+    do    iComponent=1,size(thisNode%components                     )
+       do iInstance =1,size(thisNode%components(iComponent)%instance)
+          if     (allocated(               thisNode                       &
+               &                                  %components(iComponent) &
+               &                                  %instance  (iInstance ) &
+               &                                  %properties             &
+               &           )                                              &
+               & ) Count_Properties= Count_Properties                     &
+               &                    +size( thisNode                       &
+               &                                  %components(iComponent) &
+               &                                  %instance  (iInstance ) &
+               &                                  %properties             &
+               &                          ,dim=1                          &
+               &                         )
+          if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories)) then
+             do iHistory=1,size(thisNode%components(iComponent)%instance(iInstance)%histories)
+                if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)) Count_Properties=Count_Properties&
+                     &+size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data,dim=1) &
+                     &*size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data,dim=2)
              end do
           end if
-          thisComponent => thisComponent%nextComponentOfType
        end do
     end do
     return
@@ -723,8 +712,7 @@ contains
     double precision, intent(out)          :: propertyValuesODE(:)
     type(treeNode),   intent(in)           :: thisNode
     integer,          intent(in), optional :: labelType
-    type(component),  pointer              :: thisComponent
-    integer                                :: propertyCounter,iComponent,iProperty,labelTypeActual,propertyTypeActual,iHistory,iTime,iValue
+    integer                                :: propertyCounter,iComponent,iProperty,labelTypeActual,propertyTypeActual,iHistory,iTime,iValue,iInstance
     
     ! Find which type of property (value or derivative) is required.
     if (present(labelType)) then
@@ -743,52 +731,12 @@ contains
     end if
 
     propertyCounter=0
-    do iComponent=1,size(thisNode%components)
-       if (allocated(thisNode%components(iComponent)%properties)) then
-          do iProperty=1,size(thisNode%components(iComponent)%properties,dim=1)
-             propertyCounter=propertyCounter+1
-             propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%properties(iProperty,propertyTypeActual)
-#ifdef PROFILE
-             if (profileOdeEvolver) then
-                propertyComponent(propertyCounter)=iComponent
-                propertyObject   (propertyCounter)=objectTypeProperty
-                propertyIndex    (propertyCounter)=iProperty
-             end if
-#endif
-          end do
-       end if
-       if (allocated(thisNode%components(iComponent)%histories)) then
-          do iHistory=1,size(thisNode%components(iComponent)%histories)
-             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time)) then
-                do iValue=1,size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
-                   do iTime=1,size(thisNode%components(iComponent)%histories(iHistory)%time)
-                      propertyCounter=propertyCounter+1
-                      select case (labelTypeActual)
-                      case (labelValue     )
-                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%data  (iTime,iValue)
-                      case (labelDerivative)
-                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%rates (iTime,iValue)
-                      case (labelScale     )
-                         propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%histories(iHistory)%scales(iTime,iValue)
-                      end select
-#ifdef PROFILE
-                      if (profileOdeEvolver) then
-                         propertyComponent(propertyCounter)=iComponent
-                         propertyObject   (propertyCounter)=objectTypeHistory
-                         propertyIndex    (propertyCounter)=iHistory
-                      end if
-#endif
-                   end do
-                end do
-             end if
-          end do
-       end if
-       thisComponent => thisNode%components(iComponent)%nextComponentOfType
-       do while (associated(thisComponent))
-          if (allocated(thisComponent%properties)) then
-             do iProperty=1,size(thisComponent%properties,dim=1)
+    do    iComponent=1,size(thisNode%components                     )
+       do iInstance =1,size(thisNode%components(iComponent)%instance)
+          if (allocated(thisNode%components(iComponent)%instance(iInstance)%properties)) then
+             do iProperty=1,size(thisNode%components(iComponent)%instance(iInstance)%properties,dim=1)
                 propertyCounter=propertyCounter+1
-                propertyValuesODE(propertyCounter)=thisComponent%properties(iProperty,propertyTypeActual)
+                propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%instance(iInstance)%properties(iProperty,propertyTypeActual)
 #ifdef PROFILE
                 if (profileOdeEvolver) then
                    propertyComponent(propertyCounter)=iComponent
@@ -798,19 +746,19 @@ contains
 #endif
              end do
           end if
-          if (allocated(thisComponent%histories)) then
-             do iHistory=1,size(thisComponent%histories)
-                if (allocated(thisComponent%histories(iHistory)%time)) then
-                   do iValue=1,size(thisComponent%histories(iHistory)%data,dim=2)
-                      do iTime=1,size(thisComponent%histories(iHistory)%time)
+          if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories)) then
+             do iHistory=1,size(thisNode%components(iComponent)%instance(iInstance)%histories)
+                if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)) then
+                   do iValue=1,size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data,dim=2)
+                      do iTime=1,size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)
                          propertyCounter=propertyCounter+1
                          select case (labelTypeActual)
                          case (labelValue     )
-                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%data  (iTime,iValue)
+                            propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data  (iTime,iValue)
                          case (labelDerivative)
-                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%rates (iTime,iValue)
+                            propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%rates (iTime,iValue)
                          case (labelScale     )
-                            propertyValuesODE(propertyCounter)=thisComponent%histories(iHistory)%scales(iTime,iValue)
+                            propertyValuesODE(propertyCounter)=thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%scales(iTime,iValue)
                          end select
 #ifdef PROFILE
                          if (profileOdeEvolver) then
@@ -824,7 +772,6 @@ contains
                 end if
              end do
           end if
-          thisComponent => thisComponent%nextComponentOfType
        end do
     end do
 
@@ -848,51 +795,47 @@ contains
   subroutine Map_Properties_From_ODE_Array(thisNode,propertyValuesODE)
     !% Copies values of properties from {\tt thisNode} to a single array for use in the ODE solver routines.
     implicit none
-    double precision, intent(in)           :: propertyValuesODE(:)
-    type(treeNode),   intent(inout)        :: thisNode
-    type(component),  pointer              :: thisComponent
-    integer                                :: propertyCounter,iComponent,iProperty,iHistory,iTime,iValue,entryCount
+    double precision, intent(in)    :: propertyValuesODE(:)
+    type(treeNode),   intent(inout) :: thisNode
+    integer                         :: propertyCounter,iComponent,iProperty,iHistory,iTime,iValue,iInstance,entryCount
     
     propertyCounter=0
-    do iComponent=1,size(thisNode%components)
-       if (allocated(thisNode%components(iComponent)%properties)) then
-          do iProperty=1,size(thisNode%components(iComponent)%properties,dim=1)
-             propertyCounter=propertyCounter+1
-             thisNode%components(iComponent)%properties(iProperty,propertyValue)=propertyValuesODE(propertyCounter)
-          end do
-       end if
-       if (allocated(thisNode%components(iComponent)%histories)) then
-          do iHistory=1,size(thisNode%components(iComponent)%histories)
-             if (allocated(thisNode%components(iComponent)%histories(iHistory)%time)) then
-                do iValue=1,size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
-                   entryCount=size(thisNode%components(iComponent)%histories(iHistory)%time)
-                   thisNode%components(iComponent)%histories(iHistory)%data(:,iValue)=propertyValuesODE(propertyCounter+1:propertyCounter+entryCount)
-                   propertyCounter=propertyCounter+entryCount
-                end do
-             end if
-          end do
-       end if
-       thisComponent => thisNode%components(iComponent)%nextComponentOfType
-       do while (associated(thisComponent))
-          if (allocated(thisComponent%properties)) then
-             do iProperty=1,size(thisComponent%properties,dim=1)
+    do    iComponent=1,size(thisNode%components                     )
+       do iInstance =1,size(thisNode%components(iComponent)%instance)
+          if     (allocated(thisNode                       &
+               &                   %components(iComponent) &
+               &                   %instance  (iInstance ) &
+               &                   %properties             &
+               &           )                               &
+               & ) then
+             do iProperty=1,size(thisNode%components(iComponent)%instance(iInstance)%properties,dim=1)
                 propertyCounter=propertyCounter+1
-                thisComponent%properties(iProperty,propertyValue)=propertyValuesODE(propertyCounter)
+                thisNode%components(iComponent)%instance(iInstance)%properties(iProperty,propertyValue)=propertyValuesODE(propertyCounter)
              end do
           end if
-          if (allocated(thisComponent%histories)) then
-             do iHistory=1,size(thisComponent%histories)
-                if (allocated(thisComponent%histories(iHistory)%time)) then
-                   do iValue=1,size(thisComponent%histories(iHistory)%data,dim=2)
-                      do iTime=1,size(thisComponent%histories(iHistory)%time)
-                         propertyCounter=propertyCounter+1
-                         thisComponent%histories(iHistory)%data(iTime,iValue)=propertyValuesODE(propertyCounter)
-                      end do
+          if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories)) then
+             do iHistory=1,size(thisNode%components(iComponent)%instance(iInstance)%histories)
+                if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)) then
+                   do iValue=1,size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data,dim=2)
+                      entryCount=size(thisNode                       &
+                           &                 %components(iComponent) &
+                           &                 %instance  (iInstance ) &
+                           &                 %histories (iHistory  ) &
+                           &                 %time                   &
+                           &         )
+                      thisNode                                                                                         &
+                           & %components(  iComponent)                                                                 &
+                           & %instance  (  iInstance )                                                                 &
+                           & %histories (  iHistory  )                                                                 &
+                           & %data      (:,iValue    )=propertyValuesODE(                                              &
+                           &                                              propertyCounter+1                            &
+                           &                                             :propertyCounter+entryCount                   &
+                           &                                            )
+                      propertyCounter=propertyCounter+entryCount
                    end do
                 end if
              end do
           end if
-          thisComponent => thisComponent%nextComponentOfType
        end do
     end do
     return

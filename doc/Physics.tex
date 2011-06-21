@@ -1127,7 +1127,15 @@ Selected with {\tt starFormationExpulsiveFeedback[Disks|Spheroids]Method}$=${\tt
 \end{equation}
 where $V_{\rm superwind}=${\tt [disk|spheroid]SuperwindVelocity} (in km/s) and $\beta_{\rm superwind}=${\tt [disk|spheroid]SuperwindMassLoading} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
 
-\section{Supermassive Black Holes Binary Mergers}\index{supermassive black holes!mergers}
+\section{Supermassive Black Hole Binaries: Initial Separation}\index{supermassive black holes!binary separation}
+
+The method to be used for computing the initial separation of black hole binaries specified by the {\tt blackHoleBinaryInitialRadiiMethod} parameter.
+
+\subsection{Spheroid Radius Fraction}
+
+Selected with {\tt blackHoleBinaryInitialRadiiMethod}$=${\tt spheroid radius fraction}, this method assumes that the initial separation of the binary is equal to a fixed fraction {\tt [blackHoleInitialRadiusSpheroidRadiusRatio]} of the larger of the spheroid scale radii of the two merging galaxies.
+
+\section{Supermassive Black Hole Binaries: Mergers}\index{supermassive black holes!mergers}
 
 The method to be used for computing the effects of binary mergers of supermassive black holes is specified by the {\tt blackHoleBinaryMergersMethod} parameter.
 

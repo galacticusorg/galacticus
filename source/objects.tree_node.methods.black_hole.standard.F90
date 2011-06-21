@@ -75,9 +75,10 @@ module Tree_Node_Methods_Black_Hole
   integer :: componentIndex=-1
 
   ! Property indices.
-  integer, parameter :: propertyCount=2, dataCount=0, historyCount=0
-  integer, parameter :: massIndex=1
-  integer, parameter :: spinIndex=2
+  integer, parameter :: propertyCount=3, dataCount=0, historyCount=0
+  integer, parameter :: massIndex  =1
+  integer, parameter :: spinIndex  =2
+  integer, parameter :: radiusIndex=3
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -85,6 +86,9 @@ module Tree_Node_Methods_Black_Hole
   !# </treeNodeMethodsPointer>
   !# <treeNodeMethodsPointer>
   !#  <methodName>Tree_Node_Black_Hole_Spin</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer>
+  !#  <methodName>Tree_Node_Black_Hole_Radial_Position</methodName>
   !# </treeNodeMethodsPointer>
 
   ! Flag to indicate if this method is selected.
@@ -107,12 +111,16 @@ module Tree_Node_Methods_Black_Hole
   logical          :: blackHoleHeatsHotHalo
 
   ! Quantities stored to avoid repeated computation.
-  logical          :: gotAccretionRate=.false.
-  double precision :: accretionRate,accretionRateHotHalo
+  logical         , allocatable, dimension(:) :: gotAccretionRate
+  double precision, allocatable, dimension(:) :: accretionRate,accretionRateHotHalo
   !$omp threadprivate(gotAccretionRate,accretionRate,accretionRateHotHalo)
 
   ! Output options.
   logical          :: blackHoleOutputAccretion
+  
+  ! Index of black hole instance about to merge.
+  integer          :: mergingInstance
+  !$omp threadprivate(mergingInstance)
 
 contains
 
@@ -147,14 +155,18 @@ contains
        call Galacticus_Display_Message(message,verbosityInfo)
 
        ! Set up procedure pointers.
-       Tree_Node_Black_Hole_Mass              => Tree_Node_Black_Hole_Mass_Standard
-       Tree_Node_Black_Hole_Mass_Set          => Tree_Node_Black_Hole_Mass_Set_Standard
-       Tree_Node_Black_Hole_Mass_Rate_Adjust  => Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard
-       Tree_Node_Black_Hole_Mass_Rate_Compute => Tree_Node_Black_Hole_Mass_Rate_Compute_Standard
-       Tree_Node_Black_Hole_Spin              => Tree_Node_Black_Hole_Spin_Standard
-       Tree_Node_Black_Hole_Spin_Set          => Tree_Node_Black_Hole_Spin_Set_Standard
-       Tree_Node_Black_Hole_Spin_Rate_Adjust  => Tree_Node_Black_Hole_Spin_Rate_Adjust_Standard
-       Tree_Node_Black_Hole_Spin_Rate_Compute => Tree_Node_Black_Hole_Spin_Rate_Compute_Standard
+       Tree_Node_Black_Hole_Mass                         => Tree_Node_Black_Hole_Mass_Standard
+       Tree_Node_Black_Hole_Mass_Set                     => Tree_Node_Black_Hole_Mass_Set_Standard
+       Tree_Node_Black_Hole_Mass_Rate_Adjust             => Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard
+       Tree_Node_Black_Hole_Mass_Rate_Compute            => Tree_Node_Black_Hole_Mass_Rate_Compute_Standard
+       Tree_Node_Black_Hole_Spin                         => Tree_Node_Black_Hole_Spin_Standard
+       Tree_Node_Black_Hole_Spin_Set                     => Tree_Node_Black_Hole_Spin_Set_Standard
+       Tree_Node_Black_Hole_Spin_Rate_Adjust             => Tree_Node_Black_Hole_Spin_Rate_Adjust_Standard
+       Tree_Node_Black_Hole_Spin_Rate_Compute            => Tree_Node_Black_Hole_Spin_Rate_Compute_Standard
+       Tree_Node_Black_Hole_Radial_Position              => Tree_Node_Black_Hole_Radial_Position_Standard
+       Tree_Node_Black_Hole_Radial_Position_Set          => Tree_Node_Black_Hole_Radial_Position_Set_Standard
+       Tree_Node_Black_Hole_Radial_Position_Rate_Adjust  => Tree_Node_Black_Hole_Radial_Position_Rate_Adjust_Standard
+       Tree_Node_Black_Hole_Radial_Position_Rate_Compute => Tree_Node_Black_Hole_Radial_Position_Rate_Compute_Standard
 
        ! Get the black hole seed mass.
        !@ <inputParameter>
@@ -237,7 +249,6 @@ contains
     return
   end subroutine Tree_Node_Methods_Black_Hole_Initialize
   
-
   !# <calculationResetTask>
   !# <unitName>Tree_Node_Black_Hole_Reset_Standard</unitName>
   !# </calculationResetTask>
@@ -246,49 +257,55 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
 
-    gotAccretionRate=.false.
+    if (allocated(gotAccretionRate)) gotAccretionRate=.false.
     return
   end subroutine Tree_Node_Black_Hole_Reset_Standard
 
-  double precision function Tree_Node_Black_Hole_Mass_Standard(thisNode)
+  double precision function Tree_Node_Black_Hole_Mass_Standard(thisNode,instance)
     !% Return the node black hole mass.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
+    type(treeNode), intent(inout), pointer  :: thisNode
+    integer,        intent(in),    optional :: instance
+    integer                                 :: thisIndex,thisInstance
 
     if (thisNode%componentExists(componentIndex)) then
-       thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-       Tree_Node_Black_Hole_Mass_Standard=thisNode%components(thisIndex)%properties(massIndex,propertyValue)
+       thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+       thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+       Tree_Node_Black_Hole_Mass_Standard=thisNode%components(thisIndex)%instance(thisInstance)%properties(massIndex,propertyValue)
     else
        Tree_Node_Black_Hole_Mass_Standard=blackHoleSeedMass
     end if
     return
   end function Tree_Node_Black_Hole_Mass_Standard
 
-  subroutine Tree_Node_Black_Hole_Mass_Set_Standard(thisNode,mass)
+  subroutine Tree_Node_Black_Hole_Mass_Set_Standard(thisNode,mass,instance)
     !% Set the node black hole mass.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: mass
-    integer                                  :: thisIndex
-
-    thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-    thisNode%components(thisIndex)%properties(massIndex,propertyValue)=mass
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    double precision, intent(in)              :: mass
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex,thisInstance
+    
+    thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+    thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+    thisNode%components(thisIndex)%instance(thisInstance)%properties(massIndex,propertyValue)=mass
     return
   end subroutine Tree_Node_Black_Hole_Mass_Set_Standard
 
-  subroutine Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node black hole mass rate of change.
     use Cosmological_Parameters
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    logical,                   intent(inout) :: interrupt
-    procedure(), pointer, intent(inout) :: interruptProcedure
-    double precision,          intent(in)    :: rateAdjustment
-    integer                                  :: thisIndex
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    logical,          intent(inout)           :: interrupt
+    procedure(),      intent(inout), pointer  :: interruptProcedure
+    double precision, intent(in)              :: rateAdjustment
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex,thisInstance
     
-    thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-    thisNode%components(thisIndex)%properties(massIndex,propertyDerivative)=thisNode%components(thisIndex)%properties(massIndex&
+    thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+    thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+    thisNode%components(thisIndex)%instance(thisInstance)%properties(massIndex,propertyDerivative)=thisNode%components(thisIndex)%instance(thisInstance)%properties(massIndex&
          &,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard
@@ -309,10 +326,11 @@ contains
     procedure(),      pointer                :: interruptProcedurePassed
     double precision, parameter              :: windVelocity=1.0d4   ! Velocity of disk wind.
     double precision, parameter              :: ismTemperature=1.0d4 ! Temperature of the ISM.
-    double precision, parameter              :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0&
+    double precision, parameter              :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0d0&
          &/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
     double precision, parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
     double precision, parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
+    integer                                  :: iInstance,instanceCount,thisIndex
     double precision                         :: restMassAccretionRate,massAccretionRate,radiativeEfficiency,energyInputRate &
          &,spheroidDensity,spheroidGasMass,spheroidRadius,criticalDensity,windFraction,spheroidDensityOverCriticalDensity&
          &,heatingRate,couplingEfficiency,coolingRadiusFractional,x
@@ -320,103 +338,117 @@ contains
     ! Get a local copy of the interrupt procedure.
     interruptProcedurePassed => interruptProcedure
 
-    ! Find the rate of rest mass accretion onto the black hole.
-    restMassAccretionRate=Mass_Accretion_Rate(thisNode)
-
-    ! Finish if there is no accretion.
-    if (restMassAccretionRate <= 0.0d0) return
-
-    ! Find the radiative efficiency of the accretion.
-    radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,restMassAccretionRate)
-
-    ! Find the rate of increase in mass of the black hole.
-    massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency)
-
-    ! If no black hole component currently exists and we have some accretion then interrupt and create a black hole.
-    if (.not.thisNode%componentExists(componentIndex)) then    
-       if (massAccretionRate /= 0.0d0) then
-          interrupt=.true.
-          interruptProcedure => Black_Hole_Create
-       end if
-       return
-    end if
-    call Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, massAccretionRate   )
-
-    ! Remove the accreted mass from the spheroid component.
-    call Tree_Node_Spheroid_Gas_Sink                   (thisNode,interrupt,interruptProcedurePassed,-accretionRate       )
-
-    ! Remove the accreted mass from the hot halo component.
-    call Tree_Node_Hot_Halo_Hot_Gas_Sink               (thisNode,interrupt,interruptProcedurePassed,-accretionRateHotHalo)
-
-    ! Add heating to the hot halo component.
-    if (blackHoleHeatsHotHalo) then
-
-       ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
-       coolingRadiusFractional=Cooling_Radius(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)
-       if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
-          couplingEfficiency=1.0d0
-       else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
-          couplingEfficiency=0.0d0
-       else
-          x=      (coolingRadiusFractional                 -coolingRadiusFractionalTransitionMinimum) &
-               & /(coolingRadiusFractionalTransitionMaximum-coolingRadiusFractionalTransitionMinimum)
-          couplingEfficiency=x**2*(2.0d0*x-3.0d0)+1.0d0
-       end if
-       
-       ! Get jet power.
-       heatingRate=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)*couplingEfficiency
-
-       ! Pipe this power to the hot halo.
-       call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
-
-    end if
-
-    ! Add energy to the spheroid component.
-    if (blackHoleWindEfficiency > 0.0d0) then
-       spheroidGasMass=Tree_Node_Spheroid_Gas_Mass(thisNode)
-       if (spheroidGasMass > 0.0d0) then
-          spheroidRadius=Tree_Node_Spheroid_Radius(thisNode)
-          if (spheroidRadius > 0.0d0) then
-             spheroidDensity=3.0d0*spheroidGasMass/4.0d0/Pi/spheroidRadius**3
-             criticalDensity=criticalDensityNormalization*blackHoleWindEfficiency*restMassAccretionRate/spheroidRadius**2
-             
-             ! Construct an interpolating factor such that the energy input from the wind drops to zero below half of the critical density.
-             spheroidDensityOverCriticalDensity=spheroidDensity/criticalDensity-0.5d0
-             if (spheroidDensityOverCriticalDensity <= 0.0d0) then
-                ! No energy input below half of critical density.
-                windFraction=0.0d0
-             else if (spheroidDensityOverCriticalDensity >= 1.0d0) then
-                ! Full energy input above 1.5 times critical density.
-                windFraction=1.0d0
-             else
-                ! Smooth polynomial interpolating function between these limits.
-                windFraction=3.0d0*spheroidDensityOverCriticalDensity**2-2.0d0*spheroidDensityOverCriticalDensity**3
-             end if
-             
-             ! Compute the energy input and send it down the spheroid gas energy input pipe.
-             energyInputRate=windFraction*blackHoleWindEfficiency*restMassAccretionRate*(speedLight/kilo)**2
-             call Tree_Node_Spheroid_Gas_Energy_Input(thisNode,interrupt,interruptProcedurePassed,energyInputRate)
-          end if
-       end if
-    end if
-
-    ! Return our local copy of the interrupt procedure.
-    interruptProcedure => interruptProcedurePassed
-
-    return
-  end subroutine Tree_Node_Black_Hole_Mass_Rate_Compute_Standard
-
-  double precision function Tree_Node_Black_Hole_Spin_Standard(thisNode)
-    !% Return the node black hole angular momentum.
-    implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    ! Maximum allowed spin (useful to avoid infinities at maximal spin).
-    double precision, parameter              :: blackHoleSpinMaximum=0.9999d0
-    integer                                  :: thisIndex
-
+    ! Loop over instances.
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-       Tree_Node_Black_Hole_Spin_Standard=thisNode%components(thisIndex)%properties(spinIndex,propertyValue)
+       instanceCount=size(thisNode%components(thisIndex)%instance)
+    else
+       instanceCount=0
+    end if
+    do iInstance=1,max(instanceCount,1)
+       if (instanceCount > 0) call thisNode%components(thisIndex)%activeInstanceSet(iInstance)
+       
+       ! Find the rate of rest mass accretion onto the black hole.
+       restMassAccretionRate=Mass_Accretion_Rate(thisNode)
+       
+       ! Finish if there is no accretion.
+       if (restMassAccretionRate <= 0.0d0) cycle
+    
+       ! Find the radiative efficiency of the accretion.
+       radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,restMassAccretionRate)
+       
+       ! Find the rate of increase in mass of the black hole.
+       massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency)
+       
+       ! If no black hole component currently exists and we have some accretion then interrupt and create a black hole.
+       if (.not.thisNode%componentExists(componentIndex)) then    
+          if (massAccretionRate /= 0.0d0) then
+             interrupt=.true.
+             interruptProcedure => Black_Hole_Create
+          end if
+          return
+       end if
+       call Tree_Node_Black_Hole_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, massAccretionRate,instance=iInstance)
+    
+       ! Remove the accreted mass from the spheroid component.
+       call Tree_Node_Spheroid_Gas_Sink                   (thisNode,interrupt,interruptProcedurePassed,-accretionRate       (iInstance))
+    
+       ! Remove the accreted mass from the hot halo component.
+       call Tree_Node_Hot_Halo_Hot_Gas_Sink               (thisNode,interrupt,interruptProcedurePassed,-accretionRateHotHalo(iInstance))
+       
+       ! Add heating to the hot halo component.
+       if (blackHoleHeatsHotHalo) then
+
+          ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
+          coolingRadiusFractional=Cooling_Radius(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)
+          if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
+             couplingEfficiency=1.0d0
+          else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
+             couplingEfficiency=0.0d0
+          else
+             x=      (coolingRadiusFractional                 -coolingRadiusFractionalTransitionMinimum) &
+               & /(coolingRadiusFractionalTransitionMaximum-coolingRadiusFractionalTransitionMinimum)
+             couplingEfficiency=x**2*(2.0d0*x-3.0d0)+1.0d0
+          end if
+       
+          ! Get jet power.
+          heatingRate=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)*couplingEfficiency
+          
+          ! Pipe this power to the hot halo.
+          call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
+         
+       end if
+       
+       ! Add energy to the spheroid component.
+       if (blackHoleWindEfficiency > 0.0d0) then
+          spheroidGasMass=Tree_Node_Spheroid_Gas_Mass(thisNode)
+          if (spheroidGasMass > 0.0d0) then
+             spheroidRadius=Tree_Node_Spheroid_Radius(thisNode)
+             if (spheroidRadius > 0.0d0) then
+                spheroidDensity=3.0d0*spheroidGasMass/4.0d0/Pi/spheroidRadius**3
+                criticalDensity=criticalDensityNormalization*blackHoleWindEfficiency*restMassAccretionRate/spheroidRadius**2
+                
+                ! Construct an interpolating factor such that the energy input from the wind drops to zero below half of the critical density.
+                spheroidDensityOverCriticalDensity=spheroidDensity/criticalDensity-0.5d0
+                if (spheroidDensityOverCriticalDensity <= 0.0d0) then
+                   ! No energy input below half of critical density.
+                   windFraction=0.0d0
+                else if (spheroidDensityOverCriticalDensity >= 1.0d0) then
+                   ! Full energy input above 1.5 times critical density.
+                   windFraction=1.0d0
+                else
+                   ! Smooth polynomial interpolating function between these limits.
+                   windFraction=3.0d0*spheroidDensityOverCriticalDensity**2-2.0d0*spheroidDensityOverCriticalDensity**3
+                end if
+                
+                ! Compute the energy input and send it down the spheroid gas energy input pipe.
+                energyInputRate=windFraction*blackHoleWindEfficiency*restMassAccretionRate*(speedLight/kilo)**2
+                call Tree_Node_Spheroid_Gas_Energy_Input(thisNode,interrupt,interruptProcedurePassed,energyInputRate)
+
+             end if
+          end if
+       end if
+    end do
+    if (instanceCount > 0) call thisNode%components(thisIndex)%activeInstanceNullify()
+    
+    ! Return our local copy of the interrupt procedure.
+    interruptProcedure => interruptProcedurePassed
+    
+    return
+  end subroutine Tree_Node_Black_Hole_Mass_Rate_Compute_Standard
+  
+  double precision function Tree_Node_Black_Hole_Spin_Standard(thisNode,instance)
+    !% Return the node black hole angular momentum.
+    implicit none
+    type(treeNode),   intent(inout), pointer  :: thisNode   
+    integer,          intent(in),    optional :: instance
+    double precision, parameter               :: blackHoleSpinMaximum=0.9999d0 ! Maximum allowed spin (useful to avoid infinities).
+    integer                                   :: thisIndex,thisInstance
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+       thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+       Tree_Node_Black_Hole_Spin_Standard=thisNode%components(thisIndex)%instance(thisInstance)%properties(spinIndex,propertyValue)
        ! Ensure that the spin is within range.
        if (Tree_Node_Black_Hole_Spin_Standard < 0.0d0) then
           Tree_Node_Black_Hole_Spin_Standard=0.0d0
@@ -432,31 +464,35 @@ contains
     return
   end function Tree_Node_Black_Hole_Spin_Standard
 
-  subroutine Tree_Node_Black_Hole_Spin_Set_Standard(thisNode,spin)
+  subroutine Tree_Node_Black_Hole_Spin_Set_Standard(thisNode,spin,instance)
     !% Set the node black hole angular momentum.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: spin
-    integer                                  :: thisIndex
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    double precision, intent(in)              :: spin
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex,thisInstance
 
-    thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-    thisNode%components(thisIndex)%properties(spinIndex,propertyValue)=spin
+    thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+    thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+    thisNode%components(thisIndex)%instance(thisInstance)%properties(spinIndex,propertyValue)=spin
     return
   end subroutine Tree_Node_Black_Hole_Spin_Set_Standard
 
-  subroutine Tree_Node_Black_Hole_Spin_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Black_Hole_Spin_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node black hole mass rate of change.
     use Cosmological_Parameters
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    logical,                   intent(inout) :: interrupt
-    procedure(), pointer, intent(inout) :: interruptProcedure
-    double precision,          intent(in)    :: rateAdjustment
-    integer                                  :: thisIndex
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    logical,          intent(inout)           :: interrupt
+    procedure(),      intent(inout), pointer  :: interruptProcedure
+    double precision, intent(in)              :: rateAdjustment
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex,thisInstance
     
-    thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-    thisNode%components(thisIndex)%properties(spinIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%properties(spinIndex,propertyDerivative)+rateAdjustment
+    thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+    thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+    thisNode%components(thisIndex)%instance(thisInstance)%properties(spinIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(thisInstance)%properties(spinIndex,propertyDerivative)+rateAdjustment
     return
   end subroutine Tree_Node_Black_Hole_Spin_Rate_Adjust_Standard
 
@@ -468,26 +504,149 @@ contains
     logical,                 intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
+    integer                                :: iInstance,instanceCount,thisIndex
     double precision                       :: massAccretionRate,spinUpRate
 
-    ! Find the rate of gas mass accretion onto the halo.
-    massAccretionRate=Mass_Accretion_Rate(thisNode)
-    ! If no black hole component currently exists and we have some accretion then interrupt and create a black hole.
-    if (.not.thisNode%componentExists(componentIndex)) then    
-       if (massAccretionRate /= 0.0d0) then
-          interrupt=.true.
-          interruptProcedure => Black_Hole_Create
+    ! Loop over instances.
+    if (thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+       instanceCount=size(thisNode%components(thisIndex)%instance)
+    else
+       instanceCount=0
+    end if
+    do iInstance=1,max(instanceCount,1)
+       if (instanceCount > 0) call thisNode%components(thisIndex)%activeInstanceSet(iInstance)
+       
+       ! Find the rate of gas mass accretion onto the halo.
+       massAccretionRate=Mass_Accretion_Rate(thisNode)
+       ! If no black hole component currently exists and we have some accretion then interrupt and create a black hole.
+       if (.not.thisNode%componentExists(componentIndex)) then    
+          if (massAccretionRate /= 0.0d0) then
+             interrupt=.true.
+             interruptProcedure => Black_Hole_Create
+          end if
+          return
        end if
-       return
-    end if
-
-    if (massAccretionRate > 0.0d0) then
-       spinUpRate=Black_Hole_Spin_Up_Rate(thisNode,massAccretionRate)
-       call Tree_Node_Black_Hole_Spin_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,spinUpRate)
-    end if
-
+       
+       if (massAccretionRate > 0.0d0) then
+          spinUpRate=Black_Hole_Spin_Up_Rate(thisNode,massAccretionRate)
+          call Tree_Node_Black_Hole_Spin_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,spinUpRate,instance=iInstance)
+       end if
+    end do
+     if (instanceCount > 0) call thisNode%components(thisIndex)%activeInstanceNullify()
     return
   end subroutine Tree_Node_Black_Hole_Spin_Rate_Compute_Standard
+
+  double precision function Tree_Node_Black_Hole_Radial_Position_Standard(thisNode,instance)
+    !% Return the node black hole radial position.
+    implicit none
+    type(treeNode), intent(inout), pointer  :: thisNode
+    integer,        intent(in),    optional :: instance
+    integer                                 :: thisIndex,thisInstance
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+       thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+       Tree_Node_Black_Hole_Radial_Position_Standard=thisNode%components(thisIndex)%instance(thisInstance)%properties(radiusIndex,propertyValue)
+    else
+       Tree_Node_Black_Hole_Radial_Position_Standard=0.0d0
+    end if
+    return
+  end function Tree_Node_Black_Hole_Radial_Position_Standard
+
+  subroutine Tree_Node_Black_Hole_Radial_Position_Set_Standard(thisNode,radius,instance)
+    !% Set the node black hole radial position.
+    implicit none
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    double precision, intent(in)              :: radius
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex,thisInstance
+
+    thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+    thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+    thisNode%components(thisIndex)%instance(thisInstance)%properties(radiusIndex,propertyValue)=radius
+    return
+  end subroutine Tree_Node_Black_Hole_Radial_Position_Set_Standard
+
+  subroutine Tree_Node_Black_Hole_Radial_Position_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
+    !% Adjust the rate of evolution of the black hole radial position.
+    use Cosmological_Parameters
+    implicit none
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    logical,          intent(inout)           :: interrupt
+    procedure(),      intent(inout), pointer  :: interruptProcedure
+    double precision, intent(in)              :: rateAdjustment
+    integer,          intent(in),    optional :: instance
+    integer                                   :: thisIndex,thisInstance
+    
+    thisInstance=Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+    thisIndex   =Tree_Node_Black_Hole_Index       (thisNode)
+    thisNode                                                    &
+         &          %components(thisIndex)                      &
+         &          %instance(thisInstance)                     &
+         &          %properties(radiusIndex,propertyDerivative) &
+         & = thisNode                                           &
+         &          %components(thisIndex                     ) &
+         &          %instance  (thisInstance                  ) &
+         &          %properties(radiusIndex,propertyDerivative) &
+         &  +rateAdjustment
+    return
+  end subroutine Tree_Node_Black_Hole_Radial_Position_Rate_Adjust_Standard
+
+  subroutine Tree_Node_Black_Hole_Radial_Position_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
+    !% Compute the black hole node radial position rate of change.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    integer                                  :: iInstance,thisIndex
+
+    ! If a black hole exists, compute the rate of change of its radial position.
+    if (thisNode%componentExists(componentIndex)) then    
+       thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+       do iInstance=1,size(thisNode%components(thisIndex)%instance)
+          if (iInstance > 1) call thisNode%components(thisIndex)%activeInstanceSet(iInstance)
+
+          ! Check for a black hole that is about to merge.
+          if (iInstance > 1 .and. Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance) <= 0.0d0) then    
+             ! Record which instance is merging, then trigger an interrupt.
+             mergingInstance=iInstance
+             interrupt=.true.
+             interruptProcedure => Black_Hole_Standard_Merge_Black_Holes
+             return
+          end if
+
+          ! Set the rate of radial migration.
+          call Tree_Node_Black_Hole_Radial_Position_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,0.0d0,instance=iInstance)
+       end do
+       call thisNode%components(thisIndex)%activeInstanceNullify()
+    end if
+    return
+  end subroutine Tree_Node_Black_Hole_Radial_Position_Rate_Compute_Standard
+
+  integer function Tree_Node_Black_Hole_Get_Instance(thisNode,instance)
+    !% Returns the index of the instance to use for get, set and rate adjust functions.
+    use Tree_Nodes
+    type(treeNode), intent(inout), pointer  :: thisNode
+    integer,        intent(in),    optional :: instance
+    integer                                 :: thisIndex
+
+    if (present(instance)) then
+       ! A specific instance was requested, so simply return it.
+       Tree_Node_Black_Hole_Get_Instance=instance
+    else
+       ! No specific instance was requested - find the active instance.
+       if (thisNode%componentExists(componentIndex)) then
+          thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+          Tree_Node_Black_Hole_Get_Instance=thisNode%components(thisIndex)%activeInstance()
+          ! If there is no active instance, return the first instance.
+          if (Tree_Node_Black_Hole_Get_Instance == instanceNull) Tree_Node_Black_Hole_Get_Instance=1
+       else
+          Tree_Node_Black_Hole_Get_Instance=1
+      end if
+    end if
+    return
+  end function Tree_Node_Black_Hole_Get_Instance
 
   !# <scaleSetTask>
   !#  <unitName>Black_Hole_Standard_Scale_Set</unitName>
@@ -497,18 +656,45 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, parameter              :: scaleMassRelative=1.0d-4
-    integer                                  :: thisIndex
+    double precision, parameter              :: scaleSizeRelative=1.0d-4
+    double precision, parameter              :: scaleSizeAbsolute=1.0d-6
+    integer                                  :: thisIndex,iInstance
  
     ! Determine if method is active and a black hole component exists.
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-
-       ! Set scale for mass.
-       thisNode%components(thisIndex)%properties(massIndex,propertyScale)=max(Tree_Node_Spheroid_Stellar_Mass(thisNode)*scaleMassRelative,Tree_Node_Black_Hole_Mass(thisNode))
-
-       ! Set scale for spin.
-       thisNode%components(thisIndex)%properties(spinIndex,propertyScale)=1.0d0
-
+       
+       ! Loop over instances.
+       do iInstance=1,size(thisNode%components(thisIndex)%instance)
+          
+          ! Set scale for mass.
+          thisNode                                                                                                                         &
+               & %components(thisIndex                )                                                                                    &
+               & %instance  (iInstance                )                                                                                    &
+               & %properties(massIndex  ,propertyScale)=max( scaleMassRelative*Tree_Node_Spheroid_Stellar_Mass(thisNode          )         &
+               &                                            ,                  Tree_Node_Black_Hole_Mass      (thisNode,iInstance)         &
+               &                                           )
+          
+          ! Set scale for spin.
+          thisNode                                                                                                                         &
+               & %components(thisIndex                )                                                                                    &
+               & %instance  (iInstance                )                                                                                    &
+               & %properties(spinIndex  ,propertyScale)=1.0d0
+          
+          ! Set scale for radius.
+          thisNode&
+               & %components(thisIndex                )                                                                                     &
+               & %instance  (iInstance                )                                                                                     &
+               & %properties(radiusIndex,propertyScale)=maxval(                                                                             &
+               &                                               [                                                                            &
+               &                                                 scaleSizeAbsolute                                                          &
+               &                                                ,scaleSizeRelative*Tree_Node_Spheroid_Half_Mass_Radius (thisNode          ) &
+               &                                                ,                  Tree_Node_Black_Hole_Radial_Position(thisNode,iInstance) &
+               &                                               ]                                                                            &
+               &                                              )
+          
+       end do
+       
     end if
     return
   end subroutine Black_Hole_Standard_Scale_Set
@@ -519,32 +705,112 @@ contains
   subroutine Black_Hole_Satellite_Merging(thisNode)
     !% Merge (instantaneously) any black hole associated with {\tt thisNode} before it merges with its host halo.
     use Black_Hole_Binary_Mergers
+    use Black_Hole_Binary_Initial_Radii
+    use Components
     implicit none
-    type(treeNode),   pointer, intent(inout)     :: thisNode
+    type(treeNode),   pointer,     intent(inout) :: thisNode
     type(treeNode),   pointer                    :: hostNode
-    double precision                             :: blackHoleMassNew,blackHoleSpinNew
+    type(component),  allocatable, dimension(:)  :: instancesTemporary
+    integer                                      :: thisIndex,hostIndex,iInstance
+    double precision                             :: radiusInitial,blackHoleMassNew,blackHoleSpinNew
 
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
        
        ! Find the node to merge with.
        call thisNode%mergesWith(hostNode)
 
-       call Black_Hole_Binary_Merger(Tree_Node_Black_Hole_Mass_Standard(thisNode), &
-            &                        Tree_Node_Black_Hole_Mass_Standard(hostNode), &
-            &                        Tree_Node_Black_Hole_Spin_Standard(thisNode), &
-            &                        Tree_Node_Black_Hole_Spin_Standard(hostNode), &
-            &                        blackHoleMassNew                            , &
-            &                        blackHoleSpinNew                             )
+       ! Find the initial radius of the satellite black hole in the remnant.
+       radiusInitial=Black_Hole_Binary_Initial_Radius(thisNode,hostNode)
 
-       ! Move the black hole to the host.
-       call Tree_Node_Black_Hole_Mass_Set_Standard(hostNode,blackHoleMassNew)
-       call Tree_Node_Black_Hole_Spin_Set_Standard(hostNode,blackHoleSpinNew)
-       call Tree_Node_Black_Hole_Mass_Set_Standard(thisNode,0.0d0           )
-       call Tree_Node_Black_Hole_Spin_Set_Standard(thisNode,0.0d0           )
+       ! If the separation is non-positive, assume that the black holes merge instantaneously.
+       if (thisNode%componentExists(componentIndex)) then
+          if (radiusInitial <= 0.0d0) then
+             ! Loop over all black holes in the satellite galaxy.
+             thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+             do iInstance=1,size(thisNode%components(thisIndex)%instance)
+                ! Merge the black holes instantaneously.
+                call Black_Hole_Binary_Merger(Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance), &
+                     &                        Tree_Node_Black_Hole_Mass_Standard(hostNode                   ), &
+                     &                        Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance), &
+                     &                        Tree_Node_Black_Hole_Spin_Standard(hostNode                   ), &
+                     &                        blackHoleMassNew                                               , &
+                     &                        blackHoleSpinNew                                                 &
+                     &                       )          
+                ! Move the black hole to the host.
+                call Tree_Node_Black_Hole_Mass_Set_Standard(hostNode,blackHoleMassNew)
+                call Tree_Node_Black_Hole_Spin_Set_Standard(hostNode,blackHoleSpinNew)
+             end do
+          else
+             ! Move black holes from the satellite to the host, giving them the appropriate initial radius.
+             if (hostNode%componentExists(componentIndex)) then
+                hostIndex=Tree_Node_Black_Hole_Index(hostNode)
+                thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+                ! Adjust the radii of the black holes in the satellite galaxy.
+                forall(iInstance=1:size(thisNode%components(thisIndex)%instance))
+                   thisNode%components(thisIndex)%instance(iInstance)%properties(radiusIndex,propertyValue)=radiusInitial
+                end forall
+                ! The host already has some black holes, so append those from the satellite to this list.
+                allocate(                                                                  &
+                     &   instancesTemporary(                                               &
+                     &                       size(thisNode%components(thisIndex)%instance) &
+                     &                      +size(hostNode%components(hostIndex)%instance) &
+                     &                     )                                               &
+                     &  )
+                instancesTemporary(                                               1                                             &
+                     &             :size(hostNode%components(hostIndex)%instance)                                               &
+                     &            )=hostNode%components(hostIndex)%instance
+                instancesTemporary( size(hostNode%components(hostIndex)%instance)+1                                             &
+                     &             :size(hostNode%components(hostIndex)%instance)+size(thisNode%components(thisIndex)%instance) &
+                     &            )=thisNode%components(thisIndex)%instance
+                deallocate(thisNode%components(thisIndex)%instance)
+                deallocate(hostNode%components(hostIndex)%instance)
+                call Move_Alloc(instancesTemporary,hostNode%components(hostIndex)%instance)
+             else
+                ! The host has no black hole of its own. Simply move those from the satellite to the host.
+                hostIndex=Tree_Node_Black_Hole_Index(hostNode)
+                thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+                call Move_Alloc(thisNode%components(thisIndex)%instance,hostNode%components(hostIndex)%instance)
+                forall(iInstance=1:size(hostNode%components(hostIndex)%instance))
+                   hostNode%components(hostIndex)%instance(iInstance)%properties(radiusIndex,propertyValue)=radiusInitial
+                end forall
+             end if
+          end if
+          ! Destroy the black hole component in the satellite.
+          call thisNode%destroyComponent(componentIndex)
+       end if
     end if
     return
   end subroutine Black_Hole_Satellite_Merging
   
+  subroutine Black_Hole_Standard_Merge_Black_Holes(thisNode)
+    !% Merge two black holes.
+    use Black_Hole_Binary_Mergers
+    implicit none
+    type(treeNode),   pointer,     intent(inout) :: thisNode
+    type(component),  allocatable, dimension(:)  :: componentsTemporary
+    integer                                      :: thisIndex,instanceCount
+    double precision                             :: blackHoleMassNew,blackHoleSpinNew
+
+    call Black_Hole_Binary_Merger(Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=mergingInstance), &
+         &                        Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=1              ), &
+         &                        Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=mergingInstance), &
+         &                        Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=1              ), &
+         &                        blackHoleMassNew                                                     , &
+         &                        blackHoleSpinNew                                                       &
+         &                       )          
+    ! Set the mass and spin of the central black hole.
+    call Tree_Node_Black_Hole_Mass_Set_Standard(thisNode,blackHoleMassNew,instance=1)
+    call Tree_Node_Black_Hole_Spin_Set_Standard(thisNode,blackHoleSpinNew,instance=1)
+    ! Remove the merging black hole from the list.
+    thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+    instanceCount=size(thisNode%components(thisIndex)%instance)
+    call Move_Alloc(thisNode%components(thisIndex)%instance,componentsTemporary)
+    allocate(thisNode%components(thisIndex)%instance(instanceCount-1))
+    thisNode%components(thisIndex)%instance(1:mergingInstance-1)=componentsTemporary(1:mergingInstance-1)
+    if (instanceCount > 2) thisNode%components(thisIndex)%instance(mergingInstance:instanceCount-1)=componentsTemporary(mergingInstance+1:instanceCount)
+    deallocate(componentsTemporary)
+    return
+  end subroutine Black_Hole_Standard_Merge_Black_Holes
 
   double precision function Mass_Accretion_Rate(thisNode)
     !% Returns the rate of mass accretion onto the black hole in {\tt thisNode}.
@@ -556,13 +822,36 @@ contains
     use Black_Hole_Fundamentals
     use Accretion_Disks
     use Hot_Halo_Temperature_Profile
+    use Memory_Management
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, parameter              :: gasDensityMinimum=1.0d0 ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
+    integer                                  :: iInstance
     double precision                         :: blackHoleMass,gasDensity,relativeVelocity,accretionRadius,jeansLength&
-         &,radiativeEfficiency, position(3),hotHaloTemperature
+         &,radiativeEfficiency,position(3),hotHaloTemperature
+    
+    ! Get the active instance.
+    iInstance=Tree_Node_Black_Hole_Get_Instance(thisNode)
 
-    if (.not.gotAccretionRate) then
+    ! Ensure arrays are sufficiently large.
+    if (allocated(gotAccretionRate)) then
+       if (size(gotAccretionRate) < iInstance) then
+          call Dealloc_Array(gotAccretionRate                )
+          call Dealloc_Array(accretionRate                   )
+          call Dealloc_Array(accretionRateHotHalo            )
+          call Alloc_Array  (gotAccretionRate    ,[iInstance])
+          call Alloc_Array  (accretionRate       ,[iInstance])
+          call Alloc_Array  (accretionRateHotHalo,[iInstance])
+          gotAccretionRate=.false.
+       end if
+    else
+       call Alloc_Array(gotAccretionRate    ,[iInstance])
+       call Alloc_Array(accretionRate       ,[iInstance])
+       call Alloc_Array(accretionRateHotHalo,[iInstance])
+       gotAccretionRate=.false.
+    end if
+
+    if (.not.gotAccretionRate(iInstance)) then
        ! Get black hole mass.
        blackHoleMass=Tree_Node_Black_Hole_Mass_Standard(thisNode)
 
@@ -600,19 +889,19 @@ contains
                      &=massTypeGaseous,componentType=componentTypeSpheroid)
              end if
              ! Compute the accretion rate.
-             accretionRate=bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass,gasDensity&
+             accretionRate(iInstance)=bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass,gasDensity&
                   &,relativeVelocity,bondiHoyleAccretionTemperatureSpheroid)
              
              ! Get the radiative efficiency of the accretion.
-             radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,accretionRate)
+             radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,accretionRate(iInstance))
              
              ! Limit the accretion rate to the Eddington limit.
-             if (radiativeEfficiency > 0.0d0) accretionRate=min(accretionRate,Black_Hole_Eddington_Accretion_Rate(thisNode)&
+             if (radiativeEfficiency > 0.0d0) accretionRate(iInstance)=min(accretionRate(iInstance),Black_Hole_Eddington_Accretion_Rate(thisNode)&
                   &/radiativeEfficiency)
 
           else
              ! Gas density is negative - set zero accretion rate.
-             accretionRate=0.0d0
+             accretionRate(iInstance)=0.0d0
           end if
 
           ! Contribution from hot halo:
@@ -634,28 +923,28 @@ contains
           if (gasDensity > gasDensityMinimum) then
              
              ! Compute the accretion rate.
-             accretionRateHotHalo=bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass,gasDensity&
+             accretionRateHotHalo(iInstance)=bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass,gasDensity&
                   &,relativeVelocity,hotHaloTemperature)
 
              ! Get the radiative efficiency of the accretion.
-             radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,accretionRateHotHalo)
+             radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,accretionRateHotHalo(iInstance))
              
              ! Limit the accretion rate to the Eddington limit.
-             if (radiativeEfficiency > 0.0d0) accretionRateHotHalo=min(accretionRateHotHalo&
+             if (radiativeEfficiency > 0.0d0) accretionRateHotHalo(iInstance)=min(accretionRateHotHalo(iInstance)&
                   &,Black_Hole_Eddington_Accretion_Rate(thisNode)/radiativeEfficiency)
 
           else
              ! No gas density, so zero accretion rate.
-             accretionRateHotHalo=0.0d0
+             accretionRateHotHalo(iInstance)=0.0d0
           end if
 
        else
-          accretionRate       =0.0d0
-          accretionRateHotHalo=0.0d0
+          accretionRate       (iInstance)=0.0d0
+          accretionRateHotHalo(iInstance)=0.0d0
        end if
-       gotAccretionRate=.true.
+       gotAccretionRate(iInstance)=.true.
     end if
-    Mass_Accretion_Rate=accretionRate+accretionRateHotHalo
+    Mass_Accretion_Rate=accretionRate(iInstance)+accretionRateHotHalo(iInstance)
     return
   end function Mass_Accretion_Rate
 
@@ -685,8 +974,9 @@ contains
     ! Create the component.
     call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
     ! Set to the seed mass.
-    call Tree_Node_Black_Hole_Mass_Set_Standard(thisNode,blackHoleSeedMass)
-    call Tree_Node_Black_Hole_Spin_Set_Standard(thisNode,blackHoleSeedSpin)
+    call Tree_Node_Black_Hole_Mass_Set           (thisNode,blackHoleSeedMass)
+    call Tree_Node_Black_Hole_Spin_Set           (thisNode,blackHoleSeedSpin)
+    call Tree_Node_Black_Hole_Radial_Position_Set(thisNode,0.0d0            )
     return
   end subroutine Black_Hole_Create
 
@@ -708,14 +998,18 @@ contains
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     
     if (methodSelected) then
+       integerProperty=integerProperty+1
+       integerPropertyNames   (integerProperty)='blackHoleCount'
+       integerPropertyComments(integerProperty)='Number of super-massive black holes in the galaxy.'
+       integerPropertyUnitsSI (integerProperty)=0.0d0
        doubleProperty=doubleProperty+1
-       doublePropertyNames   (doubleProperty)='blackHoleMass'
-       doublePropertyComments(doubleProperty)='Mass of the black hole.'
-       doublePropertyUnitsSI (doubleProperty)=massSolar
+       doublePropertyNames    (doubleProperty )='blackHoleMass'
+       doublePropertyComments (doubleProperty )='Mass of the black hole.'
+       doublePropertyUnitsSI  (doubleProperty )=massSolar
        doubleProperty=doubleProperty+1
-       doublePropertyNames   (doubleProperty)='blackHoleSpin'
-       doublePropertyComments(doubleProperty)='Spin of the black hole.'
-       doublePropertyUnitsSI (doubleProperty)=0.0d0
+       doublePropertyNames    (doubleProperty )='blackHoleSpin'
+       doublePropertyComments (doubleProperty )='Spin of the black hole.'
+       doublePropertyUnitsSI  (doubleProperty )=0.0d0
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
@@ -746,7 +1040,8 @@ contains
     integer,          parameter     :: extraPropertyCount=3
 
     if (methodSelected) then
-       doublePropertyCount=doublePropertyCount+propertyCount
+       integerPropertyCount=integerPropertyCount+1
+       doublePropertyCount =doublePropertyCount +2
        if (blackHoleOutputAccretion) doublePropertyCount=doublePropertyCount+extraPropertyCount
     end if
     return
@@ -768,6 +1063,8 @@ contains
     integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
     integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
     double precision,        intent(inout)          :: doubleBuffer(:,:)
+    type(component),         pointer                :: nextComponent
+    integer                                         :: thisIndex,blackHoleCount
     double precision                                :: restMassAccretionRate
 
     if (methodSelected) then
@@ -789,6 +1086,14 @@ contains
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=Accretion_Disk_Radiative_Efficiency(thisNode,restMassAccretionRate)
        end if
+       ! Count number of black holes associated with this galaxy.
+       blackHoleCount=0
+       if (thisNode%componentExists(componentIndex)) then
+          thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+          blackHoleCount=size(thisNode%components(thisIndex)%instance)
+       end if
+       integerProperty=integerProperty+1
+       integerBuffer(integerBufferCount,integerProperty)=blackHoleCount
     end if
     return
   end subroutine Galacticus_Output_Tree_Black_Hole_Standard
@@ -800,12 +1105,16 @@ contains
     !% Dump all properties of {\tt thisNode} to screen.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    integer                                :: iInstance,thisIndex
 
     if (methodSelected) then
        if (thisNode%componentExists(componentIndex)) then
           write (0,'(1x,a)'           ) 'black hole component -> properties:'
-          write (0,'(2x,a50,1x,e12.6)') 'black hole mass:',Tree_Node_Black_Hole_Mass(thisNode)
-          write (0,'(2x,a50,1x,e12.6)') 'black hole spin:',Tree_Node_Black_Hole_Spin(thisNode)
+          thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+          do iInstance=1,size(thisNode%components(thisIndex)%instance)
+             write (0,'(2x,a50,1x,e12.6,a2,i4,a2)') 'black hole mass:',Tree_Node_Black_Hole_Mass(thisNode),' [',iInstance,']'
+             write (0,'(2x,a50,1x,e12.6,a2,i4,a2)') 'black hole spin:',Tree_Node_Black_Hole_Spin(thisNode),' [',iInstance,']'
+          end do
        else
           write (0,'(1x,a)'           ) 'black hole component -> nonexistant'
        end if

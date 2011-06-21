@@ -118,7 +118,7 @@ contains
     character(len=*),        intent(in)                :: storeFile
     type(treeNode),          pointer                   :: thisNode
     integer(kind=kind_int8), allocatable, dimension(:) :: nodeIndices
-    integer                                            :: iComponent,iHistory,nodeCount,fileUnit
+    integer                                            :: iComponent,iInstance,iHistory,nodeCount,fileUnit
     
     ! Take a snapshot of the internal state and store it.
     call Galacticus_State_Snapshot
@@ -174,32 +174,37 @@ contains
        if (allocated(thisNode%components)) then
           write (fileUnit) size(thisNode%components)
           do iComponent=1,size(thisNode%components)
-             ! Check that no "next" components are attached.
-             if (associated(thisNode%components(iComponent)%nextComponentOfType)) call Galacticus_Error_Report('Merger_Tree_State_Store','multiple instances of components are currently not supported')
-             ! Properties.
-             write (fileUnit) allocated(thisNode%components(iComponent)%properties)
-             if (allocated(thisNode%components(iComponent)%properties)) then
-                write (fileUnit) size(thisNode%components(iComponent)%properties,dim=1)
-                write (fileUnit) thisNode%components(iComponent)%properties(:,propertyValue)
-             end if
-             ! Data.
-             write (fileUnit) allocated(thisNode%components(iComponent)%data)
-             if (allocated(thisNode%components(iComponent)%data)) then
-                write (fileUnit) size(thisNode%components(iComponent)%data)
-                write (fileUnit) thisNode%components(iComponent)%data(:)
-             end if
-             ! Histories.
-             write (fileUnit) allocated(thisNode%components(iComponent)%histories)
-             if (allocated(thisNode%components(iComponent)%histories)) then
-                write (fileUnit) size(thisNode%components(iComponent)%histories)
-                do iHistory=1,size(thisNode%components(iComponent)%histories)
-                   write (fileUnit) allocated(thisNode%components(iComponent)%histories(iHistory)%time)
-                   if (allocated(thisNode%components(iComponent)%histories(iHistory)%time)) then
-                      write (fileUnit) size(thisNode%components(iComponent)%histories(iHistory)%time)&
-                           &,size(thisNode%components(iComponent)%histories(iHistory)%data,dim=2)
-                      write (fileUnit) thisNode%components(iComponent)%histories(iHistory)%time
-                      write (fileUnit) thisNode%components(iComponent)%histories(iHistory)%data
-                      write (fileUnit) thisNode%components(iComponent)%histories(iHistory)%rangeType
+             ! Instances.
+             write (fileUnit) allocated(thisNode%components(iComponent)%instance)
+             if (allocated(thisNode%components(iComponent)%instance)) then
+                write (fileUnit) size(thisNode%components(iComponent)%instance)
+                do iInstance=1,size(thisNode%components(iComponent)%instance)
+                   ! Properties.
+                   write (fileUnit) allocated(thisNode%components(iComponent)%instance(iInstance)%properties)
+                   if (allocated(thisNode%components(iComponent)%instance(iInstance)%properties)) then
+                      write (fileUnit) size(thisNode%components(iComponent)%instance(iInstance)%properties,dim=1)
+                      write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%properties(:,propertyValue)
+                   end if
+                   ! Data.
+                   write (fileUnit) allocated(thisNode%components(iComponent)%instance(iInstance)%data)
+                   if (allocated(thisNode%components(iComponent)%instance(iInstance)%data)) then
+                      write (fileUnit) size(thisNode%components(iComponent)%instance(iInstance)%data)
+                      write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%data(:)
+                   end if
+                   ! Histories.
+                   write (fileUnit) allocated(thisNode%components(iComponent)%instance(iInstance)%histories)
+                   if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories)) then
+                      write (fileUnit) size(thisNode%components(iComponent)%instance(iInstance)%histories)
+                      do iHistory=1,size(thisNode%components(iComponent)%instance(iInstance)%histories)
+                         write (fileUnit) allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)
+                         if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)) then
+                            write (fileUnit) size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)&
+                                 &,size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data,dim=2)
+                            write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time
+                            write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data
+                            write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%rangeType
+                         end if
+                      end do
                    end if
                 end do
              end if
@@ -243,9 +248,9 @@ contains
     type(mergerTree),   intent(inout)             :: thisTree
     logical,            intent(in)                :: skipTree
     type(treeNodeList), allocatable, dimension(:) :: nodes
-    integer                                       :: iComponent,iHistory,nodeCount,nodeArrayIndex,iNode,parentNodeIndex &
-         &,childNodeIndex,siblingNodeIndex,satelliteNodeIndex,mergeNodeIndex,mergeeNodeIndex,nextMergeeIndex,arraySize,arraySize2&
-         &,fileUnit
+    integer                                       :: iComponent,iInstance,iHistory,nodeCount,nodeArrayIndex,iNode,parentNodeIndex&
+         & ,childNodeIndex,siblingNodeIndex,satelliteNodeIndex,mergeNodeIndex,mergeeNodeIndex,nextMergeeIndex,arraySize&
+         &,arraySize2 ,fileUnit
     integer(kind=kind_int8)                       :: nodeIndex,nodeUniqueID
     logical                                       :: isAllocated
 
@@ -296,37 +301,43 @@ contains
        if (isAllocated) then
           read (fileUnit) arraySize
           allocate(nodes(iNode)%node%components(arraySize))
-          do iComponent=1,arraySize
-             ! Nullify the next component of type.
-             nodes(iNode)%node%components(iComponent)%nextComponentOfType => null()
-             ! Properties.
+          do iComponent=1,size(nodes(iNode)%node%components)        
+             ! Instances.
              read (fileUnit) isAllocated
              if (isAllocated) then
                 read (fileUnit) arraySize
-                allocate(nodes(iNode)%node%components(iComponent)%properties(arraySize,2))
-                read (fileUnit) nodes(iNode)%node%components(iComponent)%properties(:,propertyValue)
-             end if
-             ! Data.
-             read (fileUnit) isAllocated
-             if (isAllocated) then
-                read (fileUnit) arraySize
-                allocate(nodes(iNode)%node%components(iComponent)%data(arraySize))
-                read (fileUnit) nodes(iNode)%node%components(iComponent)%data(:)
-             end if
-             ! Histories.
-             read (fileUnit) isAllocated
-             if (isAllocated) then
-                read (fileUnit) arraySize
-                allocate(nodes(iNode)%node%components(iComponent)%histories(arraySize))
-                do iHistory=1,arraySize
+                allocate(nodes(iNode)%node%components(iComponent)%instance(arraySize))
+                do iInstance=1,size(nodes(iNode)%node%components(iComponent)%instance)
+                   ! Properties.
                    read (fileUnit) isAllocated
                    if (isAllocated) then
-                      read (fileUnit) arraySize,arraySize2
-                      allocate(nodes(iNode)%node%components(iComponent)%histories(iHistory)%time(arraySize))
-                      allocate(nodes(iNode)%node%components(iComponent)%histories(iHistory)%data(arraySize,arraySize2))
-                      read (fileUnit) nodes(iNode)%node%components(iComponent)%histories(iHistory)%time
-                      read (fileUnit) nodes(iNode)%node%components(iComponent)%histories(iHistory)%data
-                      read (fileUnit) nodes(iNode)%node%components(iComponent)%histories(iHistory)%rangeType
+                      read (fileUnit) arraySize
+                      allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%properties(arraySize,2))
+                      read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%properties(:,propertyValue)
+                   end if
+                   ! Data.
+                   read (fileUnit) isAllocated
+                   if (isAllocated) then
+                      read (fileUnit) arraySize
+                      allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%data(arraySize))
+                      read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%data(:)
+                   end if
+                   ! Histories.
+                   read (fileUnit) isAllocated
+                   if (isAllocated) then
+                      read (fileUnit) arraySize
+                      allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(arraySize))
+                      do iHistory=1,size(nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories)
+                         read (fileUnit) isAllocated
+                         if (isAllocated) then
+                            read (fileUnit) arraySize,arraySize2
+                            allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%time(arraySize))
+                            allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%data(arraySize,arraySize2))
+                            read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%time
+                            read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%data
+                            read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%rangeType
+                         end if
+                      end do
                    end if
                 end do
              end if

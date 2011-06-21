@@ -137,15 +137,16 @@ contains
     return
   end subroutine Tree_Node_Methods_Formation_Times_Cole2000_Initialize
 
-  double precision function Tree_Node_Formation_Time_Formation_Times_Cole2000(thisNode)
+  double precision function Tree_Node_Formation_Time_Formation_Times_Cole2000(thisNode,instance)
     !% Return the time of the last major merger.
     implicit none
+    integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
     integer                                :: thisIndex
     
     if (.not.thisNode%componentExists(componentIndex)) call Tree_Node_Formation_Time_Create_Component(thisNode)
     thisIndex=Tree_Node_Formation_Times_Cole2000_Index(thisNode)
-    Tree_Node_Formation_Time_Formation_Times_Cole2000=thisNode%components(thisIndex)%data(formationTimeIndex)
+    Tree_Node_Formation_Time_Formation_Times_Cole2000=thisNode%components(thisIndex)%instance(1)%data(formationTimeIndex)
     return
   end function Tree_Node_Formation_Time_Formation_Times_Cole2000
 
@@ -168,7 +169,7 @@ contains
 
     ! Check if the halo has grown sufficiently in mass to trigger a new formation event.
     thisIndex=Tree_Node_Formation_Times_Cole2000_Index(thisNode)
-    if (Tree_Node_Mass(thisNode) > haloReformationMassFactor*thisNode%components(thisIndex)%data(formationMassIndex)) then
+    if (Tree_Node_Mass(thisNode) > haloReformationMassFactor*thisNode%components(thisIndex)%instance(1)%data(formationMassIndex)) then
        interrupt=.true.
        interruptProcedure => Tree_Node_Formation_Time_Create_Component
        return
@@ -198,8 +199,8 @@ contains
     ! Get the index of the component (which will also ensure that the component is created).
     thisIndex=Tree_Node_Formation_Times_Cole2000_Index(thisNode)
     ! Set initial formation time and formation mass.
-    thisNode%components(thisIndex)%data(formationTimeIndex)=Tree_Node_Time(thisNode)
-    thisNode%components(thisIndex)%data(formationMassIndex)=Tree_Node_Mass(thisNode)
+    thisNode%components(thisIndex)%instance(1)%data(formationTimeIndex)=Tree_Node_Time(thisNode)
+    thisNode%components(thisIndex)%instance(1)%data(formationMassIndex)=Tree_Node_Mass(thisNode)
     ! Trigger a halo formation event.
     call Event_Halo_Formation(thisNode)
     return
