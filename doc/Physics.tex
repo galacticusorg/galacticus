@@ -839,6 +839,21 @@ where $\kappa$ is the epicyclic frequency in the disk, $\sigma_{\rm gas}$ is the
 \end{equation}
 From this the star formation timescale is found through the definition $\tau_\star \equiv M_{\rm gas, disk}/\Psi$.
 
+\subsection{Extended Schmidt}\label{sec:StarFormationExtendedSchmidt}\index{star formation!extended Schmidt law}
+
+Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt extended Schmidt} this method assumes that the xtended Schmidt law holds \citep{shi_extended_2011}:
+\begin{equation}
+\dot{\Sigma}_\star = A \left(x_{\rm H} {\Sigma_{\rm gas}\over M_\odot \hbox{pc}^{-2}}\right)^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2}
+\end{equation}
+where $A=${\tt [starFormationExtendedSchmidtNormalization]}, $N_1=${\tt
+[starFormationExtendedSchmidtGasExponent]} and $N_2=${\tt [starFormationExtendedSchmidtStarExponent]} are parameters. 
+
+The integrated star formation rate over the disk is then
+\begin{equation}
+\Psi = 2 \pi \int_0^\infty \dot{\Sigma}_\star(R) R \d R.
+\end{equation}
+From this the star formation timescale is found through the definition $\tau_\star \equiv M_{\rm gas, disk}/\Psi$.
+
 \subsection{Blitz-Rosolowsky}\label{sec:StarFormationBlitzRosolowsky}\index{star formation!Blitz-Rosolowsky rule}
 
 Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt Blitz-Rosolowsky} this method assumes that the star formation rate is given by \citep{blitz_role_2006}:
