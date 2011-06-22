@@ -267,7 +267,10 @@ contains
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
     procedure(),      pointer                :: interruptProcedurePassed
-    double precision                         :: restMassAccretionRate,massAccretionRate,energyInputRate,heatingRate
+    double precision, parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
+    double precision, parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
+    double precision                         :: restMassAccretionRate,massAccretionRate,energyInputRate,heatingRate&
+         &,couplingEfficiency,coolingRadiusFractional,x
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedurePassed => interruptProcedure
@@ -296,12 +299,25 @@ contains
 
     ! Add heating to the hot halo component.
     if (blackHoleHeatsHotHalo) then
-       if (Cooling_Radius(thisNode) < Dark_Matter_Halo_Virial_Radius(thisNode)) then
-          ! Halo is cooling quasistatically, assume heating can occur as jet can couple to halo gas.
-          heatingRate=blackHoleHeatingEfficiency*restMassAccretionRate*(speedLight/kilo)**2
-          ! Pipe this power to the hot halo.
-          call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
+
+       ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
+       coolingRadiusFractional=Cooling_Radius(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)
+       if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
+          couplingEfficiency=1.0d0
+       else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
+          couplingEfficiency=0.0d0
+       else
+          x=      (coolingRadiusFractional                 -coolingRadiusFractionalTransitionMinimum) &
+               & /(coolingRadiusFractionalTransitionMaximum-coolingRadiusFractionalTransitionMinimum)
+          couplingEfficiency=x**2*(2.0d0*x-3.0d0)+1.0d0
        end if
+
+       ! Compute the heating rate.
+       heatingRate=couplingEfficiency*blackHoleHeatingEfficiency*restMassAccretionRate*(speedLight/kilo)**2
+
+       ! Pipe this power to the hot halo.
+       call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
+
     end if
 
     ! Add energy to the spheroid component.
