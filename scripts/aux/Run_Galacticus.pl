@@ -20,8 +20,27 @@ use Switch;
 # Andrew Benson (11-June-2010)
 
 # Get command line arguments.
-if ( $#ARGV != 0 ) {die("Usage: Run_Galacticus.pl <runFile>")};
+if ( $#ARGV < 0 ) {die("Usage: Run_Galacticus.pl <runFile>")};
 my $runFile = $ARGV[0];
+
+# Create a hash of named arguments.
+my $iArg = -1;
+my %arguments;
+while ( $iArg < $#ARGV ) {
+    ++$iArg;
+    if ( $ARGV[$iArg] =~ m/^\-\-(.*)/ ) {
+	$arguments{$1} = $ARGV[$iArg+1];
+	++$iArg;
+    }
+}
+
+# Check for an instance number for this launch.
+my $thisInstance  = 1;
+my $instanceCount = 1;
+if ( exists($arguments{"instance"}) && $arguments{"instance"} =~ m/(\d+):(\d+)/ ) {
+    $thisInstance  = $1;
+    $instanceCount = $2;
+}
 
 # Read in the file of models to be run.
 my $xml         = new XML::Simple;
@@ -148,12 +167,15 @@ sub Launch_Models {
 	    
 	    # Increment random seed.
 	    ++$randomSeed;
+
+	    # Evaluate if this model should be launched.
+	    my $runOnInstance = ($modelCounter % $instanceCount) + 1;
 	    
 	    # Specify the output directory.
 	    my $galacticusOutputDirectory = $rootDirectory."/".$modelBaseName."_".$iModelSet.":".$iModel;
 	    $galacticusOutputDirectory .= "_".$parameterData->{'label'} if ( exists($parameterData->{'label'}) );
 	    # If the output directory does not exist, then create it.
-	    unless ( -e $galacticusOutputDirectory ) {		
+	    unless ( -e $galacticusOutputDirectory || $runOnInstance != $thisInstance ) {		
 		system("mkdir -p ".$galacticusOutputDirectory);
 		
 		# Specify the output file.

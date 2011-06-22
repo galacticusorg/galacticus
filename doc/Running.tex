@@ -85,11 +85,13 @@ where {\tt N} is the number of the tree that crashed. This will cause calculatio
 
 \subsection{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine or on a \href{http://www.cs.wisc.edu/condor/}{{\sc Condor}}\index{Condor} cluster To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine or on a \href{http://www.cs.wisc.edu/condor/}{{\sc Condor}}\index{Condor} cluster. To run the script simply enter:
 \begin{verbatim}
  ./scripts/aux/Run_Galacticus.pl <runFile>
 \end{verbatim}
-This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). The {\tt runFile} is an XML file with the following structure:
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to {\tt Run\_Galacticus.pl} can be used to ensure that they do not duplicate work. Adding {\tt --instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for {\tt Run\_Galacticus.pl} scripts on four different machines with {\tt --instance 1:4}, {\tt --instance 2:4}, {\tt --instance 3:4} and {\tt --instance 4:4} will then divide the models between those machines.
+
+The {\tt runFile} is an XML file with the following structure:
 \begin{verbatim}
 <parameterGrid>
  <modelRootDirectory>models.new</modelRootDirectory>
