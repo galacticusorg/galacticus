@@ -299,14 +299,18 @@ contains
        call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  )
        call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           )
        unitConversionMass    =unitConversionMass    *(Little_H_0()**hubbleExponent)/massSolar
-       call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     )
-       call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength)
-       call unitsGroup%readAttribute("lengthHubbleExponent"       ,hubbleExponent           )
-       unitConversionLength  =unitConversionLength  *(Little_H_0()**hubbleExponent)/megaParsec
-       call unitsGroup%readAttribute("velocityUnitsInSI"          ,unitConversionVelocity     )
-       call unitsGroup%readAttribute("velocityScaleFactorExponent",scaleFactorExponentVelocity)
-       call unitsGroup%readAttribute("velocityHubbleExponent"     ,hubbleExponent           )
-       unitConversionVelocity=unitConversionVelocity*(Little_H_0()**hubbleExponent)/kilo
+       if (unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI")) then
+          call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     )
+          call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength)
+          call unitsGroup%readAttribute("lengthHubbleExponent"       ,hubbleExponent           )
+          unitConversionLength  =unitConversionLength  *(Little_H_0()**hubbleExponent)/megaParsec
+          call unitsGroup%readAttribute("velocityUnitsInSI"          ,unitConversionVelocity     )
+          call unitsGroup%readAttribute("velocityScaleFactorExponent",scaleFactorExponentVelocity)
+          call unitsGroup%readAttribute("velocityHubbleExponent"     ,hubbleExponent           )
+          unitConversionVelocity=unitConversionVelocity*(Little_H_0()**hubbleExponent)/kilo
+       else if (mergerTreeReadPresetPositions) then
+          call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities are to be preset')
+       end if
        if (unitsGroup%hasAttribute("timeUnitsInSI")) then
           call unitsGroup%readAttribute("timeUnitsInSI"           ,unitConversionTime       )
           call unitsGroup%readAttribute("timeScaleFactorExponent" ,scaleFactorExponentTime  )
@@ -317,15 +321,19 @@ contains
        call unitsGroup%close()
 
        ! Get the volume of the simulation.
-       simulationGroup=IO_HDF5_Open_Group(mergerTreeFile,"simulation")
-       if (simulationGroup%hasAttribute("boxSize")) then
-          call simulationGroup%readAttribute("boxSize",lengthSimulationBox)
-          lengthSimulationBox=lengthSimulationBox*unitConversionLength
-          treeVolumeWeightUniform=1.0d0/lengthSimulationBox**3
+       if (mergerTreeFile%hasGroup("simulation")) then
+          simulationGroup=IO_HDF5_Open_Group(mergerTreeFile,"simulation")
+          if (simulationGroup%hasAttribute("boxSize")) then
+             call simulationGroup%readAttribute("boxSize",lengthSimulationBox)
+             lengthSimulationBox=lengthSimulationBox*unitConversionLength
+             treeVolumeWeightUniform=1.0d0/lengthSimulationBox**3
+          else
+             call Galacticus_Error_Report('Merger_Tree_Read_Initialize','the boxSize attribute of the simulation group is required')
+          end if
+          call simulationGroup%close()
        else
-          call Galacticus_Error_Report('Merger_Tree_Read_Initialize','the boxSize attribute of the simulation group is required')
+          treeVolumeWeightUniform=1.0d0
        end if
-       call simulationGroup%close()
 
        ! Check that cosmological parameters are consistent with the internal ones.
        cosmologicalParametersGroup=IO_HDF5_Open_Group(mergerTreeFile,"cosmology")
@@ -727,11 +735,15 @@ contains
     use Galacticus_Error
     use Cosmology_Functions
     implicit none
-    type(nodeData),        intent(inout), dimension(:) :: nodes
-    integer(kind=HSIZE_T), intent(in),    dimension(1) :: nodeCount,firstNodeIndex
+    type(nodeData),        intent(inout), dimension(:)                :: nodes
+    integer(kind=HSIZE_T), intent(in),    dimension(1)                :: nodeCount,firstNodeIndex
     double precision,      intent(inout), dimension(:,:), allocatable :: position,velocity
-    integer(kind=kind_int8)                            :: iNode
+    integer                                                           :: iNode
     
+    ! Initial particle data to null values.
+    nodes%particleIndexStart=-1_kind_int8
+    nodes%particleIndexCount=-1_kind_int8
+
     if (mergerTreeReadPresetPositions) then
        ! position.
        call haloTreesGroup%readDataset("position",position,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
@@ -741,9 +753,6 @@ contains
        if (haloTreesGroup%hasDataset("particleIndexStart").and.haloTreesGroup%hasDataset("particleIndexCount")) then
           call haloTreesGroup%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount)
           call haloTreesGroup%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount)
-       else
-          nodes%particleIndexStart=-1
-          nodes%particleIndexCount=-1
        end if
        ! Convert to Galacticus internal units.
        position=position*unitConversionLength
@@ -1077,6 +1086,7 @@ contains
     use Dark_Matter_Halo_Scales
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Display
+    use Galacticus_Error
     implicit none
     type(nodeData),          intent(inout), dimension(:) :: nodes
     type(treeNodeList),      intent(inout), dimension(:) :: nodeList
@@ -1087,15 +1097,16 @@ contains
     type(c_ptr)                                          :: parameterPointer
     integer                                              :: iNode,iIsolatedNode
     double precision                                     :: radiusMinimum,radiusMaximum,radiusScale
-    logical                                              :: excessiveScaleRadii
+    logical                                              :: excessiveScaleRadii,excessiveHalfMassRadii
 
     iIsolatedNode=0
-    excessiveScaleRadii=.false.
+    excessiveScaleRadii   =.false.
+    excessiveHalfMassRadii=.false.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
        if (nodes(iNode)%nodeIndex == nodes(iNode)%hostNode%nodeIndex) then
           iIsolatedNode=iIsolatedNode+1
-
+          
           ! Set the active node and target half mass radius.
           activeNode => nodeList(iIsolatedNode)%node
           halfMassRadius=nodes(iNode)%halfMassRadius
@@ -1107,17 +1118,21 @@ contains
              radiusMinimum=0.5d0*radiusMinimum
           end do
           do while (Half_Mass_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
+             if (radiusMaximum > Dark_Matter_Halo_Virial_Radius(activeNode)) call Galacticus_Error_Report('Assign_Scale_Radii','scale radius exceeds virial radius')
              radiusMaximum=2.0d0*radiusMaximum
           end do
-
+          
           ! Solve for the scale radius.
           radiusScale=Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root,parameterPointer &
                &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
           call Tree_Node_Dark_Matter_Profile_Scale_Set(nodeList(iIsolatedNode)%node,radiusScale)
-
+          
           ! Check for scale radii exceeding the virial radius.
-          if (radiusScale > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii=.true.
-
+          if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
+          
+          ! Check for half-mass radii exceeding the virial radius.
+          if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
+          
        end if
     end do
     
@@ -1127,6 +1142,10 @@ contains
        call Galacticus_Display_Message('Assign_Scale_Radii(): warning - some scale radii exceed the corresponding virial radii - suggests&
             & inconsistent definitions of halo mass/radius',verbosityWarn)
     end if
+    
+    ! Exit on excessive half mass radii.
+    if (excessiveHalfMassRadii) call Galacticus_Error_Report('Assign_Scale_Radii','some half mass radii exceed corresponding virial radii')
+
     return
   end subroutine Assign_Scale_Radii
 
@@ -1259,13 +1278,13 @@ contains
                       ! No descendent, indicating tip of branch has been reached
                       branchTipReached        =.true.
                       endOfBranch             =.true.
-                      historyCount            =historyCount+max(0,thisNode%particleIndexCount)
+                      historyCount            =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
                    else if (.not.thisNode%descendentNode%isSubhalo) then
                       ! Descendent is not a subhalo, treat as a merging event.  
                       branchMerges            =.true.
                       endOfBranch             =.true.
                       thisNode%mergesWithIndex=thisNode%descendentNode%nodeIndex
-                      historyCount            =historyCount+max(0,thisNode%particleIndexCount)
+                      historyCount            =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
                       thisNode                => thisNode%descendentNode
                    else
                       ! Merges with another subhalo.
@@ -1280,7 +1299,7 @@ contains
                                branchMerges            =.true.                                  
                                endOfBranch             =.true.
                                thisNode%mergesWithIndex=nodes(jNode)%descendentNode%nodeIndex
-                               historyCount            =historyCount+max(0,thisNode%particleIndexCount)
+                               historyCount            =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
                                thisNode                => thisNode%descendentNode
                                exit
                             end if
@@ -1308,7 +1327,7 @@ contains
                 ! Record the node with which the merger occurs.
                 nodes(iNode)%mergesWithIndex=nodes(iNode)%descendentNode%nodeIndex
                 ! Ensure the history arrays will be large enough to hold data for this node.
-                historyCountMaximum=max(historyCountMaximum,max(0,nodes(iNode)%particleIndexCount))
+                historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,nodes(iNode)%particleIndexCount))
              end if
              ! Set a merging time if this node will merge.
              if (nodeWillMerge.and.mergerTreeReadPresetMergerTimes) then
