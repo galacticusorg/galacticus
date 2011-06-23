@@ -222,6 +222,19 @@ The algorithm used to compute the cooling radius is selected via the {\tt coolin
 
 Selcted with {\tt coolingRadiusMethod}$=${\tt simple}, this method computes the cooling radius by seeking the radius at which the time available for cooling (see \S\ref{sec:TimeAvailableCooling}) equals the cooling time (see \S\ref{sec:CoolingTime}). The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
 
+\subsection{Cooling Specific Angular Momentum}\index{cooling!specific angular momentum}
+
+The algorithm used to compute the specific angular momentum of cooling gas is selected via the {\tt coolingSpecificAngularMomentumMethod} parameter.
+
+\subsubsection{Simple}
+
+Selcted with {\tt coolingSpecificAngularMomentumMethod}$=${\tt constant rotation}, this assumes that the specific angular momentum of cooling gas is given by
+\begin{equation}
+ j_{\rm cool} = \langle j \rangle r_{\rm cool} A
+\end{equation}
+where $r_{\rm cool}$ is the cooling radius, $A$ is the rotation normalization (see ) and $\langle j \rangle$ is the mean specific angular momentum of the cooling gas. 
+If {\tt [coolingMeanAngularMomentumFrom]}$=${\tt dark matter} then $\langle j \rangle$ is the mean specific angular momentum of the dark matter halo, computed from its spin parameter, while if {\tt [coolingMeanAngularMomentumFrom]}$=${\tt hot gas} then $\langle j \rangle$ is equal to the mean specific angular momentum of gas currently in the hot gas reservoir. If {\tt [coolingRotationVelocityFrom]}$=${\tt dark matter} then the rotation normalization $A$ is computed using the dark matter density profile, while if {\tt [coolingRotationVelocityFrom]}$=${\tt hot gas} it is computed using the density profile of the hot gas reservoir.
+
 \subsection{Cooling Time}\label{sec:CoolingTime}\index{cooling time}\index{cooling!time}
 
 The algorithm used to compute the time taken for gas to cool (i.e. the cooling time) is selected via the {\tt coolingTimeMethod} parameter.

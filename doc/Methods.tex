@@ -871,6 +871,47 @@ Currently defined cooling radius methods are:
  \item [\hyperlink{cooling.cooling_radius.simple.F90:cooling_radii_simple:cooling_radius_simple}{{\tt simple}}] Computes the cooling radius by seeking the radius at which the time available for cooling equals the cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
 \end{description}
 
+\subsubsection{Cooling Specific Angular Momentum}
+
+Additional methods for calculations of the specific angular momentum of cooling gas can be added using the {\tt coolingSpecificAngularMomentumMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method is described by a directive:
+\begin{verbatim}
+ !# <coolingSpecificAngularMomentumMethod>
+ !#  <unitName>Cooling_Specific_AM_Constant_Rotation_Initialize</unitName>
+ !# </coolingSpecificAngularMomentumMethod>
+\end{verbatim}
+Here, {\tt Cooling\_Time\_Simple\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(coolingSpecificAngularMomentumMethod,Cooling_Specific_Angular_Momentum_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: coolingSpecificAngularMomentumMethod
+    procedure(),          pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
+    
+    if (coolingSpecificAngularMomentumMethod == 'myMethod') then
+       Cooling_Specific_Angular_Momentum_Get => My_Method_Get_Procedure
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt coolingSpecificAngularMomentumMethod} input parameter. The procedure pointer {\tt Cooling\_Specific\_Angular\_Momentum\_Get} must be set to point to a function which returns the specific angular momentum of cooling gas. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The specific angular momentum of cooling gas function must have the form:
+\begin{verbatim}
+ double precision function Cooling_Specific_Angular_Momentum_Get(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+ end function Cooling_Specific_Angular_Momentum_Get
+\end{verbatim}
+The function must return the specific angular momentum (in units of km/s Mpc) of gas that is cooling in {\tt thisNode}.
+
+Currently defined specific angular momentum of cooling gas methods are:
+\begin{description}
+ \item [\hyperlink{cooling.specific_angular_momentum.constant_rotation.F90:cooling_specific_angular_momenta_constant_rotation:cooling_specific_angular_momentum_constant_rotation}{{\tt constant rotation}}] Computes the specific angular momentum of the cooling gas based on the cooling radius, mean specific angular momentum and the assumption of a constant mean rotation speed in the cooling gas as a function of radius.
+\end{description}
+
 \subsubsection{Cooling Time Available}
 
 Additional methods for the time available for cooling can be added using the {\tt coolingTimeAvailableMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt White-Frenk} method is described by a directive:
