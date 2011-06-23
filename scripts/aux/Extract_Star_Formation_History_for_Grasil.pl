@@ -1,10 +1,13 @@
 #!/usr/bin/env perl
+use lib "./perl";
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::NiceSlice;
 use Text::Table;
 use Math::SigFigs;
+use GnuPlot::PrettyPlots;
+use GnuPlot::LaTeX;
 
 # Plot the star formation history of a galaxy split by metallicity and output the data in a form suitable for input to Grasil.
 # Andrew Benson (06-September-2010)
@@ -166,76 +169,77 @@ $spheroidSFR         = $spheroidSFH/$spheroidTimeStep/$giga;
 # Make a plot.
 $sfrMinimum = 1.0e-2;
 if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $sfrMinimum) ) ) {
-    open(gnuPlot,"|gnuplot");
-    print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
-    print gnuPlot "set output \"tmp.ps\"\n";
-    print gnuPlot "set xlabel \"t [Gyr]\"\n";
-    print gnuPlot "set ylabel \"SFR [M yr^{-1}]\"\n";
-    print gnuPlot "set title \"Star Formation Rate\"\n";
-    print gnuPlot "set logscale y\n";
-    print gnuPlot "set format y \ \"10^{\%L}\"\n";
-    print gnuPlot "set key left\n";
-    print gnuPlot "set pointsize 1.0\n";
-    $plotCommand  = "plot";
-    $separator = " ";
-    for($i=0;$i<$diskSFR->dim(1);++$i) {
-	if (any($diskSFR(:,($i)) > $sfrMinimum)) {
-	    if ( $i == 0 ) {
-		$metallicityLow = 0.0;
-	    } else {
-		$metallicityLow = FormatSigFigs($metallicities->index($i-1),3);
-	    }
-	    if ( $i == $diskSFR->dim(1)-1 ) {
-		$metallicityHigh = "\infty";
-	    } else {
-		$metallicityHigh = FormatSigFigs($metallicities->index($i),3);
-	    }
-	    $label = "Disk: ".$metallicityLow."<Z<".$metallicityHigh;
-	    $plotCommand .= $separator."'-' pt 6 title \"".$label."\"";
-	    $separator = ", ";
-	}
-    }
+    # Declare variables for GnuPlot;
+    my ($gnuPlot, $outputFile, $outputFileEPS, $plot);
+
+    $outputFile = $plotFile;
+    ($outputFileEPS = $outputFile) =~ s/\.pdf$/.eps/;
+    open($gnuPlot,"|gnuplot");
+    print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+    print $gnuPlot "set output '".$outputFileEPS."'\n";
+    print $gnuPlot "set lmargin screen 0.15\n";
+    print $gnuPlot "set rmargin screen 0.95\n";
+    print $gnuPlot "set bmargin screen 0.15\n";
+    print $gnuPlot "set tmargin screen 0.95\n";
+    print $gnuPlot "set key spacing 1.2\n";
+    print $gnuPlot "set key at screen 0.45,0.5\n";
+    print $gnuPlot "set key left\n";
+    print $gnuPlot "set key bottom\n";
+    print $gnuPlot "set logscale y\n";
+    print $gnuPlot "set mytics 10\n";
+    print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+    print $gnuPlot "set xlabel '\$t\$ [Gyr]'\n";
+    print $gnuPlot "set ylabel '\$\\dot{M}_\\star\$ \$[M_\\odot \\hbox{yr}^{-1}]\$'\n";
+    print $gnuPlot "set xrange [0.0:15.0]\n";
+    print $gnuPlot "set yrange [1.0e-2:1.0e2]\n";
+    $iColor = -1;
     for($i=0;$i<$spheroidSFR->dim(1);++$i) {
+	++$iColor;
 	if (any($spheroidSFR(:,($i)) > $sfrMinimum)) {
 	    if ( $i == 0 ) {
 		$metallicityLow = 0.0;
 	    } else {
-		$metallicityLow = FormatSigFigs($metallicities->index($i-1),3);
+		$metallicityLow = FormatSigFigs($metallicities->index($i-1),2);
+	    }
+	    if ( $i == $spheroidSFR->dim(1)-1 ) {
+		$metallicityHigh = "\\\\infty";
+	    } else {
+		$metallicityHigh = FormatSigFigs($metallicities->index($i),2);
+	    }
+	    $label = "\\\\small Spheroid: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
+	    &PrettyPlots::Prepare_Dataset(\$plot,
+					  $spheroidTimeCentral, $spheroidSFR(:,($i)),
+					  style => "point", symbol => [4,5], weight => [5,3],
+					  color => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
+					  title => $label);
+	}
+    }
+    $iColor = -1;
+    for($i=0;$i<$diskSFR->dim(1);++$i) {
+	++$iColor;
+	if (any($diskSFR(:,($i)) > $sfrMinimum)) {
+	    if ( $i == 0 ) {
+		$metallicityLow = 0.0;
+	    } else {
+		$metallicityLow = FormatSigFigs($metallicities->index($i-1),2);
 	    }
 	    if ( $i == $diskSFR->dim(1)-1 ) {
-		$metallicityHigh = "\infty";
+		$metallicityHigh = "\\\\infty";
 	    } else {
-		$metallicityHigh = FormatSigFigs($metallicities->index($i),3);
+		$metallicityHigh = FormatSigFigs($metallicities->index($i),2);
 	    }
-	    $label = "Spheroid: ".$metallicityLow."<Z<".$metallicityHigh;
-	    $plotCommand .= $separator."'-' pt 4 title \"".$label."\"";
-	    $separator = ", ";
+	    $label = "\\\\small Disk: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
+	    &PrettyPlots::Prepare_Dataset(\$plot,
+					  $diskTimeCentral, $diskSFR(:,($i)),
+					  style => "point", symbol => [6,7], weight => [5,3],
+					  color => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$iColor]},
+					  title => $label);
 	}
     }
-    print gnuPlot $plotCommand."\n";
-    for($i=0;$i<$diskSFR->dim(1);++$i) {
-	if (any($diskSFR(:,($i)) > $sfrMinimum)) {
-	    for($j=0;$j<$diskTimeCentral->nelem;++$j) {
-		print gnuPlot $diskTimeCentral->index($j)." ".$diskSFR(($j),($i))."\n" unless ( $diskSFR(($j),($i)) <= $sfrMinimum );
-	    }
-	    print gnuPlot "e\n";
-	}
-    }
-    for($i=0;$i<$spheroidSFR->dim(1);++$i) {
-	if (any($spheroidSFR(:,($i)) > $sfrMinimum)) {
-	    for($j=0;$j<$spheroidTimeCentral->nelem;++$j) {
-		print gnuPlot $spheroidTimeCentral->index($j)." ".$spheroidSFR(($j),($i))."\n" unless ( $spheroidSFR(($j),($i)) <= $sfrMinimum );
-	    }
-	    print gnuPlot "e\n";
-	}
-    }
-    close(gnuPlot);
+    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    close($gnuPlot);
+    &LaTeX::GnuPlot2PDF($outputFileEPS);
     
-    # Convert to PDF.
-    system("ps2pdf tmp.ps ".$plotFile);
-    
-    # Clean up files.
-    unlink("tmp.ps");
 }
 
 # Write disk SFR data.
