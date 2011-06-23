@@ -142,7 +142,8 @@ module Tree_Node_Methods_Exponential_Disk
   !# </treeNodeMethodsPointer>
 
   ! Parameters controlling the physical implementation.
-  double precision :: diskMassToleranceAbsolute,diskOutflowTimescaleMinimum
+  double precision :: diskMassToleranceAbsolute,diskOutflowTimescaleMinimum,diskStructureSolverRadius
+  logical          :: diskRadiusSolverCole2000Method
 
   ! Tabulation of the exponential disk rotation curve.
   integer,          parameter                 :: rotationCurvePointsPerDecade=10
@@ -152,12 +153,17 @@ module Tree_Node_Methods_Exponential_Disk
   double precision                            :: rotationCurveHalfRadiusMinimum=rotationCurveHalfRadiusMinimumDefault&
        &,rotationCurveHalfRadiusMaximum=rotationCurveHalfRadiusMaximumDefault
   double precision, allocatable, dimension(:) :: rotationCurveHalfRadius,rotationCurveBesselFactors
-  double precision                            :: scaleLengthFactor
+  double precision                            :: scaleLengthFactor,diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
   logical                                     :: scaleLengthFactorSet=.false.
 
   ! Options controlling output.
   logical                                     :: diskOutputStarFormationRate
-
+  
+  ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
+  integer                                     :: radiusSolverIteration
+  double precision                            :: radiusHistory(2)
+  !$omp threadprivate(radiusHistory,radiusSolverIteration)
+ 
 contains
 
   !# <treeNodeCreateInitialize>
@@ -317,11 +323,37 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutputStarFormationRate',diskOutputStarFormationRate,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>diskStructureSolverRadius</name>
+       !@   <defaultValue>1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The radius (in units of the exponential scale length) to use in solving for the size of the disk.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskStructureSolverRadius',diskStructureSolverRadius,defaultValue=1.0d0)
+       !@ <inputParameter>
+       !@   <name>diskRadiusSolverCole2000Method</name>
+       !@   <defaultValue>1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskRadiusSolverCole2000Method',diskRadiusSolverCole2000Method,defaultValue=.false.)
 
+       ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
+       ! momentum of the disk assuming a flat rotation curve.
+       diskStructureSolverSpecificAngularMomentum=diskStructureSolverRadius/2.0d0
+
+       ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
+       ! cuvres for thin disk and a spherical mass distribution.
+       if (diskRadiusSolverCole2000Method) diskRadiusSolverFlatVsSphericalFactor=2.0d0*diskStructureSolverRadius&
+            &*Exponential_Disk_Rotation_Curve_Bessel_Factors(0.5d0*diskStructureSolverRadius)&
+            &-Exponential_Disk_Enclosed_Mass_Dimensionless(diskStructureSolverRadius)
     end if
     return
   end subroutine Tree_Node_Methods_Exponential_Disk_Initialize
-  
   
   !# <treeNodeCreateThreadInitialize>
   !#  <unitName>Tree_Node_Methods_Exponential_Disk_Thread_Initialize</unitName>
@@ -1252,10 +1284,19 @@ contains
     diskRadius=Exponential_Disk_Radius(thisNode)
     if (diskRadius > 0.0d0) then
        fractionalRadius=radius/diskRadius
-       componentMass=componentMass*(1.0d0-(1.0d0+fractionalRadius)*dexp(-fractionalRadius))
+       componentMass=componentMass*Exponential_Disk_Enclosed_Mass_Dimensionless(fractionalRadius)
     end if
     return
   end subroutine Exponential_Disk_Enclosed_Mass
+
+  double precision function Exponential_Disk_Enclosed_Mass_Dimensionless(radius)
+    !% Returns the fractional mass enclosed within {\tt radius} in a dimensionless exponential disk.
+    implicit none
+    double precision, intent(in) :: radius
+    
+    Exponential_Disk_Enclosed_Mass_Dimensionless=1.0d0-(1.0d0+radius)*dexp(-radius)
+    return
+  end function Exponential_Disk_Enclosed_Mass_Dimensionless
 
   !# <rotationCurveTask>
   !#  <unitName>Exponential_Disk_Rotation_Curve</unitName>
@@ -1381,12 +1422,18 @@ contains
     ! Return immediately if our method is not selected.
     if (.not.methodSelected) return
     
+    ! Determine the plausibility of the current disk.
     if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) < -diskMassToleranceAbsolute) then
        galaxyIsPhysicallyPlausible=.false.
     else
        if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) > 0.0d0 .and.&
             & Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) galaxyIsPhysicallyPlausible=.false.
     end if
+
+    ! Reset the record of trial radii - negative values indicate that the entries have not yet been set to physically meaningful
+    ! values.
+    radiusHistory        =-1.0d0
+    radiusSolverIteration= 0
     return
   end subroutine Exponential_Disk_Radius_Solver_Plausibility
   
@@ -1396,6 +1443,7 @@ contains
   subroutine Exponential_Disk_Radius_Solver(thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
+    use Numerical_Constants_Physical
     implicit none
     type(treeNode),              pointer, intent(inout) :: thisNode
     logical,                              intent(out)   :: componentActive
@@ -1418,21 +1466,90 @@ contains
           else
              specificAngularMomentumMean=0.0d0
           end if
-          specificAngularMomentum=0.5d0*specificAngularMomentumMean
+          specificAngularMomentum=specificAngularMomentumMean*diskStructureSolverSpecificAngularMomentum
+
+          ! If using the Cole et al. (2000) method for disk radii, adjust the specific angular momentum to account for the
+          ! difference between rotation curves for thin disk and a spherical mass distribution. Trap instances where this leads to
+          ! imaginary specific angular momentum - this can happen as the radius solver explores the allowed range of radii when
+          ! seeking a solution.
+          if (diskRadiusSolverCole2000Method) specificAngularMomentum=dsqrt(max(0.0d0,specificAngularMomentum**2&
+               &-diskRadiusSolverFlatVsSphericalFactor*gravitationalConstantGalacticus*diskMass&
+               &*Exponential_Disk_Radius_Solve(thisNode)))
+
           ! Associate the pointers with the appropriate property routines.
-          Radius_Get   => Exponential_Disk_Radius
-          Radius_Set   => Exponential_Disk_Radius_Set
+          Radius_Get   => Exponential_Disk_Radius_Solve
+          Radius_Set   => Exponential_Disk_Radius_Solve_Set
           Velocity_Get => Exponential_Disk_Velocity
           Velocity_Set => Exponential_Disk_Velocity_Set
        else
-          call Exponential_Disk_Radius_Set  (thisNode,0.0d0)
-          call Exponential_Disk_Velocity_Set(thisNode,0.0d0)
+          call Exponential_Disk_Radius_Solve_Set(thisNode,0.0d0)
+          call Exponential_Disk_Velocity_Set    (thisNode,0.0d0)
           componentActive=.false.
        end if
     end if
     return
   end subroutine Exponential_Disk_Radius_Solver
 
+  double precision function Exponential_Disk_Radius_Solve(thisNode)
+    !% Return the radius of the exponential disk used in structure solvers.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    integer                                  :: thisIndex
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+       Exponential_Disk_Radius_Solve=thisNode%components(thisIndex)%instance(1)%data(radiusIndex)*diskStructureSolverRadius
+    else
+       Exponential_Disk_Radius_Solve=0.0d0
+    end if
+    return
+  end function Exponential_Disk_Radius_Solve
+
+  subroutine Exponential_Disk_Radius_Solve_Set(thisNode,radius)
+    !% Set the radius of the exponential disk used in structure solvers.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: radius
+    integer,                   parameter     :: iterationsForBisectionMinimum=10
+    integer                                  :: thisIndex
+    double precision                         :: newRadius
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
+       ! If using the Cole et al. (2000) method, check whether the solution is oscillating. This can happen as the effective
+       ! angular momentum of the disk becomes radius dependent under this algorithm.
+       newRadius=radius
+       if (diskRadiusSolverCole2000Method) then
+          if     (                                                                                                         &
+               &             radiusSolverIteration                                        > iterationsForBisectionMinimum  &
+               &  .and. all( radiusHistory                                                >= 0.0d0                       ) &
+               &  .and.     (radiusHistory(2)-radiusHistory(1))*(radiusHistory(1)-radius) <  0.0d0                         &
+               & ) then
+             ! An oscillation has been detected - attempt to break out of it. The following heuristic has been found to work quite
+             ! well - we bisect previous solutions in the oscillating sequence in a variety of different ways
+             ! (arithmetic/geometric and using the current+previous or two previous solutions), alternating the bisection method
+             ! sequentially. There's no guarantee that this will work in every situation however.
+             select case (mod(radiusSolverIteration,4))
+             case (0)
+                newRadius=dsqrt (radius          *radiusHistory(1))
+             case (1)
+                newRadius=0.5d0*(radius          +radiusHistory(1))
+             case (2)
+                newRadius=dsqrt (radiusHistory(1)*radiusHistory(2))
+             case (3)
+                newRadius=0.5d0*(radiusHistory(1)+radiusHistory(2))
+             end select
+             radiusHistory=-1.0d0
+!             radiusSolverIteration=0
+          end if
+          radiusSolverIteration=radiusSolverIteration+1
+          radiusHistory(2)     =radiusHistory(1)
+          radiusHistory(1)     =newRadius
+       end if
+       thisNode%components(thisIndex)%instance(1)%data(radiusIndex)=max(newRadius,0.0d0)/diskStructureSolverRadius
+    end if
+    return
+  end subroutine Exponential_Disk_Radius_Solve_Set
 
   double precision function Exponential_Disk_Radius(thisNode,instance)
     !% Return the scale radius of the exponential disk.

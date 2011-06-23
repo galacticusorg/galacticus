@@ -251,6 +251,19 @@ The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current sta
 
 If the {\tt [diskOutputStarFormationRate]}\index{disk!star formation rate!output}\index{star formation rate!output!disk} input parameter is set to true, then the instantaneous star formation rate in the disk will be included in the output, as {\tt diskStarFormationRate}.
 
+\subsubsection{Structure}
+
+The radial size of the disk is found solving for equilibrium (i.e. the radius is such that the angular momentum of material at that radius is sufficient to provide rotational support) at the specified {\tt [diskStructureSolverRadius]} which is given in units of the disk scale length. In converting from the mean specific angular momentum of the disk to the angular momentum at that radius, a flat rotation curve is assumed, i.e.:
+\begin{eqnarray}
+ j(r)/\langle j \rangle &=& r V \left/ {\int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) r^\prime V {\rm d} r^\prime \over \int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) {\rm d} r^\prime} \right. \nonumber \\
+ j(r))/\langle j \rangle &=& r / 2 r_{\rm disk}.
+\end{eqnarray}
+The option {\tt [diskRadiusSolverCole2000Method]}, if set to {\tt true}, alters this behavior to match that of the structure solver used by \cite{cole_hierarchical_2000}, in which adiabatic contraction of the dark matter halo is solved for assuming that the disk has a spherical mass dsitribution. The specific angular momentum passed to the structure solver will be modified as follows in this case:
+\begin{equation}
+ j(r) \rightarrow \left[ j^2(r) - \left( V_{\rm disk}^2(r) r^2 - {\rm G} M_{\rm disk}(<r) r \right) \right]^{1/2},
+\end{equation}
+where $V_{\rm disk}$ is the rotation curve in the plane of an infinitely thin exponential disk. This adjustment accounts for the difference between a thin disk and spherical mass distribution. Note that in this case (as in \citealt{cole_hierarchical_2000}) the resulting disk will not precisely satisfy $j(r) = r V_{\rm c}(r)$ where $V_{\rm c}(r)$ is the net rotation curve.
+
 \section{Galactic Spheroid}
 
 \subsection{``Null'' Implementation}
