@@ -66,15 +66,14 @@ module Tree_Node_Methods_Formation_Times_Cole2000
   use Tree_Nodes
   use Components
   private
-  public :: Tree_Node_Methods_Formation_Times_Cole2000_Initialize, Tree_Node_Methods_Formation_Times_Cole2000_Dump
+  public :: Tree_Node_Methods_Formation_Times_Cole2000_Initialize, Tree_Node_Formation_Time_Cole2000_Initialize,&
+       & Tree_Node_Methods_Formation_Times_Cole2000_Dump, Tree_Node_Formation_Time_Promote_Cole2000
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
 
   ! Property indices.
-  integer, parameter :: propertyCount=0, dataCount=2, historyCount=0
-  integer, parameter :: formationTimeIndex=1
-  integer, parameter :: formationMassIndex=2
+  integer, parameter :: propertyCount=0, dataCount=0, historyCount=0
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -86,6 +85,9 @@ module Tree_Node_Methods_Formation_Times_Cole2000
 
   ! Factor by which mass must increase to trigger a new formation event.
   double precision :: haloReformationMassFactor
+
+  ! Switch indicating whether or not halo reformation should only be checked for at node promotion events.
+  logical          :: haloReformationOnPromotionOnly
 
 contains
 
@@ -133,6 +135,16 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('haloReformationMassFactor',haloReformationMassFactor,defaultValue=2.0d0)
+       !@ <inputParameter>
+       !@   <name>haloReformationOnPromotionOnly</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
+       !@     the halo mass has increased sufficiently in mass.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('haloReformationOnPromotionOnly',haloReformationOnPromotionOnly,defaultValue=.false.)
     end if
     return
   end subroutine Tree_Node_Methods_Formation_Times_Cole2000_Initialize
@@ -142,11 +154,9 @@ contains
     implicit none
     integer, intent(in), optional :: instance
     type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
     
     if (.not.thisNode%componentExists(componentIndex)) call Tree_Node_Formation_Time_Create_Component(thisNode)
-    thisIndex=Tree_Node_Formation_Times_Cole2000_Index(thisNode)
-    Tree_Node_Formation_Time_Formation_Times_Cole2000=thisNode%components(thisIndex)%instance(1)%data(formationTimeIndex)
+    Tree_Node_Formation_Time_Formation_Times_Cole2000=Tree_Node_Time(thisNode%formationNode)
     return
   end function Tree_Node_Formation_Time_Formation_Times_Cole2000
 
@@ -158,7 +168,6 @@ contains
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
     procedure(),    pointer, intent(inout) :: interruptProcedure
-    integer                                :: thisIndex
    
     ! If no formation time component exists, stop and make one.
     if (.not.thisNode%componentExists(componentIndex)) then
@@ -168,15 +177,31 @@ contains
     end if
 
     ! Check if the halo has grown sufficiently in mass to trigger a new formation event.
-    thisIndex=Tree_Node_Formation_Times_Cole2000_Index(thisNode)
-    if (Tree_Node_Mass(thisNode) > haloReformationMassFactor*thisNode%components(thisIndex)%instance(1)%data(formationMassIndex)) then
-       interrupt=.true.
-       interruptProcedure => Tree_Node_Formation_Time_Create_Component
-       return
+    if (.not.haloReformationOnPromotionOnly) then
+       if (Tree_Node_Mass(thisNode) > haloReformationMassFactor*Tree_Node_Mass(thisNode%formationNode)) then
+          interrupt=.true.
+          interruptProcedure => Tree_Node_Formation_Time_Create_Component
+          return
+       end if
     end if
 
     return
   end subroutine Tree_Node_Formation_Time_Rate_Compute_Cole2000
+
+  !# <nodePromotionTask>
+  !#  <unitName>Tree_Node_Formation_Time_Promote_Cole2000</unitName>
+  !#  <after>Tree_Node_Hot_Halo_Promote</after>
+  !# </nodePromotionTask>
+  subroutine Tree_Node_Formation_Time_Promote_Cole2000(thisNode)
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+
+    if (methodSelected.and.haloReformationOnPromotionOnly) then
+       if (Tree_Node_Mass(thisNode%parentNode) > haloReformationMassFactor*Tree_Node_Mass(thisNode%formationNode)) call&
+            & Tree_Node_Formation_Time_Create_Component(thisNode)
+    end if
+    return
+  end subroutine Tree_Node_Formation_Time_Promote_Cole2000
 
   subroutine Tree_Node_Formation_Time_Create_Component(thisNode)
     !% Creates a halo formation time component for {\tt thisNode}. This function is also used to ``reform'' the halo, since it
@@ -188,7 +213,6 @@ contains
     implicit none
     type(treeNode),      pointer, intent(inout) :: thisNode
     type(varying_string)                        :: message
-    integer                                     :: thisIndex
 
     ! Display a message.
     if (.not.thisNode%componentExists(componentIndex)) then
@@ -197,24 +221,37 @@ contains
        call Galacticus_Display_Message(message,verbosityInfo)
     end if
     ! Get the index of the component (which will also ensure that the component is created).
-    thisIndex=Tree_Node_Formation_Times_Cole2000_Index(thisNode)
-    ! Set initial formation time and formation mass.
-    thisNode%components(thisIndex)%instance(1)%data(formationTimeIndex)=Tree_Node_Time(thisNode)
-    thisNode%components(thisIndex)%instance(1)%data(formationMassIndex)=Tree_Node_Mass(thisNode)
+    call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
+    ! Make a copy of the formation node, and decouple it from the tree, using the parentNode pointer to point to the node of which
+    ! it is the formation node.
+    call thisNode%formationNode%copy(thisNode)
+    thisNode%formationNode%parentNode    => thisNode
+    thisNode%formationNode%childNode     => null()
+    thisNode%formationNode%siblingNode   => null()
+    thisNode%formationNode%satelliteNode => null()
+    thisNode%formationNode%mergeNode     => null()
+    thisNode%formationNode%mergeeNode    => null()
+    thisNode%formationNode%nextMergee    => null()
+    thisNode%formationNode%formationNode => null()
     ! Trigger a halo formation event.
     call Event_Halo_Formation(thisNode)
     return
   end subroutine Tree_Node_Formation_Time_Create_Component
 
-  integer function Tree_Node_Formation_Times_Cole2000_Index(thisNode)
-    !% Ensure the merging statistics component exists and return its position in the components array.
+  !# <mergerTreeInitializeTask>
+  !#  <unitName>Tree_Node_Formation_Time_Cole2000_Initialize</unitName>
+  !# </mergerTreeInitializeTask>
+  subroutine Tree_Node_Formation_Time_Cole2000_Initialize(thisNode)
+    !% Initialize the formation node pointer for any childless node.
+    use Tree_Nodes
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode),                     pointer, intent(inout)     :: thisNode
+
+    ! If this method is selected and the node has no child then initialize it.
+    if (methodSelected.and..not.associated(thisNode%childNode)) call Tree_Node_Formation_Time_Create_Component(thisNode)
     
-    call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
-    Tree_Node_Formation_Times_Cole2000_Index=thisNode%componentIndex(componentIndex)
     return
-  end function Tree_Node_Formation_Times_Cole2000_Index
+  end subroutine Tree_Node_Formation_Time_Cole2000_Initialize
 
   !# <nodeDumpTask>
   !#  <unitName>Tree_Node_Methods_Formation_Times_Cole2000_Dump</unitName>
@@ -227,7 +264,7 @@ contains
     if (methodSelected) then
        if (thisNode%componentExists(componentIndex)) then
           write (0,'(1x,a)'           ) 'halo formation time component -> properties:'
-          write (0,'(2x,a50,1x,e12.6)') 'formation time:',Tree_Node_Formation_Time_Formation_Times_Cole2000(thisNode)
+          write (0,'(2x,a50,1x,e12.6)') 'formation time:',Tree_Node_Formation_Time(thisNode)
        else
           write (0,'(1x,a)'           ) 'halo formation time component -> nonexistant'
        end if

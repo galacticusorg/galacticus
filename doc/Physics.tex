@@ -206,6 +206,14 @@ where the coefficients $C_{0-2}$ are given in Table~\ref{tb:H2CoolingFunctionCoe
 
 The algorithm used to compute the rate at which gas drops out of the hot halo due to cooling is selected with the {\tt coolingRateMethod} parameter.
 
+\subsubsection{Cole et al. (2000)}
+
+Selected with {\tt coolingRateMethod}$=${\tt Cole2000}, this method computes the cooling rate using the algorithm of \cite{cole_hierarchical_2000}. The cooling rate is given by
+\begin{equation}
+\dot{M}_{\rm cool} = \left\{ \begin{array}{ll} 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall} & \hbox{ if } r_{\rm infall} < r_{\rm virial} \\ 0 & \hbox{ if } r_{\rm infall} \ge r_{\rm virial}, \end{array} \right.
+\end{equation}
+where $\rho(r)$ is the density profile of the hot halo, and $r_{\rm infall}$ is the smaller of the cooling and freefall radii in the hot halo if {\tt [coolingRateLimitByFreefall]}$=${\tt true} or simply equals the cooling radius otherwise. The cooling rate is also set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}.
+
 \subsubsection{White \& Frenk}
 
 Selected with {\tt coolingRateMethod}$=${\tt White + Frenk}, this method computes the cooling rate using the expression given by \cite{white_galaxy_1991}, namely

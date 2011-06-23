@@ -87,20 +87,19 @@ contains
        ! Set pointers to our implementation.
        Cooling_Time_Available_Get               => Cooling_Time_Available_Halo_Formation
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_Halo_Formation
-       ! Ensure that a halo formation property is supported.
-       if (.not.associated(Tree_Node_Formation_Time)) call Galacticus_Error_Report('Cooling_Time_Available_Halo_Formation_Initialize','method requires that the Tree_Node_Formation_Time property be available')
     end if
     return
   end subroutine Cooling_Time_Available_Halo_Formation_Initialize
 
   double precision function Cooling_Time_Available_Halo_Formation(thisNode)
     !% Compute the time available for cooling using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
-    !% assumed to be the time since the halo formation event.
+    !% assumed to be the time since the halo formation event. This function expects that the node passed in will be a formation
+    !% node, such that its parent node gives the active node to which it is attached.
     use Tree_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    Cooling_Time_Available_Halo_Formation=Tree_Node_Time(thisNode)-Tree_Node_Formation_Time(thisNode)
+    Cooling_Time_Available_Halo_Formation=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
     return
   end function Cooling_Time_Available_Halo_Formation
   
