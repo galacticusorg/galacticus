@@ -1255,7 +1255,7 @@ Here, {\tt Dark\_Matter\_Profile\_NFW\_Initialize} is the name of a subroutine w
          &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
          &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
          &,Dark_Matter_Profile_kSpace_Get
-    
+
     if (darkMatterProfileMethod == 'myMethod') then
        Dark_Matter_Profile_Density_Get                               => My_Dark_Matter_Profile_Density
        Dark_Matter_Profile_Energy_Get                                => My_Dark_Matter_Profile_Energy
@@ -1660,15 +1660,16 @@ Additional methods for the hot halo density profile can be added using the {\tt 
 \end{verbatim}
 Here, {\tt Hot\_Halo\_Density\_Cored\_Isothermal} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get)
+  subroutine Method_Initialize(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Profile_Rotation_Normalization_Get)
     implicit none
     type(varying_string),          intent(in)    :: hotHaloDensityMethod
     procedure(),          pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get
     
     if (hotHaloDensityMethod == 'myMethod') then
-       Hot_Halo_Density_Get           => My_Method_Get
-       Hot_Halo_Density_Log_Slope_Get => My_Method_Log_Slope_Get
-       Hot_Halo_Enclosed_Mass_Get     => My_Method_Enclosed_Mass_Get
+       Hot_Halo_Density_Get                        => My_Method_Get
+       Hot_Halo_Density_Log_Slope_Get              => My_Method_Log_Slope_Get
+       Hot_Halo_Enclosed_Mass_Get                  => My_Method_Enclosed_Mass_Get
+       Hot_Halo_Profile_Rotation_Normalization_Get => My_Method_Rotation_Normalization_Get
     end if
     return
   end subroutine Method_Initialize
@@ -1688,6 +1689,19 @@ The density function must have the form:
  end function Hot_Halo_Density_Get
 \end{verbatim}
 The function must return the density (in units of $M_\odot$Mpc$^{-3}$) of the hot halo at the specified radius (given in Mpc) for {\tt thisNode}. The logarithmic slope function should have the same template but return the logarithmic slope of the density profile at the specified radius. The enclosed mass function must return the mass (in units of $M_\odot$) of the hot halo within the specified radius (given in Mpc).
+
+The rotation velocity normalization function must have the form:
+\begin{verbatim}
+  double precision function My_Rotation_Normalization(thisNode)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+  end function My_Rotation_Normalization
+\end{verbatim}
+and should compute and return the normalization between rotation speed and mean specific angular momentum (in units of Mpc$^{-1}$) of {\tt thisNode} assuming that the hot gas profile rotates at the same velocity at all radii.
 
 Currently defined hot halo density profile methods are:
 \begin{description}

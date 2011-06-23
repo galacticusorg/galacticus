@@ -70,7 +70,7 @@ module Hot_Halo_Density_Profile
   !# </include>
   private
   public :: Hot_Halo_Density, Hot_Halo_Density_Log_Slope, Hot_Halo_Enclosed_Mass, Hot_Halo_Profile_Density_Task,&
-       & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task
+       & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task, Hot_Halo_Profile_Rotation_Normalization
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: hotHaloDensityInitialized=.false.
@@ -79,9 +79,9 @@ module Hot_Halo_Density_Profile
   type(varying_string) :: hotHaloDensityMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Get           => null()
-  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Log_Slope_Get => null()
-  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Enclosed_Mass_Get     => null()
+  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Get                        => null()
+  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Log_Slope_Get              => null()
+  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Enclosed_Mass_Get                  => null()
   abstract interface
      double precision function Hot_Halo_Density_Get_Template(thisNode,radius)
        import treeNode
@@ -89,7 +89,14 @@ module Hot_Halo_Density_Profile
        double precision, intent(in)             :: radius
      end function Hot_Halo_Density_Get_Template
   end interface
-  
+  procedure(Hot_Halo_Profile_Rotation_Normalization_Template), pointer :: Hot_Halo_Profile_Rotation_Normalization_Get => null()
+  abstract interface
+     double precision function Hot_Halo_Profile_Rotation_Normalization_Template(thisNode)
+       import treeNode
+       type(treeNode),   intent(inout), pointer :: thisNode
+     end function Hot_Halo_Profile_Rotation_Normalization_Template
+  end interface
+
 contains
 
   subroutine Hot_Halo_Density_Initialize
@@ -113,12 +120,13 @@ contains
        call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='cored isothermal')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="hotHaloDensityMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get</subroutineArgs>
+       !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get</subroutineArgs>
        include 'hot_halo.density_profile.inc'
        !# </include>
-       if     (.not.(     associated(Hot_Halo_Density_Get          )                                 &
-            &        .and.associated(Hot_Halo_Density_Log_Slope_Get)                                 &
-            &        .and.associated(Hot_Halo_Enclosed_Mass_Get    )                                 &
+       if     (.not.(     associated(Hot_Halo_Density_Get                       )                    &
+            &        .and.associated(Hot_Halo_Density_Log_Slope_Get             )                    &
+            &        .and.associated(Hot_Halo_Enclosed_Mass_Get                 )                    &
+            &        .and.associated(Hot_Halo_Profile_Rotation_Normalization_Get)                    &
             &       )                                                                                &
             & )                                                                                      &
             & call Galacticus_Error_Report(                                                          &
@@ -245,5 +253,20 @@ contains
     componentDensity=Hot_Halo_Density(thisNode,positionSpherical(1))
     return
   end subroutine Hot_Halo_Profile_Density_Task
+
+  double precision function Hot_Halo_Profile_Rotation_Normalization(thisNode)
+    !% Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in
+    !% radius) for {\tt thisNode}. Specifically, the normalization, $A$, returned is such that $V_{\rm rot} = A J/M$.
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+
+    ! Initialize the module if necessary.
+    call Hot_Halo_Density_Initialize
+
+    ! Get the energy using the selected method.
+    Hot_Halo_Profile_Rotation_Normalization=Hot_Halo_Profile_Rotation_Normalization_Get(thisNode)
+
+    return
+  end function Hot_Halo_Profile_Rotation_Normalization
 
 end module Hot_Halo_Density_Profile

@@ -72,17 +72,19 @@ contains
   !#  <unitName>Hot_Halo_Density_Null</unitName>
   !# </hotHaloDensityMethod>
   subroutine Hot_Halo_Density_Null(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
-       &,Hot_Halo_Enclosed_Mass_Get)
+       &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get)
     !% Initialize the null hot halo density profile module.
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: hotHaloDensityMethod
-    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get
+    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
+         &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get
     
     if (hotHaloDensityMethod == 'null') then
-       Hot_Halo_Density_Get           => Hot_Halo_Density_Null_Get
-       Hot_Halo_Density_Log_Slope_Get => Hot_Halo_Density_Null_Log_Slope_Get
-       Hot_Halo_Enclosed_Mass_Get     => Hot_Halo_Density_Null_Enclosed_Mass_Get
+       Hot_Halo_Density_Get                        => Hot_Halo_Density_Null_Get
+       Hot_Halo_Density_Log_Slope_Get              => Hot_Halo_Density_Null_Log_Slope_Get
+       Hot_Halo_Enclosed_Mass_Get                  => Hot_Halo_Density_Null_Enclosed_Mass_Get
+       Hot_Halo_Profile_Rotation_Normalization_Get => Hot_Halo_Density_Null_Rotation_Normalization_Get
     end if
     return
   end subroutine Hot_Halo_Density_Null
@@ -119,5 +121,15 @@ contains
     Hot_Halo_Density_Null_Enclosed_Mass_Get=0.0d0
     return
   end function Hot_Halo_Density_Null_Enclosed_Mass_Get
-  
+
+  double precision function Hot_Halo_Density_Null_Rotation_Normalization_Get(thisNode)
+    !% Return the normalization of the rotation velocity vs. specific angular momentum relation in a null hot halo density profile for {\tt thisNode}.
+    use Tree_Nodes
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    Hot_Halo_Density_Null_Rotation_Normalization_Get=0.0d0
+    return
+  end function Hot_Halo_Density_Null_Rotation_Normalization_Get
+    
 end module Hot_Halo_Density_Profile_Null

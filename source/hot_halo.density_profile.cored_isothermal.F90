@@ -72,19 +72,20 @@ contains
   !#  <unitName>Hot_Halo_Density_Cored_Isothermal</unitName>
   !# </hotHaloDensityMethod>
   subroutine Hot_Halo_Density_Cored_Isothermal(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
-       &,Hot_Halo_Enclosed_Mass_Get)
+       &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get)
     !% Initialize the cored isothermal hot halo density profile module.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: hotHaloDensityMethod
     procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
-         &,Hot_Halo_Enclosed_Mass_Get
+         &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get
     
     if (hotHaloDensityMethod == 'cored isothermal') then
-       Hot_Halo_Density_Get           => Hot_Halo_Density_Cored_Isothermal_Get
-       Hot_Halo_Density_Log_Slope_Get => Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get
-       Hot_Halo_Enclosed_Mass_Get     => Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
+       Hot_Halo_Density_Get                        => Hot_Halo_Density_Cored_Isothermal_Get
+       Hot_Halo_Density_Log_Slope_Get              => Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get
+       Hot_Halo_Enclosed_Mass_Get                  => Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
+       Hot_Halo_Profile_Rotation_Normalization_Get => Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get
     end if
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal
@@ -156,5 +157,38 @@ contains
 
     return
   end function Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
+
+  double precision function Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get(thisNode)
+    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    use Hot_Halo_Density_Cored_Isothermal_Core_Radii
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision                         :: radiusVirial,radiusCoreOverRadiusVirial
+
+    ! Get virial radius and ratio of core radius to virial radius.
+    radiusVirial              =Dark_Matter_Halo_Virial_Radius(thisNode)
+    radiusCoreOverRadiusVirial=Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)/radiusVirial
+
+    ! Compute the normalization.
+    Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get=                                                   &
+         &                                                       (                                                  &
+         &                                                        1.0d0                                             &
+         &                                                       - radiusCoreOverRadiusVirial                       &
+         &                                                        *datan(1.0d0/radiusCoreOverRadiusVirial)          &
+         &                                                      )                                                   &
+         &                                                     /(                                                   &
+         &                                                        0.5d0                                             &
+         &                                                       + radiusCoreOverRadiusVirial**2                    &
+         &                                                        *dlog(                                            &
+         &                                                               radiusCoreOverRadiusVirial                 &
+         &                                                              /dsqrt(1.0d0+radiusCoreOverRadiusVirial**2) &
+         &                                                             )                                            &
+         &                                                      )                                                   &
+         &                                                     /radiusVirial
+    return
+  end function Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get
   
 end module Hot_Halo_Density_Profile_Cored_Isothermal
