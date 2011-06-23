@@ -1248,13 +1248,15 @@ Here, {\tt Dark\_Matter\_Profile\_NFW\_Initialize} is the name of a subroutine w
   subroutine Method_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
        & ,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get &
        & ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get&
-       & ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get)
+       & ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get&
+       & ,Dark_Matter_Profile_Freefall_Radius_Get ,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get)
     implicit none
     type(varying_string),          intent(in)    :: darkMatterProfileMethod
     procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get&
          &,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
          &,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
-         &,Dark_Matter_Profile_kSpace_Get
+         &,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get&
+         &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
 
     if (darkMatterProfileMethod == 'myMethod') then
        Dark_Matter_Profile_Density_Get                               => My_Dark_Matter_Profile_Density
@@ -1266,6 +1268,8 @@ Here, {\tt Dark\_Matter\_Profile\_NFW\_Initialize} is the name of a subroutine w
        Dark_Matter_Profile_Potential_Get                             => My_Dark_Matter_Profile_Potential
        Dark_Matter_Profile_Enclosed_Mass_Get                         => My_Dark_Matter_Profile_Enclosed_Mass
        Dark_Matter_Profile_kSpace_Get                                => My_Dark_Matter_Profile_kSpace
+       Dark_Matter_Profile_Freefall_Radius_Get                       => My_Dark_Matter_Profile_Freefall_Radius
+       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => My_Dark_Matter_Profile_Freefall_Radius_Increase_Rate
        .
        .
        .
@@ -1288,6 +1292,20 @@ The density, enclosed mass, potential and circular velocity functions must have 
   end function My_Dark_Matter_Profile_Property
 \end{verbatim}
 These functions should compute and return the density (in units of $M_\odot$ Mpc$^{-3}$), enclosed dark matter mass (in units of $M_\odot$), gravitational potential (in units of (km/s)$^2$) and circular velocity (in units of km/s) due to dark matter at the given {\tt radius} (in units of Mpc) for {\tt thisNode} respectively.
+
+The freefall radius functions must have the form:
+\begin{verbatim}
+  double precision function My_Dark_Matter_Profile_Property(thisNode,time)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: time
+    .
+    .
+    .
+    return
+  end function My_Dark_Matter_Profile_Property
+\end{verbatim}
+These functions should compute and return the freefall radius (in units of Mpc), or its growth rate given a {\tt time} available for freefall (in Gyr) for {\tt thisNode} respectively.
 
 The energy, energy growth rate and rotation velocity normalization functions must have the form:
 \begin{verbatim}

@@ -67,10 +67,11 @@ module Dark_Matter_Profiles
   use Tree_Nodes
   private
   public :: Dark_Matter_Profile_Rotation_Normalization, Dark_Matter_Profile_Energy, Dark_Matter_Profile_Energy_Growth_Rate,&
-       & Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum,Dark_Matter_Profile_Circular_Velocity&
+       & Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum,Dark_Matter_Profile_Circular_Velocity &
        &,Dark_Matter_Profile_Potential,Dark_Matter_Profile_Enclosed_Mass,Dark_Matter_Profile_kSpace,&
        & Dark_Matter_Profile_Density_Task, Dark_Matter_Profile_Density,Dark_Matter_Profile_Rotation_Curve_Task,&
-       & Dark_Matter_Profile_Enclosed_Mass_Task
+       & Dark_Matter_Profile_Enclosed_Mass_Task,Dark_Matter_Profile_Freefall_Radius&
+       &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: darkMatterProfileInitialized=.false.
@@ -90,11 +91,13 @@ module Dark_Matter_Profiles
   end interface
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get =>&
        & null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Circular_Velocity_Get => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Potential_Get         => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get     => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_kSpace_Get            => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Density_Get           => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Circular_Velocity_Get             => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Potential_Get                     => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get                 => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_kSpace_Get                        => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Density_Get                       => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Freefall_Radius_Get               => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get => null()
   abstract interface
      double precision function Dark_Matter_Profile_Parameter_Template(thisNode,inputParameter)
        import treeNode
@@ -129,7 +132,7 @@ contains
        call Get_Input_Parameter('darkMatterProfileMethod',darkMatterProfileMethod,defaultValue='NFW')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="darkMatterProfileMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get</subroutineArgs>
+       !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get</subroutineArgs>
        include 'dark_matter_profiles.inc'
        !# </include>
        if (.not.(     associated(Dark_Matter_Profile_Density_Get                              )   &
@@ -140,7 +143,9 @@ contains
             &    .and.associated(Dark_Matter_Profile_Circular_Velocity_Get                    )   &
             &    .and.associated(Dark_Matter_Profile_Potential_Get                            )   &
             &    .and.associated(Dark_Matter_Profile_Enclosed_Mass_Get                        )   &
-            &    .and.associated(Dark_Matter_Profile_kSpace_Get                               ))) &
+            &    .and.associated(Dark_Matter_Profile_kSpace_Get                               )   &
+            &    .and.associated(Dark_Matter_Profile_Freefall_Radius_Get                      )   &
+            &    .and.associated(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get        ))) &
             & call Galacticus_Error_Report('Dark_Matter_Profile','method ' //char(darkMatterProfileMethod)//' is unrecognized')
        darkMatterProfileInitialized=.true.
     end if
@@ -288,6 +293,37 @@ contains
 
     return
   end function Dark_Matter_Profile_kSpace
+
+  double precision function Dark_Matter_Profile_Freefall_Radius(thisNode,time)
+    !% Returns the freefall radius (in Mpc) corresponding to the given {\tt time} (in Gyr) in {\tt thisNode}.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: time
+
+    ! Initialize the module.
+    call Dark_Matter_Profile_Initialize
+
+    ! Get the freefall radius using the selected method.
+    Dark_Matter_Profile_Freefall_Radius=Dark_Matter_Profile_Freefall_Radius_Get(thisNode,time)
+
+    return
+  end function Dark_Matter_Profile_Freefall_Radius
+
+  double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate(thisNode,time)
+    !% Returns the rate of increase of the freefall radius (in Mpc/Gyr) corresponding to the given {\tt time} (in Gyr) in {\tt
+    !% thisNode}.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: time
+
+    ! Initialize the module.
+    call Dark_Matter_Profile_Initialize
+
+    ! Get the increase rate using the selected method.
+    Dark_Matter_Profile_Freefall_Radius_Increase_Rate=Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get(thisNode,time)
+
+    return
+  end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate
 
   !# <enclosedMassTask>
   !#  <unitName>Dark_Matter_Profile_Enclosed_Mass_Task</unitName>

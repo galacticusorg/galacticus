@@ -72,11 +72,12 @@ contains
   !# <darkMatterProfileMethod>
   !#  <unitName>Dark_Matter_Profile_Isothermal_Initialize</unitName>
   !# </darkMatterProfileMethod>
-  subroutine Dark_Matter_Profile_Isothermal_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get&
-       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get&
-       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
-       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
-       &,Dark_Matter_Profile_kSpace_Get)
+  subroutine Dark_Matter_Profile_Isothermal_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get &
+       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get &
+       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get &
+       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get &
+       &,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get&
+       &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get)
     !% Initializes the ``Isothermal'' halo spin distribution module.
     use ISO_Varying_String
     implicit none
@@ -84,7 +85,8 @@ contains
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
          &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
          &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
-         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get
+         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get&
+         &,Dark_Matter_Profile_Freefall_Radius_Get,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
     
     if (darkMatterProfileMethod == 'isothermal') then
        Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_Isothermal
@@ -96,6 +98,8 @@ contains
        Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_Isothermal
        Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_Isothermal
        Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_Isothermal
+       Dark_Matter_Profile_Freefall_Radius_Get                       => Dark_Matter_Profile_Freefall_Radius_Isothermal
+       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal
     end if
     return
   end subroutine Dark_Matter_Profile_Isothermal_Initialize
@@ -227,5 +231,43 @@ contains
 
     return
   end function Dark_Matter_Profile_kSpace_Isothermal
+  
+  double precision function Dark_Matter_Profile_Freefall_Radius_Isothermal(thisNode,time)
+    !% Returns the freefall radius in the isothermal density profile at the specified {\tt time} (given in Gyr). For an isothermal
+    !% potential, the freefall radius, $r_{\rm ff}(t)$, is:
+    !% \begin{equation}
+    !% r_{\rm ff}(t) = \sqrt{{2 \over \pi}} V_{\rm virial} t.
+    !% \end{equation}
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    use Numerical_Constants_Astronomical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: time
+
+    Dark_Matter_Profile_Freefall_Radius_Isothermal=dsqrt(2.0d0/Pi)*Dark_Matter_Halo_Virial_Velocity(thisNode)*time&
+         &/Mpc_per_km_per_s_To_Gyr
+    return
+  end function Dark_Matter_Profile_Freefall_Radius_Isothermal
+  
+  double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal(thisNode,time)
+    !% Returns the rate of increase of the freefall radius in the isothermal density profile at the specified {\tt time} (given in
+    !% Gyr). For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_{\rm ff}(t)$, is:
+    !% \begin{equation}
+    !% \dot{r}_{\rm ff}(t) = \sqrt{{2 \over \pi}} V_{\rm virial}.
+    !% \end{equation}
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    use Numerical_Constants_Astronomical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: time
+
+    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal=dsqrt(2.0d0/Pi)*Dark_Matter_Halo_Virial_Velocity(thisNode)&
+         &/Mpc_per_km_per_s_To_Gyr
+    return
+  end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal
   
 end module Dark_Matter_Profiles_Isothermal

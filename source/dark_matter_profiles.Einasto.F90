@@ -69,7 +69,7 @@ module Dark_Matter_Profiles_Einasto
   public :: Dark_Matter_Profile_Einasto_Initialize, Dark_Matter_Profiles_Einasto_State_Store, Dark_Matter_Profiles_Einasto_State_Retrieve
 
   ! Module scope variables used in integrations.
-  double precision                              :: concentrationParameter,alphaParameter,wavenumberParameter
+  double precision                              :: concentrationParameter,alphaParameter,wavenumberParameter,radiusStart
 
   ! Tables for specific angular momentum vs. radius table
   double precision                              :: angularMomentumTableRadiusMinimum        = 1.0d-3
@@ -87,6 +87,24 @@ module Dark_Matter_Profiles_Einasto
        &                                           angularMomentumTableRadiusInterpolationAccelerator
   logical                                       :: angularMomentumTableAlphaInterpolationReset =.true., &
        &                                           angularMomentumTableRadiusInterpolationReset=.true.
+
+  ! Tables for freefall time vs. radius table
+  double precision                              :: freefallRadiusTableRadiusMinimum         = 1.0d-3
+  double precision                              :: freefallRadiusTableRadiusMaximum         =20.0d+0
+  integer,          parameter                   :: freefallRadiusTableRadiusPointsPerDecade =10
+  double precision                              :: freefallRadiusTableAlphaMinimum          = 0.1d+0
+  double precision                              :: freefallRadiusTableAlphaMaximum          = 0.3d+0
+  integer,          parameter                   :: freefallRadiusTableAlphaPointsPerUnit    =30
+  logical                                       :: freefallRadiusTableInitialized           =.false.
+  integer                                       :: freefallRadiusTableAlphaCount,freefallRadiusTableRadiusCount
+  double precision, allocatable, dimension(:  ) :: freefallRadiusTableRadius,freefallRadiusTableAlpha
+  double precision, allocatable, dimension(:,:) :: freefallRadiusTable
+  double precision                              :: freefallTimeMinimum,freefallTimeMaximum
+  type(fgsl_interp)                             :: freefallRadiusTableRadiusInterpolationObject
+  type(fgsl_interp_accel)                       :: freefallRadiusTableAlphaInterpolationAccelerator,   &
+       &                                           freefallRadiusTableRadiusInterpolationAccelerator
+  logical                                       :: freefallRadiusTableAlphaInterpolationReset =.true., &
+       &                                           freefallRadiusTableRadiusInterpolationReset=.true.
 
   ! Tables for energy as a function of concentration and alpha.
   double precision                              :: energyTableConcentrationMinimum        = 2.0d0
@@ -136,10 +154,11 @@ contains
   !#  <unitName>Dark_Matter_Profile_Einasto_Initialize</unitName>
   !# </darkMatterProfileMethod>
   subroutine Dark_Matter_Profile_Einasto_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get&
-       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get&
-       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
-       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
-       &,Dark_Matter_Profile_kSpace_Get)
+       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get &
+       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get &
+       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get &
+       &,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get &
+       &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get)
     !% Initializes the ``Einasto'' halo profile module.
     use ISO_Varying_String
     use Galacticus_Error
@@ -148,7 +167,8 @@ contains
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
          &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
          &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
-         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get
+         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get&
+         &,Dark_Matter_Profile_Freefall_Radius_Get ,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
     
     if (darkMatterProfileMethod == 'Einasto') then
        Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_Einasto
@@ -160,6 +180,8 @@ contains
        Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_Einasto
        Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_Einasto       
        Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_Einasto
+       Dark_Matter_Profile_Freefall_Radius_Get                       => Dark_Matter_Profile_Freefall_Radius_Einasto
+       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto
        ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
        ! a treeNode to process, it should have been initialized by now.
        if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call&
@@ -903,6 +925,254 @@ contains
     return
   end function Fourier_Profile_Integrand_Einasto
 
+  double precision function Dark_Matter_Profile_Freefall_Radius_Einasto(thisNode,time)
+    !% Returns the freefall radius in the Einasto density profile at the specified {\tt time} (given in Gyr).
+    use Tree_Nodes
+    use Numerical_Interpolation
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: time
+    integer,          dimension(0:1)         :: jAlpha
+    double precision, dimension(0:1)         :: hAlpha
+    integer                                  :: iAlpha
+    double precision                         :: freefallTimeScaleFree,radiusScale,velocityScale,timeScale,alpha
+
+    ! For non-positive freefall times, return a zero freefall radius immediately.
+    if (time <= 0.0d0) then
+       Dark_Matter_Profile_Freefall_Radius_Einasto=0.0d0
+       return
+    end if
+
+    ! Get the shape parameter.
+    alpha        =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+
+    ! Get the scale radius.
+    radiusScale  =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+
+    ! Get the velocity scale.
+    velocityScale=dsqrt(gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)/radiusScale)
+
+    ! Compute time scale.
+    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
+
+    ! Compute dimensionless time.
+    freefallTimeScaleFree=time/timeScale
+
+    ! Ensure table is sufficiently extensive.
+    call Dark_Matter_Profile_Einasto_Freefall_Tabulate(freefallTimeScaleFree,alpha)
+
+    ! Interpolate to get the freefall radius.
+    !$omp critical(Einasto_Freefall_Interpolation)
+    ! Get interpolating factors in alpha.
+    jAlpha(0)=Interpolate_Locate(freefallRadiusTableAlphaCount,freefallRadiusTableAlpha&
+         &,freefallRadiusTableAlphaInterpolationAccelerator,alpha,reset=freefallRadiusTableAlphaInterpolationReset)
+    jAlpha(1)=jAlpha(0)+1
+    hAlpha=Interpolate_Linear_Generate_Factors(freefallRadiusTableAlphaCount,freefallRadiusTableAlpha,jAlpha(0),alpha)
+
+    Dark_Matter_Profile_Freefall_Radius_Einasto=0.0d0
+    do iAlpha=0,1
+       Dark_Matter_Profile_Freefall_Radius_Einasto=Interpolate(freefallRadiusTableRadiusCount,freefallRadiusTable(:&
+            &,jAlpha(iAlpha)),freefallRadiusTableRadius ,freefallRadiusTableRadiusInterpolationObject&
+            &,freefallRadiusTableRadiusInterpolationAccelerator ,freefallTimeScaleFree,reset&
+            &=freefallRadiusTableRadiusInterpolationReset)*hAlpha(iAlpha)
+    end do
+    Dark_Matter_Profile_Freefall_Radius_Einasto=Dark_Matter_Profile_Freefall_Radius_Einasto*radiusScale
+    !$omp end critical(Einasto_Freefall_Interpolation)
+    return
+  end function Dark_Matter_Profile_Freefall_Radius_Einasto
+  
+  double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto(thisNode,time)
+    !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\tt time} (given in
+    !% Gyr).
+    use Tree_Nodes
+    use Numerical_Interpolation
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: time
+    integer,          dimension(0:1)         :: jAlpha
+    double precision, dimension(0:1)         :: hAlpha
+    integer                                  :: iAlpha
+    double precision                         :: freefallTimeScaleFree,radiusScale,velocityScale,timeScale,alpha
+
+    ! For non-positive freefall times, return a zero freefall radius immediately.
+    if (time <= 0.0d0) then
+       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto=0.0d0
+       return
+    end if
+
+    ! Get the shape parameter.
+    alpha        =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+
+    ! Get the scale radius.
+    radiusScale  =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+
+    ! Get the velocity scale.
+    velocityScale=dsqrt(gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)/radiusScale)
+
+    ! Compute time scale.
+    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
+
+    ! Compute dimensionless time.
+    freefallTimeScaleFree=time/timeScale
+
+    ! Ensure table is sufficiently extensive.
+    call Dark_Matter_Profile_Einasto_Freefall_Tabulate(freefallTimeScaleFree,alpha)
+
+    ! Interpolate to get the freefall radius.
+    !$omp critical(Einasto_Freefall_Interpolation)
+    ! Get interpolating factors in alpha.
+    jAlpha(0)=Interpolate_Locate(freefallRadiusTableAlphaCount,freefallRadiusTableAlpha&
+         &,freefallRadiusTableAlphaInterpolationAccelerator,alpha,reset=freefallRadiusTableAlphaInterpolationReset)
+    jAlpha(1)=jAlpha(0)+1
+    hAlpha=Interpolate_Linear_Generate_Factors(freefallRadiusTableAlphaCount,freefallRadiusTableAlpha,jAlpha(0),alpha)
+
+    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto=0.0d0
+    do iAlpha=0,1
+       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto=Interpolate_Derivative(freefallRadiusTableRadiusCount,freefallRadiusTable(:&
+            &,jAlpha(iAlpha)),freefallRadiusTableRadius ,freefallRadiusTableRadiusInterpolationObject&
+            &,freefallRadiusTableRadiusInterpolationAccelerator ,freefallTimeScaleFree,reset&
+            &=freefallRadiusTableRadiusInterpolationReset)*hAlpha(iAlpha)
+    end do
+    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto=Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto*radiusScale/timeScale
+    !$omp end critical(Einasto_Freefall_Interpolation)
+    return
+  end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto
+  
+  subroutine Dark_Matter_Profile_Einasto_Freefall_Tabulate(freefallTimeScaleFree,alphaRequired)
+    !% Tabulates the freefall time vs. freefall radius for Einasto halos.
+    use Galacticus_Display
+    use Numerical_Ranges
+    use Memory_Management
+    use Numerical_Interpolation
+    implicit none
+    double precision, intent(in) :: freefallTimeScaleFree,alphaRequired
+    logical                      :: retabulate
+    integer                      :: iRadius,iAlpha,percentage
+    double precision             :: alpha
+
+    !$omp critical (Dark_Matter_Profile_Einasto_Freefall)
+    retabulate=.not.freefallRadiusTableInitialized
+    ! If the table has not yet been made, compute and store the freefall times corresponding to the minimum and maximum
+    ! radii that will be tabulated by default.
+    if (retabulate) then
+       freefallTimeMinimum=Freefall_Time_Scale_Free(freefallRadiusTableRadiusMinimum,alphaRequired)
+       freefallTimeMaximum=Freefall_Time_Scale_Free(freefallRadiusTableRadiusMaximum,alphaRequired)
+    end if
+    do while (freefallTimeScaleFree < freefallTimeMinimum)
+       freefallRadiusTableRadiusMinimum=0.5d0*freefallRadiusTableRadiusMinimum
+       freefallTimeMinimum=Freefall_Time_Scale_Free(freefallRadiusTableRadiusMinimum,alphaRequired)
+       retabulate=.true.
+    end do
+    do while (freefallTimeScaleFree > freefallTimeMaximum)
+       freefallRadiusTableRadiusMaximum=2.0d0*freefallRadiusTableRadiusMaximum
+       freefallTimeMaximum=Freefall_Time_Scale_Free(freefallRadiusTableRadiusMaximum,alphaRequired)
+       retabulate=.true.
+    end do
+    ! Check for alpha out of range.
+    if (alphaRequired < freefallRadiusTableAlphaMinimum .or. alphaRequired > freefallRadiusTableAlphaMaximum) then
+       retabulate=.true.
+       ! Compute the range of tabulation.
+       freefallRadiusTableAlphaMinimum=min(freefallRadiusTableAlphaMinimum,0.9d0*alphaRequired)
+       freefallRadiusTableAlphaMaximum=max(freefallRadiusTableAlphaMaximum,1.1d0*alphaRequired)
+    end if
+
+    if (retabulate) then
+       ! Display a message.
+       call Galacticus_Display_Indent('Constructing Einasto profile freefall radius lookup table...',verbosityWorking)
+       ! Decide how many points to tabulate and allocate table arrays.
+       freefallRadiusTableRadiusCount=int(dlog10(freefallRadiusTableRadiusMaximum/freefallRadiusTableRadiusMinimum)*dble(freefallRadiusTableRadiusPointsPerDecade))+1
+       freefallRadiusTableAlphaCount =int(      (freefallRadiusTableAlphaMaximum -freefallRadiusTableAlphaMinimum )*dble(freefallRadiusTableAlphaPointsPerUnit   ))+1
+       if (allocated(freefallRadiusTableRadius)) then
+          call Dealloc_Array(freefallRadiusTableAlpha )
+          call Dealloc_Array(freefallRadiusTableRadius)
+          call Dealloc_Array(freefallRadiusTable      )
+       end if
+       call Alloc_Array(freefallRadiusTableAlpha ,[                               freefallRadiusTableAlphaCount])
+       call Alloc_Array(freefallRadiusTableRadius,[freefallRadiusTableRadiusCount                              ])
+       call Alloc_Array(freefallRadiusTable      ,[freefallRadiusTableRadiusCount,freefallRadiusTableAlphaCount])
+       ! Create a range of radii and alpha.
+       freefallRadiusTableAlpha =Make_Range(freefallRadiusTableAlphaMinimum ,freefallRadiusTableAlphaMaximum ,freefallRadiusTableAlphaCount ,rangeType=rangeTypeLinear     )
+       freefallRadiusTableRadius=Make_Range(freefallRadiusTableRadiusMinimum,freefallRadiusTableRadiusMaximum,freefallRadiusTableRadiusCount,rangeType=rangeTypeLogarithmic)
+       ! Loop over radii and alpha and populate tables.
+       do iAlpha=1,freefallRadiusTableAlphaCount
+          alpha=freefallRadiusTableAlpha(iAlpha)
+          do iRadius=1,freefallRadiusTableRadiusCount
+             ! Show progress.
+             percentage=int(100.0d0*dble((iAlpha-1)*freefallRadiusTableRadiusCount+iRadius-1)&
+                  &/dble(freefallRadiusTableAlphaCount*freefallRadiusTableRadiusCount))
+             call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iRadius == 1,verbosityWorking)
+             ! Compute the freefall radius.
+             freefallRadiusTable(iRadius,iAlpha)=Freefall_Time_Scale_Free(freefallRadiusTableRadius(iRadius),alpha)
+          end do
+       end do
+       ! Ensure interpolations get reset.
+       call Interpolate_Done(                                                                            &
+            &                interpolationAccelerator=freefallRadiusTableAlphaInterpolationAccelerator,  &
+            &                reset                   =freefallRadiusTableAlphaInterpolationReset         &
+            &               )
+       call Interpolate_Done(                                                                            &
+            &                interpolationObject     =freefallRadiusTableRadiusInterpolationObject,      &
+            &                interpolationAccelerator=freefallRadiusTableRadiusInterpolationAccelerator, &
+            &                reset                   =freefallRadiusTableRadiusInterpolationReset        &
+            &               )
+       freefallRadiusTableAlphaInterpolationReset =.true.
+       freefallRadiusTableRadiusInterpolationReset=.true.
+       ! Store the minimum and maximum tabulated freefall times across all alpha values.
+       freefallTimeMinimum=maxval(freefallRadiusTable(                             1,:))
+       freefallTimeMaximum=minval(freefallRadiusTable(freefallRadiusTableRadiusCount,:))
+       ! Display a message.
+       call Galacticus_Display_Unindent('...done',verbosityWorking)
+       ! Specify that tabulation has been made.
+       freefallRadiusTableInitialized=.true.
+    end if
+    !$omp end critical (Dark_Matter_Profile_Einasto_Freefall)
+    return
+  end subroutine Dark_Matter_Profile_Einasto_Freefall_Tabulate
+  
+  double precision function Freefall_Time_Scale_Free(radius,alpha)
+    !% Compute the freefall time in a scale-free Einasto halo.
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Integration
+    implicit none
+    double precision,                intent(in) :: radius,alpha
+    type(c_ptr)                                 :: parameterPointer
+    type(fgsl_function)                         :: integrandFunction
+    type(fgsl_integration_workspace)            :: integrationWorkspace
+    double precision                            :: radiusEnd
+
+    radiusStart   =radius
+    radiusEnd     =0.0d0
+    alphaParameter=alpha
+    Freefall_Time_Scale_Free=Integrate(radiusEnd,radiusStart,Freefall_Time_Scale_Free_Integrand_Einasto,parameterPointer&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    return
+  end function Freefall_Time_Scale_Free
+  
+  function Freefall_Time_Scale_Free_Integrand_Einasto(radius,parameterPointer) bind(c)
+    !% Integrand function used for finding the free-fall time in Einasto halos.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)            :: Freefall_Time_Scale_Free_Integrand_Einasto
+    real(c_double), value     :: radius
+    type(c_ptr)               :: parameterPointer
+
+    Freefall_Time_Scale_Free_Integrand_Einasto= 1.0d0                                                                   &
+         &                                     /dsqrt(                                                                  &
+         &                                             2.0d0                                                            &
+         &                                            *(                                                                &
+         &                                               Potential_Einasto_Scale_Free(radiusStart,1.0d0,alphaParameter) &
+         &                                              -Potential_Einasto_Scale_Free(radius     ,1.0d0,alphaParameter) &
+         &                                             )                                                                &
+         &                                           )
+    return
+  end function Freefall_Time_Scale_Free_Integrand_Einasto
+  
   !# <galacticusStateStoreTask>
   !#  <unitName>Dark_Matter_Profiles_Einasto_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -915,8 +1185,9 @@ contains
     write (stateFile) angularMomentumTableRadiusMinimum,angularMomentumTableRadiusMaximum,angularMomentumTableAlphaMinimum &
          &,angularMomentumTableAlphaMaximum,energyTableConcentrationMinimum,energyTableConcentrationMaximum &
          &,energyTableAlphaMinimum,energyTableAlphaMaximum,fourierProfileTableWavenumberMinimum &
-         &,fourierProfileTableWavenumberMaximum,fourierProfileTableAlphaMinimum,fourierProfileTableAlphaMaximum&
-         &,fourierProfileTableConcentrationMinimum,fourierProfileTableConcentrationMaximum
+         &,fourierProfileTableWavenumberMaximum,fourierProfileTableAlphaMinimum,fourierProfileTableAlphaMaximum &
+         &,fourierProfileTableConcentrationMinimum,fourierProfileTableConcentrationMaximum,freefallRadiusTableRadiusMinimum&
+         &,freefallRadiusTableRadiusMaximum,freefallRadiusTableAlphaMinimum ,freefallRadiusTableAlphaMaximum
 
     return
   end subroutine Dark_Matter_Profiles_Einasto_State_Store
@@ -934,12 +1205,14 @@ contains
     read (stateFile) angularMomentumTableRadiusMinimum,angularMomentumTableRadiusMaximum,angularMomentumTableAlphaMinimum &
          &,angularMomentumTableAlphaMaximum,energyTableConcentrationMinimum,energyTableConcentrationMaximum &
          &,energyTableAlphaMinimum,energyTableAlphaMaximum,fourierProfileTableWavenumberMinimum &
-         &,fourierProfileTableWavenumberMaximum ,fourierProfileTableAlphaMinimum,fourierProfileTableAlphaMaximum&
-         &,fourierProfileTableConcentrationMinimum,fourierProfileTableConcentrationMaximum
+         &,fourierProfileTableWavenumberMaximum,fourierProfileTableAlphaMinimum,fourierProfileTableAlphaMaximum &
+         &,fourierProfileTableConcentrationMinimum,fourierProfileTableConcentrationMaximum,freefallRadiusTableRadiusMinimum &
+         &,freefallRadiusTableRadiusMaximum,freefallRadiusTableAlphaMinimum,freefallRadiusTableAlphaMaximum
     ! Retabulate.
     angularMomentumTableInitialized=.false.
     energyTableInitialized         =.false.
     fourierProfileTableInitialized =.false.
+    freefallRadiusTableInitialized =.false.
     return
   end subroutine Dark_Matter_Profiles_Einasto_State_Retrieve
   

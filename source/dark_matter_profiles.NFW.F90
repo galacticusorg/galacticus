@@ -71,29 +71,30 @@ module Dark_Matter_Profiles_NFW
        & Dark_Matter_Profile_NFW_Reset
 
   ! Minimum and maximum concentrations to tabulate.
-  double precision                            :: concentrationMinimum   = 1.0d0
-  double precision                            :: concentrationMaximum   =20.0d0
+  double precision                            :: concentrationMinimum= 1.0d0
+  double precision                            :: concentrationMaximum=20.0d0
   ! Minimum and maximum radii to tabulate.
-  double precision                            :: radiusMinimum          = 1.0d-3
-  double precision                            :: radiusMaximum          = 1.0d+2
-  double precision                            :: specificAngularMomentumMinimum
-  double precision                            :: specificAngularMomentumMaximum
+  double precision                            :: radiusMinimum       = 1.0d-3,freefallRadiusMinimum=1.0d-3
+  double precision                            :: radiusMaximum       = 1.0d+2,freefallRadiusMaximum=1.0d+2
+  double precision                            :: specificAngularMomentumMinimum,freefallTimeMinimum
+  double precision                            :: specificAngularMomentumMaximum,freefallTimeMaximum
   ! Number of points per decade of concentration in NFW tabulations.
-  integer,          parameter                 :: nfwTablePointsPerDecade       =100
-  integer,          parameter                 :: nfwInverseTablePointsPerDecade=100
+  integer,          parameter                 :: nfwTablePointsPerDecade        =100
+  integer,          parameter                 :: nfwInverseTablePointsPerDecade =100
+  integer,          parameter                 :: nfwFreefallTablePointsPerDecade=100
   ! Tables of NFW properties.
-  logical                                     :: nfwTableInitialized=.false.,nfwInverseTableInitialized=.false.
-  integer                                     :: nfwTableNumberPoints,nfwInverseTableNumberPoints
+  logical                                     :: nfwTableInitialized=.false.,nfwInverseTableInitialized=.false.,nfwFreefallTableInitialized=.false.
+  integer                                     :: nfwTableNumberPoints,nfwInverseTableNumberPoints,nfwFreefallTableNumberPoints
   double precision, allocatable, dimension(:) :: nfwConcentration,nfwEnergy,nfwRotationNormalization,nfwRadius&
-       &,nfwSpecificAngularMomentum
+       &,nfwSpecificAngularMomentum,nfwFreefallTime,nfwFreefallRadius
 
   ! Interpolator variables.
-  type(fgsl_interp)                           :: interpolationObject      ,interpolationInverseObject
-  type(fgsl_interp_accel)                     :: interpolationAccelerator ,interpolationInverseAccelerator
-  logical                                     :: interpolationReset=.true.,interpolationInverseReset=.true.
+  type(fgsl_interp)                           :: interpolationObject      ,interpolationInverseObject      ,interpolationFreefallObject
+  type(fgsl_interp_accel)                     :: interpolationAccelerator ,interpolationInverseAccelerator ,interpolationFreefallAccelerator
+  logical                                     :: interpolationReset=.true.,interpolationInverseReset=.true.,interpolationFreefallReset=.true.
 
   ! Module variables used in integrations.
-  double precision                            :: concentrationParameter
+  double precision                            :: concentrationParameter,radiusStart
 
   ! Record of unique ID of node which we last computed results for.
   integer(kind=kind_int8)                     :: lastUniqueID=-1
@@ -116,7 +117,8 @@ contains
        &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get&
        &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
        &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
-       &,Dark_Matter_Profile_kSpace_Get)
+       &,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get &
+       &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get)
     !% Initializes the ``NFW'' halo profile module.
     use ISO_Varying_String
     use Galacticus_Error
@@ -125,7 +127,8 @@ contains
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
          &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
          &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
-         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get
+         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get&
+         &,Dark_Matter_Profile_Freefall_Radius_Get ,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
     
     if (darkMatterProfileMethod == 'NFW') then
        Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_NFW
@@ -137,7 +140,9 @@ contains
        Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_NFW
        Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_NFW       
        Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_NFW
-       ! Ensure that the dark matter profile component supports a "scale" property. Since we've been called with a treeNode to
+       Dark_Matter_Profile_Freefall_Radius_Get                       => Dark_Matter_Profile_Freefall_Radius_NFW
+       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW
+        ! Ensure that the dark matter profile component supports a "scale" property. Since we've been called with a treeNode to
        ! process, it should have been initialized by now.
        if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call&
             & Galacticus_Error_Report('Dark_Matter_Profile_NFW_Initialize','NFW dark matter profile requires a dark matter&
@@ -667,6 +672,192 @@ contains
     return
   end function Dark_Matter_Profile_kSpace_NFW
 
+  double precision function Dark_Matter_Profile_Freefall_Radius_NFW(thisNode,time)
+    !% Returns the freefall radius in the NFW density profile at the specified {\tt time} (given in Gyr).
+    use Tree_Nodes
+    use Numerical_Interpolation
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Astronomical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: time
+    double precision                         :: freefallTimeScaleFree,radiusScale,concentration,velocityScale,timeScale
+
+    ! For non-positive freefall times, return a zero freefall radius immediately.
+    if (time <= 0.0d0) then
+       Dark_Matter_Profile_Freefall_Radius_NFW=0.0d0
+       return
+    end if
+
+    ! Get the scale radius.
+    radiusScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+
+    ! Get the concentration.
+    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale
+
+    ! Get the virial velocity.
+    velocityScale=Dark_Matter_Halo_Virial_Velocity(thisNode)
+
+    ! Compute time scale.
+    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/dsqrt(concentration/(dlog(1.0d0+concentration)-concentration&
+         &/(1.0d0+concentration)))
+
+    ! Compute dimensionless time.
+    freefallTimeScaleFree=time/timeScale
+
+    ! Ensure table is sufficiently extensive.
+    call Dark_Matter_Profile_NFW_Freefall_Tabulate(freefallTimeScaleFree)
+
+    ! Interpolate to get the freefall radius.
+    !$omp critical(NFW_Freefall_Interpolation)
+    Dark_Matter_Profile_Freefall_Radius_NFW=Interpolate(nfwFreefallTableNumberPoints,nfwFreefallTime,nfwFreefallRadius &
+         &,interpolationFreefallObject,interpolationFreefallAccelerator,freefallTimeScaleFree,reset=interpolationFreefallReset)&
+         &*radiusScale
+    !$omp end critical(NFW_Freefall_Interpolation)
+
+    return
+  end function Dark_Matter_Profile_Freefall_Radius_NFW
+  
+  double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW(thisNode,time)
+    !% Returns the rate of increase of the freefall radius in the NFW density profile at the specified {\tt time} (given in
+    !% Gyr).
+    use Tree_Nodes
+    use Numerical_Interpolation
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Astronomical
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: time
+    double precision                         :: freefallTimeScaleFree,radiusScale,concentration,velocityScale,timeScale
+
+    ! Get the scale radius.
+    radiusScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+
+    ! Get the concentration.
+    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale
+
+    ! Get the virial velocity.
+    velocityScale=Dark_Matter_Halo_Virial_Velocity(thisNode)
+
+    ! Compute time scale.
+    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/dsqrt(concentration/(dlog(1.0d0+concentration)-concentration&
+         &/(1.0d0+concentration)))
+
+    ! Compute dimensionless time.
+    freefallTimeScaleFree=time/timeScale
+
+    ! Ensure table is sufficiently extensive.
+    call Dark_Matter_Profile_NFW_Freefall_Tabulate(freefallTimeScaleFree)
+
+    ! Interpolate to get the freefall radius growth rate.
+    !$omp critical(NFW_Freefall_Interpolation)
+    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW=Interpolate_Derivative(nfwFreefallTableNumberPoints,nfwFreefallTime,nfwFreefallRadius &
+         &,interpolationFreefallObject,interpolationFreefallAccelerator,freefallTimeScaleFree,reset=interpolationFreefallReset)&
+         &*radiusScale/timeScale
+    !$omp end critical(NFW_Freefall_Interpolation)
+    return
+  end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW
+
+  subroutine Dark_Matter_Profile_NFW_Freefall_Tabulate(freefallTimeScaleFree)
+    !% Tabulates the freefall time vs. freefall radius for NFW halos.
+    use Numerical_Ranges
+    use Memory_Management
+    use Numerical_Interpolation
+    implicit none
+    double precision, intent(in) :: freefallTimeScaleFree
+    logical                      :: retabulate
+    integer                      :: iRadius
+
+    !$omp critical (Dark_Matter_Profile_NFW_Freefall)
+    retabulate=.not.nfwFreefallTableInitialized
+    ! If the table has not yet been made, compute and store the freefall corresponding to the minimum and maximum
+    ! radii that will be tabulated by default.
+    if (retabulate) then
+       freefallTimeMinimum=Freefall_Time_Scale_Free(freefallRadiusMinimum)
+       freefallTimeMaximum=Freefall_Time_Scale_Free(freefallRadiusMaximum)
+    end if
+    do while (freefallTimeScaleFree < freefallTimeMinimum)
+       freefallRadiusMinimum=0.5d0*freefallRadiusMinimum
+       freefallTimeMinimum=Freefall_Time_Scale_Free(freefallRadiusMinimum)
+       retabulate=.true.
+    end do
+    do while (freefallTimeScaleFree > freefallTimeMaximum)
+       freefallRadiusMaximum=2.0d0*freefallRadiusMaximum
+       freefallTimeMaximum=Freefall_Time_Scale_Free(freefallRadiusMaximum)
+       retabulate=.true.
+    end do
+    if (retabulate) then
+       ! Decide how many points to tabulate and allocate table arrays.
+       nfwFreefallTableNumberPoints=int(dlog10(freefallRadiusMaximum/freefallRadiusMinimum)*dble(nfwFreefallTablePointsPerDecade))+1
+       if (allocated(nfwFreefallRadius)) then
+          call Dealloc_Array(nfwFreefallRadius)
+          call Dealloc_Array(nfwFreefallTime  )
+       end if
+       call Alloc_Array(nfwFreefallRadius,[nfwFreefallTableNumberPoints])
+       call Alloc_Array(nfwFreefallTime  ,[nfwFreefallTableNumberPoints])
+       ! Create a range of radii.
+       nfwFreefallRadius=Make_Range(freefallRadiusMinimum,freefallRadiusMaximum,nfwFreefallTableNumberPoints,rangeType&
+            &=rangeTypeLogarithmic)
+       ! Loop over radii and populate tables.
+       do iRadius=1,nfwFreefallTableNumberPoints
+          nfwFreefallTime(iRadius)=Freefall_Time_Scale_Free(nfwFreefallRadius(iRadius))
+       end do
+       ! Ensure interpolations get reset.
+       call Interpolate_Done(interpolationFreefallObject,interpolationFreefallAccelerator,interpolationFreefallReset)
+       interpolationFreefallReset=.true.
+       ! Specify that tabulation has been made.
+       nfwFreefallTableInitialized=.true.
+    end if
+    !$omp end critical (Dark_Matter_Profile_NFW_Freefall)
+    return
+  end subroutine Dark_Matter_Profile_NFW_Freefall_Tabulate
+  
+  double precision function Freefall_Time_Scale_Free(radius)
+    !% Compute the freefall time in a scale-free NFW halo.
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Integration
+    implicit none
+    double precision,                intent(in) :: radius
+    type(c_ptr)                                 :: parameterPointer
+    type(fgsl_function)                         :: integrandFunction
+    type(fgsl_integration_workspace)            :: integrationWorkspace
+    double precision                            :: radiusEnd
+
+    radiusStart=radius
+    radiusEnd  =0.0d0
+    Freefall_Time_Scale_Free=Integrate(radiusEnd,radiusStart,Freefall_Time_Scale_Free_Integrand,parameterPointer&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    return
+  end function Freefall_Time_Scale_Free
+  
+  function Freefall_Time_Scale_Free_Integrand(radius,parameterPointer) bind(c)
+    !% Integrand function used for finding the free-fall time in NFW halos.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)            :: Freefall_Time_Scale_Free_Integrand
+    real(c_double), value     :: radius
+    type(c_ptr)               :: parameterPointer
+    real(c_double), parameter :: radiusSmall        =1.0d-6
+    real(c_double), parameter :: radiusSmallFraction=1.0d-3
+    real(c_double)            :: x
+    
+     if (radius < radiusSmall) then
+       ! Use a series approximation for small radii.
+       Freefall_Time_Scale_Free_Integrand=dlog(1.0d0+radiusStart)/radiusStart-1.0d0+radius*(0.5d0-radius/3.0d0)
+    else if (radius > radiusStart*(1.0d0-radiusSmallFraction)) then
+       ! Use a series approximation for radii close to the initial radius.
+       x=1.0d0-radius/radiusStart
+       Freefall_Time_Scale_Free_Integrand=(1.0d0/(1.0d0+radiusStart)-dlog(1.0d0+radiusStart)/radiusStart)*x+(0.5d0*radiusStart&
+            &/(1.0d0+radiusStart)**2+(radiusStart-(1.0d0+radiusStart)*dlog(1.0d0+radiusStart))/radiusStart/(1.0d0+radiusStart))*x&
+            &**2
+    else
+       ! Use full expression for larger radii.
+       Freefall_Time_Scale_Free_Integrand=dlog(1.0d0+radiusStart)/radiusStart-dlog(1.0d0+radius)/radius
+    end if
+    Freefall_Time_Scale_Free_Integrand=1.0d0/dsqrt(-2.0d0*Freefall_Time_Scale_Free_Integrand)
+    return
+  end function Freefall_Time_Scale_Free_Integrand
+  
   !# <galacticusStateStoreTask>
   !#  <unitName>Dark_Matter_Profiles_NFW_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -676,7 +867,7 @@ contains
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
 
-    write (stateFile) concentrationMinimum,concentrationMaximum,radiusMinimum,radiusMaximum
+    write (stateFile) concentrationMinimum,concentrationMaximum,radiusMinimum,radiusMaximum,freefallRadiusMinimum,freefallRadiusMaximum
     return
   end subroutine Dark_Matter_Profiles_NFW_State_Store
   
@@ -690,10 +881,11 @@ contains
     type(fgsl_file), intent(in) :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
-    read (stateFile) concentrationMinimum,concentrationMaximum,radiusMinimum,radiusMaximum
+    read (stateFile) concentrationMinimum,concentrationMaximum,radiusMinimum,radiusMaximum,freefallRadiusMinimum,freefallRadiusMaximum
     ! Retabulate.
-    nfwTableInitialized       =.false.
-    nfwInverseTableInitialized=.false.
+    nfwTableInitialized        =.false.
+    nfwInverseTableInitialized =.false.
+    nfwFreefallTableInitialized=.false.
     call Dark_Matter_Profile_NFW_Tabulate
     call Dark_Matter_Profile_NFW_Inverse_Angular_Momentum
     return
