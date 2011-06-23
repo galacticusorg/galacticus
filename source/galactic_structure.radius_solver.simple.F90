@@ -68,6 +68,13 @@ module Galactic_Structure_Radii_Simple
   private
   public :: Galactic_Structure_Radii_Simple_Initialize
 
+  ! Module variables used to communicate current state of radius solver.
+  type(treeNode), pointer :: haloNode
+  !$omp threadprivate(haloNode)
+
+  ! Options controlling the solver.
+  logical                 :: simpleRadiusSolverUseFormationHalo
+
 contains
 
   !# <galacticStructureRadiusSolverMethod>
@@ -76,12 +83,23 @@ contains
   subroutine Galactic_Structure_Radii_Simple_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do)
     !% Initializes the ``simple'' galactic radii solver module.
     use ISO_Varying_String
+    use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: galacticStructureRadiusSolverMethod
     procedure(),          pointer, intent(inout) :: Galactic_Structure_Radii_Solve_Do
     
-    if (galacticStructureRadiusSolverMethod == 'simple') Galactic_Structure_Radii_Solve_Do =>&
-         & Galactic_Structure_Radii_Solve_Simple
+    if (galacticStructureRadiusSolverMethod == 'simple') then
+       Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Simple
+       !@ <inputParameter>
+       !@   <name>simpleRadiusSolverUseFormationHalo</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('simpleRadiusSolverUseFormationHalo',simpleRadiusSolverUseFormationHalo,defaultValue=.false.)
+    end if
     return
   end subroutine Galactic_Structure_Radii_Simple_Initialize
 
@@ -108,6 +126,13 @@ contains
     include 'galactic_structure.radius_solver.plausible.inc'
     !# </include>
 
+    ! Determine which node to use for halo properties.
+    if (simpleRadiusSolverUseFormationHalo) then
+       haloNode => thisNode%formationNode
+    else
+       haloNode => thisNode
+    end if
+
     !# <include directive="radiusSolverTask" type="code" action="subroutine">
     !#  <subroutineArgs>thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</subroutineArgs>
     !#  <subroutineAction>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</subroutineAction>
@@ -128,10 +153,10 @@ contains
     double precision                                          :: radius,velocity
     
     ! Find the radius in the dark matter profile with the required specific angular momentum
-    radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(thisNode,specificAngularMomentum)
+    radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(haloNode,specificAngularMomentum)
 
     ! Find the velocity at this radius.
-    velocity=Dark_Matter_Profile_Circular_Velocity(thisNode,radius)
+    velocity=Dark_Matter_Profile_Circular_Velocity(haloNode,radius)
 
     ! Set the component size to new radius and velocity.
     call Radius_Set  (thisNode,radius  )
