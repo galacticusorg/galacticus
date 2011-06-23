@@ -181,7 +181,8 @@ our %colorPairs = (
     lightGoldenrod => [$colors{'Goldenrod'    },$colors{'LightGoldenrod'}],
     indianRed      => [$colors{'Sienna'       },$colors{'IndianRed'     }],
     orange         => [$colors{'OrangeRed'    },$colors{'Orange'        }],
-    plum           => [$colors{'VioletRed'    },$colors{'Plum'          }]
+    plum           => [$colors{'VioletRed'    },$colors{'Plum'          }],
+    thistle        => [$colors{'MediumPurple' },$colors{'Thistle'       }]
     );
 
 # Sets of sequences of color pairs suitable for plotting multiple datasets.
@@ -189,6 +190,7 @@ our %colorPairSequences = (
     sequence1 => [
 	 "peachPuff"  ,"slateGray"     ,"cornflowerBlue","lightSkyBlue","mediumSeaGreen"
 	,"yellowGreen","lightGoldenrod","indianRed"     ,"orange"      ,"plum"
+        ,"thistle"
     ]
     );
 
