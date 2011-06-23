@@ -78,8 +78,8 @@ module Merger_Tree_Timesteps_History
 
   ! Storage arrays.
   double precision, dimension(:), allocatable :: historyTime,historyExpansion,historyStarFormationRate&
-       &,historyDiskStarFormationRate,historySpheroidStarFormationRate,historyDiskStellarDensity ,historySpheroidStellarDensity&
-       &,historyStellarDensity ,historyGasDensity,historyNodeDensity
+       &,historyDiskStarFormationRate,historySpheroidStarFormationRate,historyDiskStellarDensity,historySpheroidStellarDensity&
+       &,historyStellarDensity,historyGasDensity,historyNodeDensity,historyHotGasDensity
 
   ! Interpolation variables.
   type(fgsl_interp_accel)                     :: interpolationAccelerator
@@ -151,6 +151,7 @@ contains
        call Alloc_Array(historyDiskStellarDensity       ,[timestepHistorySteps])
        call Alloc_Array(historySpheroidStellarDensity   ,[timestepHistorySteps])
        call Alloc_Array(historyGasDensity               ,[timestepHistorySteps])
+       call Alloc_Array(historyHotGasDensity            ,[timestepHistorySteps])
        call Alloc_Array(historyNodeDensity              ,[timestepHistorySteps])
        ! Initialize arrays.
        historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
@@ -164,6 +165,7 @@ contains
        historyDiskStellarDensity       =0.0d0
        historySpheroidStellarDensity   =0.0d0
        historyGasDensity               =0.0d0
+       historyHotGasDensity            =0.0d0
        historyNodeDensity              =0.0d0
        timestepHistoryInitialized      =.true.
     end if
@@ -199,7 +201,7 @@ contains
     type(mergerTree), intent(in)             :: thisTree
     type(treeNode),   intent(inout), pointer :: thisNode
     integer                                  :: timeIndex
-    double precision                         :: time,diskStarFormationRate,spheroidStarFormationRate
+    double precision                         :: time,diskStarFormationRate,spheroidStarFormationRate,hotGasMass
 
     ! Get current cosmic time.
     time=Tree_Node_Time(thisNode)
@@ -217,34 +219,43 @@ contains
     spheroidStarFormationRate=0.0d0
     if (diskActive)     diskStarFormationRate    =Tree_Node_Disk_SFR    (thisNode)
     if (spheroidActive) spheroidStarFormationRate=Tree_Node_Spheroid_SFR(thisNode)
-    historyStarFormationRate        (timeIndex)= historyStarFormationRate        (timeIndex)                                                             &
-         &                                      +(diskStarFormationRate+spheroidStarFormationRate)                                                       &
+    historyStarFormationRate        (timeIndex)= historyStarFormationRate        (timeIndex)                                                               &
+         &                                      +(diskStarFormationRate+spheroidStarFormationRate)                                                         &
          &                                      *thisTree%volumeWeight
-    historyDiskStarFormationRate    (timeIndex)= historyDiskStarFormationRate    (timeIndex)                                                             &
-         &                                      + diskStarFormationRate                                                                                  &
+    historyDiskStarFormationRate    (timeIndex)= historyDiskStarFormationRate    (timeIndex)                                                               &
+         &                                      + diskStarFormationRate                                                                                    &
          &                                      *thisTree%volumeWeight
-    historySpheroidStarFormationRate(timeIndex)= historySpheroidStarFormationRate(timeIndex)                                                             &
-         &                                      +                       spheroidStarFormationRate                                                        &
+    historySpheroidStarFormationRate(timeIndex)= historySpheroidStarFormationRate(timeIndex)                                                               &
+         &                                      +                       spheroidStarFormationRate                                                          &
          &                                      *thisTree%volumeWeight
     ! Stellar densities.
-    historyStellarDensity           (timeIndex)= historyStellarDensity           (timeIndex)                                                             &
-         &                                      +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar                                    ) &
+    historyStellarDensity           (timeIndex)= historyStellarDensity           (timeIndex)                                                               &
+         &                                      +  Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar                                    ) &
          &                                      *thisTree%volumeWeight
-    historyDiskStellarDensity       (timeIndex)= historyDiskStellarDensity       (timeIndex)                                                             &
-         &                                      +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,componentType=componentTypeDisk    ) &
+    historyDiskStellarDensity       (timeIndex)= historyDiskStellarDensity       (timeIndex)                                                               &
+         &                                      +  Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,componentType=componentTypeDisk    ) &
          &                                      *thisTree%volumeWeight
-    historySpheroidStellarDensity   (timeIndex)= historySpheroidStellarDensity   (timeIndex)                                                             &
-         &                                      +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,componentType=componentTypeSpheroid) &
+    historySpheroidStellarDensity   (timeIndex)= historySpheroidStellarDensity   (timeIndex)                                                               &
+         &                                        +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,componentType=componentTypeSpheroid) &
          &                                      *thisTree%volumeWeight
-    ! Gas density.
-    historyGasDensity               (timeIndex)= historyGasDensity               (timeIndex)                                                             &
-         &                                      +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGaseous                                    ) &
+    ! Hot gas density.
+    hotGasMass                                 =   Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeHotHalo                          )
+    historyHotGasDensity            (timeIndex)= historyHotGasDensity            (timeIndex)                                                               &
+         &                                      +hotGasMass                                                                                                &
+         &                                      *thisTree%volumeWeight
+    ! Galactic gas density.
+    historyGasDensity               (timeIndex)= historyGasDensity               (timeIndex)                                                               &
+         &                                      +(                                                                                                         &
+         &                                         Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGaseous                                    ) &
+         &                                        -hotGasMass                                                                                              &
+         &                                       )                                                                                                         &
          &                                      *thisTree%volumeWeight
     ! Node density
-    historyNodeDensity              (timeIndex)= historyNodeDensity              (timeIndex)                                                             &
-         &                                      +Tree_Node_Mass                  (thisNode                                                             ) &
-         &                                      *thisTree%volumeWeight
-
+    if (.not.thisNode%isSatellite()) then
+       historyNodeDensity           (timeIndex)= historyNodeDensity              (timeIndex)                                                               &
+            &                                   +  Tree_Node_Mass                  (thisNode                                                             ) &
+            &                                   *thisTree%volumeWeight
+    end if
     return
   end subroutine Merger_Tree_History_Store
 
@@ -296,6 +307,10 @@ contains
        call historyDataset%close()
        
        call historyGroup%writeDataset(historyGasDensity               ,"historyGasDensity"               ,"Gas mass density [Msun/Mpc^3]"                    ,datasetReturned=historyDataset)
+       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
+       call historyDataset%close()
+       
+       call historyGroup%writeDataset(historyHotGasDensity            ,"historyHotGasDensity"            ,"Hot gas mass density [Msun/Mpc^3]"                ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
