@@ -90,8 +90,8 @@ contains
     use Input_Parameters
     use Abundances_Structure
     implicit none
-    type(varying_string),          intent(in)    :: starFormationTimescaleDisksMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
+    type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
     
 
     if (starFormationTimescaleDisksMethod == 'extended Schmidt') then
