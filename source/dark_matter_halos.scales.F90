@@ -222,6 +222,7 @@ contains
 
     ! Get the time at which this halo was last an isolated halo.
     time=Tree_Node_Time_Last_Isolated(thisNode)
+    if (time <= 0.0d0) time=Tree_Node_Time(thisNode)
     ! If time is not the same as the one previously used then compute its mean density based on mean cosmological density and
     ! overdensity of a collapsing halo, and store it.
     if (time /= timePrevious) then

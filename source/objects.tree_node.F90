@@ -69,13 +69,14 @@ module Tree_Nodes
   use Histories
   use Kepler_Orbits_Structure
   private
-  public :: treeNode, treeNodeList, Tree_Node_Rate_Rate_Compute_Dummy, Tree_Node_Rate_Adjust_Dummy,&
+  public :: treeNode, treeNodeList, Tree_Nodes_New_Unique_ID, Tree_Node_Rate_Rate_Compute_Dummy, Tree_Node_Rate_Adjust_Dummy,&
        & Tree_Node_Rate_Adjust_Array_Dummy, Tree_Node_Rate_Adjust_History_Dummy, Get_Template, Set_Template
 
   type treeNode
      !% The tree node object type.
      integer(kind=kind_int8), private                   :: nodeIndex,nodeUniqueID
-     type(treeNode),          pointer                   :: parentNode,childNode,siblingNode,satelliteNode,mergeNode,mergeeNode,nextMergee
+     type(treeNode),          pointer                   :: parentNode,childNode,siblingNode,satelliteNode,mergeNode,mergeeNode&
+          &,nextMergee,formationNode
      integer,                 allocatable, dimension(:) :: componentIndex
      type(componentArray),    allocatable, dimension(:) :: components
    contains
@@ -110,6 +111,13 @@ module Tree_Nodes
      !@   <description>Destroy the node and all components.</description>
      !@ </objectMethod>
      procedure                                  :: destroy                => Tree_Node_Destroy
+     ! Node copy method.
+     !@ <objectMethod>
+     !@   <object>treeNode</object>
+     !@   <method>copy(nodeToCopy)</method>
+     !@   <description>Make a copy of the given node.</description>
+     !@ </objectMethod>
+       procedure                                  :: copy                   => Tree_Node_Copy
      ! Component create/destroy methods.
      !@ <objectMethods>
      !@   <object>treeNode</object>
@@ -365,7 +373,22 @@ module Tree_Nodes
     end subroutine Rate_Compute_Template
   end interface
 
+  ! Unique ID counter.
+  integer(kind=kind_int8) :: uniqueIDCount=0
+
 contains
+
+  integer(kind=kind_int8) function Tree_Nodes_New_Unique_ID()
+    !% Generates a new unique ID number for a node.
+    use Galacticus_Error
+    implicit none
+    
+    !$omp atomic
+    uniqueIDCount=uniqueIDCount+1
+    if (uniqueIDCount <= 0) call Galacticus_Error_Report('Tree_Node_New_Unique_ID','ran out of unique ID numbers')
+    Tree_Nodes_New_Unique_ID=uniqueIDCount
+    return
+  end function Tree_Nodes_New_Unique_ID
 
   integer(kind=kind_int8) function Tree_Node_Unique_ID(thisNode)
     !% Returns the unique ID of {\tt thisNode}.
@@ -423,7 +446,30 @@ contains
     return
   end subroutine Tree_Node_Index_Set
 
-  subroutine Tree_Node_Destroy(thisNode)
+  subroutine Tree_Node_Copy(thisNode,nodeToCopy)
+    !% Destroy a node in the tree, along with all components.
+    use Memory_Management
+    implicit none
+    class(treeNode), intent(inout) :: thisNode,nodeToCopy
+
+    allocate(thisNode%componentIndex(size(nodeToCopy%componentIndex)))
+    allocate(thisNode%components    (size(nodeToCopy%components    )))
+    thisNode%nodeUniqueID   =  Tree_Nodes_New_Unique_ID()
+    thisNode%nodeIndex      =  nodeToCopy%nodeIndex
+    thisNode%componentIndex =  nodeToCopy%componentIndex
+    thisNode%components     =  nodeToCopy%components
+    thisNode%parentNode     => nodeToCopy%parentNode
+    thisNode%childNode      => nodeToCopy%childNode
+    thisNode%siblingNode    => nodeToCopy%siblingNode
+    thisNode%satelliteNode  => nodeToCopy%satelliteNode
+    thisNode%mergeNode      => nodeToCopy%mergeNode
+    thisNode%mergeeNode     => nodeToCopy%mergeeNode
+    thisNode%nextMergee     => nodeToCopy%nextMergee
+    thisNode%formationNode  => nodeToCopy%formationNode
+    return
+  end subroutine Tree_Node_Copy
+
+  recursive subroutine Tree_Node_Destroy(thisNode)
     !% Destroy a node in the tree, along with all components.
     use Memory_Management
     implicit none
@@ -435,6 +481,9 @@ contains
     type is (treeNode)
        workNode => thisNode
     end select
+
+    ! Destroy any formation node, as these are direct copies, not pointers.
+    if (associated(thisNode%formationNode)) call Tree_Node_Destroy(thisNode%formationNode)
 
     ! Deallocate list of component indices.
     if (allocated(workNode%componentIndex)) then

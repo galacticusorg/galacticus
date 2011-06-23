@@ -142,9 +142,6 @@ module Merger_Trees
   ! Flag to indicate if the tree node create routines have been initialized.
   logical :: treeNodeCreateInitialized=.false.
 
-  ! Unique ID counter.
-  integer(kind=kind_int8) :: uniqueIDCount=0
-
   ! Count of number of different possible component types.
   integer :: componentTypesCount=0
   
@@ -260,15 +257,14 @@ contains
     thisNode%componentIndex=-1
 
     ! Ensure pointers are nullified.
-    nullify(thisNode%parentNode,thisNode%childNode,thisNode%siblingNode,thisNode%satelliteNode,thisNode%mergeNode,thisNode%mergeeNode,thisNode%nextMergee)
+    nullify(thisNode%parentNode,thisNode%childNode,thisNode%siblingNode,thisNode%satelliteNode,thisNode%mergeNode&
+         &,thisNode%mergeeNode,thisNode%nextMergee,thisNode%formationNode)
 
     ! Assign index if supplied.
     if (present(index)) call thisNode%indexSet(index)
 
     ! Assign a unique ID.
-    !$omp atomic
-    uniqueIDCount=uniqueIDCount+1
-    call thisNode%uniqueIDSet(uniqueIDCount)
+    call thisNode%uniqueIDSet(Tree_Nodes_New_Unique_ID())
 
     return
   end subroutine Tree_Node_Create
@@ -348,6 +344,12 @@ contains
     call Move_Alloc(thisNode%componentIndex,parentNode%componentIndex)
     call Move_Alloc(thisNode%components    ,parentNode%components    )
     
+    ! Copy any formation node data to the parent, and update the formation node's parentNode pointer to point to the new parent.
+    if (associated(thisNode%formationNode)) then
+       call parentNode%formationNode%copy(thisNode%formationNode)
+       parentNode%formationNode%parentNode => parentNode
+    end if
+
     ! Transfer any satellite nodes to the parent.
     if (associated(thisNode%satelliteNode)) then
        ! Attach the satellite nodes to the parent.
