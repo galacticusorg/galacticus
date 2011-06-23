@@ -222,6 +222,14 @@ The algorithm used to compute the cooling radius is selected via the {\tt coolin
 
 Selcted with {\tt coolingRadiusMethod}$=${\tt simple}, this method computes the cooling radius by seeking the radius at which the time available for cooling (see \S\ref{sec:TimeAvailableCooling}) equals the cooling time (see \S\ref{sec:CoolingTime}). The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
 
+\subsection{Cooling: Freefall Radius}\index{freefall radius}\index{cooling!freefall radius}
+
+The algorithm used to compute the freefall radius for cooling is selected via the {\tt freefallRadiusMethod} parameter.
+
+\subsubsection{Dark Matter Halo}
+
+Selcted with {\tt freefallRadiusMethod}$=${\tt dark matter halo}, this method computes the freefall radius by finding the radius in the dark matter halo profile from which a test particle could have free-fallen to zero radius (assuming it began at rest) in the time available for freefall (see \S\ref{sec:TimeAvailableFreefall}).
+
 \subsection{Cooling Specific Angular Momentum}\index{cooling!specific angular momentum}
 
 The algorithm used to compute the specific angular momentum of cooling gas is selected via the {\tt coolingSpecificAngularMomentumMethod} parameter.
@@ -266,6 +274,19 @@ Selected with {\tt coolingTimeAvailableMethod}$=${\tt White-Frenk}, this methods
  t_{\rm available} = \exp\left[ f \ln t_{\rm Universe} + (1-f)\ln t_{\rm dynamical} \right],
 \end{equation}
 where $f=${\tt coolingTimeAvailableAgeFactor} is an interpolating factor, $t_{\rm Universe}$ is the age of the Universe and $t_{\rm dynamical}$ is the dynamical time in the halo. The original \cite{white_galaxy_1991} algorithm corresponds to $f=1$.
+
+
+\subsection{Time Available for Freefall During Cooling}\label{sec:TimeAvailableFreefall}\index{cooling!time available for freefall}
+
+The method used to determine the time available for freefall during cooling calculations (i.e. the time for which gas in a halo has been able to freefall) is selected by the {\tt freefallTimeAvailableMethod} parameter.
+
+\subsubsection{Halo Formation}
+
+Selected with {\tt freefallTimeAvailableMethod}$=${\tt halo formation}, this methods assumes that the time available for freefall is equal to
+\begin{equation}
+ t_{\rm available} = t - t_{\rm form},
+\end{equation}
+where $t_{\rm form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
 
 \section{Cosmology}
 

@@ -871,6 +871,48 @@ Currently defined cooling radius methods are:
  \item [\hyperlink{cooling.cooling_radius.simple.F90:cooling_radii_simple:cooling_radius_simple}{{\tt simple}}] Computes the cooling radius by seeking the radius at which the time available for cooling equals the cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
 \end{description}
 
+\subsubsection{Cooling: Freefall Radius}
+
+Additional methods for freefall radius in cooling calculations can be added using the {\tt freefallRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method is described by a directive:
+\begin{verbatim}
+ !# <freefallRadiusMethod>
+ !#  <unitName>Freefall_Radius_Dark_Matter_Halo_Initialize</unitName>
+ !# </freefallRadiusMethod>
+\end{verbatim}
+Here, {\tt Freefall\_Radius\_Dark\_Matter\_Halo\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: freefallRadiusMethod
+    procedure(),          pointer, intent(inout) :: Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get
+    
+    if (freefallRadiusMethod == 'myMethod') then
+       Freefall_Radius_Get             => My_Method_Get_Procedure
+       Freefall_Radius_Growth_Rate_Get => My_Method_Growth_Rate_Get_Procedure
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt freefallRadiusMethod} input parameter. The procedure pointer {\tt Freefall\_Radius\_Get} must be set to point to a function which returns the freefall radius as described below while {\tt Freefall\_Radius\_Growth\_Rate\_Get} should be set to point to a function which returns the rate at which the freefall radius is growing. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The freefall radius function must have the form:
+\begin{verbatim}
+ double precision function Freefall_Radius_Get(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+ end function Freefall_Radius_Get
+\end{verbatim}
+The function must return the freefall radius (in units of Mpc) for {\tt thisNode}. The freefall radius growth rate function should have the same template but return the rate at which the freefall radius grows in units of Mpc/Gyr.
+
+Currently defined freefall radius methods are:
+\begin{description}
+ \item [\hyperlink{cooling.freefall_radii.dark_matter_halo.F90:freefall_radii_dark_matter_halo:freefall_radius_dark_matter_halo}{{\tt dark matter halo}}] Computes the freefall radius by finding the radius in the dark matter halo profile from which a test particle could have free-fallen to zero radius (assuming it began at rest) in the time available for freefall.
+\end{description}
+
 \subsubsection{Cooling Specific Angular Momentum}
 
 Additional methods for calculations of the specific angular momentum of cooling gas can be added using the {\tt coolingSpecificAngularMomentumMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method is described by a directive:
@@ -954,6 +996,49 @@ Currently defined cooling time available methods are:
 \begin{description}
  \item [\hyperlink{cooling.time_available.White-Frenk.F90:cooling_time_available_white_frenk:cooling_time_available_wf}{{\tt White-Frenk}}] The time available is set to a value between the age of the Universe and the dynamical time of the halo, depending on the interpolating parameter {\tt [coolingTimeAvailableAgeFactor]};
  \item [\hyperlink{cooling.time_available.halo_formation.F90:cooling_time_available_halo_formation:cooling_time_available_halo_formation}{{\tt halo formation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
+\end{description}
+
+\subsubsection{Cooling Time Available For Freefall}
+
+Additional methods for the time available for freefall in cooling calculations can be added using the {\tt freefallTimeAvailableMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt halo formation} method is described by a directive:
+\begin{verbatim}
+ !# <freefallTimeAvailableMethod>
+ !#  <unitName>Freefall_Time_Available_Halo_Formation_Initialize</unitName>
+ !# </freefallTimeAvailableMethod>
+\end{verbatim}
+Here, {\tt Freefall\_Time\_Available\_Halo\_Formation\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(freefallTimeAvailableMethod,Freefall_Time_Available_Get&
+       &,Freefall_Time_Available_Increase_Rate_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: freefallTimeAvailableMethod
+    procedure(),          pointer, intent(inout) :: Freefall_Time_Available_Get,Freefall_Time_Available_Increase_Rate_Get
+    
+    if (freefallTimeAvailableMethod == 'myMethod') then
+      Freefall_Time_Available_Get               => My_Method_Get
+      Freefall_Time_Available_Increase_Rate_Get => My_Method_Increase_Rate_Get
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt freefallTimeAvailableMethod} input parameter. The procedure pointers {\tt Freefall\_Time\_Available\_Get} and {\tt Freefall\_Time\_Available\_Increase\_Rate\_Get} must be set to point to functions which return the time available for freefal in cooling calculations and the rate of increase of this time respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The freefall time available functions must have the form:
+\begin{verbatim}
+ double precision function Freefall_Time_Available_Get(thisNode)
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+ end function Freefall_Time_Available_Get
+\end{verbatim}
+The first function must return the time available for freefall cooling calculations (in units of Gyr) for {\tt thisNode}, while the second must return the rate of increase of this time. 
+
+Currently defined freefall time available methods are:
+\begin{description}
+ \item [\hyperlink{cooling.freefall_time_available.halo_formation.F90:freeall_times_available_halo_formation:freefall_time_available_halo_formation}{{\tt halo formation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
 \end{description}
 
 \subsubsection{Cooling Time}
