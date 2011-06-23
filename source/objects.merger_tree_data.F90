@@ -229,8 +229,8 @@ contains
   subroutine Merger_Tree_Data_Structure_Make_References(mergerTrees,makeReferences)
     !% Specify whether or not to make merger tree dataset references.
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    logical,              intent(in)    :: makeReferences
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    logical,               intent(in)    :: makeReferences
 
     mergerTrees%doMakeReferences=makeReferences
     return
@@ -241,10 +241,10 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    integer,              intent(in)    :: metadataType
-    character(len=*),     intent(in)    :: label
-    double precision,     intent(in)    :: doubleValue
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    integer,               intent(in)    :: metadataType
+    character(len=*),      intent(in)    :: label
+    double precision,      intent(in)    :: doubleValue
 
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,doubleValue=doubleValue)
     return
@@ -255,10 +255,10 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    integer,              intent(in)    :: metadataType
-    character(len=*),     intent(in)    :: label
-    integer,              intent(in)    :: integerValue
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    integer,               intent(in)    :: metadataType
+    character(len=*),      intent(in)    :: label
+    integer,               intent(in)    :: integerValue
 
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,integerValue=integerValue)
     return
@@ -269,10 +269,10 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    integer,              intent(in)    :: metadataType
-    character(len=*),     intent(in)    :: label
-    character(len=*),     intent(in)    :: textValue
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    integer,               intent(in)    :: metadataType
+    character(len=*),      intent(in)    :: label
+    character(len=*),      intent(in)    :: textValue
 
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,textValue=textValue)
     return
@@ -283,14 +283,14 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type(mergerTreeData), intent(inout)              :: mergerTrees
-    integer,              intent(in)                 :: metadataType
-    character(len=*),     intent(in)                 :: label
-    integer,              intent(in),   optional     :: integerValue
-    double precision,     intent(in),   optional     :: doubleValue
-    character(len=*),     intent(in),   optional     :: textValue
-    integer,              parameter                  :: metadataBlockSize=100
-    type(treeMetaData),   allocatable,  dimension(:) :: metaDataTemporary
+    class(mergerTreeData), intent(inout)              :: mergerTrees
+    integer,               intent(in)                 :: metadataType
+    character(len=*),      intent(in)                 :: label
+    integer,               intent(in),   optional     :: integerValue
+    double precision,      intent(in),   optional     :: doubleValue
+    character(len=*),      intent(in),   optional     :: textValue
+    integer,               parameter                  :: metadataBlockSize=100
+    type(treeMetaData),    allocatable,  dimension(:) :: metaDataTemporary
 
     ! Validate the metadata type.
     if (metadataType < 1 .or. metadataType > metaDataTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','invalid metadata type')
@@ -340,8 +340,8 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Node_Count(mergerTrees,nodeCount)
     !% Set the total number of nodes in merger trees.
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    integer,              intent(in)    :: nodeCount
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    integer,               intent(in)    :: nodeCount
 
     ! Set the number of nodes.
     mergerTrees%nodeCount=nodeCount
@@ -352,8 +352,8 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Particle_Count(mergerTrees,particleCount)
     !% Set the total number of particles in merger trees.
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    integer,              intent(in)    :: particleCount
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    integer,               intent(in)    :: particleCount
 
     ! Set the number of nodes.
     mergerTrees%particlesCount=particleCount
@@ -364,8 +364,8 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Particle_Mass(mergerTrees,particleMass)
     !% Set the particle mass used in the trees.
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    double precision,     intent(in)    :: particleMass
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    double precision,      intent(in)    :: particleMass
 
     ! Set the particle mass.
     mergerTrees%particleMass=particleMass
@@ -376,8 +376,8 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Self_Contained(mergerTrees,areSelfContained)
     !% Set the particle mass used in the trees.
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    logical,              intent(in)    :: areSelfContained
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    logical,               intent(in)    :: areSelfContained
 
     ! Set whether trees are self-contained.
     mergerTrees%areSelfContained=areSelfContained
@@ -388,7 +388,7 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow(mergerTrees,includesHubbleFlow)
     !% Set the particle mass used in the trees.
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
+    class(mergerTreeData), intent(inout) :: mergerTrees
     logical,              intent(in)    :: includesHubbleFlow
 
     ! Set whether velocities include the Hubble flow.
@@ -400,8 +400,8 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses(mergerTrees,includesSubhaloMasses)
     !% Set the particle mass used in the trees.
     implicit none
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    logical,              intent(in)    :: includesSubhaloMasses
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    logical,               intent(in)    :: includesSubhaloMasses
 
     ! Set whether halo masses include subhalo contributions.
     mergerTrees%includesSubhaloMasses=includesSubhaloMasses
@@ -413,10 +413,10 @@ contains
     !% Set the units system.
     use Galacticus_Error
     implicit none
-    type(mergerTreeData), intent(inout)        :: mergerTrees
-    integer,              intent(in)           :: unitType
-    double precision,     intent(in)           :: unitsInSI
-    integer,              intent(in), optional :: hubbleExponent,scaleFactorExponent
+    class(mergerTreeData), intent(inout)        :: mergerTrees
+    integer,               intent(in)           :: unitType
+    double precision,      intent(in)           :: unitsInSI
+    integer,               intent(in), optional :: hubbleExponent,scaleFactorExponent
 
     ! Ensure the unit type is valid.
     if (unitType < 1 .or. unitType > unitTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Units','invalid unit type')
@@ -449,9 +449,9 @@ contains
     !% Set column mapping from the input file.
     use Memory_Management
     implicit none
-    type(mergerTreeData), intent(inout)              :: mergerTrees
-    integer,              intent(in)                 :: propertyType,columnNumber
-    integer,              allocatable,  dimension(:) :: columnPropertiesTemp
+    class(mergerTreeData), intent(inout)              :: mergerTrees
+    integer,               intent(in)                 :: propertyType,columnNumber
+    integer,               allocatable,  dimension(:) :: columnPropertiesTemp
 
     ! Ensure the storage array is large enough.
     if (allocated(mergerTrees%particleColumnProperties)) then
@@ -475,9 +475,9 @@ contains
     !% Set column mapping from the input file.
     use Memory_Management
     implicit none
-    type(mergerTreeData), intent(inout)              :: mergerTrees
-    integer,              intent(in)                 :: propertyType,columnNumber
-    integer,              allocatable,  dimension(:) :: columnPropertiesTemp
+    class(mergerTreeData), intent(inout)              :: mergerTrees
+    integer,               intent(in)                 :: propertyType,columnNumber
+    integer,               allocatable,  dimension(:) :: columnPropertiesTemp
 
     ! Ensure the storage array is large enough.
     if (allocated(mergerTrees%columnProperties)) then
@@ -505,16 +505,16 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     implicit none
-    type(mergerTreeData), intent(inout)              :: mergerTrees
-    character(len=*),     intent(in)                 :: inputFile
-    integer,              intent(in),   optional     :: lineNumberStart,lineNumberStop
-    character(len=*),     intent(in),   optional     :: separator
-    character(len=32),    allocatable,  dimension(:) :: inputColumns
-    integer                                          :: lineNumberStartActual,lineNumberStopActual,columnsCount,lineNumber&
+    class(mergerTreeData), intent(inout)              :: mergerTrees
+    character(len=*),      intent(in)                 :: inputFile
+    integer,               intent(in),   optional     :: lineNumberStart,lineNumberStop
+    character(len=*),      intent(in),   optional     :: separator
+    character(len=32),     allocatable,  dimension(:) :: inputColumns
+    integer                                           :: lineNumberStartActual,lineNumberStopActual,columnsCount,lineNumber&
          &,fileUnit,iColumn,iNode,iTree
-    logical                                          :: gotFirstDataLine
-    character(len=1024)                              :: inputLine
-    type(varying_string)                             :: message
+    logical                                           :: gotFirstDataLine
+    character(len=1024)                               :: inputLine
+    type(varying_string)                              :: message
 
     ! Get start and stop line numbers.
     if (present(lineNumberStart)) then
@@ -762,16 +762,16 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     implicit none
-    type(mergerTreeData), intent(inout)              :: mergerTrees
-    character(len=*),     intent(in)                 :: inputFile
-    integer,              intent(in),   optional     :: lineNumberStart,lineNumberStop
-    character(len=*),     intent(in),   optional     :: separator
-    character(len=32),    allocatable,  dimension(:) :: inputColumns
-    integer                                          :: lineNumberStartActual,lineNumberStopActual,columnsCount,lineNumber&
+    class(mergerTreeData), intent(inout)              :: mergerTrees
+    character(len=*),      intent(in)                 :: inputFile
+    integer,               intent(in),   optional     :: lineNumberStart,lineNumberStop
+    character(len=*),      intent(in),   optional     :: separator
+    character(len=32),     allocatable,  dimension(:) :: inputColumns
+    integer                                           :: lineNumberStartActual,lineNumberStopActual,columnsCount,lineNumber&
          &,fileUnit,iColumn,iNode,iTree
-    logical                                          :: gotFirstDataLine
-    character(len=1024)                              :: inputLine
-    type(varying_string)                             :: message
+    logical                                           :: gotFirstDataLine
+    character(len=1024)                               :: inputLine
+    type(varying_string)                              :: message
 
     ! Flag that these trees have particles.
     mergerTrees%hasParticles=.true.
@@ -900,16 +900,16 @@ contains
     use String_Handling
     use Memory_Management
     implicit none
-    integer,                intent(in)    :: hdfChunkSize,hdfCompressionLevel
-    type(mergerTreeData),   intent(inout) :: mergerTrees
-    character(len=*),       intent(in)    :: outputFileName
-    integer(kind=HSIZE_T),  dimension(2)  :: hyperslabStart,hyperslabCount
-    type(hdf5Object),       pointer       :: attributeGroup
-    type(hdf5Object),       target        :: outputFile,haloTrees,treesGroup,treeGroup,treeDataset,treeIndexGroup,unitsGroup&
+    integer,                 intent(in)    :: hdfChunkSize,hdfCompressionLevel
+    class(mergerTreeData),   intent(inout) :: mergerTrees
+    character(len=*),        intent(in)    :: outputFileName
+    integer(kind=HSIZE_T) ,  dimension(2)  :: hyperslabStart,hyperslabCount
+    type(hdf5Object),        pointer       :: attributeGroup
+    type(hdf5Object),        target        :: outputFile,haloTrees,treesGroup,treeGroup,treeDataset,treeIndexGroup,unitsGroup&
          &,genericGroup,cosmologyGroup,simulationGroup,groupFinderGroup,treeBuilderGroup,provenanceGroup,particlesGroup
-    integer                               :: iTree,iProperty,integerAttribute,iAttribute,iNode,iParticle
-    logical                               :: foundParticleData
-    type(varying_string)                  :: groupName
+    integer                                :: iTree,iProperty,integerAttribute,iAttribute,iNode,iParticle
+    logical                                :: foundParticleData
+    type(varying_string)                   :: groupName
 
     ! Validate the merger tree.
     if (.not.mergerTrees%hasTreeIndex      ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'treeIndex'"      )
@@ -1158,10 +1158,10 @@ contains
     !% Store attributes describing the unit system.
     use IO_HDF5
     implicit none
-    integer,              intent(in)    :: unitType
-    character(len=*),     intent(in)    :: unitLabel
-    type(mergerTreeData), intent(in)    :: mergerTrees
-    type(hdf5Object),     intent(inout) :: unitsGroup
+    integer,               intent(in)    :: unitType
+    character(len=*),      intent(in)    :: unitLabel
+    class(mergerTreeData), intent(in)    :: mergerTrees
+    type(hdf5Object),      intent(inout) :: unitsGroup
 
     call unitsGroup%writeAttribute(mergerTrees%units(unitType)%unitsInSI          ,unitLabel//"UnitsInSI"          )
     call unitsGroup%writeAttribute(mergerTrees%units(unitType)%hubbleExponent     ,unitLabel//"HubbleExponent"     )
