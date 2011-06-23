@@ -151,13 +151,15 @@ module Tree_Node_Methods_Hot_Halo
   !# </treeNodePipePointer>
 
   ! Configuration variables.
-  logical          :: starveSatellites,hotHaloOutflowReturnOnFormation
-  double precision :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction
+  logical                     :: starveSatellites,hotHaloOutflowReturnOnFormation
+  integer                     :: hotHaloCoolingFromNode
+  integer,          parameter :: currentNode=0,formationNode=1
+  double precision            :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction
 
   ! Quantities stored to avoid repeated computation.
-  logical          :: gotCoolingRate=.false., gotCoolingConversions=.false.
-  double precision :: coolingRate,massHeatingRateRemaining,angularMomentumCoolingConversion
-  !$omp threadprivate(gotCoolingRate,coolingRate,massHeatingRateRemaining,gotCoolingConversions,angularMomentumCoolingConversion)
+  logical          :: gotCoolingRate=.false.
+  double precision :: coolingRate,massHeatingRateRemaining
+  !$omp threadprivate(gotCoolingRate,coolingRate,massHeatingRateRemaining)
 
   ! Output controls.
   logical          :: hotHaloOutputCooling
@@ -181,10 +183,11 @@ contains
     use Abundances_Structure
     use Molecular_Abundances_Structure
     use Memory_Management
+    use Galacticus_Error
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
-    type(varying_string)                :: message
+    type(varying_string)                :: message,hotHaloCoolingFromText
 
     ! Check if this implementation is selected.
     if (componentOption == 'standard') then
@@ -287,6 +290,25 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnOnFormation',hotHaloOutflowReturnOnFormation,defaultValue=.false.)
 
+       ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
+       !@ <inputParameter>
+       !@   <name>hotHaloCoolingFromNode</name>
+       !@   <defaultValue>current node</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloCoolingFromNode',hotHaloCoolingFromText,defaultValue='current node')
+       select case (char(hotHaloCoolingFromText))
+       case ("current node"  )
+          hotHaloCoolingFromNode=currentNode
+       case ("formation node")
+          hotHaloCoolingFromNode=formationNode
+       case default
+          call Galacticus_Error_Report('Tree_Node_Methods_Hot_Halo_Initialize','hotHaloCoolingFromNode must be one of "current node" or "formation node"')
+       end select
+
        ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
        !@ <inputParameter>
        !@   <name>hotHaloOutflowReturnRate</name>
@@ -364,8 +386,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
 
-    gotCoolingRate       =.false.
-    gotCoolingConversions=.false.
+    gotCoolingRate=.false.
     return
   end subroutine Tree_Node_Hot_Halo_Reset_Standard
 
@@ -545,12 +566,14 @@ contains
     use Dark_Matter_Halo_Spins
     use Cooling_Radii
     use Dark_Matter_Profiles
+    use Cooling_Specific_Angular_Momenta
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
     double precision,          intent(in)    :: massRate
     procedure(),      pointer                :: interruptProcedurePassed
+    type(treeNode),   pointer                :: coolingFromNode
     double precision                         :: angularMomentumCoolingRate
 
     ! Ignore zero rates.
@@ -564,16 +587,15 @@ contains
        ! Pipe the mass rate to whatever component claimed it.
        if (associated(Tree_Node_Hot_Halo_Cooling_Mass_To)) call Tree_Node_Hot_Halo_Cooling_Mass_To(thisNode,interrupt &
             &,interruptProcedurePassed,massRate)
-       
-       ! Get the corresponding rate of change of angular momentum.
-       if (.not.gotCoolingConversions) then
-          angularMomentumCoolingConversion=Cooling_Radius(thisNode)*Dark_Matter_Profile_Rotation_Normalization(thisNode)&
-               &*Tree_Node_Hot_Halo_Angular_Momentum(thisNode)/Tree_Node_Hot_Halo_Mass(thisNode)
 
-          ! Flag that cooling conversion factors have now been computed.
-          gotCoolingConversions=.true.
-       end if
-       angularMomentumCoolingRate=massRate*angularMomentumCoolingConversion
+       ! Find the node to use for cooling calculations.
+       select case (hotHaloCoolingFromNode)
+       case (currentNode  )
+          coolingFromNode => thisNode
+       case (formationNode)
+          coolingFromNode => thisNode%formationNode
+       end select
+       angularMomentumCoolingRate=massRate*Cooling_Specific_Angular_Momentum(coolingFromNode)
        call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, &
             &-angularMomentumCoolingRate)
        ! Pipe the cooling rate to which ever component claimed it.
@@ -582,8 +604,8 @@ contains
             &,sign(angularMomentumCoolingRate*(1.0-hotHaloAngularMomentumLossFraction),massRate))
        
        ! Get the rate of change of abundances.
-       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundancesWork)
-       abundancesCoolingRate=massRate*abundancesWork/Tree_Node_Hot_Halo_Mass(thisNode)
+       call Tree_Node_Hot_Halo_Abundances_Standard(coolingFromNode,abundancesWork)
+       abundancesCoolingRate=massRate*abundancesWork/Tree_Node_Hot_Halo_Mass(coolingFromNode)
        call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,-abundancesCoolingRate)
        ! Pipe the cooling rate to which ever component claimed it.
        if (associated(Tree_Node_Hot_Halo_Cooling_Abundances_To)) call Tree_Node_Hot_Halo_Cooling_Abundances_To(thisNode,interrupt&
@@ -1293,6 +1315,7 @@ contains
   !# </nodeMergerTask>
   subroutine Hot_Halo_Starve(thisNode)
     !% Starve {\tt thisNode} by transferring its hot halo to its parent.
+    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: parentNode
@@ -1316,13 +1339,17 @@ contains
           ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
           call Tree_Node_Hot_Halo_Mass_Set_Standard(parentNode,Tree_Node_Hot_Halo_Mass_Standard(parentNode) &
                &+Tree_Node_Hot_Halo_Mass_Standard(thisNode))
-          call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(parentNode,Tree_Node_Hot_Halo_Angular_Momentum_Standard(parentNode) &
-               &+Tree_Node_Hot_Halo_Angular_Momentum_Standard(thisNode))
+          call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(parentNode&
+               &,Tree_Node_Hot_Halo_Angular_Momentum_Standard(parentNode)+Tree_Node_Hot_Halo_Mass_Standard(thisNode)&
+               &*Tree_Node_Spin(parentNode)*Dark_Matter_Halo_Virial_Radius(parentNode) &
+               &*Dark_Matter_Halo_Virial_Velocity(parentNode))
           call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(parentNode,Tree_Node_Hot_Halo_Outflowed_Mass_Standard(parentNode) &
                &+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode))
           call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(parentNode &
                &,Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode) &
-               &+Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode))
+               &+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)&
+               &*Tree_Node_Spin(parentNode)*Dark_Matter_Halo_Virial_Radius(parentNode) &
+               &*Dark_Matter_Halo_Virial_Velocity(parentNode))
           call Tree_Node_Hot_Halo_Mass_Set_Standard             (thisNode,0.0d0)
           call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard (thisNode,0.0d0)
           call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard   (thisNode,0.0d0)
@@ -1356,6 +1383,7 @@ contains
   !# </satelliteMergerTask>
   subroutine Hot_Halo_Remove_Before_Satellite_Merging(thisNode)
     !% Remove any hot halo associated with {\tt thisNode} before it merges with its host halo.
+    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: hostNode
@@ -1371,12 +1399,14 @@ contains
        call Tree_Node_Hot_Halo_Mass_Set_Standard(hostNode,Tree_Node_Hot_Halo_Mass_Standard(hostNode) &
             &+Tree_Node_Hot_Halo_Mass_Standard(thisNode))
        call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(hostNode,Tree_Node_Hot_Halo_Angular_Momentum_Standard(hostNode) &
-            &+Tree_Node_Hot_Halo_Angular_Momentum_Standard(thisNode))
+            &+Tree_Node_Hot_Halo_Mass_Standard(thisNode)*Tree_Node_Spin(hostNode)*Dark_Matter_Halo_Virial_Radius(hostNode) &
+            &*Dark_Matter_Halo_Virial_Velocity(hostNode))
        call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(hostNode,Tree_Node_Hot_Halo_Outflowed_Mass_Standard(hostNode) &
             &+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode))
        call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(hostNode&
             &,Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(hostNode) &
-            &+Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode))
+            &+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)*Tree_Node_Spin(hostNode)*Dark_Matter_Halo_Virial_Radius(hostNode) &
+            &*Dark_Matter_Halo_Virial_Velocity(hostNode))
        call Tree_Node_Hot_Halo_Mass_Set_Standard(thisNode,0.0d0)
        call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(thisNode,0.0d0)
        call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,0.0d0)
@@ -1571,25 +1601,25 @@ contains
     abundancesParent=abundancesParent+abundancesWork
     abundancesWork  =0.0d0
 
-    call Tree_Node_Hot_Halo_Mass_Set                (                                   thisNode , &
-         &                                            Tree_Node_Hot_Halo_Mass          (thisNode)  &
-         &                                           +Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)  &
+    call Tree_Node_Hot_Halo_Mass_Set                (                                      thisNode , &
+         &                                            Tree_Node_Hot_Halo_Mass             (thisNode)  &
+         &                                           +Tree_Node_Hot_Halo_Outflowed_Mass   (thisNode)  &
          &                                          )
-    call Tree_Node_Hot_Halo_Angular_Momentum_Set    (                                   thisNode , &
-         &                                            Tree_Node_Hot_Halo_Mass          (thisNode)  &
-         &                                           +Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)  &
+    call Tree_Node_Hot_Halo_Angular_Momentum_Set    (                                      thisNode , &
+         &                                            Tree_Node_Hot_Halo_Angular_Momentum (thisNode)  &
+         &                                           +Tree_Node_Hot_Halo_Outflowed_Ang_Mom(thisNode)  &
          &                                          )
-    call Tree_Node_Hot_Halo_Abundances_Set          (                                   thisNode , &
-         &                                            abundancesParent                             &
+    call Tree_Node_Hot_Halo_Abundances_Set          (                                      thisNode , &
+         &                                            abundancesParent                                &
          &                                          )
-    call Tree_Node_Hot_Halo_Outflowed_Mass_Set      (                                   thisNode , &
-         &                                            0.0d0                                        &
+    call Tree_Node_Hot_Halo_Outflowed_Mass_Set      (                                      thisNode , &
+         &                                            0.0d0                                           &
          &                                          )
-    call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set   (                                   thisNode , &
-         &                                            0.0d0                                        &
+    call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set   (                                      thisNode , &
+         &                                            0.0d0                                           &
          &                                          )
-    call Tree_Node_Hot_Halo_Outflowed_Abundances_Set(                                   thisNode , &
-         &                                            abundancesWork                               &
+    call Tree_Node_Hot_Halo_Outflowed_Abundances_Set(                                      thisNode , &
+         &                                            abundancesWork                                  &
          &                                          )
     
     return

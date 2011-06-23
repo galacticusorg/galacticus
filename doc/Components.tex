@@ -149,7 +149,7 @@ In the standard hot halo implementation the hot gas mass and heavy element mass(
  \dot{M}_{Z, {\rm hot}} &=& - \dot{M}_{\rm cooling} {M_{Z, {\rm hot}}\over M_{\rm hot}} + \dot{M}_{Z, {\rm outflow,return}}, \\
  \dot{M}_{\rm molecule} &=& - \dot{M}_{\rm cooling} {M_{\rm molecule}\over M_{\rm hot}} + f_{\rm molecule,outflow} \dot{M}_{\rm outflow,return} + \dot{M}_{\rm molecule,reactions} , \\
 \end{eqnarray}
-where $\dot{M}_{\rm accretion}$ is the rate of growth of the hot component due to accretion from the \IGM\ and $\dot{M}_{\rm failed~accretion}$ is the rate of failed accretion from the \IGM\ (these may include a component due to transfer of mass from the failed to accreted reservoirs) and $\dot{M}_{\rm cooling}$ is the rate of mass loss from the hot halo due to cooling (see \S\ref{sec:CoolingRate}) minus any heating rate defined as
+where $\dot{M}_{\rm accretion}$ is the rate of growth of the hot component due to accretion from the \IGM\ and $\dot{M}_{\rm failed~accretion}$ is the rate of failed accretion from the \IGM\ (these may include a component due to transfer of mass from the failed to accreted reservoirs) and $\dot{M}_{\rm cooling}$ is the rate of mass loss from the hot halo due to cooling (see \S\ref{sec:CoolingRate}---cooling rates are computed using the current node if {\tt [hotHaloCoolingFromNode]}$=${\tt current node} or from the formation node if that parameter is set to {\tt formation node}) minus any heating rate defined as
 \begin{equation}
  \dot{M}_{\rm heating} = \dot{E}_{\rm input} / V_{\rm virial}^2,
 \end{equation}

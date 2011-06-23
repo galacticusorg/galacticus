@@ -96,9 +96,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: coolingSpecificAngularMomentumMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
-    type(varying_string)                         :: inputOption    
+    type(varying_string),                 intent(in)    :: coolingSpecificAngularMomentumMethod
+    procedure(double precision), pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
+    type(varying_string)                                :: inputOption    
 
     if (coolingSpecificAngularMomentumMethod == 'constant rotation') then
        Cooling_Specific_Angular_Momentum_Get => Cooling_Specific_Angular_Momentum_Constant_Rotation
