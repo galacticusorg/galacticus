@@ -121,13 +121,13 @@ contains
        !# </include>
        if (.not.associated(Virial_Density_Contrast_Tabulate)) call Galacticus_Error_Report('Virial_Density_Contrast_Initialize','method ' &
             &//char(virialDensityContrastMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       deltaVirialInitialized=.true.
-       tablesInitialized     =.true.
     end if
-
+    
     ! Call routine to initialize the virial overdensity table.
     call Virial_Density_Contrast_Tabulate(time,deltaVirialTableNumberPoints,deltaVirialTableTime,deltaVirialTableDeltaVirial)
+    ! Flag that the module is now initialized.
+    deltaVirialInitialized=.true.
+    tablesInitialized     =.true.
     return
   end subroutine Virial_Density_Contrast_Initialize
   
