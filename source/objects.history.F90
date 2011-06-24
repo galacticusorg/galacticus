@@ -115,14 +115,14 @@ module Histories
      !@     <description>Returns an array with the timesteps (i.e. the intervals between successive times) in the given history.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create  => History_Create
-     procedure :: destroy => History_Destroy
-     procedure :: trim    => History_Trim
-     procedure :: extend  => History_Extend
-     procedure :: add     => History_Add
-     procedure :: combine => History_Combine
-     procedure :: reset   => History_Reset
-     procedure :: exists  => History_Exists
+     procedure :: create    => History_Create
+     procedure :: destroy   => History_Destroy
+     procedure :: trim      => History_Trim
+     procedure :: extend    => History_Extend
+     procedure :: add       => History_Add
+     procedure :: combine   => History_Combine
+     procedure :: reset     => History_Reset
+     procedure :: exists    => History_Exists
      procedure :: timeSteps => History_Timesteps
   end type history
 
@@ -196,17 +196,32 @@ contains
     return
   end subroutine History_Create
 
-  subroutine History_Destroy(thisHistory)
+  subroutine History_Destroy(thisHistory,recordMemory)
     !% Destroy a history.
     use Memory_Management
     implicit none
-    class(history), intent(inout) :: thisHistory
-    integer                       :: timesCount,historyCount
-    
+    class(history), intent(inout)          :: thisHistory
+    logical,        intent(in),   optional :: recordMemory
+    integer                                :: timesCount,historyCount
+    logical                                :: recordMemoryActual
+
     if (allocated(thisHistory%time)) then
        timesCount  =size(thisHistory%time      )
        historyCount=size(thisHistory%data,dim=2)
-       call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data)+sizeof(thisHistory%rates)+sizeof(thisHistory%scales),memoryType=memoryTypeNodes,addRemove=-1,blockCount=3)
+       if (present(recordMemory)) then
+          recordMemoryActual=recordMemory
+       else
+          recordMemoryActual=.true.
+       end if
+       if (recordMemoryActual) call Memory_Usage_Record(                             &
+            &                                             sizeof(thisHistory%time  ) &
+            &                                            +sizeof(thisHistory%data  ) &
+            &                                            +sizeof(thisHistory%rates ) &
+            &                                            +sizeof(thisHistory%scales) &
+            &                                           ,memoryType=memoryTypeNodes  &
+            &                                           ,addRemove =-1               &
+            &                                           ,blockCount= 3               &
+            &                                          )
        deallocate(thisHistory%time)
        if (allocated(thisHistory%data  )) deallocate(thisHistory%data  )
        if (allocated(thisHistory%rates )) deallocate(thisHistory%rates )

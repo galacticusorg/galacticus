@@ -37,11 +37,11 @@ F03FLAGS_NOOPT := $(F03FLAGS)
 F03FLAGS += -fopenmp
 
 # C compiler flags:
-CFLAGS = -I./source/ -I./work/build/
+CFLAGS = -I./source/ -I./work/build/ ${GALACTICUS_FLAGS}
 CFLAGS += -g
 
 # C++ compiler flags:
-CPPFLAGS = -I./source/ -I./work/build/
+CPPFLAGS = -I./source/ -I./work/build/ ${GALACTICUS_FLAGS}
 CPPFLAGS += -g
 
 # Libraries:

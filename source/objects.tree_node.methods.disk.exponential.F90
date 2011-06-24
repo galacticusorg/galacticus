@@ -1202,8 +1202,8 @@ contains
           call Tree_Node_Disk_Star_Formation_History_Set(hostNode,hostHistory)
           call thisHistory%reset()
           call Tree_Node_Disk_Star_Formation_History_Set(thisNode,thisHistory)
-          call thisHistory%destroy()
-          call hostHistory%destroy()
+          call thisHistory%destroy(recordMemory=.false.)
+          call hostHistory%destroy(recordMemory=.false.)
        case (movesToSpheroid)
           call Tree_Node_Spheroid_Stellar_Mass_Set                (hostNode, Tree_Node_Spheroid_Stellar_Mass        (hostNode)     &
                &                                                            +Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)    )
@@ -1227,8 +1227,8 @@ contains
           call Tree_Node_Spheroid_Star_Formation_History_Set(hostNode,hostHistory)
           call thisHistory%reset()
           call Tree_Node_Disk_Star_Formation_History_Set    (thisNode,thisHistory)
-          call thisHistory%destroy()
-          call hostHistory%destroy()
+          call thisHistory%destroy(recordMemory=.false.)
+          call hostHistory%destroy(recordMemory=.false.)
        case default
           call Galacticus_Error_Report('Exponential_Disk_Satellite_Merging','unrecognized movesTo descriptor')
        end select

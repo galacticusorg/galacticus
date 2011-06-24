@@ -463,7 +463,7 @@ contains
     newHistory%data(1:size(thisHistory%time),:)=thisHistory%data(:,:)
     call thisHistory%destroy()
     thisHistory=newHistory
-    call newHistory %destroy()
+    call newHistory %destroy(recordMemory=.false.)
     return
   end subroutine Star_Formation_History_Output_Metallicity_Split
 

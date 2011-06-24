@@ -1303,8 +1303,8 @@ contains
           call Tree_Node_Disk_Star_formation_History_Set                         (hostNode,historyDisk    )
           call historySpheroid%reset()
           call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (hostNode,historySpheroid)
-          call historyDisk%destroy()
-          call historySpheroid%destroy()
+          call historyDisk    %destroy(recordMemory=.false.)
+          call historySpheroid%destroy(recordMemory=.false.)
        case (movesToSpheroid)
           call Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist        (hostNode, Tree_Node_Spheroid_Stellar_Mass_Hernquist(hostNode) &
                &                                                              +Tree_Node_Disk_Stellar_Mass              (hostNode))
@@ -1335,8 +1335,8 @@ contains
           call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (hostNode,historySpheroid)
           call historyDisk%reset()
           call Tree_Node_Disk_Star_formation_History_Set                         (hostNode,historyDisk    )
-          call historyDisk%destroy()
-          call historySpheroid%destroy()
+          call historyDisk    %destroy(recordMemory=.false.)
+          call historySpheroid%destroy(recordMemory=.false.)
        case (doesNotMove)
           ! Do nothing.
        case default
@@ -1398,8 +1398,8 @@ contains
              call Tree_Node_Disk_Star_formation_History_Set                         (hostNode,thisHistory    )
              call historySpheroid%reset()
              call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (thisNode,historySpheroid)
-             call thisHistory%destroy()
-             call historySpheroid%destroy()
+             call thisHistory    %destroy(recordMemory=.false.)
+             call historySpheroid%destroy(recordMemory=.false.)
          case (movesToSpheroid)
              call Tree_Node_Spheroid_Stellar_Mass_Set_Hernquist        (hostNode, Tree_Node_Spheroid_Stellar_Mass_Hernquist(hostNode) &
                   &                                                              +Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode))
@@ -1423,8 +1423,8 @@ contains
              call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (hostNode,thisHistory    )
              call historySpheroid%reset()
              call Tree_Node_Spheroid_Star_formation_History_Set_Hernquist           (thisNode,historySpheroid)
-             call thisHistory%destroy()
-             call historySpheroid%destroy()
+             call thisHistory    %destroy(recordMemory=.false.)
+             call historySpheroid%destroy(recordMemory=.false.)
           case default
              call Galacticus_Error_Report('Hernquist_Spheroid_Satellite_Merging','unrecognized movesTo descriptor')
           end select
