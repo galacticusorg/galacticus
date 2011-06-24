@@ -35,6 +35,13 @@ foreach $makefile ( "Makefile" ) {
     }
     close(ophndl);
 }
+$environmentOptions = $ENV{"GALACTICUS_FLAGS"};
+while ( $environmentOptions =~ s/\s\-D([0-9A-Z]+)\s// ) {
+    $preprocs[++$#preprocs] = $1;
+}
+while ( $environmentOptions =~ s/\s\-D([0-9A-Z]+)$// ) {
+    $preprocs[++$#preprocs] = $1;
+}
 
 # Open an output file
 open(outfile,">$sourcedir/work/build/Makefile_Use_Deps");
