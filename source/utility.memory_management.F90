@@ -64,9 +64,13 @@
 module Memory_Management
   !% Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
   !% arrays with automatic error checking and deallocation at program termination and memory usage reporting.
+  use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
   private
   public :: Memory_Usage_Report,Code_Memory_Usage,Alloc_Array,Dealloc_Array,Memory_Usage_Record
+#ifdef PROCPS
+  public :: Memory_Usage_Get
+#endif
 
   ! Count of number of successive decreases in memory usage.
   integer                 :: successiveDecreaseCount=0
@@ -103,6 +107,17 @@ module Memory_Management
 
   ! Overhead memory (in bytes) per allocation.
   integer(kind=kind_int8) :: allocationOverhead=8
+
+#ifdef PROCPS
+  interface
+     !: ./work/build/utility.memory_usage.o
+     function Memory_Usage_Get_C() bind(c,name='Memory_Usage_Get_C')
+       !% Template for a C function that returns the current memory usage.
+       import
+       integer(c_long) :: Memory_Usage_Get_C
+     end function Memory_Usage_Get_C
+  end interface
+#endif
 
   ! Include automatically generated inferfaces.
   include 'utility.memory_management.precontain.inc'
@@ -176,7 +191,7 @@ contains
     character(len=20)                   :: formatString
     character(len=len(headerText)+40)   :: temporaryString
 
-    if (thisMemoryUsage%usage.gt.0) then
+    if (thisMemoryUsage%usage > 0) then
        spaceCount=max(0,11-len_trim(thisMemoryUsage%name))
        write (formatString,'(a,i1,a)') '(a,1x,a1,',spaceCount,'x,a)'
        write (temporaryString,formatString) trim(char(headerText)),join,trim(thisMemoryUsage%name)
@@ -284,5 +299,18 @@ contains
   end subroutine Memory_Usage_Record
 
   include 'utility.memory_management.postcontain.inc'
+
+#ifdef PROCPS
+  function Memory_Usage_Get()
+    implicit none
+    integer(kind_int8) :: Memory_Usage_Get(2)
+
+    usedMemory%memoryType(memoryTypeTotal)%usage=0
+    usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(:)%usage)
+    Memory_Usage_Get(1)=Memory_Usage_Get_C()*4096_kind_int8
+    Memory_Usage_Get(2)=usedMemory%memoryType(memoryTypeTotal)%usage
+    return
+  end function Memory_Usage_Get
+#endif
 
 end module Memory_Management
