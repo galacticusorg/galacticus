@@ -269,4 +269,29 @@
       <value>Munoz-Cuartas 2011</value>
     </parameter>
   </parameters>
+
+  <!-- Molecular hydrogen network and cooling. -->
+  <parameters>
+    <parameter>
+      <name>molecularReactionRateMethods</name>
+      <value>hydrogenNetwork</value>
+    </parameter>
+    <parameter>
+      <name>hydrogenNetworkFast</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>hydrogenNetworkCMBOnly</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>moleculesToTrack</name>
+      <value>AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron</value>
+    </parameter>
+    <parameter>
+      <name>coolingFunctionMethod</name>
+      <value>atomic_CIE_Cloudy CMB_Compton molecularHydrogenGalliPalla</value>
+    </parameter>
+  </parameters>
+  
 </parameterGrid>

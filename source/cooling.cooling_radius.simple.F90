@@ -150,6 +150,7 @@ contains
     use Cooling_Times
     use Abundances_Structure
     use Molecular_Abundances_Structure
+    use Molecular_Reaction_Rates_Utilities
     use Cooling_Times_Available
     use Numerical_Constants_Math
     use Numerical_Constants_Prefixes
@@ -215,7 +216,7 @@ contains
              ! Scale all molecular masses by their mass in atomic mass units to get a number density.
              call molecularMasses%massToNumber(molecularDensities)
              ! Compute factor converting mass of molecules in (M_Solar/M_Atomic) to number density in cm^-3.
-             massToDensityConversion=3.0d0*massSolar/atomicMassUnit/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(thisNode))**3
+             massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
              ! Convert to number density.
              call molecularDensities%multiply(massToDensityConversion)
           end if
@@ -305,6 +306,7 @@ contains
     use Hot_Halo_Density_Profile
     use Hot_Halo_Temperature_Profile
     use Molecular_Abundances_Structure
+    use Molecular_Reaction_Rates_Utilities
     use Numerical_Constants_Math
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
@@ -337,7 +339,7 @@ contains
        ! Scale all molecular masses by their mass in atomic mass units to get a number density.
        call molecularMasses%massToNumber(molecularDensities)
        ! Compute factor converting mass of molecules in (M_Solar/M_Atomic) to number density in cm^-3.
-       massToDensityConversion=3.0d0*massSolar/atomicMassUnit/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(activeNode))**3
+       massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(activeNode))
        ! Convert to number density.
        call molecularDensities%multiply(massToDensityConversion)
     end if

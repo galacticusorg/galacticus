@@ -921,10 +921,8 @@ contains
     use Molecular_Abundances_Structure
     use Accretion_Halos
     use Molecular_Reaction_Rates
+    use Molecular_Reaction_Rates_Utilities
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Atomic
-    use Numerical_Constants_Math
-    use Numerical_Constants_Prefixes
     implicit none
     type(treeNode),                     pointer, intent(inout) :: thisNode
     logical,                                     intent(inout) :: interrupt
@@ -976,7 +974,7 @@ contains
     ! Scale all molecular masses by their mass in atomic mass units to get a number density.
     call molecularMasses%massToNumber(molecularDensities)
     ! Compute factor converting mass of molecules in (M_Solar/M_Atomic) to number density in cm^-3.
-    massToDensityConversion=3.0d0*massSolar/atomicMassUnit/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(thisNode))**3
+    massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
     ! Convert to number density.
     call molecularDensities%multiply(massToDensityConversion)
     ! Compute the molecular reaction rates.
@@ -1040,6 +1038,7 @@ contains
     use Dark_Matter_Halo_Scales
     use Abundances_Structure
     use Molecular_Abundances_Structure
+    use Molecular_Reaction_Rates_Utilities
     use Numerical_Constants_Math
     use Numerical_Constants_Atomic
     use Numerical_Constants_Prefixes
@@ -1067,8 +1066,8 @@ contains
        if (moleculesCount > 0 .and. massReturnRate /= 0.0d0) then
           
           ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=massSolar/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(thisNode))**3
-          
+          massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+
           ! Get the abundances of the outflowed material.
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode,abundancesWork)
           ! Convert to mass fractions and pack.
@@ -1080,7 +1079,7 @@ contains
           
           ! Compute the temperature and density of material in the hot halo.
           temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
-          numberDensityHydrogen=hydrogenByMass*outflowedMass*massToDensityConversion/atomicMassUnit/atomicMassHydrogen
+          numberDensityHydrogen=hydrogenByMass*outflowedMass*massToDensityConversion/atomicMassHydrogen
           
           ! Set the radiation field.
           call radiation%set(thisNode)
@@ -1540,6 +1539,7 @@ contains
     use Ionization_States
     use Abundances_Structure
     use Molecular_Abundances_Structure
+    use Molecular_Reaction_Rates_Utilities
     use Numerical_Constants_Math
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Prefixes
@@ -1560,8 +1560,8 @@ contains
     if (moleculesCount > 0 .and. Tree_Node_Hot_Halo_Outflowed_Mass(thisNode) > 0.0d0) then
        
        ! Compute coefficient in conversion of mass to density for this node.
-       massToDensityConversion=massSolar/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(thisNode))**3
-       
+       massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+
        ! Get the abundances of the outflowed material.
        call Tree_Node_Hot_Halo_Outflowed_Abundances(thisNode,abundancesWork)
        ! Convert to mass fractions and pack.
@@ -1573,7 +1573,7 @@ contains
        
        ! Compute the temperature and density of material in the hot halo.
        temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
-       numberDensityHydrogen=hydrogenByMass*Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)*massToDensityConversion/atomicMassUnit/atomicMassHydrogen
+       numberDensityHydrogen=hydrogenByMass*Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)*massToDensityConversion/atomicMassHydrogen
           
        ! Set the radiation field.
        call radiation%set(thisNode)

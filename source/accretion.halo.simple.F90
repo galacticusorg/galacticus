@@ -325,6 +325,7 @@ contains
     use Numerical_Constants_Physical
     use Ionization_States
     use Molecular_Abundances_Structure
+    use Molecular_Reaction_Rates_Utilities
     implicit none
     type(treeNode),                     intent(inout), pointer :: thisNode
     double precision,                   intent(in)             :: massAccreted
@@ -335,12 +336,12 @@ contains
     !$omp threadprivate(molecularDensities)
 
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=massSolar/4.0d0/Pi/(hecto*megaParsec*Dark_Matter_Halo_Virial_Radius(thisNode))**3
-    
+    massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
     temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
-    numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_0())*Tree_Node_Mass(thisNode)*massToDensityConversion/atomicMassUnit/atomicMassHydrogen
+    numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_0())*Tree_Node_Mass(thisNode)*massToDensityConversion/atomicMassHydrogen
     
     ! Set the radiation field.
     call radiation%set(thisNode)
