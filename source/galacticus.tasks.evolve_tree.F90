@@ -149,7 +149,7 @@ contains
        ! Increment the tree number.
        iTree=iTree+1
        ! Decide whether or not to skip this tree.
-       skipTree=.not.(modulo(iTree-1,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
+       skipTree=.not.(modulo(iTree-1+(iTree-1)/treeEvolveWorkerCount,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
 
        ! Perform any pre-tree construction tasks.
        !# <include directive="mergerTreePreTreeConstructionTask" type="code" action="subroutine">
