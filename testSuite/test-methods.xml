@@ -292,6 +292,10 @@
       <name>coolingFunctionMethod</name>
       <value>atomic_CIE_Cloudy CMB_Compton molecularHydrogenGalliPalla</value>
     </parameter>
+    <parameter>
+      <name>mergerTreeBuildHaloMassMaximum</name>
+      <value>1.0e11</value>
+    </parameter>
   </parameters>
   
 </parameterGrid>
