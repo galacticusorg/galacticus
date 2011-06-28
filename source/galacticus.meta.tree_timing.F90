@@ -167,9 +167,9 @@ contains
           call Move_Alloc(treeMasses        ,treeMassesTemporary        )
           call Move_Alloc(treeConstructTimes,treeConstructTimesTemporary)
           call Move_Alloc(treeEvolveTimes   ,treeEvolveTimesTemporary   )
-          call Alloc_Array(treeMasses        ,[size(treeMasses)+treeArrayIncreaseSize])
-          call Alloc_Array(treeConstructTimes,[size(treeMasses)+treeArrayIncreaseSize])
-          call Alloc_Array(treeEvolveTimes   ,[size(treeMasses)+treeArrayIncreaseSize])
+          call Alloc_Array(treeMasses        ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+          call Alloc_Array(treeConstructTimes,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+          call Alloc_Array(treeEvolveTimes   ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
           treeMasses        (1:size(treeMassesTemporary))=treeMassesTemporary
           treeConstructTimes(1:size(treeMassesTemporary))=treeConstructTimesTemporary
           treeEvolveTimes   (1:size(treeMassesTemporary))=treeEvolveTimesTemporary
