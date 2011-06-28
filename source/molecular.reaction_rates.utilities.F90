@@ -69,7 +69,7 @@ module Molecular_Reaction_Rates_Utilities
 contains
 
   double precision function Molecules_Mass_To_Density_Conversion(radius)
-    !% Returns the conversion factor from mass of molecules in ($M_\odot/M_{\rm atomic}$) to number density in cm$^{-3} assuming
+    !% Returns the conversion factor from mass of molecules in ($M_\odot/M_{\rm atomic}$) to number density in cm$^{-3}$ assuming
     !% that the mass is distributed uniformly in a sphere of the given {\tt radius} (in Mpc).
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
