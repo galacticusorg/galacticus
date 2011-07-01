@@ -80,10 +80,13 @@ foreach my $outputGroup ( @outputGroups ) {
 	    my $outputsGroup  = $mergeFile    ->group("Outputs");
 	    my $nodeDataGroup = $outputsGroup ->group($outputGroup."/nodeData");
 	    my $thisDataset   = $nodeDataGroup->dataset($dataset);
-	    my $datasetValues = $thisDataset  ->get();
-	    $offsets->{$outputGroup}->{$iFile} = nelem($datasetValues);
-	    # Append to the combined dataset.
-	    $newDatasetValues = $newDatasetValues->append($datasetValues);
+	    # Test if the dataset exists.
+	    if ( my $testID = $thisDataset->IDget ) {
+		my $datasetValues = $thisDataset  ->get();
+		$offsets->{$outputGroup}->{$iFile} = nelem($datasetValues);
+		# Append to the combined dataset.
+		$newDatasetValues = $newDatasetValues->append($datasetValues);
+	    }
 	}
 	# Create a new dataset in the output file.
 	my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
@@ -129,7 +132,7 @@ foreach my $outputGroup ( @outputGroups ) {
 	    # Append to the combined dataset.
 	    $newDatasetValues = $newDatasetValues->append($datasetValues);
             # Adjust the offset.
-	    $offset += $offsets->{$outputGroup}->{$iFile};
+	    $offset += $offsets->{$outputGroup}->{$iFile} if ( exists($offsets->{$outputGroup}->{$iFile}) );
 	}
 	# Create a new dataset in the output file.
 	my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
@@ -142,55 +145,63 @@ foreach my $outputGroup ( @outputGroups ) {
 }
 
 # Create references for each tree.
-print "-> Creating merger tree references\n";
-# Get the Outputs group.
-$outputsGroup = $outputFile->group("Outputs");
-# Get a list of subgroups to search.
-@outputGroups = $outputsGroup->groups();
-# Loop over all outputs groups.
-foreach my $outputGroup ( @outputGroups ) {
-    # Get the nodeData group.
-    my $nodeDataGroup = $outputFile->group("Outputs")->group($outputGroup)->group("nodeData");
-    # Get a list of all datasets in the nodeData group.
-    my @datasets = $nodeDataGroup->datasets();
-    # Read the merger tree indices, starts, offsets and weights.
-    my $mergerTreeIndex      = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeIndex"     )->get();
-    my $mergerTreeStartIndex = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeStartIndex")->get();
-    my $mergerTreeCount      = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeCount"     )->get();
-    my $mergerTreeWeight     = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeWeight"    )->get();
-    # Loop over each merger tree.
-    for(my $iTree=0;$iTree<nelem($mergerTreeIndex);++$iTree) {
-	# Create a group for this tree.
-	my $treeGroup = $outputFile->group("Outputs")->group($outputGroup)->group("mergerTree".$mergerTreeIndex->index($iTree));
-	# Create start and count arrays.
-	my @start;
-	my @count;
-	$start[0] = $mergerTreeStartIndex->index($iTree);
-	$count[0] = $mergerTreeCount     ->index($iTree);
-	if ( $count[0] > 0 ) {
-	    # Loop over all datasets.
-	    foreach my $dataset ( @datasets ) {
-		# Create reference.
-		my $nodeData = $nodeDataGroup->dataset($dataset);
-		$treeGroup->reference($nodeData,$dataset,@start,@count);
+my @parameters = $mergeFiles[0]->group('Parameters')->attrGet("mergerTreeOutputReferences");
+if ( $parameters[0] eq "true" ) {
+    print "-> Creating merger tree references\n";
+    # Get the Outputs group.
+    $outputsGroup = $outputFile->group("Outputs");
+    # Get a list of subgroups to search.
+    @outputGroups = $outputsGroup->groups();
+    # Loop over all outputs groups.
+    foreach my $outputGroup ( @outputGroups ) {
+	# Get the nodeData group.
+	my $nodeDataGroup = $outputFile->group("Outputs")->group($outputGroup)->group("nodeData");
+	# Get a list of all datasets in the nodeData group.
+	my @datasets = $nodeDataGroup->datasets();
+	# Read the merger tree indices, starts, offsets and weights.
+	my $mergerTreeIndex      = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeIndex"     )->get();
+	my $mergerTreeStartIndex = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeStartIndex")->get();
+	my $mergerTreeCount      = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeCount"     )->get();
+	my $mergerTreeWeight     = $outputFile->group("Outputs")->group($outputGroup)->dataset("mergerTreeWeight"    )->get();
+	# Loop over each merger tree.
+	for(my $iTree=0;$iTree<nelem($mergerTreeIndex);++$iTree) {
+	    # Create a group for this tree.
+	    my $treeGroup = $outputFile->group("Outputs")->group($outputGroup)->group("mergerTree".$mergerTreeIndex->index($iTree));
+	    # Create start and count arrays.
+	    my @start;
+	    my @count;
+	    $start[0] = $mergerTreeStartIndex->index($iTree);
+	    $count[0] = $mergerTreeCount     ->index($iTree);
+	    if ( $count[0] > 0 ) {
+		# Loop over all datasets.
+		foreach my $dataset ( @datasets ) {
+		    # Create reference.
+		    my $nodeData = $nodeDataGroup->dataset($dataset);
+		    $treeGroup->reference($nodeData,$dataset,@start,@count);
+		}
+		# Set the volumeWeight attribute.
+		$treeGroup->attrSet("volumeWeight" => $mergerTreeWeight->index($iTree));
 	    }
-	    # Set the volumeWeight attribute.
-	    $treeGroup->attrSet("volumeWeight" => $mergerTreeWeight->index($iTree));
 	}
     }
 }
 
 # Other datasets.
 my %outputRules = (
-		   globalHistory => {
+		   globalHistory          => {
 		       "^historyExpansion\$"                                 => "singleCopy",
 		       "^historyTime\$"                                      => "singleCopy",
 		       "^historyGasDensity\$"                                => "cumulate",
+		       "^historyHotGasDensity\$"                             => "cumulate",
 		       "^historyNodeDensity\$"                               => "cumulate",
 		       "^historyStellarDensity\$"                            => "cumulate",
-		       "^historyStarFormationRate\$"                         => "cumulate"
+		       "^historyDiskStellarDensity\$"                        => "cumulate",
+		       "^historySpheroidStellarDensity\$"                    => "cumulate",
+		       "^historyStarFormationRate\$"                         => "cumulate",
+		       "^historyDiskStarFormationRate\$"                     => "cumulate",
+		       "^historySpheroidStarFormationRate\$"                 => "cumulate"
 		       },
-		   haloModel => {
+		   haloModel              => {
 		       "^powerSpectrum\$"                                    => "singleCopy",
 		       "^wavenumber\$"                                       => "singleCopy",
 		       "^Output\\d+\\/mergerTree\\d+\\/fourierProfile\\d+\$" => "copy"
@@ -198,8 +209,12 @@ my %outputRules = (
 		   massAccretionHistories => {
 		       "^mergerTree\\d+\\/node*"                             => "copy"
 		       },
-		   mergerTreeStructures => {
+		   mergerTreeStructures   => {
 		       "^mergerTree\\d+\\/*"                                 => "copy"
+		       },
+		   starFormationHistories => {
+		       "^metallicities\$"                                    => "singleCopy",
+		       "^Output\\d+\\//mergerTree\\d+\\/(disk|spheroid).*\$" => "copy"
 		       }
 		   );
 my @availableGroups = $mergeFiles[0]->groups();
