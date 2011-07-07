@@ -125,7 +125,7 @@ contains
     if (.not.imfRead(imfIndex)) then
 
        ! Get the name of this IMF.
-       imfName=IMF_Name(imfIndex)
+       imfName=IMF_Descriptor(imfIndex)
 
        ! Name of the parameter to be used for this IMF.
        stellarPopulationSpectraFile='data/SSP_Spectra_Conroy-et-al_v2.2_imf'//imfName//'.hdf5'
