@@ -101,13 +101,14 @@ contains
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_MillerScalo</unitName>
   !# </imfRegisterName>
-  subroutine Star_Formation_IMF_Register_Name_MillerScalo(imfNames)
+  subroutine Star_Formation_IMF_Register_Name_MillerScalo(imfNames,imfDescriptors)
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:)
+    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
 
-    imfNames(imfIndex)="MillerScalo"
+    imfNames      (imfIndex)="MillerScalo"
+    imfDescriptors(imfIndex)="MillerScalo"
     return
   end subroutine Star_Formation_IMF_Register_Name_MillerScalo
 

@@ -679,6 +679,14 @@ The {\tt Miller-Scalo} \IMF\ is defined by \citep{miller_initial_1979}:
  0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
+\subsubsection{Piecewise Power-law}
+
+Arbitrary piecewise power-law {\IMF}s can be defined using the {\tt PiecewisePowerLaw} method. The \IMF\ will be constructed such that:
+\begin{equation}
+ \phi(M) \propto M^{\alpha_i} \hbox{ if } M_i \le M < M_{i+1},
+\end{equation}
+where $i=1$\ldots$N$, the $M_i$ are given by {\tt [imfPiecewisePowerLawMassPoints]} and the $\alpha_i$ are given by {\tt [imfPiecewisePowerLawExponents]}. (Note that {\tt [imfPiecewisePowerLawMassPoints]} must contain $N+1$ elements, while {\tt [imfPiecewisePowerLawExponents]} contains only $N$ elements.) The normalization of each power-law piece is chosen to ensure a continuous \IMF\ that is normalized to unit mass overall.
+
 \subsubsection{Salpeter}
 
 The {\tt Salpeter} \IMF\ is defined by \citep{salpeter_luminosity_1955}:
@@ -993,7 +1001,7 @@ Stellar population spectra are used to construct intgrated spectra of galaxies. 
 
 \subsection{Conroy, White \& Gunn}
 
-Selected with {\tt stellarPopulationSpectraMethod}$=${\tt Conroy, White \& Gunn} this method uses v2.2 of the \href{http://www.cfa.harvard.edu/~cconroy/FSPS.html}{{\tt FSPS}} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\tt FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval.
+Selected with {\tt stellarPopulationSpectraMethod}$=${\tt Conroy, White \& Gunn} this method uses v2.2 of the \href{http://www.cfa.harvard.edu/~cconroy/FSPS.html}{{\tt FSPS}} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\tt FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval. The file name used is {\tt data/SSP\_Spectra\_Conroy-et-al\_v2.2\_imf$<$imfDescriptor$>$.hdf5} where $<${\tt imfDescriptor}$>$ is the \IMF\ descriptor defined by the selected \IMF\ (see \S\ref{}).
 
 \subsection{File}
 

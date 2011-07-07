@@ -101,13 +101,14 @@ contains
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Chabrier</unitName>
   !# </imfRegisterName>
-  subroutine Star_Formation_IMF_Register_Name_Chabrier(imfNames)
+  subroutine Star_Formation_IMF_Register_Name_Chabrier(imfNames,imfDescriptors)
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:)
+    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
 
-    imfNames(imfIndex)="Chabrier"
+    imfNames      (imfIndex)="Chabrier"
+    imfDescriptors(imfIndex)="Chabrier"
     return
   end subroutine Star_Formation_IMF_Register_Name_Chabrier
 

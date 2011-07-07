@@ -100,13 +100,14 @@ contains
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Baugh2005TopHeavy</unitName>
   !# </imfRegisterName>
-  subroutine Star_Formation_IMF_Register_Name_Baugh2005TopHeavy(imfNames)
+  subroutine Star_Formation_IMF_Register_Name_Baugh2005TopHeavy(imfNames,imfDescriptors)
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:)
+    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
 
-    imfNames(imfIndex)="Baugh2005TopHeavy"
+    imfNames      (imfIndex)="Baugh2005TopHeavy"
+    imfDescriptors(imfIndex)="Baugh2005TopHeavy"
     return
   end subroutine Star_Formation_IMF_Register_Name_Baugh2005TopHeavy
 

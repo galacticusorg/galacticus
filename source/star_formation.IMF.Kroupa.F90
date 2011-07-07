@@ -101,13 +101,14 @@ contains
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Kroupa</unitName>
   !# </imfRegisterName>
-  subroutine Star_Formation_IMF_Register_Name_Kroupa(imfNames)
+  subroutine Star_Formation_IMF_Register_Name_Kroupa(imfNames,imfDescriptors)
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:)
+    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
 
-    imfNames(imfIndex)="Kroupa"
+    imfNames      (imfIndex)="Kroupa"
+    imfDescriptors(imfIndex)="Kroupa"
     return
   end subroutine Star_Formation_IMF_Register_Name_Kroupa
 

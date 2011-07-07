@@ -2230,6 +2230,18 @@ Each registered \IMF\ must provide multiple functions, specified by the followin
  !# <imfTabulate>
  !#  <unitName>Star_Formation_IMF_Tabulate_My_IMF</unitName>
  !# </imfTabulate>
+
+ !# <imfMinimumMass>
+ !#  <unitName>Star_Formation_IMF_Minimum_Mass_My_IMF</unitName>
+ !# </imfMinimumMass>
+
+ !# <imfMaximumMass>
+ !#  <unitName>Star_Formation_IMF_Maximum_Mass_My_IMF</unitName>
+ !# </imfMaximumMass>
+
+ !# <imfPhi>
+ !#  <unitName>Star_Formation_IMF_Phi_My_IMF</unitName>
+ !# </imfPhi>
 \end{verbatim}
 
 These functions/subroutines should have the following forms:
@@ -2275,12 +2287,60 @@ These functions/subroutines should have the following forms:
     end if
     return
   end subroutine Star_Formation_IMF_Tabulate_My_IMF
+
+  subroutine Star_Formation_IMF_Minimum_Mass_My_IMF(imfSelected,imfMatched,minimumMass)
+    implicit none
+    integer,          intent(in)    :: imfSelected
+    logical,          intent(inout) :: imfMatched
+    double precision, intent(out)   :: minimumMass
+    
+    if (imfSelected == imfIndex) then
+       .
+       .
+       .
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Minimum_Mass_My_IMF
+
+  subroutine Star_Formation_IMF_Maximum_Mass_My_IMF(imfSelected,imfMatched,minimumMass)
+    implicit none
+    integer,          intent(in)    :: imfSelected
+    logical,          intent(inout) :: imfMatched
+    double precision, intent(out)   :: maximumMass
+    
+    if (imfSelected == imfIndex) then
+       .
+       .
+       .
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Maximum_Mass_My_IMF
+
+  subroutine Star_Formation_IMF_Phi_My_IMF(imfSelected,imfMatched,imfMass,imfPhi)
+    integer,          intent(in)                               :: imfSelected
+    logical,          intent(inout)                            :: imfMatched
+    double precision, intent(in)                               :: imfMass
+    double precision, intent(out)                              :: imfPhi
+
+    if (imfSelected == imfIndex) then
+       .
+       .
+       .
+       imfMatched=.true.
+    end if
+    return
+  end subroutine Star_Formation_IMF_Phi_My_IMF
 \end{verbatim}
 In each case the procedure should check if the supplied {\tt imfSelected} index matches the index which this \IMF\ was given when it was registered. If it is, then {\tt imfMatched} should be set to true. The procedures should then perform as follows:
 \begin{description}
  \item [{\tt Star\_Formation\_IMF\_Yield\_Instantaneous\_My\_IMF}] Return a suitable metal yield in {\tt yield} for this \IMF\ in the instantaneous recyclying approximation.
  \item [{\tt Star\_Formation\_IMF\_Recycled\_Instantaneous\_My\_IMF}] Return a suitable recycled fraction in {\tt recycledFraction} for this \IMF\ in the instantaneous recyclying approximation.
  \item [{\tt Star\_Formation\_IMF\_Tabulate\_My\_IMF}] Allocate the {\tt imfMass()} and {\tt imfPhi()} arrays and fill them with a tabulation of the \IMF. The routine can choose the size of the tabulation and should ensure that it is suffient to resolve any features in the \IMF.
+ \item [{\tt Star\_Formation\_IMF\_Minimum\_Mass\_My\_IMF}] Return the lowest mass for which the \IMF\ is non-zero.
+ \item [{\tt Star\_Formation\_IMF\_Maximum\_Mass\_My\_IMF}] Return the largest mass for which the \IMF\ is non-zero.
+ \item [{\tt Star\_Formation\_IMF\_Phi\_My\_IMF}] Return the \IMF\ for the specified {\tt imfMass} initial stellar mass.
 \end{description}
 Currently defined IMFs are described in \S\ref{sec:physicsIMF}.
 
@@ -4367,7 +4427,7 @@ The contents of {\tt <unitName>} should give the name of the subroutine to be ca
 
 \subsubsection{Initial Mass Functions}
 
-New \IMF s can be added using the {\tt imfRegister} and {\tt imfRegister} task directives. For example, the {\tt Salpeter} \IMF\ is registered using the directives:
+New \IMF s can be added using the {\tt imfRegister} and {\tt imfRegisterName} task directives. For example, the {\tt Salpeter} \IMF\ is registered using the directives:
 \begin{verbatim}
  !# <imfRegister>
  !#  <unitName>Star_Formation_IMF_Register_Salpeter</unitName>
@@ -4375,9 +4435,9 @@ New \IMF s can be added using the {\tt imfRegister} and {\tt imfRegister} task d
 \end{verbatim}
 and
 \begin{verbatim}
- !# <imfRecycledInstantaneous>
- !#  <unitName>Star_Formation_IMF_Recycled_Instantaneous_Salpeter</unitName>
- !# </imfRecycledInstantaneous>
+ !# <imfRegisterName>
+ !#  <unitName>Star_Formation_IMF_Register_Name_Salpeter</unitName>
+ !# </imfRegisterName>
 \end{verbatim}
 The {\tt unitName} tags specify subroutines that are called to register the \IMF. These subroutines should have the following forms:
 \begin{verbatim}
@@ -4385,18 +4445,19 @@ The {\tt unitName} tags specify subroutines that are called to register the \IMF
    integer, intent(inout) :: imfAvailableCount
 
    imfAvailableCount=imfAvailableCount+1
-   myImfIndex=imfAvailableCount
+   myImfIndex       =imfAvailableCount
    return
  end subroutine Star_Formation_IMF_Register_My_IMF
 
- subroutine Star_Formation_IMF_Register_Name_My_IMF(imfNames)
-   type(varying_string), intent(inout) :: imfNames(:)
+ subroutine Star_Formation_IMF_Register_Name_My_IMF(imfNames,imfDescriptors)
+   type(varying_string), intent(inout), dimension(:) :: imfNames,imfDescriptors
 
-   imfNames(myImfIndex)="Salpeter"
+   imfNames      (myImfIndex)="Salpeter"
+   imfDescriptors(myImfIndex)="Salpeter"
    return
  end subroutine Star_Formation_IMF_Register_Name_My_IMF
 \end{verbatim}
-The first routine should increment the {\tt imfAvailableCount} counter by 1 and keep a record of the resulting index---this will be the index by which the \IMF\ is referred to. The second routine should store the name of the \IMF\ in the appropriate position in the supplied {\tt imfNames()} array.
+The first routine should increment the {\tt imfAvailableCount} counter by 1 and keep a record of the resulting index---this will be the index by which the \IMF\ is referred to. The second routine should store the name and descriptor of the \IMF\ in the appropriate position in the supplied {\tt imfNames()} and {\tt imfDescriptors()} arrays. The ``name'' is the label used to identify the \IMF\ in input parameters for example. The ``descriptor'' should be a label sufficient to uniquely identify the \IMF, and is used, for example, in constructing file names when storing \IMF\ related data. Often, the name and descriptor are identical. However, if the \IMF\ has user-specififable parameters then those parameters should be encoded into the descriptor.
 
 Each registered \IMF\ should supply a set of functions as described in \S\ref{sec:IMF_functions}.
 

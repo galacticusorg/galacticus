@@ -59,99 +59,144 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements the Kennicutt stellar initial mass function \citep{kennicutt_rate_1983}.
+!% Contains a module which implements an arbitrary piecewise power-law stellar initial mass function.
 
-module Star_Formation_IMF_Kennicutt
-  !% Implements the Kennicutt stellar initial mass function.
+module Star_Formation_IMF_PiecewisePowerLaw
+  !% Implements an arbitrary piecewise power-law stellar initial mass function.
   private
-  public :: Star_Formation_IMF_Register_Kennicutt, Star_Formation_IMF_Register_Name_Kennicutt,&
-       & Star_Formation_IMF_Recycled_Instantaneous_Kennicutt, Star_Formation_IMF_Yield_Instantaneous_Kennicutt,&
-       & Star_Formation_IMF_Tabulate_Kennicutt, Star_Formation_IMF_Minimum_Mass_Kennicutt, Star_Formation_IMF_Maximum_Mass_Kennicutt&
-       &, Star_Formation_IMF_Phi_Kennicutt
+  public :: Star_Formation_IMF_Register_PiecewisePowerLaw, Star_Formation_IMF_Register_Name_PiecewisePowerLaw,&
+       & Star_Formation_IMF_Recycled_Instantaneous_PiecewisePowerLaw, Star_Formation_IMF_Yield_Instantaneous_PiecewisePowerLaw,&
+       & Star_Formation_IMF_Tabulate_PiecewisePowerLaw, Star_Formation_IMF_Minimum_Mass_PiecewisePowerLaw,&
+       & Star_Formation_IMF_Maximum_Mass_PiecewisePowerLaw , Star_Formation_IMF_Phi_PiecewisePowerLaw
 
   ! Index assigned to this IMF.
   integer :: imfIndex=-1
 
   ! Flag indicating if the module has been initialized.
-  logical :: imfKennicuttInitialized=.false.
+  logical :: imfPiecewisePowerLawInitialized=.false.
 
   ! Parameters of the IMF.
-  double precision :: imfKennicuttRecycledInstantaneous, imfKennicuttYieldInstantaneous
+  double precision :: imfPiecewisePowerLawRecycledInstantaneous, imfPiecewisePowerLawYieldInstantaneous
 
   ! Fixed parameters of the IMF.
-  integer,          parameter                :: imfPieceCount=3
-  double precision, dimension(imfPieceCount) :: massLower=[0.1d0,1.0d0,2.0d0],massUpper=[1.0d0,2.0d0,125.0d0],massExponent=[&
-       &-1.25d0,-2.00d0, -2.30d0],imfNormalization
+  integer                                     :: imfPieceCount
+  double precision, dimension(:), allocatable :: massLower,massUpper,massExponent,imfNormalization
 
 contains
 
   !# <imfRegister>
-  !#  <unitName>Star_Formation_IMF_Register_Kennicutt</unitName>
+  !#  <unitName>Star_Formation_IMF_Register_PiecewisePowerLaw</unitName>
   !# </imfRegister>
-  subroutine Star_Formation_IMF_Register_Kennicutt(imfAvailableCount)
+  subroutine Star_Formation_IMF_Register_PiecewisePowerLaw(imfAvailableCount)
     !% Register this IMF by incrementing the count and keeping a record of the assigned index.
     implicit none
     integer, intent(inout) :: imfAvailableCount
 
     imfAvailableCount=imfAvailableCount+1
-    imfIndex=imfAvailableCount
+    imfIndex         =imfAvailableCount
     return
-  end subroutine Star_Formation_IMF_Register_Kennicutt
+  end subroutine Star_Formation_IMF_Register_PiecewisePowerLaw
 
   !# <imfRegisterName>
-  !#  <unitName>Star_Formation_IMF_Register_Name_Kennicutt</unitName>
+  !#  <unitName>Star_Formation_IMF_Register_Name_PiecewisePowerLaw</unitName>
   !# </imfRegisterName>
-  subroutine Star_Formation_IMF_Register_Name_Kennicutt(imfNames,imfDescriptors)
+  subroutine Star_Formation_IMF_Register_Name_PiecewisePowerLaw(imfNames,imfDescriptors)
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
     type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
+    type(varying_string)                :: imfDescriptor
+    character(len=7)                    :: label
+    integer                             :: iPiece
 
-    imfNames      (imfIndex)="Kennicutt"
-    imfDescriptors(imfIndex)="Kennicutt"
+    call Star_Formation_IMF_Initialize_PiecewisePowerLaw
+    imfDescriptor="PiecewisePowerLaw"
+    do iPiece=1,imfPieceCount
+       write (label,'(f7.2)') massLower   (iPiece)
+       imfDescriptor=imfDescriptor//":m"//trim(adjustl(label))
+       write (label,'(f7.3)') massExponent(iPiece)
+       imfDescriptor=imfDescriptor//":e"//trim(adjustl(label))
+    end do
+    write (label,'(f7.2)') massUpper(imfPieceCount)
+    imfDescriptor=imfDescriptor//":m"//trim(adjustl(label))
+    imfNames      (imfIndex)="PiecewisePowerLaw"
+    imfDescriptors(imfIndex)=imfDescriptor
     return
-  end subroutine Star_Formation_IMF_Register_Name_Kennicutt
+  end subroutine Star_Formation_IMF_Register_Name_PiecewisePowerLaw
 
-  subroutine Star_Formation_IMF_Initialize_Kennicutt
-    !% Initialize the Kennicutt IMF module.
+  subroutine Star_Formation_IMF_Initialize_PiecewisePowerLaw
+    !% Initialize the PiecewisePowerLaw IMF module.
     use Input_Parameters
     use Star_Formation_IMF_PPL
+    use Memory_Management
+    use Galacticus_Error
     implicit none
+    double precision, dimension(:), allocatable :: massPoints
 
-    !$omp critical (IMF_Kennicutt_Initialize)
-    if (.not.imfKennicuttInitialized) then
+    !$omp critical (IMF_PiecewisePowerLaw_Initialize)
+    if (.not.imfPiecewisePowerLawInitialized) then
        !@ <inputParameter>
-       !@   <name>imfKennicuttRecycledInstantaneous</name>
-       !@   <defaultValue>0.57 (internally computed)</defaultValue>
+       !@   <name>imfPiecewisePowerLawRecycledInstantaneous</name>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The recycled fraction for the Kennicutt \IMF\ in the instantaneous recycling approximation.
+       !@     The recycled fraction for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('imfKennicuttRecycledInstantaneous',imfKennicuttRecycledInstantaneous,defaultValue=0.57d0)
+       call Get_Input_Parameter('imfPiecewisePowerLawRecycledInstantaneous',imfPiecewisePowerLawRecycledInstantaneous)
        !@ <inputParameter>
-       !@   <name>imfKennicuttYieldInstantaneous</name>
-       !@   <defaultValue>0.044 (internally computed)</defaultValue>
+       !@   <name>imfPiecewisePowerLawYieldInstantaneous</name>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The yield for the Kennicutt \IMF\ in the instantaneous recycling approximation.
+       !@     The yield for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('imfKennicuttYieldInstantaneous'   ,imfKennicuttYieldInstantaneous   ,defaultValue=0.044d0)
+       call Get_Input_Parameter('imfPiecewisePowerLawYieldInstantaneous'   ,imfPiecewisePowerLawYieldInstantaneous   )
+
+       ! Get the number of intervals and allocate arrays appropriately.
+       imfPieceCount=Get_Input_Parameter_Array_Size('imfPiecewisePowerLawMassPoints')-1
+       if (imfPieceCount < 1) call Galacticus_Error_Report('Star_Formation_IMF_Initialize_PiecewisePowerLaw','at least 2 mass points are required to define the IMF')
+       call Alloc_Array(massLower       ,[imfPieceCount])
+       call Alloc_Array(massUpper       ,[imfPieceCount])
+       call Alloc_Array(massExponent    ,[imfPieceCount])
+       call Alloc_Array(imfNormalization,[imfPieceCount])
+       allocate(massPoints(imfPieceCount+1))
+       
+       ! Read the mass intervals.
+       !@ <inputParameter>
+       !@   <name>imfPiecewisePowerLawMassPoints</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The mass points used to define a piecewise power-law initial mass function.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('imfPiecewisePowerLawMassPoints',massPoints )
+       !@ <inputParameter>
+       !@   <name>imfPiecewisePowerLawExponents</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The exponents used to define a piecewise power-law initial mass function.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('imfPiecewisePowerLawExponents' ,massExponent)
+       
+       ! Extract lower and upper limits of the mass ranges.
+       massLower=massPoints(1:imfPieceCount  )
+       massUpper=massPoints(2:imfPieceCount+1)
+       deallocate(massPoints)
 
        ! Get the normalization for this IMF.
        call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
 
-       imfKennicuttInitialized=.true.
+       imfPiecewisePowerLawInitialized=.true.
     end if
-    !$omp end critical (IMF_Kennicutt_Initialize)
+    !$omp end critical (IMF_PiecewisePowerLaw_Initialize)
     return
-  end subroutine Star_Formation_IMF_Initialize_Kennicutt
+  end subroutine Star_Formation_IMF_Initialize_PiecewisePowerLaw
 
   !# <imfMinimumMass>
-  !#  <unitName>Star_Formation_IMF_Minimum_Mass_Kennicutt</unitName>
+  !#  <unitName>Star_Formation_IMF_Minimum_Mass_PiecewisePowerLaw</unitName>
   !# </imfMinimumMass>
-  subroutine Star_Formation_IMF_Minimum_Mass_Kennicutt(imfSelected,imfMatched,minimumMass)
+  subroutine Star_Formation_IMF_Minimum_Mass_PiecewisePowerLaw(imfSelected,imfMatched,minimumMass)
     !% Register the name of this IMF.
     implicit none
     integer,          intent(in)    :: imfSelected
@@ -159,17 +204,17 @@ contains
     double precision, intent(out)   :: minimumMass
 
     if (imfSelected == imfIndex) then
-       call Star_Formation_IMF_Initialize_Kennicutt
+       call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        minimumMass=massLower(1)
        imfMatched=.true.
     end if
     return
-  end subroutine Star_Formation_IMF_Minimum_Mass_Kennicutt
+  end subroutine Star_Formation_IMF_Minimum_Mass_PiecewisePowerLaw
 
   !# <imfMaximumMass>
-  !#  <unitName>Star_Formation_IMF_Maximum_Mass_Kennicutt</unitName>
+  !#  <unitName>Star_Formation_IMF_Maximum_Mass_PiecewisePowerLaw</unitName>
   !# </imfMaximumMass>
-  subroutine Star_Formation_IMF_Maximum_Mass_Kennicutt(imfSelected,imfMatched,maximumMass)
+  subroutine Star_Formation_IMF_Maximum_Mass_PiecewisePowerLaw(imfSelected,imfMatched,maximumMass)
     !% Register the name of this IMF.
     implicit none
     integer,          intent(in)    :: imfSelected
@@ -177,17 +222,17 @@ contains
     double precision, intent(out)   :: maximumMass
 
     if (imfSelected == imfIndex) then
-       call Star_Formation_IMF_Initialize_Kennicutt
+       call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        maximumMass=massUpper(imfPieceCount)
        imfMatched=.true.
     end if
     return
-  end subroutine Star_Formation_IMF_Maximum_Mass_Kennicutt
+  end subroutine Star_Formation_IMF_Maximum_Mass_PiecewisePowerLaw
 
   !# <imfPhi>
-  !#  <unitName>Star_Formation_IMF_Phi_Kennicutt</unitName>
+  !#  <unitName>Star_Formation_IMF_Phi_PiecewisePowerLaw</unitName>
   !# </imfPhi>
-  subroutine Star_Formation_IMF_Phi_Kennicutt(imfSelected,imfMatched,initialMass,imfPhi)
+  subroutine Star_Formation_IMF_Phi_PiecewisePowerLaw(imfSelected,imfMatched,initialMass,imfPhi)
     !% Register the name of this IMF.
     use Star_Formation_IMF_PPL
     implicit none
@@ -197,17 +242,17 @@ contains
     double precision, intent(out)   :: imfPhi
 
     if (imfSelected == imfIndex) then
-       call Star_Formation_IMF_Initialize_Kennicutt
+       call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        imfPhi=Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,initialMass)
        imfMatched=.true.
     end if
     return
-  end subroutine Star_Formation_IMF_Phi_Kennicutt
+  end subroutine Star_Formation_IMF_Phi_PiecewisePowerLaw
 
   !# <imfRecycledInstantaneous>
-  !#  <unitName>Star_Formation_IMF_Recycled_Instantaneous_Kennicutt</unitName>
+  !#  <unitName>Star_Formation_IMF_Recycled_Instantaneous_PiecewisePowerLaw</unitName>
   !# </imfRecycledInstantaneous>
-  subroutine Star_Formation_IMF_Recycled_Instantaneous_Kennicutt(imfSelected,imfMatched,recycledFraction)
+  subroutine Star_Formation_IMF_Recycled_Instantaneous_PiecewisePowerLaw(imfSelected,imfMatched,recycledFraction)
     !% Register the name of this IMF.
     implicit none
     integer,          intent(in)    :: imfSelected
@@ -215,17 +260,17 @@ contains
     double precision, intent(out)   :: recycledFraction
 
     if (imfSelected == imfIndex) then
-       call Star_Formation_IMF_Initialize_Kennicutt
-       recycledFraction=imfKennicuttRecycledInstantaneous
+       call Star_Formation_IMF_Initialize_PiecewisePowerLaw
+       recycledFraction=imfPiecewisePowerLawRecycledInstantaneous
        imfMatched=.true.
     end if
     return
-  end subroutine Star_Formation_IMF_Recycled_Instantaneous_Kennicutt
+  end subroutine Star_Formation_IMF_Recycled_Instantaneous_PiecewisePowerLaw
 
   !# <imfYieldInstantaneous>
-  !#  <unitName>Star_Formation_IMF_Yield_Instantaneous_Kennicutt</unitName>
+  !#  <unitName>Star_Formation_IMF_Yield_Instantaneous_PiecewisePowerLaw</unitName>
   !# </imfYieldInstantaneous>
-  subroutine Star_Formation_IMF_Yield_Instantaneous_Kennicutt(imfSelected,imfMatched,yield)
+  subroutine Star_Formation_IMF_Yield_Instantaneous_PiecewisePowerLaw(imfSelected,imfMatched,yield)
     !% Register the name of this IMF.
     implicit none
     integer,          intent(in)    :: imfSelected
@@ -233,17 +278,17 @@ contains
     double precision, intent(out)   :: yield
 
     if (imfSelected == imfIndex) then
-       call Star_Formation_IMF_Initialize_Kennicutt
-       yield=imfKennicuttYieldInstantaneous
+       call Star_Formation_IMF_Initialize_PiecewisePowerLaw
+       yield=imfPiecewisePowerLawYieldInstantaneous
        imfMatched=.true.
     end if
     return
-  end subroutine Star_Formation_IMF_Yield_Instantaneous_Kennicutt
+  end subroutine Star_Formation_IMF_Yield_Instantaneous_PiecewisePowerLaw
 
   !# <imfTabulate>
-  !#  <unitName>Star_Formation_IMF_Tabulate_Kennicutt</unitName>
+  !#  <unitName>Star_Formation_IMF_Tabulate_PiecewisePowerLaw</unitName>
   !# </imfTabulate>
-  subroutine Star_Formation_IMF_Tabulate_Kennicutt(imfSelected,imfMatched,imfMass,imfPhi)
+  subroutine Star_Formation_IMF_Tabulate_PiecewisePowerLaw(imfSelected,imfMatched,imfMass,imfPhi)
     !% Register the name of this IMF.
     use Memory_Management
     use Numerical_Ranges
@@ -255,7 +300,7 @@ contains
     integer,          parameter                                :: nPoints=100
 
     if (imfSelected == imfIndex) then
-       call Star_Formation_IMF_Initialize_Kennicutt
+       call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        call Alloc_Array(imfMass,[nPoints])
        call Alloc_Array(imfPhi ,[nPoints])
        imfMass=Make_Range(massLower(1),massUpper(imfPieceCount),nPoints,rangeType=rangeTypeLogarithmic)
@@ -263,6 +308,6 @@ contains
        imfMatched=.true.
     end if
     return
-  end subroutine Star_Formation_IMF_Tabulate_Kennicutt
+  end subroutine Star_Formation_IMF_Tabulate_PiecewisePowerLaw
 
-end module Star_Formation_IMF_Kennicutt
+end module Star_Formation_IMF_PiecewisePowerLaw

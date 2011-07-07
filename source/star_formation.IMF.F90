@@ -75,7 +75,7 @@ module Star_Formation_IMF
   !# </include>
   private
   public :: IMF_Select, IMF_Recycled_Fraction_Instantaneous, IMF_Recycling_Rate_NonInstantaneous, IMF_Yield_Instantaneous,&
-       & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate
+       & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate, IMF_Descriptor
 
   ! Flag to indicate if this module has been initialized.
   logical :: imfInitialized=.false.
@@ -84,7 +84,7 @@ module Star_Formation_IMF
   integer :: imfAvailableCount=0
 
   ! Array of IMF names.
-  type(varying_string), allocatable, dimension(:      ) :: imfNames
+  type(varying_string), allocatable, dimension(:      ) :: imfNames,imfDescriptors
 
   ! Tables of recycled fractions.
   logical,              allocatable, dimension(:      ) :: recycledFractionTabulated
@@ -175,6 +175,24 @@ contains
     return
   end function IMF_Name
 
+  function IMF_Descriptor(imfIndex)
+    !% Return a full descriptor for the IMF with the specified index.
+    use Galacticus_Error
+    implicit none
+    type(varying_string) :: IMF_Descriptor
+    integer, intent(in) :: imfIndex
+    
+    ! Initialize the IMF subsystem.
+    call Star_Formation_IMF_Initialize
+
+    if (imfIndex <= size (imfDescriptors)) then
+       IMF_Descriptor=imfDescriptors(imfIndex)
+    else
+       call Galacticus_Error_Report('IMF_Descriptor','imfIndex is out of range')
+    end if
+    return
+  end function IMF_Descriptor
+
   subroutine Star_Formation_IMF_Initialize
     !% Initialize the IMF subsystem.
     use Memory_Management
@@ -192,11 +210,12 @@ contains
        include 'star_formation.IMF.register.inc'
        !# </include>
 
-       ! Get a list of IMF names.
-       allocate(imfNames(imfAvailableCount))
-       call Memory_Usage_Record(sizeof(imfNames))
+       ! Get a list of IMF names and descriptors.
+       allocate(imfNames      (imfAvailableCount))
+       allocate(imfDescriptors(imfAvailableCount))
+       call Memory_Usage_Record(sizeof(imfNames)+sizeof(imfDescriptors))
        !# <include directive="imfRegisterName" type="code" action="subroutine">
-       !#  <subroutineArgs>imfNames</subroutineArgs>
+       !#  <subroutineArgs>imfNames,imfDescriptors</subroutineArgs>
        include 'star_formation.IMF.register_names.inc'
        !# </include>
 
