@@ -12695,7 +12695,7 @@
       <datum>1.0000e+09</datum>
     </temperature>
   </coolingFunction>
-  <description>CIE cooling functions computed by Cloudy c10.00_rc2</description>
+  <description>CIE cooling functions computed by Cloudy c10.00</description>
   <extrapolation>
     <metallicity>
       <limit>low</limit>

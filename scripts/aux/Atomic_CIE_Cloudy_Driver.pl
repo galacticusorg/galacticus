@@ -61,7 +61,7 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     $heliumAbundanceSolar      = 0.100;
     
     # Specify Cloudy version.
-    $cloudyVersion = "c10.00_rc2";
+    $cloudyVersion = "c10.00";
 
     # Download the code.
     unless ( -e "aux/".$cloudyVersion.".tar.gz" ) {
@@ -122,7 +122,7 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	print cloudyPipe "background, z=0\n";            # Use a very low level incident continuum.
 	print cloudyPipe "cosmic rays background\n";     # Include cosmic ray background ionization rate.
 	print cloudyPipe "stop zone 1\n";                # Stop after a single zone.
-	print cloudyPipe "no photoionization\n";         # Do threee iterations to ensure convergence is reached.
+	print cloudyPipe "no photoionization\n";         # Do three iterations to ensure convergence is reached.
 	print cloudyPipe "hden 0.0\n";
 	if ( $logMetallicity <= -999.0 ) {
 	    print cloudyPipe "abundances primordial\n";
