@@ -185,13 +185,13 @@ contains
     growthFactor   =Linear_Growth_Factor        (time)
 
     normalization0=Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableNormalization &
-         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation)   
+         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,allowExtrapolation=.true.)   
     a0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableA &
-         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation) 
+         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,allowExtrapolation=.true.) 
     b0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableB &
-         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation) 
+         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,allowExtrapolation=.true.) 
     c0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableC &
-         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation) 
+         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,allowExtrapolation=.true.) 
     
     ! Extrapolate to higher redshift using redshift scalings given by Tinker et al. (2008; eqns. 5-8).
     normalization=normalization0*expansionFactor**0.14d0

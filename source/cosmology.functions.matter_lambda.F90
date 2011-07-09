@@ -92,9 +92,10 @@ module Cosmology_Functions_Matter_Lambda
   double precision, parameter                 :: ageTableIncrementFactor =dexp(int(ageTableNPointsPerOctave+1.0d0)*dlog(10.0d0)&
        &/dble(ageTableNPointsPerDecade))
   double precision, allocatable, dimension(:) :: ageTableTime, ageTableExpansionFactor
-  type(fgsl_interp)                           :: interpolationObject
-  type(fgsl_interp_accel)                     :: interpolationAccelerator
-  logical                                     :: resetInterpolation=.true.
+  type(fgsl_interp)                           :: interpolationObject     ,interpolationObjectInverse
+  type(fgsl_interp_accel)                     :: interpolationAccelerator,interpolationAcceleratorInverse
+  logical                                     :: resetInterpolation       =.true.
+  logical                                     :: resetInterpolationInverse=.true.
 
   ! Variables to hold table of distance vs. cosmic time.
   logical                                     :: distanceTableInitialized=.false.
@@ -346,8 +347,8 @@ contains
        tEffective=tCosmological
     end if
     !$omp critical(Cosmology_Functions_Interpolate)
-    Expansion_Factor_Matter_Lambda=Interpolate(ageTableNumberPoints,ageTableTime,ageTableExpansionFactor,interpolationObject&
-         &,interpolationAccelerator,tEffective,reset=resetInterpolation)
+    Expansion_Factor_Matter_Lambda=Interpolate(ageTableNumberPoints,ageTableTime,ageTableExpansionFactor,interpolationObjectInverse&
+         &,interpolationAcceleratorInverse,tEffective,reset=resetInterpolationInverse)
     !$omp end critical(Cosmology_Functions_Interpolate)
     return
   end function Expansion_Factor_Matter_Lambda
@@ -447,9 +448,11 @@ contains
           ageTableExpansionFactor(iTime)=aExpansion(1)
        end if
     end do
-    call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
-    resetInterpolation=.true.
-    
+
+    call Interpolate_Done(interpolationObject       ,interpolationAccelerator       ,resetInterpolation       )
+    call Interpolate_Done(interpolationObjectInverse,interpolationAcceleratorInverse,resetInterpolationInverse)
+    resetInterpolation       =.true.
+    resetInterpolationInverse=.true.
     ! Flag that the table is now initialized.
     ageTableInitialized=.true.
     !$omp end critical(Cosmology_Functions_Interpolate)
@@ -868,6 +871,7 @@ contains
     
     ! Ensure that interpolation objects will get reset.
     resetInterpolation               =.true.
+    resetInterpolationInverse        =.true.
     resetInterpolationDistance       =.true.
     resetInterpolationDistanceInverse=.true.
 

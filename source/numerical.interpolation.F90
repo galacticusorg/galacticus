@@ -114,9 +114,10 @@ contains
   end function Interpolate_Linear_Generate_Gradient_Factors
 
   double precision function Interpolate(nPoints,xArray,yArray,interpolationObject,interpolationAccelerator,x,interpolationType&
-       &,reset)
+       &,allowExtrapolation,reset)
     !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding value in {\tt yArray()}.
     use Galacticus_Error
+    use ISO_Varying_String
     implicit none
     integer,                 intent(in)                  :: nPoints
     double precision,        intent(in),    dimension(:) :: xArray,yArray
@@ -125,10 +126,14 @@ contains
     double precision,        intent(in)                  :: x
     type(fgsl_interp_type),  intent(in),    optional     :: interpolationType
     logical,                 intent(inout), optional     :: reset
+    logical,                 intent(in),    optional     :: allowExtrapolation
     type(fgsl_interp_type)                               :: interpolationTypeActual
-    integer                                              :: status
+    integer                                              :: status,basePoint
     integer(c_size_t)                                    :: nPointsC
-    logical                                              :: resetActual
+    logical                                              :: resetActual,allowExtrapolationActual
+    type(varying_string)                                 :: message
+    integer(fgsl_int)                                    :: errorCode
+    double precision                                     :: gradient
 
     ! Decide whether to reset.
     resetActual=.false.
@@ -154,15 +159,58 @@ contains
        if (status /= fgsl_success) call Galacticus_Error_Report('Interpolate','interpolation initialization failed')
     end if
 
-    ! Do the interpolation.
-    Interpolate=fgsl_interp_eval(interpolationObject,xArray,yArray,x,interpolationAccelerator)
+    ! If extrapolation is allowed, check if this is necessary.
+    if (present(allowExtrapolation)) then
+       allowExtrapolationActual=allowExtrapolation
+    else
+       allowExtrapolationActual=.false.
+    end if
+    if     (                            &
+         &   allowExtrapolationActual   &
+         &  .and.                       &
+         &   (                          &
+         &     x < xArray(1           ) &
+         &    .or.                      &
+         &     x > xArray(size(xArray)) &
+         &   )                          &
+         & ) then
+       if (x < xArray(1)) then
+          basePoint=1
+       else
+          basePoint=size(xArray)
+       end if
+       errorCode=fgsl_interp_eval_deriv_e(interpolationObject,xArray,yArray,xArray(basePoint),interpolationAccelerator,gradient)
+       if (errorCode /= 0) then
+          select case (errorCode)
+          case (FGSL_EDOM)
+             message='requested point is outside of allowed range'
+          case default
+             message='interpolation failed for unknown reason'
+          end select
+          call Galacticus_Error_Report('Interpolate',message)
+       end if
+       Interpolate=yArray(basePoint)+gradient*(x-xArray(basePoint))
+    else
+       ! Do the interpolation.
+       errorCode=fgsl_interp_eval_e(interpolationObject,xArray,yArray,x,interpolationAccelerator,Interpolate)
+       if (errorCode /= 0) then
+          select case (errorCode)
+          case (FGSL_EDOM)
+             message='requested point is outside of allowed range'
+          case default
+             message='interpolation failed for unknown reason'
+          end select
+          call Galacticus_Error_Report('Interpolate',message)
+       end if
+    end if
     return
   end function Interpolate
 
   double precision function Interpolate_Derivative(nPoints,xArray,yArray,interpolationObject,interpolationAccelerator,x&
-       &,interpolationType ,reset)
+       &,interpolationType ,allowExtrapolation,reset)
     !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding first derivative of {\tt yArray()}.
     use Galacticus_Error
+    use ISO_Varying_String
     implicit none
     integer,                 intent(in)                  :: nPoints
     double precision,        intent(in),    dimension(:) :: xArray,yArray
@@ -171,10 +219,14 @@ contains
     double precision,        intent(in)                  :: x
     type(fgsl_interp_type),  intent(in),    optional     :: interpolationType
     logical,                 intent(inout), optional     :: reset
+    logical,                 intent(in),    optional     :: allowExtrapolation
     type(fgsl_interp_type)                               :: interpolationTypeActual
     integer                                              :: status
     integer(c_size_t)                                    :: nPointsC
-    logical                                              :: resetActual
+    logical                                              :: resetActual,allowExtrapolationActual
+    type(varying_string)                                 :: message
+    integer(fgsl_int)                                    :: errorCode
+    double precision                                     :: xActual
 
     ! Decide whether to reset.
     resetActual=.false.
@@ -197,13 +249,34 @@ contains
        interpolationObject=fgsl_interp_alloc(interpolationTypeActual,nPointsC)
        ! Check status.
        status=fgsl_interp_init(interpolationObject,xArray,yArray,nPointsC)
-       if (status /= fgsl_success) call Galacticus_Error_Report('Interpolate','interpolation initialization failed')
+       if (status /= fgsl_success) call Galacticus_Error_Report('Interpolate_Derivative','interpolation initialization failed')
     end if
 
+
+    ! If extrapolation is allowed, check if this is necessary.
+    xActual=x
+    if (present(allowExtrapolation)) then
+       allowExtrapolationActual=allowExtrapolation
+    else
+       allowExtrapolationActual=.false.
+    end if
+    if (allowExtrapolationActual) then
+       if (x < xArray(1           )) xActual=xArray(1           )
+       if (x > xArray(size(xArray))) xActual=xArray(size(xArray))
+    end if
     ! Do the interpolation.
-    Interpolate_Derivative=fgsl_interp_eval_deriv(interpolationObject,xArray,yArray,x,interpolationAccelerator)
-    return
-  end function Interpolate_Derivative
+    errorCode=fgsl_interp_eval_deriv_e(interpolationObject,xArray,yArray,xActual,interpolationAccelerator,Interpolate_Derivative)
+    if (errorCode /= 0) then
+       select case (errorCode)
+       case (FGSL_EDOM)
+          message='requested point is outside of allowed range'
+       case default
+          message='interpolation failed for unknown reason'
+       end select
+       call Galacticus_Error_Report('Interpolate_Derivative',message)
+    end if
+     return
+   end function Interpolate_Derivative
 
   integer function Interpolate_Locate(nPoints,xArray,interpolationAccelerator,x,reset,closest)
     !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding value in {\tt yArray()}.
