@@ -127,13 +127,14 @@ contains
     type(fgsl_interp_type),  intent(in),    optional     :: interpolationType
     logical,                 intent(inout), optional     :: reset
     logical,                 intent(in),    optional     :: allowExtrapolation
+    double precision,        parameter                   :: rangeTolerance=1.0d-6
     type(fgsl_interp_type)                               :: interpolationTypeActual
     integer                                              :: status,basePoint
     integer(c_size_t)                                    :: nPointsC
     logical                                              :: resetActual,allowExtrapolationActual
     type(varying_string)                                 :: message
     integer(fgsl_int)                                    :: errorCode
-    double precision                                     :: gradient
+    double precision                                     :: gradient,xActual
 
     ! Decide whether to reset.
     resetActual=.false.
@@ -191,8 +192,12 @@ contains
        end if
        Interpolate=yArray(basePoint)+gradient*(x-xArray(basePoint))
     else
+       ! Allow for rounding errors.	
+       xActual=x
+       if (x < xArray(1           ) .and. x > xArray(1           )-rangeTolerance*dabs(xArray(1)           )) xActual=xArray(1           )
+       if (x > xArray(size(xArray)) .and. x < xArray(size(xArray))+rangeTolerance*dabs(xArray(size(xArray)))) xActual=xArray(size(xArray))
        ! Do the interpolation.
-       errorCode=fgsl_interp_eval_e(interpolationObject,xArray,yArray,x,interpolationAccelerator,Interpolate)
+       errorCode=fgsl_interp_eval_e(interpolationObject,xArray,yArray,xActual,interpolationAccelerator,Interpolate)
        if (errorCode /= 0) then
           select case (errorCode)
           case (FGSL_EDOM)
