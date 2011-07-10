@@ -156,7 +156,8 @@ contains
 
     randomDeviate=Pseudo_Random_Get(randomSequenceObject,resetRandomSequence)
     Halo_Spin_Distribution_Bett2007=Interpolate(spinDistributionTableNumberPoints,spinDistributionTableCumulative&
-         &,spinDistributionTableSpin,interpolationObject,interpolationAccelerator,randomDeviate,reset=resetInterpolation)
+         &,spinDistributionTableSpin,interpolationObject,interpolationAccelerator,randomDeviate,reset=resetInterpolation&
+         &,extrapolationType=extrapolationTypeFixed)
     return
   end function Halo_Spin_Distribution_Bett2007
   

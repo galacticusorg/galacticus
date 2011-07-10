@@ -637,15 +637,15 @@ contains
           ! Get average recycling rate between ageMinimum and ageMaximum.
           recycleRate(1)=(Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge,recycledFractionTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset &
-               &=interpolationAgeReset,allowExtrapolation=.true.)-Interpolate(recycledFractionTableAgeCount&
+               &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)-Interpolate(recycledFractionTableAgeCount&
                &,recycledFractionTableAge ,recycledFractionTable(: ,metallicityIndex,tableIndex),interpolationAgeObject&
-               &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,allowExtrapolation=.true.))/(ageMaximum&
+               &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum&
                &-ageMinimum)
        else
           ! Get instantaneous recycling rate at ageMinimum.
           recycleRate(1)=Interpolate_Derivative(recycledFractionTableAgeCount,recycledFractionTableAge,recycledFractionTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum,reset&
-               &=interpolationAgeReset,allowExtrapolation=.true.)
+               &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
        end if
        recycleRate(2)=0.0d0
     else
@@ -659,15 +659,15 @@ contains
              ! Get average recycling rate between ageMinimum and ageMaximum.
              recycleRate(iMetallicity+1)=(Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge&
                   &,recycledFractionTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
-                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,allowExtrapolation=.true.)&
+                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)&
                   &-Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge ,recycledFractionTable(:,metallicityIndex&
                   &+iMetallicity,tableIndex),interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset&
-                  &=interpolationAgeReset,allowExtrapolation=.true.))/(ageMaximum-ageMinimum)
+                  &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
              recycleRate(iMetallicity+1)=Interpolate_Derivative(recycledFractionTableAgeCount,recycledFractionTableAge&
                   &,recycledFractionTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
-                  &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,allowExtrapolation=.true.)
+                  &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
           end if
        end do
     end if
@@ -1024,15 +1024,15 @@ contains
            ! Get average recycling rate between ageMinimum and ageMaximum.
            metalYieldRate(1)=(Interpolate(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: ,metallicityIndex &
                 &,abundanceIndexActual,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset &
-                &=interpolationAgeReset,allowExtrapolation=.true.) -Interpolate(metalYieldTableAgeCount,metalYieldTableAge &
+                &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear) -Interpolate(metalYieldTableAgeCount,metalYieldTableAge &
                 &,metalYieldTable(: ,metallicityIndex,abundanceIndexActual,tableIndex) ,interpolationAgeObject&
-                &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,allowExtrapolation=.true.))/(ageMaximum&
+                &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum&
                 &-ageMinimum)
         else
            ! Get instantaneous recycling rate at ageMinimum.
            metalYieldRate(1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: &
                 &,metallicityIndex,abundanceIndexActual,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum&
-                & ,reset=interpolationAgeReset,allowExtrapolation=.true.)
+                & ,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
         end if
         metalYieldRate(2)=0.0d0
      else
@@ -1046,15 +1046,15 @@ contains
              ! Get average recycling rate between ageMinimum and ageMaximum.
              metalYieldRate(iMetallicity+1)=(Interpolate(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
                   &,metallicityIndex+iMetallicity,abundanceIndexActual,tableIndex),interpolationAgeObject &
-                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,allowExtrapolation=.true.) &
+                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear) &
                   &-Interpolate(metalYieldTableAgeCount ,metalYieldTableAge,metalYieldTable(:,metallicityIndex+iMetallicity&
                   &,abundanceIndexActual,tableIndex) ,interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset &
-                  &=interpolationAgeReset,allowExtrapolation=.true.))/(ageMaximum -ageMinimum)
+                  &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum -ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
              metalYieldRate(iMetallicity+1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
                   &,metallicityIndex+iMetallicity,abundanceIndexActual,tableIndex),interpolationAgeObject &
-                  &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,allowExtrapolation=.true.)
+                  &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
           end if
        end do
      end if
@@ -1367,14 +1367,14 @@ contains
           ! Get average recycling rate between ageMinimum and ageMaximum.
           energyInputRate(1)=(Interpolate(energyInputTableAgeCount,energyInputTableAge,energyInputTable(: ,metallicityIndex&
                &,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset&
-               &,allowExtrapolation=.true.)-Interpolate(energyInputTableAgeCount,energyInputTableAge ,energyInputTable(: &
+               &,extrapolationType=extrapolationTypeLinear)-Interpolate(energyInputTableAgeCount,energyInputTableAge ,energyInputTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset &
-               &=interpolationAgeReset,allowExtrapolation=.true.))/(ageMaximum-ageMinimum)
+               &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum-ageMinimum)
        else
           ! Get instantaneous energy input rate at ageMinimum.
           energyInputRate(1)=Interpolate_Derivative(energyInputTableAgeCount,energyInputTableAge,energyInputTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum,reset &
-               &=interpolationAgeReset,allowExtrapolation=.true.)
+               &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
        end if
        energyInputRate(2)=0.0d0
     else
@@ -1388,15 +1388,15 @@ contains
              ! Get average recycling rate between ageMinimum and ageMaximum.
              energyInputRate(iMetallicity+1)=(Interpolate(energyInputTableAgeCount,energyInputTableAge ,energyInputTable(: &
                   &,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject ,interpolationAgeAccelerator,ageMaximum &
-                  &,reset =interpolationAgeReset,allowExtrapolation=.true.) -Interpolate(energyInputTableAgeCount&
+                  &,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear) -Interpolate(energyInputTableAgeCount&
                   &,energyInputTableAge ,energyInputTable(: ,metallicityIndex +iMetallicity,tableIndex),interpolationAgeObject&
-                  &,interpolationAgeAccelerator ,ageMinimum ,reset =interpolationAgeReset,allowExtrapolation=.true.))/(ageMaximum&
+                  &,interpolationAgeAccelerator ,ageMinimum ,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum&
                   &-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
              energyInputRate(iMetallicity+1)=Interpolate_Derivative(energyInputTableAgeCount,energyInputTableAge &
                   &,energyInputTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject &
-                  &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,allowExtrapolation=.true.)
+                  &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
           end if
        end do
     end if

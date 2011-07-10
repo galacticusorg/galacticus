@@ -71,6 +71,11 @@ module Numerical_Interpolation
   public :: Interpolate, Interpolate_Derivative, Interpolate_Locate, Interpolate_Done, Interpolate_Linear_Generate_Factors,&
        & Interpolate_Linear_Do, Interpolate_Linear_Generate_Gradient_Factors
   
+  ! Labels for extrapolation methods.
+  integer, parameter, public :: extrapolationTypeNone  =0
+  integer, parameter, public :: extrapolationTypeLinear=1
+  integer, parameter, public :: extrapolationTypeFixed =2
+
 contains
   
   double precision function Interpolate_Linear_Do(nPoints,yArray,iInterpolate,interpolationFactors)
@@ -114,7 +119,7 @@ contains
   end function Interpolate_Linear_Generate_Gradient_Factors
 
   double precision function Interpolate(nPoints,xArray,yArray,interpolationObject,interpolationAccelerator,x,interpolationType&
-       &,allowExtrapolation,reset)
+       &,extrapolationType,reset)
     !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding value in {\tt yArray()}.
     use Galacticus_Error
     use ISO_Varying_String
@@ -126,12 +131,12 @@ contains
     double precision,        intent(in)                  :: x
     type(fgsl_interp_type),  intent(in),    optional     :: interpolationType
     logical,                 intent(inout), optional     :: reset
-    logical,                 intent(in),    optional     :: allowExtrapolation
+    integer,                 intent(in),    optional     :: extrapolationType
     double precision,        parameter                   :: rangeTolerance=1.0d-6
     type(fgsl_interp_type)                               :: interpolationTypeActual
-    integer                                              :: status,basePoint
+    integer                                              :: status,basePoint,extrapolationTypeActual
     integer(c_size_t)                                    :: nPointsC
-    logical                                              :: resetActual,allowExtrapolationActual
+    logical                                              :: resetActual
     type(varying_string)                                 :: message
     integer(fgsl_int)                                    :: errorCode
     double precision                                     :: gradient,xActual
@@ -161,19 +166,19 @@ contains
     end if
 
     ! If extrapolation is allowed, check if this is necessary.
-    if (present(allowExtrapolation)) then
-       allowExtrapolationActual=allowExtrapolation
+    if (present(extrapolationType)) then
+       extrapolationTypeActual=extrapolationType
     else
-       allowExtrapolationActual=.false.
+       extrapolationTypeActual=extrapolationTypeNone
     end if
-    if     (                            &
-         &   allowExtrapolationActual   &
-         &  .and.                       &
-         &   (                          &
-         &     x < xArray(1           ) &
-         &    .or.                      &
-         &     x > xArray(size(xArray)) &
-         &   )                          &
+    if     (                                                    &
+         &   extrapolationTypeActual == extrapolationTypeLinear &
+         &  .and.                                               &
+         &   (                                                  &
+         &     x < xArray(1           )                         &
+         &    .or.                                              &
+         &     x > xArray(size(xArray))                         &
+         &   )                                                  &
          & ) then
        if (x < xArray(1)) then
           basePoint=1
@@ -194,8 +199,14 @@ contains
     else
        ! Allow for rounding errors.	
        xActual=x
-       if (x < xArray(1           ) .and. x > xArray(1           )-rangeTolerance*dabs(xArray(1)           )) xActual=xArray(1           )
-       if (x > xArray(size(xArray)) .and. x < xArray(size(xArray))+rangeTolerance*dabs(xArray(size(xArray)))) xActual=xArray(size(xArray))
+       select case (extrapolationTypeActual)
+       case (extrapolationTypeFixed)
+          if (x < xArray(1           )                                                                         ) xActual=xArray(1           )
+          if (x > xArray(size(xArray))                                                                         ) xActual=xArray(size(xArray))
+       case default
+          if (x < xArray(1           ) .and. x > xArray(1           )-rangeTolerance*dabs(xArray(1)           )) xActual=xArray(1           )
+          if (x > xArray(size(xArray)) .and. x < xArray(size(xArray))+rangeTolerance*dabs(xArray(size(xArray)))) xActual=xArray(size(xArray))
+       end select
        ! Do the interpolation.
        errorCode=fgsl_interp_eval_e(interpolationObject,xArray,yArray,xActual,interpolationAccelerator,Interpolate)
        if (errorCode /= 0) then
@@ -212,7 +223,7 @@ contains
   end function Interpolate
 
   double precision function Interpolate_Derivative(nPoints,xArray,yArray,interpolationObject,interpolationAccelerator,x&
-       &,interpolationType ,allowExtrapolation,reset)
+       &,interpolationType ,extrapolationType,reset)
     !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding first derivative of {\tt yArray()}.
     use Galacticus_Error
     use ISO_Varying_String
@@ -224,11 +235,11 @@ contains
     double precision,        intent(in)                  :: x
     type(fgsl_interp_type),  intent(in),    optional     :: interpolationType
     logical,                 intent(inout), optional     :: reset
-    logical,                 intent(in),    optional     :: allowExtrapolation
+    integer,                 intent(in),    optional     :: extrapolationType
     type(fgsl_interp_type)                               :: interpolationTypeActual
-    integer                                              :: status
+    integer                                              :: status,extrapolationTypeActual
     integer(c_size_t)                                    :: nPointsC
-    logical                                              :: resetActual,allowExtrapolationActual
+    logical                                              :: resetActual
     type(varying_string)                                 :: message
     integer(fgsl_int)                                    :: errorCode
     double precision                                     :: xActual
@@ -260,15 +271,16 @@ contains
 
     ! If extrapolation is allowed, check if this is necessary.
     xActual=x
-    if (present(allowExtrapolation)) then
-       allowExtrapolationActual=allowExtrapolation
+    if (present(extrapolationType)) then
+       extrapolationTypeActual=extrapolationType
     else
-       allowExtrapolationActual=.false.
+       extrapolationTypeActual=extrapolationTypeNone
     end if
-    if (allowExtrapolationActual) then
+    select case (extrapolationTypeActual)
+    case (extrapolationTypeLinear,extrapolationTypeFixed)
        if (x < xArray(1           )) xActual=xArray(1           )
        if (x > xArray(size(xArray))) xActual=xArray(size(xArray))
-    end if
+    end select
     ! Do the interpolation.
     errorCode=fgsl_interp_eval_deriv_e(interpolationObject,xArray,yArray,xActual,interpolationAccelerator,Interpolate_Derivative)
     if (errorCode /= 0) then
