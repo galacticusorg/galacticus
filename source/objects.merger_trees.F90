@@ -521,7 +521,7 @@ contains
     if (profileOdeEvolver) then
        My_Error_Analyzer => Tree_Node_Evolve_Error_Analyzer
     else
-       My_Error_Analyzer => null()
+       My_Error_Analyzer => Tree_Node_Evolve_Error_Analyzer_Dummy
     end if
 #endif
     call ODE_Solve(                                               &
@@ -880,6 +880,18 @@ contains
   end subroutine Tree_Node_Compute_Derivatives
   
 #ifdef PROFILE
+  subroutine Tree_Node_Evolve_Error_Analyzer_Dummy(currentPropertyValue,currentPropertyError,timeStep,stepStatus)
+    !% Dummy profiler of ODE solver step sizes and errors.
+    use FGSL
+    implicit none
+    double precision,        intent(in), dimension(nProperties) :: currentPropertyValue
+    real(fgsl_double),       intent(in), dimension(nProperties) :: currentPropertyError
+    double precision,        intent(in)                         :: timeStep
+    integer,                 intent(in)                         :: stepStatus
+
+    return
+  end subroutine Tree_Node_Evolve_Error_Analyzer_Dummy
+ 
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus)
     !% Profiles ODE solver step sizes and errors.
     use FGSL
@@ -901,7 +913,7 @@ contains
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0    
     do iProperty=1,nProperties
-       scaledError=currentPropertyError(iProperty)/(odeToleranceAbsolute*propertyScales(iProperty)+odeToleranceRelative&
+       scaledError=dabs(currentPropertyError(iProperty))/(odeToleranceAbsolute*propertyScales(iProperty)+odeToleranceRelative&
             &*dabs(currentPropertyValue(iProperty)))
        if (scaledError > scaledErrorMaximum) then
           scaledErrorMaximum=scaledError

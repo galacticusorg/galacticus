@@ -133,10 +133,8 @@ contains
 #ifdef PROFILE
        ! If profiling is being performed, extract errors and send them to the specified error analysis function.
        if (present(Error_Analyzer) .and. x /= x0) then
-          if (associated(Error_Analyzer)) then
-             call FGSL_ODEiv_Evolve_Error(odeEvolver,yError)
-             call Error_Analyzer(y,yError,h,status)
-          end if
+          call FGSL_ODEiv_Evolve_Error(odeEvolver,yError)
+          call Error_Analyzer(y,yError,h,status)
        end if
 #endif
 
