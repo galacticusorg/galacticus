@@ -34,7 +34,7 @@ unless ( -e $stellarPopulationFile ) {
     close(pHndl);
     if ( $currentRevision < $availableRevision ) {
 	print "Conroy_SPS_Driver.pl: updating source code.\n";
-	system("svn revert aux/FSPS_v2.2"); # Revert the code.
+	system("svn revert -R aux/FSPS_v2.2"); # Revert the code.
 	system("svn update aux/FSPS_v2.2"); # Grab updates
 	unlink("aux/FSPS_v2.2/src/galacticus_IMF.f90") # Remove this file to trigger re-patching of the code.
     }
