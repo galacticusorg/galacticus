@@ -73,7 +73,7 @@ module Tree_Node_Methods_Hernquist_Spheroid
        & Galacticus_Output_Tree_Spheroid_Hernquist_Property_Count, Galacticus_Output_Tree_Spheroid_Hernquist_Names,&
        & Hernquist_Spheroid_Radius_Solver, Hernquist_Spheroid_Enclosed_Mass, Hernquist_Spheroid_Density,&
        & Hernquist_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Hernquist, Tree_Node_Methods_Hernquist_Spheroid_Dump,&
-       & Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set, Hernquist_Spheroid_Post_Evolve,&
+       & Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set,&
        & Hernquist_Spheroid_Star_Formation_History_Output, Hernquist_Spheroid_Property_Identifiers_Decode
   
   ! The index used as a reference for this component.

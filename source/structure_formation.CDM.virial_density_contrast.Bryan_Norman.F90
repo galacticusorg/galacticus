@@ -64,8 +64,7 @@
 
 module Virial_Densities_Bryan_Norman
   private
-  public :: Virial_Density_Bryan_Norman_Initialize, Virial_Density_Bryan_Norman_State_Store,&
-       & Virial_Density_Bryan_Norman_State_Retrieve
+  public :: Virial_Density_Bryan_Norman_Initialize
 
   ! Variables to hold the tabulated critical overdensity data.
   double precision            :: deltaTableTimeMinimum=1.0d0, deltaTableTimeMaximum=20.0d0

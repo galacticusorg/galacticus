@@ -77,7 +77,7 @@ module Atomic_Cross_Sections_Ionization_Photo_Verner
   public :: Atomic_Cross_Section_Ionization_Photo_Verner_Initialize
 
   ! Arrays to store coefficients of photo ionization rate fitting functions.
-  integer :: fitCoefficientL(7),innerShellNumbers(30),outerShellNumbers(30)
+  integer :: fitCoefficientL(7),innerShellNumbers(30),outerShellNumbers(30),i
   double precision :: fitCoefficients1(6,30,30,7),fitCoefficients2(7,30,30)
 
   ! Initialize the fitting coefficients.

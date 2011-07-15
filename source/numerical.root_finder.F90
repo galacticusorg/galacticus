@@ -65,7 +65,7 @@ module Root_Finder
   !% Implements root finding.
   use FGSL
   private
-  public :: Root_Find, Root_Find_Done
+  public :: Root_Find, Find_Root_Done
 
 contains
 

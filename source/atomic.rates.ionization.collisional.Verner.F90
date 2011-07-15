@@ -72,6 +72,7 @@ module Atomic_Rates_Ionization_Collisional_Verner
 
   ! Arrays to store coefficients of collisional ionization rate fitting functions.
   double precision :: fitCoefficient(5,28,28)
+  integer          :: i
 
   ! Initialize the fitting coefficients.
   data(fitCoefficient(i, 1, 1),i=1,5) /   13.6d0,0.0d0,2.91d-08,0.2320d0,0.39d0/

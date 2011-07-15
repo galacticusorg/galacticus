@@ -70,6 +70,7 @@ module Atomic_Rates_Recombination_Radiative_Verner
 
   ! Arrays to hold coefficients of fitting functions.
   double precision :: recombinationFitCoefficients(2,30,30),recombinationFitCoefficientsNew(4,30,30),recombinationCoefficientsIron(3,10)
+  integer          :: i
 
   ! Set the fitting coefficients.
   data(recombinationFitCoefficients   (i, 4, 4),i=1, 2) /4.500d-13,0.6480d0/

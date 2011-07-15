@@ -75,7 +75,7 @@ module Merger_Trees
   include 'objects.tree_node.create.modules.inc'
   !# </include>
   private
-  public :: mergerTree, Tree_Node_Is_Accurate, Tree_Node_Get, Merger_Tree_Evolve_Meta_Output
+  public :: mergerTree, Tree_Node_Is_Accurate, Tree_Node_Get
 
   type mergerTree
      !% The merger tree object type.

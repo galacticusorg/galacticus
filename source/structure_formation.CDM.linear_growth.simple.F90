@@ -70,7 +70,7 @@ module Linear_Growth_Simple
   use, intrinsic :: ISO_C_Binding
   use FGSL
   private
-  public :: Linear_Growth_Factor_Simple, Growth_Factor_Simple_Initialize, Linear_Growth_Simple_State_Store,&
+  public :: Growth_Factor_Simple_Initialize, Linear_Growth_Simple_State_Store,&
        & Linear_Growth_Simple_State_Retrieve
   
   ! Variables to hold table of growth factor vs. cosmic time.
