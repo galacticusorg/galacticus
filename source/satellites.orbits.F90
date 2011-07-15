@@ -68,12 +68,12 @@ module Satellite_Orbits
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius
   
   ! Orbital energy - used for finding radius of equivalent circular orbit.
-  double precision                              :: orbitalEnergyInternal
+  double precision          :: orbitalEnergyInternal
   !$omp threadprivate(orbitalEnergyInternal)
   
   ! Node used in root finding calculations.
-  type(treeNode),                       pointer :: activeNode
-  !$omp threadprivate(hostNode)
+  type(treeNode),   pointer :: activeNode
+  !$omp threadprivate(activeNode)
 
 contains
   
