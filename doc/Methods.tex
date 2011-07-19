@@ -550,7 +550,7 @@ The function must return the cross-section for photoionization (in units of cm$^
 
 Currently defined photoionization cross-section methods are:
 \begin{description}
- \item [{\tt Verner}]  Computes the cross-sections by use of the fits from \citeauthor{verner_atomic_199}~(\citeyear{verner_atomic_199}; Version 2, March 25, 1996).
+ \item [{\tt Verner}]  Computes the cross-sections by use of the fits from \citeauthor{verner_atomic_1996_1}~(\citeyear{verner_atomic_1996_1}; Version 2, March 25, 1996).
 \end{description}
 
 \subsubsection{Atomic Radiative Recombination Rates}
@@ -996,7 +996,7 @@ The first function must return the time available for cooling (in units of Gyr) 
 Currently defined cooling time available methods are:
 \begin{description}
  \item [\hyperlink{cooling.time_available.White-Frenk.F90:cooling_time_available_white_frenk:cooling_time_available_wf}{{\tt White-Frenk}}] The time available is set to a value between the age of the Universe and the dynamical time of the halo, depending on the interpolating parameter {\tt [coolingTimeAvailableAgeFactor]};
- \item [\hyperlink{cooling.time_available.halo_formation.F90:cooling_time_available_halo_formation:cooling_time_available_halo_formation}{{\tt halo formation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
+ \item [\hyperlink{cooling.time_available.halo_formation.F90:cooling_times_available_halo_formation:cooling_time_available_halo_formation}{{\tt halo formation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
 \end{description}
 
 \subsubsection{Cooling Time Available For Freefall}
@@ -1039,7 +1039,7 @@ The first function must return the time available for freefall cooling calculati
 
 Currently defined freefall time available methods are:
 \begin{description}
- \item [\hyperlink{cooling.freefall_time_available.halo_formation.F90:freeall_times_available_halo_formation:freefall_time_available_halo_formation}{{\tt halo formation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
+ \item [\hyperlink{cooling.freefall_time_available.halo_formation.F90:freefall_times_available_halo_formation:freefall_time_available_halo_formation}{{\tt halo formation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
 \end{description}
 
 \subsubsection{Cooling Time}
@@ -1895,7 +1895,7 @@ The function must return the radius (in units of Mpc) of the cored isothermal ho
 Currently defined hot halo cored isothermal density profile core radii methods are:
 \begin{description}
  \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.virial_radius_fraction.F90:hot_halo_density_cored_isothermal_core_radii_virial_fraction:hot_halo_density_cored_isothermal_core_radius_virial_fraction}{{\tt virialRadiusFraction}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
- \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.virial_radius_fraction.F90:hot_halo_density_cored_isothermal_core_radii_growing_core:hot_halo_density_cored_isothermal_core_radius_growing_core}{{\tt growing core}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+ \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.growing_core.F90:hot_halo_density_cored_isothermal_core_radii_growing_core:hot_halo_density_cored_isothermal_core_radius_growing_core}{{\tt growing core}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
 \end{description}
 
 \subsubsection{Hot Halo Temperature Profile}
@@ -3315,7 +3315,7 @@ The function must return the merging timescale for {\tt thisNode} orbitting with
 Currently defined satellite virial orbit methods are:
 \begin{description}
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole.F90:dynamical_friction_lacey_cole:satellite_time_until_merging_lacey_cole}{{\tt Lacey-Cole}}] Computes the merging timescale using the method of \cite{lacey_merger_1993}.
- \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole_Tormen.F90:dynamical_friction_lacey_cole:satellite_time_until_merging_lacey_cole_tormen}{{\tt Lacey-Cole + Tormen}}] Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000};
+ \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole_Tormen.F90:dynamical_friction_lacey_cole_tormen:satellite_time_until_merging_lacey_cole_tormen}{{\tt Lacey-Cole + Tormen}}] Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000};
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Jiang2008.F90:dynamical_friction_jiang2008:satellite_time_until_merging_jiang2008}{{\tt Jiang2008}}] Computes the merging timescale using the method of \cite{jiang_fitting_2008}.
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Boylan-Kolchin2008.F90:dynamical_friction_boylankolchin2008:satellite_time_until_merging_boylankolchin2008}{{\tt BoylanKolchin2008}}] Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008}.
  \item [\hyperlink{satellites.merging.preset.F90:satellite_merging_times_preset:satellite_time_until_merging_preset}{{\tt preset}}] This method assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time.
@@ -3361,7 +3361,7 @@ Currently defined satellite virial orbit methods are:
 \begin{description}
  \item [\hyperlink{satellites.merging.virial_orbits.Benson2005.F90:virial_orbits_benson2005:virial_orbital_parameters_benson2005}{{\tt Benson2005}}] The orbital parameters are select from the distribution found by \cite{benson_orbital_2005}.
  \item [\hyperlink{satellites.merging.virial_orbits.Wetzel2010.F90:virial_orbits_wetzel2010:virial_orbital_parameters_wetzel2010}{{\tt Wetzel2010}}] The orbital parameters are select from the distribution found by \cite{wetzel_orbits_2010}.
- \item [\hyperlink{satellites.merging.virial_orbits.fixed.F90:virial_orbits_fixed:virial_orbital_parameters_fix}{{\tt fixed}}] The orbital parameters are set to fixed values, with $v_{\rm r}=${\tt [virialOrbitsFixedRadialVelocity]}$V_{\rm virial}$ and  $v_\phi=${\tt [virialOrbitsFixedTangentialVelocity]}$V_{\rm virial}$.
+ \item [\hyperlink{satellites.merging.virial_orbits.fixed.F90:virial_orbits_fixed:virial_orbital_parameters_fixed}{{\tt fixed}}] The orbital parameters are set to fixed values, with $v_{\rm r}=${\tt [virialOrbitsFixedRadialVelocity]}$V_{\rm virial}$ and  $v_\phi=${\tt [virialOrbitsFixedTangentialVelocity]}$V_{\rm virial}$.
 \end{description}
 
 \subsubsection{Star Formation Feedback in Disks/Spheroids}
@@ -3445,8 +3445,8 @@ The function must return the expulsive mass outflow rate (in $M_\odot$ Gyr$^{-1}
 
 Currently defined star formation expulsive feedback methods are:
 \begin{description}
- \item [\hyperlink{star_formation.feedback_expulsion.spheroids.null.F90:star_formation_expulsion_feedback_spheroids_null:star_formation_expulsive_feedback_spheroid_outflow_rate_null}{{\tt null}}] Assumes a zero outflow rate.
- \item [\hyperlink{star_formation.feedback_expulsion.spheroids.superwind.F90:star_formation_expulsion_feedback_spheroids_superwinds:star_formation_expulsive_feedback_spheroid_outflow_rate_sw}{{\tt superwind}}] The outflow rate is given by
+ \item [\hyperlink{star_formation.feedback_expulsion.spheroids.null.F90:star_formation_expulsive_feedback_spheroids_null:star_formation_expulsive_feedback_spheroid_outflow_rate_null}{{\tt null}}] Assumes a zero outflow rate.
+ \item [\hyperlink{star_formation.feedback_expulsion.spheroids.superwind.F90:star_formation_expulsive_feedback_spheroids_superwind:star_formation_expulsive_feedback_spheroid_outflow_rate_sw}{{\tt superwind}}] The outflow rate is given by
 \begin{equation}
  \dot{M}_{\rm outflow} = \beta_{\rm superwind} {\dot{E} \over E_{\rm canonical}} \left\{ \begin{array}{ll} \left( V_{\rm superwind}/V\right)^2 & \hbox{ if } V > V_{\rm superwind} \\ 1 & \hbox{ otherwise,} \end{array} \right.
 \end{equation}
@@ -4425,7 +4425,7 @@ Tasks to be performed just prior to closing the \glc\ output HDF5 file (typicall
 \end{verbatim}
 The contents of {\tt <unitName>} should give the name of the subroutine to be called prior to HDF5 file closure. The subroutine should have no arguments.
 
-\subsubsection{Initial Mass Functions}
+\subsubsection{Initial Mass Functions}\label{sec:imfTasks}
 
 New \IMF s can be added using the {\tt imfRegister} and {\tt imfRegisterName} task directives. For example, the {\tt Salpeter} \IMF\ is registered using the directives:
 \begin{verbatim}

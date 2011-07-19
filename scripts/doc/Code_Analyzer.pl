@@ -102,7 +102,7 @@ sub processFile {
     $fileName = $_;
     chomp($fileName);
 
-    # Check if this is a Fortran source file.
+    # Check if this is a Fortran or C++ source file.
     if ( $fileName =~ m/\.[fF]90$/ ) {
 	# Initialize the unitIdList array and the units hash.
 	undef(@unitIdList);
@@ -447,7 +447,11 @@ sub Output_Data {
 		@unsortedModules = keys(%{$units{$unitID}->{"modulesUsed"}});
 		@sortedModules = sort(@unsortedModules);
 		foreach ( @sortedModules ) {
-		    $_ = "\\hyperlink{".$modules{$_}."}{{\\tt ".&latex_encode($_)."}}";
+		    if ( $modules{$_} eq "" ) {
+			$_ = "{\\tt ".&latex_encode($_)."}";
+		    } else {
+			$_ = "\\hyperlink{".$modules{$_}."}{{\\tt ".&latex_encode($_)."}}";
+		    }
 		}
 		&printTwoColumn($outputHandle,\@sortedModules);
 	    }
@@ -462,7 +466,11 @@ sub Output_Data {
 		@unsortedUnits = keys(%{$units{$unitID}->{"usedBy"}});
 		@sortedUnits = sort(@unsortedUnits);
 		foreach ( @sortedUnits ) {
-		    $_ = $units{$_}->{"unitType"}." \\hyperlink{".$_."}{{\\tt ".&latex_encode($units{$_}->{"unitName"})."}}";
+		    if ( $_ eq "" ) {
+			$_ = $units{$_}->{"unitType"}." {\\tt ".&latex_encode($units{$_}->{"unitName"})."}";
+		    } else {
+			$_ = $units{$_}->{"unitType"}." \\hyperlink{".$_."}{{\\tt ".&latex_encode($units{$_}->{"unitName"})."}}";
+		    }
 		}
 		&printTwoColumn($outputHandle,\@sortedUnits);
 	    }

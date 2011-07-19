@@ -59,7 +59,7 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements the Chabrier stellar initial mass function \citep{}.
+!% Contains a module which implements the Chabrier stellar initial mass function \citep{chabrier_galactic_2001}.
 
 module Star_Formation_IMF_Chabrier
   !% Implements the Chabrier stellar initial mass function.
