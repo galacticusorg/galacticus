@@ -1,0 +1,200 @@
+\chapter{Tutorials}
+
+This chapter contains step-by-step guides to performing common tasks with \glc.
+
+\section{Running \glc\ on N-body Merger Trees}\index{merger trees!N-body}\index{N-body!merger trees}
+
+\subsection{Creating the Merger Tree Files}
+
+\subsection{Setting Input Parameters}
+
+To utilize merger trees from the file that you created in a \glc\ run it's necessary to set two parameters in the input parameter file that you will use for the run:
+\begin{verbatim}
+  <!-- Specify that merger trees are to be read from file, and give the name of the file to read -->
+  <parameter>
+    <name>mergerTreeConstructMethod</name>
+    <value>read</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadFileName</name>
+    <value>myNBodyTrees.hdf5
+  </parameter>
+\end{verbatim}
+The first of these {\tt [mergerTreeConstructMethod]}$=${\tt read} tells \glc\ that merger trees will be constructed by reading them from a file. The second, {\tt [mergerTreeReadFileName]}, gives the name of the file from which to read the trees. In this example, we use the name of the file that was jus created.
+
+In addition to specifying that trees should be read from a file, it's also important to ensure that the values of cosmological parameters in \glc\ match those in the merger tree file. (If they don't match, \glc\ will stop with an error message.) In our case of using merger trees from the Millennium Simulation, the correct cosmological parameter values can be set as follows:
+\begin{verbatim}
+  <!-- Use Millennium Simulation cosmology. -->
+  <parameter>
+    <name>H_0</name>
+    <value>73.0</value>
+  </parameter>
+  <parameter>
+    <name>Omega_0</name>
+    <value>0.25</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.75</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0455</value>
+  </parameter>
+  <parameter>
+    <name>sigma_8</name>
+    <value>0.9</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumIndex</name>
+    <value>1.0</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumReferenceWavenumber</name>
+    <value>1</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumRunning</name>
+    <value>0</value>
+  </parameter>
+\end{verbatim}
+
+Normally, \glc\ assumes that all merger trees will exist (i.e. have at least one node present) at the final output time. This may not be true of trees extracted from an N-body simulation---in this case \glc\ can be informed of this fact by setting:
+\begin{verbatim}
+  <parameter>
+    <name>allTreesExistAtFinalTime</name>
+    <value>false</value>
+  </parameter>
+\end{verbatim}
+
+N-body merger trees are often built from ``snapshots'' of the simulation, i.e. all of the nodes exist at a set of discrete times. Often we want to output nodes at precisely these output times. In such cases it is useful to set:
+\begin{verbatim}
+  <parameter>
+    <name>mergerTreeReadOutputTimeSnapTolerance</name>
+    <value>1.0d-3</value>
+  </parameter>
+\end{verbatim}
+which ensures that the times of nodes are adjusted to lie at precisely the output time if that time is within the specified relative tolerance (this avoids any small differences between node times and output times that can arises due to rounding errors when converting from redshifts to times and vice-versa).
+
+Further parameters can be set to control what information from the stored trees will be used in \glc. Examples are given below.
+
+\subsubsection{Node Positions}
+
+If position and velocity information for tree nodes is available within the merger tree file than \glc\ can be instructed to use this information by using the ``preset'' method for tree node positions and telling the merger tree construction method to preset node positions as follows:
+\begin{verbatim}
+  <!-- Use merger tree node positions -->
+  <parameter>
+    <name>treeNodeMethodPosition</name>
+    <value>preset</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetPositions</name>
+    <value>true</value>
+  </parameter>
+\end{verbatim}
+If position information is unavailable, the ``null'' position method can be selected and the merger tree construction method instructed not to preset positions as follows:
+\begin{verbatim}
+  <!-- Do not use merger tree node positions -->
+  <parameter>
+    <name>treeNodeMethodPosition</name>
+    <value>null</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetPositions</name>
+    <value>false</value>
+  </parameter>
+\end{verbatim}
+
+\subsubsection{Merging Times and Targets}
+
+The times at which subhalos merge with their host halo can be determined directly from the merger tree file if subhalo information is included in that file. Merging is assumed to occur when the subhalo no longer has a distinct descendent (i.e. it descends into a non-subhalo). If merging times are to be computed in this way set
+\begin{verbatim}
+  <parameter>
+    <name>treeNodeMethodSatelliteOrbit</name>
+    <value>preset</value>    
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetMergerTimes</name>
+    <value>true</value>    
+  </parameter>
+\end{verbatim}
+which select a satellite orbit method that allows merger times to be present and tell the merger tree construction method to preset those merger times respectively. If merger times are not to be computed in this way then instead set, for example,
+\begin{verbatim}
+  <parameter>
+    <name>treeNodeMethodSatelliteOrbit</name>
+    <value>standard</value>    
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetMergerNodes</name>
+    <value>false</value>
+  </parameter>
+  <parameter>
+    <name>satelliteMergingMethod</name>
+    <value>Jiang2008</value>
+  </parameter>
+\end{verbatim}
+which selects a standard satellite orbit method, prevents attempts to preset the merger times and selects the {\tt Jiang2008} method for computing merger times instead.
+
+In addition to setting the times of merger events, it is possible to set the target node with which a merging node should merge. By default, \glc\ will assume that all merging occurs with the non-subhalo host node in which a subhalo is located. This may not be the desired behavior when using N-body merger trees. For example, such trees may indicating that a subhalo merges with another subhalo. Setting
+\begin{verbatim}
+  <parameter>
+    <name>mergerTreeReadPresetMergerNodes</name>
+    <value>false</value>
+  </parameter>
+\end{verbatim}
+will cause the target node with which each merger should occur to be determined from the merger tree structure and preset for use in \glc.
+
+\subsubsection{Subhalo Masses}
+
+The masses of subhalos (specifically their time evolution after they become subhalos) can be set using the values stored in the merger tree file (if available). To set subhalo masses in this way use
+\begin{verbatim}
+  <parameter>
+    <name>treeNodeMethodSatelliteOrbit</name>
+    <value>preset</value>    
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetSubhaloMasses</name>
+    <value>true</value>
+  </parameter>
+\end{verbatim}
+to first select the ``preset'' satellite orbit method (which allows subhalo masses to be preset) and, second, to instruct the merger tree construction algorithm to preset those masses.
+
+\subsubsection{Node Spins}
+
+If information on the angular momenta of nodes is available in the merger tree file, this can be used to preset the value of the spin parameter in each node\footnote{Before doing this, it is important to be sure that the angular momenta of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured angular momentum.} by setting:
+
+\begin{verbatim}
+  <parameter>
+    <name>mergerTreeReadPresetSpins</name>
+    <value>false</value>
+  </parameter>
+\end{verbatim}
+
+The spin parameter is set using the angular momentum of each node stored in the merger tree file using:
+\begin{equation}
+ \lambda = {|{\bf J}| {\rm G} M^{5/2} \over |E|^{1/2}}
+\end{equation}
+where $|{\bf J}|$ is the magnitude of the node's angular momentum, $M$ is the node's mass and $E$ is its energy.
+
+\subsubsection{Node Scale Radii}
+
+If information on the half-mass radii of nodes is available in the merger tree file, it can be used to preset the value of the dark matter halo scale radius in each node\footnote{Before doing this, it is important to be sure that the half-mass radii of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured half-mass radius.} by setting:
+
+\begin{verbatim}
+  <parameter>
+    <name>mergerTreeReadPresetScaleRadii</name>
+    <value>false</value>
+  </parameter>
+\end{verbatim}
+
+The scale radius is set by using a root finding algorithm to ensure that half of the total halo mass is enclosed within the specified half-mass radius.
+
+\subsection{Analyzing the Output}
+
+\subsubsection{Positions and Velocities}
+
+Components of the position of each node are output as {\tt positionX}, {\tt positionY} and {\tt positionZ} and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}).
+
+\subsubsection{Subhalo Masses}
+
+The current mass of subhalos is available via the {\tt nodeBoundMass} otuput dataset and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}). For non-subhalos this property is equal to the usual {\tt nodeMass} property.

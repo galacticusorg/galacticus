@@ -121,7 +121,7 @@ The {\tt Outputs} group contains one or more sub-groups corresponding to the out
  \item[{\tt mergerTree} subgroups \emph{(optional)}] A set of {\tt mergerTree} groups as described below.
 \end{description}
 
-\subsubsection{nodeData group}
+\subsubsection{nodeData group}\label{sec:nodeDataGroup}
 
 The {\tt nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, {\tt unitsInSI}, which gives the units\index{units} of the dataset in the SI system.
 
@@ -170,7 +170,7 @@ Additional, optional, datasets can be added by setting appropriate input paramet
  \end{description}
 \end{itemize}
 
-\section{Perl Module for Data Extraction}
+\section{Perl Module for Data Extraction}\label{sec:perlModuleDataExtraction}
 
 A Perl module is provided that allows for easy extraction of datasets from the \glc\ output file together with a straightforward way to implement derived properties. Currently, this module expects \glc\ to have been run with {\tt [mergerTreeOutputReferences]}$=${\tt true} such that the output file contains references to the nodes in each individual merger tree (see \S\ref{sec:mergerTreeSubgroups}). To use this Perl module, add
 \begin{verbatim}
