@@ -72,7 +72,7 @@ module Spherical_Collapse_Matter_Lambda
 
   ! Variables to hold the tabulated critical overdensity data.
   double precision               :: deltaTableTimeMinimum=1.0d0, deltaTableTimeMaximum=20.0d0
-  integer,             parameter :: deltaTableNPointsPerDecade=300
+  integer,             parameter :: deltaTableNPointsPerDecade=1000
 
   ! Variables used in root finding.
   double precision               :: OmegaDE,OmegaM,tNow,hubbleParameterInvGyr,epsilonPerturbationShared
@@ -156,7 +156,7 @@ contains
     integer,                 intent(in)                               :: calculationType
     type(fgsl_function),     save                                     :: rootFunction
     type(fgsl_root_fsolver), save                                     :: rootFunctionSolver
-    double precision,        parameter                                :: toleranceAbsolute=1.0d-9,toleranceRelative=1.0d-9
+    double precision,        parameter                                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
     integer                                                           :: iTime
     type(c_ptr)                                                       :: parameterPointer
     double precision                                                  :: epsilonPerturbation,epsilonPerturbationMinimum &

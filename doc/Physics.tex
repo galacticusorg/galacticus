@@ -104,6 +104,30 @@ The method used to compute the critical linear overdensity at which overdense re
 
 Selected with {\tt criticalOverdensityMethod}$=${\tt spherical top hat} this method calculates critical overdensity using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
 
+\subsection{Critical Overdensity Mass Scaling}\index{critical density!mass scaling}
+
+The method used to compute the scaling with mass of the critical linear overdensity at which overdense regions virialize is selected via the {\tt criticalOverdensityMassScalingMethod} parameter.
+
+\subsubsection{Null}
+
+Selected with {\tt criticalOverdensityMassScalingMethod}$=${\tt null} this method assumes that the critical overdensity is independent of mass.
+
+\subsubsection{Warm Dark Matter}
+
+Selected with {\tt criticalOverdensityMassScalingMethod}$=${\tt warm dark matter} this method assumes that the critical overdensity scales with mass as expected for warm dark matter using the results of \cite{barkana_constraints_2001}. Specifically, the critical overdensity is multiplied by a factor
+\begin{equation}
+ \exp\left[ \left({M_{\rm J} \over 8 M}\right)^{1.40}+\left({M_{\rm J} \over 8 M}\right)^{0.45} \right],
+\end{equation}
+where $M$ is the mass in question, $M_{\rm J}$ is the effective Jeans mass of the warm dark matter as defined by \citeauthor{barkana_constraints_2001}~[\citeyear{barkana_constraints_2001}; their eqn.~10]:
+\begin{equation}
+M_{\rm J} =  3.06 \times 10^8 \left( {1+z_{\rm eq} \over 3000}\right)^{1.5} \left({\Omega_0 h_0^2 \over 0.15}\right)^{1/2} \left({g_{\rm X} \over 1.5} \right)^{-1} \left({m_{\rm X}/1.0\hbox{keV}}\right)^{-4},
+\end{equation}
+the redshift of matter-radiation equality is given by
+\begin{equation}
+z_{\rm eq} = 3600 \left({\Omega_0 h_0^2 \over 0.15}\right)-1,
+\end{equation}
+and $g_{\rm X}$ and $m_{\rm X}$ are the effective number of degrees of freedom and the mass of the warm dark matter particle respectively. This fitting function has been found the fit the numerical results of \cite{barkana_constraints_2001} well.
+
 \subsection{Virial Density Contrast}\label{sec:VirialDensityConstrast}\index{density!virial}
 
 The method used to compute the mean density contrast of virialized dark matter halos is selected via the {\tt virialDensityContrastMethod} parameter.

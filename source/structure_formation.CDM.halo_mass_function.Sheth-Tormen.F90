@@ -121,7 +121,7 @@ contains
     haloMassFunctionLogMass=Make_Range(logMassMinimum,logMassMaximum,haloMassFunctionNumberPoints,rangeTypeLinear)
     do iMass=1,haloMassFunctionNumberPoints
        mass=dexp(haloMassFunctionLogMass(iMass))
-       nu=(Critical_Overdensity_for_Collapse(time)/sigma_CDM(mass))**2
+       nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/sigma_CDM(mass))**2
        nuPrime=a*nu
        alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
        haloMassFunctionLogAbundance(iMass)=(Omega_0()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0*nuPrime/Pi)*normalization&

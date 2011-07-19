@@ -164,7 +164,7 @@ contains
     sigmaCharacteristic=sigma_CDM(haloMassCharacteristic)
 
     ! Get the time at which this equals the critical overdensity for collapse.
-    formationTime=Time_of_Collapse(sigmaCharacteristic)
+    formationTime=Time_of_Collapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
     
     ! Get the corresponding expansion factor.
     Expansion_Factor_At_Formation=Expansion_Factor(formationTime)

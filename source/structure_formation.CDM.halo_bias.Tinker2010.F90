@@ -97,7 +97,7 @@ contains
     time=Tree_Node_Time(thisNode)
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=Critical_Overdensity_for_Collapse(time)
+    deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=Tree_Node_Mass(thisNode))
     sigma        =sigma_CDM(Tree_Node_Mass(thisNode))
     nu           =deltaCritical/sigma
     

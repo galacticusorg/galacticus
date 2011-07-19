@@ -1362,6 +1362,68 @@ Currently defined critical overdensity methods are:
  \item [{\tt spherical top hat}] The critical overdensity is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
 \end{description}
 
+
+
+
+
+
+
+
+
+
+
+\subsubsection{Critical Overdensity for Halo Collapse: Mass Scaling}
+
+Additional methods for the mass scaling of the critical linear theory overdensity for halo collapse can be added using the {\tt criticalOverdensityMassScalingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt warm dark matter} method is described by a directive:
+\begin{verbatim}
+  !# <criticalOverdensityMassScalingMethod>
+  !#  <unitName>Critical_Overdensity_Mass_Scaling_WDM_Initialize</unitName>
+  !# </criticalOverdensityMassScalingMethod>
+\end{verbatim}
+Here, {\tt Critical\_Overdensity\_Mass\_Scaling\_WDM\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: criticalOverdensityMassScalingMethod
+    procedure(),          pointer, intent(inout) :: Critical_Overdensity_Mass_Scaling_Get
+    
+    if (criticalOverdensityMassScalingMethod == 'myMethod') then
+       Critical_Overdensity_Mass_Scaling_Get => My_Do_Tabulate
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt criticalOverdensityMassScalingMethod} input parameter. The procedure pointer {\tt Critical\_Overdensity\_Mass\_Scaling\_Get} must be set to point to a subroutine which tabulates the critical overdensity mass scaling as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The mass scaling function must have the form:
+\begin{verbatim}
+   subroutine Critical_Overdensity_Mass_Scaling_Get(mass)
+    implicit none
+    double precision, intent(in) :: mass
+    .
+    .
+    .
+    return
+   end subroutine Critical_Overdensity_Mass_Scaling_Get
+\end{verbatim}
+The function should return the factor by which the critical overdensity for collapse at the given {\tt mass} scale (given in units of $M_{\odot}$) differs from that for the case $M\rightarrow\infty$.
+
+Currently defined critical overdensity mass scaling methods are:
+\begin{description}
+ \item [{\tt null}] The critical overdensity is assumed to have no scaling with mass;
+ \item [{\tt warm dark matter}] The mass scaling is computed for warm dark matter using a fitting function to the results of \cite{barkana_constraints_2001}.
+\end{description}
+
+
+
+
+
+
+
+
 \subsubsection{Dark Matter Density Profile}
 
 Additional methods for the dark matter density profile can be added using the {\tt darkMatterProfileMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt NFW} method is described by a directive:

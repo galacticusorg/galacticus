@@ -93,7 +93,7 @@ contains
     double precision                         :: deltaCritical,sigma,nu
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=Critical_Overdensity_for_Collapse(Tree_Node_Time(thisNode))
+    deltaCritical=Critical_Overdensity_for_Collapse(time=Tree_Node_Time(thisNode),mass=Tree_Node_Mass(thisNode))
     sigma        =sigma_CDM(Tree_Node_Mass(thisNode))
     nu           =deltaCritical/sigma
     

@@ -136,7 +136,7 @@ contains
     sObserved=sigmaObserved*10.0d0**dSigmadMassLogarithmicObserved ! Equation 8 from Zhao et al. (2009).
 
     ! Compute critical overdensities for collapse.
-    deltaCriticalObserved=Critical_Overdensity_for_Collapse(baseTime)
+    deltaCriticalObserved=Critical_Overdensity_for_Collapse(time=baseTime,mass=baseMass)
 
     ! Compute w factors.
     wObserved=deltaCriticalObserved/sObserved ! Equation 7 from Zhao et al. (2009).
@@ -184,8 +184,8 @@ contains
     sNow=sigmaNow*10.0d0**dSigmadMassLogarithmicNow ! Equation 8 from Zhao et al. (2009).
 
     ! Compute critical overdensity for collapse.
-    deltaCriticalNow   =Critical_Overdensity_for_Collapse              (nowTime(1))
-    dDeltaCriticaldtNow=Critical_Overdensity_for_Collapse_Time_Gradient(nowTime(1))
+    deltaCriticalNow   =Critical_Overdensity_for_Collapse              (time=nowTime(1),mass=mass)
+    dDeltaCriticaldtNow=Critical_Overdensity_for_Collapse_Time_Gradient(time=nowTime(1),mass=mass)
 
     ! Compute w factor.
     wNow=deltaCriticalNow/sNow      ! Equation 7 from Zhao et al. (2009).

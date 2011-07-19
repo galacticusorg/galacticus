@@ -59,53 +59,38 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements the \cite{gao_redshift_2008} Einasto halo shape algorithm.
+!% Contains a module which implements a null scaling of critical overdensities for collapse.
 
-module Dark_Matter_Profiles_Shapes_Gao2008
-  !% Implements the \cite{gao_redshift_2008} Einasto halo shape algorithm.
+module Critical_Overdensity_Mass_Scalings_Null
+  !% Implements a null scaling of critical overdensities for collapse.
   use Tree_Nodes
   private
-  public :: Dark_Matter_Shapes_Gao2008_Initialize
-
+  public :: Critical_Overdensity_Mass_Scaling_Null_Initialize
+  
 contains
 
-  !# <darkMatterShapeMethod>
-  !#  <unitName>Dark_Matter_Shapes_Gao2008_Initialize</unitName>
-  !# </darkMatterShapeMethod>
-  subroutine Dark_Matter_Shapes_Gao2008_Initialize(darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get)
-    !% Initializes the ``Gao 2008'' halo shape module.
+  !# <criticalOverdensityMassScalingMethod>
+  !#  <unitName>Critical_Overdensity_Mass_Scaling_Null_Initialize</unitName>
+  !# </criticalOverdensityMassScalingMethod>
+  subroutine Critical_Overdensity_Mass_Scaling_Null_Initialize(criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get)
+    !% Initializes the ``null'' critical overdensity mass scaling method.
     use ISO_Varying_String
+    use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: darkMatterShapeMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Shape_Get
+    type(varying_string),                 intent(in)    :: criticalOverdensityMassScalingMethod
+    procedure(double precision), pointer, intent(inout) :: Critical_Overdensity_Mass_Scaling_Get
     
-    if (darkMatterShapeMethod == 'Gao 2008') Dark_Matter_Profile_Shape_Get => Dark_Matter_Profile_Shape_Gao2008
-  
+    if (criticalOverdensityMassScalingMethod == 'null') Critical_Overdensity_Mass_Scaling_Get => Critical_Overdensity_Mass_Scaling_Null
     return
-  end subroutine Dark_Matter_Shapes_Gao2008_Initialize
+  end subroutine Critical_Overdensity_Mass_Scaling_Null_Initialize
 
-  double precision function Dark_Matter_Profile_Shape_Gao2008(thisNode)
-    !% Returns the Einasto shape parameter, $alpha$, of the dark matter profile of {\tt thisNode} using the method of
-    !% \cite{gao_redshift_2008}. More specifically, the parameter is given by:
-    !% \begin{equation}
-    !% \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
-    !% \end{equation}
-    !% where $\nu=\delta_{\rm c}(t)/\sigma(M)$ is the peak height of the halo.
-    use Tree_Nodes
-    use CDM_Power_Spectrum
-    use Critical_Overdensity
+  double precision function Critical_Overdensity_Mass_Scaling_Null(mass)
+    !% Returns a mass scaling for critical overdensities that is always unity.
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: nuMaximum=3.907d0
-    double precision                         :: nu
-    
-    nu=Critical_Overdensity_for_Collapse(time=Tree_Node_Time(thisNode),mass=Tree_Node_Mass(thisNode))/sigma_CDM(Tree_Node_Mass(thisNode))
-    if (nu < nuMaximum) then
-       Dark_Matter_Profile_Shape_Gao2008=0.155d0+0.0095d0*nu**2
-    else
-       Dark_Matter_Profile_Shape_Gao2008=0.3d0
-    end if
+    double precision, intent(in) :: mass
+
+    Critical_Overdensity_Mass_Scaling_Null=1.0d0
     return
-  end function Dark_Matter_Profile_Shape_Gao2008
+  end function Critical_Overdensity_Mass_Scaling_Null
   
-end module Dark_Matter_Profiles_Shapes_Gao2008
+end module Critical_Overdensity_Mass_Scalings_Null
