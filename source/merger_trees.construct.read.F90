@@ -448,6 +448,7 @@ contains
 
   subroutine Merger_Tree_Read_Do(thisTree,skipTree)
     !% Read a merger tree from file.
+    use Galacticus_State
     use Cosmology_Functions
     use Galacticus_Error
     use String_Handling
@@ -509,6 +510,12 @@ contains
 
        ! Continue only if we have a tree.
        if (haveTree) then
+          ! Retrieve stored internal state if possible.
+          call Galacticus_State_Retrieve
+          ! Take a snapshot of the internal state and store it.
+          call Galacticus_State_Snapshot
+          call Galacticus_State_Store
+
           ! If the tree is to be skipped, do not read it.
           if (skipTree) then
              ! Simply allocate a base node to indicate that the tree exists.
