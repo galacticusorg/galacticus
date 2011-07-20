@@ -86,6 +86,7 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     "tests.NFW96_concentration.dark_energy.exe", # Tests of Navarro, Frenk & White (1996) halo concentration algorithm.
     "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
     "tests.hashes.exe",                          # Hashing utilities.
+    "tests.sigma.exe",                           # Sigma(M).
     "tests.bug745815.exe",                       # Regresssions.
     );
 

@@ -66,8 +66,8 @@ module CDM_Power_Spectrum
   use FGSL
   use, intrinsic :: ISO_C_Binding                             
   private
-  public :: Power_Spectrum_CDM, sigma_CDM, sigma_8, sigma_CDM_Logarithmic_Derivative, sigma_CDM_Plus_Logarithmic_Derivative,&
-       & CDM_Power_Spectrum_State_Store, CDM_Power_Spectrum_State_Retrieve
+  public :: Power_Spectrum_CDM, sigma_CDM, Mass_from_Sigma, sigma_8, sigma_CDM_Logarithmic_Derivative,&
+       & sigma_CDM_Plus_Logarithmic_Derivative, CDM_Power_Spectrum_State_Store, CDM_Power_Spectrum_State_Retrieve
 
   ! Flag to indicate if the power spectrum has been normalized.  
   logical                     :: sigmaInitialized   =.false.
@@ -80,12 +80,12 @@ module CDM_Power_Spectrum
 
   ! Variables to hold the tabulated sigma(M) data.
   integer                                        :: sigmaTableNPoints=-1
-  double precision,    allocatable, dimension(:) :: sigmaTableLogMass, sigmaTable
+  double precision,    allocatable, dimension(:) :: sigmaTableLogMass, sigmaTable, sigmaTableLogMassReverse, sigmaTableReverse
   double precision                               :: sigmaTableLogMassMinimum=dlog(1.0d6), sigmaTableLogMassMaximum=dlog(1.0d15)
   integer,             parameter                 :: sigmaTableNPointsPerDecade=10
-  type(fgsl_interp)                              :: interpolationObject
-  type(fgsl_interp_accel)                        :: interpolationAccelerator
-  logical                                        :: resetInterpolation=.true.
+  type(fgsl_interp)                              :: interpolationObject      ,interpolationObjectReverse
+  type(fgsl_interp_accel)                        :: interpolationAccelerator ,interpolationAcceleratorReverse
+  logical                                        :: resetInterpolation=.true.,resetInterpolationReverse=.true.
 
 contains
 
@@ -115,6 +115,25 @@ contains
 
     return
   end function Power_Spectrum_CDM
+
+  double precision function Mass_from_Sigma(sigma)
+    !% Computes the mass corresponding to the given fractional mass fluctuation in real-space spherical top hats.
+    use Numerical_Interpolation
+    implicit none
+    double precision, intent(in) :: sigma
+    double precision             :: logMass
+    
+    ! Ensure that the sigma(M) tabulation exists.
+    call Initialize_Sigma(sigmaTableLogMassMinimum)
+
+    ! Interpolate in tabulated function and return result.
+    !$omp critical(Sigma_CDM_Interpolate)
+    logMass=Interpolate(sigmaTableNPoints,sigmaTableReverse,sigmaTableLogMassReverse,interpolationObjectReverse&
+         &,interpolationAcceleratorReverse,sigma ,interpolationType=FGSL_Interp_CSpline,reset=resetInterpolationReverse)
+    !$omp end critical(Sigma_CDM_Interpolate)
+    Mass_from_Sigma=exp(logMass)
+    return
+  end function Mass_from_Sigma
 
   double precision function sigma_CDM(mass)
     !% Computes the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt mass}.
@@ -194,6 +213,7 @@ contains
     use Numerical_Ranges
     use Numerical_Constants_Math
     use Numerical_Interpolation
+    use Array_Utilities
     implicit none
     double precision, intent(in) :: logMass
     integer                      :: iMass
@@ -221,10 +241,14 @@ contains
        sigmaTableLogMassMaximum=max(sigmaTableLogMassMaximum,logMass+ln10)
        sigmaTableNPoints=int((sigmaTableLogMassMaximum-sigmaTableLogMassMinimum)*dble(sigmaTableNPointsPerDecade)/ln10)
        ! Allocate arrays.
-       if (allocated(sigmaTableLogMass)) call Dealloc_Array(sigmaTableLogMass)
-       if (allocated(sigmaTable    ))    call Dealloc_Array(sigmaTable       )
-       call Alloc_Array(sigmaTableLogMass,[sigmaTableNPoints])
-       call Alloc_Array(sigmaTable       ,[sigmaTableNPoints])
+       if (allocated(sigmaTableLogMass       )) call Dealloc_Array(sigmaTableLogMass       )
+       if (allocated(sigmaTable              )) call Dealloc_Array(sigmaTable              )
+       if (allocated(sigmaTableLogMassReverse)) call Dealloc_Array(sigmaTableLogMassReverse)
+       if (allocated(sigmaTableReverse       )) call Dealloc_Array(sigmaTableReverse       )
+       call Alloc_Array(sigmaTableLogMass       ,[sigmaTableNPoints])
+       call Alloc_Array(sigmaTable              ,[sigmaTableNPoints])
+       call Alloc_Array(sigmaTableLogMassReverse,[sigmaTableNPoints])
+       call Alloc_Array(sigmaTableReverse       ,[sigmaTableNPoints])
        ! Generate a range of mass values to tabulate.
        sigmaTableLogMass=Make_Range(sigmaTableLogMassMinimum,sigmaTableLogMassMaximum,sigmaTableNPoints,rangeTypeLinear)
        ! Compute sigma(M) at each tabulated point.
@@ -232,9 +256,14 @@ contains
           mass=dexp(sigmaTableLogMass(iMass))
           sigmaTable(iMass)=sigma_CDM_Integral(mass)*sigmaNormalization
        end do
-       ! Reset the interpolator.
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
-       resetInterpolation=.true.
+       ! Construct the reversed arrays.
+       sigmaTableLogMassReverse=Array_Reverse(sigmaTableLogMass)
+       sigmaTableReverse       =Array_Reverse(sigmaTable       )
+       ! Reset the interpolators.
+       call Interpolate_Done(interpolationObject       ,interpolationAccelerator       ,resetInterpolation       )
+       call Interpolate_Done(interpolationObjectReverse,interpolationAcceleratorReverse,resetInterpolationReverse)
+       resetInterpolation       =.true.
+       resetInterpolationReverse=.true.
        ! Flag that this module is now initialized.
        sigmaInitialized=.true.
     end if
