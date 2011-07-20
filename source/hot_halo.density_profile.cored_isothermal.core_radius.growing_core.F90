@@ -117,13 +117,13 @@ contains
        call Get_Input_Parameter('isothermalCoreRadiusOverScaleRadius',isothermalCoreRadiusOverScaleRadius,defaultValue=0.1d0)
        !@ <inputParameter>
        !@   <name>isothermalCoreRadiusOverVirialRadiusMaximum</name>
-       !@   <defaultValue>3.2</defaultValue>
+       !@   <defaultValue>10</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The maximum core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadiusMaximum',isothermalCoreRadiusOverVirialRadiusMaximum,defaultValue=3.2d0)
+       call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadiusMaximum',isothermalCoreRadiusOverVirialRadiusMaximum,defaultValue=10.0d0)
 
        ! Ensure that the dark matter profile supports the scale property.
        if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call Galacticus_Error_Report( &
@@ -145,7 +145,11 @@ contains
     use Numerical_Ranges
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: isothermalCoreRadiusOverVirialRadius,isothermalCoreRadiusOverVirialRadiusInitial,hotGasFraction,targetValue
+    double precision, save                   :: isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved&
+         &,isothermalCoreRadiusOverVirialRadiusSaved
+    !$omp threadprivate(isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved,isothermalCoreRadiusOverVirialRadiusSaved)
+    double precision                         :: isothermalCoreRadiusOverVirialRadius,isothermalCoreRadiusOverVirialRadiusInitial&
+         &,hotGasFraction,targetValue
     logical                                  :: makeTable
 
     ! Find the fraction of gas in the hot halo relative to that expected from the universal baryon fraction.
@@ -161,44 +165,50 @@ contains
     isothermalCoreRadiusOverVirialRadiusInitial=isothermalCoreRadiusOverScaleRadius*Tree_Node_Dark_Matter_Profile_Scale(thisNode)&
          &/Dark_Matter_Halo_Virial_Radius(thisNode)
 
-    ! Create a tabulation of core radius vs. virial density factor if necessary.
-    !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
-    makeTable=(.not.coreRadiusTableInitialized) 
-    if (.not.makeTable) makeTable=(isothermalCoreRadiusOverVirialRadiusInitial < coreRadiusTableCoreRadius(coreRadiusTableCount))
-    if (makeTable) then
-       coreRadiusMinimum   =min(isothermalCoreRadiusOverScaleRadius,isothermalCoreRadiusOverVirialRadiusInitial)
-       coreRadiusMaximum   =isothermalCoreRadiusOverVirialRadiusMaximum
-       coreRadiusTableCount=int(dlog10(coreRadiusMaximum/coreRadiusMinimum)*dble(coreRadiusTablePointsPerDecade))+1
-       if (allocated(coreRadiusTableCoreRadius   )) call Dealloc_Array(coreRadiusTableCoreRadius   )
-       if (allocated(coreRadiusTableDensityFactor)) call Dealloc_Array(coreRadiusTableDensityFactor)
-       call Alloc_Array(coreRadiusTableCoreRadius   ,[coreRadiusTableCount])
-       call Alloc_Array(coreRadiusTableDensityFactor,[coreRadiusTableCount])
-       coreRadiusTableCoreRadius   =Make_Range(coreRadiusMaximum,coreRadiusMinimum,coreRadiusTableCount,rangeType=rangeTypeLogarithmic)
-       coreRadiusTableDensityFactor=Growing_Core_Virial_Density_Function(coreRadiusTableCoreRadius)
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
-       interpolationReset=.true.
-       coreRadiusTableInitialized=.true.
-    end if
-    !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
-
-    ! Compute the target value of the function giving the density at the virial radius per unit gas mass.
-    targetValue=Growing_Core_Virial_Density_Function(isothermalCoreRadiusOverVirialRadiusInitial)*hotGasFraction
-
-    ! Interpolate to get the required core radius.
-    if      (hotGasFraction >= 1.0d0                                             ) then
-       isothermalCoreRadiusOverVirialRadius=isothermalCoreRadiusOverVirialRadiusInitial
-    else if (targetValue    >= coreRadiusTableDensityFactor(coreRadiusTableCount)) then
-       isothermalCoreRadiusOverVirialRadius=coreRadiusTableCoreRadius(coreRadiusTableCount)
-    else
+    ! Check if the initial core radius and hot gas fraction equal the previously stored values.
+    if (.not.(isothermalCoreRadiusOverVirialRadiusInitial == isothermalCoreRadiusOverVirialRadiusInitialSaved .and.&
+         & hotGasFraction == hotGasFractionSaved)) then
+       
+       ! Create a tabulation of core radius vs. virial density factor if necessary.
        !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
-       isothermalCoreRadiusOverVirialRadius=Interpolate(coreRadiusTableCount,coreRadiusTableDensityFactor,coreRadiusTableCoreRadius&
-            &,interpolationObject,interpolationAccelerator,targetValue,reset=interpolationReset)
+       makeTable=(.not.coreRadiusTableInitialized) 
+       if (.not.makeTable) makeTable=(isothermalCoreRadiusOverVirialRadiusInitial < coreRadiusTableCoreRadius(coreRadiusTableCount))
+       if (makeTable) then
+          coreRadiusMinimum   =min(isothermalCoreRadiusOverScaleRadius,isothermalCoreRadiusOverVirialRadiusInitial)
+          coreRadiusMaximum   =isothermalCoreRadiusOverVirialRadiusMaximum
+          coreRadiusTableCount=int(dlog10(coreRadiusMaximum/coreRadiusMinimum)*dble(coreRadiusTablePointsPerDecade))+1
+          if (allocated(coreRadiusTableCoreRadius   )) call Dealloc_Array(coreRadiusTableCoreRadius   )
+          if (allocated(coreRadiusTableDensityFactor)) call Dealloc_Array(coreRadiusTableDensityFactor)
+          call Alloc_Array(coreRadiusTableCoreRadius   ,[coreRadiusTableCount])
+          call Alloc_Array(coreRadiusTableDensityFactor,[coreRadiusTableCount])
+          coreRadiusTableCoreRadius   =Make_Range(coreRadiusMaximum,coreRadiusMinimum,coreRadiusTableCount,rangeType=rangeTypeLogarithmic)
+          coreRadiusTableDensityFactor=Growing_Core_Virial_Density_Function(coreRadiusTableCoreRadius)
+          call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
+          interpolationReset=.true.
+          coreRadiusTableInitialized=.true.
+       end if
        !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
+       
+       ! Compute the target value of the function giving the density at the virial radius per unit gas mass.
+       targetValue=Growing_Core_Virial_Density_Function(isothermalCoreRadiusOverVirialRadiusInitial)*hotGasFraction
+       
+       ! Interpolate to get the required core radius.
+       if      (hotGasFraction >= 1.0d0                                             ) then
+          isothermalCoreRadiusOverVirialRadius=isothermalCoreRadiusOverVirialRadiusInitial
+       else if (targetValue    <= coreRadiusTableDensityFactor(1)) then
+          isothermalCoreRadiusOverVirialRadius=coreRadiusTableCoreRadius(1)
+       else
+          !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
+          isothermalCoreRadiusOverVirialRadius=Interpolate(coreRadiusTableCount,coreRadiusTableDensityFactor,coreRadiusTableCoreRadius&
+               &,interpolationObject,interpolationAccelerator,targetValue,reset=interpolationReset)
+          !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
+       end if
+       isothermalCoreRadiusOverVirialRadiusInitialSaved=isothermalCoreRadiusOverVirialRadiusInitial
+       hotGasFractionSaved                             =hotGasFraction
+       isothermalCoreRadiusOverVirialRadiusSaved       =isothermalCoreRadiusOverVirialRadius
     end if
-    
     ! Compute the resulting core radius.
-    Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core=isothermalCoreRadiusOverVirialRadius*Dark_Matter_Halo_Virial_Radius(thisNode)
-
+    Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core=isothermalCoreRadiusOverVirialRadiusSaved*Dark_Matter_Halo_Virial_Radius(thisNode)
     return
   end function Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core
   
