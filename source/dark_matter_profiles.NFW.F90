@@ -730,6 +730,12 @@ contains
     double precision, intent(in)             :: time
     double precision                         :: freefallTimeScaleFree,radiusScale,concentration,velocityScale,timeScale
 
+    ! For non-positive freefall times, return the limiting value for small radii.
+    if (time <= 0.0d0) then
+       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW=0.0d0
+       return
+    end if
+
     ! Get the scale radius.
     radiusScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
 
@@ -787,6 +793,7 @@ contains
        retabulate=.true.
     end do
     if (retabulate) then
+
        ! Decide how many points to tabulate and allocate table arrays.
        nfwFreefallTableNumberPoints=int(dlog10(freefallRadiusMaximum/freefallRadiusMinimum)*dble(nfwFreefallTablePointsPerDecade))+1
        if (allocated(nfwFreefallRadius)) then
@@ -818,15 +825,23 @@ contains
     use Numerical_Integration
     implicit none
     double precision,                intent(in) :: radius
+    double precision,                parameter  :: radiusSmall=4.0d-6
     type(c_ptr)                                 :: parameterPointer
     type(fgsl_function)                         :: integrandFunction
     type(fgsl_integration_workspace)            :: integrationWorkspace
     double precision                            :: radiusEnd
 
-    radiusStart=radius
-    radiusEnd  =0.0d0
-    Freefall_Time_Scale_Free=Integrate(radiusEnd,radiusStart,Freefall_Time_Scale_Free_Integrand,parameterPointer&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    if (radius > radiusSmall) then
+       ! Use the full solution.
+       radiusStart=radius
+       radiusEnd  =0.0d0
+       Freefall_Time_Scale_Free=Integrate(radiusEnd,radiusStart,Freefall_Time_Scale_Free_Integrand,parameterPointer&
+            &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    else
+       ! Use an approximation here, found by taking series expansions of the logarithms in the integrand and keeping only the
+       ! first order terms.
+       Freefall_Time_Scale_Free=2.0d0*dsqrt(radius)
+    end if
     return
   end function Freefall_Time_Scale_Free
   
