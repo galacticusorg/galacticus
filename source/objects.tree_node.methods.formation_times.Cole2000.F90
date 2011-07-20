@@ -220,6 +220,8 @@ contains
        message=message//thisNode%index()
        call Galacticus_Display_Message(message,verbosityInfo)
     end if
+    ! Trigger a halo formation event.
+    call Event_Halo_Formation(thisNode)
     ! Get the index of the component (which will also ensure that the component is created).
     call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
     ! Make a copy of the formation node, and decouple it from the tree, using the parentNode pointer to point to the node of which
@@ -233,8 +235,6 @@ contains
     thisNode%formationNode%mergeeNode    => null()
     thisNode%formationNode%nextMergee    => null()
     thisNode%formationNode%formationNode => null()
-    ! Trigger a halo formation event.
-    call Event_Halo_Formation(thisNode)
     return
   end subroutine Tree_Node_Formation_Time_Create_Component
 
