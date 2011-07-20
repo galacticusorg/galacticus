@@ -214,13 +214,15 @@ my %outputRules = (
 		       },
 		   starFormationHistories => {
 		       "^metallicities\$"                                    => "singleCopy",
-		       "^Output\\d+\\//mergerTree\\d+\\/(disk|spheroid).*\$" => "copy"
+		       "^Output\\d+\\/mergerTree\\d+\\/(disk|spheroid).*\$" => "copy"
 		       }
 		   );
-my @availableGroups = $mergeFiles[0]->groups();
 my %availableGroupNames;
-foreach my $availableGroup ( @availableGroups ) {
-    $availableGroupNames{$availableGroup} = 1;
+foreach my $mergeFile ( @mergeFiles ) {
+    my @availableGroups = $mergeFile->groups();
+    foreach my $availableGroup ( @availableGroups ) {
+	$availableGroupNames{$availableGroup} = 1;
+    }
 }
 foreach my $outputGroup ( keys(%outputRules) ) {
     # Write message.
@@ -230,46 +232,65 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 	# Loop over all merge files.
 	my $isFirstFile = 1;
 	foreach my $mergeFile ( @mergeFiles ) {
-	    # Place the base group on a stack.
-	    my @groupStack = ( $outputGroup );
-	    # Process groups until none remain.
-	    while ( $#groupStack >= 0 ) {
-		# Pop a group from the stack.
-		my $thisGroup = shift @groupStack;
-		# Get a list of groups.
-		my @groups = $mergeFile->group($thisGroup)->groups;
-		# Ensure all groups exist.
-		foreach my $group ( @groups ) {
-		    my $parentGroup = $outputFile->group($thisGroup);
-		    unless ( my $testID = $parentGroup->group($group)->IDget ) {
-			my $newGroup = new PDL::IO::HDF5::Group( name    => $group,
-								 parent  => $parentGroup,
-								 fileObj => $outputFile
-								 );
-			my $originalGroup = $mergeFile->group($thisGroup);
-			&Copy_Attributes($originalGroup,$newGroup);		    
+	    # Check if the group exists in this file.
+	    my @availableGroups = $mergeFile->groups();
+	    my $groupIsPresent = 0;
+	    foreach my $availableGroup ( @availableGroups ) {
+		$groupIsPresent = 1 if ( $availableGroup eq $outputGroup );
+	    }
+	    if ( $groupIsPresent == 1 ) {
+		# Place the base group on a stack.
+		my @groupStack = ( $outputGroup );
+		# Process groups until none remain.
+		while ( $#groupStack >= 0 ) {
+		    # Pop a group from the stack.
+		    my $thisGroup = shift @groupStack;
+		    # Get a list of groups.
+		    my @groups = $mergeFile->group($thisGroup)->groups;
+		    # Ensure all groups exist.
+		    foreach my $group ( @groups ) {
+			my $parentGroup = $outputFile->group($thisGroup);
+			unless ( my $testID = $parentGroup->group($group)->IDget ) {
+			    my $newGroup = new PDL::IO::HDF5::Group( name    => $group,
+								     parent  => $parentGroup,
+								     fileObj => $outputFile
+								     );
+			    my $originalGroup = $mergeFile->group($thisGroup);
+			    &Copy_Attributes($originalGroup,$newGroup);		    
+			}
 		    }
-		}
-		# Push groups to the stack.
-		push(@groupStack,map {$thisGroup."/".$_} @groups);
-		# Get list of datasets.
-		my @datasets = $mergeFile->group($thisGroup)->datasets;
-		# Loop over all datasets.
-		foreach my $dataset ( @datasets ) {
-		    # Write a message.
-		    print "  -> processing\n" if ( $foundGroup == 0 );
-		    $foundGroup = 1;
-		    # Check for a match to an instruction.
-		    my %instructions = %{$outputRules{$outputGroup}};
-		    my $action = "";
-		    (my $fullPath = $thisGroup) =~ s/^$outputGroup//;
-		    ($fullPath .= "/".$dataset) =~ s/^\///;
-		    foreach my $instruction ( keys(%instructions) ) {
-			$action = $instructions{$instruction} if ( $fullPath =~ m/$instruction/ );
-		    }
-		    switch ($action) {
-			case ( "singleCopy" ) {
-			    if ( $isFirstFile == 1 ) {
+		    # Push groups to the stack.
+		    push(@groupStack,map {$thisGroup."/".$_} @groups);
+		    # Get list of datasets.
+		    my @datasets = $mergeFile->group($thisGroup)->datasets;
+		    # Loop over all datasets.
+		    foreach my $dataset ( @datasets ) {
+			# Write a message.
+			print "  -> processing\n" if ( $foundGroup == 0 );
+			$foundGroup = 1;
+			# Check for a match to an instruction.
+			my %instructions = %{$outputRules{$outputGroup}};
+			my $action = "";
+			(my $fullPath = $thisGroup) =~ s/^$outputGroup//;
+			($fullPath .= "/".$dataset) =~ s/^\///;
+			foreach my $instruction ( keys(%instructions) ) {
+			    $action = $instructions{$instruction} if ( $fullPath =~ m/$instruction/ );
+			}
+			switch ($action) {
+			    case ( "singleCopy" ) {
+				if ( $isFirstFile == 1 ) {
+				    my $thisGroupObject = $outputFile->group($thisGroup);
+				    my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+										 parent  => $thisGroupObject,
+										 fileObj => $outputFile
+										 );
+				    my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
+				    my $datasetValues = $originalDataset->get;
+				    $newDataset->set($datasetValues);
+				    &Copy_Attributes($originalDataset,$newDataset);
+				}
+			    }
+			    case ( "copy" ) {
 				my $thisGroupObject = $outputFile->group($thisGroup);
 				my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
 									     parent  => $thisGroupObject,
@@ -280,42 +301,31 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 				$newDataset->set($datasetValues);
 				&Copy_Attributes($originalDataset,$newDataset);
 			    }
-			}
-			case ( "copy" ) {
-			    my $thisGroupObject = $outputFile->group($thisGroup);
-			    my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
-									 parent  => $thisGroupObject,
-									 fileObj => $outputFile
-									 );
-			    my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
-			    my $datasetValues = $originalDataset->get;
-			    $newDataset->set($datasetValues);
-			    &Copy_Attributes($originalDataset,$newDataset);
-			}
-			case ( "cumulate" ) {
-			    my $thisGroupObject = $outputFile->group($thisGroup);
-			    my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
-			    my $datasetValues = $originalDataset->get;
-			    my $newDataset;
-			    if ( $isFirstFile == 1 ) {
-				$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
-									     parent  => $thisGroupObject,
-									     fileObj => $outputFile
-									     );
-			    } else {
-				$newDataset = $thisGroupObject->dataset($dataset);
-				$datasetValues += $newDataset->get;
+			    case ( "cumulate" ) {
+				my $thisGroupObject = $outputFile->group($thisGroup);
+				my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
+				my $datasetValues = $originalDataset->get;
+				my $newDataset;
+				if ( $isFirstFile == 1 ) {
+				    $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									      parent  => $thisGroupObject,
+									      fileObj => $outputFile
+									      );
+				} else {
+				    $newDataset = $thisGroupObject->dataset($dataset);
+				    $datasetValues += $newDataset->get;
+				}
+				$newDataset->set($datasetValues);
+				&Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
 			    }
-			    $newDataset->set($datasetValues);
-			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
 			}
 		    }
 		}
-	    }
 	    
-	    # Mark that we have processed the first file.
-	    $isFirstFile = 0;
-	    
+		# Mark that we have processed the first file.
+		$isFirstFile = 0;
+
+	    }	    
 	}
     }
 }
