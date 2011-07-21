@@ -242,6 +242,7 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
  \item[{\tt luminosityDistance}] The luminosity distance (in Mpc) to the galaxy---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
  \item[{\tt redshift}] The redshift at which the galaxy is observed---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
  \item[{\tt angularWeight}] The weight (in units of ) which should be assigned to this galaxy in order to build a redshift survey---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
+ \item[{\tt \textasciicircum grasilFlux[$\backslash$d$\backslash$.]+microns}] The flux at the given wavelength (specific in microns) of the galaxy as computed by the {\tt Grasil} code (see \S\ref{sec:Grasil} for a full description).
 \end{description}
 
 \subsection{Galaxy Clustering via the Halo Model}\label{sec:ClusteringHaloModel}\index{halo model}\index{clustering!halo model}
@@ -335,7 +336,7 @@ Here {\tt <modelDirectory>} should be the name of a directory containing \glc\ m
 \end{itemize}
 Any plots found in the model directory will be combined into a {\tt tar} archive and stored in the archive directory.
 
-\section{Reprocessing Through Dust Using {\sc Grasil}}\index{dust!reprocessing}\index{Grasil@{\sc Grasil}}
+\section{Reprocessing Through Dust Using {\sc Grasil}}\label{sec:Grasil}\index{dust!reprocessing}\index{Grasil@{\sc Grasil}}
 
 \glc\ computes the star formation histories and, optionally, the luminosities of stellar populations in galaxies. The effects of dust on galaxy spectra is handled by post-processing of \glc\ output. A simple treatment of dust-extinction of starlight is described in \S\ref{sec:DerivedProperties}. For a more detailed treatment of dust extinction, and the re-emission of starlight by dust, \glc\ is able to interface with the \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.html}{{\sc Grasil}} radiative transfer code described by \cite{silva_modeling_1998}.
 
@@ -358,13 +359,28 @@ where {\tt inputFile} is the name of the \glc\ model file, {\tt outputIndex}, {\
 where {\tt fileNameRoot} is the name of the parameter file you created without the {\tt .par} suffix. {\sc Grasil} will now process (this will probably take a few minutes) the galaxy and output a set of files describing the spectral energy distribution of the galaxy (possibly as viewed from multiple angles depending on your input parameter file). See the {\sc Grasil} \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.doc}{documentation} for full details on the output data.
 \end{enumerate}
 
-Future versions of \glc\ will automate this process, allowing galaxies to be processed and their full SEDs or fluxes at particular wavelengths to be written back into the \glc\ output file.
+\subsection{Using the {\tt Galacticus::Grasil} Module}
 
-\subsection{Meta-Analysis of \glc}\index{analysis!meta}\index{analysis!{\sc Galacticus}@analysis!galacticus}
+A more automated way to compute fluxes using {\tt Grasil} is to use the {\tt Galacticus::Grasil} Perl module that is provided with \glc. This model provides additional derived properties in the usual way (see \S\ref{sec:DerivedProperties} for details). Currently, only observed fluxes are provided, via a derived property {\tt grasilFlux\textless XXX\textgreater microns}, which will give the observed flux of the galaxy at wavelength $\lambda=${\tt\textless XXX\textgreater}$\mu$m. Note that this requires that the {\tt Galacticus::Survey} module be used to provide redshifts for galaxies (see \S\ref{sec:Galacticus::Survey}).
+
+The module will automatically run {\sc Grasil} using the parameters given in {\tt data/grasilBaseParameters.txt}, subject the modifications specified in the {\tt grasilOptions} element of {\tt \$dataBlock}. Allowed options are:
+\begin{description}
+ \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'includePAHs'\}}] Set to 0/1 to switch off/on calculations of PAH features in {\sc Grasil};
+ \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'fluctuatingTemperatures'\}}] Set to 0/1 to switch off/on calculations of fluctuating dust grain temperatures in {\sc Grasil};
+ \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'wavelengthCount'\}}] Specifies the number of wavelengths to use in calculating radiative transfer (i.e. the ``{\tt nlf}'' parameter in {\sc Grasil});
+ \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'radialGridCount'\}}] Specifies the number of radial grid cells to use in calculating radiative transfer (i.e. the ``{\tt ndr}'' parameter in {\sc Grasil}).
+\end{description}
+Where possible, multiple instances of {\sc Grasil} are run in parallel to speed up the calculation.
+
+The computed \SED\ is stored in the HDF5 output file in dataset {\tt grasilSEDs/Output\textless outputIndex\textgreater/mergerTree\textless treeIndex\textgreater/node\textless nodeIndex\textgreater/SED}, where {\tt outputIndeex}, {\tt treeIndex} and {\tt nodeIndex} are respectively the indices of the output, merger tree and node to which the galaxy belongs. The wavelengths and inclinations at which the \SED\ is tabulated are similarly stored in the same group in datasets {\tt wavelength} and {\tt inclination}. If the \SED\ has been previously computed for a given galaxy, it will be read from file instead of recomputing using {\tt Grasil}. The flux is found by interpolating to the relevant rest-frame wavelength and osberved inclination.
+
+The {\tt Galacticus::Grasil} module supports the {\tt selection} element of {\tt \$dataBlock}. If this element is set to contain a PDL giving the selection of galaxies to process then only those galaxies will have their {\tt Grasil} fluxes computed, rather than all galaxies in the output. Note that the the resulting dataset is stored back to the HDF5 file then any non-selected galaxies will be assigned zero flux, and these zero fluxes will be reported on future attempts to access the flux\footnote{The {\tt selection} element of {\tt \$dataBlock} will be more generally supported in future versions of \protect\glc\ and will more elegantly handle storing of partial datasets to file to avoid this problem}.
+
+\section{Meta-Analysis of \glc}\index{analysis!meta}\index{analysis!{\sc Galacticus}@analysis!galacticus}
 
 \glc\ contains modules which allow it to analyze and profile its own performance.
 
-\subsubsection{Tree Construction/Evolution Timing}\index{run time!tree construction}\index{run time!tree evolution}
+\subsection{Tree Construction/Evolution Timing}\index{run time!tree construction}\index{run time!tree evolution}
 
 The \hyperlink{galacticus.meta.tree_timing.F90:galacticus_meta_tree_timing}{{\tt Galacticus\_Meta\_Tree\_Timing}} module records the time taken to construct and evolve each merger tree. Setting {\tt [metaCollectTimingData]}$=${\tt true} will cause tree timing data to be recorded and output to the {\tt metaData/treeTiming} group. Three datasets are written to this group:
 \begin{description}
@@ -373,7 +389,7 @@ The \hyperlink{galacticus.meta.tree_timing.F90:galacticus_meta_tree_timing}{{\tt
  \item[{\tt treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
 \end{description}
 
-\subsubsection{ODE Evolver Profiler}
+\subsection{ODE Evolver Profiler}
 
 The \hyperlink{galacticus.meta.evolver_profiler.F90:galacticus_meta_evolver_profiler}{{\tt Galacticus\_Meta\_Evolver\_Profiler}} module records statistics on the performance of the main ODE solver used to advance galaxies through time. 
 
