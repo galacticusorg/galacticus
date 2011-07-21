@@ -85,20 +85,20 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $x = pdl @{$columns->{'radius'}->{'data'}};
     $y = pdl @{$columns->{'distribution'}->{'data'}};
     $yError = pdl @{$columns->{'distributionError'}->{'data'}};
-    $x = (10.0**$x)*($columns->{'radius'}->{'hubble'}/$dataBlock{'parameters'}->{'H_0'});
+    $x = (10.0**$x)*($columns->{'radius'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
     $yUpperError = $y+$yError;
     $yLowerError = $y-$yError;
 
     # Select Galacticus galaxies and compute distribution.
     $logRadiusSelected = where(log10($radius),
-			    $magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})
-			    & $magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})
+			    $magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
+			    & $magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
 			    & $morphology >= $dataSet->{'morphologyRange'}->{'minimum'}
 			    & $morphology < $dataSet->{'morphologyRange'}->{'maximum'}
 	);
     $weightSelected = where($weight,
-			    $magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})
-			    & $magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})
+			    $magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
+			    & $magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
 			    & $morphology >= $dataSet->{'morphologyRange'}->{'minimum'}
 			    & $morphology < $dataSet->{'morphologyRange'}->{'maximum'}
 	);

@@ -30,18 +30,18 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet->{'file'} = $galacticusFile;
-$dataSet->{'store'} = 0;
-&HDF5::Get_Parameters($dataSet);
-&HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.0);
-$dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega']);
-$dataSets = $dataSet->{'dataSets'};
+$dataBlock->{'file'} = $galacticusFile;
+$dataBlock->{'store'} = 0;
+&HDF5::Get_Parameters($dataBlock);
+&HDF5::Count_Trees($dataBlock);
+&HDF5::Select_Output($dataBlock,0.0);
+$dataBlock->{'tree'} = "all";
+&HDF5::Get_Dataset($dataBlock,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega']);
+$dataSets = $dataBlock->{'dataSets'};
 $scaleLength = $dataSets->{'diskScaleLength'};
 $magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
 $weight = $dataSets->{'volumeWeight'};
-delete($dataSet->{'dataSets'});
+delete($dataBlock->{'dataSets'});
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot");
@@ -63,12 +63,12 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $yUpperLimit = pdl @{$columns->{'distributionUpperLimit'}->{'data'}};
     $yUpperError = pdl @{$columns->{'distributionErrorUp'}->{'data'}};
     $yLowerError = pdl @{$columns->{'distributionErrorDown'}->{'data'}};
-    $x = $x*($columns->{'scaleLength'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+    $x = $x*($columns->{'scaleLength'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
     $yUpperError = $y*(10.0**$yUpperError);
     $yLowerError = $y/(10.0**$yLowerError);
     $yUpperLimitArrow = pdl -0.3*$yUpperLimit;
-    $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});;
-    $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});;
+    $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});;
+    $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});;
 
     # Select Galacticus galaxies.
     $logScaleLengthSelected = where(3.0+log10($scaleLength),$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum);
