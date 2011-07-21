@@ -236,17 +236,17 @@ Selected with {\tt coolingRateMethod}$=${\tt Cole2000}, this method computes the
 \begin{equation}
 \dot{M}_{\rm cool} = \left\{ \begin{array}{ll} 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall} & \hbox{ if } r_{\rm infall} < r_{\rm virial} \\ 0 & \hbox{ if } r_{\rm infall} \ge r_{\rm virial}, \end{array} \right.
 \end{equation}
-where $\rho(r)$ is the density profile of the hot halo, and $r_{\rm infall}$ is the smaller of the cooling and freefall radii in the hot halo if {\tt [coolingRateLimitByFreefall]}$=${\tt true} or simply equals the cooling radius otherwise. The cooling rate is also set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}.
+where $\rho(r)$ is the density profile of the hot halo, and $r_{\rm infall}$ is the infall radius (see \S\ref{AJB}). The cooling rate is also set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}.
 
 \subsubsection{White \& Frenk}
 
 Selected with {\tt coolingRateMethod}$=${\tt White + Frenk}, this method computes the cooling rate using the expression given by \cite{white_galaxy_1991}, namely
 \begin{equation}
-\dot{M}_{\rm cool} = 4 \pi r_{\rm cool}^2 \rho(r_{\rm cool}) \dot{r}_{\rm cool},
+\dot{M}_{\rm cool} = 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall},
 \end{equation}
-where $r_{\rm cool}$ is the cooling radius in the hot halo and $\rho(r)$ is the density profile of the hot halo.
+where $r_{\rm infall}$ is the infall radius (see \S\ref{AJB}) in the hot halo and $\rho(r)$ is the density profile of the hot halo.
 
-\subsection{Cooling Radius}\index{cooling radius}\index{cooling!radius}
+\subsection{Cooling Radius}\label{sec:CoolingRadius}\index{cooling radius}\index{cooling!radius}
 
 The algorithm used to compute the cooling radius is selected via the {\tt coolingRadiusMethod} parameter.
 
@@ -254,9 +254,25 @@ The algorithm used to compute the cooling radius is selected via the {\tt coolin
 
 Selcted with {\tt coolingRadiusMethod}$=${\tt simple}, this method computes the cooling radius by seeking the radius at which the time available for cooling (see \S\ref{sec:TimeAvailableCooling}) equals the cooling time (see \S\ref{sec:CoolingTime}). The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
 
-\subsection{Cooling: Freefall Radius}\index{freefall radius}\index{cooling!freefall radius}
+\subsection{Cooling: Freefall Radius}\label{sec:CoolingFreefallRadius}\index{freefall radius}\index{cooling!freefall radius}
 
 The algorithm used to compute the freefall radius for cooling is selected via the {\tt freefallRadiusMethod} parameter.
+
+\subsubsection{Dark Matter Halo}
+
+Selcted with {\tt freefallRadiusMethod}$=${\tt dark matter halo}, this method assumes that the freefall radius corresponds to the radius at which the freefall time in the dark matter halo equals the time available for freefall (see \S\ref{sec:TimeAvailableFreefall}).
+
+\subsection{Cooling: Infall Radius}\index{infall radius}\index{cooling!infall radius}
+
+The algorithm used to compute the infall radius for cooling is selected via the {\tt infallRadiusMethod} parameter.
+
+\subsubsection{Cooling Radius}
+
+Selcted with {\tt infallRadiusMethod}$=${\tt cooling radius}, this method assumes that the infall radius equals the cooling radius (see \S\ref{sec:CoolingRadius}).
+
+\subsubsection{Cooling and Freefall Radii}
+
+Selcted with {\tt infallRadiusMethod}$=${\tt cooling and freefall}, this method assumes that the infall radius is equal to the smaller of the cooling and freefall radii (see \S\ref{sec:CoolingRadius} and \S\ref{sec:CoolingFreefallRadius}).
 
 \subsubsection{Dark Matter Halo}
 

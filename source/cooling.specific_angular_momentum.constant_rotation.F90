@@ -158,7 +158,7 @@ contains
   double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode)
     !% Return the specific angular momentum of cooling gas in the constant rotation model.
     use Tree_Nodes
-    use Cooling_Radii
+    use Cooling_Infall_Radii
     use Dark_Matter_Profiles
     use Hot_Halo_Density_Profile
     use Numerical_Constants_Physical
@@ -197,7 +197,7 @@ contains
        end select
 
        ! Compute the specific angular momentum of the cooling gas.
-       coolingSpecificAngularMomentumStored= Cooling_Radius(thisNode)    &
+       coolingSpecificAngularMomentumStored= Infall_Radius(thisNode)     &
             &                               *rotationNormalization       &
             &                               *meanSpecificAngularMomentum
     end if

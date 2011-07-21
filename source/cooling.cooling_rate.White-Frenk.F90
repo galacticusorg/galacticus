@@ -106,12 +106,12 @@ contains
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
-    use Cooling_Radii
+    use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: coolingRadius,coolingDensity,virialRadius,coolingRadiusGrowthRate,virialVelocity
+    double precision                         :: infallRadius,coolingDensity,virialRadius,infallRadiusGrowthRate,virialVelocity
 
     ! Get the virial velocity.
     virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
@@ -126,18 +126,18 @@ contains
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
 
     ! Get the cooling radius.
-    coolingRadius=Cooling_Radius(thisNode)
+    infallRadius=Infall_Radius(thisNode)
 
-    if (coolingRadius >= virialRadius) then
+    if (infallRadius >= virialRadius) then
        ! Cooling radius exceeds the virial radius. Limit infall to the dynamical timescale.
        Cooling_Rate_White_Frenk=Tree_Node_Hot_Halo_Mass(thisNode)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     else
        ! Find the density at the cooling radius.
-       coolingDensity=Hot_Halo_Density(thisNode,coolingRadius)
+       coolingDensity=Hot_Halo_Density(thisNode,infallRadius)
        ! Find cooling radius growth rate.
-       coolingRadiusGrowthRate=Cooling_Radius_Growth_Rate(thisNode)
+       infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode)
        ! Compute the cooling rate.
-       Cooling_Rate_White_Frenk=4.0d0*Pi*(coolingRadius**2)*coolingDensity*coolingRadiusGrowthRate
+       Cooling_Rate_White_Frenk=4.0d0*Pi*(infallRadius**2)*coolingDensity*infallRadiusGrowthRate
     end if
     return
   end function Cooling_Rate_White_Frenk

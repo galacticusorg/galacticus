@@ -68,9 +68,8 @@ module Cooling_Rates_Cole2000
   private
   public :: Cooling_Rate_Cole2000_Initialize
 
-  ! Parameters of the model.
+  ! Parameters controlling the time and velocity scale at which cooling is cut off.
   double precision :: coolingCutOffVelocity,coolingCutOffRedshift,coolingCutOffTime
-  logical          :: coolingRateLimitByFreefall
 
 contains
 
@@ -108,15 +107,6 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter("coolingCutOffRedshift",coolingCutOffRedshift,defaultValue= 6.0d0)
        coolingCutOffTime=Cosmology_Age(Expansion_Factor_from_Redshift(coolingCutOffRedshift))
-       !@ <inputParameter>
-       !@   <name>coolingRateLimitByFreefall</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether to limit the cooling rate by the freefall time in the `Cole2000' cooling rate algorithm.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter("coolingRateLimitByFreefall",coolingRateLimitByFreefall,defaultValue=.true.)
     end if
     return
   end subroutine Cooling_Rate_Cole2000_Initialize
@@ -126,16 +116,12 @@ contains
     !% properties of the halo at formation time, and gives a zero cooling rate when the cooling radius exceeds the virial radius.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Cooling_Times_Available
-    use Cooling_Radii
-    use Freefall_Radii
+    use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: coolingRadius,freefallRadius,infallRadius,infallDensity,virialRadius&
-         &,infallRadiusGrowthRate
-    logical                                  :: infallIsCoolingLimited
+    double precision                         :: infallRadius,infallDensity,virialRadius,infallRadiusGrowthRate
     
     ! Check for empty halos.
     if     (                                                                                         &
@@ -153,23 +139,8 @@ contains
     ! Get the virial radius.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode%formationNode)
 
-    ! Get the cooling radius.
-    coolingRadius=Cooling_Radius(thisNode%formationNode)
-
-    ! Get the freefall radius.
-    if (coolingRateLimitByFreefall) then
-       freefallRadius=Freefall_Radius(thisNode%formationNode)
-    else
-       freefallRadius=virialRadius
-    end if
-
-    ! Compute the infall radius as the smaller of the cooling and freefall radii.
-    infallIsCoolingLimited=(coolingRadius < freefallRadius)
-    if (infallIsCoolingLimited) then
-       infallRadius=coolingRadius
-    else
-       infallRadius=freefallRadius
-    end if
+    ! Get the infall radius.
+    infallRadius=Infall_Radius                 (thisNode%formationNode)
 
     if (infallRadius >= virialRadius) then
        ! Cooling radius exceeds the virial radius - zero infall rate.
@@ -177,12 +148,8 @@ contains
     else
        ! Find the density at the infall radius.
        infallDensity=Hot_Halo_Density(thisNode%formationNode,infallRadius)
-       ! Find cooling radius growth rate.
-       if (infallIsCoolingLimited) then
-          infallRadiusGrowthRate=Cooling_Radius_Growth_Rate (thisNode%formationNode)
-       else
-          infallRadiusGrowthRate=Freefall_Radius_Growth_Rate(thisNode%formationNode)
-       end if
+       ! Find infall radius growth rate.
+       infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode%formationNode)
        ! Compute the infall rate.
        Cooling_Rate_Cole2000=4.0d0*Pi*(infallRadius**2)*infallDensity*infallRadiusGrowthRate
     end if
