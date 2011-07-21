@@ -236,7 +236,7 @@ Selected with {\tt coolingRateMethod}$=${\tt Cole2000}, this method computes the
 \begin{equation}
 \dot{M}_{\rm cool} = \left\{ \begin{array}{ll} 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall} & \hbox{ if } r_{\rm infall} < r_{\rm virial} \\ 0 & \hbox{ if } r_{\rm infall} \ge r_{\rm virial}, \end{array} \right.
 \end{equation}
-where $\rho(r)$ is the density profile of the hot halo, and $r_{\rm infall}$ is the infall radius (see \S\ref{AJB}). The cooling rate is also set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}.
+where $\rho(r)$ is the density profile of the hot halo, and $r_{\rm infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}). The cooling rate is also set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}.
 
 \subsubsection{White \& Frenk}
 
@@ -244,7 +244,7 @@ Selected with {\tt coolingRateMethod}$=${\tt White + Frenk}, this method compute
 \begin{equation}
 \dot{M}_{\rm cool} = 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall},
 \end{equation}
-where $r_{\rm infall}$ is the infall radius (see \S\ref{AJB}) in the hot halo and $\rho(r)$ is the density profile of the hot halo.
+where $r_{\rm infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}) in the hot halo and $\rho(r)$ is the density profile of the hot halo.
 
 \subsection{Cooling Radius}\label{sec:CoolingRadius}\index{cooling radius}\index{cooling!radius}
 
@@ -262,7 +262,7 @@ The algorithm used to compute the freefall radius for cooling is selected via th
 
 Selcted with {\tt freefallRadiusMethod}$=${\tt dark matter halo}, this method assumes that the freefall radius corresponds to the radius at which the freefall time in the dark matter halo equals the time available for freefall (see \S\ref{sec:TimeAvailableFreefall}).
 
-\subsection{Cooling: Infall Radius}\index{infall radius}\index{cooling!infall radius}
+\subsection{Cooling: Infall Radius}\label{sec:CoolingInfallRadius}\index{infall radius}\index{cooling!infall radius}
 
 The algorithm used to compute the infall radius for cooling is selected via the {\tt infallRadiusMethod} parameter.
 
