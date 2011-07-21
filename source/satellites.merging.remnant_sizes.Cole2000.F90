@@ -107,7 +107,9 @@ contains
     use String_Handling
     use ISO_Varying_String
     use Galacticus_Display
-    use Satellite_Merging_Remnant_Sizes_Utilities
+    use Satellite_Merging_Remnant_Sizes_Progenitors
+    use Galactic_Structure_Options
+    use Galactic_Structure_Enclosed_Masses
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode
     type(treeNode),                         pointer  :: hostNode
@@ -115,8 +117,8 @@ contains
     double precision,        parameter               :: absoluteMassTolerance  =1.0d-6
     double precision,        parameter               :: relativeMassTolerance  =1.0d-9
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
-         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,darkMatterFactor,remnantSpheroidGasMass &
-         &,remnantSpheroidMass
+         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,angularMomentumFactor,remnantSpheroidGasMass &
+         &,remnantSpheroidMass,hostDarkMatterBoost,satelliteDarkMatterBoost,hostSpheroidMassTotal,satelliteSpheroidMassTotal
     character(len= 2)                                :: joinString
     character(len=40)                                :: dataString
     type(varying_string)                             :: message
@@ -127,7 +129,7 @@ contains
 
     ! Get properties of the merging systems.
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
-         &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,darkMatterFactor,remnantSpheroidMass&
+         &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
 
     if (satelliteSpheroidMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
@@ -186,23 +188,29 @@ contains
        if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','error condition detected')
        ! Check if host has finite mass.
        if (hostSpheroidMass > 0.0d0) then
+          ! Find the contribution of dark matter to the masses enclosed within the galaxy radii.
+          hostDarkMatterBoost     =1.0d0+Galactic_Structure_Enclosed_Mass(hostNode,hostRadius     ,massType=massTypeDark)/hostSpheroidMass
+          satelliteDarkMatterBoost=1.0d0+Galactic_Structure_Enclosed_Mass(thisNode,satelliteRadius,massType=massTypeDark)/satelliteSpheroidMass
+          ! Scale masses to account for dark matter.
+          hostSpheroidMassTotal     =hostSpheroidMass     *hostDarkMatterBoost
+          satelliteSpheroidMassTotal=satelliteSpheroidMass*satelliteDarkMatterBoost
           ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
-       progenitorsEnergy=0.0d0
-       if (hostRadius                 > 0.0d0)                                                                           &
-            & progenitorsEnergy=progenitorsEnergy+                      hostSpheroidMass**2/                 hostRadius
-       if (           satelliteRadius > 0.0d0)                                                                           & 
-            & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMass                 **2/ satelliteRadius  
-       if (hostRadius+satelliteRadius > 0.0d0)                                                                           &
-            & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMass*hostSpheroidMass   /(satelliteRadius+hostRadius) &
-            &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
-          remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/progenitorsEnergy
+          progenitorsEnergy=0.0d0
+          if (hostRadius                 > 0.0d0)                                                                                     &
+               & progenitorsEnergy=progenitorsEnergy+                           hostSpheroidMassTotal**2/                 hostRadius
+          if (           satelliteRadius > 0.0d0)                                                                                     & 
+               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal                      **2/ satelliteRadius  
+          if (hostRadius+satelliteRadius > 0.0d0)                                                                                     &
+               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal*hostSpheroidMassTotal   /(satelliteRadius+hostRadius) &
+               &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
+          remnantRadius=(satelliteSpheroidMassTotal+hostSpheroidMassTotal)**2/progenitorsEnergy
        else
           remnantRadius=satelliteRadius
        end if
-
+       
        ! Also compute the specific angular momentum at the half-mass radius.
        remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
-       remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*darkMatterFactor
+       remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
     end if
     return
   end subroutine Satellite_Merging_Remnant_Size_Cole2000

@@ -119,7 +119,7 @@ contains
     use String_Handling
     use ISO_Varying_String
     use Galacticus_Display
-    use Satellite_Merging_Remnant_Sizes_Utilities
+    use Satellite_Merging_Remnant_Sizes_Progenitors
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode
     type(treeNode),                         pointer  :: hostNode
@@ -127,7 +127,7 @@ contains
     double precision,        parameter               :: absoluteMassTolerance  =1.0d-6
     double precision,        parameter               :: relativeMassTolerance  =1.0d-9
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
-         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,darkMatterFactor,remnantSpheroidGasMass&
+         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,angularMomentumFactor,remnantSpheroidGasMass&
          &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy,finalEnergy
     character(len= 2)                                :: joinString
     character(len=70)                                :: dataString
@@ -139,7 +139,7 @@ contains
 
     ! Get properties of the merging systems.
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
-         &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,darkMatterFactor,remnantSpheroidMass&
+         &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
 
     if (satelliteMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
@@ -238,7 +238,7 @@ contains
 
        ! Also compute the specific angular momentum at the half-mass radius.
        remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
-       remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*darkMatterFactor
+       remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
 
     end if
     return

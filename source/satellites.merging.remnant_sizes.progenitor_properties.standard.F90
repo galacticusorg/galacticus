@@ -59,17 +59,32 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements various utilities useful for calculations of merger remnant sizes.
+!% Contains a module which implements standard calculations of progenitor properties for merger remnant calculations.
 
-module Satellite_Merging_Remnant_Sizes_Utilities
-  !% Implements various utilities useful for calculations of merger remnant sizes.
+module Satellite_Merging_Remnant_Progenitors_Properties_Standard
+  !% Implements standard calculations of progenitor properties for merger remnant calculations.
   private
-  public :: Satellite_Merging_Remnant_Progenitor_Properties
+  public :: Satellite_Merging_Remnant_Progenitor_Properties_Standard_Init
 
 contains
 
-  subroutine Satellite_Merging_Remnant_Progenitor_Properties(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass&
-       &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,darkMatterFactor,remnantSpheroidMass&
+  !# <satelliteMergingRemnantProgenitorPropertiesMethod>
+  !#  <unitName>Satellite_Merging_Remnant_Progenitor_Properties_Standard_Init</unitName>
+  !# </satelliteMergingRemnantProgenitorPropertiesMethod>
+  subroutine Satellite_Merging_Remnant_Progenitor_Properties_Standard_Init(satelliteMergingRemnantProgenitorPropertiesMethod&
+       &,Satellite_Merging_Remnant_Progenitor_Properties_Get)
+    !% Test if this method is to be used and set procedure pointer appropriately.
+    use ISO_Varying_String
+    implicit none
+    type(varying_string),          intent(in)    :: satelliteMergingRemnantProgenitorPropertiesMethod
+    procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Progenitor_Properties_Get
+    
+    if (satelliteMergingRemnantProgenitorPropertiesMethod == 'standard') Satellite_Merging_Remnant_Progenitor_Properties_Get => Satellite_Merging_Remnant_Progenitor_Properties_Standard
+    return
+  end subroutine Satellite_Merging_Remnant_Progenitor_Properties_Standard_Init
+
+  subroutine Satellite_Merging_Remnant_Progenitor_Properties_Standard(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass&
+       &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     use Tree_Nodes
@@ -82,7 +97,7 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: satelliteNode,hostNode
     double precision, intent(out)            :: satelliteMass,hostMass,satelliteSpheroidMass,hostSpheroidMass,hostSpheroidMassPreMerger&
-         &,satelliteRadius,hostRadius,darkMatterFactor,remnantSpheroidMass,remnantSpheroidGasMass
+         &,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass,remnantSpheroidGasMass
     double precision                         :: componentMass,hostSpheroidDarkMatterFactor,hostDiskDarkMatterFactor&
          &,satelliteSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor,hostSpheroidHalfMassRadius,hostDiskHalfMassRadius&
          &,satelliteSpheroidHalfMassRadius,satelliteDiskHalfMassRadius
@@ -136,19 +151,19 @@ contains
     case (movesToSpheroid)
        hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
        hostRadius            =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidHalfMassRadius  +Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskHalfMassRadius
-       darkMatterFactor      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskDarkMatterFactor
+       angularMomentumFactor      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskDarkMatterFactor
        remnantSpheroidGasMass=Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
        remnantSpheroidMass   =Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
     case (movesToDisk)
        hostSpheroidMass      =0.0d0
        hostRadius            =0.0d0
-       darkMatterFactor      =0.0d0
+       angularMomentumFactor      =0.0d0
        remnantSpheroidGasMass=0.0d0
        remnantSpheroidMass   =0.0d0
     case (doesNotMove)
        hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)
        hostRadius            =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidHalfMassRadius
-       darkMatterFactor      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor
+       angularMomentumFactor      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor
        remnantSpheroidGasMass=Tree_Node_Spheroid_Gas_Mass(hostNode)
        remnantSpheroidMass   =Tree_Node_Spheroid_Gas_Mass(hostNode)
     case default
@@ -158,16 +173,16 @@ contains
     case (movesToSpheroid)
        hostSpheroidMass   =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
        hostRadius         =hostRadius         +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidHalfMassRadius  +Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskHalfMassRadius
-       darkMatterFactor   =darkMatterFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskDarkMatterFactor
+       angularMomentumFactor   =angularMomentumFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskDarkMatterFactor
        remnantSpheroidMass=remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
     case (movesToDisk)
        hostSpheroidMass   =hostSpheroidMass
        hostRadius         =hostRadius
-       darkMatterFactor   =darkMatterFactor
+       angularMomentumFactor   =angularMomentumFactor
     case (doesNotMove)
        hostSpheroidMass   =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)
        hostRadius         =hostRadius         +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidHalfMassRadius
-       darkMatterFactor   =darkMatterFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor
+       angularMomentumFactor   =angularMomentumFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor
        remnantSpheroidMass=remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)
     case default
        call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
@@ -176,17 +191,17 @@ contains
     case (movesToSpheroid)
        satelliteSpheroidMass =                       Tree_Node_Spheroid_Gas_Mass(satelliteNode)                                  +Tree_Node_Disk_Gas_Mass(satelliteNode)
        satelliteRadius       =                       Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidHalfMassRadius  +Tree_Node_Disk_Gas_Mass(satelliteNode)*satelliteDiskHalfMassRadius
-       darkMatterFactor      =darkMatterFactor      +Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(satelliteNode)*satelliteDiskDarkMatterFactor
+       angularMomentumFactor      =angularMomentumFactor      +Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(satelliteNode)*satelliteDiskDarkMatterFactor
        remnantSpheroidGasMass=remnantSpheroidGasMass+Tree_Node_Spheroid_Gas_Mass(satelliteNode)                                  +Tree_Node_Disk_Gas_Mass(satelliteNode)
        remnantSpheroidMass   =remnantSpheroidMass   +Tree_Node_Spheroid_Gas_Mass(satelliteNode)                                  +Tree_Node_Disk_Gas_Mass(satelliteNode)
     case (movesToDisk)
        satelliteSpheroidMass =0.0d0
        satelliteRadius       =0.0d0
-       darkMatterFactor      =darkMatterFactor
+       angularMomentumFactor      =angularMomentumFactor
     case (doesNotMove)
        satelliteSpheroidMass=                        Tree_Node_Spheroid_Gas_Mass(satelliteNode)
        satelliteRadius       =                       Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidHalfMassRadius
-       darkMatterFactor      =darkMatterFactor      +Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor
+       angularMomentumFactor      =angularMomentumFactor      +Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor
        remnantSpheroidGasMass=remnantSpheroidGasMass+Tree_Node_Spheroid_Gas_Mass(satelliteNode)
        remnantSpheroidMass   =remnantSpheroidMass   +Tree_Node_Spheroid_Gas_Mass(satelliteNode)
     case default
@@ -196,31 +211,31 @@ contains
     case (movesToSpheroid)
        satelliteSpheroidMass=satelliteSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(satelliteNode)                                  +Tree_Node_Disk_Stellar_Mass(satelliteNode)
        satelliteRadius      =satelliteRadius      +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidHalfMassRadius  +Tree_Node_Disk_Stellar_Mass(satelliteNode)*satelliteDiskHalfMassRadius
-       darkMatterFactor     =darkMatterFactor     +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(satelliteNode)*satelliteDiskDarkMatterFactor
+       angularMomentumFactor     =angularMomentumFactor     +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(satelliteNode)*satelliteDiskDarkMatterFactor
        remnantSpheroidMass  =remnantSpheroidMass  +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)                                  +Tree_Node_Disk_Stellar_Mass(satelliteNode)
     case (movesToDisk)
        satelliteSpheroidMass=satelliteSpheroidMass
        satelliteRadius      =satelliteRadius
-       darkMatterFactor     =darkMatterFactor
+       angularMomentumFactor     =angularMomentumFactor
     case (doesNotMove)
        satelliteSpheroidMass=satelliteSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(satelliteNode)
        satelliteRadius      =satelliteRadius      +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidHalfMassRadius
-       darkMatterFactor     =darkMatterFactor     +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor
+       angularMomentumFactor     =angularMomentumFactor     +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor
        remnantSpheroidMass  =remnantSpheroidMass  +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)
     case default
        call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
     if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
-       darkMatterFactor=darkMatterFactor/(satelliteSpheroidMass+hostSpheroidMass)
+       angularMomentumFactor=angularMomentumFactor/(satelliteSpheroidMass+hostSpheroidMass)
     else
-       darkMatterFactor=1.0d0
+       angularMomentumFactor=1.0d0
     end if
     if (hostSpheroidMass      > 0.0d0) hostRadius     =hostRadius     /hostSpheroidMass
     if (satelliteSpheroidMass > 0.0d0) satelliteRadius=satelliteRadius/satelliteSpheroidMass
 
     ! Compute the mass of the host spheroid before the merger.
     hostSpheroidMassPreMerger=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
-     return
-  end subroutine Satellite_Merging_Remnant_Progenitor_Properties
+    return
+  end subroutine Satellite_Merging_Remnant_Progenitor_Properties_Standard
 
-end module Satellite_Merging_Remnant_Sizes_Utilities
+end module Satellite_Merging_Remnant_Progenitors_Properties_Standard
