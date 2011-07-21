@@ -9,7 +9,7 @@ use Data::Dumper;
 use XML::Simple;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^magnitude([^:]+):([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?(:vega|:AB)?" => "Magnitudes::Get_Magnitude"
+    "^magnitude([^:]+):([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?(:vega|:AB)?" => \&Magnitudes::Get_Magnitude
     );
 
 my $status = 1;
@@ -34,8 +34,8 @@ sub Get_Magnitude {
 	# Construct the name of the corresponding luminosity property.
 	$luminosityDataset = lc($component)."StellarLuminosity:".$filter.":".$frame.":z".$redshift.$dustExtension;
 	&HDF5::Get_Dataset($dataSet,[$luminosityDataset]);
-	$dataSets = \%{${$dataSet}{'dataSets'}};
-	${$dataSets->{$dataSetName}} = -2.5*log10(${$dataSets->{$luminosityDataset}}+1.0e-40);
+	$dataSets = $dataSet->{'dataSets'};
+	$dataSets->{$dataSetName} = -2.5*log10($dataSets->{$luminosityDataset}+1.0e-40);
 	# If a Vega magnitude was requested, add the appropriate offset.
 	if ( $vegaMagnitude == 1 ) {
 	    unless ( exists($vegaOffsets{$filter}) ) {
@@ -51,7 +51,7 @@ sub Get_Magnitude {
 		}
 		$vegaOffsets{$filter} = pdl $filterData->{'vegaOffset'};
 	    }
-	    ${$dataSets->{$dataSetName}} += $vegaOffsets{$filter};
+	    $dataSets->{$dataSetName} += $vegaOffsets{$filter};
 	}
     } else {
 	die("Get_Magnitude(): unable to parse data set: ".$dataSetName);

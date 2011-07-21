@@ -35,15 +35,15 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet{'file'}  = $galacticusFile;
-$dataSet{'store'} = 0;
-$dataSet{'tree'}  = "all";
-&HDF5::Get_Parameters(\%dataSet    );
-&HDF5::Count_Trees   (\%dataSet    );
-&HDF5::Get_Times     (\%dataSet    );
-&HDF5::Select_Output (\%dataSet,0.1);
-&HDF5::Get_Dataset   (\%dataSet,['magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega','nodeBias']);
-$dataSets         = \%{$dataSet{'dataSets'}};
+$dataSet->{'file'}  = $galacticusFile;
+$dataSet->{'store'} = 0;
+$dataSet->{'tree'}  = "all";
+&HDF5::Get_Parameters($dataSet    );
+&HDF5::Count_Trees   ($dataSet    );
+&HDF5::Get_Times     ($dataSet    );
+&HDF5::Select_Output ($dataSet,0.1);
+&HDF5::Get_Dataset   ($dataSet,['magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega','nodeBias']);
+$dataSets         = $dataSet->{'dataSets'};
 
 # Read the file of observational data.
 $xml     = new XML::Simple;
@@ -60,28 +60,28 @@ foreach $correlationFunction ( @{$data->{'correlationFunction'}} ) {
     unless ( exists($correlationFunction->{'colorRange'}) || $correlationFunction->{'space'} ne "redshift" ) {
 	# Get magnitude ranges for this sample.
 	$magnitudeMinimum = $correlationFunction->{'magnitudeRange'}->{'minimum'}
-	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
 	$magnitudeMaximum = $correlationFunction->{'magnitudeRange'}->{'maximum'}
-	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
 	# Get separation, correlation function and errors.
 	$separationData   = pdl @{$correlationFunction->{'separation'                          }->{'datum'}};
 	$xiData           = pdl @{$correlationFunction->{'correlationFunction'                 }->{'datum'}};
 	$xiBootData       = pdl @{$correlationFunction->{'correlationFunctionBootstrapped'     }->{'datum'}};
 	$xiBootErrorData  = pdl @{$correlationFunction->{'correlationFunctionBootstrappedError'}->{'datum'}};
 	# Convert separation for Hubble constant.
-	$separationData  *= ($dataSet{'parameters'}->{'H_0'}/$correlationFunction->{'separation'}->{'hubble'})**$correlationFunction->{'separation'}->{'hubbleExponent'};
+	$separationData  *= ($dataSet->{'parameters'}->{'H_0'}/$correlationFunction->{'separation'}->{'hubble'})**$correlationFunction->{'separation'}->{'hubbleExponent'};
 	# Get error on actual correlation function.
 	$xiErrorData      = $xiData*$xiBootErrorData/$xiBootData;
 
 	# Select a matching subset of model galaxies.
-	$selected         = which(${$dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'}} >= $magnitudeMinimum
-				  & ${$dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'}} < $magnitudeMaximum);
+	$selected         = which($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} >= $magnitudeMinimum
+				  & $dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} < $magnitudeMaximum);
 
 	# Skip empty selections.
 	unless ( nelem($selected) == 0 ) {
 
 	    # Get the power spectrum for these galaxies.
-	    ($waveNumber,$linearPowerSpectrum,$galaxyPowerSpectrum) = &HaloModel::Compute_Power_Spectrum(\%dataSet
+	    ($waveNumber,$linearPowerSpectrum,$galaxyPowerSpectrum) = &HaloModel::Compute_Power_Spectrum($dataSet
 													 ,$selected
 													 ,space => "redshift");
 	    # Compute the two-point correlation functions.

@@ -5,13 +5,12 @@ use PDL;
 use Galacticus::HDF5;
 use Astro::Cosmology;
 use Data::Dumper;
-use Switch (Perl6);
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "comovingDistance"   => "Survey::Get_SurveyProperties",
-			       "luminosityDistance" => "Survey::Get_SurveyProperties",
-			       "redshift"           => "Survey::Get_SurveyProperties",
-			       "angularWeight"      => "Survey::Get_SurveyProperties"
+			       "comovingDistance"   => \&Survey::Get_SurveyProperties,
+			       "luminosityDistance" => \&Survey::Get_SurveyProperties,
+			       "redshift"           => \&Survey::Get_SurveyProperties,
+			       "angularWeight"      => \&Survey::Get_SurveyProperties
     );
 
 my $status = 1;
@@ -19,37 +18,37 @@ $status;
 
 sub Get_SurveyProperties {
     # Get the data structure and the dataset name.
-    my $dataSet     = shift;
+    my $dataBlock     = shift;
     my $dataSetName = $_[0];
 
     # Ensure that times and parameters have been read.
-    &HDF5::Get_Times     ($dataSet) unless ( exists($dataSet->{'outputs'   }) );
-    &HDF5::Get_Parameters($dataSet) unless ( exists($dataSet->{'parameters'}) );
+    &HDF5::Get_Times     ($dataBlock) unless ( exists($dataBlock->{'outputs'   }) );
+    &HDF5::Get_Parameters($dataBlock) unless ( exists($dataBlock->{'parameters'}) );
 
     # Initialize a cosmology.
     my $cosmology = Astro::Cosmology->new(
-	omega_matter => $dataSet->{'parameters'}->{'Omega_0' },
-	omega_lambda => $dataSet->{'parameters'}->{'Lambda_0'},
-	H0           => $dataSet->{'parameters'}->{'H_0'     }
+	omega_matter => $dataBlock->{'parameters'}->{'Omega_0' },
+	omega_lambda => $dataBlock->{'parameters'}->{'Lambda_0'},
+	H0           => $dataBlock->{'parameters'}->{'H_0'     }
 	);
 
     # Get list of redshifts.
-    my $redshifts     = ${$dataSet->{'outputs'}->{'redshift'}}->qsort();
-    my $redshiftIndex = nelem($redshifts)-$dataSet->{'output'};
-    die("Galacticus::Survey requires more than one output time") if ( nelem($redshifts) <= 1 );
+    my $redshiftsAvailable     = $dataBlock->{'outputs'}->{'redshift'}->qsort();
+    my $redshiftIndex = nelem($redshiftsAvailable)-$dataBlock->{'output'};
+    die("Galacticus::Survey requires more than one output time") if ( nelem($redshiftsAvailable) <= 1 );
 
     # Find the range of comoving distances available for this output.
     my $redshiftMinimum;
     my $redshiftMaximum;
     if ( $redshiftIndex == 0                 ) {
-	$redshiftMinimum = pdl      $redshifts->index($redshiftIndex);
+	$redshiftMinimum = pdl      $redshiftsAvailable->index($redshiftIndex);
     } else {
-	$redshiftMinimum = pdl 0.5*($redshifts->index($redshiftIndex)+$redshifts->index($redshiftIndex-1));
+	$redshiftMinimum = pdl 0.5*($redshiftsAvailable->index($redshiftIndex)+$redshiftsAvailable->index($redshiftIndex-1));
     }
-    if ( $redshiftIndex == nelem($redshifts)-1 ) {
-	$redshiftMaximum = pdl      $redshifts->index($redshiftIndex);
+    if ( $redshiftIndex == nelem($redshiftsAvailable)-1 ) {
+	$redshiftMaximum = pdl      $redshiftsAvailable->index($redshiftIndex);
     } else {
-	$redshiftMaximum = pdl 0.5*($redshifts->index($redshiftIndex)+$redshifts->index($redshiftIndex+1));
+	$redshiftMaximum = pdl 0.5*($redshiftsAvailable->index($redshiftIndex)+$redshiftsAvailable->index($redshiftIndex+1));
     }
     my $comovingDistanceMinimum = $cosmology->comov_dist($redshiftMinimum);
     my $comovingDistanceMaximum = $cosmology->comov_dist($redshiftMaximum);
@@ -64,36 +63,32 @@ sub Get_SurveyProperties {
     }
 
     # Compute the requested dataset.
-    given ($dataSetName) {
-	when ( "comovingDistance"   ) {
-	    # Ensure that we have the "nodeIndex" property.
-	    &HDF5::Get_Dataset($dataSet,["nodeIndex"]);
-	    my $dataSets = \%{${$dataSet}{'dataSets'}};
-	    # Select comoving distances at random for the galaxies.
-	    ${$dataSets->{$dataSetName}} = (($comovingDistanceMaximum**3-$comovingDistanceMinimum**3)*random(nelem(${$dataSets->{"nodeIndex"}}))+$comovingDistanceMinimum**3)**(1.0/3.0);
-	}
-	when ( "redshift"           ) {
-	    # Ensure that we have the "comovingDistance" property.
-	    &HDF5::Get_Dataset($dataSet,["comovingDistance"]);
-	    my $dataSets = \%{${$dataSet}{'dataSets'}};
-	    # Compute the redshift for each galaxy.
-	    (${$dataSets->{$dataSetName}},my $error) = interpolate(${$dataSets->{"comovingDistance"}},$comovingDistances,$redshifts);
-
-	}
-	when ( "luminosityDistance" ) {
-	    # Ensure that we have the "comovingDistance" property.
-	    &HDF5::Get_Dataset($dataSet,["comovingDistance","redshift"]);
-	    my $dataSets = \%{${$dataSet}{'dataSets'}};
-	    # Compute the luminosity distance for each galaxy.
-	    ${$dataSets->{$dataSetName}} = ${$dataSets->{"comovingDistance"}}*(1.0+${$dataSets->{"redshift"}});
-
-	}
-	when ( "angularWeight"      ) {
-	    # Ensure that we have the "volumeWeight" property.
-	    &HDF5::Get_Dataset($dataSet,["volumeWeight"]);
-	    my $dataSets = \%{${$dataSet}{'dataSets'}};
-	    # Compute the angular weight for each galaxy.
-	    ${$dataSets->{$dataSetName}} = ${$dataSets->{"volumeWeight"}}*($comovingDistanceMaximum**3-$comovingDistanceMinimum**3)/3.0;
-	}
+    if ( $dataSetName eq "comovingDistance"   ) {
+	# Ensure that we have the "nodeIndex" property.
+	&HDF5::Get_Dataset($dataBlock,["nodeIndex"]);
+	my $dataSets = $dataBlock->{'dataSets'};
+	# Select comoving distances at random for the galaxies.
+	$dataSets->{$dataSetName} = (($comovingDistanceMaximum**3-$comovingDistanceMinimum**3)*random(nelem($dataSets->{"nodeIndex"}))+$comovingDistanceMinimum**3)**(1.0/3.0);
+    }
+    if ( $dataSetName eq "redshift"           ) {
+	# Ensure that we have the "comovingDistance" property.
+	&HDF5::Get_Dataset($dataBlock,["comovingDistance"]);
+	my $dataSets = $dataBlock->{'dataSets'};
+	# Compute the redshift for each galaxy.
+	($dataSets->{$dataSetName},my $error) = interpolate($dataSets->{"comovingDistance"},$comovingDistances,$redshifts);
+    }
+    if ( $dataSetName eq "luminosityDistance" ) {
+	# Ensure that we have the "comovingDistance" property.
+	&HDF5::Get_Dataset($dataBlock,["comovingDistance","redshift"]);
+	my $dataSets = $dataBlock->{'dataSets'};
+	# Compute the luminosity distance for each galaxy.
+	$dataSets->{$dataSetName} = $dataSets->{"comovingDistance"}*(1.0+$dataSets->{"redshift"});
+    }
+    if ( $dataSetName eq "angularWeight"      ) {
+	# Ensure that we have the "volumeWeight" property.
+	&HDF5::Get_Dataset($dataBlock,["volumeWeight"]);
+	my $dataSets = $dataBlock->{'dataSets'};
+	# Compute the angular weight for each galaxy.
+	$dataSets->{$dataSetName} = $dataSets->{"volumeWeight"}*($comovingDistanceMaximum**3-$comovingDistanceMinimum**3)/3.0;
     }
 }

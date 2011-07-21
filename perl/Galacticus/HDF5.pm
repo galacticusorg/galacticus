@@ -1,233 +1,247 @@
 # Contains a Perl module which implements various useful functionality for extracting data from Galacticus HDF5 files.
 
 package HDF5;
+use strict;
+use warnings;
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::NiceSlice;
 use Data::Dumper;
 
-%galacticusFunctions = ();
+our %galacticusFunctions = ();
 
 my $status = 1;
 $status;
 
-sub Get_Times {
-    my $dataHash = shift;
-    $outputNumbers   = pdl [];
-    $times           = pdl [];
-    $expansionFactor = pdl [];
-    $HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
-    @outputs = sort $HDFfile->group("Outputs")->groups;
-    foreach $output ( @outputs ) {
-	if ( $output =~ m/Output(\d+)/ ) {$outputNumber = $1};
-	$outputNumbers   = $outputNumbers  ->append($outputNumber);
-	$times           = $times          ->append($HDFfile->group("Outputs/".$output)->attrGet("outputTime")           );
-	$expansionFactor = $expansionFactor->append($HDFfile->group("Outputs/".$output)->attrGet("outputExpansionFactor"));
+sub Open_File {
+    my $dataBlock = shift;
+    unless ( exists($dataBlock->{'hdf5File'}) ) {
+	$dataBlock->{'hdf5File'} = new PDL::IO::HDF5(">".$dataBlock->{'file'});
+	$dataBlock->{'hdf5File'};
     }
-    ${${${$dataHash}{'outputs'}}{'outputNumber'}}    = $outputNumbers;
-    ${${${$dataHash}{'outputs'}}{'time'}}            = $times;
-    ${${${$dataHash}{'outputs'}}{'expansionFactor'}} = $expansionFactor;
-    ${${${$dataHash}{'outputs'}}{'redshift'}}        = 1.0/$expansionFactor-1.0;
+}
+
+sub Get_Times {
+    my $dataBlock       = shift;
+    my $outputNumbers   = pdl [];
+    my $times           = pdl [];
+    my $expansionFactor = pdl [];
+    &Open_File($dataBlock);
+    my @outputs = sort $dataBlock->{'hdf5File'}->group("Outputs")->groups;
+    foreach my $output ( @outputs ) {
+	if ( $output =~ m/Output(\d+)/ ) {
+	    my $outputNumber = $1;
+	    $outputNumbers   = $outputNumbers  ->append($outputNumber);
+	    $times           = $times          ->append($dataBlock->{'hdf5File'}->group("Outputs/".$output)->attrGet("outputTime")           );
+	    $expansionFactor = $expansionFactor->append($dataBlock->{'hdf5File'}->group("Outputs/".$output)->attrGet("outputExpansionFactor"));
+	}
+    }
+    $dataBlock->{'outputs'}->{'outputNumber'}    = $outputNumbers;
+    $dataBlock->{'outputs'}->{'time'}            = $times;
+    $dataBlock->{'outputs'}->{'expansionFactor'} = $expansionFactor;
+    $dataBlock->{'outputs'}->{'redshift'}        = 1.0/$expansionFactor-1.0;
 }
 
 sub Select_Output {
-    my $dataHash = shift;
+    my $dataBlock = shift;
     my $redshift = $_[0];
-    &Get_Times($dataHash) unless ( exists(${$dataHash}{'outputs'}) );
-    $outputs = $dataHash->{'outputs'};
-    $expansionFactor = pdl 1.0/($redshift+1.0);
-    $tolerance = pdl 1.0e-3;
-    $foundMatch = 0;
-    for($i=0;$i<nelem(${$outputs->{'expansionFactor'}});++$i) {
-	if ( abs(${$outputs->{'expansionFactor'}}->index($i)-$expansionFactor) < $tolerance ) {
-	    $dataHash->{'output'} = ${$outputs->{'outputNumber'}}->index($i);
+    &Get_Times($dataBlock) unless ( exists($dataBlock->{'outputs'}) );
+    my $outputs = $dataBlock->{'outputs'};
+    my $expansionFactor = pdl 1.0/($redshift+1.0);
+    my $tolerance = pdl 1.0e-3;
+    my $foundMatch = 0;
+    for(my $i=0;$i<nelem($outputs->{'expansionFactor'});++$i) {
+	if ( abs($outputs->{'expansionFactor'}->index($i)-$expansionFactor) < $tolerance ) {
+	    $dataBlock->{'output'} = $outputs->{'outputNumber'}->index($i);
 	    $foundMatch = 1;
 	}
     }
     if ( $foundMatch == 0 ) {
-	$redshiftsAvailable = 1.0/${$outputs->{'expansionFactor'}}-1.0;
-	$message  = "Select_Output(): Unable to find matching redshift.\n";
+	my $redshiftsAvailable = 1.0/${$outputs->{'expansionFactor'}}-1.0;
+	my $message  = "Select_Output(): Unable to find matching redshift.\n";
 	$message .= "                 Requested redshift was: ".$redshift."\n";
 	$message .= "                 Available redshifts are: ".$redshiftsAvailable."\n";
 	$message .= "                 Try adding the requested redshift to the 'outputRedshifts' paremeter in Galacticus.\n";
 	die($message);
     }
     # Ensure that the data sets available gets reset for this new output.
-    delete(${$dataHash}{'dataSetsAvailable'});
+    delete($dataBlock->{'dataSetsAvailable'});
 }
 
 sub Get_History {
-    my $dataHash = shift;
+    my $dataBlock = shift;
     my @dataNames = @{$_[0]};
-    $HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
-    foreach $dataSetName ( @dataNames ) {
-	${${${$dataHash}{'history'}}{$dataSetName}} = $HDFfile->group("globalHistory")->dataset($dataSetName)->get;
+    &Open_File($dataBlock);
+    foreach my $dataSetName ( @dataNames ) {
+	$dataBlock->{'history'}->{$dataSetName} = $dataBlock->{'hdf5File'}->group("globalHistory")->dataset($dataSetName)->get;
     }
 }
 
 sub Get_Datasets_Available {
-    my $dataHash = shift;
-    unless ( exists(${$dataHash}{'dataSetsAvailable'}) ) {
-	@dataSets = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/nodeData")->datasets;
-	foreach $dataSet ( @dataSets ) {${${$dataHash}{'dataSetsAvailable'}}{$dataSet} = 1};
+    my $dataBlock = shift;
+    unless ( exists($dataBlock->{'dataSetsAvailable'}) ) {
+	&Open_File($dataBlock);
+	my @dataSets = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData")->datasets;
+	foreach my $dataSet ( @dataSets ) {$dataBlock->{'dataSetsAvailable'}->{$dataSet} = 1};
     }
 }
 
 sub Count_Trees {
-    $dataHash = shift;
-    unless ( exists(${$dataHash}{'mergerTreesAvailable'}) ) {
-	$HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
-	$treesAvailable = $HDFfile->group("Outputs/Output1")->dataset("mergerTreeIndex")->get;
-	@{${$dataHash}{'mergerTreesAvailable'}} = $treesAvailable->list();
+    my $dataBlock = shift;
+    unless ( exists($dataBlock->{'mergerTreesAvailable'}) ) {
+	&Open_File($dataBlock);
+	my $treesAvailable = $dataBlock->{'hdf5File'}->group("Outputs/Output1")->dataset("mergerTreeIndex")->get;
+	@{$dataBlock->{'mergerTreesAvailable'}} = $treesAvailable->list();
     }
 }
 
 sub Get_Parameters {
-    my $dataHash = shift;
-    unless ( exists(${$dataHash}{'parameters'}) ) {
-	$HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
-	@parameterNames = $HDFfile->group("Parameters")->attrs;
-	@parameterValues = $HDFfile->group("Parameters")->attrGet(@parameterNames);
-	for($iParameter=0;$iParameter<=$#parameterNames;++$iParameter) {
+    my $dataBlock = shift;
+    unless ( exists($dataBlock->{'parameters'}) ) {
+	&Open_File($dataBlock);
+	my @parameterNames = $dataBlock->{'hdf5File'}->group("Parameters")->attrs;
+	my @parameterValues = $dataBlock->{'hdf5File'}->group("Parameters")->attrGet(@parameterNames);
+	for(my $iParameter=0;$iParameter<=$#parameterNames;++$iParameter) {
 	    if ( ref($parameterValues[$iParameter]) eq "PDL::Char" ) {
-		${${$dataHash}{'parameters'}}{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
+		$dataBlock->{'parameters'}->{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
 	    } else {
-		${${$dataHash}{'parameters'}}{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
+		$dataBlock->{'parameters'}->{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
 	    }
 	}
     }
 }
 
 sub Get_Dataset {
-    my $dataHash = shift;
+    my $dataBlock = shift;
     my @dataNames = @{$_[0]};
-    undef(@mergerTrees);
-    if ( ${$dataHash}{'tree'} eq "all" ) {
-	&Count_Trees($dataHash);
-	@mergerTrees = @{${$dataHash}{'mergerTreesAvailable'}};
+    my @mergerTrees;
+    if ( $dataBlock->{'tree'} eq "all" ) {
+	&Count_Trees($dataBlock);
+	@mergerTrees = @{$dataBlock->{'mergerTreesAvailable'}};
     } else {
-	$mergerTrees[0] = ${$dataHash}{'tree'};
+	$mergerTrees[0] = $dataBlock->{'tree'};
     }
 
     # Open the HDF5 file.
-    $HDFfile = new PDL::IO::HDF5(">".${$dataHash}{'file'});
+    &Open_File($dataBlock);
 
     # Extract a list of parameters.
-    &Get_Parameters        ($dataHash);
-
+    &Get_Parameters        ($dataBlock);
     # Extract a list of available datasets.
-    &Get_Datasets_Available($dataHash);
-
+    &Get_Datasets_Available($dataBlock);
     # Determine the range of data to be extracted.
-    if ( exists(${$dataHash}{'dataRange'}) ) {
-	$dataStart = ${${$dataHash}{'dataRange'}}[0];
-	$dataEnd = ${${$dataHash}{'dataRange'}}[1];
+    my ($dataStart, $dataEnd);
+    if ( exists($dataBlock->{'dataRange'}) ) {
+	$dataStart = ${$dataBlock->{'dataRange'}}[0];
+	$dataEnd   = ${$dataBlock->{'dataRange'}}[1];
     } else {
 	$dataStart = -1;
-	$dataEnd = -1;
+	$dataEnd   = -1;
     }
 
     # Determine if we are to store derived quantities in the HDF5 file.
-    if ( exists(${$dataHash}{'store'}) ) {
-	$storeDataSets = ${$dataHash}{'store'};
-	if ( $storeDataSets == 1 ) {
-	    die ("Get_Dataset(): store only allowed if reading full output at present") unless ( $dataStart == -1 && $dataEnd == -1 && ${$dataHash}{'tree'} eq "all" );
-	}
+    my $storeDataSets;
+    if ( exists($dataBlock->{'store'}) ) {
+    	$storeDataSets = $dataBlock->{'store'};
+    	if ( $storeDataSets == 1 ) {
+    	    die ("Get_Dataset(): store only allowed if reading full output at present") unless ( $dataStart == -1 && $dataEnd == -1 && $dataBlock->{'tree'} eq "all" );
+    	}
     } else {
-	$storeDataSets = 0;
+    	$storeDataSets = 0;
     }
     
-    foreach $dataSetName ( @dataNames ) {
-	unless ( exists(${${$dataHash}{'dataSets'}}{$dataSetName}) ) {
-	    if ( exists(${${$dataHash}{'dataSetsAvailable'}}{$dataSetName}) || $dataSetName eq "volumeWeight" ) {
-		# Dataset exists in the output file, so simply read it.
-		$data     = pdl [];
-		$dataTree = pdl [];
-                # Get merger tree indexing information.
-		$mergerTreeIndex      = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeIndex"     )->get;
-		$mergerTreeStartIndex = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeStartIndex")->get;
-		$mergerTreeCount      = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeCount"     )->get;
-		$mergerTreeWeight     = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeWeight"    )->get;
-		foreach $mergerTree ( @mergerTrees ) {
-		    # Check that this tree contains some nodes at this output. If it does not, skip it.
-		    $treeIndex      = which($mergerTreeIndex == $mergerTree);
-		    $treeStartIndex = $mergerTreeStartIndex->index($treeIndex);
-		    $treeCount      = $mergerTreeCount     ->index($treeIndex)->squeeze;
-		    $treeWeight     = $mergerTreeWeight    ->index($treeIndex)->squeeze;
-		    $treeEndIndex   = $treeStartIndex+$treeCount-1;
-		    if ( $treeCount > 0 ) {
-			if ( $dataSetName eq "volumeWeight" ) {
-			    $data = $data->append($treeWeight*ones($treeCount->list));
-			} else {
-			    # Read the dataset.
-			    $thisTreeData = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/nodeData")->dataset($dataSetName)->get($treeStartIndex,$treeEndIndex);
-			    # Append the dataset.
-			    $data = $data->append($thisTreeData);
-			}
-			# Append the merger tree index.
-			unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
-			    $dataTree = $dataTree->append($mergerTree*ones($treeCount->list));	
-			}
-		    }
-		}
-		${${${$dataHash}{'dataSets'}}{$dataSetName}} = $data;
-		undef($data);
-		unless ( exists(${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}) ) {
-		    ${${${$dataHash}{'dataSets'}}{'mergerTreeIndex'}} = $dataTree;
-		    undef($dataTree);
-		}
-	    } else {
-		# Dataset is not present in the output file, search for a match to a derived property.
-		$foundMatch = 0;
-		foreach $regEx ( keys(%galacticusFunctions) ) {
-		    if ( $dataSetName =~ m/^$regEx$/ ) {
-			$foundMatch = 1;
-			$getFunc = $galacticusFunctions{$regEx};
-			&$getFunc(\%{$dataHash},$dataSetName);
-			if ( $storeDataSets == 1 ) {
-			    $dataSets = $dataHash->{'dataSets'};
-			    $nodeDataGroup = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/nodeData");
-			    $outputDataSet = new PDL::IO::HDF5::Dataset( name    => $dataSetName,
-									 parent  => $nodeDataGroup,
-									 fileObj => $HDFfile
-				);
-			    $outputDataSet->set(${$dataSets->{$dataSetName}});
+    foreach my $dataSetName ( @dataNames ) {
+    	unless ( exists($dataBlock->{'dataSets'}->{$dataSetName}) ) {
+     	    if ( exists($dataBlock->{'dataSetsAvailable'}->{$dataSetName}) || $dataSetName eq "volumeWeight" ) {
+     		# Dataset exists in the output file, so simply read it.
+     		my $data     = pdl [];
+     		my $dataTree = pdl [];
+                 # Get merger tree indexing information.
+     		my $mergerTreeIndex      = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex"     )->get;
+     		my $mergerTreeStartIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeStartIndex")->get;
+     		my $mergerTreeCount      = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount"     )->get;
+     		my $mergerTreeWeight     = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight"    )->get;
+     		foreach my $mergerTree ( @mergerTrees ) {
+     		    # Check that this tree contains some nodes at this output. If it does not, skip it.
+     		    my $treeIndex      = which($mergerTreeIndex == $mergerTree);
+     		    my $treeStartIndex = $mergerTreeStartIndex->index($treeIndex);
+     		    my $treeCount      = $mergerTreeCount     ->index($treeIndex)->squeeze;
+     		    my $treeWeight     = $mergerTreeWeight    ->index($treeIndex)->squeeze;
+     		    my $treeEndIndex   = $treeStartIndex+$treeCount-1;
+     		    if ( $treeCount > 0 ) {
+     			if ( $dataSetName eq "volumeWeight" ) {
+     			    $data = $data->append($treeWeight*ones($treeCount->list));
+     			} else {
+     			    # Read the dataset.
+     			    my $thisTreeData = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData")->dataset($dataSetName)->get($treeStartIndex,$treeEndIndex);
+     			    # Append the dataset.
+     			    $data = $data->append($thisTreeData);
+     			}
+     			# Append the merger tree index.
+     			unless ( exists($dataBlock->{'dataSets'}->{'mergerTreeIndex'}) ) {
+     			    $dataTree = $dataTree->append($mergerTree*ones($treeCount->list));	
+     			}
+     		    }
+     		}
+     		$dataBlock->{'dataSets'}->{$dataSetName} = $data;
+     		undef($data);
+     		unless ( exists($dataBlock->{'dataSets'}->{'mergerTreeIndex'}) ) {
+     		    $dataBlock->{'dataSets'}->{'mergerTreeIndex'} = $dataTree;
+     		    undef($dataTree);
+     		}
+	     } else {
+	     	# Dataset is not present in the output file, search for a match to a derived property.
+	     	my $foundMatch = 0;
+	    	foreach my $regEx ( keys(%galacticusFunctions) ) {
+	    	    if ( $dataSetName =~ m/^$regEx$/ ) {
+	    		$foundMatch = 1;
+	    		my $getFunc = $galacticusFunctions{$regEx};
+	    		&{$getFunc}($dataBlock,$dataSetName);
+	    		if ( $storeDataSets == 1 ) {
+	    		    my $dataSets = $dataBlock->{'dataSets'};
+	    		    my $nodeDataGroup = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData");
+	    		    my $outputDataSet = new PDL::IO::HDF5::Dataset( name    => $dataSetName,
+	    								 parent  => $nodeDataGroup,
+	    								 fileObj => $dataBlock->{'hdf5File'}
+	    			);
+	    		    $outputDataSet->set(${$dataSets->{$dataSetName}});
 
-			    # Determine if merger tree references need to be written for this model.
-			    if ( exists(${${$dataHash}{'parameters'}}{'mergerTreeOutputReferences'}) ) {
-				if ( ${${$dataHash}{'parameters'}}{'mergerTreeOutputReferences'} eq "true" ) {
-				    $createReference = 1;
-				} else {
-				    $createReference = 0;
-				}
-			    } else {
-				$createReference = 0;
-			    }
+	    		    # Determine if merger tree references need to be written for this model.
+	    		    my $createReference;
+	    		    if ( exists($dataBlock->{'parameters'}->{'mergerTreeOutputReferences'}) ) {
+	    			if ( $dataBlock->{'parameters'}->{'mergerTreeOutputReferences'} eq "true" ) {
+	    			    $createReference = 1;
+	    			} else {
+	    			    $createReference = 0;
+	    			}
+	    		    } else {
+	    			$createReference = 0;
+	    		    }
 
-			    # Write merger tree references if necessary.
-			    if ( $createReference == 1 ) {
-				$dataIndexStart = 0;
-				$mergerTreeIndex = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeIndex")->get;
-				$mergerTreeCount = $HDFfile->dataset("Outputs/Output".${$dataHash}{'output'}."/mergerTreeCount")->get;
-				$start = pdl [-1];
-				foreach $mergerTree ( @mergerTrees ) {
-				    # Count up the number of entries in this tree.
-				    $mergerTreeGroup = $HDFfile->group("Outputs/Output".${$dataHash}{'output'}."/mergerTree".$mergerTree);
-				    $start          += 1;
-				    $dataCount       = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->dataset("mergerTreeCount")->get($start,$start);
-				    $treeIndex       = which($mergerTreeIndex == $mergerTree);
-				    $dataCount       = $mergerTreeCount->index($treeIndex)->squeeze;
-				    $mergerTreeGroup->reference($outputDataSet,$dataSetName,[$dataIndexStart],[$dataCount]);
-				    $dataIndexStart += $dataCount;
-				}
-			    }
-			}
-		    }
-		}	
-		# Exit if the dataset was not matched.
-		die("Dataset ".$dataSetName." was not found or matched to any derived property") unless ( $foundMatch == 1 );		
+	    		    # Write merger tree references if necessary.
+	    		    if ( $createReference == 1 ) {
+	    			my $dataIndexStart = 0;
+	    			my $mergerTreeIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex")->get;
+	    			my $mergerTreeCount = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
+	    			my $start = pdl [-1];
+	    			foreach my $mergerTree ( @mergerTrees ) {
+	    			    # Count up the number of entries in this tree.
+	    			    my $mergerTreeGroup = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/mergerTree".$mergerTree);
+	    			    $start          += 1;
+	    			    my $treeIndex       = which($mergerTreeIndex == $mergerTree);
+	    			    my $dataCount       = $mergerTreeCount->index($treeIndex)->squeeze;
+	    			    $mergerTreeGroup->reference($outputDataSet,$dataSetName,[$dataIndexStart],[$dataCount]);
+	    			    $dataIndexStart += $dataCount;
+	    			}
+	    		    }
+	    		}
+	    	    }
+	    	}		
+	    	# Exit if the dataset was not matched.
+	    	die("Dataset ".$dataSetName." was not found or matched to any derived property") unless ( $foundMatch == 1 );
+		
 	    }
 	}
-    }
+   }
 }

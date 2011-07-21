@@ -180,16 +180,17 @@ A Perl module is provided that allows for easy extraction of datasets from the \
 \end{verbatim}
 at the start of your Perl script. The {\tt Galacticus::HDF5} module will import data from a \glc\ HDF5 file into PDL variables. All data are stored in a single structure, which also specifies the file, output and range of trees to read. An example of reading a dataset from a file is:
 \begin{verbatim}
- $dataSet{'file'} = "galacticus.hdf5";
- $dataSet{'output'} = 1;
- $dataSet{'tree'} = "all";
- $dataSet{'dataRange'} = [1,2];
- $dataSet{'store'} = 0;
- &HDF5::Get_Dataset(\%dataSet,['nodeMass']);
- $dataSets = \%{$dataSet{'dataSets'}};
- print ${$dataSets->{'nodeMass'}}."\n";
+ my $dataBlock;
+ $dataBlock->{'file'     } = "galacticus.hdf5";
+ $dataBlock->{'output'   } = 1;
+ $dataBlock->{'tree'     } = "all";
+ $dataBlock->{'dataRange'} = [1,2];
+ $dataBlock->{'store'    } = 0;
+ &HDF5::Get_Dataset($dataBlock,['nodeMass']);
+ $dataSets = $dataBlock->{'dataSets'};
+ print $dataSets->{'nodeMass'}."\n";
 \end{verbatim}
-The {\tt \%dataSet} hash is initialized with information to specify which file, output and trees should be used. Its settable components are:
+The {\tt \$dataBlock} object is initialized with information to specify which file, output and trees should be used. Its settable components are:
 \begin{description}
  \item [{\tt file}] The name of the \glc\ output file to be read.
  \item [{\tt output}] Specify the output number in the file which should be read.
@@ -197,7 +198,7 @@ The {\tt \%dataSet} hash is initialized with information to specify which file, 
  \item [{\tt dataRange}] Gives the first and last entry in the dataset to read---this facilitates reading of partial datasets (and therefore reading datasets in a piecemeal fashion). If this component is missing, the entire dataset is read.
  \item[{\tt store}] If set to 1, any derived properties will be stored back in the \glc\ output file for later retrieval. If set to 0 (or if this option is not present), derived properties will not be stored. Currently, storing of derived properties in the \glc\ file is only possible if the {\tt tree} option is set to ``all'' and no {\tt dataRange} is specified.
 \end{description}
-The {\tt \&HDF5::Get\_Dataset($\backslash$\%dataSet,['nodeMass']);} call requests that the {\tt nodeMass} dataset be read. It is return as a PDL variable in the {\tt nodeMass} element of the {\tt dataSets} hash which is itself a member of {\tt \$dataSet}. The final lines in the example simply write out the resulting array of {\tt nodeMass} values.
+The {\tt \&HDF5::Get\_Dataset(\$dataBlock,['nodeMass']);} call requests that the {\tt nodeMass} dataset be read. It is return as a PDL variable in the {\tt nodeMass} element of the {\tt dataSets} element which is itself a member of {\tt \$dataBlock}. The final lines in the example simply write out the resulting array of {\tt nodeMass} values.
 
 \subsection{Derived Properties}
 
@@ -209,22 +210,22 @@ use Galacticus::HDF5;
 use Data::Dumper;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "hotHalo(Fraction|Frac)" => "Baryons::Get_hotHaloFraction"
+    "hotHalo(Fraction|Frac)" => \&Baryons::Get_hotHaloFraction
     );
 
 my $status = 1;
 $status;
 
 sub Get_hotHaloFraction {
-    $dataSet = shift;
+    $dataBlock = shift;
     $dataSetName = $_[0];
-    &HDF5::Get_Dataset($dataSet,['hotHaloMass','nodeMass']);
-    $dataSets = \%{${$dataSet}{'dataSets'}};
-    ${$dataSets->{$dataSetName}} = ${$dataSets->{'hotHaloMass'}}/${$dataSets->{'nodeMass'}};
+    &HDF5::Get_Dataset($dataBlock,['hotHaloMass','nodeMass']);
+    $dataSets = $dataBlock->{'dataSets'};
+    $dataSets->{$dataSetName} = $dataSets->{'hotHaloMass'}/$dataSets->{'nodeMass'};
 }
 
 \end{verbatim}
-The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} hash. The key gives a regular expression which matches to the name of the property to be defined. The value of the key gives the name of a subroutine to be called to evaluate this expression. The subroutine is defined below. When called, it receives the {\tt \$dataSet} structure along with the name of the requested property. The subroutine should then simply evaluate the requested property and store it in the appropriate location within {\tt \$dataSet}. Note that the subroutine can request additional datasets be loaded (as happens above where {\tt hotHaloMass} and {\tt nodeMass} are requested) if they are needed for its calculations.
+The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} hash. The key gives a regular expression which matches to the name of the property to be defined. The value of the key gives a reference to a subroutine to be called to evaluate this expression. The subroutine is defined below. When called, it receives the {\tt \$dataBlock} structure along with the name of the requested property. The subroutine should then simply evaluate the requested property and store it in the appropriate location within {\tt \$dataBlock}. Note that the subroutine can request additional datasets be loaded (as happens above where {\tt hotHaloMass} and {\tt nodeMass} are requested) if they are needed for its calculations.
 
 \subsubsection{Available Derived Properties}\label{sec:DerivedProperties}
 
@@ -233,7 +234,7 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
  \item[{\tt hostNodeMass}] For isolated nodes, the node mass. For non-isolated nodes, the mass of the isolated node in which the node resides. Provided by: {\tt Galacticus::HostNode}.\index{nodes!host mass}\index{halos!host mass}\index{satellites!host mass}
  \item[{\tt hotHalo(Fraction\textbar Frac)}] The fraction the node's mass in the hot gas halo. Provided by: {\tt Galacticus::Baryons}.
  \item[{\tt inclination}] A randomly selected inclination for the disk (in degrees). Provided by: {\tt Galacticus::Inclination}.
- \item[{\tt \textasciicircum(disk\textbar bulge)StellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Dust-extingiushed\index{dust!extinction} luminosities for disk and bulge found by interpolating in the dust tables of \cite{ferrara_atlas_1999}. If the {\tt [faceOn]} qualifier is present, extinctions are computed assuming that the disk is observed face-on, otherwise a random inclination is used. Optionally, the dust atlas file to used can be specified via {\tt \$\{\$dataSet\}\{'dustAtlasFile'\}}. The available dust atlases span a limited range of spheroid sizes and central optical depths in their tabulations. Standard behavior is to extrapolate beyond the ends of these ranges. This can be controlled via {\tt \$\{\$dataSet\}\{'dustAtlasExtrapolateInSize'\}} and {\tt \$\{\$dataSet\}\{'dustAtlasExtrapolateInTau'\}} respectively, which can be set to {\tt yes}/{\tt no} (or, equivalently, 1/0). Provided by: {\tt Galacticus::DustAttenuation}.
+ \item[{\tt \textasciicircum(disk\textbar bulge)StellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Dust-extingiushed\index{dust!extinction} luminosities for disk and bulge found by interpolating in the dust tables of \cite{ferrara_atlas_1999}. If the {\tt [faceOn]} qualifier is present, extinctions are computed assuming that the disk is observed face-on, otherwise a random inclination is used. Optionally, the dust atlas file to used can be specified via {\tt \$dataSet-\textgreater\{'dustAtlasFile'\}}. The available dust atlases span a limited range of spheroid sizes and central optical depths in their tabulations. Standard behavior is to extrapolate beyond the ends of these ranges. This can be controlled via {\tt \$dataSet-\textgreater\{'dustAtlasExtrapolateInSize'\}} and {\tt \$dataSet-\textgreater\{'dustAtlasExtrapolateInTau'\}} respectively, which can be set to {\tt yes}/{\tt no} (or, equivalently, 1/0). Provided by: {\tt Galacticus::DustAttenuation}.
  \item[{\tt \textasciicircum totalStellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] (Optionally dust-extingiushed) luminosities for disk plus bulge found by adding together the corresponding disk and bulge luminosities. Provided by: {\tt Galacticus::Luminosities}.
  \item[{\tt \textasciicircum bulgeToTotalLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Ratio of bulge to total (optionally dust-extingiushed) luminosities. Provided by: {\tt Galacticus::Luminosities}.
  \item[{\tt \textasciicircum magnitude([\textasciicircum :]+):([\textasciicircum :]+):([\textasciicircum :]+):z([$\backslash$d$\backslash$.]+)(:dust[\textasciicircum :]+)?(:vega\textbar :AB)?}] Absolute magnitude corresponding to a stellar luminosity, in either Vega or AB systems. Provided by: {\tt Galacticus::Magnitudes}.
@@ -248,7 +249,7 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
 Galaxy clustering calculations (currently real and redshift space power spectra and two-point correlation functions) can be computed using the {\tt Galacticus::HaloModel} Perl module. To use this module, \glc\ must be run with {\tt [outputHaloModelData]}$=${\tt true} (see \S\ref{sec:HaloModelOutput}) to output data on halo profiles and power spectra. To perform halo model calculations, simply use this module in a Perl script, initialize the data hash, {\tt \%dataHash}, used for the {\tt Galacticus::HDF5} module, and construct a PDL, {\tt \$selectedGalaxies}, which contains the indices (not the node indices, but the positions within the PDL arrays read in from the \glc\ output file) of galaxies for which the clustering is to be computed. A power spectrum can then be computed using:
 \begin{verbatim}
 ($waveNumber,$linearPowerSpectrum,$galaxyPowerSpectrum) 
-    = &HaloModel::Compute_Power_Spectrum(\%dataHash,$selectedGalaxies,space => "redshift");
+    = &HaloModel::Compute_Power_Spectrum($dataBlock,$selectedGalaxies,space => "redshift");
 \end{verbatim}
 The PDLs returned contain a list of comoving wavenumbers, the linear power spectrum of matter at the selected time and the (non-linear) power spectrum of the selected galaxies. If the {\tt space} option is set to {\tt redshift} then a redshift space power spectrum is computed, otherwise a real space power spectrum is computed.
 

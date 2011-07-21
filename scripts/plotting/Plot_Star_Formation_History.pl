@@ -7,6 +7,7 @@ use Galacticus::HDF5;
 use Astro::Cosmology;
 use Math::SigFigs;
 use Stats::Means;
+use Data::Dumper;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Star_Formation_History.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -21,8 +22,8 @@ if ( $#ARGV == 2 ) {
 }
 
 # Get parameters for the Galacticus model.
-$dataSet{'file'} = $galacticusFile;
-&HDF5::Get_Parameters(\%dataSet);
+$dataBlock->{'file'} = $galacticusFile;
+&HDF5::Get_Parameters($dataBlock);
 
 # Check if output location is file or directory.
 if ( $outputTo =~ m/\.pdf$/ ) {
@@ -34,16 +35,16 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Extract global data
-&HDF5::Get_History(\%dataSet,['historyExpansion','historyStarFormationRate']);
-$history        = \%{$dataSet{'history'}};
-$time           = ${$history->{'historyTime'}};
-$redshift       = 1.0/${$history->{'historyExpansion'}}-1.0;
-$SFR            = ${$history->{'historyStarFormationRate'}}/1.0e9;
-$stellarDensity = ${$history->{'historyStellarDensity'}};
+&HDF5::Get_History($dataBlock,['historyExpansion','historyStarFormationRate']);
+$history        = $dataBlock->{'history'};
+$time           = $history->{'historyTime'};
+$redshift       = 1.0/$history->{'historyExpansion'}-1.0;
+$SFR            = $history->{'historyStarFormationRate'}/1.0e9;
+$stellarDensity = $history->{'historyStellarDensity'};
 
 # Determine IMF correction factor.
 $imfCorrection = 1.0;
-if ( $dataSet{'parameters'}->{'imfSelectionFixed'} eq "Chabrier" ) {
+if ( $dataBlock->{'parameters'}->{'imfSelectionFixed'} eq "Chabrier" ) {
     $imfCorrection = 0.6;
 }
 
@@ -81,10 +82,11 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
 	H0           => $columns->{'sfr'}->{'hubble'}
 	);
     $cosmologyGalacticus = Astro::Cosmology->new(
-	omega_matter => $dataSet{'parameters'}->{'Omega_0'},
-	omega_lambda => $dataSet{'parameters'}->{'Lambda_0'},
-	H0           => $dataSet{'parameters'}->{'H_0'}
+	omega_matter => $dataBlock->{'parameters'}->{'Omega_0'},
+	omega_lambda => $dataBlock->{'parameters'}->{'Lambda_0'},
+	H0           => $dataBlock->{'parameters'}->{'H_0'}
 	);
+
     $volumeElementData            = $cosmologyData      ->differential_comoving_volume($x);
     $volumeElementGalacticus      = $cosmologyGalacticus->differential_comoving_volume($x);
     $luminosityDistanceData       = $cosmologyData      ->luminosity_distance         ($x);

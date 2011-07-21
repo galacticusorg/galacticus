@@ -41,13 +41,13 @@ $chiSquared      = 0.0;
 $degreesOfFreedom = 0;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.1);
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight'
+$dataBlock->{'file'} = $galacticusFile;
+$dataBlock->{'store'} = 0;
+&HDF5::Get_Parameters($dataBlock);
+&HDF5::Count_Trees($dataBlock);
+&HDF5::Select_Output($dataBlock,0.1);
+$dataBlock->{'tree'} = "all";
+&HDF5::Get_Dataset($dataBlock,['volumeWeight'
 			      ,'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas[faceOn]:AB'
 			      ,'magnitudeTotal:SDSS_z:observed:z0.1000:AB'
 			      ,'diskStellarMass'
@@ -57,9 +57,9 @@ $dataSet{'tree'} = "all";
 			      ,'diskGasMetals'
 			      ,'spheroidGasMetals'
 		   ]);
-$dataSets = \%{$dataSet{'dataSets'}};
-$gasFraction    = (${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}})/(${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}}+${$dataSets->{'diskStellarMass'}}+${$dataSets->{'spheroidStellarMass'}});
-$gasMetallicity = where(12.0+log10((${$dataSets->{'diskGasMetals'}}+${$dataSets->{'spheroidGasMetals'}})/(${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
+$dataSets = $dataBlock->{'dataSets'};
+$gasFraction    = ($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'})/($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'}+$dataSets->{'diskStellarMass'}+$dataSets->{'spheroidStellarMass'});
+$gasMetallicity = where(12.0+log10(($dataSets->{'diskGasMetals'}+$dataSets->{'spheroidGasMetals'})/($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot");
@@ -75,7 +75,7 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
     ++$iDataset;
     $columns = $dataSet->{'columns'};
     $x = pdl @{$columns->{'magnitude'}->{'data'}};
-    $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+    $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataBlock{'parameters'}->{'H_0'});
 
     # Compute the distribution of Galacticus galaxies.
     $filter = $columns->{'magnitude'}->{'filter'};

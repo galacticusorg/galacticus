@@ -30,11 +30,11 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.1);
+$dataSet->{'file'} = $galacticusFile;
+$dataSet->{'store'} = 0;
+&HDF5::Get_Parameters($dataSet);
+&HDF5::Count_Trees($dataSet);
+&HDF5::Select_Output($dataSet,0.1);
 
 # Read the XML data file.
 $xml = new XML::Simple;
@@ -42,7 +42,7 @@ $data = $xml->XMLin("data/Galaxy_Colors_SDSS_Weinmann_2006.xml");
 $columns = $data->{'galaxyColors'}->{'columns'};
 $magnitude = pdl @{$columns->{'magnitude'}->{'data'}};
 $color = pdl @{$columns->{'color'}->{'data'}};
-$magnitude = $magnitude-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+$magnitude = $magnitude-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
 
 # Bin data into grid.
 $magnitudePoints = pdl 20;
@@ -77,12 +77,12 @@ for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
 $countGalacticus = PDL->zeroes($magnitudePoints,$colorPoints);
 $errorGalacticus = PDL->zeroes($magnitudePoints,$colorPoints);
 
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight','magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB','magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB']);
-$dataSets  = \%{$dataSet{'dataSets'}};
-$magnitude = ${$dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'}};
-$color     = ${$dataSets->{'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB'}}-${$dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'}};
-$weight    = ${$dataSets->{'volumeWeight'}};
+$dataSet->{'tree'} = "all";
+&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB','magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB']);
+$dataSets  = $dataSet->{'dataSets'};
+$magnitude = $dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
+$color     = $dataSets->{'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB'}-$dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
+$weight    = $dataSets->{'volumeWeight'};
 
 for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     $minimumMagnitude = $magnitudeBins->index($iMagnitude)-0.5*$magnitudeBin;

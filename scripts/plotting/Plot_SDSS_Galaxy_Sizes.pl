@@ -43,29 +43,29 @@ for($iRadius=0;$iRadius<nelem($spheroidRadii);++$iRadius) {
 }
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.1);
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight'
+$dataBlock->{'file'} = $galacticusFile;
+$dataBlock->{'store'} = 0;
+&HDF5::Get_Parameters($dataBlock);
+&HDF5::Count_Trees($dataBlock);
+&HDF5::Select_Output($dataBlock,0.1);
+$dataBlock->{'tree'} = "all";
+&HDF5::Get_Dataset($dataBlock,['volumeWeight'
 			      ,'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'
 			      ,'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'
 			      ,'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'
 			      ,'diskScaleLength'
 			      ,'spheroidScaleLength'
 		   ]);
-$dataSets = \%{$dataSet{'dataSets'}};
-$spheroidScaleLength = ${$dataSets->{'spheroidScaleLength'}}/${$dataSets->{'diskScaleLength'}};
-$spheroidLuminosity  = ${$dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}}/${$dataSets->{'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}};
+$dataSets = $dataBlock->{'dataSets'};
+$spheroidScaleLength = $dataSets->{'spheroidScaleLength'}/$dataSets->{'diskScaleLength'};
+$spheroidLuminosity  = $dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}/$dataSets->{'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'};
 $indexScaleLength = interpol($spheroidScaleLength,$spheroidRadii,$spheroidRadiiIndex);
 $indexLuminosity  = interpol($spheroidLuminosity ,$spheroidMasses,$spheroidMassesIndex);
 $radius           = $halfRadiiTable->interpND(transpose(cat($indexScaleLength,$indexLuminosity)));
-$radius          *= 1000.0*${$dataSets->{'diskScaleLength'}};
-$morphology       = ${$dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}}/(${$dataSets->{'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}}+${$dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}});
-$magnitude        = ${$dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'}};
-$weight           = ${$dataSets->{'volumeWeight'}};
+$radius          *= 1000.0*$dataSets->{'diskScaleLength'};
+$morphology       = $dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}/($dataSets->{'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}+$dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'});
+$magnitude        = $dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
+$weight           = $dataSets->{'volumeWeight'};
 
 # Initialize chi^2 accumulator.
 $chiSquared = 0.0;
@@ -85,7 +85,7 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $x = pdl @{$columns->{'radius'}->{'data'}};
     $y = pdl @{$columns->{'distribution'}->{'data'}};
     $yError = pdl @{$columns->{'distributionError'}->{'data'}};
-    $x = (10.0**$x)*($columns->{'radius'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+    $x = (10.0**$x)*($columns->{'radius'}->{'hubble'}/$dataBlock{'parameters'}->{'H_0'});
     $yUpperError = $y+$yError;
     $yLowerError = $y-$yError;
 

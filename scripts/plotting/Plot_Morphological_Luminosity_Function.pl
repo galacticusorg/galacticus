@@ -31,20 +31,20 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.0);
+$dataSet->{'file'} = $galacticusFile;
+$dataSet->{'store'} = 0;
+&HDF5::Get_Parameters($dataSet);
+&HDF5::Count_Trees($dataSet);
+&HDF5::Select_Output($dataSet,0.0);
 
 # Read galaxy data.
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,[
+$dataSet->{'tree'} = "all";
+&HDF5::Get_Dataset($dataSet,[
 		       'volumeWeight',
 		       'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega',
 		       'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'
 		   ]);
-$dataSets  = \%{$dataSet{'dataSets'}};
+$dataSets  = $dataSet{'dataSets'};
 
 # Read the XML data file.
 $xml     = new XML::Simple;
@@ -55,9 +55,9 @@ foreach $morphology ( @{$data->{'morphology'}} ) {
 	# Get the luminosity function.
 	$x  = pdl @{$morphology->{'magnitude'         }->{'datum'}};
 	$y  = pdl @{$morphology->{'luminosityFunction'}->{'datum'}};
-	$xMin    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})-0.25                                                         ,$x == -23.25);
-	$xMax    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'})+0.25                                                         ,$x == -23.25);
-	$ySelect = where($y*($dataSet{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'},$x == -23.25);
+	$xMin    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'})-0.25                                                         ,$x == -23.25);
+	$xMax    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'})+0.25                                                         ,$x == -23.25);
+	$ySelect = where($y*($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'},$x == -23.25);
 	$bulgeToTotal->{$morphology->{"class"}}->{"abundance"}              = $ySelect->index(0);
 	$bulgeToTotal->{$morphology->{"class"}}->{"magnitude"}->{"minimum"} = $xMin   ->index(0);
 	$bulgeToTotal->{$morphology->{"class"}}->{"magnitude"}->{"maximum"} = $xMax   ->index(0);
@@ -81,13 +81,13 @@ foreach $class ( @classes ) {
 }
 
 # Compute cumulative fraction of model galaxies by bulge-to-total ratio.
-$weight = where(${$dataSets->{'volumeWeight'}},
-		${$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'}} >= $bulgeToTotal->{"Total"}->{"magnitude"}->{"minimum"} &
-		${$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'}} < $bulgeToTotal->{"Total"}->{"magnitude"}->{"maximum"}
+$weight = where($dataSets->{'volumeWeight'}},
+		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= $bulgeToTotal->{"Total"}->{"magnitude"}->{"minimum"} &
+		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} < $bulgeToTotal->{"Total"}->{"magnitude"}->{"maximum"}
 		);
-$ratio  = where(${$dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'}},
-		${$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'}} >= $bulgeToTotal->{"Total"}->{"magnitude"}->{"minimum"} &
-		${$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'}} < $bulgeToTotal->{"Total"}->{"magnitude"}->{"maximum"}
+$ratio  = where($dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'},
+		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= $bulgeToTotal->{"Total"}->{"magnitude"}->{"minimum"} &
+		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} < $bulgeToTotal->{"Total"}->{"magnitude"}->{"maximum"}
 		);
 
 $indices          = $ratio->qsorti;
@@ -118,18 +118,18 @@ foreach $morphology ( @{$data->{'morphology'}} ) {
 	$error = pdl @{$morphology->{'luminosityFunctionError'}->{'datum'}};
 	
 	# Scale for Hubble parameter.
-	$x     += -5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
-	$y     *= ($dataSet{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
-	$error *= ($dataSet{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
+	$x     += -5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
+	$y     *= ($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
+	$error *= ($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
 
 	# Construct Galacticus luminosity function.
-	$magnitude = where(${$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'}},
-			     ${$dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'}} >= $bulgeToTotal->{$morphology->{"class"}}->{"minimum"}
-			   & ${$dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'}} <= $bulgeToTotal->{$morphology->{"class"}}->{"maximum"}
+	$magnitude = where($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'},
+			     $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotal->{$morphology->{"class"}}->{"minimum"}
+			   & $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotal->{$morphology->{"class"}}->{"maximum"}
 	    );
-	$weight    = where(${$dataSets->{'volumeWeight'}},
-			     ${$dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'}} >= $bulgeToTotal->{$morphology->{"class"}}->{"minimum"}
-			   & ${$dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'}} <= $bulgeToTotal->{$morphology->{"class"}}->{"maximum"}
+	$weight    = where($dataSets->{'volumeWeight'},
+			     $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotal->{$morphology->{"class"}}->{"minimum"}
+			   & $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotal->{$morphology->{"class"}}->{"maximum"}
 	    );
 
 	($yGalacticus,$errorGalacticus) = &Histograms::Histogram($x,$magnitude,$weight,differential => 1);

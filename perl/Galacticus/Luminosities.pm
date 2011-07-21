@@ -8,8 +8,8 @@ use Data::Dumper;
 use XML::Simple;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^totalStellarLuminosity:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => "Luminosities::Get_Luminosity",
-    "^bulgeToTotalLuminosity:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => "Luminosities::Get_BulgeToTotal"
+    "^totalStellarLuminosity:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => \&Luminosities::Get_Luminosity,
+    "^bulgeToTotalLuminosity:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => \&Luminosities::Get_BulgeToTotal
     );
 
 my $status = 1;
@@ -30,8 +30,8 @@ sub Get_Luminosity {
 	$luminosityDataset[0] = "diskStellarLuminosity:".$filter.":".$frame.":z".$redshift.$dustExtension;
 	$luminosityDataset[1] = "spheroidStellarLuminosity:".$filter.":".$frame.":z".$redshift.$dustExtension;
 	&HDF5::Get_Dataset($dataSet,\@luminosityDataset);
-	$dataSets = \%{${$dataSet}{'dataSets'}};
-	${$dataSets->{$dataSetName}} = ${$dataSets->{$luminosityDataset[0]}}+${$dataSets->{$luminosityDataset[1]}};
+	$dataSets = $dataSet->{'dataSets'};
+	$dataSets->{$dataSetName} = $dataSets->{$luminosityDataset[0]}+$dataSets->{$luminosityDataset[1]};
     } else {
 	die("Get_Luminosity(): unable to parse data set: ".$dataSetName);
     }
@@ -52,10 +52,10 @@ sub Get_BulgeToTotal {
 	$luminosityDataset[0] = "diskStellarLuminosity:"    .$filter.":".$frame.":z".$redshift.$dustExtension;
 	$luminosityDataset[1] = "spheroidStellarLuminosity:".$filter.":".$frame.":z".$redshift.$dustExtension;
 	&HDF5::Get_Dataset($dataSet,\@luminosityDataset);
-	$dataSets = \%{${$dataSet}{'dataSets'}};
-	${$dataSets->{$dataSetName}} = ${$dataSets->{$luminosityDataset[1]}}/(${$dataSets->{$luminosityDataset[0]}}+${$dataSets->{$luminosityDataset[1]}});
-	$nonluminous                 = which(${$dataSets->{$luminosityDataset[0]}}+${$dataSets->{$luminosityDataset[1]}} <= 0.0);
-	${$dataSets->{$dataSetName}}->index($nonluminous) .= 0.0;
+	$dataSets = $dataSet->{'dataSets'};
+	$dataSets->{$dataSetName} = $dataSets->{$luminosityDataset[1]}/($dataSets->{$luminosityDataset[0]}+$dataSets->{$luminosityDataset[1]});
+	$nonluminous                 = which($dataSets->{$luminosityDataset[0]}+$dataSets->{$luminosityDataset[1]} <= 0.0);
+	$dataSets->{$dataSetName}->index($nonluminous) .= 0.0;
     } else {
 	die("Get_Luminosity(): unable to parse data set: ".$dataSetName);
     }

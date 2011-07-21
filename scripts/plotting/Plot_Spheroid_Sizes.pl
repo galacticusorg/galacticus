@@ -75,25 +75,25 @@ foreach $model ( keys(%models) ) {
     # Get the input file name;
     $inputFile = $models{$model};
     # Create data structure to read the results.
-    undef(%dataSet);
+    undef($dataSet);
     undef($dataSets);
-    $dataSet{'file'}  = $inputFile;
-    $dataSet{'store'} = 0;
-    &HDF5::Get_Parameters(\%dataSet    );
-    &HDF5::Count_Trees   (\%dataSet    );
-    &HDF5::Select_Output (\%dataSet,0.0);
-    $dataSet{'tree'}  = "all";
-    &HDF5::Get_Dataset(\%dataSet,['volumeWeight','diskStellarMass','spheroidStellarMass','spheroidScaleLength']);
-    $dataSets         = \%{$dataSet{'dataSets'}};
+    $dataSet->{'file'}  = $inputFile;
+    $dataSet->{'store'} = 0;
+    &HDF5::Get_Parameters($dataSet    );
+    &HDF5::Count_Trees   ($dataSet    );
+    &HDF5::Select_Output ($dataSet,0.0);
+    $dataSet->{'tree'}  = "all";
+    &HDF5::Get_Dataset($dataSet,['volumeWeight','diskStellarMass','spheroidStellarMass','spheroidScaleLength']);
+    $dataSets         = $dataSet->{'dataSets'};
 
     # Compute the morphology.
-    $morphology       = ${$dataSets->{'spheroidStellarMass'}}/(${$dataSets->{'diskStellarMass'}}+${$dataSets->{'spheroidStellarMass'}});
+    $morphology       = $dataSets->{'spheroidStellarMass'}/($dataSets->{'diskStellarMass'}+$dataSets->{'spheroidStellarMass'});
 
     # Select galaxies that are ellipticals.
-    $volumeWeight     = where(${$dataSets->{'volumeWeight'       }},$morphology > $ellipticalCut);
-    $diskMass         = where(${$dataSets->{'diskStellarMass'    }},$morphology > $ellipticalCut);
-    $spheroidMass     = where(${$dataSets->{'spheroidStellarMass'}},$morphology > $ellipticalCut);
-    $spheroidRadius   = where(${$dataSets->{'spheroidScaleLength'}},$morphology > $ellipticalCut);
+    $volumeWeight     = where($dataSets->{'volumeWeight'       },$morphology > $ellipticalCut);
+    $diskMass         = where($dataSets->{'diskStellarMass'    },$morphology > $ellipticalCut);
+    $spheroidMass     = where($dataSets->{'spheroidStellarMass'},$morphology > $ellipticalCut);
+    $spheroidRadius   = where($dataSets->{'spheroidScaleLength'},$morphology > $ellipticalCut);
 
     # Compute the total stellar mass and its logarithm.
     $mass             = $diskMass+$spheroidMass;

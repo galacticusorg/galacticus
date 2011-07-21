@@ -30,11 +30,11 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.0);
+$dataSet->{'file'} = $galacticusFile;
+$dataSet->{'store'} = 0;
+&HDF5::Get_Parameters($dataSet);
+&HDF5::Count_Trees($dataSet);
+&HDF5::Select_Output($dataSet,0.0);
 
 # Read the XML data file.
 $xml = new XML::Simple;
@@ -45,11 +45,11 @@ $x = pdl @{$columns->{'mass'}->{'data'}};
 $y = pdl @{$columns->{'massFunction'}->{'data'}};
 $errorUp = pdl @{$columns->{'upperError'}->{'data'}};
 $errorDown = pdl @{$columns->{'lowerError'}->{'data'}};
-$errorUp   = (10.0**($y+$errorUp)  )*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
-$errorDown = (10.0**($y-$errorDown))*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
-$x         = (10.0**$x             )*($dataSet{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2;
-$y         = (10.0**$y             )*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
-$xBins     = $xBins+log10(           ($dataSet{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2);
+$errorUp   = (10.0**($y+$errorUp)  )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
+$errorDown = (10.0**($y-$errorDown))*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
+$x         = (10.0**$x             )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2;
+$y         = (10.0**$y             )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
+$xBins     = $xBins+log10(           ($dataSet->{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2);
 
 # Read galaxy data and construct mass function.
 $yGalacticus = zeroes nelem($xBins);
@@ -59,12 +59,12 @@ $binMin = $xBins->index(0)-0.5*$binStep;
 $binMax = $xBins->index(nelem($xBins)-1)+0.5*$binStep;
 # Factor to convert cold gas mass to HI mass from Power, Baugh & Lacey (2009; http://adsabs.harvard.edu/abs/2009arXiv0908.1396P).
 $gasMassToHIMassFactor = pdl 0.54;
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight','diskGasMass','spheroidGasMass']);
-$dataSets           = \%{$dataSet{'dataSets'}};
-$logarithmicGasMass = log10((${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}})*$gasMassToHIMassFactor);
-$weight             = ${$dataSets->{'volumeWeight'}};
-delete($dataSet{'dataSets'});
+$dataSet->{'tree'} = "all";
+&HDF5::Get_Dataset($dataSet,['volumeWeight','diskGasMass','spheroidGasMass']);
+$dataSets           = $dataSet->{'dataSets'};
+$logarithmicGasMass = log10(($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'})*$gasMassToHIMassFactor);
+$weight             = $dataSets->{'volumeWeight'};
+delete($dataSet->{'dataSets'});
 ($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicGasMass,$weight,differential => 1);
 
 # Compute chi^2.

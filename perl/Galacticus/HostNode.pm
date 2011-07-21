@@ -21,25 +21,25 @@ sub Get_Host_Node_Mass {
 			   "nodeIsIsolated"
 		       ]
 	);
-    $dataSets = \%{${$dataSet}{'dataSets'}};
+    $dataSets = $dataSet->{'dataSets'};
 
     # Create a copy of the node mass data.
-    $hostNodeMass = ${$dataSets->{"nodeMass"}}->copy();
+    $hostNodeMass = $dataSets->{"nodeMass"}->copy();
 
     # Identify isolated nodes.
-    $isolatedNodes = which(${$dataSets->{"nodeIsIsolated"}} == 1);
+    $isolatedNodes = which($dataSets->{"nodeIsIsolated"} == 1);
 
     # Loop over all isolated nodes.
     for($i=0;$i<nelem($isolatedNodes);++$i) {
 	# Find satellite nodes in the current isolated node.
 	$satelliteNodes = which(
-	    ${$dataSets->{"nodeIsIsolated"}} == 0 &
-	    ${$dataSets->{"parentNode"}} == ${$dataSets->{"nodeIndex"}}->index($isolatedNodes->index($i))
+	    $dataSets->{"nodeIsIsolated"} == 0 &
+	    $dataSets->{"parentNode"} == $dataSets->{"nodeIndex"}->index($isolatedNodes->index($i))
 	    );
 	# Set the host node mass of these satellites to the node mass of their host.
-	$hostNodeMass->index($satelliteNodes) .= ${$dataSets->{"nodeMass"}}->index($isolatedNodes->index($i));
+	$hostNodeMass->index($satelliteNodes) .= $dataSets->{"nodeMass"}->index($isolatedNodes->index($i));
     }
 
     # Transfer to the output data structure.
-    ${$dataSets->{"hostNodeMass"}} = $hostNodeMass;
+    $dataSets->{"hostNodeMass"} = $hostNodeMass;
 }

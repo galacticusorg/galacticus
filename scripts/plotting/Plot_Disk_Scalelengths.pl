@@ -30,18 +30,18 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.0);
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega']);
-$dataSets = \%{$dataSet{'dataSets'}};
-$scaleLength = ${$dataSets->{'diskScaleLength'}};
-$magnitude = ${$dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'}};
-$weight = ${$dataSets->{'volumeWeight'}};
-delete($dataSet{'dataSets'});
+$dataSet->{'file'} = $galacticusFile;
+$dataSet->{'store'} = 0;
+&HDF5::Get_Parameters($dataSet);
+&HDF5::Count_Trees($dataSet);
+&HDF5::Select_Output($dataSet,0.0);
+$dataSet->{'tree'} = "all";
+&HDF5::Get_Dataset($dataSet,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega']);
+$dataSets = $dataSet->{'dataSets'};
+$scaleLength = $dataSets->{'diskScaleLength'};
+$magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
+$weight = $dataSets->{'volumeWeight'};
+delete($dataSet->{'dataSets'});
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot");

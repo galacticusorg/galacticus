@@ -30,11 +30,11 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.0);
+$dataSet->{'file'} = $galacticusFile;
+$dataSet->{'store'} = 0;
+&HDF5::Get_Parameters($dataSet);
+&HDF5::Count_Trees($dataSet);
+&HDF5::Select_Output($dataSet,0.0);
 
 # Read the XML data file.
 $xml       = new XML::Simple;
@@ -45,19 +45,19 @@ $x         = pdl @{$columns->{'stellarMass' }->{'datum'}};
 $y         = pdl @{$columns->{'massFunction'}->{'datum'}};
 $errorUp   = pdl @{$columns->{'upperError'  }->{'datum'}};
 $errorDown = pdl @{$columns->{'lowerError'  }->{'datum'}};
-$errorUp   = (10.0**($y+$errorUp  ))*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**$columns->{'massFunction'}->{'hubbleExponent'} ;
-$errorDown = (10.0**($y-$errorDown))*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**$columns->{'massFunction'}->{'hubbleExponent'} ;
-$xBins     = $xBins+log10(           ($dataSet{'parameters'}->{'H_0'}/$columns->{'stellarMass' }->{'hubble'})**$columns->{'stellarMass' }->{'hubbleExponent'});
-$x         = (10.0**$x             )*($dataSet{'parameters'}->{'H_0'}/$columns->{'stellarMass' }->{'hubble'})**$columns->{'stellarMass' }->{'hubbleExponent'} ;
-$y         = (10.0**$y             )*($dataSet{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**$columns->{'massFunction'}->{'hubbleExponent'} ;
+$errorUp   = (10.0**($y+$errorUp  ))*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**$columns->{'massFunction'}->{'hubbleExponent'} ;
+$errorDown = (10.0**($y-$errorDown))*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**$columns->{'massFunction'}->{'hubbleExponent'} ;
+$xBins     = $xBins+log10(           ($dataSet->{'parameters'}->{'H_0'}/$columns->{'stellarMass' }->{'hubble'})**$columns->{'stellarMass' }->{'hubbleExponent'});
+$x         = (10.0**$x             )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'stellarMass' }->{'hubble'})**$columns->{'stellarMass' }->{'hubbleExponent'} ;
+$y         = (10.0**$y             )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**$columns->{'massFunction'}->{'hubbleExponent'} ;
 
 # Read galaxy data and construct mass function.
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight','diskStellarMass','spheroidStellarMass']);
-$dataSets               = \%{$dataSet{'dataSets'}};
-$logarithmicStellarMass = log10((${$dataSets->{'diskStellarMass'}}+${$dataSets->{'spheroidStellarMass'}}));
-$weight                 = ${$dataSets->{'volumeWeight'}};
-delete($dataSet{'dataSets'});
+$dataSet->{'tree'} = "all";
+&HDF5::Get_Dataset($dataSet,['volumeWeight','diskStellarMass','spheroidStellarMass']);
+$dataSets               = $dataSet->{'dataSets'};
+$logarithmicStellarMass = log10(($dataSets->{'diskStellarMass'}+$dataSets->{'spheroidStellarMass'}));
+$weight                 = $dataSets->{'volumeWeight'};
+delete($dataSet->{'dataSets'});
 ($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicStellarMass,$weight,differential => 1);
 
 # Compute chi^2.

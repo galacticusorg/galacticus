@@ -76,8 +76,8 @@ sub Compute_Power_Spectrum {
     # Acquire data on profiles and occupancy.
     undef($occupancy);
     for(my $i=0;$i<nelem($selected);++$i) {
-	my $treeIndex = ${$dataSets->{'mergerTreeIndex'  }}->index($selected->index($i));
-	my $hostIndex = ${$dataSets->{'isolatedHostIndex'}}->index($selected->index($i));
+	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
+	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
 	# Read Fourier profiles of all relevant dark matter halos.
 	unless ( exists($profiles->{$treeIndex}->{$hostIndex}) ) {
 	    $profiles->{$treeIndex}->{$hostIndex} = $HDFfile->group("haloModel/Output".${$dataHash}{'output'}."/mergerTree".$treeIndex)->dataset("fourierProfile".$hostIndex)->get;
@@ -87,7 +87,7 @@ sub Compute_Power_Spectrum {
     }
 
     # Compute mean galaxy number density.
-    my $meanDensity = ${$dataSets->{'volumeWeight'}}->index($selected)->sum;
+    my $meanDensity = $dataSets->{'volumeWeight'}->index($selected)->sum;
 
     # Compute redshift space terms if required.
     if ( $redshiftSpace == 1 ) {
@@ -111,18 +111,18 @@ sub Compute_Power_Spectrum {
 	
 	# Loop over all halos.
 	for(my $i=0;$i<nelem($selected);++$i) {
-	    my $weight    = ${$dataSets->{'volumeWeight'     }}->index($selected->index($i));
-	    my $nodeIndex = ${$dataSets->{'nodeIndex'        }}->index($selected->index($i));
-	    my $treeIndex = ${$dataSets->{'mergerTreeIndex'  }}->index($selected->index($i));
-	    my $hostIndex = ${$dataSets->{'isolatedHostIndex'}}->index($selected->index($i));
+	    my $weight    = $dataSets->{'volumeWeight'     }->index($selected->index($i));
+	    my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
+	    my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
+	    my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
 	    if ( $hostIndex == $nodeIndex ) {
 		# Compute virial 1-D velocity dispersion. The normalization factor appearing below is taken from Table 2 of
 		# (Bryan & Norman; 1998; 495; 80-99) in which they calibrate this relation against N-body simulations.
 		my $sigmaVirialNormalization = 0.85;
-		my $sigmaVirial1D = sqrt(0.5*$sigmaVirialNormalization)*${$dataSets->{'nodeVirialVelocity'}}->index($selected->index($i));
+		my $sigmaVirial1D = sqrt(0.5*$sigmaVirialNormalization)*$dataSets->{'nodeVirialVelocity'}->index($selected->index($i));
 
 		# Get the comoving virial radius of the halo.
-		$virialRadius = ${$dataSets->{'nodeVirialRadius'}}->index($selected->index($i))/$expansionFactor;
+		$virialRadius = $dataSets->{'nodeVirialRadius'}->index($selected->index($i))/$expansionFactor;
 
 		# Compute halo-halo velocity dispersion.
 		my $absoluteTolerance   = 1.0e-10;
@@ -166,11 +166,11 @@ sub Compute_Power_Spectrum {
     undef($Fv);
     undef($twoHaloFactor);
     for(my $i=0;$i<nelem($selected);++$i) {
-	my $weight    = ${$dataSets->{'volumeWeight'     }}->index($selected->index($i));
-	my $nodeIndex = ${$dataSets->{'nodeIndex'        }}->index($selected->index($i));
-	my $treeIndex = ${$dataSets->{'mergerTreeIndex'  }}->index($selected->index($i));
-	my $hostIndex = ${$dataSets->{'isolatedHostIndex'}}->index($selected->index($i));
-	my $bias      = ${$dataSets->{'nodeBias'         }}->index($selected->index($i));
+	my $weight    = $dataSets->{'volumeWeight'     }->index($selected->index($i));
+	my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
+	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
+	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
+	my $bias      = $dataSets->{'nodeBias'         }->index($selected->index($i));
 	if ( $hostIndex == $nodeIndex ) {
 	    if ( $redshiftSpace == 1 ) {
 		$Fg += $weight*$bias
@@ -197,10 +197,10 @@ sub Compute_Power_Spectrum {
     # Compute the 1-halo
     undef($oneHaloPowerSpectrum);
     for(my $i=0;$i<nelem($selected);++$i) {
-	my $weight    = ${$dataSets->{'volumeWeight'     }}->index($selected->index($i));
-	my $nodeIndex = ${$dataSets->{'nodeIndex'        }}->index($selected->index($i));
-	my $treeIndex = ${$dataSets->{'mergerTreeIndex'  }}->index($selected->index($i));
-	my $hostIndex = ${$dataSets->{'isolatedHostIndex'}}->index($selected->index($i));
+	my $weight    = $dataSets->{'volumeWeight'     }->index($selected->index($i));
+	my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
+	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
+	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
 	if ( $hostIndex == $nodeIndex ) {
 	    $haloRp = 1.0;
 	    if ( $occupancy->{$treeIndex}->{$hostIndex} > 1 ) {

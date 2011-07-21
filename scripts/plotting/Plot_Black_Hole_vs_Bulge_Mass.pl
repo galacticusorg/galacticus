@@ -40,17 +40,17 @@ $logSpheroidMassBin    = pdl ($logSpheroidMassMax-$logSpheroidMassMin)/$logSpher
 $logSpheroidMassBins   = pdl (0..$logSpheroidMassPoints-1)*$logSpheroidMassBin+$logSpheroidMassMin+0.5*$logSpheroidMassBin;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.0);
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight','spheroidStellarMass','blackHoleMass']);
-$dataSets         = \%{$dataSet{'dataSets'}};
-$volumeWeight     = where(${$dataSets->{'volumeWeight'}}       ,${$dataSets->{'spheroidStellarMass'}} > 3.0e8);
-$spheroidMass     = where(${$dataSets->{'spheroidStellarMass'}},${$dataSets->{'spheroidStellarMass'}} > 3.0e8);
-$blackHoleMass    = where(${$dataSets->{'blackHoleMass'}}      ,${$dataSets->{'spheroidStellarMass'}} > 3.0e8);
+$dataSet->{'file'} = $galacticusFile;
+$dataSet->{'store'} = 0;
+&HDF5::Get_Parameters($dataSet);
+&HDF5::Count_Trees($dataSet);
+&HDF5::Select_Output($dataSet,0.0);
+$dataSet->{'tree'} = "all";
+&HDF5::Get_Dataset($dataSet,['volumeWeight','spheroidStellarMass','blackHoleMass']);
+$dataSets         = $dataSet->{'dataSets'};
+$volumeWeight     = where($dataSets->{'volumeWeight'}       ,$dataSets->{'spheroidStellarMass'} > 3.0e8);
+$spheroidMass     = where($dataSets->{'spheroidStellarMass'},$dataSets->{'spheroidStellarMass'} > 3.0e8);
+$blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidStellarMass'} > 3.0e8);
 unless (exists($dataSets->{'blackHoleMass'})) {
     if ( $showFit == 1 ) {
 	$fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";
@@ -90,9 +90,9 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $y               .= $y     *$data->{'units'}->{'velocity'}->{'unitsInSI'}/$kilo;
     $yError          .= $yError*$data->{'units'}->{'velocity'}->{'unitsInSI'}/$kilo;
     if ( exists($cosmology{'H_0'}) ) {
-	$x      .= $x     *($dataSet{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'mass'    }->{'hubbleExponent'};
-	$y      .= $y     *($dataSet{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
-	$yError .= $yError*($dataSet{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
+	$x      .= $x     *($dataSet->{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'mass'    }->{'hubbleExponent'};
+	$y      .= $y     *($dataSet->{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
+	$yError .= $yError*($dataSet->{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
     }
     $xError           = $x*(10.0**0.18-1.0);
     $logSpheroidMass  = log10($x);

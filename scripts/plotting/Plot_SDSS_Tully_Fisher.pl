@@ -42,19 +42,19 @@ $magnitudeBin    = pdl ($magnitudeMax-$magnitudeMin)/$magnitudePoints;
 $magnitudeBins   = pdl (0..$magnitudePoints-1)*$magnitudeBin+$magnitudeMin+0.5*$magnitudeBin;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.1);
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas','diskCircularVelocity']);
-$dataSets     = \%{$dataSet{'dataSets'}};
-$magnitude    = ${$dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'}};
-$bulgeToTotal = ${$dataSets->{'bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas'}};
-$velocity     = ${$dataSets->{'diskCircularVelocity'}};
-$weight       = ${$dataSets->{'volumeWeight'}};
-delete($dataSet{'dataSets'});
+$dataSet->{'file'} = $galacticusFile;
+$dataSet->{'store'} = 0;
+&HDF5::Get_Parameters($dataSet);
+&HDF5::Count_Trees($dataSet);
+&HDF5::Select_Output($dataSet,0.1);
+$dataSet->{'tree'} = "all";
+&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas','diskCircularVelocity']);
+$dataSets     = $dataSet->{'dataSets'};
+$magnitude    = $dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'};
+$bulgeToTotal = $dataSets->{'bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas'};
+$velocity     = $dataSets->{'diskCircularVelocity'};
+$weight       = $dataSets->{'volumeWeight'};
+delete($dataSet->{'dataSets'});
 # Select galaxies which are disk-dominated.
 $selection         = which ($bulgeToTotal < 0.3);
 # Create subsets of the galaxy properties including only the disk-dominated galaxies.
@@ -69,7 +69,7 @@ $xml     = new XML::Simple;
 $data    = $xml->XMLin("data/SDSS_Tully_Fisher.xml");
 $columns = $data->{'tullyFisher'}->{'columns'};
 $x       = pdl @{$columns->{'magnitude'}->{'data'}};
-$x       = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+$x       = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
 $y       = pdl @{$columns->{'diskVelocity'}->{'data'}};
 $xError  = pdl @{$columns->{'magnitudeError'}->{'data'}};
 $yError  = pdl @{$columns->{'diskVelocityError'}->{'data'}};
