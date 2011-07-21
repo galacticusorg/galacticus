@@ -342,6 +342,83 @@ where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is
 
 If the {\tt [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid will be included in the output, as {\tt spheroidStarFormationRate}.
 
+\subsection{``S\'ersic'' Implementation}
+
+This implementation assumes a S\'ersic profile (\citealt{sersic_influence_1963}; see also \citealt{mazure_exact_2002}) for the spheroidal component of a galaxy in which stars trace gas. The projected density profile of the spheroid is given by:
+\begin{equation}
+ \Sigma(R) \propto \exp\left(-b_{\rm n} R^{1/n} \right),
+\end{equation}
+where the S\'ersic index, $n=${\tt [spheroidSersicIndex]} and the coefficient $b_{\rm n}=2.303(0.8689 n-0.1447)$ \cite{wadadekar_two-dimensional_1999}. The 3D density distribution for a given $n$ is inferred by solving the relevant inverse Abel integral.
+
+\subsubsection{Properties}
+
+The S\'ersic galactic spheroid implementation defines the following properties:
+\begin{description}
+ \item [{\tt Spheroid\_Gas\_Mass}] The mass of gas in the spheroid: $M_{\rm spheroid, gas}$ [{\tt spheroidGasMass}].
+ \item [{\tt Spheroid\_Gas\_Abundances}] The mass of elements in the gaseous spheroid: $M_{Z, {\rm spheroid, gas}}$ [{\tt spheroidGas\{abundanceName\}}].
+ \item [{\tt Spheroid\_Stellar\_Mass}] The mass of stars in the spheroid: $M_{\rm spheroid, stars}$ [{\tt spheroidStellarMass}].
+ \item [{\tt Spheroid\_Stellar\_Abundances}] The mass of elements in the stellar spheroid: $M_{Z, {\rm spheroid, stars}}$ [{\tt spheroidStellar\{abundanceName\}}].
+ \item [{\tt Spheroid\_Stellar\_Luminosities}] The luminosities (in multiple bands) of the stellar spheroid: $L_{\rm spheroid, stars}$ [{\tt spheroidStellar\{luminosityName\}}].
+ \item [{\tt Spheroid\_Angular\_Momentum}] The pseudo-angular momentum\footnote{Effectively the angular momentum that the spheroid would have, were it rotationally supported rather than pressure supported.} of the spheroid, $J_{\rm spheroid}$ [{\tt spheroidAngularMomentum}].
+ \item [{\tt Spheroid\_Radius}] The 3D half-mass radius of the spheroid, $r_{\rm spheroid}$ [{\tt spheroidScaleLength}].
+ \item [{\tt Spheroid\_Velocity}] The circular velocity of the spheroid at $r_{\rm spheroid}$, $V_{\rm spheroid}$ [{\tt spheroidCircularVelocity}].
+\end{description}
+and the following pipes:
+\begin{description}
+ \item [{\tt Tree\_Node\_Spheroid\_Gas\_Energy\_Input}] Energy sent through this pipe is added to the gas of the spheroid and will result in an outflow (see below). Input energy should be in units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$ and must be positive (energy cannot be removed from the gas via this pipe).
+ \item [{\tt Tree\_Node\_Spheroid\_Gas\_Sink}] Removes gas (and proportionate amounts of angular momentum and elements) from the spheroid gas. Removed mass should be in units of $M_\odot$ and must be positive (a negative mass sink would add mass to the spheroid which is not allowed via this pipe).
+\end{description}
+
+\subsubsection{Initialization}
+
+No initialization is performed---spheroids are created as needed.
+
+\subsubsection{Differential Evolution}
+
+In the S\'ersic galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk component via the bar instability mechanism (see \S\protect\ref{sec:DiskExponential}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk component and so applies equally to any spheroid component implementation.}:
+\begin{equation}
+ \dot{M}_{\rm spheroid, gas} = - \dot{M}_{\rm outflow, spheroid} - \dot{M}_{\rm stars, spheroid},
+\end{equation}
+where the rate of change of stellar mass is
+\begin{equation}
+ \dot{M}_{\rm stars, spheroid} = \Psi - \dot{R}
+\end{equation}
+with
+\begin{equation}
+ \Psi = {M_{\rm spheroid, gas} \over \tau_{\rm spheroid, star~formation}}
+\end{equation}
+with $\tau_{\rm spheroid, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars.
+Element abundances (including total metals) evolve according to:
+\begin{equation}
+  \dot{M}_{Z, {\rm spheroid, gas}} = - \dot{M}_{Z, {\rm outflow, spheroid}} - \dot{M}_{Z, {\rm stars, spheroid}} + \dot{y},
+\end{equation}
+and
+\begin{equation}
+ \dot{M}_{Z, {\rm stars, spheroid}} = \Psi {M_{Z, {\rm spheroid, gas}} \over M_{\rm spheroid, gas}} - \dot{R}_Z
+\end{equation}
+where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the rate of element recycling. The angular momentum evolves as:
+\begin{equation}
+ \dot{J}_{\rm spheroid} = \dot{M}_{\rm outflow, spheroid} {J_{\rm spheroid} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}}.
+\end{equation}
+The outflow rate, $\dot{M}_{\rm outflow, spheroid}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}) and prescriptions for expulsive and non-expulsive supernova feedback (see \S\ref{sec:sneExpulsiveFeedback} and \S\ref{sec:sneFeedback} respectively), with an additional contribution given by
+\begin{equation}
+ \dot{M}_{\rm outflow, spheroid} = \beta_{\rm spheroid, energy} {\dot{E}_{\rm gas, spheroid} \over V_{\rm spheroid}^2}
+\end{equation}
+where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is an input parameter, and $\dot{E}_{\rm gas,spheroid}$ is any input energy sent through the {\tt Tree\_Node\_Spheroid\_Gas\_Energy\_Input} pipe, but is not allowed to exceed $M_{\rm gas, spheroid}/ \alpha_{\rm outflow minimum, spheroid} \tau_{\rm spheroid, dynamical}$, where $\tau_{\rm spheroid, dynamical}=R_{\rm spheroid}/V_{\rm spheroid}$ is the dynamical time of the spheroid and $\alpha_{\rm outflow minimum, spheroid}=${\tt [spheroidOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the spheroid. This limit prevents the spheroid being depleted on arbitrarily short timescales. The non-expulsive component of the outflow is piped to the hot halo component.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None\\
+
+\noindent\emph{Satellite merging:} Spheroids may be created as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see \S\ref{sec:satelliteMergerMassMovementMethod}).\\
+
+\noindent\emph{Node promotion:} None.\\
+
+\subsubsection{Additional Output}
+
+If the {\tt [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid will be included in the output, as {\tt spheroidStarFormationRate}.
+
+
 \section{Basic Properties}\label{sec:ComponentBasicProperties}
 
 Basic properties are the total mass of a node and the cosmic time at which it currently exists.
