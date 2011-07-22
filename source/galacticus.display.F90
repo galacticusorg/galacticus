@@ -323,7 +323,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
-       if (.not.isNew) call Galacticus_Display_Counter_Clear()
+       if (.not.isNew) call Galacticus_Display_Counter_Clear_Lockless()
        percentage=max(0,min(percentageComplete,100))
        majorCount=percentage/2
        minorCount=percentage-majorCount*2
@@ -341,6 +341,17 @@ contains
     logical                       :: showMessage
     
     !$omp critical(Galacticus_Message_Lock)
+    call Galacticus_Display_Counter_Clear_Lockless(verbosity)
+    !$omp end critical(Galacticus_Message_Lock)
+    return
+  end subroutine Galacticus_Display_Counter_Clear
+
+  subroutine Galacticus_Display_Counter_Clear_Lockless(verbosity)
+    !% Clears a percentage counter.
+    implicit none
+    integer, intent(in), optional :: verbosity
+    logical                       :: showMessage
+    
     call Initialize_Display
     if (present(verbosity)) then
        showMessage=(verbosity<=verbosityLevel)
@@ -352,8 +363,7 @@ contains
        write (0,'(a58,$)') repeat(" "    ,58)
        write (0,'(a58,$)') repeat(char(8),58)
     end if
-    !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Counter_Clear
+  end subroutine Galacticus_Display_Counter_Clear_Lockless
 
 end module Galacticus_Display
