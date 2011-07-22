@@ -365,7 +365,7 @@ contains
 
     ! Ensure the mass scaling method is initialized.
     call Critical_Overdensity_Mass_Scaling_Initialize    
-    
+  
     ! Perform the calculation.
     Critical_Overdensity_Mass_Scaling=Critical_Overdensity_Mass_Scaling_Get(mass)
     return
@@ -380,6 +380,7 @@ contains
     !# </include>
     implicit none
 
+    !$omp critical(Critical_Overdensity_for_Collapse_Mass_Scaling_Initialize)
     if (.not.massScalingInitialized) then
        ! Get the critical overdensity mass scaling method parameter.
        !@ <inputParameter>
@@ -401,6 +402,7 @@ contains
        ! Flag that mass scaling has been initialized.
        massScalingInitialized=.true.
     end if
+    !$omp end critical(Critical_Overdensity_for_Collapse_Mass_Scaling_Initialize)
     return
   end subroutine Critical_Overdensity_Mass_Scaling_Initialize
 
