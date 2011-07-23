@@ -65,11 +65,11 @@
   </parameters>
   <parameters>
     <parameter>
-      <name>ionizationStateFile</name>
-      <value>data/ionization_state_Atomic_CIE_Cloudy.xml</value>
+      <name>chemicalStateFile</name>
+      <value>data/chemical_state_Atomic_CIE_Cloudy.xml</value>
     </parameter>
     <parameter>
-      <name>ionizationStateMethod</name>
+      <name>chemicalStateMethod</name>
       <value>atomic_CIE_Cloudy</value>
       <value>CIE_from_file</value>
     </parameter>
@@ -273,7 +273,7 @@
   <!-- Molecular hydrogen network and cooling. -->
   <parameters>
     <parameter>
-      <name>molecularReactionRateMethods</name>
+      <name>chemicalReactionRateMethods</name>
       <value>hydrogenNetwork</value>
     </parameter>
     <parameter>
@@ -285,7 +285,7 @@
       <value>true</value>
     </parameter>
     <parameter>
-      <name>moleculesToTrack</name>
+      <name>chemicalsToTrack</name>
       <value>AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron</value>
     </parameter>
     <parameter>

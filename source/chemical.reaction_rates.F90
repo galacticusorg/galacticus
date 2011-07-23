@@ -59,86 +59,86 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module that implements calculations of the molecular reaction rates.
+!% Contains a module that implements calculations of chemical reaction rates.
 
-module Molecular_Reaction_Rates
-  !% Implements calculations of the molecular reaction rates.
-  use Molecular_Abundances_Structure
+module Chemical_Reaction_Rates
+  !% Implements calculations of chemical reaction rates.
+  use Chemical_Abundances_Structure
   use ISO_Varying_String 
   private
-  public :: Molecular_Reaction_Rate
+  public :: Chemical_Reaction_Rate
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                         :: molecularReactionRateInitialized=.false.
+  logical                                         :: chemicalReactionRateInitialized=.false.
 
-  ! Name of molecular reaction rates methods used.
-  type(varying_string), allocatable, dimension(:) :: molecularReactionRateMethods
+  ! Name of chemical reaction rates methods used.
+  type(varying_string), allocatable, dimension(:) :: chemicalReactionRateMethods
 
 contains
 
-  subroutine Molecular_Reaction_Rates_Initialize
-    !% Initialize the molecular reaction rates module.
+  subroutine Chemical_Reaction_Rates_Initialize
+    !% Initialize the chemical reaction rates module.
     use Galacticus_Error
     use Input_Parameters
     use Memory_Management
-    !# <include directive="molecularReactionRates" type="moduleUse">
-    include 'molecular.reaction_rates.modules.inc'
+    !# <include directive="chemicalReactionRates" type="moduleUse">
+    include 'chemical.reaction_rates.modules.inc'
     !# </include>
     implicit none
-    integer :: molecularReactionRatesCount
+    integer :: chemicalReactionRatesCount
     
-    !$omp critical(Molecular_Reaction_Rates_Initialization) 
+    !$omp critical(Chemical_Reaction_Rates_Initialization) 
     ! Initialize if necessary.
-    if (.not.molecularReactionRateInitialized) then
-       ! Get the moleculare reaction rates method parameter.
+    if (.not.chemicalReactionRateInitialized) then
+       ! Get the chemical reaction rates method parameter.
        !@ <inputParameter>
-       !@   <name>molecularReactionRateMethods</name>
+       !@   <name>chemicalReactionRateMethods</name>
        !@   <defaultValue>hydrogenNetwork</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The names of the methods to be used for computing molecular reaction rates.
+       !@     The names of the methods to be used for computing chemical reaction rates.
        !@   </description>
        !@ </inputParameter>
-       molecularReactionRatesCount=max(1,Get_Input_Parameter_Array_Size('molecularReactionRatesMethods'))
-       allocate(molecularReactionRateMethods(molecularReactionRatesCount))
-       call Memory_Usage_Record(sizeof(molecularReactionRateMethods))
-       call Get_Input_Parameter('molecularReactionRateMethods',molecularReactionRateMethods,defaultValue=['null'])
+       chemicalReactionRatesCount=max(1,Get_Input_Parameter_Array_Size('chemicalReactionRatesMethods'))
+       allocate(chemicalReactionRateMethods(chemicalReactionRatesCount))
+       call Memory_Usage_Record(sizeof(chemicalReactionRateMethods))
+       call Get_Input_Parameter('chemicalReactionRateMethods',chemicalReactionRateMethods,defaultValue=['null'])
 
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="molecularReactionRates" type="code" action="subroutine">
-       !#  <subroutineArgs>molecularReactionRateMethods</subroutineArgs>
-       include 'molecular.reaction_rates.inc'
+       !# <include directive="chemicalReactionRates" type="code" action="subroutine">
+       !#  <subroutineArgs>chemicalReactionRateMethods</subroutineArgs>
+       include 'chemical.reaction_rates.inc'
        !# </include>
-       molecularReactionRateInitialized=.true.
+       chemicalReactionRateInitialized=.true.
     end if
-    !$omp end critical(Molecular_Reaction_Rates_Initialization) 
+    !$omp end critical(Chemical_Reaction_Rates_Initialization) 
     return
-  end subroutine Molecular_Reaction_Rates_Initialize
+  end subroutine Chemical_Reaction_Rates_Initialize
 
-  subroutine Molecular_Reaction_Rate(moleculeRates,temperature,moleculeDensity,radiation)
-    !% Return molecular reaction rates at the given temperature for the specified set of molecule densities (in cm$^{-3}$) and radiation
+  subroutine Chemical_Reaction_Rate(chemicalRates,temperature,chemicalDensity,radiation)
+    !% Return chemical reaction rates at the given temperature for the specified set of chemical densities (in cm$^{-3}$) and radiation
     !% field. Units of the returned rates are cm$^-3$ s$^{-1}$.
     use Abundances_Structure
     use Radiation_Structure
-    !# <include directive="molecularRatesCompute" type="moduleUse">
-    include 'molecular.reaction_rates.compute.modules.inc'
+    !# <include directive="chemicalRatesCompute" type="moduleUse">
+    include 'chemical.reaction_rates.compute.modules.inc'
     !# </include>
     implicit none
-    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
-    double precision,                   intent(in)    :: temperature
-    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
-    type(radiationStructure),           intent(in)    :: radiation
+    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    double precision,                  intent(in)    :: temperature
+    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
+    type(radiationStructure),          intent(in)    :: radiation
 
     ! Initialize the module.
-    call Molecular_Reaction_Rates_Initialize
+    call Chemical_Reaction_Rates_Initialize
   
-    call moleculeRates%reset()
-    !# <include directive="molecularRatesCompute" type="code" action="subroutine">
-    !#  <subroutineArgs>temperature,moleculeDensity,radiation,moleculeRates</subroutineArgs>
-    include 'molecular.reaction_rates.compute.inc'
+    call chemicalRates%reset()
+    !# <include directive="chemicalRatesCompute" type="code" action="subroutine">
+    !#  <subroutineArgs>temperature,chemicalDensity,radiation,chemicalRates</subroutineArgs>
+    include 'chemical.reaction_rates.compute.inc'
     !# </include>
 
     return
-  end subroutine Molecular_Reaction_Rate
+  end subroutine Chemical_Reaction_Rate
   
-end module Molecular_Reaction_Rates
+end module Chemical_Reaction_Rates

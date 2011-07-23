@@ -163,18 +163,18 @@ contains
   !# <coolingFunctionCompute>
   !#   <unitName>Cooling_Function_Atomic_CIE_Cloudy</unitName>
   !# </coolingFunctionCompute>
-  subroutine Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
+  subroutine Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
     !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Cooling_Functions_CIE_File
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunction
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunction
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
@@ -199,24 +199,24 @@ contains
   !#   <unitName>Cooling_Function_Density_Slope_Atomic_CIE_Cloudy</unitName>
   !# </coolingFunctionDensitySlopeCompute>
   subroutine Cooling_Function_Density_Slope_Atomic_CIE_Cloudy(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,abundances&
-       &,molecularDensities,radiation)
+       &,chemicalDensities,radiation)
     !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunctionDensitySlope
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunctionDensitySlope
     double precision                                :: coolingFunction
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
        
        ! Get the cooling function.
-       call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
+       call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
        
        ! Logarithmic slope is always 2 for a CIE cooling function.
        coolingFunctionDensitySlope=2.0d0*coolingFunction/numberDensityHydrogen
@@ -235,19 +235,19 @@ contains
   !#   <unitName>Cooling_Function_Temperature_Slope_Atomic_CIE_Cloudy</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
   subroutine Cooling_Function_Temperature_Slope_Atomic_CIE_Cloudy(coolingFunctionTemperatureSlope,temperature&
-       &,numberDensityHydrogen,abundances,molecularDensities,radiation)
+       &,numberDensityHydrogen,abundances,chemicalDensities,radiation)
     !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Cooling_Functions_CIE_File
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunctionTemperatureSlope
-    double precision                                :: coolingFunction
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunctionTemperatureSlope
+    double precision                               :: coolingFunction
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
@@ -256,7 +256,7 @@ contains
        call Cooling_Function_Atomic_CIE_Cloudy_Create(abundances)
        
        ! Get the cooling function.
-       call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
+       call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
        
        ! Call routine to interpolate in the tabulated function.
        coolingFunctionTemperatureSlope=Cooling_Function_CIE_File_logTemperature_Interpolate(temperature,numberDensityHydrogen&

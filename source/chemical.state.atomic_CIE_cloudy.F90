@@ -61,18 +61,18 @@
 
 !% Contains a module which generates a tabulated atomic collisional ionization equilibrium ionization state using {\sc Cloudy}.
 
-module Ionization_States_Atomic_CIE_Cloudy
+module Chemical_States_Atomic_CIE_Cloudy
   !% Generates a tabulated atomic collisional ionization equilibrium ionization state using {\sc Cloudy}.
   use ISO_Varying_String
   private
-  public :: Ionization_State_Atomic_CIE_Cloudy_Initialize
+  public :: Chemical_State_Atomic_CIE_Cloudy_Initialize
   
   ! Flag to indicate if this module has been initialized.
-  logical                     :: ionizationStateInitialized=.false.
+  logical                     :: chemicalStateInitialized=.false.
 
-  ! File name for the ionization state and ionization state data.
+  ! File names for the cooling function and chemical state data.
   character(len=50)           :: coolingFunctionFile='data/cooling_function_Atomic_CIE_Cloudy.xml'
-  character(len=50)           :: ionizationStateFile='data/ionization_state_Atomic_CIE_Cloudy.xml'
+  character(len=50)           :: chemicalStateFile='data/chemical_state_Atomic_CIE_Cloudy.xml'
 
   ! Maximum tabulated metallicity.
   double precision, parameter :: metallicityMaximumDefault=30.0d0 ! Thirty times Solar.
@@ -86,44 +86,44 @@ module Ionization_States_Atomic_CIE_Cloudy
 
 contains
   
-  !# <ionizationStateMethod>
-  !#  <unitName>Ionization_State_Atomic_CIE_Cloudy_Initialize</unitName>
-  !# </ionizationStateMethod>
-  subroutine Ionization_State_Atomic_CIE_Cloudy_Initialize(ionizationStateMethod,Electron_Density_Get &
-       &,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get)
+  !# <chemicalStateMethod>
+  !#  <unitName>Chemical_State_Atomic_CIE_Cloudy_Initialize</unitName>
+  !# </chemicalStateMethod>
+  subroutine Chemical_State_Atomic_CIE_Cloudy_Initialize(chemicalStateMethod,Electron_Density_Get &
+       &,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Chemical_Densities_Get)
     !% Initializes the ``atomic CIE ionization state from {\sc Cloudy}'' module.
     implicit none
-    type(varying_string),                 intent(in)    :: ionizationStateMethod
+    type(varying_string),                 intent(in)    :: chemicalStateMethod
     procedure(double precision), pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get&
          &,Electron_Density_Density_Log_Slope_Get
-    procedure(),                 pointer, intent(inout) :: Molecular_Densities_Get
+    procedure(),                 pointer, intent(inout) :: Chemical_Densities_Get
  
-    ! Check if this ionization state has been selected.
-    if (ionizationStateMethod == 'atomic_CIE_Cloudy') then
+    ! Check if this chemical state has been selected.
+    if (chemicalStateMethod == 'atomic_CIE_Cloudy') then
        Electron_Density_Get                       => Electron_Density_Atomic_CIE_Cloudy
        Electron_Density_Temperature_Log_Slope_Get => Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy
        Electron_Density_Density_Log_Slope_Get     => Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy
-       Molecular_Densities_Get                    => Molecular_Densities_Atomic_CIE_Cloudy
+       Chemical_Densities_Get                    => Chemical_Densities_Atomic_CIE_Cloudy
    end if
 
     return
-  end subroutine Ionization_State_Atomic_CIE_Cloudy_Initialize
+  end subroutine Chemical_State_Atomic_CIE_Cloudy_Initialize
 
-  subroutine Ionization_State_Atomic_CIE_Cloudy_Create(abundances)
-    !% Create the ionization state.
-    use Ionization_States_CIE_File
+  subroutine Chemical_State_Atomic_CIE_Cloudy_Create(abundances)
+    !% Create the chemical state.
+    use Chemical_States_CIE_File
     use Abundances_Structure
     use System_Command
     implicit none
     type(abundancesStructure), intent(in) :: abundances
     logical                               :: makeFile
     character(len=32)                     :: metallicityLabel
-    type(varying_string)                  :: command,ionizationStateFileVarString
+    type(varying_string)                  :: command,chemicalStateFileVarString
 
     ! Generate the name of the data file and an XML input parameter file.
-    !$omp critical (Ionization_State_Atomic_CIE_Cloudy_Initialize)
+    !$omp critical (Chemical_State_Atomic_CIE_Cloudy_Initialize)
     ! Determine if we need to reinitialize this module.
-    if (.not.ionizationStateInitialized) then
+    if (.not.chemicalStateInitialized) then
        makeFile=.true.
     else
        if (Abundances_Get_Metallicity(abundances,linearByMassSolar) > 0.0d0) then
@@ -134,7 +134,7 @@ contains
        end if
        if (makeFile) then
           ! Remove the transfer function file so that a new one will be created.
-          command='rm -f '//trim(ionizationStateFile)
+          command='rm -f '//trim(chemicalStateFile)
           call System_Command_Do(command)
        end if
     end if
@@ -151,23 +151,23 @@ contains
 
        ! Run Atomic_CIE_Cloudy wrapper script.
        command='./scripts/aux/Atomic_CIE_Cloudy_Driver.pl '//metallicityLabel//' '//trim(coolingFunctionFile)//' '&
-            &//trim(ionizationStateFile)
+            &//trim(chemicalStateFile)
        call System_Command_Do(command)
 
        ! Call routine to read in the tabulated data.
-       ionizationStateFileVarString=trim(ionizationStateFile)
-       call Ionization_State_CIE_File_Read(ionizationStateFileVarString,metallicityMaximumTabulated=metallicityMaximum)
+       chemicalStateFileVarString=trim(chemicalStateFile)
+       call Chemical_State_CIE_File_Read(chemicalStateFileVarString,metallicityMaximumTabulated=metallicityMaximum)
 
        ! Flag that transfer function is now initialized.
-       ionizationStateInitialized=.true.
+       chemicalStateInitialized=.true.
     end if
-    !$omp end critical (Ionization_State_Atomic_CIE_Cloudy_Initialize)
+    !$omp end critical (Chemical_State_Atomic_CIE_Cloudy_Initialize)
     return
-  end subroutine Ionization_State_Atomic_CIE_Cloudy_Create
+  end subroutine Chemical_State_Atomic_CIE_Cloudy_Create
 
   double precision function Electron_Density_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the electron density assuming atomic CIE as computed by {\sc Cloudy}.
-    use Ionization_States_CIE_File
+    use Chemical_States_CIE_File
     use Abundances_Structure
     use Radiation_Structure
     implicit none
@@ -175,8 +175,8 @@ contains
     type(abundancesStructure), intent(in) :: abundances
     type(radiationStructure),  intent(in) :: radiation
 
-    ! Create the ionization state.
-    call Ionization_State_Atomic_CIE_Cloudy_Create(abundances)
+    ! Create the chemical state.
+    call Chemical_State_Atomic_CIE_Cloudy_Create(abundances)
     
     ! Call routine to interpolate in the tabulated function.
     Electron_Density_Atomic_CIE_Cloudy=Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
@@ -187,7 +187,7 @@ contains
   double precision function Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,abundances&
        &,radiation)
     !% Return the logarithmic slope of the electron density with respect to temperature assuming atomic CIE as computed by {\sc Cloudy}.
-    use Ionization_States_CIE_File
+    use Chemical_States_CIE_File
     use Abundances_Structure
     use Radiation_Structure
     implicit none
@@ -195,8 +195,8 @@ contains
     type(abundancesStructure), intent(in)  :: abundances
     type(radiationStructure),  intent(in)  :: radiation
     
-    ! Create the ionization state.
-    call Ionization_State_Atomic_CIE_Cloudy_Create(abundances)
+    ! Create the chemical state.
+    call Chemical_State_Atomic_CIE_Cloudy_Create(abundances)
     
     ! Call routine to interpolate in the tabulated function.
     Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy=Electron_Density_CIE_File_logTemperature_Interpolate(temperature&
@@ -221,26 +221,26 @@ contains
     return
   end function Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy
 
-  subroutine Molecular_Densities_Atomic_CIE_Cloudy(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
-    !% Return the densities of molecular species at the given temperature and hydrogen density for the specified set of abundances
+  subroutine Chemical_Densities_Atomic_CIE_Cloudy(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    !% Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
     !% and radiation field. Units of the returned electron density are cm$^-3$.
-    use Ionization_States_CIE_File
+    use Chemical_States_CIE_File
     use Abundances_Structure
     use Radiation_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
-    type(molecularAbundancesStructure), intent(inout) :: theseAbundances
-    double precision,                   intent(in)    :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)    :: abundances
-    type(radiationStructure),           intent(in)    :: radiation
+    type(chemicalAbundancesStructure), intent(inout) :: theseAbundances
+    double precision,                  intent(in)    :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)    :: abundances
+    type(radiationStructure),          intent(in)    :: radiation
 
-    ! Create the ionization state.
-    call Ionization_State_Atomic_CIE_Cloudy_Create(abundances)
+    ! Create the chemical state.
+    call Chemical_State_Atomic_CIE_Cloudy_Create(abundances)
     
     ! Call routine to interpolate in the tabulated function.
-    call Molecular_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    call Chemical_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
  
     return
-  end subroutine Molecular_Densities_Atomic_CIE_Cloudy
+  end subroutine Chemical_Densities_Atomic_CIE_Cloudy
       
-end module Ionization_States_Atomic_CIE_Cloudy
+end module Chemical_States_Atomic_CIE_Cloudy

@@ -73,8 +73,8 @@ module Cooling_Functions_Molecular_Hydrogen_Galli_Palla
   ! Flag indicating whether or not this cooling function is selected.
   logical :: functionSelected=.false.
 
-  ! Indices of "molecules" (includes atoms, atomic ions and electrons also) used in this cooling function.
-  integer :: electronMoleculeIndex,atomicHydrogenMoleculeIndex,molecularHydrogenCationMoleculeIndex,molecularHydrogenMoleculeIndex
+  ! Indices of "chemical species" (includes atoms, atomic ions and electrons also) used in this cooling function.
+  integer :: electronChemicalIndex,atomicHydrogenChemicalIndex,molecularHydrogenCationChemicalIndex,molecularHydrogenChemicalIndex
   
   ! Parameters for Hollenbach & McKee cooling function fits.
   double precision, parameter :: coolingFunctionRotationalLambda1      = 9.50d-22
@@ -111,7 +111,7 @@ contains
   !# </coolingFunctionMethods>
   subroutine Cooling_Function_Molecular_Hydrogen_GP_Initialize(coolingFunctionMethods)
     !% Initializes the ``molecular hydrogen Galli \& Palla'' cooling function module.
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
     type(varying_string), intent(in) :: coolingFunctionMethods(:)
  
@@ -120,11 +120,11 @@ contains
        ! Flag that this cooling function has been selected.
        functionSelected=.true.
 
-       ! Get the indices of molecules that will be used.
-       electronMoleculeIndex               =Molecules_Index("Electron"               )
-       atomicHydrogenMoleculeIndex         =Molecules_Index("AtomicHydrogen"         )
-       molecularHydrogenCationMoleculeIndex=Molecules_Index("MolecularHydrogenCation")
-       molecularHydrogenMoleculeIndex      =Molecules_Index("MolecularHydrogen"      )
+       ! Get the indices of chemicals that will be used.
+       electronChemicalIndex               =Chemicals_Index("Electron"               )
+       atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
+       molecularHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
+       molecularHydrogenChemicalIndex      =Chemicals_Index("MolecularHydrogen"      )
     end if
 
     return
@@ -134,24 +134,24 @@ contains
   !#   <unitName>Cooling_Function_Molecular_Hydrogen_GP</unitName>
   !# </coolingFunctionCompute>
   subroutine Cooling_Function_Molecular_Hydrogen_GP(coolingFunction,temperature,numberDensityHydrogen,abundances&
-       &,molecularDensities,radiation)
+       &,chemicalDensities,radiation)
     !% Return the cooling function due to molecular hydrogen using the cooling function of \cite{galli_chemistry_1998} (which
     !% refers to the local thermodynamic equilibrium cooling function of \cite{hollenbach_molecule_1979}). Cooling functions
     !% involving H$_2^+$ are computed using polynomial fits to the results of \cite{suchkov_cooling_1978} found by Andrew
     !% Benson by measuring curves from the original paper.
-    use Ionization_States
+    use Chemical_States
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunction
-    double precision                                :: logarithmic10Temperature,coolingFunctionLowDensityLimit &
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunction
+    double precision                               :: logarithmic10Temperature,coolingFunctionLowDensityLimit &
          &,coolingFunctionLocalThermodynamicEquilibrium ,molecularHydrogenDensity,atomicHydrogenDensity,electronDensity&
          &,molecularHydrogenCationDensity ,numberDensityCriticalOverNumberDensityHydrogen&
          &,coolingFunctionAtomicHydrogenMolecularHydrogenCation ,coolingFunctionElectronMolecularHydrogenCation
@@ -160,13 +160,13 @@ contains
     if (functionSelected) then
 
        ! H - H_2 cooling function.
-       coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,molecularDensities)
+       coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,chemicalDensities)
 
        ! H_2^+ - e^- cooling function.
-       coolingFunction=coolingFunction+Cooling_Function_GP_H2Plus_Electron(temperature,molecularDensities)
+       coolingFunction=coolingFunction+Cooling_Function_GP_H2Plus_Electron(temperature,chemicalDensities)
 
        ! H - H_2^+ cooling function.
-       coolingFunction=coolingFunction+Cooling_Function_GP_H_H2Plus       (temperature,molecularDensities)
+       coolingFunction=coolingFunction+Cooling_Function_GP_H_H2Plus       (temperature,chemicalDensities)
 
     else
 
@@ -182,27 +182,27 @@ contains
   !#   <unitName>Cooling_Function_Density_Slope_Molecular_Hydrogen_GP</unitName>
   !# </coolingFunctionDensitySlopeCompute>
   subroutine Cooling_Function_Density_Slope_Molecular_Hydrogen_GP(coolingFunctionDensitySlope,temperature,numberDensityHydrogen&
-       &,abundances,molecularDensities ,radiation)
+       &,abundances,chemicalDensities ,radiation)
     !% Return the gradient with respect to density of the cooling function due to molecular hydrogen using the cooling function
     !% of \cite{galli_chemistry_1998}.
-    use Ionization_States
+    use Chemical_States
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunctionDensitySlope
-    double precision                                :: coolingFunction,numberDensityCriticalOverNumberDensityHydrogen&
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunctionDensitySlope
+    double precision                               :: coolingFunction,numberDensityCriticalOverNumberDensityHydrogen&
          &,coolingFunctionLocalThermodynamicEquilibrium ,coolingFunctionLowDensityLimit
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
 
        ! H - H_2 cooling function.
-       coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,molecularDensities)
+       coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,chemicalDensities)
        call Number_Density_Critical_Over_Number_Density_Hydrogen(numberDensityHydrogen,temperature &
             &,numberDensityCriticalOverNumberDensityHydrogen,coolingFunctionLocalThermodynamicEquilibrium &
             &,coolingFunctionLowDensityLimit)
@@ -214,11 +214,11 @@ contains
        end if
 
        ! H_2^+ - e^- cooling function.
-       coolingFunction=Cooling_Function_GP_H2Plus_Electron(temperature,molecularDensities)
+       coolingFunction=Cooling_Function_GP_H2Plus_Electron(temperature,chemicalDensities)
        coolingFunctionDensitySlope=coolingFunctionDensitySlope+(coolingFunction/numberDensityHydrogen)*2.0d0
 
        ! H - H_2^+ cooling function.
-       coolingFunction=Cooling_Function_GP_H_H2Plus(temperature,molecularDensities)
+       coolingFunction=Cooling_Function_GP_H_H2Plus(temperature,chemicalDensities)
        coolingFunctionDensitySlope=coolingFunctionDensitySlope+(coolingFunction/numberDensityHydrogen)*2.0d0
 
     else
@@ -235,21 +235,21 @@ contains
   !#   <unitName>Cooling_Function_Temperature_Slope_Molecular_Hydrogen_GP</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
   subroutine Cooling_Function_Temperature_Slope_Molecular_Hydrogen_GP(coolingFunctionTemperatureSlope,temperature &
-       &,numberDensityHydrogen,abundances,molecularDensities,radiation)
+       &,numberDensityHydrogen,abundances,chemicalDensities,radiation)
     !% Return the gradient with respect to temperature of the cooling function due to molecular hydrogen using the cooling
     !% function of \cite{galli_chemistry_1998}.
-    use Ionization_States
+    use Chemical_States
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Prefixes
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunctionTemperatureSlope
-    double precision,                   save        :: temperaturePrevious1=-1,temperaturePrevious2=-1,temperaturePrevious3=-1&
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunctionTemperatureSlope
+    double precision,                  save        :: temperaturePrevious1=-1,temperaturePrevious2=-1,temperaturePrevious3=-1&
          &,temperaturePrevious4=-1,coolingFunctionLowDensityLimitTemperatureLogGradient&
          &,coolingFunctionH2PlusElectronTemperatureLogGradient,coolingFunctionH2PlusHTemperatureLogGradient
     !$omp threadprivate(temperaturePrevious1,temperaturePrevious2,temperaturePrevious3,temperaturePrevious4)
@@ -264,7 +264,7 @@ contains
     ! Check if this cooling function has been selected.
     if (functionSelected) then
        ! H - H_2 cooling function.
-       coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,molecularDensities)
+       coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,chemicalDensities)
        call Number_Density_Critical_Over_Number_Density_Hydrogen(numberDensityHydrogen,temperature &
             &,numberDensityCriticalOverNumberDensityHydrogen,coolingFunctionLocalThermodynamicEquilibrium &
             &,coolingFunctionLowDensityLimit)
@@ -324,7 +324,7 @@ contains
 
        ! H_2^+ - e^- cooling function.
        if (temperature > 1.0d3 .and. temperature < 1.0d4) then
-          coolingFunction=Cooling_Function_GP_H2Plus_Electron(temperature,molecularDensities)
+          coolingFunction=Cooling_Function_GP_H2Plus_Electron(temperature,chemicalDensities)
           if (temperature /= temperaturePrevious3) then
              logarithmic10Temperature=dlog10(temperature)
              coolingFunctionH2PlusElectronTemperatureLogGradient=                         &
@@ -338,7 +338,7 @@ contains
 
        ! H - H_2^+ cooling function.
        if (temperature > 1.0d3 .and. temperature < 1.0d4) then
-          coolingFunction=Cooling_Function_GP_H_H2Plus(temperature,molecularDensities)
+          coolingFunction=Cooling_Function_GP_H_H2Plus(temperature,chemicalDensities)
           if (temperature /= temperaturePrevious4) then
              logarithmic10Temperature=dlog10(temperature)
              coolingFunctionH2PlusHTemperatureLogGradient=                         &
@@ -360,19 +360,19 @@ contains
     return
   end subroutine Cooling_Function_Temperature_Slope_Molecular_Hydrogen_GP
 
-  double precision function Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,molecularDensities)
+  double precision function Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,chemicalDensities)
     !% Compute the cooling function due to H--H$_2$ interactions.
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
-    double precision,                   intent(in) :: numberDensityHydrogen,temperature
-    type(molecularAbundancesStructure), intent(in) :: molecularDensities
-    double precision                               :: atomicHydrogenDensity,molecularHydrogenDensity&
+    double precision,                  intent(in) :: numberDensityHydrogen,temperature
+    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    double precision                              :: atomicHydrogenDensity,molecularHydrogenDensity&
          &,numberDensityCriticalOverNumberDensityHydrogen ,coolingFunctionLocalThermodynamicEquilibrium &
          &,coolingFunctionLowDensityLimit
 
     ! Get the relevant densities.
-    atomicHydrogenDensity   =molecularDensities%abundance(atomicHydrogenMoleculeIndex   )
-    molecularHydrogenDensity=molecularDensities%abundance(molecularHydrogenMoleculeIndex)
+    atomicHydrogenDensity   =chemicalDensities%abundance(atomicHydrogenChemicalIndex   )
+    molecularHydrogenDensity=chemicalDensities%abundance(molecularHydrogenChemicalIndex)
 
     ! Compute the cooling function.
     call Number_Density_Critical_Over_Number_Density_Hydrogen(numberDensityHydrogen,temperature &
@@ -447,19 +447,19 @@ contains
     return
   end subroutine Number_Density_Critical_Over_Number_Density_Hydrogen
 
-  double precision function Cooling_Function_GP_H2Plus_Electron(temperature,molecularDensities)
+  double precision function Cooling_Function_GP_H2Plus_Electron(temperature,chemicalDensities)
     !% Compute the cooling function due to H$_2^+$--e$^-$ interactions.
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
-    double precision,                   intent(in) :: temperature
-    type(molecularAbundancesStructure), intent(in) :: molecularDensities
-    double precision,                   save       :: temperaturePrevious,coolingFunctionElectronMolecularHydrogenCation
+    double precision,                  intent(in) :: temperature
+    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    double precision,                  save       :: temperaturePrevious,coolingFunctionElectronMolecularHydrogenCation
     !$omp threadprivate(temperaturePrevious,coolingFunctionElectronMolecularHydrogenCation)
-    double precision                               :: electronDensity,molecularHydrogenCationDensity ,logarithmic10Temperature
+    double precision                              :: electronDensity,molecularHydrogenCationDensity ,logarithmic10Temperature
     
     ! Get the relevant densities.
-    electronDensity               =molecularDensities%abundance(electronMoleculeIndex               )
-    molecularHydrogenCationDensity=molecularDensities%abundance(molecularHydrogenCationMoleculeIndex)
+    electronDensity               =chemicalDensities%abundance(electronChemicalIndex               )
+    molecularHydrogenCationDensity=chemicalDensities%abundance(molecularHydrogenCationChemicalIndex)
     
     ! H_2^+ - e^- cooling function.
     if (temperature > 1.0d3 .and. temperature < 1.0d4) then
@@ -482,19 +482,19 @@ contains
     return
   end function Cooling_Function_GP_H2Plus_Electron
 
-  double precision function Cooling_Function_GP_H_H2Plus(temperature,molecularDensities)
+  double precision function Cooling_Function_GP_H_H2Plus(temperature,chemicalDensities)
     !% Compute the cooling function due to H--H$_2^+$ interactions.
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
-    double precision,                   intent(in) :: temperature
-    type(molecularAbundancesStructure), intent(in) :: molecularDensities
-    double precision,                   save       :: temperaturePrevious,coolingFunctionAtomicHydrogenMolecularHydrogenCation
+    double precision,                  intent(in) :: temperature
+    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    double precision,                  save       :: temperaturePrevious,coolingFunctionAtomicHydrogenMolecularHydrogenCation
     !$omp threadprivate(temperaturePrevious,coolingFunctionAtomicHydrogenMolecularHydrogenCation)
-    double precision                               :: atomicHydrogenDensity,molecularHydrogenCationDensity,logarithmic10Temperature
+    double precision                              :: atomicHydrogenDensity,molecularHydrogenCationDensity,logarithmic10Temperature
     
     ! Get the relevant densities.
-    atomicHydrogenDensity         =molecularDensities%abundance(atomicHydrogenMoleculeIndex         )
-    molecularHydrogenCationDensity=molecularDensities%abundance(molecularHydrogenCationMoleculeIndex)
+    atomicHydrogenDensity         =chemicalDensities%abundance(atomicHydrogenChemicalIndex         )
+    molecularHydrogenCationDensity=chemicalDensities%abundance(molecularHydrogenCationChemicalIndex)
     
     ! H - H_2^+ cooling function.
     if (temperature > 1.0d3 .and. temperature < 1.0d4) then

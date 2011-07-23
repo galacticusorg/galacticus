@@ -59,42 +59,42 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements a null calculation of molecular reaction rates.
+!% Contains a module which implements a null calculation of chemical reaction rates.
 
-module Molecular_Reaction_Rates_Null
-  !% Implements a null calculation of molecular reaction rates.
+module Chemical_Reaction_Rates_Null
+  !% Implements a null calculation of chemical reaction rates.
   private
-  public :: Molecular_Reaction_Rates_Null_Initialize, Molecular_Reaction_Rates_Null_Compute
+  public :: Chemical_Reaction_Rates_Null_Initialize, Chemical_Reaction_Rates_Null_Compute
 
 contains
 
-  !# <molecularReactionRates>
-  !#  <unitName>Molecular_Reaction_Rates_Null_Initialize</unitName>
-  !# </molecularReactionRates>
-  subroutine Molecular_Reaction_Rates_Null_Initialize(molecularReactionRatesMethods)
-    !% Initializes the null molecular reaction network module.
+  !# <chemicalReactionRates>
+  !#  <unitName>Chemical_Reaction_Rates_Null_Initialize</unitName>
+  !# </chemicalReactionRates>
+  subroutine Chemical_Reaction_Rates_Null_Initialize(chemicalReactionRatesMethods)
+    !% Initializes the null chemical reaction network module.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(in) :: molecularReactionRatesMethods(:)
+    type(varying_string), intent(in) :: chemicalReactionRatesMethods(:)
 
     return
-  end subroutine Molecular_Reaction_Rates_Null_Initialize
+  end subroutine Chemical_Reaction_Rates_Null_Initialize
 
-  !# <molecularRatesCompute>
-  !#  <unitName>Molecular_Reaction_Rates_Null_Compute</unitName>
-  !# </molecularRatesCompute>
-  subroutine Molecular_Reaction_Rates_Null_Compute(temperature,moleculeDensity,radiation,moleculeRates)
-    !% Compute rates of change of molecular abundances due to reactions involving molecular hydrogen species.
+  !# <chemicalRatesCompute>
+  !#  <unitName>Chemical_Reaction_Rates_Null_Compute</unitName>
+  !# </chemicalRatesCompute>
+  subroutine Chemical_Reaction_Rates_Null_Compute(temperature,chemicalDensity,radiation,chemicalRates)
+    !% Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
-    double precision,                   intent(in)    :: temperature
-    type(radiationStructure),           intent(in)    :: radiation
-    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
+    double precision,                  intent(in)    :: temperature
+    type(radiationStructure),          intent(in)    :: radiation
+    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
     
     return
-  end subroutine Molecular_Reaction_Rates_Null_Compute
+  end subroutine Chemical_Reaction_Rates_Null_Compute
 
-end module Molecular_Reaction_Rates_Null
+end module Chemical_Reaction_Rates_Null

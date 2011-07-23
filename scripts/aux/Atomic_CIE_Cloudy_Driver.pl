@@ -7,10 +7,10 @@ use Fcntl qw (:flock);
 # Andrew Benson (26-Jan-2010)
 
 # Get arguments.
-if ( $#ARGV != 2 ) {die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <ionizationStateFile>"};
+if ( $#ARGV != 2 ) {die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <chemicalStateFile>"};
 $logMetallicityMaximum = $ARGV[0];
 $coolingFunctionFile   = $ARGV[1];
-$ionizationStateFile   = $ARGV[2];
+$chemicalStateFile   = $ARGV[2];
 
 # Determine if we need to compute cooling functions.
 if ( -e $coolingFunctionFile ) {
@@ -20,23 +20,23 @@ if ( -e $coolingFunctionFile ) {
 }
 
 # Determine if we need to compute cooling functions.
-if ( -e $ionizationStateFile ) {
-    $computeIonizationStates = 0;
+if ( -e $chemicalStateFile ) {
+    $computeChemicalStates = 0;
 } else {
-    $computeIonizationStates = 1;
+    $computeChemicalStates = 1;
 }
 
 # Check if we need to do calculations.
-if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
+if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 
-    # Open and lock the cooling function and ionization state files.
+    # Open and lock the cooling function and chemical state files.
     if ( $computeCoolingFunctions == 1 ) {
 	open(coolingFunctionOutHndl,">".$coolingFunctionFile);
 	flock(coolingFunctionOutHndl,LOCK_EX);
     }
-    if ( $computeIonizationStates == 1 ) {
-	open(ionizationStateOutHndl,">".$ionizationStateFile);
-	flock(ionizationStateOutHndl,LOCK_EX);
+    if ( $computeChemicalStates == 1 ) {
+	open(chemicalStateOutHndl,">".$chemicalStateFile);
+	flock(chemicalStateOutHndl,LOCK_EX);
     }
 
     # (Logarithmic) temperature range.
@@ -88,19 +88,19 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     $coolingTempFile    = "./cloudy_cooling.tmp";
     $overviewTempFile   = "./cloudy_overview.tmp";
     
-    # Counter for number of cooling functions and ionization states tabulated.
+    # Counter for number of cooling functions and chemical states tabulated.
     $iCoolingFunction = -1;
-    $iIonizationState = -1;
+    $iChemicalState = -1;
 
     # Write message.
-    print "Computing cooling functions and ionization states using Cloudy (this may take a long time)...\n";
+    print "Computing cooling functions and chemical states using Cloudy (this may take a long time)...\n";
     
     # Loop over metallicities.
     foreach $logMetallicity ( @logMetallicities ) {
 	
-	# Increment cooling function and ionization state counter.
+	# Increment cooling function and chemical state counter.
 	++$iCoolingFunction;
-	++$iIonizationState;
+	++$iChemicalState;
 	
 	# Destroy the previous cooling function data.
 	undef(@temperatures     );
@@ -112,9 +112,9 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	undef(@heiiDensities    );
 	undef(@heiiDensities    );
 	
-	# Store the metallicity for this cooling function and ionization state.
+	# Store the metallicity for this cooling function and chemical state.
 	${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'metallicity'} = $logMetallicity;
-	${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'metallicity'} = $logMetallicity;
+	${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'metallicity'} = $logMetallicity;
 	
 	# Run Cloudy.
 	open(cloudyPipe,"|aux/".$cloudyVersion."/source/cloudy.exe 1> /dev/null");
@@ -175,11 +175,11 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	@{${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'coolingRate'}->{'datum'}}     = @coolingRates;
 	@{${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'temperature'}->{'datum'}}     = @temperatures;
 
-	# Store ionization state data.
-	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'electronDensity'}->{'datum'}} = @electronDensities;
-	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'hiDensity'      }->{'datum'}} = @hiDensities;
-	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'hiiDensity'     }->{'datum'}} = @hiiDensities;
-	@{${${$ionizationStates{'ionizationState'}}[$iIonizationState]}{'temperature'    }->{'datum'}} = @temperatures;
+	# Store chemical state data.
+	@{${${$chemicalStates{'ionizationState'}}[$iChemicalState]}{'electronDensity'}->{'datum'}} = @electronDensities;
+	@{${${$chemicalStates{'ionizationState'}}[$iChemicalState]}{'hiDensity'      }->{'datum'}} = @hiDensities;
+	@{${${$chemicalStates{'ionizationState'}}[$iChemicalState]}{'hiiDensity'     }->{'datum'}} = @hiiDensities;
+	@{${${$chemicalStates{'ionizationState'}}[$iChemicalState]}{'temperature'    }->{'datum'}} = @temperatures;
 	
     }
     
@@ -199,21 +199,21 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
     ${$coolingFunctions{'units'}}[0] = "Temperature: Kelvin";
     ${$coolingFunctions{'units'}}[1] = "Cooling rate: Lambda(T)/ergs cm^3 s^-1";
   
-    # Ionization states:
+    # Chemical states:
     # Specify extrapolation methods in temperature.
-    ${${${$ionizationStates{'extrapolation'}}{'temperature'}}[0]}{'limit'}  = "low";
-    ${${${$ionizationStates{'extrapolation'}}{'temperature'}}[0]}{'method'} = "fixed";
-    ${${${$ionizationStates{'extrapolation'}}{'temperature'}}[1]}{'limit'}  = "high";
-    ${${${$ionizationStates{'extrapolation'}}{'temperature'}}[1]}{'method'} = "fixed";
+    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[0]}{'limit'}  = "low";
+    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[0]}{'method'} = "fixed";
+    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[1]}{'limit'}  = "high";
+    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[1]}{'method'} = "fixed";
     # Specify extrapolation methods in metallicity.
-    ${${${$ionizationStates{'extrapolation'}}{'metallicity'}}[0]}{'limit'}  = "low";
-    ${${${$ionizationStates{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fixed";
-    ${${${$ionizationStates{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
-    ${${${$ionizationStates{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fixed";
+    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[0]}{'limit'}  = "low";
+    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fixed";
+    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
+    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fixed";
     # Add some description.
-    $ionizationStates{'description'} = "CIE ionization states computed by Cloudy 08.00";
-    ${$ionizationStates{'units'}}[0] = "Temperature: Kelvin";
-    ${$ionizationStates{'units'}}[1] = "Densities: by number relative to hydrogen";
+    $chemicalStates{'description'} = "CIE ionization states computed by Cloudy 08.00";
+    ${$chemicalStates{'units'}}[0] = "Temperature: Kelvin";
+    ${$chemicalStates{'units'}}[1] = "Densities: by number relative to hydrogen";
 
     # Output cooling functions to an XML file.
     if ( $computeCoolingFunctions == 1 ) {
@@ -223,12 +223,12 @@ if ( $computeCoolingFunctions == 1 || $computeIonizationStates == 1 ) {
 	close(coolingFunctionOutHndl);
     }
     
-    # Output ionization states to an XML file.
-    if ( $computeIonizationStates == 1 ) {
-	$ionizationStates = \%ionizationStates;
-	$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"ionizationStates");
-	print ionizationStateOutHndl $xmlOutput->XMLout($ionizationStates);
-	close(ionizationStateOutHndl);
+    # Output chemical states to an XML file.
+    if ( $computeChemicalStates == 1 ) {
+	$chemicalStates = \%chemicalStates;
+	$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"chemicalStates");
+	print chemicalStateOutHndl $xmlOutput->XMLout($chemicalStates);
+	close(chemicalStateOutHndl);
     }
 
     # Write message.

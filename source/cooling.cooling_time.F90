@@ -64,7 +64,7 @@
 module Cooling_Times
   !% Implements calculations of the cooling function.
   use Abundances_Structure
-  use Molecular_Abundances_Structure
+  use Chemical_Abundances_Structure
   use Radiation_Structure
   use ISO_Varying_String
   !# <include directive="coolingTimeMethod" type="moduleUse">
@@ -84,12 +84,12 @@ module Cooling_Times
   procedure(Cooling_Time_Get_Template), pointer :: Cooling_Time_Density_Log_Slope_Get => null()
   procedure(Cooling_Time_Get_Template), pointer :: Cooling_Time_Temperature_Log_Slope_Get => null()
   abstract interface
-     double precision function Cooling_Time_Get_Template(temperature,density,abundances,molecularDensities,radiation)
-       import abundancesStructure, radiationStructure, molecularAbundancesStructure
-       double precision,                   intent(in) :: temperature,density
-       type(abundancesStructure),          intent(in) :: abundances
-       type(molecularAbundancesStructure), intent(in) :: molecularDensities
-       type(radiationStructure),           intent(in) :: radiation
+     double precision function Cooling_Time_Get_Template(temperature,density,abundances,chemicalDensities,radiation)
+       import abundancesStructure, radiationStructure, chemicalAbundancesStructure
+       double precision,                  intent(in) :: temperature,density
+       type(abundancesStructure),         intent(in) :: abundances
+       type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+       type(radiationStructure),          intent(in) :: radiation
      end function Cooling_Time_Get_Template
   end interface
   
@@ -128,54 +128,54 @@ contains
     return
   end subroutine Cooling_Time_Initialize
 
-  double precision function Cooling_Time(temperature,density,abundances,molecularDensities,radiation)
+  double precision function Cooling_Time(temperature,density,abundances,chemicalDensities,radiation)
     !% Return the cooling time at the given temperature and density for the specified set of abundances and radiation
     !% field. Units of the returned cooling time are the Gyr.
     implicit none
-    double precision,                   intent(in) :: temperature,density
-    type(abundancesStructure),          intent(in) :: abundances
-    type(molecularAbundancesStructure), intent(in) :: molecularDensities
-    type(radiationStructure),           intent(in) :: radiation
+    double precision,                  intent(in) :: temperature,density
+    type(abundancesStructure),         intent(in) :: abundances
+    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(radiationStructure),          intent(in) :: radiation
 
     ! Initialize the module if necessary.
     call Cooling_Time_Initialize
 
     ! Get the cooling time using the selected method.
-    Cooling_Time=Cooling_Time_Get(temperature,density,abundances,molecularDensities,radiation)
+    Cooling_Time=Cooling_Time_Get(temperature,density,abundances,chemicalDensities,radiation)
 
     return
   end function Cooling_Time
 
-  double precision function Cooling_Time_Density_Log_Slope(temperature,density,abundances,molecularDensities,radiation)
+  double precision function Cooling_Time_Density_Log_Slope(temperature,density,abundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling time-density relation.
     implicit none
-    double precision,                   intent(in) :: temperature,density
-    type(abundancesStructure),          intent(in) :: abundances
-    type(molecularAbundancesStructure), intent(in) :: molecularDensities
-    type(radiationStructure),           intent(in) :: radiation
+    double precision,                  intent(in) :: temperature,density
+    type(abundancesStructure),         intent(in) :: abundances
+    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(radiationStructure),          intent(in) :: radiation
 
     ! Initialize the module if necessary.
     call Cooling_Time_Initialize
 
     ! Get the cooling time using the selected method.
-    Cooling_Time_Density_Log_Slope=Cooling_Time_Density_Log_Slope_Get(temperature,density,abundances,molecularDensities,radiation)
+    Cooling_Time_Density_Log_Slope=Cooling_Time_Density_Log_Slope_Get(temperature,density,abundances,chemicalDensities,radiation)
 
     return
   end function Cooling_Time_Density_Log_Slope
 
-  double precision function Cooling_Time_Temperature_Log_Slope(temperature,density,abundances,molecularDensities,radiation)
+  double precision function Cooling_Time_Temperature_Log_Slope(temperature,density,abundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling time-temperature relation.
     implicit none
-    double precision,                   intent(in) :: temperature,density
-    type(abundancesStructure),          intent(in) :: abundances
-    type(molecularAbundancesStructure), intent(in) :: molecularDensities
-    type(radiationStructure),           intent(in) :: radiation
+    double precision,                  intent(in) :: temperature,density
+    type(abundancesStructure),         intent(in) :: abundances
+    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(radiationStructure),          intent(in) :: radiation
 
     ! Initialize the module if necessary.
     call Cooling_Time_Initialize
 
     ! Get the cooling time using the selected method.
-    Cooling_Time_Temperature_Log_Slope=Cooling_Time_Temperature_Log_Slope_Get(temperature,density,abundances,molecularDensities,radiation)
+    Cooling_Time_Temperature_Log_Slope=Cooling_Time_Temperature_Log_Slope_Get(temperature,density,abundances,chemicalDensities,radiation)
 
     return
   end function Cooling_Time_Temperature_Log_Slope

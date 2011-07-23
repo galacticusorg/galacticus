@@ -59,28 +59,28 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module that implements calculations of the ionization state.
+!% Contains a module that implements calculations of the chemical state.
 
-module Ionization_States
-  !% Implements calculations of the ionization state.
+module Chemical_States
+  !% Implements calculations of the chemical state.
   use Abundances_Structure
   use Radiation_Structure
-  use Molecular_Abundances_Structure
+  use Chemical_Abundances_Structure
   use ISO_Varying_String 
   private
-  public :: Electron_Density, Electron_Density_Temperature_Log_Slope, Electron_Density_Density_Log_Slope, Molecular_Densities
+  public :: Electron_Density, Electron_Density_Temperature_Log_Slope, Electron_Density_Density_Log_Slope, Chemical_Densities
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: ionizationStateInitialized=.false.
+  logical              :: chemicalStateInitialized=.false.
 
-  ! Name of ionization state method used.
-  type(varying_string) :: ionizationStateMethod
+  ! Name of chemical state method used.
+  type(varying_string) :: chemicalStateMethod
 
   ! Pointer to the function that actually does the calculation.
   procedure(Electron_Density_Get_Template   ), pointer :: Electron_Density_Get                       => null()
   procedure(Electron_Density_Get_Template   ), pointer :: Electron_Density_Temperature_Log_Slope_Get => null()
   procedure(Electron_Density_Get_Template   ), pointer :: Electron_Density_Density_Log_Slope_Get     => null()
-  procedure(Molecular_Densities_Get_Template), pointer :: Molecular_Densities_Get                    => null()
+  procedure(Chemical_Densities_Get_Template), pointer :: Chemical_Densities_Get                    => null()
   abstract interface
      double precision function Electron_Density_Get_Template(temperature,numberDensityHydrogen,abundances,radiation)
        import abundancesStructure,radiationStructure
@@ -90,54 +90,54 @@ module Ionization_States
      end function Electron_Density_Get_Template
   end interface
   abstract interface
-     subroutine Molecular_Densities_Get_Template(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
-       import abundancesStructure,radiationStructure,molecularAbundancesStructure
-       type(molecularAbundancesStructure), intent(inout) :: theseAbundances
-       double precision,                   intent(in)    :: temperature,numberDensityHydrogen
-       type(abundancesStructure),          intent(in)    :: abundances
-       type(radiationStructure),           intent(in)    :: radiation
-     end subroutine Molecular_Densities_Get_Template
+     subroutine Chemical_Densities_Get_Template(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+       import abundancesStructure,radiationStructure,chemicalAbundancesStructure
+       type(chemicalAbundancesStructure), intent(inout) :: theseAbundances
+       double precision,                  intent(in)    :: temperature,numberDensityHydrogen
+       type(abundancesStructure),         intent(in)    :: abundances
+       type(radiationStructure),          intent(in)    :: radiation
+     end subroutine Chemical_Densities_Get_Template
   end interface
   
 contains
 
-  subroutine Ionization_State_Initialize
-    !% Initialize the ionization state module.
+  subroutine Chemical_State_Initialize
+    !% Initialize the chemical state module.
     use Galacticus_Error
     use Input_Parameters
     use Memory_Management
-    !# <include directive="ionizationStateMethod" type="moduleUse">
-    include 'atomic.ionization_state.modules.inc'
+    !# <include directive="chemicalStateMethod" type="moduleUse">
+    include 'chemical.state.modules.inc'
     !# </include>
     implicit none
     
-    !$omp critical(Ionization_State_Initialization) 
+    !$omp critical(Chemical_State_Initialization) 
     ! Initialize if necessary.
-    if (.not.ionizationStateInitialized) then
-       ! Get the ionization state method parameter.
+    if (.not.chemicalStateInitialized) then
+       ! Get the chemical state method parameter.
        !@ <inputParameter>
-       !@   <name>ionizationStateMethod</name>
+       !@   <name>chemicalStateMethod</name>
        !@   <defaultValue>atomic CIE Cloudy</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the method to be used for computing the ionization state.
+       !@     The name of the method to be used for computing the chemical state.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('ionizationStateMethod',ionizationStateMethod,defaultValue='atomic_CIE_Cloudy')
+       call Get_Input_Parameter('chemicalStateMethod',chemicalStateMethod,defaultValue='atomic_CIE_Cloudy')
 
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="ionizationStateMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>ionizationStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get</subroutineArgs>
-       include 'atomic.ionization_state.inc'
+       !# <include directive="chemicalStateMethod" type="code" action="subroutine">
+       !#  <subroutineArgs>chemicalStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Chemical_Densities_Get</subroutineArgs>
+       include 'atomic.chemical_state.inc'
        !# </include>
        if (.not.(associated(Electron_Density_Get).and.associated(Electron_Density_Temperature_Log_Slope_Get) &
-            & .and.associated(Electron_Density_Density_Log_Slope_Get).and.associated(Molecular_Densities_Get))) call&
-            & Galacticus_Error_Report('Ionization_State_Initialize','method '//char(ionizationStateMethod)//' is unrecognized')
-       ionizationStateInitialized=.true.
+            & .and.associated(Electron_Density_Density_Log_Slope_Get).and.associated(Chemical_Densities_Get))) call&
+            & Galacticus_Error_Report('Chemical_State_Initialize','method '//char(chemicalStateMethod)//' is unrecognized')
+       chemicalStateInitialized=.true.
     end if
-    !$omp end critical(Ionization_State_Initialization) 
+    !$omp end critical(Chemical_State_Initialization) 
     return
-  end subroutine Ionization_State_Initialize
+  end subroutine Chemical_State_Initialize
 
   double precision function Electron_Density(temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the electron density at the given temperature and hydrogen density for the specified set of abundances and radiation
@@ -148,7 +148,7 @@ contains
     type(radiationStructure),  intent(in) :: radiation
 
     ! Initialize the module.
-    call Ionization_State_Initialize
+    call Chemical_State_Initialize
 
     ! Call the routine to do the calculation.
     Electron_Density=Electron_Density_Get(temperature,numberDensityHydrogen,abundances,radiation)
@@ -165,7 +165,7 @@ contains
     type(radiationStructure),  intent(in) :: radiation
 
     ! Initialize the module.
-    call Ionization_State_Initialize
+    call Chemical_State_Initialize
 
     ! Call the routine to do the calculation.
     Electron_Density_Temperature_Log_Slope=Electron_Density_Temperature_Log_Slope_Get(temperature,numberDensityHydrogen&
@@ -183,7 +183,7 @@ contains
     type(radiationStructure),  intent(in) :: radiation
 
     ! Initialize the module.
-    call Ionization_State_Initialize
+    call Chemical_State_Initialize
 
     ! Call the routine to do the calculation.
     Electron_Density_Density_Log_Slope=Electron_Density_Density_Log_Slope_Get(temperature,numberDensityHydrogen&
@@ -192,22 +192,22 @@ contains
     return
   end function Electron_Density_Density_Log_Slope
 
-  subroutine Molecular_Densities(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
-    !% Return the densities of molecular species at the given temperature and hydrogen density for the specified set of abundances
+  subroutine Chemical_Densities(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    !% Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
     !% and radiation field. Units of the returned electron density are cm$^-3$.
     implicit none
-    type(molecularAbundancesStructure), intent(inout) :: theseAbundances
-    double precision,                   intent(in)    :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)    :: abundances
-    type(radiationStructure),           intent(in)    :: radiation
+    type(chemicalAbundancesStructure), intent(inout) :: theseAbundances
+    double precision,                  intent(in)    :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)    :: abundances
+    type(radiationStructure),          intent(in)    :: radiation
 
     ! Initialize the module.
-    call Ionization_State_Initialize
+    call Chemical_State_Initialize
 
     ! Call the routine to do the calculation.
-    call Molecular_Densities_Get(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    call Chemical_Densities_Get(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
 
     return
-  end subroutine Molecular_Densities
+  end subroutine Chemical_Densities
 
-end module Ionization_States
+end module Chemical_States

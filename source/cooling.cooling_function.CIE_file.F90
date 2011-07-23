@@ -142,17 +142,17 @@ contains
   !# <coolingFunctionCompute>
   !#   <unitName>Cooling_Function_CIE_File</unitName>
   !# </coolingFunctionCompute>
-  subroutine Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
+  subroutine Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
     !% Return the cooling function by interpolating in tabulated CIE data read from a file.
     use Abundances_Structure
     use Radiation_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in) :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunction
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunction
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
@@ -177,18 +177,18 @@ contains
   !#   <unitName>Cooling_Function_Temperature_Slope_CIE_File</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
   subroutine Cooling_Function_Temperature_Slope_CIE_File(coolingFunctionTemperatureSlope,temperature,numberDensityHydrogen&
-       &,abundances,molecularDensities,radiation)
+       &,abundances,chemicalDensities,radiation)
     !% Return the slope of the cooling function with respect to temperature by interpolating in tabulated CIE data
     !% read from a file.
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunctionTemperatureSlope
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunctionTemperatureSlope
     double precision                                :: coolingFunction
 
     ! Check if this cooling function has been selected.
@@ -198,7 +198,7 @@ contains
        call Cooling_Function_CIE_File_Read_Initialize
        
        ! Get the cooling function.
-       call Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
+       call Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
        
        ! Call routine to interpolate in the tabulated function.
        coolingFunctionTemperatureSlope=Cooling_Function_CIE_File_logTemperature_Interpolate(temperature&
@@ -218,24 +218,24 @@ contains
   !#   <unitName>Cooling_Function_Density_Slope_CIE_File</unitName>
   !# </coolingFunctionDensitySlopeCompute>
   subroutine Cooling_Function_Density_Slope_CIE_File(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,abundances&
-       &,molecularDensities,radiation)
+       &,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling function with respect to density.
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunctionDensitySlope
-    double precision                                :: coolingFunction
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunctionDensitySlope
+    double precision                               :: coolingFunction
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
        
        ! Get the cooling function.
-       call Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,molecularDensities,radiation)
+       call Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
        
        ! Logarithmic slope is always 2 for a CIE cooling function.
        coolingFunctionDensitySlope=2.0d0*coolingFunction/numberDensityHydrogen

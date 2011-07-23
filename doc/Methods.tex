@@ -406,13 +406,13 @@ Here, {\tt Accretion\_Halos\_Simple\_Initialize} is the name of a subroutine whi
   subroutine Method_Initialize(accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get &
    & ,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get &
    & ,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accreted_Abundances_Get, &
-   & ,Halo_Baryonic_Accretion_Rate_Molecules_Get,Halo_Baryonic_Accreted_Molecules_Get)
+   & ,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get)
     implicit none
     type(varying_string),          intent(in)    :: accretionHalosMethod
     procedure(),          pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get &
    & ,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get &
-   & ,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Molecules_Get &
-   & ,Halo_Baryonic_Accreted_Molecules_Get
+   & ,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Chemicals_Get &
+   & ,Halo_Baryonic_Accreted_Chemicals_Get
     
     if (accretionHalosMethod == 'myMethod') then
        Halo_Baryonic_Accretion_Rate_Get            => My_Accretion_Rate_Get
@@ -421,13 +421,13 @@ Here, {\tt Accretion\_Halos\_Simple\_Initialize} is the name of a subroutine whi
        Halo_Baryonic_Failed_Accreted_Mass_Get      => My_Failed_Accreted_Mass_Get
        Halo_Baryonic_Accretion_Rate_Abundances_Get => My_Accretion_Rate_Abundances_Get
        Halo_Baryonic_Accreted_Abundances_Get       => My_Accreted_Abundances_Get
-       Halo_Baryonic_Accretion_Rate_Molecules_Get  => My_Accretion_Rate_Molecules_Get
-       Halo_Baryonic_Accreted_Molecules_Get        => My_Accreted_Molecules_Get
+       Halo_Baryonic_Accretion_Rate_Chemicals_Get  => My_Accretion_Rate_Chemicals_Get
+       Halo_Baryonic_Accreted_Chemicals_Get        => My_Accreted_Chemicals_Get
     end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt accretionHalosMethod} input parameter. The procedure pointers {\tt Halo\_Baryonic\_Accretion\_Rate\_Get}, {\tt Halo\_Baryonic\_Accreted\_Mass\_Get}, {\tt Halo\_Baryonic\_Failed\_Accretion\_Rate\_Get} and {\tt Halo\_Baryonic\_Failed\_Accreted\_Mass\_Get} must be set to point to functions which return accretion rate, total accreted mass (assuming no progenitors), failed accretion rate and total failed accreted mass (assuming no progenitors) respectively as described below. The procedure pointers {\tt Halo\_Baryonic\_Accretion\_Rate\_Abundances\_Get}, {\tt Halo\_Baryonic\_Accreted\_Abundances\_Get}, {\tt Halo\_Baryonic\_Accretion\_Rate\_Molecules\_Get}, {\tt Halo\_Baryonic\_Accreted\_Molecules\_Get} must be set to point to functions which return the accretion rates nad masses (assuming no progenitors) of heavy element abundances and molecules respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt accretionHalosMethod} input parameter. The procedure pointers {\tt Halo\_Baryonic\_Accretion\_Rate\_Get}, {\tt Halo\_Baryonic\_Accreted\_Mass\_Get}, {\tt Halo\_Baryonic\_Failed\_Accretion\_Rate\_Get} and {\tt Halo\_Baryonic\_Failed\_Accreted\_Mass\_Get} must be set to point to functions which return accretion rate, total accreted mass (assuming no progenitors), failed accretion rate and total failed accreted mass (assuming no progenitors) respectively as described below. The procedure pointers {\tt Halo\_Baryonic\_Accretion\_Rate\_Abundances\_Get}, {\tt Halo\_Baryonic\_Accreted\_Abundances\_Get}, {\tt Halo\_Baryonic\_Accretion\_Rate\_Chemicals\_Get}, {\tt Halo\_Baryonic\_Accreted\_Chemicals\_Get} must be set to point to functions which return the accretion rates nad masses (assuming no progenitors) of heavy element abundances and chemicals respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The mass functions must have the form:
 \begin{verbatim}
@@ -446,7 +446,7 @@ In the case of the accretion rate functions, the function must return the accret
 \end{equation}
 where $\dot{M}$ is the growth rate of total halo mass and $\dot{M}_{\rm accreted}$ is the accretion rate of baryons onto the halo. If desired, this failed mass can be transferred back into the accreted component once the halo is deemed able to accrete, by simply adjusting the accretion rates returned appropriately.
 
-For abundances and molecules, the subroutines should have the form:
+For abundances and chemicals, the subroutines should have the form:
 \begin{verbatim}
  subroutine My_Abundances_Get(thisNode,accretionAbundances)
     implicit none
@@ -458,19 +458,19 @@ For abundances and molecules, the subroutines should have the form:
 \end{verbatim}
 and
 \begin{verbatim}
- subroutine My_Molecules_Get(thisNode,accretionMolecules)
+ subroutine My_Chemicals_Get(thisNode,accretionChemicals)
     implicit none
-    type(treeNode),                     intent(inout), pointer :: thisNode
-    type(molecularAbundancesStructure), intent(inout)          :: accretionMolecules
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    type(chemicalAbundancesStructure), intent(inout)          :: accretionChemicals
 
     return
-  end subroutine My_Molecules_Get
+  end subroutine My_Chemicals_Get
 \end{verbatim}
 respectively.
 
 Currently defined accretion disk methods are:
 \begin{description}
- \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \IGM\ (i.e. abundances are always zero) and molecules are computed using the atomic ionization state functions (see \S\ref{sec:IonizationStateMethods}).
+ \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \IGM\ (i.e. abundances are always zero) and chemicals are computed using the chemical state functions (see \S\ref{sec:ChemicalStateMethods}).
 \end{description}
 
 \subsubsection{Atomic Collisional Ionization Rates}
@@ -672,6 +672,199 @@ Currently defined black hole binary merger methods are:
  \item [{\tt Rezzolla2008}] Computes the properties of the merged black hole using the approximations of \cite{rezzolla_final_2008}.
 \end{description}
 
+\subsubsection{Chemical State}\label{sec:ChemicalStateMethods}
+
+Additional methods for chemical states can be added using the {\tt chemicalStateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt atomic\_CIE\_Cloudy} method is described by a directive:
+\begin{verbatim}
+  !# <chemicalStateMethod>
+  !#  <unitName>Chemical_State_Atomic_CIE_Cloudy_Initialize</unitName>
+  !# </chemicalStateMethod>
+\end{verbatim}
+Here, {\tt Chemical\_State\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(chemicalStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Chemical_Densities_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: chemicalStateMethod
+    procedure(),          pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get
+    
+    if (chemicalStateMethod == 'myMethod') then
+      Electron_Density_Get                       => My_Method_Procedure
+      Electron_Density_Temperature_Log_Slope_Get => My_Method_Temperature_Log_Slope_Procedure
+      Electron_Density_Density_Log_Slope_Get     => My_Method_Density_Log_Slope_Procedure
+      Chemical_Densities_Get                     => My_Method_Chemical_Densities_Procedure
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt chemicalStateMethod} input parameter. The procedure pointer {\tt Electron\_Density\_Get} must be set to point to a function which returns the electron density as described below. The other two electron density procedure pointers should point to functions which return the logarithmic gradients of the electron density with respect to temperature and density respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.). The {\tt Chemical\_Densities\_Get} pointer should be set to point to a subroutine that returns the densities of all ``chemicals'' active in the chemical subsystem (see \S\ref{sec:ChemicalSubsystem}).
+
+The electron density function must have the form:
+\begin{verbatim}
+ double precision function Electron_Density_Get(temperature,numberDensityHydrogen,abundances,radiation)
+    implicit none
+    double precision,          intent(in) :: temperature,numberDensityHydrogen
+    type(abundancesStructure), intent(in) :: abundances
+    type(radiationStructure),  intent(in) :: radiation
+    .
+    .
+    .
+    return
+ end function Electron_Density_Get
+\end{verbatim}
+The function must return the electron density (in units of cm$^{-3}$) for gas at the given {\tt temperature} (in Kelvin), with hydrogen number density {\tt numberDensityHydrogen} (in cm$^{-3}$), composition as described by the {\tt abundances} structure and in the presence of a radiation field described by the {\tt radiation} structure. The logarithmic slope functions should have the same template, but return the appropriate logarithmic slope instead.
+
+The chemical densities subroutine must have the form:
+\begin{verbatim}
+ subroutine Chemical_Densities_Get(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    implicit none
+    type(chemicalAbundancesStructure), intent(inout) :: theseAbundances
+    double precision,                  intent(in)    :: temperature,numberDensityHydrogen
+    type(abundancesStructure)          intent(in)    :: abundances
+    type(radiationStructure)           intent(in)    :: radiation
+    .
+    .
+    .
+    return
+ end subroutine Chemical_Densities_Get
+\end{verbatim}
+The function must return the density (in units of cm$^{-3}$) of each chemical species for gas at the given {\tt temperature} (in Kelvin), with hydrogen number density {\tt numberDensityHydrogen} (in cm$^{-3}$), composition as described by the {\tt abundances} structure and in the presence of a radiation field described by the {\tt radiation} structure.
+
+Currently defined chemical state methods are:
+\begin{description}
+ \item [\hyperlink{chemical.state.CIE_file.F90:chemical_states_cie_file}{{\tt CIE\_from\_file}}] Reads a tabulated CIE ionization state from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
+ \begin{verbatim}
+  <ionizationStates>
+  <ionizationState>
+    <temperature>
+      <datum>10000.0</datum>
+      <datum>15000.0</datum>
+      .
+      .
+      .
+    </temperature>
+    <electronDensity>
+      <datum>1.0e-23</datum>
+      <datum>1.7e-23</datum>
+      .
+      .
+      .
+    </electronDensity>
+    <hiDensity>
+      <datum>0.966495864314214</datum>
+      <datum>0.965828463162061</datum>
+      .
+      .
+      .
+    </hiDensity>
+    <hiiDensity>
+      <datum>0.033504135685786</datum>
+      <datum>0.0341715368379391</datum>
+      .
+      .
+      .
+    </hiiDensity>
+    <metallicity>-4.0</metallicity>
+  </ionizationState>
+  <ionizationState>
+  .
+  .
+  .
+  </ionizatonState>
+  <description>Some description of what this chemical state is.</description>
+  <extrapolation>
+    <metallicity>
+      <limit>low</limit>
+      <method>fixed</method>
+    </metallicity>
+    <metallicity>
+      <limit>high</limit>
+      <method>fixed</method>
+    </metallicity>
+    <temperature>
+      <limit>low</limit>
+      <method>fixed</method>
+    </temperature>
+    <temperature>
+      <limit>high</limit>
+      <method>fixed</method>
+    </temperature>
+  </extrapolation>
+ </ionizationStates>
+ \end{verbatim}
+ Each {\tt chemicalState} element should contain two lists (inside {\tt temperature} and {\tt electronDensity} tags) of {\tt datum} elements which specify temperature (in Kelvin) and electron density (by number, relative to hydrogen) respectively, and a {\tt metallicity} element which gives the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero metallicity). Optionally, {\tt hiDensity} and {\tt hiiDensity} elements may be added containing lists of H{\sc i} and H{\sc ii} densities (by number, relative to hydrogen) respectively. Any number of {\tt coolingFunction} elements may appear, but they must be in order of increasing metallicity and must all contain the same set of temperatures. The {\tt extrapolation} element defines how the table is to be extrapolated in the {\tt low} and {\tt high} limits of {\tt temperature} and {\tt metallicity}. The {\tt method} elements can take the following values:
+ \begin{description}
+  \item[{\tt zero}] The electron density is set to zero beyond the relevant limit.
+  \item[{\tt fixed}] The electron density is held fixed at the value at the relevant limit.
+  \item[{\tt power law}] The electron density is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the electron density is everywhere positive.
+ \end{description}
+ If the electron density is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and electron density. Otherwise, interpolation is linear in these quantities. The electron density is scaled assuming a linear dependence on hydrogen density.
+ \item [{\tt atomic CIE Cloudy}] Uses the {\sc Cloudy} software to compute the chemical state for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the chemical state suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}.
+ \item [{\tt PIE\_from\_file}]  Reads a tabulated PIE ionization state from a file and interpolates in the table to give a result. The HDF5 file containing the table should have the following form:
+\begin{verbatim}
+GROUP "/" {
+   DATASET "neutralHydrogenRatio" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <ratioCount>, <redshiftCount>, <temperatureCount>, <densityCount> ) }
+   }
+   DATASET "density" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <densityCount> ) }
+   }
+   DATASET "electronRatio" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <ratioCount>, <redshiftCount>, <temperatureCount>, <densityCount> ) }
+   }
+   DATASET "heliumToHydrogenRatio" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <ratioCount> ) }
+      ATTRIBUTE "extrapolationHigh" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+      ATTRIBUTE "extrapolationLow" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+   }
+   DATASET "redshift" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <redshiftCount> ) }
+      ATTRIBUTE "extrapolationHigh" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+      ATTRIBUTE "extrapolationLow" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+   }
+   DATASET "temperature" {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( <temperatureCount> ) }
+      ATTRIBUTE "extrapolationHigh" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+      ATTRIBUTE "extrapolationLow" {
+         DATATYPE  H5T_STRING {}
+         DATASPACE  SCALAR
+      }
+   }
+}
+\end{verbatim}
+The datasets should contain the following information:
+\begin{description}
+\item [{\tt temperature}] A list of temperatures (in units of Kelvin) at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher temperatures (see below);
+\item [{\tt redshift}] A list of redshifts at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher redshifts (see below);
+\item [{\tt density}] A list of hydrogen number densities (in units of cm$^{-3}$) at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher densities (see below);
+\item [{\tt heliumToHydrogenRatio}] A list of helium-to-hydrogen number density ratios at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher ratios (see below);
+\item [{\tt elements}] A list of the atomic numbers of elements for which cooling functions are tabulated;
+\item [{\tt neutralHydrogenRatio}] The neutral hydrogen fraction on the grid of temperature, density, redshift and helium-to-hydrogen number density ratio;
+\item [{\tt electronRatio}] The electron to hydrogen number density ratio on the grid of temperature, density, redshift and helium-to-hydrogen number density ratio.
+\end{description}
+\end{description}
+
+
 \subsubsection{Cooling Rate}
 
 Additional methods for the cooling rate from the hot halo can be added using the {\tt coolingRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt White + Frenk} method is described by a directive:
@@ -747,13 +940,13 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 The other directives should specify subroutines with the following template:
 \begin{verbatim}
   subroutine Cooling_Function_PropertyCompute(coolingFunctionProperty,temperature,numberDensityHydrogen,abundances&
-       &,molecularDensities,radiation)
+       &,chemicalDensities,radiation)
     implicit none
-    double precision,                   intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)  :: abundances
-    type(molecularAbundancesStructure), intent(in)  :: molecularDensities
-    type(radiationStructure),           intent(in)  :: radiation
-    double precision,                   intent(out) :: coolingFunctionProperty
+    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)  :: abundances
+    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(radiationStructure),          intent(in)  :: radiation
+    double precision,                  intent(out) :: coolingFunctionProperty
     .
     .
     .
@@ -1112,19 +1305,19 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The cooling time function must have the form:
 \begin{verbatim}
- double precision function Cooling_Time_Get(temperature,density,abundances,molecularDensities,radiation)
+ double precision function Cooling_Time_Get(temperature,density,abundances,chemicalDensities,radiation)
     implicit none
-    double precision,                   intent(in) :: temperature,density
-    type(abundancesStructure),          intent(in) :: abundances
-    type(molecularAbundancesStructure), intent(in) :: molecularDensities
-    type(radiationStructure),           intent(in) :: radiation
+    double precision,                  intent(in) :: temperature,density
+    type(abundancesStructure),         intent(in) :: abundances
+    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(radiationStructure),          intent(in) :: radiation
     .
     .
     .
     return
  end function Cooling_Time_Get
 \end{verbatim}
-The function must return the cooling time (in units of Gyr) for at the specified {\tt temperature}, {\tt density} and for composition and radiation field as specified by the {\tt abundances}, {\tt molecularDensities} and {\tt radiation} structures. The logarithmic slope functions should have the same template, but return the logarithmic slope of the cooling time with respect to the appropriate variable instead.
+The function must return the cooling time (in units of Gyr) for at the specified {\tt temperature}, {\tt density} and for composition and radiation field as specified by the {\tt abundances}, {\tt chemicalDensities} and {\tt radiation} structures. The logarithmic slope functions should have the same template, but return the logarithmic slope of the cooling time with respect to the appropriate variable instead.
 
 Currently defined cooling time methods are:
 \begin{description}
@@ -2495,198 +2688,6 @@ Currently defined \IMF\ selection methods are:
  \item [{\tt diskSpheroid}] Uses different {\IMF}s for star formation in disks and in spheroids irrespective of other physical conditions. The {\IMF}s are specified by the input parameters {\tt imfSelectionDisk} and {\tt imfSelectionSpheroid}.
 \end{description}
 
-\subsubsection{Ionization State}\label{sec:IonizationStateMethods}
-
-Additional methods for ionization states can be added using the {\tt ionizationStateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt atomic\_CIE\_Cloudy} method is described by a directive:
-\begin{verbatim}
-  !# <ionizationStateMethod>
-  !#  <unitName>Ionization_State_Atomic_CIE_Cloudy_Initialize</unitName>
-  !# </ionizationStateMethod>
-\end{verbatim}
-Here, {\tt Ionization\_State\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(ionizationStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: ionizationStateMethod
-    procedure(),          pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get
-    
-    if (ionizationStateMethod == 'myMethod') then
-      Electron_Density_Get                       => My_Method_Procedure
-      Electron_Density_Temperature_Log_Slope_Get => My_Method_Temperature_Log_Slope_Procedure
-      Electron_Density_Density_Log_Slope_Get     => My_Method_Density_Log_Slope_Procedure
-      Molecular_Densities_Get                    => My_Method_Molecular_Densities_Procedure
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt ionizationStateMethod} input parameter. The procedure pointer {\tt Electron\_Density\_Get} must be set to point to a function which returns the electron density as described below. The other two electron density procedure pointers should point to functions which return the logarithmic gradients of the electron density with respect to temperature and density respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.). The {\tt Molecular\_Densities\_Get} pointer should be set to point to a subroutine that returns the densities of all ``molecules'' active in the molecular subsystem (see \S\ref{sec:MolecularSubsystem}).
-
-The electron density function must have the form:
-\begin{verbatim}
- double precision function Electron_Density_Get(temperature,numberDensityHydrogen,abundances,radiation)
-    implicit none
-    double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
-    type(radiationStructure),  intent(in) :: radiation
-    .
-    .
-    .
-    return
- end function Electron_Density_Get
-\end{verbatim}
-The function must return the electron density (in units of cm$^{-3}$) for gas at the given {\tt temperature} (in Kelvin), with hydrogen number density {\tt numberDensityHydrogen} (in cm$^{-3}$), composition as described by the {\tt abundances} structure and in the presence of a radiation field described by the {\tt radiation} structure. The logarithmic slope functions should have the same template, but return the appropriate logarithmic slope instead.
-
-The molecular densities subroutine must have the form:
-\begin{verbatim}
- subroutine Molecular_Densities_Get(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
-    implicit none
-    type(molecularAbundancesStructure), intent(inout) :: theseAbundances
-    double precision,                   intent(in)    :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)    :: abundances
-    type(radiationStructure),           intent(in)    :: radiation
-    .
-    .
-    .
-    return
- end subroutine Molecular_Densities_Get
-\end{verbatim}
-The function must return the density (in units of cm$^{-3}$) of each molecular species for gas at the given {\tt temperature} (in Kelvin), with hydrogen number density {\tt numberDensityHydrogen} (in cm$^{-3}$), composition as described by the {\tt abundances} structure and in the presence of a radiation field described by the {\tt radiation} structure.
-
-Currently defined ionization state methods are:
-\begin{description}
- \item [\hyperlink{atomic.ionization_state.CIE_file.F90:ionization_states_cie_file:electron_density_cie_file}{{\tt CIE\_from\_file}}] Reads a tabulated CIE ionization state from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
- \begin{verbatim}
-  <ionizationStates>
-  <ionizationState>
-    <temperature>
-      <datum>10000.0</datum>
-      <datum>15000.0</datum>
-      .
-      .
-      .
-    </temperature>
-    <electronDensity>
-      <datum>1.0e-23</datum>
-      <datum>1.7e-23</datum>
-      .
-      .
-      .
-    </electronDensity>
-    <hiDensity>
-      <datum>0.966495864314214</datum>
-      <datum>0.965828463162061</datum>
-      .
-      .
-      .
-    </hiDensity>
-    <hiiDensity>
-      <datum>0.033504135685786</datum>
-      <datum>0.0341715368379391</datum>
-      .
-      .
-      .
-    </hiiDensity>
-    <metallicity>-4.0</metallicity>
-  </ionizationState>
-  <ionizationState>
-  .
-  .
-  .
-  </ionizatonState>
-  <description>Some description of what this ionization state is.</description>
-  <extrapolation>
-    <metallicity>
-      <limit>low</limit>
-      <method>fixed</method>
-    </metallicity>
-    <metallicity>
-      <limit>high</limit>
-      <method>fixed</method>
-    </metallicity>
-    <temperature>
-      <limit>low</limit>
-      <method>fixed</method>
-    </temperature>
-    <temperature>
-      <limit>high</limit>
-      <method>fixed</method>
-    </temperature>
-  </extrapolation>
- </ionizationStates>
- \end{verbatim}
- Each {\tt ionizationState} element should contain two lists (inside {\tt temperature} and {\tt electronDensity} tags) of {\tt datum} elements which specify temperature (in Kelvin) and electron density (by number, relative to hydrogen) respectively, and a {\tt metallicity} element which gives the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero metallicity). Optionally, {\tt hiDensity} and {\tt hiiDensity} elements may be added containing lists of H{\sc i} and H{\sc ii} densities (by number, relative to hydrogen) respectively. Any number of {\tt coolingFunction} elements may appear, but they must be in order of increasing metallicity and must all contain the same set of temperatures. The {\tt extrapolation} element defines how the table is to be extrapolated in the {\tt low} and {\tt high} limits of {\tt temperature} and {\tt metallicity}. The {\tt method} elements can take the following values:
- \begin{description}
-  \item[{\tt zero}] The electron density is set to zero beyond the relevant limit.
-  \item[{\tt fixed}] The electron density is held fixed at the value at the relevant limit.
-  \item[{\tt power law}] The electron density is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the electron density is everywhere positive.
- \end{description}
- If the electron density is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and electron density. Otherwise, interpolation is linear in these quantities. The electron density is scaled assuming a linear dependence on hydrogen density.
- \item [{\tt atomic CIE Cloudy}] Uses the {\sc Cloudy} software to compute the ionization state for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the ionization state suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}.
- \item [{\tt PIE\_from\_file}]  Reads a tabulated PIE ionization state from a file and interpolates in the table to give a result. The HDF5 file containing the table should have the following form:
-\begin{verbatim}
-GROUP "/" {
-   DATASET "neutralHydrogenRatio" {
-      DATATYPE  H5T_IEEE_F64BE
-      DATASPACE  SIMPLE { ( <ratioCount>, <redshiftCount>, <temperatureCount>, <densityCount> ) }
-   }
-   DATASET "density" {
-      DATATYPE  H5T_IEEE_F64BE
-      DATASPACE  SIMPLE { ( <densityCount> ) }
-   }
-   DATASET "electronRatio" {
-      DATATYPE  H5T_IEEE_F64BE
-      DATASPACE  SIMPLE { ( <ratioCount>, <redshiftCount>, <temperatureCount>, <densityCount> ) }
-   }
-   DATASET "heliumToHydrogenRatio" {
-      DATATYPE  H5T_IEEE_F64BE
-      DATASPACE  SIMPLE { ( <ratioCount> ) }
-      ATTRIBUTE "extrapolationHigh" {
-         DATATYPE  H5T_STRING {}
-         DATASPACE  SCALAR
-      }
-      ATTRIBUTE "extrapolationLow" {
-         DATATYPE  H5T_STRING {}
-         DATASPACE  SCALAR
-      }
-   }
-   DATASET "redshift" {
-      DATATYPE  H5T_IEEE_F64BE
-      DATASPACE  SIMPLE { ( <redshiftCount> ) }
-      ATTRIBUTE "extrapolationHigh" {
-         DATATYPE  H5T_STRING {}
-         DATASPACE  SCALAR
-      }
-      ATTRIBUTE "extrapolationLow" {
-         DATATYPE  H5T_STRING {}
-         DATASPACE  SCALAR
-      }
-   }
-   DATASET "temperature" {
-      DATATYPE  H5T_IEEE_F64BE
-      DATASPACE  SIMPLE { ( <temperatureCount> ) }
-      ATTRIBUTE "extrapolationHigh" {
-         DATATYPE  H5T_STRING {}
-         DATASPACE  SCALAR
-      }
-      ATTRIBUTE "extrapolationLow" {
-         DATATYPE  H5T_STRING {}
-         DATASPACE  SCALAR
-      }
-   }
-}
-\end{verbatim}
-The datasets should contain the following information:
-\begin{description}
-\item [{\tt temperature}] A list of temperatures (in units of Kelvin) at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher temperatures (see below);
-\item [{\tt redshift}] A list of redshifts at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher redshifts (see below);
-\item [{\tt density}] A list of hydrogen number densities (in units of cm$^{-3}$) at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher densities (see below);
-\item [{\tt heliumToHydrogenRatio}] A list of helium-to-hydrogen number density ratios at which cooling functions are tabulated. If present, the {\tt extrapolationLow} and {\tt extrapolationHigh} attributes specify how the data should be extrapolated to lower and higher ratios (see below);
-\item [{\tt elements}] A list of the atomic numbers of elements for which cooling functions are tabulated;
-\item [{\tt neutralHydrogenRatio}] The neutral hydrogen fraction on the grid of temperature, density, redshift and helium-to-hydrogen number density ratio;
-\item [{\tt electronRatio}] The electron to hydrogen number density ratio on the grid of temperature, density, redshift and helium-to-hydrogen number density ratio.
-\end{description}
-\end{description}
-
 \subsubsection{Intergalactic Medium State}\label{sec:IntergalacticMediumStateMethods}\index{intergalactic medium}
 
 Additional methods for the intergalactic medium state can be added using the {\tt intergalaticMediumStateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt RecFast} method is described by a directive:
@@ -2969,21 +2970,21 @@ Currently defined merger tree construction methods are:
  \item [{\tt state restore}] Intended primarily for debugging purposes, this method will restore a tree whose complete internal state was written to file. See \S\ref{sec:TreeConstructStateRestore} for details of how to use this method.
 \end{description}
 
-\subsubsection{Molecular Reaction Rates}
+\subsubsection{Chemical Reaction Rates}
 
-Additional methods for molecular species reaction rates can be added using the {\tt molecularReactionRatesMethods} directive. Note that more than one method can be specified in which cases rates are cumulative over all selected methods. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt hydrogenNetwork} method is described by a directive:
+Additional methods for chemical species reaction rates can be added using the {\tt chemicalReactionRatesMethods} directive. Note that more than one method can be specified in which cases rates are cumulative over all selected methods. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt hydrogenNetwork} method is described by a directive:
 \begin{verbatim}
-  !# <molecularReactionRatesMethods>
-  !#  <unitName>Molecular_Hydrogen_Rates_Initialize</unitName>
-  !# </molecularReactionRatesMethods>
+  !# <chemicalReactionRatesMethods>
+  !#  <unitName>Chemical_Hydrogen_Rates_Initialize</unitName>
+  !# </chemicalReactionRatesMethods>
 \end{verbatim}
-Here, {\tt Molecular\_Hydrogen\_Rates\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+Here, {\tt Chemical\_Hydrogen\_Rates\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(molecularReactionRatesMethods)
+  subroutine Method_Initialize(chemicalReactionRatesMethods)
     implicit none
-    type(varying_string), intent(in) :: molecularReactionRatesMethods
+    type(varying_string), intent(in) :: chemicalReactionRatesMethods
     
-    if (molecularReactionRatesMethods == 'myMethod') then
+    if (chemicalReactionRatesMethods == 'myMethod') then
        ratesSelected = .true.
        .
        .
@@ -2992,22 +2993,22 @@ Here, {\tt Molecular\_Hydrogen\_Rates\_Initialize} is the name of a subroutine w
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt molecularReactionRatesMethods} input parameter. The {\tt ratesSelected} variable is set to true if the method is active and will be checked on all subsequent calls to the module such that rates are computed only if {\tt ratesSelected} is true. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt chemicalReactionRatesMethods} input parameter. The {\tt ratesSelected} variable is set to true if the method is active and will be checked on all subsequent calls to the module such that rates are computed only if {\tt ratesSelected} is true. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The method must provide a subroutine to compute the molecular reaction rates. This subroutine is specified by the {\tt molecularRatesCompute} directive. The directive should contain a single argument, giving the name of a subroutine to be called to compute rates. For example, the {\tt hydrogenNetwork} method uses:
+The method must provide a subroutine to compute the chemical reaction rates. This subroutine is specified by the {\tt chemicalRatesCompute} directive. The directive should contain a single argument, giving the name of a subroutine to be called to compute rates. For example, the {\tt hydrogenNetwork} method uses:
 \begin{verbatim}
-  !# <molecularRatesCompute>
-  !#  <unitName>Molecular_Hydrogen_Rates_Compute</unitName>
-  !# </molecularRatesCompute> 
+  !# <chemicalRatesCompute>
+  !#  <unitName>Chemical_Hydrogen_Rates_Compute</unitName>
+  !# </chemicalRatesCompute> 
 \end{verbatim}
-Here, {\tt Molecular\_Hydrogen\_Rates\_Compute} is the name of a subroutine which will be called to compute the rates. The rates subroutine must have the following form:
+Here, {\tt Chemical\_Hydrogen\_Rates\_Compute} is the name of a subroutine which will be called to compute the rates. The rates subroutine must have the following form:
 \begin{verbatim}
-  subroutine Compute_Rates(temperature,moleculeDensity,radiation,moleculeRates)
+  subroutine Compute_Rates(temperature,chemicalDensity,radiation,chemicalRates)
     implicit none
-    type(molecularAbundancesStructure), intent(in)    :: moleculeDensity
-    double precision,                   intent(in)    :: temperature
-    type(radiationStructure),           intent(in)    :: radiation
-    type(molecularAbundancesStructure), intent(inout) :: moleculeRates
+    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
+    double precision,                  intent(in)    :: temperature
+    type(radiationStructure),          intent(in)    :: radiation
+    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
 
     ! Exit immediately if this method is not active.
     if (.not.ratesSelected) return
@@ -3019,9 +3020,9 @@ Here, {\tt Molecular\_Hydrogen\_Rates\_Compute} is the name of a subroutine whic
     return
   end subroutine Compute_Rates
 \end{verbatim}
-Here, {\tt temperature} is the temperature of the gas, {\tt moleculeDensity} provides the densities (in cm$^{-3}$) of all molecules, the radiation field is described by the {\tt radiation} object and any reaction rates should be \emph{added to} the {\tt moleculeRates} object in units of cm$^{-3}$ s$^{-1}$.
+Here, {\tt temperature} is the temperature of the gas, {\tt chemicalDensity} provides the densities (in cm$^{-3}$) of all chemicals, the radiation field is described by the {\tt radiation} object and any reaction rates should be \emph{added to} the {\tt chemicalRates} object in units of cm$^{-3}$ s$^{-1}$.
 
-Currently defined molecular reaction rate methods are:
+Currently defined chemical reaction rate methods are:
 \begin{description}
  \item [{\tt null}] A null method which does not affect any rates.
  \item [{\tt hydrogenNetwork}] Computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.
@@ -5132,16 +5133,16 @@ The {\tt keplerOrbit} object (provided by the \href{objects.kepler_orbits.F90:ke
 \end{itemize}
 A {\tt keplerOrbit} object can be reset by calling the {\tt reset()} method, and its defined/undefined status can be tested with the {\tt isDefined()} method or asserted with the {\tt assertIsDefined()} method. The following orbital parameters are supported, each method returning the value of the parameter and a corresponding method suffixed with {\tt Set} can be used to set the parameter: {\tt radius}, {\tt velocityRadial}, {\tt velocityTengentail}, {\tt energy}, {\tt angularMomentum}, {\tt eccentricity}, {\tt semiMajorAxis}, {\tt radiusPericenter}, {\tt radiusApocenter}. Additionally, the masses of the orbitting bodies are provided by the {\tt hostMass()} and {\tt reducedMassSpecific()}$=M_{\rm host}/(M_{\rm host}+M_{\rm satellite})$ methods. Finally, the {\tt velocityScale()} method returns ${\rm G}M_{\rm host}/r$ where $r$ is the radius of the orbit.
 
-\subsection{Molecules}\label{sec:MolecularSubsystem}
+\subsection{Chemicals}\label{sec:ChemicalSubsystem}
 
-The molecules subsystem provides both a interface to a database of known molecules (allowing their physical properties to be queried) and a structure to store abundances/masses/etc. of the set of molecules being tracked in \glc. The name ``molecules'' is used somewhat loosely here\footnote{This name is likely to change in a later revision of the code.} to denote any chemical species that might be involved in reactions, including molecules, atoms, atomic and molecular ions and electrons.
+The chemicals subsystem provides both a interface to a database of known chemicals (allowing their physical properties to be queried) and a structure to store abundances/masses/etc. of the set of chemicals being tracked in \glc. The name ``chemicals'' is used to denote any chemical species that might be involved in reactions, including molecules, atoms, atomic and molecular ions and electrons.
 
-\subsubsection{Molecular Database}
+\subsubsection{Chemical Database}
 
-The file {\tt data/Molecular\_Database.cml} contains a database of molecules that can currently be used by \glc. It uses a simplified version of the \href{http://www.xml-cml.org}{Chemical Markup Language} to describe molecules. An excerpt from the database is shown below:
+The file {\tt data/Chemical\_Database.cml} contains a database of chemicals that can currently be used by \glc. It uses a simplified version of the \href{http://www.xml-cml.org}{Chemical Markup Language} to describe chemicals. An excerpt from the database is shown below:
 \begin{verbatim}
  <list>
-  <molecule>
+  <chemical>
    <id>MolecularHydrogenAnion</id>
    <formalCharge>-1</formalCharge>
    <atomArray>
@@ -5160,31 +5161,31 @@ The file {\tt data/Molecular\_Database.cml} contains a database of molecules tha
       <order>1</order>
      </bond>
    </bondArray>
-  </molecule>
+  </chemical>
   .
   .
   .
  </list>
 \end{verbatim}
-The database contains a {\tt list} of molecules, each contained within a {\tt molecule} element. The {\tt id} element provides a label for the molecule (usually a descriptive name with no white space). The {\tt formalCharge} element gives the charge of the molecule in units of the elementary charge. The molecule is then describe by a list of atoms and bonds inside {\tt atomArray} and {\tt bondArray} elements respectively. The {\tt atomArray} can contain any number of {\tt atom} elements, which should describe each atom in the molecule giving it a unique {\tt id} number and an {\tt elementType}, which is the short one or two letter label for the element (e.g. H, Ni, etc.). The {\tt bondArray} should contain a {\tt bond} entry for each atomic bond, which itself contains a {\tt atomRefs2} element giving the IDs of the two atoms participating in the bond and an {\tt order} element which gives the order of the bond (e.g. ``1'' for a single bond).
+The database contains a {\tt list} of chemicals, each contained within a {\tt chemical} element. The {\tt id} element provides a label for the chemical (usually a descriptive name with no white space). The {\tt formalCharge} element gives the charge of the chemical in units of the elementary charge. The chemical is then describe by a list of atoms and bonds inside {\tt atomArray} and {\tt bondArray} elements respectively. The {\tt atomArray} can contain any number of {\tt atom} elements, which should describe each atom in the chemical giving it a unique {\tt id} number and an {\tt elementType}, which is the short one or two letter label for the element (e.g. H, Ni, etc.). The {\tt bondArray} should contain a {\tt bond} entry for each atomic bond, which itself contains a {\tt atomRefs2} element giving the IDs of the two atoms participating in the bond and an {\tt order} element which gives the order of the bond (e.g. ``1'' for a single bond).
 
-\subsubsection{Molecule Structure}
+\subsubsection{Chemical Structure}
 
-Within \glc\ a molecule is represeted using the {\tt molecularStructure} type which is provided by the {\tt Molecular\_Structures} module. A {\tt molecularStructure} object can be assigned a particular molecule by retrieving that molecule from the database using:
+Within \glc\ a chemical is represeted using the {\tt chemicalStructure} type which is provided by the {\tt Chemical\_Structures} module. A {\tt chemicalStructure} object can be assigned a particular chemical by retrieving that chemical from the database using:
 \begin{verbatim}
- call myMolecule%retrieve("moleculeID")
+ call myChemical%retrieve("chemicalID")
 \end{verbatim}
-where {\tt moleculeID} is the ID of the molecule in the databse. Any molecule can be exported to a CML file using
+where {\tt chemicalID} is the ID of the chemical in the databse. Any chemical can be exported to a CML file using
 \begin{verbatim}
- call myMolecule%export(fileName)
+ call myChemical%export(fileName)
 \end{verbatim}
 where {\tt fileName} gives the name of the file to which to export.
 
-Once assigned a molecule, basic properties such as mass and charge (in atomic units) can be accessed using {\tt myMolecule\%mass} and {\tt myMolecule\%charge} respectively. The mass is computed from the known atomic masses of the constituent atoms of the molecule.
+Once assigned a chemical, basic properties such as mass and charge (in atomic units) can be accessed using {\tt myChemical\%mass} and {\tt myChemical\%charge} respectively. The mass is computed from the known atomic masses of the constituent atoms of the chemical.
 
-\subsubsection{Molecular Abundances}
+\subsubsection{Chemical Abundances}
 
-Within \glc\ a set of abundances (or masses, or densities\ldots) for all molecules being tracked, as specified by the {\tt [moleculesToTrack]} input parameter, is stored within a {\tt molecularAbundancesStructure} type, as provided by the {\tt Molecular\_Abundances\_Structure} module. The structure provides interfaces for setting and retrieving the abundance of a given molecular species, to pack/unpack all molecules to/from an array, to convert from mass-weighted to number-weigted quantities and to multiplty and divide the molecules abundances by a given amount. Additionally, the {\tt Molecular\_Abundances\_Structure} module provides functions which provide a count of the number of molecules tracked, to look up the index of a molecule array represetation from its name, and to retrieve the name of a given molecule.
+Within \glc\ a set of abundances (or masses, or densities\ldots) for all chemicals being tracked, as specified by the {\tt [chemicalsToTrack]} input parameter, is stored within a {\tt chemicalAbundancesStructure} type, as provided by the {\tt Chemical\_Abundances\_Structure} module. The structure provides interfaces for setting and retrieving the abundance of a given chemical species, to pack/unpack all chemicals to/from an array, to convert from mass-weighted to number-weigted quantities and to multiplty and divide the chemicals abundances by a given amount. Additionally, the {\tt Chemical\_Abundances\_Structure} module provides functions which provide a count of the number of chemicals tracked, to look up the index of a chemical array represetation from its name, and to retrieve the name of a given chemical.
 
 \subsection{Radiation}\label{sec:RadiationSubsystem}
 

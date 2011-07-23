@@ -126,7 +126,7 @@ The standard hot halo implementation defines the following properties:
  \item [{\tt Hot\_Halo\_Outflowed\_Mass}] The mass of gas from outflows in the hot halo: $M_{\rm outflowed}$ {\tt [outflowedMass]}.
  \item [{\tt Hot\_Halo\_Outflowed\_Ang\_Mom}] The angular momentum of the outflowed gas in the hot halo, $J_{\rm outflowed}$ {\tt [outflowedAngularMomentum]}.
  \item [{\tt Hot\_Halo\_Outflowed\_Abundances}] The mass(es) of heavy elements in outflowed gas, $M_{Z, {\rm outflowed}}$ {\tt [outflowed\{abundanceName\}]}.
- \item [{\tt Hot\_Halo\_Molecules}] The mass(es) of molceules in the hot gas, $M_{\rm molecule}$ {\tt [hotHalo\{moleculeName\}]}.
+ \item [{\tt Hot\_Halo\_Chemicals}] The mass(es) of molceules in the hot gas, $M_{\rm chemical}$ {\tt [hotHalo\{chemicalName\}]}.
 \end{description}
 and the following pipes:
 \begin{description}
@@ -147,13 +147,13 @@ In the standard hot halo implementation the hot gas mass and heavy element mass(
  \dot{M}_{\rm failed} &=& \dot{M}_{\rm failed~accretion} \\
  \dot{M}_{\rm hot} &=& \dot{M}_{\rm accretion} - \dot{M}_{\rm cooling} + \dot{M}_{\rm outflow,return}, \\
  \dot{M}_{Z, {\rm hot}} &=& - \dot{M}_{\rm cooling} {M_{Z, {\rm hot}}\over M_{\rm hot}} + \dot{M}_{Z, {\rm outflow,return}}, \\
- \dot{M}_{\rm molecule} &=& - \dot{M}_{\rm cooling} {M_{\rm molecule}\over M_{\rm hot}} + f_{\rm molecule,outflow} \dot{M}_{\rm outflow,return} + \dot{M}_{\rm molecule,reactions} , \\
+ \dot{M}_{\rm chemical} &=& - \dot{M}_{\rm cooling} {M_{\rm chemical}\over M_{\rm hot}} + f_{\rm chemical,outflow} \dot{M}_{\rm outflow,return} + \dot{M}_{\rm chemical,reactions} , \\
 \end{eqnarray}
 where $\dot{M}_{\rm accretion}$ is the rate of growth of the hot component due to accretion from the \IGM\ and $\dot{M}_{\rm failed~accretion}$ is the rate of failed accretion from the \IGM\ (these may include a component due to transfer of mass from the failed to accreted reservoirs) and $\dot{M}_{\rm cooling}$ is the rate of mass loss from the hot halo due to cooling (see \S\ref{sec:CoolingRate}---cooling rates are computed using the current node if {\tt [hotHaloCoolingFromNode]}$=${\tt current node} or from the formation node if that parameter is set to {\tt formation node}) minus any heating rate defined as
 \begin{equation}
  \dot{M}_{\rm heating} = \dot{E}_{\rm input} / V_{\rm virial}^2,
 \end{equation}
-where $\dot{E}_{\rm input}$ is the rate at which energy is being sent through the ``energy input'' pipe and $V_{\rm virial}$ is the virial velocity of the halo.\footnote{The net cooling rate is never allowed to drop below zero. If the mass heating rate exceeds the mass cooling rate then the excess energy is not used.} In the above, $f_{\rm molecule,return}$ if the mass fraction of each molcular species in the outflowed gas and is assumed to be equal to that given by the atomic ionization state functions (see \S\ref{sec:IonizationStateMethod}) at the virial temperature and mean density of the halo. Finally, $\dot{M}_{\rm molecule,reactions}$ represents the rate of change of masses of molecular species due to chemical and atomic processes and is computed using the molecular rates functions (see \S\ref{sec:MolecularReactionRates}). The angular momentum of the hot gas evolves as:
+where $\dot{E}_{\rm input}$ is the rate at which energy is being sent through the ``energy input'' pipe and $V_{\rm virial}$ is the virial velocity of the halo.\footnote{The net cooling rate is never allowed to drop below zero. If the mass heating rate exceeds the mass cooling rate then the excess energy is not used.} In the above, $f_{\rm chemical,return}$ if the mass fraction of each molcular species in the outflowed gas and is assumed to be equal to that given by the atomic ionization state functions (see \S\ref{sec:ChemicalStateMethod}) at the virial temperature and mean density of the halo. Finally, $\dot{M}_{\rm chemical,reactions}$ represents the rate of change of masses of chemical species due to chemical and atomic processes and is computed using the chemical rates functions (see \S\ref{sec:ChemicalReactionRates}). The angular momentum of the hot gas evolves as:
 \begin{equation}
  \dot{J}_{\rm hot} = \dot{M}_{\rm accretion} {\dot{J}_{\rm node} \over \dot{M}_{\rm node}} - \dot{M}_{\rm cooling} r_{\rm cool} V_{\rm rotate} + \dot{J}_{\rm outflow,return},
 \end{equation}

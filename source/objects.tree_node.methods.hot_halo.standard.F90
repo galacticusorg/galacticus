@@ -75,12 +75,12 @@ module Tree_Node_Methods_Hot_Halo
        & Tree_Node_Hot_Halo_Post_Evolve_Standard, Tree_Node_Methods_Hot_Halo_Standard_Dump, Hot_Halo_Scale_Set&
        &,Hot_Halo_Formation_Task, Hot_Halo_Standard_Property_Identifiers_Decode
   
-  ! Internal count of abundances and molecules.
-  integer                                     :: abundancesCount,moleculesCount
+  ! Internal count of abundances and chemicals.
+  integer                                     :: abundancesCount,chemicalsCount
   double precision, allocatable, dimension(:) :: abundancesWork,abundancesParent,abundancesCoolingRate,abundancesReturnRate,abundancesHost
   !$omp threadprivate(abundancesWork,abundancesParent,abundancesCoolingRate,abundancesReturnRate,abundancesHost)
-  double precision, allocatable, dimension(:) :: moleculesValue,moleculesWork,moleculesCoolingRate,moleculesAccretionRate,moleculesChemicalRates
-  !$omp threadprivate(moleculesValue,moleculesWork,moleculesCoolingRate,moleculesAccretionRate,moleculesChemicalRates)
+  double precision, allocatable, dimension(:) :: chemicalsValue,chemicalsWork,chemicalsCoolingRate,chemicalsAccretionRate,chemicalsChemicalRates
+  !$omp threadprivate(chemicalsValue,chemicalsWork,chemicalsCoolingRate,chemicalsAccretionRate,chemicalsChemicalRates)
 
   ! Property indices.
   integer, parameter :: propertyCountBase=5, dataCount=0, historyCount=0
@@ -92,7 +92,7 @@ module Tree_Node_Methods_Hot_Halo
   integer, parameter :: unaccretedMassIndex          =5
   integer            :: hotAbundancesIndex      ,hotAbundancesIndexEnd
   integer            :: outflowedAbundancesIndex,outflowedAbundancesIndexEnd
-  integer            :: hotMoleculesIndex       ,hotMoleculesIndexEnd
+  integer            :: hotChemicalsIndex       ,hotChemicalsIndexEnd
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -108,7 +108,7 @@ module Tree_Node_Methods_Hot_Halo
   !#  <methodName>Tree_Node_Hot_Halo_Abundances</methodName>
   !# </treeNodeMethodsPointer>
   !# <treeNodeMethodsPointer type="array">
-  !#  <methodName>Tree_Node_Hot_Halo_Molecules</methodName>
+  !#  <methodName>Tree_Node_Hot_Halo_Chemicals</methodName>
   !# </treeNodeMethodsPointer>
   !# <treeNodeMethodsPointer>
   !#  <methodName>Tree_Node_Hot_Halo_Outflowed_Mass</methodName>
@@ -181,7 +181,7 @@ contains
     use String_Handling
     use Galacticus_Display
     use Abundances_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Memory_Management
     use Galacticus_Error
     implicit none
@@ -203,18 +203,25 @@ contains
        message=message//componentIndex//']'
        call Galacticus_Display_Message(message,verbosityInfo)
 
-       ! Get numbers of abundance and molecules properties.
+       ! Get numbers of abundance and chemicals properties.
        abundancesCount=Abundances_Property_Count()
-       moleculesCount =Molecules_Property_Count ()
+       chemicalsCount =Chemicals_Property_Count ()
+
+       ! Allocate work arrays for chemicals.
+       call Alloc_Array(chemicalsWork         ,[chemicalsCount])
+       call Alloc_Array(chemicalsValue        ,[chemicalsCount])
+       call Alloc_Array(chemicalsCoolingRate  ,[chemicalsCount])
+       call Alloc_Array(chemicalsAccretionRate,[chemicalsCount])
+       call Alloc_Array(chemicalsChemicalRates,[chemicalsCount])
 
        ! Assign indices to properties.
        hotAbundancesIndex         =propertyCountBase                          +1
        hotAbundancesIndexEnd      =hotAbundancesIndex         +abundancesCount-1
        outflowedAbundancesIndex   =hotAbundancesIndexEnd                      +1
        outflowedAbundancesIndexEnd=outflowedAbundancesIndex   +abundancesCount-1
-       hotMoleculesIndex          =outflowedAbundancesIndexEnd                +1
-       hotMoleculesIndexEnd       =hotMoleculesIndex          +moleculesCount -1
-       propertyCount              =hotMoleculesIndexEnd
+       hotChemicalsIndex          =outflowedAbundancesIndexEnd                +1
+       hotChemicalsIndexEnd       =hotChemicalsIndex          +chemicalsCount -1
+       propertyCount              =hotChemicalsIndexEnd
 
        ! Set up procedure pointers.
        ! Unaccreted mass reservoir:
@@ -235,10 +242,10 @@ contains
        Tree_Node_Hot_Halo_Abundances_Set                    => Tree_Node_Hot_Halo_Abundances_Set_Standard
        Tree_Node_Hot_Halo_Abundances_Rate_Adjust            => Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard
        Tree_Node_Hot_Halo_Abundances_Rate_Compute           => Tree_Node_Hot_Halo_Abundances_Rate_Compute_Standard
-       Tree_Node_Hot_Halo_Molecules                         => Tree_Node_Hot_Halo_Molecules_Standard
-       Tree_Node_Hot_Halo_Molecules_Set                     => Tree_Node_Hot_Halo_Molecules_Set_Standard
-       Tree_Node_Hot_Halo_Molecules_Rate_Adjust             => Tree_Node_Hot_Halo_Molecules_Rate_Adjust_Standard
-       Tree_Node_Hot_Halo_Molecules_Rate_Compute            => Tree_Node_Hot_Halo_Molecules_Rate_Compute_Standard
+       Tree_Node_Hot_Halo_Chemicals                         => Tree_Node_Hot_Halo_Chemicals_Standard
+       Tree_Node_Hot_Halo_Chemicals_Set                     => Tree_Node_Hot_Halo_Chemicals_Set_Standard
+       Tree_Node_Hot_Halo_Chemicals_Rate_Adjust             => Tree_Node_Hot_Halo_Chemicals_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Chemicals_Rate_Compute            => Tree_Node_Hot_Halo_Chemicals_Rate_Compute_Standard
        ! Outflowed gas reservoier:
        Tree_Node_Hot_Halo_Outflowed_Mass                    => Tree_Node_Hot_Halo_Outflowed_Mass_Standard
        Tree_Node_Hot_Halo_Outflowed_Mass_Set                => Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard
@@ -364,12 +371,12 @@ contains
        call Alloc_Array(abundancesCoolingRate,[abundancesCount])
        call Alloc_Array(abundancesReturnRate ,[abundancesCount])
 
-       ! Allocate work arrays for molecules.
-       call Alloc_Array(moleculesWork         ,[moleculesCount])
-       call Alloc_Array(moleculesValue        ,[moleculesCount])
-       call Alloc_Array(moleculesCoolingRate  ,[moleculesCount])
-       call Alloc_Array(moleculesAccretionRate,[moleculesCount])
-       call Alloc_Array(moleculesChemicalRates,[moleculesCount])
+       ! Allocate work arrays for chemicals.
+       call Alloc_Array(chemicalsWork         ,[chemicalsCount])
+       call Alloc_Array(chemicalsValue        ,[chemicalsCount])
+       call Alloc_Array(chemicalsCoolingRate  ,[chemicalsCount])
+       call Alloc_Array(chemicalsAccretionRate,[chemicalsCount])
+       call Alloc_Array(chemicalsChemicalRates,[chemicalsCount])
 
        ! Define the radiation component to include both the CMB and the intergalactic background.
        call radiation%define([radiationTypeCMB,radiationTypeIGB])
@@ -510,10 +517,10 @@ contains
             & = thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyDerivative) & 
             &  +thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex:hotAbundancesIndexEnd,propertyValue     ) &
             &  *(gasMassRate/gasMass)
-       ! Molecular abundances.
-       thisNode         %components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyDerivative) &
-            & = thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyDerivative) & 
-            &  *thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd  ,propertyValue     ) &
+       ! Chemical abundances.
+       thisNode         %components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd  ,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd  ,propertyDerivative) & 
+            &  *thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd  ,propertyValue     ) &
             &  +(gasMassRate/gasMass)
     end if
   
@@ -871,35 +878,35 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Abundances_Rate_Compute_Standard
 
-  subroutine Tree_Node_Hot_Halo_Molecules_Standard(thisNode,molecules)
-    !% Return the node hot halo molecules.
+  subroutine Tree_Node_Hot_Halo_Chemicals_Standard(thisNode,chemicals)
+    !% Return the node hot halo chemicals.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(out)   :: molecules(:)
+    double precision,          intent(out)   :: chemicals(:)
     integer                                  :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       molecules(:)=thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyValue)
+       chemicals(:)=thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd,propertyValue)
     else
-       molecules(:)=0.0d0
+       chemicals(:)=0.0d0
     end if
     return
-  end subroutine Tree_Node_Hot_Halo_Molecules_Standard
+  end subroutine Tree_Node_Hot_Halo_Chemicals_Standard
 
-  subroutine Tree_Node_Hot_Halo_Molecules_Set_Standard(thisNode,molecules)
+  subroutine Tree_Node_Hot_Halo_Chemicals_Set_Standard(thisNode,chemicals)
     !% Set the node hot halo angular momentum.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: molecules(:)
+    double precision,          intent(in)    :: chemicals(:)
     integer                                  :: thisIndex
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyValue)=molecules
+    thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd,propertyValue)=chemicals
     return
-  end subroutine Tree_Node_Hot_Halo_Molecules_Set_Standard
+  end subroutine Tree_Node_Hot_Halo_Chemicals_Set_Standard
 
-  subroutine Tree_Node_Hot_Halo_Molecules_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+  subroutine Tree_Node_Hot_Halo_Chemicals_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
     !% Return the node hot halo mass rate of change.
     use Cosmological_Parameters
     implicit none
@@ -910,83 +917,83 @@ contains
     integer                                  :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyDerivative)&
-         &=thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex:hotMoleculesIndexEnd,propertyDerivative)+rateAdjustment
+    thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd,propertyDerivative)+rateAdjustment
     return
-  end subroutine Tree_Node_Hot_Halo_Molecules_Rate_Adjust_Standard
+  end subroutine Tree_Node_Hot_Halo_Chemicals_Rate_Adjust_Standard
 
-  subroutine Tree_Node_Hot_Halo_Molecules_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
-    !% Compute the hot halo node molecules rate of change.
+  subroutine Tree_Node_Hot_Halo_Chemicals_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
+    !% Compute the hot halo node chemicals rate of change.
     use Dark_Matter_Halo_Scales
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Accretion_Halos
-    use Molecular_Reaction_Rates
-    use Molecular_Reaction_Rates_Utilities
+    use Chemical_Reaction_Rates
+    use Chemical_Reaction_Rates_Utilities
     use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),                     pointer, intent(inout) :: thisNode
     logical,                                     intent(inout) :: interrupt
     procedure(),                        pointer, intent(inout) :: interruptProcedure
-    type(molecularAbundancesStructure), save                   :: accretionRateMolecules,molecularMasses,molecularDensities&
-         &,molecularDensitiesRates,molecularMassesRates
-    !$omp threadprivate(accretionRateMolecules,molecularMasses,molecularDensities,molecularDensitiesRates,molecularMassesRates)
+    type(chemicalAbundancesStructure), save                   :: accretionRateChemicals,chemicalMasses,chemicalDensities&
+         &,chemicalDensitiesRates,chemicalMassesRates
+    !$omp threadprivate(accretionRateChemicals,chemicalMasses,chemicalDensities,chemicalDensitiesRates,chemicalMassesRates)
     double precision                                           :: massToDensityConversion,temperature
 
-    ! If no molecules are being tracked, simply return.
-    if (moleculesCount == 0) return
+    ! If no chemicals are being tracked, simply return.
+    if (chemicalsCount == 0) return
 
-    ! Get the rate at which molecules are accreted onto this halo.
-    call Halo_Baryonic_Accretion_Rate_Molecules(thisNode,accretionRateMolecules)
-    call accretionRateMolecules%unpack(moleculesAccretionRate)
-    if (any(moleculesAccretionRate /= 0.0d0)) then
+    ! Get the rate at which chemicals are accreted onto this halo.
+    call Halo_Baryonic_Accretion_Rate_Chemicals(thisNode,accretionRateChemicals)
+    call accretionRateChemicals%unpack(chemicalsAccretionRate)
+    if (any(chemicalsAccretionRate /= 0.0d0)) then
        if (.not.thisNode%componentExists(componentIndex)) then    
           interrupt=.true.
           interruptProcedure => Hot_Halo_Create
           return
        end if
-       call Tree_Node_Hot_Halo_Molecules_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,moleculesAccretionRate)
+       call Tree_Node_Hot_Halo_Chemicals_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,chemicalsAccretionRate)
     end if
     
     ! Ensure that the cooling rate has been computed.
     call Get_Cooling_Rate(thisNode)
-    ! For non-zero cooling rate, adjust the rates of molecule masses.
+    ! For non-zero cooling rate, adjust the rates of chemical masses.
     if (coolingRate > 0.0d0) then
-       ! Get the masses of molecule components.
-       call Tree_Node_Hot_Halo_Molecules_Standard(thisNode,moleculesValue)
-       ! Compute the rate at which molecules are lost via cooling.
-       moleculesCoolingRate=coolingRate*moleculesValue/Tree_Node_Hot_Halo_Mass(thisNode)
-       ! Adjust the rates of molecule masses accordingly.
-       call Tree_Node_Hot_Halo_Molecules_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,-moleculesCoolingRate)     
+       ! Get the masses of chemical components.
+       call Tree_Node_Hot_Halo_Chemicals_Standard(thisNode,chemicalsValue)
+       ! Compute the rate at which chemicals are lost via cooling.
+       chemicalsCoolingRate=coolingRate*chemicalsValue/Tree_Node_Hot_Halo_Mass(thisNode)
+       ! Adjust the rates of chemical masses accordingly.
+       call Tree_Node_Hot_Halo_Chemicals_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,-chemicalsCoolingRate)     
     end if
 
-    ! Compute the rates of change of molecular masses due to chemical reactions.
+    ! Compute the rates of change of chemical masses due to chemical reactions.
     ! Get the temperature of the hot reservoir.
     temperature=Dark_Matter_Halo_Virial_Temperature(thisNode)
     ! Set the radiation background.
     call radiation%set(thisNode)
-    ! Get the masses of molecules.
-    call Tree_Node_Hot_Halo_Molecules_Standard(thisNode,moleculesValue)
+    ! Get the masses of chemicals.
+    call Tree_Node_Hot_Halo_Chemicals_Standard(thisNode,chemicalsValue)
     ! Truncate masses to zero to avoid unphysical behavior.
-    where (moleculesValue < 0.0d0)
-       moleculesValue=0.0d0
+    where (chemicalsValue < 0.0d0)
+       chemicalsValue=0.0d0
     end where
-    call molecularMasses%pack(moleculesValue)
-    ! Scale all molecular masses by their mass in atomic mass units to get a number density.
-    call molecularMasses%massToNumber(molecularDensities)
-    ! Compute factor converting mass of molecules in (M_Solar/M_Atomic) to number density in cm^-3.
-    massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
+    call chemicalMasses%pack(chemicalsValue)
+    ! Scale all chemical masses by their mass in atomic mass units to get a number density.
+    call chemicalMasses%massToNumber(chemicalDensities)
+    ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
     ! Convert to number density.
-    call molecularDensities%multiply(massToDensityConversion)
-    ! Compute the molecular reaction rates.
-    call Molecular_Reaction_Rate(molecularDensitiesRates,temperature,molecularDensities,radiation)
+    call chemicalDensities%multiply(massToDensityConversion)
+    ! Compute the chemical reaction rates.
+    call Chemical_Reaction_Rate(chemicalDensitiesRates,temperature,chemicalDensities,radiation)
     ! Convert to mass change rates.
-    call molecularDensitiesRates%numberToMass(molecularMassesRates)
-    call molecularMassesRates%multiply(gigaYear/massToDensityConversion)
+    call chemicalDensitiesRates%numberToMass(chemicalMassesRates)
+    call chemicalMassesRates%multiply(gigaYear/massToDensityConversion)
     ! Adjust rates appropriately.
-    call molecularMassesRates%unpack(moleculesChemicalRates)
-    call Tree_Node_Hot_Halo_Molecules_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,moleculesChemicalRates)
+    call chemicalMassesRates%unpack(chemicalsChemicalRates)
+    call Tree_Node_Hot_Halo_Chemicals_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,chemicalsChemicalRates)
     return
-  end subroutine Tree_Node_Hot_Halo_Molecules_Rate_Compute_Standard
+  end subroutine Tree_Node_Hot_Halo_Chemicals_Rate_Compute_Standard
 
   double precision function Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode,instance)
     !% Return the node hot halo mass.
@@ -1037,21 +1044,21 @@ contains
     !% Compute the hot halo node mass rate of change.
     use Dark_Matter_Halo_Scales
     use Abundances_Structure
-    use Molecular_Abundances_Structure
-    use Molecular_Reaction_Rates_Utilities
+    use Chemical_Abundances_Structure
+    use Chemical_Reaction_Rates_Utilities
     use Numerical_Constants_Math
     use Numerical_Constants_Atomic
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use Ionization_States
+    use Chemical_States
     implicit none
     type(treeNode),                     pointer, intent(inout) :: thisNode
     logical,                                     intent(inout) :: interrupt
     procedure(),                        pointer, intent(inout) :: interruptProcedure
     procedure(),                        pointer                :: interruptProcedurePassed
     type(abundancesStructure),          save                   :: outflowedAbundances
-    type(molecularAbundancesStructure), save                   :: molecularDensities,molecularRates,molecularMasses
-    !$omp threadprivate(outflowedAbundances,molecularDensities,molecularRates,molecularMasses)
+    type(chemicalAbundancesStructure), save                   :: chemicalDensities,chemicalRates,chemicalMasses
+    !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalRates,chemicalMasses)
     double precision                       :: massReturnRate,temperature,hydrogenByMass,massToDensityConversion&
          &,numberDensityHydrogen,outflowedMass
 
@@ -1062,11 +1069,11 @@ contains
        call Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,-massReturnRate)
        call Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard          (thisNode,interrupt,interruptProcedure, massReturnRate)
 
-       ! If we have a non-zero return rate, compute associated molecular rates.
-       if (moleculesCount > 0 .and. massReturnRate /= 0.0d0) then
+       ! If we have a non-zero return rate, compute associated chemical rates.
+       if (chemicalsCount > 0 .and. massReturnRate /= 0.0d0) then
           
           ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
 
           ! Get the abundances of the outflowed material.
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode,abundancesWork)
@@ -1084,17 +1091,17 @@ contains
           ! Set the radiation field.
           call radiation%set(thisNode)
           
-          ! Get the molecule densities.
-          call Molecular_Densities(molecularDensities,temperature,numberDensityHydrogen,outflowedAbundances,radiation)
+          ! Get the chemical densities.
+          call Chemical_Densities(chemicalDensities,temperature,numberDensityHydrogen,outflowedAbundances,radiation)
           
           ! Convert from densities to masses.
-          call molecularDensities%numberToMass(molecularMasses)
-          molecularRates=molecularMasses
-          call molecularRates%multiply(massReturnRate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen)
+          call chemicalDensities%numberToMass(chemicalMasses)
+          chemicalRates=chemicalMasses
+          call chemicalRates%multiply(massReturnRate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen)
           
-          ! Compute the rate at which molecules are returned to the hot reservoir.
-          call molecularRates%unpack(moleculesValue)
-          call Tree_Node_Hot_Halo_Molecules_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,moleculesValue)
+          ! Compute the rate at which chemicals are returned to the hot reservoir.
+          call chemicalRates%unpack(chemicalsValue)
+          call Tree_Node_Hot_Halo_Chemicals_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,chemicalsValue)
           
        end if
 
@@ -1257,7 +1264,7 @@ contains
        thisNode%components(thisIndex)%instance(1)%properties(unaccretedMassIndex                                 ,propertyScale)=massVirial                            *scaleMassRelative
        thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex      :hotAbundancesIndexEnd      ,propertyScale)=massVirial                            *scaleMassRelative
        thisNode%components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%instance(1)%properties(hotMoleculesIndex       :hotMoleculesIndexEnd       ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex       :hotChemicalsIndexEnd       ,propertyScale)=massVirial                            *scaleMassRelative
        thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex                                ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
        thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex                       ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
     end if
@@ -1272,16 +1279,16 @@ contains
     !% accreted if the merger tree had infinite resolution).
     use Accretion_Halos
     use Dark_Matter_Halo_Spins
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Abundances_Structure
     implicit none
-    type(treeNode),                     pointer, intent(inout)     :: thisNode
-    type(abundancesStructure),          save                       :: accretedAbundances
-    type(molecularAbundancesStructure), save                       :: accretedMolecules
-    !$omp threadprivate(accretedAbundances,accretedMolecules)
-    double precision,                   dimension(abundancesCount) :: abundances
-    double precision,                   dimension(moleculesCount ) :: molecules
-    double precision                                               :: hotHaloMass,failedHotHaloMass,angularMomentum
+    type(treeNode),                    pointer, intent(inout)     :: thisNode
+    type(abundancesStructure),         save                       :: accretedAbundances
+    type(chemicalAbundancesStructure), save                       :: accretedChemicals
+    !$omp threadprivate(accretedAbundances,accretedChemicals)
+    double precision,                  dimension(abundancesCount) :: abundances
+    double precision,                  dimension(chemicalsCount ) :: chemicals
+    double precision                                              :: hotHaloMass,failedHotHaloMass,angularMomentum
 
     ! If this method is selected and the node has no child then initialize it.
     if (methodSelected.and..not.associated(thisNode%childNode)) then
@@ -1300,10 +1307,10 @@ contains
           call Halo_Baryonic_Accreted_Abundances               (thisNode,accretedAbundances)
           call accretedAbundances%unpack(abundances)
           call Tree_Node_Hot_Halo_Abundances_Set_Standard      (thisNode,abundances        )
-          ! Also add the appropriate molecular masses.
-          call Halo_Baryonic_Accreted_Molecules                (thisNode,accretedMolecules )
-          call accretedMolecules%unpack(molecules)
-          call Tree_Node_Hot_Halo_Molecules_Set_Standard       (thisNode,molecules         )
+          ! Also add the appropriate chemical masses.
+          call Halo_Baryonic_Accreted_Chemicals                (thisNode,accretedChemicals )
+          call accretedChemicals%unpack(chemicals)
+          call Tree_Node_Hot_Halo_Chemicals_Set_Standard       (thisNode,chemicals         )
        end if
     end if
     return
@@ -1318,7 +1325,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: parentNode
-    double precision, dimension(moleculesCount ) :: molecules ,moleculesParent
+    double precision, dimension(chemicalsCount ) :: chemicals ,chemicalsParent
 
     ! Determine if method is active and a hot halo component exists.
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
@@ -1366,12 +1373,12 @@ contains
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode  ,abundancesWork  )
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(parentNode,abundancesParent)
           ! Hot reservoir molcules.
-          call Tree_Node_Hot_Halo_Molecules_Standard               (thisNode  , molecules                                                )
-          call Tree_Node_Hot_Halo_Molecules_Standard               (parentNode, moleculesParent                                          )
-          moleculesParent =moleculesParent +molecules
-          molecules       =0.0d0
-          call Tree_Node_Hot_Halo_Molecules_Set_Standard           (thisNode  , molecules                                                )
-          call Tree_Node_Hot_Halo_Molecules_Set_Standard           (parentNode, moleculesParent                                          )
+          call Tree_Node_Hot_Halo_Chemicals_Standard               (thisNode  , chemicals                                                )
+          call Tree_Node_Hot_Halo_Chemicals_Standard               (parentNode, chemicalsParent                                          )
+          chemicalsParent =chemicalsParent +chemicals
+          chemicals       =0.0d0
+          call Tree_Node_Hot_Halo_Chemicals_Set_Standard           (thisNode  , chemicals                                                )
+          call Tree_Node_Hot_Halo_Chemicals_Set_Standard           (parentNode, chemicalsParent                                          )
        end if
     end if
     return
@@ -1386,7 +1393,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: hostNode
-    double precision, dimension(moleculesCount ) :: molecules ,moleculesHost
+    double precision, dimension(chemicalsCount ) :: chemicals ,chemicalsHost
 
     ! Determine if starvation is to be applied.
     if (methodSelected.and..not.starveSatellites.and.thisNode%componentExists(componentIndex)) then
@@ -1422,13 +1429,13 @@ contains
        abundancesWork=0.0d0
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundancesWork)
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(hostNode,abundancesHost)
-       ! Hot reservoir molecules.
-       call Tree_Node_Hot_Halo_Molecules_Standard               (thisNode, molecules                                              )
-       call Tree_Node_Hot_Halo_Molecules_Standard               (hostNode, moleculesHost                                          )
-       moleculesHost =moleculesHost +molecules
-       molecules     =0.0d0
-       call Tree_Node_Hot_Halo_Molecules_Set_Standard           (thisNode, molecules                                              )
-       call Tree_Node_Hot_Halo_Molecules_Set_Standard           (hostNode, moleculesHost                                          )
+       ! Hot reservoir chemicals.
+       call Tree_Node_Hot_Halo_Chemicals_Standard               (thisNode, chemicals                                              )
+       call Tree_Node_Hot_Halo_Chemicals_Standard               (hostNode, chemicalsHost                                          )
+       chemicalsHost =chemicalsHost +chemicals
+       chemicals     =0.0d0
+       call Tree_Node_Hot_Halo_Chemicals_Set_Standard           (thisNode, chemicals                                              )
+       call Tree_Node_Hot_Halo_Chemicals_Set_Standard           (hostNode, chemicalsHost                                          )
     end if
     return
   end subroutine Hot_Halo_Remove_Before_Satellite_Merging
@@ -1443,7 +1450,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: parentNode
-    double precision, dimension(moleculesCount ) :: molecules ,moleculesParent
+    double precision, dimension(chemicalsCount ) :: chemicals ,chemicalsParent
     double precision                             :: hotHaloMass,angularMomentum
 
     ! Check if this method is selected.
@@ -1469,11 +1476,11 @@ contains
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(parentNode,abundancesParent)
           abundancesWork=abundancesParent+abundancesWork
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundancesWork)
-          ! Hot reservoir molecules.
-          call Tree_Node_Hot_Halo_Molecules_Standard               (thisNode  ,molecules       )
-          call Tree_Node_Hot_Halo_Molecules_Standard               (parentNode,moleculesParent )
-          molecules      =moleculesParent +molecules
-          call Tree_Node_Hot_Halo_Molecules_Set_Standard           (thisNode  ,molecules       )
+          ! Hot reservoir chemicals.
+          call Tree_Node_Hot_Halo_Chemicals_Standard               (thisNode  ,chemicals       )
+          call Tree_Node_Hot_Halo_Chemicals_Standard               (parentNode,chemicalsParent )
+          chemicals      =chemicalsParent +chemicals
+          call Tree_Node_Hot_Halo_Chemicals_Set_Standard           (thisNode  ,chemicals       )
        end if
     end if
     return
@@ -1536,31 +1543,31 @@ contains
   !# </haloFormationTask>
   subroutine Hot_Halo_Formation_Task(thisNode)
     !% Updates the hot halo gas distribution at a formation event, if requested.
-    use Ionization_States
+    use Chemical_States
     use Abundances_Structure
-    use Molecular_Abundances_Structure
-    use Molecular_Reaction_Rates_Utilities
+    use Chemical_Abundances_Structure
+    use Chemical_Reaction_Rates_Utilities
     use Numerical_Constants_Math
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Atomic
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),                     pointer, intent(inout) :: thisNode
-    type(abundancesStructure),          save                   :: outflowedAbundances
-    type(molecularAbundancesStructure), save                   :: molecularDensities,molecularRates,molecularMasses
-    !$omp threadprivate(outflowedAbundances,molecularDensities,molecularRates,molecularMasses)
-    double precision                                           :: numberDensityHydrogen,temperature,hydrogenByMass&
+    type(treeNode),                    pointer, intent(inout) :: thisNode
+    type(abundancesStructure),         save                   :: outflowedAbundances
+    type(chemicalAbundancesStructure), save                   :: chemicalDensities,chemicalRates,chemicalMasses
+    !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalRates,chemicalMasses)
+    double precision                                          :: numberDensityHydrogen,temperature,hydrogenByMass&
          &,massToDensityConversion,outflowedMass
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.hotHaloOutflowReturnOnFormation) return
     
-    ! If we have a non-zero mass to return, compute associated molecular masses.
-    if (moleculesCount > 0 .and. Tree_Node_Hot_Halo_Outflowed_Mass(thisNode) > 0.0d0) then
+    ! If we have a non-zero mass to return, compute associated chemical masses.
+    if (chemicalsCount > 0 .and. Tree_Node_Hot_Halo_Outflowed_Mass(thisNode) > 0.0d0) then
        
        ! Compute coefficient in conversion of mass to density for this node.
-       massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+       massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
 
        ! Get the abundances of the outflowed material.
        call Tree_Node_Hot_Halo_Outflowed_Abundances(thisNode,abundancesWork)
@@ -1578,20 +1585,20 @@ contains
        ! Set the radiation field.
        call radiation%set(thisNode)
        
-       ! Get the molecule densities.
-       call Molecular_Densities(molecularDensities,temperature,numberDensityHydrogen,outflowedAbundances,radiation)
+       ! Get the chemical densities.
+       call Chemical_Densities(chemicalDensities,temperature,numberDensityHydrogen,outflowedAbundances,radiation)
           
        ! Convert from densities to masses.
-       call molecularDensities%numberToMass(molecularMasses)
-       molecularRates=molecularMasses
-       call molecularRates%multiply(Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen)
+       call chemicalDensities%numberToMass(chemicalMasses)
+       chemicalRates=chemicalMasses
+       call chemicalRates%multiply(Tree_Node_Hot_Halo_Outflowed_Mass(thisNode)*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen)
 
-       ! Add molecules to the hot component.
-       call Tree_Node_Hot_Halo_Molecules(thisNode,moleculesWork)
-       call molecularRates%unpack(moleculesValue)
-       call Tree_Node_Hot_Halo_Molecules_Set(                              thisNode , &
-            &                                 moleculesWork                           &
-            &                                +moleculesValue                          &
+       ! Add chemicals to the hot component.
+       call Tree_Node_Hot_Halo_Chemicals(thisNode,chemicalsWork)
+       call chemicalRates%unpack(chemicalsValue)
+       call Tree_Node_Hot_Halo_Chemicals_Set(                              thisNode , &
+            &                                 chemicalsWork                           &
+            &                                +chemicalsValue                          &
             &                               )
           
     end if
@@ -1823,8 +1830,8 @@ contains
                 propertyName=propertyName//":hotGasAbundances"
              else if (propertyIndex >= outflowedAbundancesIndex .and. propertyIndex <= outflowedAbundancesIndexEnd ) then
                 propertyName=propertyName//":outflowedAbundances"
-             else if (propertyIndex >= hotMoleculesIndex        .and. propertyIndex <= hotMoleculesIndexEnd        ) then
-                propertyName=propertyName//":hotGasMolecules"
+             else if (propertyIndex >= hotChemicalsIndex        .and. propertyIndex <= hotChemicalsIndexEnd        ) then
+                propertyName=propertyName//":hotGasChemicals"
              end if
           end select
        end if

@@ -10,7 +10,7 @@ Currently the only option, and selected using {\tt accretionHalosMethod}$=${\tt 
 \begin{equation}
  \dot{M}_{\rm accretion} = \left\{ \begin{array}{ll} (\Omega_{\rm b}/\Omega_0) \dot{M}_{\rm halo} & \hbox{ if } V_{\rm virial} > V_{\rm reionization} \hbox{ or } z > z_{\rm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
 \end{equation}
-where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\rm reionization}=${\tt [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\rm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the ``failed'' reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine \IGM\ and so has zero abundances. Molecular abundances are computed from the atomic ionization state functions (see \S\ref{sec:IonizationStateMethod}).
+where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\rm reionization}=${\tt [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\rm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the ``failed'' reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine \IGM\ and so has zero abundances. Chemical abundances are computed from the chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
 
 \section{Background Cosmology}\index{cosmology}
 
@@ -198,7 +198,7 @@ Selected using {\tt coolingFunctionMethods}$=${\tt CMB\_Compton}, this method co
 \begin{equation}
 \Lambda = {4 \sigma_{\rm T} {\rm a} {\rm k}_{\rm B} n_{\rm e } \over m_{\rm e} \clight} T_{\rm CMB}^4 \left( T - T_{\rm CMB} \right),
 \end{equation}
-where $\sigma_{\rm T}$ is the Thompson cross-section, $a$ is the radiation constant, ${\rm k}_{\rm B}$ is Boltzmann's constant, $n_{\rm e}$ is the number density of electrons, $m_{\rm e}$ is the electron mass, $\clight$ is the speed of light, $T_{\rm CMB}$ is the \CMB\ temperature at the current cosmic epoch and $T$ is the temperature of the gas. The electron density is computed from the selected ionization state method (see \S\ref{sec:IonizationStateMethod}).
+where $\sigma_{\rm T}$ is the Thompson cross-section, $a$ is the radiation constant, ${\rm k}_{\rm B}$ is Boltzmann's constant, $n_{\rm e}$ is the number density of electrons, $m_{\rm e}$ is the electron mass, $\clight$ is the speed of light, $T_{\rm CMB}$ is the \CMB\ temperature at the current cosmic epoch and $T$ is the temperature of the gas. The electron density is computed from the selected chemical state method (see \S\ref{sec:ChemicalStateMethod}).
 
 \subsubsection{Molecular Hydrogen (Galli-Palla)}
 
@@ -810,17 +810,17 @@ Selected using {\tt intergalaticMediumStateMethod}$=${\tt RecFast}, this method 
 
 Selected using {\tt intergalaticMediumStateMethod}$=${\tt file}, this method reads the state of the intergalactic medium from a file and interpolates in the tabulated results. The format of the file is specified in \S\ref{sec:IntergalacticMediumStateMethods}.
 
-\section{Ionization State}\label{sec:IonizationStateMethod}\index{ionization state}
+\section{Chemical State}\label{sec:ChemicalStateMethod}\index{chemical state}
 
-The ionization state of gas is implemented by the algorithm selected using the {\tt ionizatonStateMethod} parameter.
+The chemical state of gas is implemented by the algorithm selected using the {\tt ionizatonStateMethod} parameter.
 
 \subsection{Atomic Collisional Ionization Equilibrium Using {\sc Cloudy}}
 
-Selected using {\tt ionizatonStateMethod}$=${\tt atomic\_CIE\_Cloudy}, this method computes the ionization state using the {\sc Cloudy} code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use {\sc Cloudy}'s ``primordial'' metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\sc Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
+Selected using {\tt ionizatonStateMethod}$=${\tt atomic\_CIE\_Cloudy}, this method computes the chemical state using the {\sc Cloudy} code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use {\sc Cloudy}'s ``primordial'' metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\sc Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
 
-\subsection{Collisional Ionization Eqiulibruim From File}
+\subsection{Collisional Ionization Equilibruim From File}
 
-Selected using {\tt ionizatonStateMethod}$=${\tt CIE\_from\_file}, in this method the ionization state is read from a file specified by the {\tt ionizationStateFile} parameter. The format of this file is specified in \S\ref{sec:IonizationStateMethods}. The ionization state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$. Optional H{\sc i} and H{\sc ii} densities, if present in the file, will be read and used when returning the densities of ``molecular'' species.
+Selected using {\tt ionizatonStateMethod}$=${\tt CIE\_from\_file}, in this method the chemical state is read from a file specified by the {\tt chemicalStateFile} parameter. The format of this file is specified in \S\ref{sec:ChemicalStateMethods}. The chemical state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$. Optional H{\sc i} and H{\sc ii} densities, if present in the file, will be read and used when returning the densities of ``chemical'' species.
 
 \section{Merger Tree Construction}\index{merger trees}
 
@@ -933,17 +933,17 @@ This task allows for branches of merger trees to be pruned---i.e. nodes below a 
 
 This task allows for branches of merger trees to be pruned by hierarchy---i.e. nodes below a given depth in the hierarchy\footnote{The main branch is defined as depth 0. Other branches are assigned a depth equal to the depth of the branch onto which they merge plus 1. For example, any branch which merges directly onto the main branch is defined as depth 1.} are removed from the tree prior to any evolution.  To prune branches by hierarchy depth set {\tt [mergerTreePruneHierarchyAtDepth]} to the desired depth at which to prune. For example, a value of 1 will result in all branches except for the main branch being removed, while a value of 2 will remove all branches that do not merge directly onto the main branch. (Note that setting {\tt [mergerTreePruneHierarchyAtDepth]} to zero will result in no pruning.)
 
-\section{Molecular Reaction Rates}\index{molecules!reaction rates}\index{reaction rates!molecular}\label{sec:MolecularReactionRates}
+\section{Chemical Reaction Rates}\index{chemicals!reaction rates}\index{reaction rates!chemical}\label{sec:ChemicalReactionRates}
 
-Methods for computing molecular reaction rates are selected via the {\tt [molecularReactionRatesMethods]} parameter. Multiple methods can be selected---their rates are cumulated.
+Methods for computing chemical reaction rates are selected via the {\tt [chemicalReactionRatesMethods]} parameter. Multiple methods can be selected---their rates are cumulated.
 
 \subsection{Null}
 
-Selected with {\tt molecularReactionRatesMethods}$=${\tt null} this is a null method which does not set any rates.
+Selected with {\tt chemicalReactionRatesMethods}$=${\tt null} this is a null method which does not set any rates.
 
-\subsection{Hydrogen Network}\index{hydrogen!molecular}
+\subsection{Hydrogen Network}\index{hydrogen!chemical}
 
-Selected with {\tt molecularReactionRatesMethods}$=${\tt hydrogenNetwork} this method computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\tt [hydrogenNetworkFast]} controls the approximations made. If set {\tt true} then H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
+Selected with {\tt chemicalReactionRatesMethods}$=${\tt hydrogenNetwork} this method computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\tt [hydrogenNetworkFast]} controls the approximations made. If set {\tt true} then H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
 
 \section{Star Formation Timescales}\index{star formation!timescale}
 

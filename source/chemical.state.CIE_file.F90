@@ -59,22 +59,22 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which reads and interpolates a collisional ionization equilibrium ionization state from a file.
+!% Contains a module which reads and interpolates a collisional ionization equilibrium chemical state from a file.
 
-module Ionization_States_CIE_File
-  !% Reads and interpolates a collisional ionization equilibrium ionization state from a file.
+module Chemical_States_CIE_File
+  !% Reads and interpolates a collisional ionization equilibrium chemical state from a file.
   use ISO_Varying_String
   use FGSL
   private
-  public :: Ionization_State_CIE_File_Initialize, Ionization_State_CIE_File_Read, Electron_Density_CIE_File_Interpolate,&
-       & Electron_Density_CIE_File_logTemperature_Interpolate, Molecular_Densities_CIE_File_Interpolate
+  public :: Chemical_State_CIE_File_Initialize, Chemical_State_CIE_File_Read, Electron_Density_CIE_File_Interpolate,&
+       & Electron_Density_CIE_File_logTemperature_Interpolate, Chemical_Densities_CIE_File_Interpolate
 
   ! Flag to indicate if this module has been initialized.
-  logical              :: ionizationStateInitialized         =.false.
-  logical              :: ionizationStateMoleculesInitialized=.false.
+  logical              :: chemicalStateInitialized         =.false.
+  logical              :: chemicalStateChemicalsInitialized=.false.
 
-  ! File name for the ionization state data.
-  type(varying_string) :: ionizationStateFile
+  ! File name for the chemical state data.
+  type(varying_string) :: chemicalStateFile
 
   ! Ranges of the tabulations.
   double precision     :: metallicityMinimum,metallicityMaximum,temperatureMinimum,temperatureMaximum
@@ -82,103 +82,103 @@ module Ionization_States_CIE_File
   ! Extrapolation methods.
   integer              :: extrapolateTemperatureLow,extrapolateTemperatureHigh,extrapolateMetallicityLow,extrapolateMetallicityHigh
 
-  ! The ionization state tables.
+  ! The chemical state tables.
   logical                                       :: logarithmicTable,firstMetallicityIsZero,gotHydrogenAtomic,gotHydrogenCation
-  integer                                       :: ionizationStateTemperatureNumberPoints,ionizationStateMetallicityNumberPoints
+  integer                                       :: chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints
   double precision                              :: firstNonZeroMetallicity
-  double precision, allocatable, dimension(:)   :: ionizationStateMetallicities,ionizationStateTemperatures
+  double precision, allocatable, dimension(:)   :: chemicalStateMetallicities,chemicalStateTemperatures
   double precision, allocatable, dimension(:,:) :: electronDensityTable,hydrogenAtomicDensityTable,hydrogenCationDensityTable
 
   ! Interpolation structures.
   logical                                       :: resetTemperature=.true., resetMetallicity=.true.
   type(fgsl_interp_accel)                       :: interpolationAcceleratorTemperature,interpolationAcceleratorMetallicity
 
-  ! Molecular indices.
-  integer                                       :: electronMoleculeIndex,atomicHydrogenMoleculeIndex,atomicHydrogenCationMoleculeIndex
+  ! Chemical indices.
+  integer                                       :: electronChemicalIndex,atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex
 
 contains
 
-  !# <ionizationStateMethod>
-  !#  <unitName>Ionization_State_CIE_File_Initialize</unitName>
-  !# </ionizationStateMethod>
-  subroutine Ionization_State_CIE_File_Initialize(ionizationStateMethod,Electron_Density_Get&
-       &,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Molecular_Densities_Get)
+  !# <chemicalStateMethod>
+  !#  <unitName>Chemical_State_CIE_File_Initialize</unitName>
+  !# </chemicalStateMethod>
+  subroutine Chemical_State_CIE_File_Initialize(chemicalStateMethod,Electron_Density_Get&
+       &,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Chemical_Densities_Get)
     !% Initializes the ``CIE ionization state from file'' module.
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: ionizationStateMethod
+    type(varying_string),                 intent(in)    :: chemicalStateMethod
     procedure(double precision), pointer, intent(inout) :: Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get&
          &,Electron_Density_Density_Log_Slope_Get
-    procedure(),                 pointer, intent(inout) :: Molecular_Densities_Get
+    procedure(),                 pointer, intent(inout) :: Chemical_Densities_Get
 
-    if (ionizationStateMethod == 'CIE_from_file') then
+    if (chemicalStateMethod == 'CIE_from_file') then
        ! Set the procedure pointer.
        Electron_Density_Get                       => Electron_Density_CIE_File
        Electron_Density_Temperature_Log_Slope_Get => Electron_Density_Temperature_Log_Slope_CIE_File
        Electron_Density_Density_Log_Slope_Get     => Electron_Density_Density_Log_Slope_CIE_File
-       Molecular_Densities_Get                    => Molecular_Densities_CIE_FIle
+       Chemical_Densities_Get                    => Chemical_Densities_CIE_FIle
 
        !@ <inputParameter>
-       !@   <name>ionizationStateFile</name>
+       !@   <name>chemicalStateFile</name>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the file containing a tabulation of the collisional ionization equilibrium ionization state.
+       !@     The name of the file containing a tabulation of the collisional chemical equilibrium chemical state.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('ionizationStateFile',ionizationStateFile)
+       call Get_Input_Parameter('chemicalStateFile',chemicalStateFile)
     end if
     return
-  end subroutine Ionization_State_CIE_File_Initialize
+  end subroutine Chemical_State_CIE_File_Initialize
 
-  subroutine Ionization_State_CIE_File_Read_Initialize
+  subroutine Chemical_State_CIE_File_Read_Initialize
     !% Ensure that the cooling data file has been read in.
     implicit none
 
-    !$omp critical (Ionization_State_CIE_File_Initialize)
-    if (.not.ionizationStateInitialized) then
+    !$omp critical (Chemical_State_CIE_File_Initialize)
+    if (.not.chemicalStateInitialized) then
 
        ! Call routine to read in the tabulated data.
-       call Ionization_State_CIE_File_Read(ionizationStateFile)
+       call Chemical_State_CIE_File_Read(chemicalStateFile)
 
-       ! Get molecular indices.
-       call Ionization_State_CIE_Molecules_Initialize
+       ! Get chemical indices.
+       call Chemical_State_CIE_Chemicals_Initialize
 
-       ! Flag that ionization state is now initialized.
-       ionizationStateInitialized=.true.
+       ! Flag that chemical state is now initialized.
+       chemicalStateInitialized=.true.
     end if
-    !$omp end critical (Ionization_State_CIE_File_Initialize)
+    !$omp end critical (Chemical_State_CIE_File_Initialize)
     return
-  end subroutine Ionization_State_CIE_File_Read_Initialize
+  end subroutine Chemical_State_CIE_File_Read_Initialize
  
-  subroutine Ionization_State_CIE_Molecules_Initialize
-    !% Ensure that molecular indices have been found.
-    use Molecular_Abundances_Structure
+  subroutine Chemical_State_CIE_Chemicals_Initialize
+    !% Ensure that chemical indices have been found.
+    use Chemical_Abundances_Structure
     implicit none
     
-    !$omp critical (Ionization_State_CIE_File_Molecules_Initialize)
-    if (.not.ionizationStateMoleculesInitialized) then
+    !$omp critical (Chemical_State_CIE_File_Chemicals_Initialize)
+    if (.not.chemicalStateChemicalsInitialized) then
        
-       ! Get molecular indices.
-       electronMoleculeIndex               =Molecules_Index("Electron"            )
+       ! Get chemical indices.
+       electronChemicalIndex               =Chemicals_Index("Electron"            )
        if (gotHydrogenAtomic) then
-          atomicHydrogenMoleculeIndex      =Molecules_Index("AtomicHydrogen"      )
+          atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
        else
-          atomicHydrogenMoleculeIndex      =-1
+          atomicHydrogenChemicalIndex      =-1
        end if
        if (gotHydrogenCation) then
-          atomicHydrogenCationMoleculeIndex=Molecules_Index("AtomicHydrogenCation")
+          atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
        else
-          atomicHydrogenCationMoleculeIndex=-1
+          atomicHydrogenCationChemicalIndex=-1
        end if
 
-       ! Flag that ionization state molecule indices are now initialized.
-       ionizationStateMoleculesInitialized=.true.
+       ! Flag that chemical state chemical indices are now initialized.
+       chemicalStateChemicalsInitialized=.true.
        
     end if
-    !$omp end critical (Ionization_State_CIE_File_Molecules_Initialize)
+    !$omp end critical (Chemical_State_CIE_File_Chemicals_Initialize)
 
     return
-  end subroutine Ionization_State_CIE_Molecules_Initialize
+  end subroutine Chemical_State_CIE_Chemicals_Initialize
 
   double precision function Electron_Density_CIE_File(temperature,numberDensityHydrogen,abundances,radiation)
     !% Return the electron density by interpolating in tabulated CIE data read from a file.
@@ -190,7 +190,7 @@ contains
     type(radiationStructure),  intent(in) :: radiation
 
     ! Ensure file has been read in.
-    call Ionization_State_CIE_File_Read_Initialize
+    call Chemical_State_CIE_File_Read_Initialize
 
     ! Call routine to interpolate in the tabulated function.
     Electron_Density_CIE_File=Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
@@ -199,7 +199,7 @@ contains
   end function Electron_Density_CIE_File
 
   double precision function Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
-    !% Compute the ionization state by interpolation in the tabulated data.
+    !% Compute the chemical state by interpolation in the tabulated data.
     use Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Astronomical
@@ -256,7 +256,7 @@ contains
        end select
     end if
 
-    ! Check if we need to recompute the ionization state.
+    ! Check if we need to recompute the chemical state.
     if (temperatureUse /= temperaturePrevious .or. metallicityUse /= metallicityPrevious) then
 
        ! Get the interpolation.
@@ -287,7 +287,7 @@ contains
     type(radiationStructure),  intent(in)  :: radiation
 
     ! Ensure file has been read in.
-    call Ionization_State_CIE_File_Read_Initialize
+    call Chemical_State_CIE_File_Read_Initialize
 
     ! Call routine to interpolate in the tabulated function.
     Electron_Density_Temperature_Log_Slope_CIE_File=Electron_Density_CIE_File_logTemperature_Interpolate(temperature &
@@ -364,7 +364,7 @@ contains
             &                          -electronDensityTable(iTemperature  ,iMetallicity  ))*(1.0d0-hMetallicity) &
             &                        +( electronDensityTable(iTemperature+1,iMetallicity+1)                       & 
             &                          -electronDensityTable(iTemperature  ,iMetallicity+1))*       hMetallicity) &
-            & /(ionizationStateTemperatures(iTemperature+1)-ionizationStateTemperatures(iTemperature))
+            & /(chemicalStateTemperatures(iTemperature+1)-chemicalStateTemperatures(iTemperature))
 
        ! Convert to logarithmic gradient if table was not stored logarithmically.
        if (.not.logarithmicTable) electronDensitySlopePrevious=electronDensitySlopePrevious*temperature&
@@ -398,8 +398,8 @@ contains
     return
   end function Electron_Density_Density_Log_Slope_CIE_File
 
-  subroutine Ionization_State_CIE_File_Read(ionizationStateFileToRead,metallicityMaximumTabulated)
-    !% Read in data from an ionization state file.
+  subroutine Chemical_State_CIE_File_Read(chemicalStateFileToRead,metallicityMaximumTabulated)
+    !% Read in data from an chemical state file.
     use Galacticus_Error
     use FoX_dom
     use Memory_Management
@@ -407,47 +407,47 @@ contains
     use Galacticus_Display
     use IO_XML
     implicit none
-    type(varying_string), intent(in)            :: ionizationStateFileToRead
+    type(varying_string), intent(in)            :: chemicalStateFileToRead
     double precision,     intent(out), optional :: metallicityMaximumTabulated
-    type(Node),           pointer               :: doc,datum,thisIonizationState,metallicityElement,extrapolationElement &
+    type(Node),           pointer               :: doc,datum,thisChemicalState,metallicityElement,extrapolationElement &
          &,extrapolation,thisTemperature,thisElectronDensity,thisHydrogenAtomicDensity ,thisHydrogenCationDensity
     type(NodeList),       pointer               :: temperatureDatumList,electronDatumList,hydrogenAtomicDatumList &
-         &,hydrogenCationDatumList,ionizationStateList ,metallicityExtrapolationList,temperatureExtrapolationList
-    integer                                     :: iDatum,ioErr,iIonizationState,iExtrapolation,extrapolationMethod
+         &,hydrogenCationDatumList,chemicalStateList ,metallicityExtrapolationList,temperatureExtrapolationList
+    integer                                     :: iDatum,ioErr,iChemicalState,iExtrapolation,extrapolationMethod
     double precision                            :: datumValues(1)
     character(len=32)                           :: limitType
 
     !$omp critical (FoX_DOM_Access)
 
     ! Parse the XML file.
-    call Galacticus_Display_Indent('Parsing file: '//ionizationStateFileToRead,verbosityDebug)
-    doc => parseFile(char(ionizationStateFileToRead),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Ionization_State_CIE_File_Read','Unable to find ionization state file')
+    call Galacticus_Display_Indent('Parsing file: '//chemicalStateFileToRead,verbosityDebug)
+    doc => parseFile(char(chemicalStateFileToRead),iostat=ioErr)
+    if (ioErr /= 0) call Galacticus_Error_Report('Chemical_State_CIE_File_Read','Unable to find chemical state file')
 
     ! Get a list of all <ionizationState> elements.
-    ionizationStateList => getElementsByTagname(doc,"ionizationState")
-    ionizationStateMetallicityNumberPoints=getLength(ionizationStateList)
+    chemicalStateList => getElementsByTagname(doc,"ionizationState")
+    chemicalStateMetallicityNumberPoints=getLength(chemicalStateList)
 
-    ! Extract data from first ionization state and count number of temperatures present.
-    thisIonizationState  => item(ionizationStateList,0)
-    thisTemperature      => item(getElementsByTagname(thisIonizationState,"temperature"),0)
+    ! Extract data from first chemical state and count number of temperatures present.
+    thisChemicalState  => item(chemicalStateList,0)
+    thisTemperature      => item(getElementsByTagname(thisChemicalState,"temperature"),0)
     temperatureDatumList => getElementsByTagname(thisTemperature,"datum")
-    ionizationStateTemperatureNumberPoints=getLength(temperatureDatumList)
+    chemicalStateTemperatureNumberPoints=getLength(temperatureDatumList)
 
     ! Allocate space for the table.
-    if (allocated(ionizationStateMetallicities)) call Dealloc_Array(ionizationStateMetallicities)
-    if (allocated(ionizationStateTemperatures )) call Dealloc_Array(ionizationStateTemperatures )
-    if (allocated(electronDensityTable        )) call Dealloc_Array(electronDensityTable        )
-    if (allocated(hydrogenAtomicDensityTable  )) call Dealloc_Array(hydrogenAtomicDensityTable  )
-    if (allocated(hydrogenCationDensityTable  )) call Dealloc_Array(hydrogenCationDensityTable  )
-    call Alloc_Array(ionizationStateMetallicities                                       ,[ionizationStateMetallicityNumberPoints])
-    call Alloc_Array(ionizationStateTemperatures ,[ionizationStateTemperatureNumberPoints                                       ])
-    call Alloc_Array(electronDensityTable        ,[ionizationStateTemperatureNumberPoints,ionizationStateMetallicityNumberPoints])
+    if (allocated(chemicalStateMetallicities)) call Dealloc_Array(chemicalStateMetallicities)
+    if (allocated(chemicalStateTemperatures )) call Dealloc_Array(chemicalStateTemperatures )
+    if (allocated(electronDensityTable      )) call Dealloc_Array(electronDensityTable      )
+    if (allocated(hydrogenAtomicDensityTable)) call Dealloc_Array(hydrogenAtomicDensityTable)
+    if (allocated(hydrogenCationDensityTable)) call Dealloc_Array(hydrogenCationDensityTable)
+    call Alloc_Array(chemicalStateMetallicities                                      ,[chemicalStateMetallicityNumberPoints])
+    call Alloc_Array(chemicalStateTemperatures ,[chemicalStateTemperatureNumberPoints                                      ])
+    call Alloc_Array(electronDensityTable      ,[chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints])
 
     ! Allocate space for atomic hydrogen density, if such data is included.
     hydrogenAtomicDatumList => getElementsByTagname(doc,"hiDensity")
     if (getLength(hydrogenAtomicDatumList) > 0) then
-       call Alloc_Array(hydrogenAtomicDensityTable,[ionizationStateTemperatureNumberPoints,ionizationStateMetallicityNumberPoints])
+       call Alloc_Array(hydrogenAtomicDensityTable,[chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints])
        gotHydrogenAtomic=.true.
     else
        gotHydrogenAtomic=.false.
@@ -455,71 +455,71 @@ contains
     ! Allocate space for ionized hydrogen density, if such data is included.
     hydrogenCationDatumList => getElementsByTagname(doc,"hiiDensity")
     if (getLength(hydrogenCationDatumList) > 0) then
-       call Alloc_Array(hydrogenCationDensityTable ,[ionizationStateTemperatureNumberPoints,ionizationStateMetallicityNumberPoints])
+       call Alloc_Array(hydrogenCationDensityTable ,[chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints])
        gotHydrogenCation=.true.
     else
        gotHydrogenCation=.false.
     end if
 
-    ! Extract data from the ionization states and populate metallicity and temperature arrays.
-    do iIonizationState=0,getLength(ionizationStateList)-1
-       ! Get required ionization state.
-       thisIonizationState => item(ionizationStateList,iIonizationState)
+    ! Extract data from the chemical states and populate metallicity and temperature arrays.
+    do iChemicalState=0,getLength(chemicalStateList)-1
+       ! Get required chemical state.
+       thisChemicalState => item(chemicalStateList,iChemicalState)
        ! Extract the metallicity from the <metallicity> element.
-       metallicityElement  => item(getElementsByTagname(thisIonizationState,"metallicity"),0)
-       call extractDataContent(metallicityElement,ionizationStateMetallicities(iIonizationState+1))
+       metallicityElement  => item(getElementsByTagname(thisChemicalState,"metallicity"),0)
+       call extractDataContent(metallicityElement,chemicalStateMetallicities(iChemicalState+1))
        ! Extract the data.
-       thisTemperature           => item(getElementsByTagname(thisIonizationState      ,"temperature"    ),0)
-       temperatureDatumList      =>      getElementsByTagname(thisTemperature          ,"datum"          )
-       thisElectronDensity       => item(getElementsByTagname(thisIonizationState      ,"electronDensity"),0)
-       electronDatumList         =>      getElementsByTagname(thisElectronDensity      ,"datum"          )
+       thisTemperature           => item(getElementsByTagname(thisChemicalState           ,"temperature"    ),0)
+       temperatureDatumList      =>      getElementsByTagname(thisTemperature             ,"datum"          )
+       thisElectronDensity       => item(getElementsByTagname(thisChemicalState           ,"electronDensity"),0)
+       electronDatumList         =>      getElementsByTagname(thisElectronDensity         ,"datum"          )
        if (gotHydrogenAtomic) then
-          thisHydrogenAtomicDensity => item(getElementsByTagname(thisIonizationState      ,"hiDensity" ),0)
+          thisHydrogenAtomicDensity => item(getElementsByTagname(thisChemicalState        ,"hiDensity" ),0)
           hydrogenAtomicDatumList   =>      getElementsByTagname(thisHydrogenAtomicDensity,"datum"     )
        end if
        if (gotHydrogenCation) then
-          thisHydrogenCationDensity => item(getElementsByTagname(thisIonizationState      ,"hiiDensity"),0)
+          thisHydrogenCationDensity => item(getElementsByTagname(thisChemicalState        ,"hiiDensity"),0)
           hydrogenCationDatumList   =>      getElementsByTagname(thisHydrogenCationDensity,"datum"     )
        end if
        ! Check that number of temperatures is consistent.
-       if (getLength(temperatureDatumList) /= ionizationStateTemperatureNumberPoints) call&
-            & Galacticus_Error_Report('Ionization_State_CIE_File_Read','sizes of temperatures grids must be the same for all&
+       if (getLength(temperatureDatumList) /= chemicalStateTemperatureNumberPoints) call&
+            & Galacticus_Error_Report('Chemical_State_CIE_File_Read','sizes of temperatures grids must be the same for all&
             & metallicities')
        ! Check that number of cooling rates matches number of temperatures.
        if (getLength(temperatureDatumList) /= getLength(electronDatumList)) call&
-            & Galacticus_Error_Report('Ionization_State_CIE_File_Read','sizes of temperature and electron density arrays must match')
+            & Galacticus_Error_Report('Chemical_State_CIE_File_Read','sizes of temperature and electron density arrays must match')
        ! Extract data.
        do iDatum=0,getLength(temperatureDatumList)-1
           datum => item(temperatureDatumList,iDatum)
           call extractDataContent(datum,datumValues)
-          if (iIonizationState == 0) then
+          if (iChemicalState == 0) then
              ! Store the temperature.
-             ionizationStateTemperatures(iDatum+1)=datumValues(1)
+             chemicalStateTemperatures(iDatum+1)=datumValues(1)
           else
              ! Check that temperature grids are aligned.
-             if (Values_Differ(ionizationStateTemperatures(iDatum+1),datumValues(1),relTol=1.0d-6)) call&
-                  & Galacticus_Error_Report('Ionization_State_CIE_File_Read','temperature grids mismatch')
+             if (Values_Differ(chemicalStateTemperatures(iDatum+1),datumValues(1),relTol=1.0d-6)) call&
+                  & Galacticus_Error_Report('Chemical_State_CIE_File_Read','temperature grids mismatch')
           end if
-          ! Store the ionization state.
+          ! Store the chemical state.
           datum => item(electronDatumList,iDatum)
           call extractDataContent(datum,datumValues)
-          electronDensityTable(iDatum+1,iIonizationState+1)=datumValues(1)
+          electronDensityTable(iDatum+1,iChemicalState+1)=datumValues(1)
           if (gotHydrogenAtomic) then
              datum => item(hydrogenAtomicDatumList,iDatum)
              call extractDataContent(datum,datumValues)
-             hydrogenAtomicDensityTable(iDatum+1,iIonizationState+1)=datumValues(1)
+             hydrogenAtomicDensityTable(iDatum+1,iChemicalState+1)=datumValues(1)
           end if
           if (gotHydrogenCation) then
              datum => item(hydrogenCationDatumList,iDatum)
              call extractDataContent(datum,datumValues)
-             hydrogenCationDensityTable(iDatum+1,iIonizationState+1)=datumValues(1)
+             hydrogenCationDensityTable(iDatum+1,iChemicalState+1)=datumValues(1)
           end if
        end do
     end do
-    where (ionizationStateMetallicities>-999.0d0)
-       ionizationStateMetallicities=10.0d0**ionizationStateMetallicities
+    where (chemicalStateMetallicities>-999.0d0)
+       chemicalStateMetallicities=10.0d0**chemicalStateMetallicities
     elsewhere
-       ionizationStateMetallicities=0.0d0
+       chemicalStateMetallicities=0.0d0
     end where
 
     ! Extract extrapolation methods from the file.
@@ -534,7 +534,7 @@ contains
        case ('high')
           extrapolateMetallicityHigh=extrapolationMethod
        case default
-          call Galacticus_Error_Report('Ionization_State_CIE_File_Read','unrecognized extrapolation limit')
+          call Galacticus_Error_Report('Chemical_State_CIE_File_Read','unrecognized extrapolation limit')
        end select
     end do
     temperatureExtrapolationList => getElementsByTagname(extrapolationElement,"temperature")
@@ -547,7 +547,7 @@ contains
        case ('high')
           extrapolateTemperatureHigh=extrapolationMethod
        case default
-          call Galacticus_Error_Report('Ionization_State_CIE_File_Read','unrecognized extrapolation limit')
+          call Galacticus_Error_Report('Chemical_State_CIE_File_Read','unrecognized extrapolation limit')
        end select
     end do
     ! Destroy the document.
@@ -556,10 +556,10 @@ contains
     !$omp end critical (FoX_DOM_Access)
 
     ! Store table ranges for convenience.
-    metallicityMinimum=ionizationStateMetallicities(1)
-    metallicityMaximum=ionizationStateMetallicities(ionizationStateMetallicityNumberPoints)
-    temperatureMinimum=ionizationStateTemperatures(1)
-    temperatureMaximum=ionizationStateTemperatures(ionizationStateTemperatureNumberPoints)
+    metallicityMinimum=chemicalStateMetallicities(1)
+    metallicityMaximum=chemicalStateMetallicities(chemicalStateMetallicityNumberPoints)
+    temperatureMinimum=chemicalStateTemperatures(1)
+    temperatureMaximum=chemicalStateTemperatures(chemicalStateTemperatureNumberPoints)
 
     ! Decide whether or not to make the tables logarithmic.
     logarithmicTable= all(electronDensityTable       > 0.0d0)                              &
@@ -568,14 +568,14 @@ contains
          &             .and.                                                               &
          &           (all(hydrogenCationDensityTable > 0.0d0) .or. .not.gotHydrogenCation)
     if (logarithmicTable) then
-       firstMetallicityIsZero=(ionizationStateMetallicities(1) == 0.0d0)
-       if (firstMetallicityIsZero) firstNonZeroMetallicity=ionizationStateMetallicities(2)
-       where (ionizationStateMetallicities > 0.0d0)
-          ionizationStateMetallicities=dlog(ionizationStateMetallicities)
+       firstMetallicityIsZero=(chemicalStateMetallicities(1) == 0.0d0)
+       if (firstMetallicityIsZero) firstNonZeroMetallicity=chemicalStateMetallicities(2)
+       where (chemicalStateMetallicities > 0.0d0)
+          chemicalStateMetallicities=dlog(chemicalStateMetallicities)
        elsewhere
-          ionizationStateMetallicities=-999.0d0
+          chemicalStateMetallicities=-999.0d0
        end where
-       ionizationStateTemperatures=dlog(ionizationStateTemperatures)
+       chemicalStateTemperatures=dlog(chemicalStateTemperatures)
        electronDensityTable=dlog(electronDensityTable)
        if (gotHydrogenAtomic) hydrogenAtomicDensityTable=dlog(hydrogenAtomicDensityTable)
        if (gotHydrogenCation) hydrogenCationDensityTable=dlog(hydrogenCationDensityTable)
@@ -584,7 +584,7 @@ contains
             & .or. extrapolateTemperatureHigh == extrapolatePowerLaw   &
             & .or. extrapolateMetallicityLow  == extrapolatePowerLaw   &
             & .or. extrapolateMetallicityHigh == extrapolatePowerLaw ) &
-            & call Galacticus_Error_Report('Ionization_State_CIE_File_Read','power law extrapolation allowed only in loggable tables')
+            & call Galacticus_Error_Report('Chemical_State_CIE_File_Read','power law extrapolation allowed only in loggable tables')
     end if
 
     ! Force interpolation accelerators to be reset.
@@ -595,7 +595,7 @@ contains
     if (present(metallicityMaximumTabulated)) metallicityMaximumTabulated=metallicityMaximum
 
     return
-  end subroutine Ionization_State_CIE_File_Read
+  end subroutine Chemical_State_CIE_File_Read
 
   subroutine Get_Interpolation(temperatureIn,metallicityIn,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Determine the interpolating paramters.
@@ -611,11 +611,11 @@ contains
     metallicityUse=max(metallicityIn,0.0d0)
     ! Get interpolation in temperature.
     if (logarithmicTable) temperatureUse=dlog(temperatureUse)
-    iTemperature=Interpolate_Locate(ionizationStateTemperatureNumberPoints,ionizationStateTemperatures&
+    iTemperature=Interpolate_Locate(chemicalStateTemperatureNumberPoints,chemicalStateTemperatures&
          &,interpolationAcceleratorTemperature,temperatureUse,resetTemperature)
-    iTemperature=max(min(iTemperature,ionizationStateTemperatureNumberPoints),1)
-    hTemperature=(temperatureUse-ionizationStateTemperatures(iTemperature))/(ionizationStateTemperatures(iTemperature+1)&
-         &-ionizationStateTemperatures(iTemperature))
+    iTemperature=max(min(iTemperature,chemicalStateTemperatureNumberPoints),1)
+    hTemperature=(temperatureUse-chemicalStateTemperatures(iTemperature))/(chemicalStateTemperatures(iTemperature+1)&
+         &-chemicalStateTemperatures(iTemperature))
 
     ! Get interpolation in metallicity.
     if (firstMetallicityIsZero.and.metallicityUse < firstNonZeroMetallicity) then
@@ -623,11 +623,11 @@ contains
        hMetallicity=metallicityUse/firstNonZeroMetallicity
     else
        if (logarithmicTable) metallicityUse=dlog(metallicityUse)
-       iMetallicity=Interpolate_Locate(ionizationStateMetallicityNumberPoints,ionizationStateMetallicities&
+       iMetallicity=Interpolate_Locate(chemicalStateMetallicityNumberPoints,chemicalStateMetallicities&
             &,interpolationAcceleratorMetallicity,metallicityUse,resetMetallicity)
-       iMetallicity=max(min(iMetallicity,ionizationStateMetallicityNumberPoints),1)
-       hMetallicity=(metallicityUse-ionizationStateMetallicities(iMetallicity))/(ionizationStateMetallicities(iMetallicity+1)&
-            &-ionizationStateMetallicities(iMetallicity))
+       iMetallicity=max(min(iMetallicity,chemicalStateMetallicityNumberPoints),1)
+       hMetallicity=(metallicityUse-chemicalStateMetallicities(iMetallicity))/(chemicalStateMetallicities(iMetallicity+1)&
+            &-chemicalStateMetallicities(iMetallicity))
     end if
     return
   end subroutine Get_Interpolation
@@ -651,54 +651,54 @@ contains
     return
   end function Do_Interpolation
 
-  subroutine Molecular_Densities_CIE_File(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
-    !% Return the densities of molecular species at the given temperature and hydrogen density for the specified set of abundances
+  subroutine Chemical_Densities_CIE_File(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    !% Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
     !% and radiation field. Units of the returned electron density are cm$^-3$.
     use Abundances_Structure
     use Radiation_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
-    type(molecularAbundancesStructure), intent(inout) :: theseAbundances
-    double precision,                   intent(in)    :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)    :: abundances
-    type(radiationStructure),           intent(in)    :: radiation
+    type(chemicalAbundancesStructure), intent(inout) :: theseAbundances
+    double precision,                  intent(in)    :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)    :: abundances
+    type(radiationStructure),          intent(in)    :: radiation
 
     ! Ensure file has been read in.
-    call Ionization_State_CIE_File_Read_Initialize
+    call Chemical_State_CIE_File_Read_Initialize
 
     ! Call routine to interpolate in the tabulated function.
-    call Molecular_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    call Chemical_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
 
     return
-  end subroutine Molecular_Densities_CIE_File
+  end subroutine Chemical_Densities_CIE_File
 
-  subroutine Molecular_Densities_CIE_File_Interpolate(theseMolecules,temperature,numberDensityHydrogen,abundances,radiation)
-    !% Compute the ionization state by interpolation in the tabulated data.
+  subroutine Chemical_Densities_CIE_File_Interpolate(theseChemicals,temperature,numberDensityHydrogen,abundances,radiation)
+    !% Compute the chemical state by interpolation in the tabulated data.
     use Abundances_Structure
     use Radiation_Structure
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     use Numerical_Constants_Astronomical
     use IO_XML
     implicit none
-    type(molecularAbundancesStructure), intent(inout) :: theseMolecules
-    double precision,                   intent(in)    :: temperature,numberDensityHydrogen
-    type(abundancesStructure),          intent(in)    :: abundances
-    type(radiationStructure),           intent(in)    :: radiation
-    double precision,                   save          :: temperaturePrevious=-1.0d0,metallicityPrevious=-1.0d0
-    type(molecularAbundancesStructure), save          :: molecularDensitiesPrevious
-    !$omp threadprivate(temperaturePrevious,metallicityPrevious,molecularDensitiesPrevious)
-    integer                                           :: iTemperature,iMetallicity
-    double precision                                  :: temperatureUse,metallicityUse,hTemperature,hMetallicity
+    type(chemicalAbundancesStructure), intent(inout) :: theseChemicals
+    double precision,                  intent(in)    :: temperature,numberDensityHydrogen
+    type(abundancesStructure),         intent(in)    :: abundances
+    type(radiationStructure),          intent(in)    :: radiation
+    double precision,                  save          :: temperaturePrevious=-1.0d0,metallicityPrevious=-1.0d0
+    type(chemicalAbundancesStructure), save          :: chemicalDensitiesPrevious
+    !$omp threadprivate(temperaturePrevious,metallicityPrevious,chemicalDensitiesPrevious)
+    integer                                          :: iTemperature,iMetallicity
+    double precision                                 :: temperatureUse,metallicityUse,hTemperature,hMetallicity
 
-    ! Ensure that molecular indices have been determined.
-    call Ionization_State_CIE_Molecules_Initialize
+    ! Ensure that chemical indices have been determined.
+    call Chemical_State_CIE_Chemicals_Initialize
 
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < temperatureMinimum) then
        select case (extrapolateTemperatureLow)
        case (extrapolateZero)
-          call Molecules_Abundances_Reset(theseMolecules)
+          call Chemicals_Abundances_Reset(theseChemicals)
           return
        case (extrapolateFixed,extrapolatePowerLaw)
           temperatureUse=temperatureMinimum
@@ -707,7 +707,7 @@ contains
     if (temperatureUse > temperatureMaximum) then
        select case (extrapolateTemperatureHigh)
        case (extrapolateZero)
-          call Molecules_Abundances_Reset(theseMolecules)
+          call Chemicals_Abundances_Reset(theseChemicals)
           return
        case (extrapolateFixed,extrapolatePowerLaw)
           temperatureUse=temperatureMaximum
@@ -720,7 +720,7 @@ contains
     if (metallicityUse < metallicityMinimum) then
        select case (extrapolateMetallicityLow)
        case (extrapolateZero)
-          call Molecules_Abundances_Reset(theseMolecules)
+          call Chemicals_Abundances_Reset(theseChemicals)
           return
        case (extrapolateFixed)
           metallicityUse=metallicityMinimum
@@ -729,28 +729,28 @@ contains
     if (metallicityUse > metallicityMaximum) then
        select case (extrapolateMetallicityHigh)
        case (extrapolateZero)
-          call Molecules_Abundances_Reset(theseMolecules)
+          call Chemicals_Abundances_Reset(theseChemicals)
           return
        case (extrapolateFixed)
           metallicityUse=metallicityMaximum
        end select
     end if
 
-    ! Check if we need to recompute the ionization state.
+    ! Check if we need to recompute the chemical state.
     if (temperatureUse /= temperaturePrevious .or. metallicityUse /= metallicityPrevious) then
 
        ! Get the interpolation.
        call Get_Interpolation(temperatureUse,metallicityUse,iTemperature,hTemperature,iMetallicity,hMetallicity)
 
        ! Reset densities to zero.
-       call molecularDensitiesPrevious%reset()
+       call chemicalDensitiesPrevious%reset()
 
        ! Do the interpolation.
-       if (electronMoleculeIndex             > 0) call molecularDensitiesPrevious%abundanceSet(electronMoleculeIndex             &
+       if (electronChemicalIndex             > 0) call chemicalDensitiesPrevious%abundanceSet(electronChemicalIndex             &
             & ,Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity,electronDensityTable      ))
-       if (atomicHydrogenMoleculeIndex       > 0) call molecularDensitiesPrevious%abundanceSet(atomicHydrogenMoleculeIndex       &
+       if (atomicHydrogenChemicalIndex       > 0) call chemicalDensitiesPrevious%abundanceSet(atomicHydrogenChemicalIndex       &
             & ,Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity,hydrogenAtomicDensityTable))
-       if (atomicHydrogenCationMoleculeIndex > 0) call molecularDensitiesPrevious%abundanceSet(atomicHydrogenCationMoleculeIndex &
+       if (atomicHydrogenCationChemicalIndex > 0) call chemicalDensitiesPrevious%abundanceSet(atomicHydrogenCationChemicalIndex &
             & ,Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity,hydrogenCationDensityTable))
 
        ! Store the temperature and metallicity for which calculation was performed.
@@ -759,10 +759,10 @@ contains
     end if
 
     ! Scale to the specified density assuming two-body processes, in which case densities scale with hydrogen density.
-    theseMolecules=molecularDensitiesPrevious
-    call theseMolecules%multiply(numberDensityHydrogen)
+    theseChemicals=chemicalDensitiesPrevious
+    call theseChemicals%multiply(numberDensityHydrogen)
 
     return
-  end subroutine Molecular_Densities_CIE_File_Interpolate
+  end subroutine Chemical_Densities_CIE_File_Interpolate
 
-end module Ionization_States_CIE_File
+end module Chemical_States_CIE_File

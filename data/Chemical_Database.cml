@@ -1,6 +1,6 @@
-<!-- A list of molecules used by Galacticus using a crude CML -->
+<!-- A list of chemicals used by Galacticus using a crude CML -->
 <list>
-  <molecule>
+  <chemical>
     <id>Electron</id>
     <formalCharge>-1</formalCharge>
     <atomArray>
@@ -9,8 +9,8 @@
 	<elementType>e</elementType>
       </atom>
     </atomArray>
-  </molecule>
-  <molecule>
+  </chemical>
+  <chemical>
     <id>AtomicHydrogen</id>
     <formalCharge>0</formalCharge>
     <atomArray>
@@ -19,8 +19,8 @@
 	<elementType>H</elementType>
       </atom>
     </atomArray>
-  </molecule>
-  <molecule>
+  </chemical>
+  <chemical>
     <id>AtomicHydrogenCation</id>
     <formalCharge>1</formalCharge>
     <atomArray>
@@ -29,8 +29,8 @@
   	<elementType>H</elementType>
       </atom>
     </atomArray>
-  </molecule>
-  <molecule>
+  </chemical>
+  <chemical>
     <id>AtomicHydrogenAnion</id>
     <formalCharge>-1</formalCharge>
     <atomArray>
@@ -39,8 +39,8 @@
   	<elementType>H</elementType>
       </atom>
     </atomArray>
-  </molecule>
-  <molecule>
+  </chemical>
+  <chemical>
     <id>MolecularHydrogen</id>
     <formalCharge>0</formalCharge>
     <atomArray>
@@ -59,8 +59,8 @@
   	<order>1</order>
       </bond>
     </bondArray>
-  </molecule>
-  <molecule>
+  </chemical>
+  <chemical>
     <id>MolecularHydrogenCation</id>
     <formalCharge>1</formalCharge>
     <atomArray>
@@ -79,8 +79,8 @@
   	<order>1</order>
       </bond>
     </bondArray>
-  </molecule>
-  <molecule>
+  </chemical>
+  <chemical>
     <id>MolecularHydrogenAnion</id>
     <formalCharge>-1</formalCharge>
     <atomArray>
@@ -99,5 +99,5 @@
   	<order>1</order>
       </bond>
     </bondArray>
-  </molecule>
+  </chemical>
 </list>

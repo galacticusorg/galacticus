@@ -66,11 +66,11 @@ module Accretion_Halos
   use ISO_Varying_String
   use Tree_Nodes
   use Abundances_Structure
-  use Molecular_Abundances_Structure
+  use Chemical_Abundances_Structure
   private
   public :: Halo_Baryonic_Accretion_Rate, Halo_Baryonic_Accreted_Mass, Halo_Baryonic_Failed_Accretion_Rate,&
        & Halo_Baryonic_Failed_Accreted_Mass, Halo_Baryonic_Accretion_Rate_Abundances, Halo_Baryonic_Accreted_Abundances,&
-       & Halo_Baryonic_Accretion_Rate_Molecules, Halo_Baryonic_Accreted_Molecules
+       & Halo_Baryonic_Accretion_Rate_Chemicals, Halo_Baryonic_Accreted_Chemicals
 
   ! Flag to indicate if this module has been initialized.  
   logical                                                       :: accretionHalosInitialized=.false.
@@ -84,9 +84,9 @@ module Accretion_Halos
   procedure(Halo_Baryonic_Accretion_Get_Template ), pointer :: Halo_Baryonic_Failed_Accretion_Rate_Get     => null()
   procedure(Halo_Baryonic_Accretion_Get_Template ), pointer :: Halo_Baryonic_Failed_Accreted_Mass_Get      => null()
   procedure(Halo_Baryonic_Abundances_Get_Template), pointer :: Halo_Baryonic_Accreted_Abundances_Get       => null()
-  procedure(Halo_Baryonic_Molecules_Get_Template ), pointer :: Halo_Baryonic_Accreted_Molecules_Get        => null()
+  procedure(Halo_Baryonic_Chemicals_Get_Template ), pointer :: Halo_Baryonic_Accreted_Chemicals_Get        => null()
   procedure(Halo_Baryonic_Abundances_Get_Template), pointer :: Halo_Baryonic_Accretion_Rate_Abundances_Get => null()
-  procedure(Halo_Baryonic_Molecules_Get_Template ), pointer :: Halo_Baryonic_Accretion_Rate_Molecules_Get  => null()
+  procedure(Halo_Baryonic_Chemicals_Get_Template ), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get  => null()
   abstract interface
      double precision function Halo_Baryonic_Accretion_Get_Template(thisNode)
        import treeNode
@@ -102,12 +102,12 @@ module Accretion_Halos
      end subroutine Halo_Baryonic_Abundances_Get_Template
   end interface
   abstract interface
-     subroutine Halo_Baryonic_Molecules_Get_Template(thisNode,accretedMolecules)
+     subroutine Halo_Baryonic_Chemicals_Get_Template(thisNode,accretedChemicals)
        import treeNode
-       import molecularAbundancesStructure
-       type(treeNode),                     intent(inout), pointer :: thisNode
-       type(molecularAbundancesStructure), intent(inout)          :: accretedMolecules
-     end subroutine Halo_Baryonic_Molecules_Get_Template
+       import chemicalAbundancesStructure
+       type(treeNode),                    intent(inout), pointer :: thisNode
+       type(chemicalAbundancesStructure), intent(inout)          :: accretedChemicals
+     end subroutine Halo_Baryonic_Chemicals_Get_Template
   end interface
 
 contains
@@ -135,7 +135,7 @@ contains
        call Get_Input_Parameter('accretionHalosMethod',accretionHalosMethod,defaultValue='simple')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="accretionHalosMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accretion_Rate_Molecules_Get,Halo_Baryonic_Accreted_Molecules_Get</subroutineArgs>
+       !#  <subroutineArgs>accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get</subroutineArgs>
        include 'accretion.halos.inc'
        !# </include>
        if     (.not.(     associated(Halo_Baryonic_Accretion_Rate_Get           ) &
@@ -144,8 +144,8 @@ contains
             &        .and.associated(Halo_Baryonic_Failed_Accreted_Mass_Get     ) &
             &        .and.associated(Halo_Baryonic_Accretion_Rate_Abundances_Get) &
             &        .and.associated(Halo_Baryonic_Accreted_Abundances_Get      ) &
-            &        .and.associated(Halo_Baryonic_Accretion_Rate_Molecules_Get ) &
-            &        .and.associated(Halo_Baryonic_Accreted_Molecules_Get       ) &
+            &        .and.associated(Halo_Baryonic_Accretion_Rate_Chemicals_Get ) &
+            &        .and.associated(Halo_Baryonic_Accreted_Chemicals_Get       ) &
             &       )                                                             &
             & ) call Galacticus_Error_Report('Accretion_Halos_Initialize','method ' //char(accretionHalosMethod)//' is unrecognized')
        ! Flag that the module is now initialized.
@@ -244,34 +244,34 @@ contains
     return
   end subroutine Halo_Baryonic_Accreted_Abundances
 
-  subroutine Halo_Baryonic_Accretion_Rate_Molecules(thisNode,accretionRateMolecules)
-    !% Compute the mass of molecules (in $M_\odot$) accreted onto {\tt thisNode}.
+  subroutine Halo_Baryonic_Accretion_Rate_Chemicals(thisNode,accretionRateChemicals)
+    !% Compute the mass of chemicals (in $M_\odot$) accreted onto {\tt thisNode}.
     implicit none
-    type(treeNode),                     intent(inout), pointer :: thisNode
-    type(molecularAbundancesStructure), intent(inout)          :: accretionRateMolecules
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    type(chemicalAbundancesStructure), intent(inout)          :: accretionRateChemicals
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    call Halo_Baryonic_Accretion_Rate_Molecules_Get(thisNode,accretionRateMolecules)
+    call Halo_Baryonic_Accretion_Rate_Chemicals_Get(thisNode,accretionRateChemicals)
 
     return
-  end subroutine Halo_Baryonic_Accretion_Rate_Molecules
+  end subroutine Halo_Baryonic_Accretion_Rate_Chemicals
 
-  subroutine Halo_Baryonic_Accreted_Molecules(thisNode,accretedMolecules)
-    !% Compute the mass of molecules (in $M_\odot$) accreted onto {\tt thisNode}.
+  subroutine Halo_Baryonic_Accreted_Chemicals(thisNode,accretedChemicals)
+    !% Compute the mass of chemicals (in $M_\odot$) accreted onto {\tt thisNode}.
     implicit none
-    type(treeNode),                     intent(inout), pointer :: thisNode
-    type(molecularAbundancesStructure), intent(inout)          :: accretedMolecules
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    type(chemicalAbundancesStructure), intent(inout)          :: accretedChemicals
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    call Halo_Baryonic_Accreted_Molecules_Get(thisNode,accretedMolecules)
+    call Halo_Baryonic_Accreted_Chemicals_Get(thisNode,accretedChemicals)
 
     return
-  end subroutine Halo_Baryonic_Accreted_Molecules
+  end subroutine Halo_Baryonic_Accreted_Chemicals
 
 end module Accretion_Halos

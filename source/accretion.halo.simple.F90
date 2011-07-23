@@ -75,8 +75,8 @@ module Accretion_Halos_Simple
   ! Index of Solar abundance pattern.
   integer          :: abundanceIndexSolar
 
-  ! Internal record of the number of molecules being tracked.
-  integer          :: moleculesCount
+  ! Internal record of the number of chemicals being tracked.
+  integer          :: chemicalsCount
 
   ! Zero abundance structure.
   type(abundancesStructure) :: zeroAbundances
@@ -93,20 +93,20 @@ contains
   subroutine Accretion_Halos_Simple_Initialize(accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get &
        &,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get &
        &,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accreted_Abundances_Get&
-       &,Halo_Baryonic_Accretion_Rate_Molecules_Get,Halo_Baryonic_Accreted_Molecules_Get)
+       &,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     use Input_Parameters
     use Cosmology_Functions
     use Atomic_Data
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
     type(varying_string),                 intent(in)    :: accretionHalosMethod
-    procedure(double precision), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get&
+    procedure(double precision), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get &
          &,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get
-    procedure(),                 pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Abundances_Get&
-         &,Halo_Baryonic_Accreted_Abundances_Get ,Halo_Baryonic_Accretion_Rate_Molecules_Get,Halo_Baryonic_Accreted_Molecules_Get
-   
+    procedure(),                 pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Abundances_Get &
+         &,Halo_Baryonic_Accreted_Abundances_Get ,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get
+
     if (accretionHalosMethod == 'simple') then
        ! Set pointers to our implementations of accretion functions.
        Halo_Baryonic_Accretion_Rate_Get            => Halo_Baryonic_Accretion_Rate_Simple_Get
@@ -115,12 +115,12 @@ contains
        Halo_Baryonic_Failed_Accreted_Mass_Get      => Halo_Baryonic_Failed_Accreted_Mass_Simple_Get
        Halo_Baryonic_Accretion_Rate_Abundances_Get => Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get
        Halo_Baryonic_Accreted_Abundances_Get       => Halo_Baryonic_Accreted_Abundances_Simple_Get
-       Halo_Baryonic_Accretion_Rate_Molecules_Get  => Halo_Baryonic_Accretion_Rate_Molecules_Simple_Get
-       Halo_Baryonic_Accreted_Molecules_Get        => Halo_Baryonic_Accreted_Molecules_Simple_Get
+       Halo_Baryonic_Accretion_Rate_Chemicals_Get  => Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get
+       Halo_Baryonic_Accreted_Chemicals_Get        => Halo_Baryonic_Accreted_Chemicals_Simple_Get
        ! Get the index of the solar composition abundance pattern.
        abundanceIndexSolar=Abundance_Pattern_Lookup(abundanceName="solar")
-       ! Get a count of the number of molecules being tracked.
-       moleculesCount=Molecules_Property_Count()
+       ! Get a count of the number of chemicals being tracked.
+       chemicalsCount=Chemicals_Property_Count()
        ! Create a structure with zero abundances.
        call zeroAbundances%metallicitySet(0.0d0,adjustElements=adjustElementsReset,abundanceIndex=abundanceIndexSolar)
        ! Read parameters.
@@ -263,58 +263,58 @@ contains
     return
   end subroutine Halo_Baryonic_Accreted_Abundances_Simple_Get
   
-  subroutine Halo_Baryonic_Accretion_Rate_Molecules_Simple_Get(thisNode,accretionRateMolecules)
-    !% Computes the rate of mass of molecules accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium. Assumes a
+  subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get(thisNode,accretionRateChemicals)
+    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium. Assumes a
     !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     !% temperature.
     use Tree_Nodes
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
-    type(treeNode),                     intent(inout), pointer :: thisNode
-    type(molecularAbundancesStructure), intent(inout)          :: accretionRateMolecules
-    double precision                                           :: massAccretionRate
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    type(chemicalAbundancesStructure), intent(inout)          :: accretionRateChemicals
+    double precision                                          :: massAccretionRate
 
-    ! Return immediately if no molecules are being tracked.
-    if (moleculesCount == 0) return
+    ! Return immediately if no chemicals are being tracked.
+    if (chemicalsCount == 0) return
 
-    ! Ensure that molecules are reset to zero.
-    call accretionRateMolecules%reset()
+    ! Ensure that chemicals are reset to zero.
+    call accretionRateChemicals%reset()
 
     ! Get the total mass accretion rate onto the halo.
     massAccretionRate=Halo_Baryonic_Accretion_Rate_Simple_Get(thisNode)
     
     ! Get the mass accretion rates.
-    call Get_Molecular_Masses(thisNode,massAccretionRate,accretionRateMolecules)
+    call Get_Chemical_Masses(thisNode,massAccretionRate,accretionRateChemicals)
 
     return
-  end subroutine Halo_Baryonic_Accretion_Rate_Molecules_Simple_Get
+  end subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get
   
-  subroutine Halo_Baryonic_Accreted_Molecules_Simple_Get(thisNode,accretedMolecules)
-    !% Computes the mass of molecules accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+  subroutine Halo_Baryonic_Accreted_Chemicals_Simple_Get(thisNode,accretedChemicals)
+    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Tree_Nodes
-    use Molecular_Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
-    type(treeNode),                     intent(inout), pointer :: thisNode
-    type(molecularAbundancesStructure), intent(inout)          :: accretedMolecules
-    double precision                                           :: massAccreted
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    type(chemicalAbundancesStructure), intent(inout)          :: accretedChemicals
+    double precision                                          :: massAccreted
 
-    ! Return immediately if no molecules are being tracked.
-    if (moleculesCount == 0) return
+    ! Return immediately if no chemicals are being tracked.
+    if (chemicalsCount == 0) return
 
-    ! Ensure that molecules are reset to zero.
-    call accretedMolecules%reset()
+    ! Ensure that chemicals are reset to zero.
+    call accretedChemicals%reset()
 
     ! Total mass of material accreted.
     massAccreted=Halo_Baryonic_Accreted_Mass_Simple_Get(thisNode)
 
-    ! Get the masses of molecules accreted.
-    call Get_Molecular_Masses(thisNode,massAccreted,accretedMolecules)
+    ! Get the masses of chemicals accreted.
+    call Get_Chemical_Masses(thisNode,massAccreted,accretedChemicals)
 
     return
-  end subroutine Halo_Baryonic_Accreted_Molecules_Simple_Get
+  end subroutine Halo_Baryonic_Accreted_Chemicals_Simple_Get
   
-  subroutine Get_Molecular_Masses(thisNode,massAccreted,molecularMasses)
-    !% Compute the masses of molecules accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+  subroutine Get_Chemical_Masses(thisNode,massAccreted,chemicalMasses)
+    !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Tree_Nodes
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
@@ -323,20 +323,20 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
-    use Ionization_States
-    use Molecular_Abundances_Structure
-    use Molecular_Reaction_Rates_Utilities
+    use Chemical_States
+    use Chemical_Abundances_Structure
+    use Chemical_Reaction_Rates_Utilities
     implicit none
-    type(treeNode),                     intent(inout), pointer :: thisNode
-    double precision,                   intent(in)             :: massAccreted
-    type(molecularAbundancesStructure), intent(out)            :: molecularMasses
-    double precision                                           :: massToDensityConversion,temperature,numberDensityHydrogen&
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    double precision,                  intent(in)             :: massAccreted
+    type(chemicalAbundancesStructure), intent(out)            :: chemicalMasses
+    double precision                                          :: massToDensityConversion,temperature,numberDensityHydrogen&
          &,electronsDensity ,hydrogensAtomicDensity,hydrogensCationDensity
-    type(molecularAbundancesStructure), save                   :: molecularDensities
-    !$omp threadprivate(molecularDensities)
+    type(chemicalAbundancesStructure), save                   :: chemicalDensities
+    !$omp threadprivate(chemicalDensities)
 
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=Molecules_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
 
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
@@ -346,14 +346,14 @@ contains
     ! Set the radiation field.
     call radiation%set(thisNode)
 
-    ! Get the molecule densities.
-    call Molecular_Densities(molecularDensities,temperature,numberDensityHydrogen,zeroAbundances,radiation)
+    ! Get the chemical densities.
+    call Chemical_Densities(chemicalDensities,temperature,numberDensityHydrogen,zeroAbundances,radiation)
 
     ! Convert from densities to masses.
-    call molecularDensities%numberToMass(molecularMasses)
-    call molecularMasses%multiply(massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen)
+    call chemicalDensities%numberToMass(chemicalMasses)
+    call chemicalMasses%multiply(massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen)
 
     return
-  end subroutine Get_Molecular_Masses
+  end subroutine Get_Chemical_Masses
 
 end module Accretion_Halos_Simple
