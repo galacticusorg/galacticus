@@ -62,7 +62,7 @@ sub Select_Output {
 	my $message  = "Select_Output(): Unable to find matching redshift.\n";
 	$message .= "                 Requested redshift was: ".$redshift."\n";
 	$message .= "                 Available redshifts are: ".$redshiftsAvailable."\n";
-	$message .= "                 Try adding the requested redshift to the 'outputRedshifts' paremeter in Galacticus.\n";
+	$message .= "                 Try adding the requested redshift to the 'outputRedshifts' parameter in Galacticus.\n";
 	die($message);
     }
     # Ensure that the data sets available gets reset for this new output.

@@ -20,6 +20,18 @@ my $outputFolder = $ARGV[1];
 my $HDFfile = new PDL::IO::HDF5($modelFile);
 
 # Read the timestep histogram.
+my $foundGroup      = 0;
+my @groupsAvailable = $HDFfile->groups();
+foreach my $groupAvailable ( @groupsAvailable ) {
+    $foundGroup = 1 if ( $groupAvailable eq "metaData" );
+}
+die ("metaAnalysis.pl: metaData group does not exist") unless ( $foundGroup == 1 );
+$foundGroup      = 0;
+@groupsAvailable = $HDFfile->group("metaData")->groups();
+foreach my $groupAvailable ( @groupsAvailable ) {
+    $foundGroup = 1 if ( $groupAvailable eq "evolverProfiler" );
+}
+die ("metaAnalysis.pl: metaData/evolverProfile group does not exist") unless ( $foundGroup == 1 );
 my $timeSteps        = $HDFfile->group("metaData/evolverProfiler")->dataset("metaProfileTimeStep"        )->get();
 my $timeStepCount    = $HDFfile->group("metaData/evolverProfiler")->dataset("metaProfileTimeStepCount"   )->get();
 my $propertyNames    = $HDFfile->group("metaData/evolverProfiler")->dataset("metaProfilePropertyNames"   )->get();
