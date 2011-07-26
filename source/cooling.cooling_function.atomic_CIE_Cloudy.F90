@@ -76,7 +76,7 @@ module Cooling_Functions_Atomic_CIE_Cloudy
 
   ! File name for the cooling function and ionization state data.
   character(len=50)           :: coolingFunctionFile='data/cooling_function_Atomic_CIE_Cloudy.xml'
-  character(len=50)           :: ionizationStateFile='data/ionization_state_Atomic_CIE_Cloudy.xml'
+  character(len=50)           :: chemicalStateFile  ='data/chemical_state_Atomic_CIE_Cloudy.xml'
 
   ! Maximum tabulated metallicity.
   double precision, parameter :: metallicityMaximumDefault=30.0d0 ! Thirty times Solar.
@@ -146,7 +146,7 @@ contains
 
        ! Run Atomic_CIE_Cloudy wrapper script.
        command='./scripts/aux/Atomic_CIE_Cloudy_Driver.pl '//metallicityLabel//' '//trim(coolingFunctionFile)//' '&
-            &//trim(ionizationStateFile)
+            &//trim(chemicalStateFile)
        call System_Command_Do(command)
 
        ! Call routine to read in the tabulated data.
