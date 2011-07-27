@@ -91,6 +91,7 @@ contains
     integer                          :: iFilter
 
     ! See if we already have this filter loaded. If not, load it.
+    !$omp critical (Filter_Get_Index_Lock)
     if (.not.allocated(filterResponses)) then
        call Filter_Response_Load(filterName)
        Filter_Get_Index=1
@@ -107,6 +108,7 @@ contains
           Filter_Get_Index=size(filterResponses)
        end if
     end if
+    !$omp end critical (Filter_Get_Index_Lock)
     return
   end function Filter_Get_Index
 
