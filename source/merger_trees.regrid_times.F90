@@ -116,6 +116,7 @@ contains
     integer(kind=kind_int8)                            :: nodeIndex,firstNewNode
 
     ! Check if module is initialized.
+    !$omp critical (Merger_Tree_Regrid_Time_Initialize)
     if (.not.regridTimeModuleInitialized) then
        ! Get parameter specifying if regridding is required.
        !@ <inputParameter>
@@ -222,6 +223,7 @@ contains
        ! Flag that module is initialized.
        regridTimeModuleInitialized=.true.
     end if
+    !$omp end critical (Merger_Tree_Regrid_Time_Initialize)
 
     ! Prune tree if necessary.
     if (mergerTreeRegridTimes) then

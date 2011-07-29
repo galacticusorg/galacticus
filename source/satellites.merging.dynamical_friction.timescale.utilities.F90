@@ -75,10 +75,11 @@ module Dynamical_Friction_Timescale_Utilities
 contains
 
   double precision function Dynamical_Friction_Timescale_Multiplier()
-    !% 
+    !% Returns a multiplicative factor for scaling of dynamical friction timescales for satellite merging time calculations.
     use Input_Parameters
     implicit none
 
+    !$omp critical (Dynamical_Friction_Timescale_Multiplier_Initialize)
     if (.not.dynamicalFrictionMultiplierInitialized) then
        !@ <inputParameter>
        !@   <name>mergingTimescaleMultiplier</name>
@@ -92,6 +93,7 @@ contains
        ! Flag that the module is now initialized. 
        dynamicalFrictionMultiplierInitialized=.true.
     end if
+    !$omp end critical (Dynamical_Friction_Timescale_Multiplier_Initialize)
 
     ! Return the stored multiplier.
     Dynamical_Friction_Timescale_Multiplier=mergingTimescaleMultiplier
