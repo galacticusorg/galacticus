@@ -39,6 +39,12 @@
       <name>darkMatterProfileMethod</name>
       <value>NFW</value>
       <value>isothermal</value>
+      <value>Einasto
+      <parameter>
+	<name>treeNodeMethodDarkMatterProfile</name>
+	<value>scale + shape</value>
+      </parameter>
+      </value>
     </parameter>
   </parameters>
   <parameters>
@@ -61,6 +67,7 @@
       <name>haloSpinDistributionMethod</name>
       <value>Bett2007</value>
       <value>lognormal</value>
+      <value>delta function</value>
     </parameter>
   </parameters>
   <parameters>
@@ -169,10 +176,11 @@
       <value>BoylanKolchin2008</value>
       <value>Lacey-Cole</value>
       <value>Jiang2008</value>
+      <value>Lacey-Cole + Tormen</value>
     </parameter>
   </parameters>
   <parameters>
-<!-- Use fairly strict limits on the outflow timescales to avoid unstable evolution. -->
+    <!-- Use fairly strict limits on the outflow timescales to avoid unstable evolution. -->
     <parameter>
       <name>diskOutflowTimescaleMinimum</name>
       <value>0.1</value>
@@ -224,6 +232,7 @@
       <name>virialDensityContrastMethod</name>
       <value>spherical top hat</value>
       <value>Bryan + Norman</value>
+      <value>fixed</value>
     </parameter>
   </parameters>
   <parameters>
@@ -252,6 +261,8 @@
 	  <value>true</value>
         </parameter>
       </value>
+      <value>extended Schmidt</value>
+      <value>Baugh2005</value>
     </parameter>
   </parameters>
   <parameters>
@@ -267,6 +278,7 @@
       <value>Gao 2008</value>
       <value>Zhao 2009</value>
       <value>Munoz-Cuartas 2011</value>
+      <value>NFW 1996</value>
     </parameter>
   </parameters>
 
@@ -298,4 +310,276 @@
     </parameter>
   </parameters>
   
+  <!-- Black hole binary methods. -->
+  <parameters>
+    <parameter>
+      <name>blackHoleBinaryInitialRadiiMethod</name>
+      <value>spheroid radius fraction</value>
+    </parameter>
+  </parameters>
+  
+  <!-- Cooling rate methods. -->
+  <parameters>
+    <parameter>
+      <name>coolingRateMethod</name>
+      <value>White + Frenk</value>
+      <value>Cole2000
+      <parameter>
+	<name>treeNodeMethodFormationTimes</name>
+	<value>Cole2000</value>
+      </parameter>
+      </value>
+    </parameter>
+  </parameters>
+  
+  <!-- Spheroid comopnents. -->
+  <parameters>
+    <parameter>
+      <name>treeNodeMethodSpheroid</name>
+      <value>Hernquist</value>
+      <value>Sersic</value>
+    </parameter>
+  </parameters>
+   
+  <!-- Black hole comopnents. -->
+  <parameters>
+    <parameter>
+      <name>treeNodeMethodBlackHole</name>
+      <value>standard</value>
+      <value>simple</value>
+    </parameter> 
+  </parameters>
+  
+  <!-- Infall and freefall radii. -->
+  <parameters>
+    <parameter>
+      <name>infallRadiusMethod</name>
+      <value>cooling radius</value>
+      <value>cooling and freefall
+      <parameter>
+	<name>freefallRadiusMethod</name>
+	<value>dark matter halo</value>
+      </parameter> 
+      <parameter>
+	<name>freefallTimeAvailableMethod</name>
+	<value>halo formation</value>
+      </parameter> 
+      <parameter>
+	<name>treeNodeMethodFormationTimes</name>
+	<value>Cole2000</value>
+      </parameter>
+      </value>
+    </parameter> 
+  </parameters>
+  
+  <!-- Cooling time available. -->
+  <parameters>
+    <parameter>
+      <name>coolingTimeAvailableMethod</name>
+      <value>White-Frenk</value>
+      <value>halo formation
+      <parameter>
+	<name>treeNodeMethodFormationTimes</name>
+	<value>Cole2000</value>
+      </parameter>
+      </value>
+    </parameter>
+  </parameters>
+  
+  <!-- Cooling specific angular momentum. -->
+  <parameters>
+    <parameter>
+      <name>coolingSpecificAngularMomentumMethod</name>
+      <value>constant rotation
+      <parameter>
+	<name>coolingMeanAngularMomentumFrom</name>
+	<value>hot gas</value>
+	<value>dark matter</value>
+      </parameter>
+      </value>
+    </parameter>
+  </parameters>
+  
+  <!-- Subhalo mass loss rates. -->
+  <parameters>
+    <parameter>
+      <name>darkMatterHaloMassLossRateMethod</name>
+      <value>null</value>
+      <value>vanDenBosch2005</value>
+    </parameter>
+  </parameters>
+  
+  <!-- Merger mass movements. -->
+  <parameters>
+    <parameter>
+      <name>satelliteMergingMassMovementsMethod</name>
+      <value>simple</value>
+      <value>Baugh2005</value>
+    </parameter>
+  </parameters>
+  
+  <!-- Expulsive feedback. -->
+  <parameters>
+    <parameter>
+      <name>starFormationExpulsiveFeedbackDisksMethod</name>
+      <value>null</value>
+      <value>superwind
+      <parameter>
+	<name>starFormationExpulsiveFeedbackSpheroidMethod</name>
+	<value>null</value>
+	<value>superwind</value>
+      </parameter>
+      </value>
+    </parameter>
+  </parameters>
+
+  <!-- Test different IMFs -->
+  <parameters>
+    <parameter>
+      <name>imfSelectionMethod</name>
+      <value>fixed
+      <parameter>
+	<name>imfSelectionFixed</name>
+	<value>Baugh2005TopHeavy</value>
+	<value>Chabrier</value>
+	<value>Kennicutt</value>
+	<value>Kroupa</value>
+	<value>Miller-Scalo</value>
+	<value>Salpeter</value>
+	<value>Scalo</value>
+	<value>PiecewisePowerLaw
+	<parameter>
+	  <name>imfPiecewisePowerLawMassPoints</name>
+	  <value>0.1 1.0 125.0</value>
+	</parameter>
+	<parameter>
+	  <name>imfPiecewisePowerLawExponents</name>
+	  <value>-1.5 -2.3</value>
+	</parameter>
+	</value>
+      </parameter>
+      </value>
+      <value>diskSpheroid
+	<parameter>
+	  <name>imfSelectionDisk</name>
+	  <value>Chabrier</value>
+	</parameter>
+	<parameter>
+	  <name>imfSelectionSpheroid</name>
+	  <value>Kennicutt</value>
+	</parameter>
+      </value>
+    </parameter>
+  </parameters>
+
+  <!-- Hot halo density profile -->
+  <parameters>
+    <parameter>
+      <name>hotHaloDensityMethod</name>
+      <value>cored isothermal
+      <parameter>
+	<name>hotHaloCoredIsothermalCoreRadiiMethod</name>
+	<value>virialRadiusFraction</value>
+	<value>growing core</value>
+      </parameter>
+      </value>
+    </parameter>
+  </parameters>
+  
+  <!-- Output density contrasts -->
+  <parameters>
+    <parameter>
+      <name>outputDensityContrastData</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>outputDensityContrastValues</name>
+      <value>200 500</value>
+    </parameter>
+  </parameters>
+
+  <!-- Output half-light radii -->
+  <parameters>
+    <parameter>
+      <name>outputHalfLightData</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>luminosityFilter</name>
+      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
+    </parameter> 
+    <parameter>
+      <name>luminosityType</name>
+      <value>rest observed observed observed</value>
+    </parameter> 
+    <parameter>
+      <name>luminosityRedshift</name>
+      <value>0.0 0.1 0.1 0.1</value>
+    </parameter>
+  </parameters>
+
+  <!-- Output main branch -->
+  <parameters>
+    <parameter>
+      <name>outputMainBranchStatus</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
+
+  <!-- Output mass profile -->
+  <parameters>
+    <parameter>
+      <name>outputMassProfileData</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>outputMassProfileRadii</name>
+      <value>10.0e-3 100.0d-3</value>
+    </parameter>
+  </parameters>
+
+  <!-- Output star formation rates -->
+  <parameters>
+    <parameter>
+      <name>diskOutputStarFormationRate</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>spheroidOutputStarFormationRate</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
+
+  <!-- Output star formation histories -->
+  <parameters>
+    <parameter>
+      <name>starFormationHistoriesMethod</name>
+      <value>metallicity split</value>
+    </parameter>
+  </parameters>
+
+  <!-- Output virial quantities -->
+  <parameters>
+    <parameter>
+      <name>outputVirialData</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
+  
+  <!-- Calculation of luminosities -->
+  <parameters>
+    <parameter>
+      <name>luminosityFilter</name>
+      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
+    </parameter> 
+    <parameter>
+      <name>luminosityType</name>
+      <value>rest observed observed observed</value>
+    </parameter> 
+    <parameter>
+      <name>luminosityRedshift</name>
+      <value>0.0 0.1 0.1 0.1</value>
+    </parameter>
+  </parameters>
+
 </parameterGrid>

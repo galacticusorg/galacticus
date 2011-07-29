@@ -150,7 +150,7 @@ contains
     else
        Search_Array_For_Closest=FGSL_Interp_BSearch(arrayToSearch,valueToFind,int(lbound(arrayToSearch,dim=1),kind=fgsl_size_t)-1&
             &,int(ubound(arrayToSearch,dim=1),kind=fgsl_size_t)-1)
-       if (dabs(valueToFind-arrayToSearch(Search_Array_For_Closest)) > dabs(valueToFind-arrayToSearch(Search_Array_For_Closest&
+       if (dabs(valueToFind-arrayToSearch(Search_Array_For_Closest)) >= dabs(valueToFind-arrayToSearch(Search_Array_For_Closest&
             &+1))) Search_Array_For_Closest=Search_Array_For_Closest+1
     end if
     if (present(tolerance)) then

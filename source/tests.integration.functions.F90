@@ -59,81 +59,69 @@
 !!    http://www.ott.caltech.edu
 
 
-program Tests_Bug745815
-  !% Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
-  !% walk.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Memory_Management
-  use Merger_Trees
-  use Tree_Nodes
-  use Kind_Numbers
-  implicit none
-  type(varying_string)            :: parameterFile
-  type(mergerTree)                :: thisTree
-  type(treeNodeList)              :: nodes(5)
-  logical                         :: nodeFound(5)
-  type(treeNode),         pointer :: thisNode
-  integer(kind=kind_int8)         :: iNode
+!% Contains a module of integrands for unit tests.
 
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.bug745815.size')
+module Test_Integration_Functions
+  !% Contains integrands for unit tests.
+  use FGSL
+  private
+  public :: Integrand1, Integrand2, Integrand3, Integrand4
 
-  ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Bug #745815: Node skip during tree-walk")
-
-  ! Open the parameter file.
-  parameterFile='testSuite/parameters/bug745815.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  type(fgsl_function),              save :: integrandFunction
+  type(fgsl_integration_workspace), save :: integrationWorkspace
+  logical,                          save :: integrationReset=.true.
   
-  ! Create nodes.
-  do iNode=1,5
-     call thisTree%createNode(nodes(iNode)%node)
-  end do
-
-  ! Set indices of nodes.
-  call nodes(1)%node%indexSet(100017990003559_kind_int8)
-  call nodes(2)%node%indexSet(100017990003560_kind_int8)
-  call nodes(3)%node%indexSet(100017990003561_kind_int8)
-  call nodes(4)%node%indexSet(100017990003562_kind_int8)
-  call nodes(5)%node%indexSet(100017990003571_kind_int8)
+contains
   
-  ! Set child nodes.
-  nodes(1)%node%childNode => nodes(2)%node
-  nodes(2)%node%childNode => nodes(3)%node
-  nodes(3)%node%childNode => nodes(4)%node
+  function Integrand1(x,parameterPointer) bind(c)
+    !% Integral for unit testing.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)        :: Integrand1
+    real(c_double), value :: x
+    type(c_ptr)           :: parameterPointer
+    
+    Integrand1=x
+    return
+  end function Integrand1
   
-  ! Set parent nodes.
-  nodes(2)%node%parentNode => nodes(1)%node
-  nodes(3)%node%parentNode => nodes(2)%node
-  nodes(4)%node%parentNode => nodes(3)%node
-  nodes(5)%node%parentNode => nodes(3)%node
+  function Integrand2(x,parameterPointer) bind(c)
+    !% Integral for unit testing.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)        :: Integrand2
+    real(c_double), value :: x
+    type(c_ptr)           :: parameterPointer
+    
+    Integrand2=sin(x)
+    return
+  end function Integrand2
   
-  ! Set satellite nodes.
-  nodes(3)%node%satelliteNode => nodes(5)%node
+  function Integrand3(x,parameterPointer) bind(c)
+    !% Integral for unit testing.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    real(c_double)        :: Integrand3
+    real(c_double), value :: x
+    type(c_ptr)           :: parameterPointer
+    
+    Integrand3=1.0d0/dsqrt(x)
+    return
+  end function Integrand3
   
-  ! Walk the tree, with satellites.
-  nodeFound=.false.
-  thisNode => nodes(1)%node
-  do while (associated(thisNode))
-     do iNode=1,5
-        if (nodes(iNode)%node%index() == thisNode%index()) nodeFound(iNode)=.true.
-     end do
-     call thisNode%walkTreeWIthSatellites(thisNode)
-  end do
-  call Assert('All nodes walked to',all(nodeFound),.true.)
-
-  ! Destroy nodes.
-  do iNode=1,5
-     call nodes(iNode)%node%destroy()
-  end do
+  function Integrand4(x,parameterPointer) bind(c)
+    !% Integral for unit testing.
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Integration
+    use FGSL
+    implicit none
+    real(c_double)        :: Integrand4
+    real(c_double), value :: x
+    type(c_ptr)           :: parameterPointer
+    
+    Integrand4=cos(x)*Integrate(0.0d0,x,Integrand1,parameterPointer,integrandFunction&
+       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+    return
+  end function Integrand4
   
-  ! Close the parameter file.
-  call Input_Parameters_File_Close  
-
-  ! End unit tests.
-  call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
-end program Tests_Bug745815
+end module Test_Integration_Functions

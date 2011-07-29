@@ -59,10 +59,10 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a program to test the array monotonicity checking routines.
+!% Contains a program to test the array functions.
 
 program Test_Array_Monotonicity
-  !% Tests that array monotonicity routines work correctly.
+  !% Tests that array functions.
   use Unit_Tests
   use ISO_Varying_String
   use Array_Utilities
@@ -112,6 +112,11 @@ program Test_Array_Monotonicity
        &                                                                             ,'Decreasing array (with equalities)   '                                 &
        &                                                                             ,'Non-monotinic array (with equalities)'                                 &
        &                                                                            ]
+  double precision,            dimension(  10) :: doubleArray         =[0.0d0,1.0d0,2.0d0,3.0d0, 4.0d0, 5.0d0, 6.0d0, 7.0d0, 8.0d0, 9.0d0]
+  double precision,            dimension(  10) :: doubleArrayReversed =[9.0d0,8.0d0,7.0d0,6.0d0, 5.0d0, 4.0d0, 3.0d0, 2.0d0, 1.0d0, 0.0d0]
+  double precision,            dimension(  10) :: doubleArrayCumulated=[0.0d0,1.0d0,3.0d0,6.0d0,10.0d0,15.0d0,21.0d0,28.0d0,36.0d0,45.0d0]
+  real,                        dimension(  10) :: realArray           =[0.0e0,1.0e0,2.0e0,3.0e0, 4.0e0, 5.0e0, 6.0e0, 7.0e0, 8.0e0, 9.0e0]
+  real,                        dimension(  10) :: realArrayReversed   =[9.0e0,8.0e0,7.0e0,6.0e0, 5.0e0, 4.0e0, 3.0e0, 2.0e0, 1.0e0, 0.0e0]
   double precision,   pointer, dimension( :,:) :: thisArraySet
   logical,            pointer, dimension( :,:) :: thisExpectations
   character(len=128), pointer, dimension(   :) :: thisNames
@@ -120,7 +125,7 @@ program Test_Array_Monotonicity
   type(varying_string)                         :: test
 
   ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Array monotonicity")
+  call Unit_Tests_Begin_Group("Array functions")
 
   ! Loop over all sets of arrays.
   do iArraySet=1,2
@@ -183,6 +188,13 @@ program Test_Array_Monotonicity
      end do
   end do
   
+  ! Test array reversal.
+  call Assert('Reverse double precision array',Array_Reverse(doubleArray),doubleArrayReversed)
+  call Assert('Reverse single precision array',Array_Reverse(realArray  ),realArrayReversed  )
+
+  ! Test array cumulation.
+  call Assert('Cumulate double precision array',Array_Cumulate(doubleArray),doubleArrayCumulated)
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

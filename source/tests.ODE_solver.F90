@@ -59,81 +59,64 @@
 !!    http://www.ott.caltech.edu
 
 
-program Tests_Bug745815
-  !% Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
-  !% walk.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Memory_Management
-  use Merger_Trees
-  use Tree_Nodes
-  use Kind_Numbers
-  implicit none
-  type(varying_string)            :: parameterFile
-  type(mergerTree)                :: thisTree
-  type(treeNodeList)              :: nodes(5)
-  logical                         :: nodeFound(5)
-  type(treeNode),         pointer :: thisNode
-  integer(kind=kind_int8)         :: iNode
+!% Contains a program to test ODE solver routines.
 
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.bug745815.size')
+program Test_ODE_Solver
+  !% Tests that ODE solver routines work.
+  use Unit_Tests
+  use ISO_Varying_String
+  use FGSL
+    use ODE_Solver
+  use Test_ODE_Solver_Functions
+  use, intrinsic :: ISO_C_Binding
+  implicit none
+  double precision,         dimension(10) :: xEnd
+  double precision,         dimension( 2) :: y
+  type(fgsl_odeiv_step)                   :: odeStepper
+  type(fgsl_odeiv_control)                :: odeController
+  type(fgsl_odeiv_evolve)                 :: odeEvolver
+  type(fgsl_odeiv_system)                 :: odeSystem
+  logical                                 :: odeReset
+  type(c_ptr)                             :: parameterPointer
+  integer                                 :: i
+  double precision                        :: xStart
+  character(len=32)                       :: message
 
   ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Bug #745815: Node skip during tree-walk")
+  call Unit_Tests_Begin_Group("ODE solver")
 
-  ! Open the parameter file.
-  parameterFile='testSuite/parameters/bug745815.xml'
-  call Input_Parameters_File_Open(parameterFile)
-  
-  ! Create nodes.
-  do iNode=1,5
-     call thisTree%createNode(nodes(iNode)%node)
+  ! Sinusoid.
+  call Unit_Tests_Begin_Group("y'=sin(x)")
+  xEnd=[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
+  do i=1,size(xEnd)
+     odeReset=.true.
+     y(1:1)=[0.0d0]
+     xStart=0.0d0
+     call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,xStart,xEnd(i),1,y(1:1)&
+          &,ODE_Set_1,parameterPointer,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9,reset=odeReset)
+     call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
+     write (message,'(a,f4.1)') "x=0 to ",xEnd(i)
+     call Assert(trim(message),y(1:1),1.0d0-cos(xEnd(i:i)),relTol=1.0d-6)
   end do
+  call Unit_Tests_End_Group()
 
-  ! Set indices of nodes.
-  call nodes(1)%node%indexSet(100017990003559_kind_int8)
-  call nodes(2)%node%indexSet(100017990003560_kind_int8)
-  call nodes(3)%node%indexSet(100017990003561_kind_int8)
-  call nodes(4)%node%indexSet(100017990003562_kind_int8)
-  call nodes(5)%node%indexSet(100017990003571_kind_int8)
-  
-  ! Set child nodes.
-  nodes(1)%node%childNode => nodes(2)%node
-  nodes(2)%node%childNode => nodes(3)%node
-  nodes(3)%node%childNode => nodes(4)%node
-  
-  ! Set parent nodes.
-  nodes(2)%node%parentNode => nodes(1)%node
-  nodes(3)%node%parentNode => nodes(2)%node
-  nodes(4)%node%parentNode => nodes(3)%node
-  nodes(5)%node%parentNode => nodes(3)%node
-  
-  ! Set satellite nodes.
-  nodes(3)%node%satelliteNode => nodes(5)%node
-  
-  ! Walk the tree, with satellites.
-  nodeFound=.false.
-  thisNode => nodes(1)%node
-  do while (associated(thisNode))
-     do iNode=1,5
-        if (nodes(iNode)%node%index() == thisNode%index()) nodeFound(iNode)=.true.
-     end do
-     call thisNode%walkTreeWIthSatellites(thisNode)
+  ! Harmonic oscillator.
+  call Unit_Tests_Begin_Group("y''=-y")
+  xEnd=[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
+  do i=1,size(xEnd)
+     odeReset=.true.
+     y(1:2)=[1.0d0,0.0d0]
+     xStart=0.0d0
+     call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,xStart,xEnd(i),2,y(1:2)&
+          &,ODE_Set_2,parameterPointer,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9,reset=odeReset)
+     call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
+     write (message,'(a,f4.1)') "x=0 to ",xEnd(i)
+     call Assert(trim(message),y(1:2),[cos(xEnd(i)),-sin(xEnd(i))],relTol=1.0d-6)
   end do
-  call Assert('All nodes walked to',all(nodeFound),.true.)
-
-  ! Destroy nodes.
-  do iNode=1,5
-     call nodes(iNode)%node%destroy()
-  end do
-  
-  ! Close the parameter file.
-  call Input_Parameters_File_Close  
+  call Unit_Tests_End_Group()
 
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
 
-end program Tests_Bug745815
+end program Test_ODE_Solver

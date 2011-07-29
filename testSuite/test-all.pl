@@ -70,7 +70,21 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 # Define a list of executables to run.
 @executablesToRun = (
     "tests.IO.HDF5.exe",                         # Tests of HDF5 IO routines.
-    "tests.array_monotonicity.exe",              # Tests of array monotonicity checking function.
+    "tests.ODE_solver.exe",                      # Tests of ODE solver routines.
+    "tests.arrays.exe",                          # Tests of array functions.
+    "tests.comparisons.exe",                     # Tests of comparison functions.
+    "tests.geometry.coordinate_systems.exe",     # Tests of coordinate system functions.
+    "tests.hashes.exe",                          # Tests of hashing utilities.
+    "tests.integration.exe",                     # Tests of integration functions.
+    "tests.interpolation.exe",                   # Tests of interpolation functions.
+    "tests.interpolation.2D.exe",                # Tests of 2D interpolation function.
+    "tests.make_ranges.exe",                     # Tests of numerical range building functions.
+    "tests.math_special_functions.exe",          # Tests of mathematical special functions.
+    "tests.root_finding.exe",                    # Tests of root finding functions.
+    "tests.search.exe",                          # Tests of searching functions.
+    "tests.sort.exe",                            # Tests of sorting functions.
+    "tests.string_utilities.exe",                # Tests of string handling utilities.
+    "tests.vectors.exe",                         # Tests of vector functions.
     "tests.cosmic_age.dark_energy.exe",          # Tests of cosmic age calculations.
     "tests.cosmic_age.EdS.exe",                  # .
     "tests.cosmic_age.open.exe",                 # .
@@ -85,7 +99,6 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     "tests.Zhao2009_algorithms.open.exe",        # .
     "tests.NFW96_concentration.dark_energy.exe", # Tests of Navarro, Frenk & White (1996) halo concentration algorithm.
     "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
-    "tests.hashes.exe",                          # Hashing utilities.
     "tests.sigma.exe",                           # Sigma(M).
     "tests.bug745815.exe",                       # Regresssions.
     );

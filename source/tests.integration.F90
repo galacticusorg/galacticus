@@ -59,81 +59,51 @@
 !!    http://www.ott.caltech.edu
 
 
-program Tests_Bug745815
-  !% Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
-  !% walk.
-  use Unit_Tests
-  use Input_Parameters
-  use ISO_Varying_String
-  use Memory_Management
-  use Merger_Trees
-  use Tree_Nodes
-  use Kind_Numbers
-  implicit none
-  type(varying_string)            :: parameterFile
-  type(mergerTree)                :: thisTree
-  type(treeNodeList)              :: nodes(5)
-  logical                         :: nodeFound(5)
-  type(treeNode),         pointer :: thisNode
-  integer(kind=kind_int8)         :: iNode
+!% Contains a program to test integration routines.
 
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.bug745815.size')
+program Test_Integration
+  !% Tests that numerical integration routines work.
+  use Unit_Tests
+  use ISO_Varying_String
+  use Numerical_Integration
+  use FGSL
+  use Test_Integration_Functions
+  use, intrinsic :: ISO_C_Binding
+  use Numerical_Constants_Math
+  implicit none
+  double precision                 :: integral
+  type(fgsl_function)              :: integrandFunction
+  type(fgsl_integration_workspace) :: integrationWorkspace
+  type(c_ptr)                      :: parameterPointer
+  logical                          :: integrationReset
 
   ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Bug #745815: Node skip during tree-walk")
+  call Unit_Tests_Begin_Group("Numerical integration")
 
-  ! Open the parameter file.
-  parameterFile='testSuite/parameters/bug745815.xml'
-  call Input_Parameters_File_Open(parameterFile)
-  
-  ! Create nodes.
-  do iNode=1,5
-     call thisTree%createNode(nodes(iNode)%node)
-  end do
+  ! Test simple integrations.
+  integrationReset=.true.
+  integral=Integrate(0.0d0,1.0d0,Integrand1,parameterPointer,integrandFunction&
+       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+  call Assert("integrate f(x)=x from 0 to 1",integral,0.5d0,relTol=1.0d-6)
 
-  ! Set indices of nodes.
-  call nodes(1)%node%indexSet(100017990003559_kind_int8)
-  call nodes(2)%node%indexSet(100017990003560_kind_int8)
-  call nodes(3)%node%indexSet(100017990003561_kind_int8)
-  call nodes(4)%node%indexSet(100017990003562_kind_int8)
-  call nodes(5)%node%indexSet(100017990003571_kind_int8)
-  
-  ! Set child nodes.
-  nodes(1)%node%childNode => nodes(2)%node
-  nodes(2)%node%childNode => nodes(3)%node
-  nodes(3)%node%childNode => nodes(4)%node
-  
-  ! Set parent nodes.
-  nodes(2)%node%parentNode => nodes(1)%node
-  nodes(3)%node%parentNode => nodes(2)%node
-  nodes(4)%node%parentNode => nodes(3)%node
-  nodes(5)%node%parentNode => nodes(3)%node
-  
-  ! Set satellite nodes.
-  nodes(3)%node%satelliteNode => nodes(5)%node
-  
-  ! Walk the tree, with satellites.
-  nodeFound=.false.
-  thisNode => nodes(1)%node
-  do while (associated(thisNode))
-     do iNode=1,5
-        if (nodes(iNode)%node%index() == thisNode%index()) nodeFound(iNode)=.true.
-     end do
-     call thisNode%walkTreeWIthSatellites(thisNode)
-  end do
-  call Assert('All nodes walked to',all(nodeFound),.true.)
+  integrationReset=.true.
+  integral=Integrate(0.0d0,2.0d0*Pi,Integrand2,parameterPointer,integrandFunction&
+       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+  call Assert("integrate f(x)=sin(x) from 0 to 2 Pi",integral,0.0d0,absTol=1.0d-6)
 
-  ! Destroy nodes.
-  do iNode=1,5
-     call nodes(iNode)%node%destroy()
-  end do
-  
-  ! Close the parameter file.
-  call Input_Parameters_File_Close  
+  integrationReset=.true.
+  integral=Integrate(0.0d0,10.0d0,Integrand3,parameterPointer,integrandFunction&
+       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+  call Assert("integrate f(x)=1/sqrt(x) from 0 to 10",integral,2.0d0*sqrt(10.0d0),relTol=1.0d-6)
+
+  ! Test 2D integrations.
+  integrationReset=.true.
+  integral=Integrate(0.0d0,2.0d0*Pi,Integrand4,parameterPointer,integrandFunction&
+       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+  call Assert("integrate f(x,y)=cos(x)*y from x=0 to 2 Pi and y=0 to x",integral,2.0d0*Pi,relTol=1.0d-6)
 
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
 
-end program Tests_Bug745815
+end program Test_Integration

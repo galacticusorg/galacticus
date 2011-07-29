@@ -91,12 +91,14 @@ module Unit_Tests
   ! Interface for assert routines.
   interface Assert
      !% Generic interface for assert routines.
+     module procedure Assert_Real_Scalar
      module procedure Assert_Double_Scalar
      module procedure Assert_Integer_Scalar
      module procedure Assert_Integer8_Scalar
      module procedure Assert_Character_Scalar
      module procedure Assert_VarString_Scalar
      module procedure Assert_Logical_Scalar
+     module procedure Assert_Real_1D_Array
      module procedure Assert_Double_1D_Array
      module procedure Assert_Integer_1D_Array
      module procedure Assert_Integer8_1D_Array
@@ -110,6 +112,51 @@ module Unit_Tests
   end interface Assert
 
 contains
+
+  subroutine Assert_Real_Scalar(testName,value1,value2,compare,absTol,relTol)
+    !% Assess and record an assertion about real arguments.
+    use Numerical_Comparison
+    implicit none
+    character(len=*),   intent(in)           :: testName
+    real,               intent(in)           :: value1,value2
+    integer,            intent(in), optional :: compare
+    real,               intent(in), optional :: absTol,relTol
+    type(assertResult), pointer              :: thisResult
+    integer                                  :: compareActual
+    logical                                  :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals)
+       passed=.not.Values_Differ(value1,value2,absTol,relTol)
+    case (compareNotEqual          )
+       passed=(value1 /= value2)
+    case (compareLessThan          )
+       passed=(value1  < value2)
+    case (compareGreaterThan       )
+       passed=(value1  > value2)
+    case (compareLessThanOrEqual   )
+       passed=(value1 <= value2)
+    case (compareGreaterThanOrEqual)
+       passed=(value1 >= value2)
+    end select
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+
+    return
+  end subroutine Assert_Real_Scalar
 
   subroutine Assert_Double_Scalar(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
@@ -328,6 +375,57 @@ contains
 
     return
   end subroutine Assert_VarString_Scalar
+
+  subroutine Assert_Real_1D_Array(testName,value1,value2,compare,absTol,relTol)
+    !% Assess and record an assertion about real arguments.
+    use Numerical_Comparison
+    implicit none
+    character(len=*),   intent(in)               :: testName
+    real,               intent(in), dimension(:) :: value1,value2
+    integer,            intent(in), optional     :: compare
+    real,               intent(in), optional     :: absTol,relTol
+    type(assertResult), pointer                  :: thisResult
+    integer                                      :: compareActual,iTest
+    logical                                      :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals)
+       passed=.true.
+       do iTest=1,min(size(value1),size(value2))
+          if (Values_Differ(value1(iTest),value2(iTest),absTol,relTol)) then
+             passed=.false.
+             exit
+          end if
+       end do
+    case (compareNotEqual          )
+       passed=all(value1 /= value2)
+    case (compareLessThan          )
+       passed=all(value1  < value2)
+    case (compareGreaterThan       )
+       passed=all(value1  > value2)
+    case (compareLessThanOrEqual   )
+       passed=all(value1 <= value2)
+    case (compareGreaterThanOrEqual)
+       passed=all(value1 >= value2)
+    end select
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+
+    return
+  end subroutine Assert_Real_1D_Array
 
   subroutine Assert_Double_1D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.

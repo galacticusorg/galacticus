@@ -87,7 +87,7 @@ module String_Handling
   character(len=*), parameter :: charactersUpperCase='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
   ! Character strings used in whitespace detection.
-  character(len=*), parameter :: charactersWhiteSpace=' '//char(0)//char(10)//char(13)
+  character(len=*), parameter :: charactersWhiteSpace=' '//char(0)//char(9)//char(10)//char(13)
 
 contains
 

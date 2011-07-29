@@ -66,32 +66,56 @@ module Numerical_Comparison
   private
   public :: Values_Differ, Values_Agree
 
+  interface Values_Differ
+     module procedure Values_Differ_Real
+     module procedure Values_Differ_Double
+  end interface Values_Differ
+
+  interface Values_Agree
+     module procedure Values_Agree_Real
+     module procedure Values_Agree_Double
+  end interface Values_Agree
+
 contains
 
-  logical function Values_Differ(value1,value2,absTol,relTol)
+  logical function Values_Differ_Real(value1,value2,absTol,relTol)
+    !% Returns true if {\tt value1} and {\tt value2} differ by more than {\tt absTol} in absolute terms, or {\tt relTol} in
+    !% relative terms.
+    implicit none
+    real, intent(in)           :: value1,value2
+    real, intent(in), optional :: absTol,relTol
+    
+    Values_Differ_Real=.false.
+    if (present(absTol)) Values_Differ_Real=(abs(value1-value2) > absTol)
+    if (present(relTol)) Values_Differ_Real=Values_Differ_Real.or.(abs(value1-value2) > 0.5d0*abs(value1+value2)*relTol)
+    if (.not.(present(absTol).or.present(relTol))) Values_Differ_Real=(value1 /= value2)
+    return
+  end function Values_Differ_Real
+
+  logical function Values_Differ_Double(value1,value2,absTol,relTol)
     !% Returns true if {\tt value1} and {\tt value2} differ by more than {\tt absTol} in absolute terms, or {\tt relTol} in
     !% relative terms.
     implicit none
     double precision, intent(in)           :: value1,value2
     double precision, intent(in), optional :: absTol,relTol
     
-    Values_Differ=.false.
-    if (present(absTol)) Values_Differ=(abs(value1-value2) > absTol)
-    if (present(relTol)) Values_Differ=Values_Differ.or.(abs(value1-value2) > 0.5d0*abs(value1+value2)*relTol)
-    if (.not.(present(absTol).or.present(relTol))) Values_Differ=(value1 /= value2)
+    Values_Differ_Double=.false.
+    if (present(absTol)) Values_Differ_Double=(abs(value1-value2) > absTol)
+    if (present(relTol)) Values_Differ_Double=Values_Differ_Double.or.(abs(value1-value2) > 0.5d0*abs(value1+value2)*relTol)
+    if (.not.(present(absTol).or.present(relTol))) Values_Differ_Double=(value1 /= value2)
     return
-  end function Values_Differ
+  end function Values_Differ_Double
 
-  logical function Values_Agree(value1,value2,absTol,relTol)
+  logical function Values_Agree_Real(value1,value2,absTol,relTol)
     !% Returns true if {\tt value1} and {\tt value2} agree to within {\tt absTol} in absolute terms, or {\tt relTol} in
     !% relative terms.
     implicit none
-    double precision, intent(in)           :: value1,value2
-    double precision, intent(in), optional :: absTol,relTol
-    logical                                :: agreeAbsolutely,agreeRelatively
+    real,   intent(in)           :: value1,value2
+    real,   intent(in), optional :: absTol,relTol
+    logical                      :: agreeAbsolutely,agreeRelatively
 
     if (.not.(present(absTol).or.present(relTol))) then
-       Values_Agree=(value1 == value2)
+       Values_Agree_Real=(value1 == value2)
        return
     end if
     if (present(absTol)) then
@@ -104,9 +128,36 @@ contains
     else
        agreeRelatively=.true.
     end if
-    Values_Agree=    (present(absTol).and.agreeAbsolutely) &
-         &       .or.(present(relTol).and.agreeRelatively)
+    Values_Agree_Real=    (present(absTol).and.agreeAbsolutely) &
+         &              .or.(present(relTol).and.agreeRelatively)
     return
-  end function Values_Agree
+  end function Values_Agree_Real
+  
+  logical function Values_Agree_Double(value1,value2,absTol,relTol)
+    !% Returns true if {\tt value1} and {\tt value2} agree to within {\tt absTol} in absolute terms, or {\tt relTol} in
+    !% relative terms.
+    implicit none
+    double precision, intent(in)           :: value1,value2
+    double precision, intent(in), optional :: absTol,relTol
+    logical                                :: agreeAbsolutely,agreeRelatively
+
+    if (.not.(present(absTol).or.present(relTol))) then
+       Values_Agree_Double=(value1 == value2)
+       return
+    end if
+    if (present(absTol)) then
+       agreeAbsolutely=(abs(value1-value2) <= absTol)
+    else
+       agreeAbsolutely=.true.
+    end if
+    if (present(relTol)) then
+       agreeRelatively=(abs(value1-value2) <= 0.5d0*abs(value1+value2)*relTol)
+    else
+       agreeRelatively=.true.
+    end if
+    Values_Agree_Double=    (present(absTol).and.agreeAbsolutely) &
+         &              .or.(present(relTol).and.agreeRelatively)
+    return
+  end function Values_Agree_Double
   
 end module Numerical_Comparison
