@@ -89,6 +89,7 @@ contains
     integer                      :: hierarchyDepth
 
     ! Check if module is initialized.
+    !$omp critical (Merger_Tree_Prune_Hierarchy_Initialize)
     if (.not.pruneHierarchyModuleInitialized) then
        ! Get parameter specifying if pruning is required.
        !@ <inputParameter>
@@ -103,6 +104,7 @@ contains
        ! Flag that module is initialized.
        pruneHierarchyModuleInitialized=.true.
     end if
+    !$omp end critical (Merger_Tree_Prune_Hierarchy_Initialize)
 
     ! Prune tree if necessary.
     if (mergerTreePruneHierarchyAtDepth > 0) then
