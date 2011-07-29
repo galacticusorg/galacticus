@@ -6,14 +6,16 @@ use Data::Dumper;
 # Andrew Benson (01-Mar-2010)
 
 # Get the name of the Galacticus file to analyze.
-if ( $#ARGV != 1 ) {die("Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory>")};
+if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory> [<analysisScript>]")};
 $galacticusFile  = $ARGV[0];
 $outputDirectory = $ARGV[1];
+$analysisScript  = "data/Galacticus_Compute_Fit_Analyses.xml";
+$analysisScript  = $ARGV[2] if ( $#ARGV == 2 );
 system("mkdir -p $outputDirectory");
 
 # Open the descriptor file that explains what analysis files to run.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/Galacticus_Compute_Fit_Analyses.xml");
+$data = $xml->XMLin($analysisScript);
 
 # Initialize net chi^2 variables.
 $chiSquaredNet = 0.0;

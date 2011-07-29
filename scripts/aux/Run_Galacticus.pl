@@ -316,8 +316,11 @@ sub Model_Finalize {
     if ( $exitStatus == 0 ) {
 	# Model finished successfully.
 	# Generate plots.
-	system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory)
-	    unless ( $modelsToRun->{'doAnalysis'} eq "no" );
+	unless ( $modelsToRun->{'doAnalysis'} eq "no" ) {
+	    my $analysisScript = "data/Galacticus_Compute_Fit_Analyses.xml";
+	    $analysisScript = $modelsToRun->{'analysisScript'} if ( exists($modelsToRun->{'analysisScript'}) );
+	    system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory." ".$analysisScript);
+	}
     } else {
 	# The run failed for some reason.
 	# Move the core file to the output directory.
