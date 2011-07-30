@@ -605,7 +605,7 @@ contains
     logical,                            intent(inout) :: interrupt
     procedure(),               pointer, intent(inout) :: interruptProcedureReturn
     procedure(),               pointer                :: interruptProcedure
-    integer                                           :: thisIndex,iHistory
+    integer                                           :: thisIndex
     double precision                                  :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass &
          &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate&
          &,diskDynamicalTime,massOutflowRateToHotHalo,massOutflowRateFromHalo,outflowToHotHaloFraction

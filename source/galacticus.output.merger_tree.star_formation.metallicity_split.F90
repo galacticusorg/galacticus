@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -358,8 +358,7 @@ contains
     type(abundancesStructure), intent(in)             :: fuelAbundances
     double precision,          intent(in)             :: starFormationRate
     integer                                           :: iHistory,iMetallicity,historyCount
-    double precision                                  :: timeNode,timeBegin,timeEnd,fuelMetallicity
-    type(history)                                     :: newHistory
+    double precision                                  :: timeNode,fuelMetallicity
 
     ! Get the current time for this node.
     timeNode    =Tree_Node_Time(thisNode)

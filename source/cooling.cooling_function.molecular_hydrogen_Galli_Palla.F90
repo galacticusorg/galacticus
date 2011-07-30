@@ -151,10 +151,6 @@ contains
     type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
     type(radiationStructure),          intent(in)  :: radiation
     double precision,                  intent(out) :: coolingFunction
-    double precision                               :: logarithmic10Temperature,coolingFunctionLowDensityLimit &
-         &,coolingFunctionLocalThermodynamicEquilibrium ,molecularHydrogenDensity,atomicHydrogenDensity,electronDensity&
-         &,molecularHydrogenCationDensity ,numberDensityCriticalOverNumberDensityHydrogen&
-         &,coolingFunctionAtomicHydrogenMolecularHydrogenCation ,coolingFunctionElectronMolecularHydrogenCation
 
     ! Check if this cooling function has been selected.
     if (functionSelected) then
@@ -402,7 +398,7 @@ contains
          &,coolingFunctionVibrationalTemperaturePart,coolingFunctionLowDensityLimitStored
     !$omp threadprivate(temperaturePrevious,coolingFunctionRotationalTemperaturePart,coolingFunctionVibrationalTemperaturePart)
     !$omp threadprivate(coolingFunctionLowDensityLimitStored)
-    double precision              :: temperatureThousand,coolingFunctionRotational,coolingFunctionVibrational,logarithmic10Temperature
+    double precision              :: temperatureThousand,logarithmic10Temperature
 
     if (temperature /= temperaturePrevious) then
        ! The expression from Galli & Palla (1998), assumes an equilibrium (1:3) ratio of para:ortho.

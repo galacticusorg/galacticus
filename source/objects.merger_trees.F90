@@ -799,7 +799,7 @@ contains
     implicit none
     double precision, intent(in)    :: propertyValuesODE(:)
     type(treeNode),   intent(inout) :: thisNode
-    integer                         :: propertyCounter,iComponent,iProperty,iHistory,iTime,iValue,iInstance,entryCount
+    integer                         :: propertyCounter,iComponent,iProperty,iHistory,iValue,iInstance,entryCount
     
     propertyCounter=0
     do    iComponent=1,size(thisNode%components                     )

@@ -241,7 +241,7 @@ contains
     integer,              dimension(3,3)              :: periodicRange
     double precision,     dimension(3  )              :: galaxyPosition,galaxyVelocity
     logical                                           :: galaxyIsInLightcone,galaxyIsInFieldOfView
-    integer                                           :: ioErr,iAxis,iOutput,i,j,k
+    integer                                           :: iAxis,iOutput,i,j,k
     
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return

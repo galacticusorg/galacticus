@@ -90,7 +90,6 @@ contains
     !% Initializes the ``Blitz-Rosolowsky'' disk star formation timescale module.
     use ISO_Varying_String
     use Input_Parameters
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     use Abundances_Structure
@@ -182,13 +181,10 @@ contains
   double precision function Star_Formation_Timescale_Disk_Blitz_Rosolowsky(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}. The disk is assumed to obey the
     !% \cite{blitz_role_2006} star formation rule.
-    use Tree_Nodes
-    use Numerical_Constants_Math
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Physical
     use Abundances_Structure
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
+    use FGSL
     implicit none
     type(treeNode),            intent(inout), pointer     :: thisNode
     type(abundancesStructure), save                       :: fuelAbundances

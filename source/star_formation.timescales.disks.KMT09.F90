@@ -229,8 +229,8 @@ contains
     real(c_double),   value     :: radius
     type(c_ptr),      value     :: parameterPointer
     double precision, parameter :: surfaceDensityTransition=85.0d12 ! M_Solar/Mpc^2
-    double precision            :: molecularFraction,cloudFactor,surfaceDensityGasDimensionless,exponentialFactor&
-         &,sigmaMolecularComplex,s,surfaceDensityGas
+    double precision            :: molecularFraction,cloudFactor,surfaceDensityGasDimensionless ,sigmaMolecularComplex,s&
+         &,surfaceDensityGas
 
     ! Get gas surface density.
     surfaceDensityGas=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&

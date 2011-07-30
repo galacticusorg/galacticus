@@ -428,10 +428,9 @@ contains
     class(history),          intent(inout)               :: thisHistory
     type(history),           intent(in)                  :: combineHistory
     integer,                 intent(in),  optional       :: addTo
-    double precision,        allocatable, dimension(:,:) :: historyDataTemporary
-    integer                                              :: combineHistoryPointCount,iPoint,jPoint,interpolationPoint &
-         &,timeBeginIndex ,timeEndIndex,rangeType,historyCount,timeCount,combineCount,addCount,addToActual
-    double precision                                     :: timeBegin,timeEnd,timeDelta,fractionContributed
+    integer                                              :: combineHistoryPointCount,iPoint,jPoint ,timeBeginIndex ,timeEndIndex&
+         &,combineCount,addToActual
+    double precision                                     :: timeBegin,timeEnd,fractionContributed
 
     select type (thisHistory)
     type is (history)

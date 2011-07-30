@@ -783,7 +783,7 @@ contains
     logical,                 intent(inout) :: interrupt
     procedure(), pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
-    double precision                       :: massAccretionRate,angularMomentumAccretionRate,angularMomentumCoolingRate
+    double precision                       :: massAccretionRate,angularMomentumAccretionRate
 
     ! Find the rate of gas mass accretion onto the halo.
     massAccretionRate=Halo_Baryonic_Accretion_Rate(thisNode)
@@ -1558,7 +1558,7 @@ contains
     type(chemicalAbundancesStructure), save                   :: chemicalDensities,chemicalRates,chemicalMasses
     !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalRates,chemicalMasses)
     double precision                                          :: numberDensityHydrogen,temperature,hydrogenByMass&
-         &,massToDensityConversion,outflowedMass
+         &,massToDensityConversion
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.hotHaloOutflowReturnOnFormation) return

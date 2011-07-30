@@ -265,7 +265,7 @@ contains
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
     integer                                 :: thisIndex
-    double precision                        :: concentration,deltaTime
+    double precision                        :: deltaTime
 
     if (methodSelected) then
        ! Ensure that current node has its scale set.

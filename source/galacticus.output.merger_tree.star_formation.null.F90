@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -101,7 +101,6 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     type(history),    intent(inout)          :: thisHistory
-    type(treeNode),   pointer                :: parentNode
 
     ! Do nothing.
     return
@@ -140,8 +139,6 @@ contains
     integer,                 intent(in)             :: iOutput
     integer(kind=kind_int8), intent(in)             :: treeIndex
     character(len=*),        intent(in)             :: componentLabel
-    type(varying_string)                            :: groupName
-    type(hdf5Object)                                :: historyGroup,treeGroup,outputGroup
  
     ! Do nothing.
     return

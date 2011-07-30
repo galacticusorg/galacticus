@@ -111,7 +111,7 @@ contains
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
-    type(varying_string)                :: satelliteMergingMethod,message
+    type(varying_string)                :: message
 
     ! Check if this implementation is selected.
     if (componentOption == 'preset') then
@@ -310,7 +310,6 @@ contains
     !% Create a satellite orbit component and assign a time until merging.
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
-    double precision                        :: mergeTime
 
     if (methodSelected) then
        ! Create a satellite orbit component and assign a time until merging.

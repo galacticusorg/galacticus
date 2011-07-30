@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -92,7 +92,7 @@ contains
     implicit none
     type(varying_string), intent(in), dimension(:) :: arrayToSearch
     type(varying_string), intent(in)               :: valueToFind   
-    integer                                        :: jLower,jMidpoint,jUpper,j
+    integer                                        :: jLower,jMidpoint,jUpper
     logical                                        :: isInside
 
     isInside=.true.

@@ -851,7 +851,6 @@ contains
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
-    double precision            :: tCosmological
 
     ! Read the tabulations.
     read (stateFile) ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum

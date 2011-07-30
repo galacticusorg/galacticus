@@ -330,8 +330,7 @@ contains
     type(treeNode),                    intent(inout), pointer :: thisNode
     double precision,                  intent(in)             :: massAccreted
     type(chemicalAbundancesStructure), intent(out)            :: chemicalMasses
-    double precision                                          :: massToDensityConversion,temperature,numberDensityHydrogen&
-         &,electronsDensity ,hydrogensAtomicDensity,hydrogensCationDensity
+    double precision                                          :: massToDensityConversion,temperature,numberDensityHydrogen
     type(chemicalAbundancesStructure), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
 

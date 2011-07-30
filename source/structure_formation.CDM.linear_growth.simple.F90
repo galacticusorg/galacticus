@@ -122,7 +122,7 @@ contains
     double precision, parameter                                    :: odeToleranceAbsolute=1.0d-10, odeToleranceRelative=1.0d-10
     integer                                                        :: iTime,iComponent
     double precision                                               :: tMatterDominant,timeNow,tPresent,linearGrowthFactorPresent&
-         &,growthFactorODEVariables(2),growthFactorDerivative,aEquality,aMatterDominant
+         &,growthFactorODEVariables(2),growthFactorDerivative,aMatterDominant
     type(c_ptr)                                                    :: parameterPointer
     type(fgsl_interp)                                              :: interpolationObject
     type(fgsl_interp_accel)                                        :: interpolationAccelerator

@@ -1063,7 +1063,6 @@ contains
     integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
     integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
     double precision,        intent(inout)          :: doubleBuffer(:,:)
-    type(component),         pointer                :: nextComponent
     integer                                         :: thisIndex,blackHoleCount
     double precision                                :: restMassAccretionRate
 

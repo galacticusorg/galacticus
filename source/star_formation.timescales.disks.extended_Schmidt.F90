@@ -58,7 +58,7 @@
 !!    Pasadena, California 91125
 !!    http://www.ott.caltech.edu
 
-!! Code in this file was contributed by: Arya Farahi.
+!+    Contributions to this file made by: Arya Farahi, Andrew Benson.
 
 !% Contains a module which implements the extended Schmidt star formation timescale of \cite{shi_extended_2011} for galactic disks.
 
@@ -83,7 +83,7 @@ contains
   !# <starFormationTimescaleDisksMethod>
   !#  <unitName>Star_Formation_Timescale_Disks_Extended_Schmidt_Initialize</unitName>
   !# </starFormationTimescaleDisksMethod>
-   subroutine Star_Formation_Timescale_Disks_Extended_Schmidt_Initialize(starFormationTimescaleDisksMethod&
+  subroutine Star_Formation_Timescale_Disks_Extended_Schmidt_Initialize(starFormationTimescaleDisksMethod&
        &,Star_Formation_Timescale_Disk_Get)
     !% Initializes the ``extended Schmidt'' disk star formation timescale module.
     use ISO_Varying_String
@@ -92,7 +92,6 @@ contains
     implicit none
     type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
-    
 
     if (starFormationTimescaleDisksMethod == 'extended Schmidt') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Extended_Schmidt
@@ -163,7 +162,7 @@ contains
     ! Get the disk properties.
     gasMass             =Tree_Node_Disk_Gas_Mass(thisNode)
     diskScaleRadius     =Tree_Node_Disk_Radius  (thisNode)
-    
+
     ! Check if the disk is physical.
     if (gasMass <= 0.0d0 .or. diskScaleRadius <= 0.0d0) then
        ! It is not, so return zero timescale.
@@ -202,7 +201,7 @@ contains
     end if
     return
   end function Star_Formation_Timescale_Disk_Extended_Schmidt
-  
+
   function Star_Formation_Rate_Integrand_ES(radius,parameterPointer) bind(c)
     !% Integrand function for the ``extended Schmidt'' star formation rate calculation.
     use Galactic_Structure_Surface_Densities
@@ -229,10 +228,10 @@ contains
          &*(surfaceDensityGas**starFormationExtendedSchmidtGasExponent)&
          &*(surfaceDensityStar**starFormationExtendedSchmidtStarExponent)
 
-     if (radius <= 0.0d0) then
-        Star_Formation_Rate_Integrand_ES=0.0d0
-	return
-     end if
+    if (radius <= 0.0d0) then
+       Star_Formation_Rate_Integrand_ES=0.0d0
+       return
+    end if
 
     return
   end function Star_Formation_Rate_Integrand_ES

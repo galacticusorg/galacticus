@@ -186,7 +186,7 @@ contains
     integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
     double precision,        intent(inout)          :: doubleBuffer(:,:)
     integer                                         :: iRadius
-    double precision                                :: massProfileRadius,massEnclosed
+    double precision                                :: massEnclosed
 
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize

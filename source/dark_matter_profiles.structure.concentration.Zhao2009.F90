@@ -93,7 +93,7 @@ contains
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, parameter              :: concentrationMinimum =4.00d0
     double precision, parameter              :: formationMassFraction=0.04d0
-    double precision                         :: timeNode,timeFormation,massNode
+    double precision                         :: timeNode,timeFormation
 
     timeNode     =Tree_Node_Time                 (thisNode                      )
     timeFormation=Dark_Matter_Halo_Formation_Time(thisNode,formationMassFraction)

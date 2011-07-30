@@ -97,7 +97,6 @@ contains
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
     use Dynamical_Friction_Timescale_Utilities
     use Kepler_Orbits_Structure
     use Gaussian_Random
@@ -141,7 +140,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Satellite_Time_Until_Merging_Lacey_Cole_Tormen_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
@@ -157,7 +155,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Satellite_Time_Until_Merging_Lacey_Cole_Tormen_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
