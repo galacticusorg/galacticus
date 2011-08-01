@@ -52,6 +52,7 @@ The position (and velocity and redshift) of a galaxy within a lightcone will aut
  \item [{\tt lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^{\rm st}$ angular direction of the lightcone;
  \item [{\tt lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^{\rm nd}$ angular direction of the lightcone;
  \item [{\tt lightconeRedshift}] Redshift of the galaxy in the lightcone\footnote{Note that this will not, in general, be precisely the same as the redshift corresponding to the output time.};
+ \item [{\tt angularWeight}] The mean number density of this galaxy per unit area on the sky (in degrees$^{-2}$).
 \end{description}
 If active, the geometry of the lightcone must be specified in an XML file, the name of which must be specified using the {\tt [filterLightconeGeometryFileName]} input parameter. The XML file should have the following structure:
 \begin{verbatim}
