@@ -154,7 +154,7 @@ module Merger_Tree_Read
   type nodeData
      !% Structure used to store raw data read from merger tree files.
      integer(kind=kind_int8)                         :: nodeIndex,hostIndex,descendentIndex,particleIndexStart,particleIndexCount&
-          &,isolatedNodeIndex,mergesWithIndex,treeIndex
+          &,isolatedNodeIndex,mergesWithIndex
      double precision                                :: nodeMass,nodeTime,halfMassRadius,angularMomentum
      double precision,       dimension(3)            :: position,velocity
      logical                                         :: isSubhalo,childIsSubhalo
@@ -974,16 +974,6 @@ contains
        end if
     end do
     
-    ! Scan through all nodes and find which of these trees they belong to.
-    nodes%treeIndex=-1       
-    do iNode=1,size(nodes)
-       thisNode => nodes(iNode)
-       do while (associated(thisNode))
-          nodes(iNode)%treeIndex=thisNode%nodeIndex
-          thisNode => thisNode%hostNode%descendentNode
-       end do
-    end do
-    
     ! Allocate a tree queue for any extra roots.
     if (treeRootCount > 1) then
        if (allocated(mergerTreesQueued)) then
@@ -1005,8 +995,9 @@ contains
     type(nodeData),     intent(inout), dimension(:) :: nodes
     type(treeNodeList), intent(inout), dimension(:) :: nodeList
     integer,            intent(inout)               :: iExtraTree,primaryRootIndex
+type(treeNode), pointer :: thisNode
     integer                                         :: iNode,iIsolatedNode
-    
+
     iIsolatedNode=0
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
@@ -1364,7 +1355,7 @@ contains
     implicit none
     type(nodeData),     intent(inout), dimension(:) :: nodes
     type(treeNodeList), intent(inout), dimension(:) :: nodeList
-    type(treeNode),     pointer                     :: rootNode
+    type(treeNode),     pointer                     :: rootNode,mergeRootNode
     integer                                         :: iNode,jNode
     type(varying_string)                            :: message
  
@@ -1382,14 +1373,18 @@ contains
                       message=message//'] merger in which subhalo has no isolated node progenitor - this should not happen'
                       call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
                    else
-                      ! Find the root node into which this node will descend.
+                      ! Find the root nodes into which these nodes will descend.
                       rootNode => nodeList(nodes(iNode)%isolatedNodeIndex)%node
                       do while (associated(rootNode%parentNode))
                          rootNode => rootNode%parentNode
                       end do
+                      mergeRootNode => nodeList(nodes(jNode)%isolatedNodeIndex)%node
+                      do while (associated(mergeRootNode%parentNode))
+                         mergeRootNode => mergeRootNode%parentNode
+                      end do
                       ! Set a pointer between the isolated nodes corresponding to these subhalos if and only if they descend
                       ! into the same root node.
-                      if (rootNode%index() == nodes(jNode)%treeIndex) then
+                      if (rootNode%index() == mergeRootNode%index()) then
                          ! Set pointer from merging node (a.k.a. the "mergee") to node that will be merged with.
                          nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeNode => nodeList(nodes(jNode)%isolatedNodeIndex)%node
                          ! Make a backward pointer from the merge target to the mergee. Check if the target already has mergees associated with it.
