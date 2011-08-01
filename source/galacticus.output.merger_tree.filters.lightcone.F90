@@ -70,7 +70,7 @@ module Galacticus_Merger_Tree_Output_Filter_Lightcones
        & Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize
 
   ! Number of lightcone properties.
-  integer, parameter   :: lightconePropertyCount=7
+  integer, parameter   :: lightconePropertyCount=8
 
   ! Flags indicating if the module has been initialized and if this filter is active.
   logical                                      :: lightconeFilterInitialized=.false.
@@ -81,6 +81,7 @@ module Galacticus_Merger_Tree_Output_Filter_Lightcones
   double precision, dimension(3,3)             :: lightconeUnitVector
   double precision, dimension(:),  allocatable :: lightconeTime,lightconeMinimumDistance,lightconeMaximumDistance
   double precision                             :: lightconeReplicationPeriod,lightconeFieldOfViewLength,lightconeFieldOfViewTanHalfAngle
+  double precision                             :: angularWeight
   integer                                      :: lightconeGeometry
   integer,          parameter                  :: lightconeGeometrySquare=1
 
@@ -182,6 +183,7 @@ contains
              thisItem => item(itemList,0)
              call extractDataContent(thisItem,lightconeFieldOfViewLength)
              lightconeFieldOfViewTanHalfAngle=dtan(0.5d0*lightconeFieldOfViewLength)
+             angularWeight=1.0d0/(lightconeFieldOfViewLength*(180.0d0/Pi))**2
           case default
              call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','unknown field of view geometry')
           end select
@@ -377,6 +379,10 @@ contains
        doublePropertyNames   (doubleProperty)='lightconeRedshift'
        doublePropertyComments(doubleProperty)='Reshift of galaxy in lightcone.'
        doublePropertyUnitsSI (doubleProperty)=0.0d0
+       doubleProperty=doubleProperty+1
+       doublePropertyNames   (doubleProperty)='angularWeight'
+       doublePropertyComments(doubleProperty)='Number of such galaxies per unit area [degrees^-2].'
+       doublePropertyUnitsSI (doubleProperty)=(180.0d0/Pi)**2
     end if
     return
   end subroutine Galacticus_Output_Tree_Lightcone_Names
@@ -417,6 +423,8 @@ contains
        doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+3)=lightconeVelocity
        doubleProperty=doubleProperty+3
        doubleBuffer(doubleBufferCount,doubleProperty+1                 )=lightconeRedshift
+       doubleProperty=doubleProperty+1
+       doubleBuffer(doubleBufferCount,doubleProperty+1                 )=angularWeight
        doubleProperty=doubleProperty+1
     end if
     return
