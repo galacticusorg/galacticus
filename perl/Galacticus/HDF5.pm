@@ -103,11 +103,7 @@ sub Get_Parameters {
 	my @parameterNames = $dataBlock->{'hdf5File'}->group("Parameters")->attrs;
 	my @parameterValues = $dataBlock->{'hdf5File'}->group("Parameters")->attrGet(@parameterNames);
 	for(my $iParameter=0;$iParameter<=$#parameterNames;++$iParameter) {
-	    if ( ref($parameterValues[$iParameter]) eq "PDL::Char" ) {
-		$dataBlock->{'parameters'}->{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
-	    } else {
-		$dataBlock->{'parameters'}->{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
-	    }
+	    $dataBlock->{'parameters'}->{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
 	}
     }
 }
