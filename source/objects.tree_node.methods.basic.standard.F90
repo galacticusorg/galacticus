@@ -108,9 +108,12 @@ contains
   subroutine Tree_Node_Methods_Basic_Initialize_Standard(componentOption,componentTypeCount)
     !% Initializes the tree node basic methods module.
     use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
+    type(varying_string)                :: message
 
     ! Check if this implementation is selected.
     if (componentOption == 'standard') then
@@ -120,6 +123,11 @@ contains
        ! Increment the component count and store the value for later reference.
        componentTypeCount=componentTypeCount+1
        componentIndex=componentTypeCount
+
+       ! Display message.
+       message='Standard basic method selected [component index '
+       message=message//componentIndex//']'
+       call Galacticus_Display_Message(message,verbosityInfo)
 
        ! Set up procedure pointers.
        Tree_Node_Mass              => Tree_Node_Mass_Basic
