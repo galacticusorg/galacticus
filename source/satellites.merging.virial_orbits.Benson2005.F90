@@ -85,7 +85,7 @@ contains
     type(varying_string),                  intent(in)    :: virialOrbitsMethod
     procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
     
-    if (virialOrbitsMethod.eq.'Benson2005') Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Benson2005
+    if (virialOrbitsMethod == 'Benson2005') Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Benson2005
     return
   end subroutine Virial_Orbital_Parameters_Benson2005_Initialize
 

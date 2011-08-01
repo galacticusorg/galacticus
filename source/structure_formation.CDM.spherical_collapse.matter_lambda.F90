@@ -93,7 +93,7 @@ contains
     type(varying_string),          intent(in)    :: criticalOverdensityMethod
     procedure(),          pointer, intent(inout) :: Critical_Overdensity_Tabulate
     
-    if (criticalOverdensityMethod.eq.'spherical top hat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
+    if (criticalOverdensityMethod == 'spherical top hat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
     return
   end subroutine Spherical_Collape_Delta_Critical_Initialize
 
@@ -108,7 +108,7 @@ contains
     type(varying_string),          intent(in)    :: virialDensityContrastMethod
     procedure(),          pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
     
-    if (virialDensityContrastMethod.eq.'spherical top hat') Virial_Density_Contrast_Tabulate =>&
+    if (virialDensityContrastMethod == 'spherical top hat') Virial_Density_Contrast_Tabulate =>&
          & Spherical_Collapse_Virial_Density_Contrast
     return
   end subroutine Spherical_Collape_Delta_Virial_Initialize
@@ -238,7 +238,7 @@ contains
     type(c_ptr)                         :: parameterPointer
     double precision                    :: aMaximumLow,aMaximumHigh
 
-    if (OmegaDE.eq.0.0d0) then
+    if (OmegaDE == 0.0d0) then
        ! No cosmological constant - simple analytic solution.
        Perturbation_Maximum_Radius=-OmegaM/epsilonPerturbation
     else

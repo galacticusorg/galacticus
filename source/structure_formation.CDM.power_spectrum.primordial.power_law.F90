@@ -88,7 +88,7 @@ contains
     type(varying_string),          intent(in)    :: powerSpectrumMethod
     procedure(),          pointer, intent(inout) :: Power_Spectrum_Tabulate
     
-    if (powerSpectrumMethod.eq.'power law') then
+    if (powerSpectrumMethod == 'power law') then
        Power_Spectrum_Tabulate => Power_Spectrum_Power_Law_Tabulate
        !@ <inputParameter>
        !@   <name>powerSpectrumIndex</name>

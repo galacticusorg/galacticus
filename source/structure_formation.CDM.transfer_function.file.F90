@@ -92,7 +92,7 @@ contains
     type(varying_string),          intent(in)    :: transferFunctionMethod
     procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
     
-    if (transferFunctionMethod.eq.'file') then
+    if (transferFunctionMethod == 'file') then
        Transfer_Function_Tabulate => Transfer_Function_File_Read
        !@ <inputParameter>
        !@   <name>transferFunctionFile</name>

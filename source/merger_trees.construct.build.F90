@@ -124,7 +124,7 @@ contains
     double precision                             :: expansionFactor,massMinimum,massMaximum
 
     ! Check if our method is to be used.
-    if (mergerTreeConstructMethod.eq.'build') then
+    if (mergerTreeConstructMethod == 'build') then
        ! Assign pointer to our merger tree construction subroutine.
        Merger_Tree_Construct => Merger_Tree_Build_Do
        ! Read parameters for halo mass sampling.

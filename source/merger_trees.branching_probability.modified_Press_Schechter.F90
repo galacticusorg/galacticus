@@ -98,7 +98,7 @@ contains
     procedure(double precision), pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass&
          &,Tree_Maximum_Step
     
-    if (treeBranchingMethod.eq.'modified Press-Schechter') then
+    if (treeBranchingMethod == 'modified Press-Schechter') then
        Tree_Branching_Probability  => Modified_Press_Schechter_Branching_Probability
        Tree_Subresolution_Fraction => Modified_Press_Schechter_Subresolution_Fraction
        Tree_Branch_Mass            => Modified_Press_Schechter_Branch_Mass

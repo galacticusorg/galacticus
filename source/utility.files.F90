@@ -150,16 +150,16 @@ contains
 
     i_unit=File_Units_Get()
     open(i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
-    if (io_status.ne.0) then
+    if (io_status /= 0) then
        write (0,*) 'Count_Lines_in_File(): FATAL - cannot open file ',trim(in_file)
        call Galacticus_Error_Report
     end if
     Count_Lines_in_File_Char=0
-    do while (io_status.eq.0)
+    do while (io_status == 0)
        read (i_unit,*,iostat=io_status) first_char
-       if (io_status.eq.0) then
+       if (io_status == 0) then
           if (present(comment_char)) then
-             if (first_char.ne.comment_char) Count_Lines_in_File_Char=Count_Lines_in_File_Char+1
+             if (first_char /= comment_char) Count_Lines_in_File_Char=Count_Lines_in_File_Char+1
           else
              Count_Lines_in_File_Char=Count_Lines_in_File_Char+1
           end if

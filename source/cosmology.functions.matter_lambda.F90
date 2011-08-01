@@ -665,7 +665,7 @@ contains
     end if
 
     Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda=(Omega_0()/dabs(Omega_DE()))**(1.0d0/3.0d0)
-    if (requestType.eq.requestTypeTime) Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda&
+    if (requestType == requestTypeTime) Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda&
          &=Cosmology_Age_Matter_Lambda(Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda)
     return
   end function Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda
@@ -684,7 +684,7 @@ contains
     end if
 
     Epoch_of_Matter_Curvature_Equality_Matter_Lambda=Omega_0()/dabs(Omega_K())
-    if (requestType.eq.requestTypeTime) Epoch_of_Matter_Curvature_Equality_Matter_Lambda&
+    if (requestType == requestTypeTime) Epoch_of_Matter_Curvature_Equality_Matter_Lambda&
          &=Cosmology_Age_Matter_Lambda(Epoch_of_Matter_Curvature_Equality_Matter_Lambda)
     return
   end function Epoch_of_Matter_Curvature_Equality_Matter_Lambda

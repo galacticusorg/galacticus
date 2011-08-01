@@ -115,7 +115,7 @@ contains
     type(varying_string)                :: message
 
     ! Check if this implementation is selected.
-    if (componentOption.eq.'scale') then
+    if (componentOption == 'scale') then
        ! Record that method is selected.
        methodSelected=.true.
 

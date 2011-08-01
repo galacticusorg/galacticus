@@ -82,7 +82,7 @@ contains
     type(varying_string),          intent(in)    :: haloMassFunctionMethod
     procedure(),          pointer, intent(inout) :: Halo_Mass_Function_Tabulate
     
-    if (haloMassFunctionMethod.eq.'Sheth-Tormen') Halo_Mass_Function_Tabulate => Halo_Mass_Function_Sheth_Tormen_Tabulate
+    if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Tabulate => Halo_Mass_Function_Sheth_Tormen_Tabulate
     return
   end subroutine Halo_Mass_Function_Sheth_Tormen_Initialize
 

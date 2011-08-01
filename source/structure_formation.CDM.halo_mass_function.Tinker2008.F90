@@ -93,7 +93,7 @@ contains
     integer                                      :: iDatum,ioErr
     double precision                             :: datumValue
 
-    if (haloMassFunctionMethod.eq.'Tinker2008') then
+    if (haloMassFunctionMethod == 'Tinker2008') then
        Halo_Mass_Function_Tabulate => Halo_Mass_Function_Tinker2008_Tabulate
        
        ! Read the data file which gives fitting parameters as a function of halo overdensity.

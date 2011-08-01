@@ -82,7 +82,7 @@ contains
     type(varying_string),          intent(in)    :: haloMassFunctionMethod
     procedure(),          pointer, intent(inout) :: Halo_Mass_Function_Tabulate
     
-    if (haloMassFunctionMethod.eq.'Press-Schechter') Halo_Mass_Function_Tabulate => Halo_Mass_Function_Press_Schechter_Tabulate
+    if (haloMassFunctionMethod == 'Press-Schechter') Halo_Mass_Function_Tabulate => Halo_Mass_Function_Press_Schechter_Tabulate
     return
   end subroutine Halo_Mass_Function_Press_Schechter_Initialize
 

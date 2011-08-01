@@ -109,7 +109,7 @@ contains
     type(varying_string)                :: message
 
     ! Check if this implementation is selected.
-    if (componentOption.eq.'random') then
+    if (componentOption == 'random') then
        ! Record that method is selected.
        methodSelected=.true.
 

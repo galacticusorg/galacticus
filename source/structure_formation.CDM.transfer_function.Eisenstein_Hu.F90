@@ -91,7 +91,7 @@ contains
     type(varying_string),          intent(in)    :: transferFunctionMethod
     procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
     
-    if (transferFunctionMethod.eq.'Eisenstein + Hu') then
+    if (transferFunctionMethod == 'Eisenstein + Hu') then
        Transfer_Function_Tabulate => Transfer_Function_Eisenstein_Hu_Make
        !@ <inputParameter>
        !@   <name>effectiveNumberNeutrinos</name>
@@ -184,7 +184,7 @@ contains
        C=14.4d0+325.0d0/(1.0d0+60.5d0*(qeff**1.11d0))      ! Eqn. 20.
        Tsup=L/(L+C*(qeff**2))                              ! Zero baryon form of the transfer function (eqn. 18).
        ! Apply correction for scales close to horizon.
-       if (fv.gt.0.0d0.and.fv.le.0.3d0) then
+       if (fv > 0.0d0.and.fv <= 0.3d0) then
           qv=3.92d0*qEH*dsqrt(Nv)/fv
           Bk=1.0d0+(1.2d0*(fv**0.64d0)*(Nv**(0.3d0+0.6d0*fv)))/((qv**(-1.6d0))+(qv**0.8d0))
        else

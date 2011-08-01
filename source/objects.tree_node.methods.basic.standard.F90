@@ -112,7 +112,7 @@ contains
     integer,              intent(inout) :: componentTypeCount
 
     ! Check if this implementation is selected.
-    if (componentOption.eq.'standard') then
+    if (componentOption == 'standard') then
        ! Record that method is selected.
        methodSelected=.true.
        

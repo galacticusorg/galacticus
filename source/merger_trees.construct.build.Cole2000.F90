@@ -92,7 +92,7 @@ contains
     procedure(),          pointer, intent(inout) :: Merger_Tree_Build
 
     ! Check if our method is to be used.    
-    if (mergerTreeBuildMethod.eq.'Cole2000') then
+    if (mergerTreeBuildMethod == 'Cole2000') then
        ! Assign pointer to our merger tree building subroutine.
        Merger_Tree_Build => Merger_Tree_Build_Do_Cole2000
        ! Read parameters controlling tree accuracy.
