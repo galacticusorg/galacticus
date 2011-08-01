@@ -180,6 +180,7 @@ contains
 
        ! Determine which node to use for halo properties.
        if (adiabaticContractionUseFormationHalo) then
+          if (.not.associated(thisNode%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','no formation node exists')
           haloNode => thisNode%formationNode
        else
           haloNode => thisNode

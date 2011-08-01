@@ -106,6 +106,7 @@ contains
 
   subroutine Galactic_Structure_Radii_Solve_Simple(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``simple'' method.
+    use Galacticus_Error
     use Tree_Nodes
     !# <include directive="radiusSolverTask" type="moduleUse">
     include 'galactic_structure.radius_solver.tasks.modules.inc'
@@ -129,6 +130,7 @@ contains
 
     ! Determine which node to use for halo properties.
     if (simpleRadiusSolverUseFormationHalo) then
+       if (.not.associated(thisNode%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Simple','no formation node exists')
        haloNode => thisNode%formationNode
     else
        haloNode => thisNode
