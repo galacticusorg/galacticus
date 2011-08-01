@@ -243,6 +243,11 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
  \item[{\tt redshift}] The redshift at which the galaxy is observed---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
  \item[{\tt angularWeight}] The weight (in units of ) which should be assigned to this galaxy in order to build a redshift survey---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
  \item[{\tt \textasciicircum grasilFlux[$\backslash$d$\backslash$.]+microns}] The flux at the given wavelength (specific in microns) of the galaxy as computed by the {\tt Grasil} code (see \S\ref{sec:Grasil} for a full description).
+\item[{\tt flux850micronHayward}] The flux of the galaxy at 850$\mu$m\index{flux!sub-mm} computed using the fitting formula of \cite{hayward_what_2010}, specifically:
+\begin{equation}
+ {S_{850\mu{\rm m}} \over {\rm Jy}} = A \left({\dot{M}_\star \over 100 M_\odot \hbox{Gyr}^{-1}}\right)^\alpha \left({R_{\rm dust} M_{\rm metals,gas} \over 10^8 M_\odot}\right)^\beta,
+\end{equation}
+where $R_{\rm dust}$ is the dust-to-metals ratio, $\dot{M}_\star$ is the total star formation rate in the galaxy and $M_{\rm metals,gas}$ is the total mass of metals in the gas phase of the galaxy. Note that the fit given by \cite{hayward_what_2010} was computed for galaxcy at $z\approx 2$. The parameters of the fit can be specified by setting elements of {\tt \$dataBlock-\textgreater\{'haywardSubMmFit'\}}: {\tt \{'dustToMetalsRatio'\}}$\equiv R_{\rm dust}$, {\tt \{'fitNormalization'\}}$\equiv A$, {\tt \{'starFormationRateExponent'\}}$\equiv \alpha$, and {\tt \{'dustMassExponent'\}}$\equiv \beta$. If these elements are not present the default values of $A=0.65\times 10^{-3}$, $R_{\rm dust}=0.61$, $\alpha=0.42$ and $\beta = 0.58$ \cite{hayward_what_2010} will be used instead. Provided by: {\tt Galacticus::SubMmFluxesHayward}.
 \end{description}
 
 \subsection{Galaxy Clustering via the Halo Model}\label{sec:ClusteringHaloModel}\index{halo model}\index{clustering!halo model}
