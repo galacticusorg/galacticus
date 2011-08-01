@@ -139,21 +139,27 @@ contains
 
     ! Find the node to merge with.
     call thisNode%mergesWith(hostNode)
-
-     if (Tree_Node_Time(hostNode) < mergeTargetTimeMinimum) then
-        timeStepAllowed=max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)
-
-        ! Set return value if our timestep is smaller than current one. Do not set a end of timestep task in this case - we want to
-        ! wait for the merge target to catch up before triggering a merger.
-        if (timeStepAllowed <= timeStep) then
-           timeStep=timeStepAllowed
-           End_Of_Timestep_Task => null()
-        end if
-     else
+    
+    if (Tree_Node_Time(hostNode) < mergeTargetTimeMinimum) then
+       timeStepAllowed=max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)
+       
+       ! Set return value if our timestep is smaller than current one. Do not set a end of timestep task in this case - we want to
+       ! wait for the merge target to catch up before triggering a merger.
+       if (timeStepAllowed <= timeStep) then
+          timeStep=timeStepAllowed
+          End_Of_Timestep_Task => null()
+       end if
+    else
        ! Set return value if our timestep is smaller than current one.
        if (timeUntilMerging <= timeStep) then
           timeStep=timeUntilMerging
-          End_Of_Timestep_Task => Satellite_Merger_Process
+          ! Trigger a merger event only if the target no has no children. If it has children, we need to wait for them to be
+          ! evolved before merging.
+          if (.not.associated(hostNode%childNode)) then
+             End_Of_Timestep_Task => Satellite_Merger_Process
+          else
+             End_Of_Timestep_Task => null()
+          end if
        end if
      end if
 
