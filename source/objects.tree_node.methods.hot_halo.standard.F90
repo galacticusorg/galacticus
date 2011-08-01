@@ -1250,7 +1250,7 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision, parameter              :: scaleMassRelative=1.0d-6
+    double precision, parameter              :: scaleMassRelative=1.0d-3
     integer                                  :: thisIndex
     double precision                         :: massVirial,radiusVirial,velocityVirial
 
