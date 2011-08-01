@@ -191,14 +191,15 @@ contains
     integer                             :: spaceCount
     character(len=20)                   :: formatString
     character(len=len(headerText)+40)   :: temporaryString
+    character(len=13)                   :: usageString
 
     if (thisMemoryUsage%usage > 0) then
        spaceCount=max(0,11-len_trim(thisMemoryUsage%name))
        write (formatString,'(a,i1,a)') '(a,1x,a1,',spaceCount,'x,a)'
        write (temporaryString,formatString) trim(char(headerText)),join,trim(thisMemoryUsage%name)
        headerText=trim(temporaryString)
-       write (temporaryString,'(1x,a1,1x,f7.3,a3)') join,dble(thisMemoryUsage%usage)/dble(thisMemoryUsage%divisor),thisMemoryUsage%suffix
-       usageText=trim(usageText)//trim(temporaryString)
+       write (usageString,'(1x,a1,1x,f7.3,a3)') join,dble(thisMemoryUsage%usage)/dble(thisMemoryUsage%divisor),thisMemoryUsage%suffix
+       usageText=trim(usageText)//usageString
        join='+'
     end if
     return
@@ -206,6 +207,7 @@ contains
 
   subroutine Set_Memory_Prefix(thisMemoryUsage)
     !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
+    use ISO_Varying_String
     implicit none
     type(memoryUsage),       intent(inout) :: thisMemoryUsage
     integer(kind=kind_int8), parameter     :: kilo     =1024
@@ -217,7 +219,7 @@ contains
        select case (usageDecade)
        case (:0)
           thisMemoryUsage%divisor=1
-          thisMemoryUsage%suffix='b  '
+          thisMemoryUsage%suffix='  b'
        case (1)
           thisMemoryUsage%divisor=kilo
           thisMemoryUsage%suffix='kib'
@@ -230,7 +232,7 @@ contains
        end select
     else
        thisMemoryUsage%divisor=1
-       thisMemoryUsage%suffix='b '
+       thisMemoryUsage%suffix='  b'
     end if
     return
   end subroutine Set_Memory_Prefix
