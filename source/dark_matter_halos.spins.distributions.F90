@@ -65,6 +65,7 @@ module Halo_Spin_Distributions
   !% Implements calculations of dark matter halo spin distributions
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Halo_Spin_Distribution_Sample
 

@@ -68,6 +68,7 @@ module Numerical_Constants_Astronomical
   use Numerical_Constants_Atomic
   use Numerical_Constants_Math
   use Numerical_Constants_Units
+  implicit none
   public
   
   ! Solar mass (in kg).

@@ -65,6 +65,7 @@ module Tree_Node_Methods_Dark_Matter_Profile_Scales
   !% Implements a dark matter profile method that provides a scale radius.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Profile_Scale_Initialize, Tree_Node_Methods_Profile_Scale_Initialize_Rates,&
        & Galacticus_Output_Tree_Profile_Scale, Galacticus_Output_Tree_Profile_Scale_Property_Count,&

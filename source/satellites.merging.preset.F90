@@ -63,6 +63,7 @@
 
 module Satellite_Merging_Times_Preset
   !% Implements calculations of satellite merging times using preset values.
+  implicit none
   private
   public :: Satellite_Time_Until_Merging_Preset_Initialize
 

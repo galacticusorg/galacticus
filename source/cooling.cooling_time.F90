@@ -70,6 +70,7 @@ module Cooling_Times
   !# <include directive="coolingTimeMethod" type="moduleUse">
   include 'cooling.cooling_time.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Cooling_Time, Cooling_Time_Density_Log_Slope, Cooling_Time_Temperature_Log_Slope
 

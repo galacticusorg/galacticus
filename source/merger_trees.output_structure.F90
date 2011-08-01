@@ -63,6 +63,7 @@
 
 module Merger_Tree_Output_Structure
   !% Outputs the structure of entire merger trees.
+  implicit none
   private
   public :: Merger_Tree_Structure_Output
   

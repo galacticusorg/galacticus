@@ -63,6 +63,7 @@
 
 module Stellar_Population_Properties_Instantaneous
   !% Implements stellar population properties in the instantaneous recycling approximation.
+  implicit none
   private
   public :: Stellar_Population_Properties_Instantaneous_Initialize
 

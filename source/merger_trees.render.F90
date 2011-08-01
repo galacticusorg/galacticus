@@ -64,6 +64,7 @@
 module Merger_Trees_Render
   !% Implements dumping of information on merger tree structure useful for rendering 3D views of merger trees.
   use Kind_Numbers
+  implicit none
   private
   public :: Merger_Trees_Render_Dump
 

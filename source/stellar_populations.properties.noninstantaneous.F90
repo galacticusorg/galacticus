@@ -63,6 +63,7 @@
 
 module Stellar_Population_Properties_Noninstantaneous
   !% Implements stellar population properties with noninstantaneous recycling.
+  implicit none
   private
   public :: Stellar_Population_Properties_Noninstantaneous_Initialize
 

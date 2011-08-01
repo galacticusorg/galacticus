@@ -65,8 +65,9 @@ module Radiation_Intergalactic_Background
   !% Implements an intergalatic background (excluding the CMB) radiation component.
   use FGSL
   use Tree_Nodes
-  public :: Radiation_Set_Intergalactic_Background, Radiation_Temperature_Intergalactic_Background, Radiation_Flux_Intergalactic_Background
+  implicit none
   private
+  public :: Radiation_Set_Intergalactic_Background, Radiation_Temperature_Intergalactic_Background, Radiation_Flux_Intergalactic_Background
 
   ! Pointer to the functions that actually do the calculation.
   procedure(Radiation_Set_Template ), pointer :: Radiation_Set_Intergalactic_Background_Do  => null()

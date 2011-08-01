@@ -65,6 +65,7 @@ module Galacticus_Display
   !% Implements outputting of formatted, indented messages at various vebosity levels from \glc.
   !$ use OMP_Lib
   use ISO_Varying_String
+  implicit none
   private
   public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
        &,Galacticus_Verbosity_Level_Set, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear

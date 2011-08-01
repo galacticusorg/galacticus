@@ -64,6 +64,7 @@
 module Merger_Trees_Evolve
   !% Implements evolution of merger trees. 
   use Tree_Nodes
+  implicit none
   private
   public :: Merger_Tree_Evolve_To
 

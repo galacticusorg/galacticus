@@ -64,6 +64,7 @@
 module Star_Formation_Feedback_Disks_Power_Law
   !% Implements a power-law outflow rate due to star formation feedback in galactic disks.
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Feedback_Disks_Power_Law_Initialize
 

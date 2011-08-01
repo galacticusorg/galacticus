@@ -66,6 +66,7 @@ module Galactic_Structure_Rotation_Curves
   use ISO_Varying_String
   use Tree_Nodes
   use Galactic_Structure_Options
+  implicit none
   private
   public :: Galactic_Structure_Rotation_Curve
 

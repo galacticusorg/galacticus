@@ -63,6 +63,7 @@
 
 module Star_Formation_Histories_Null
   !% Implements a null method for star formation histories.
+  implicit none
   private
   public :: Star_Formation_Histories_Null_Initialize
 

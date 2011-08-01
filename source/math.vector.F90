@@ -63,6 +63,7 @@
 
 module Vectors
   !% Implements calculations of vectors.
+  implicit none
   private
   public :: Vector_Magnitude, Vector_Product
 

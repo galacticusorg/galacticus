@@ -64,6 +64,7 @@
 module Galacticus_Output_Tree_Half_Light_Properties
   !% Handles outputting of galaxy half-light radii and associated masses.
   use Tree_Nodes
+  implicit none
   private
   public :: Galacticus_Output_Tree_Half_Light, Galacticus_Output_Tree_Half_Light_Property_Count, Galacticus_Output_Tree_Half_Light_Names
 

@@ -63,6 +63,7 @@
 
 module Coordinate_Systems
   !% Implements calculations related to coordinate systems and transformations.
+  implicit none
   private
   public :: Coordinates_Cylindrical_To_Spherical, Coordinates_Cartesian_To_Spherical, Coordinates_Spherical_To_Cylindrical, Coordinates_Cartesian_To_Cylindrical
 

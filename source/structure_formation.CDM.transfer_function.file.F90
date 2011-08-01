@@ -64,6 +64,7 @@
 module Transfer_Function_File
   !% Implements reading of a tabulated transfer function from a file.
   use ISO_Varying_String
+  implicit none
   private
   public :: Transfer_Function_File_Initialize, Transfer_Function_Named_File_Read
   

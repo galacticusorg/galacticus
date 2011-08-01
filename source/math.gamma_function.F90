@@ -63,6 +63,7 @@
 
 module Gamma_Functions
   !% Implements calculations of gamma functions.
+  implicit none
   private
   public :: Gamma_Function_Incomplete,Gamma_Function_Incomplete_Complementary,Gamma_Function_Logarithmic,Gamma_Function&
        &,Inverse_Gamma_Function_Incomplete,Inverse_Gamma_Function_Incomplete_Complementary

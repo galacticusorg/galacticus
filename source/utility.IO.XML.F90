@@ -63,6 +63,7 @@
 
 module IO_XML
   !% Implements various utility functions for extracting data from XML files.
+  implicit none
   private
   public :: XML_Extrapolation_Element_Decode
 

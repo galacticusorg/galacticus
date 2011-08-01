@@ -63,6 +63,7 @@
 
 module Galacticus_Version
   !% Implements writing of the version number and run time to the \glc\ output file.
+  implicit none
   private
   public :: Galacticus_Version_Output
 

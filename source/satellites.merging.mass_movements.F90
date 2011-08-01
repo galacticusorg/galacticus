@@ -64,6 +64,7 @@
 module Satellite_Merging_Mass_Movements
   !% Determines how mass is moved around as a consequence of a satellite merging event.
   use ISO_Varying_String
+  implicit none
   private
   public :: Satellite_Merging_Mass_Movement_Store, Satellite_Merging_Mass_Movement
 

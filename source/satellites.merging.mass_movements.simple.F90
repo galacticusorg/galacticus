@@ -64,6 +64,7 @@
 module Satellite_Merging_Mass_Movements_Simple
   !% Implements a simple model of mass movements during satellite mergers.
   use Satellite_Merging_Mass_Movements_Descriptors
+  implicit none
   private
   public :: Satellite_Merging_Mass_Movements_Simple_Initialize
 

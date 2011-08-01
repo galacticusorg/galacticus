@@ -63,6 +63,7 @@
 
 module Numerical_Constants_Math
   !% Contains various useful mathematical constants.
+  implicit none
   public
   
   ! Pi.

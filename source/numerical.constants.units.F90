@@ -65,6 +65,7 @@ module Numerical_Constants_Units
   !% Contains various useful unit conversions.
   use FGSL
   use Numerical_Constants_Prefixes
+  implicit none
   public
   
   ! Ergs in Joules.

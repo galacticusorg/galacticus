@@ -66,6 +66,7 @@ module Chemical_Structures
   use ISO_Varying_String
   use Numerical_Constants_Physical
   use Numerical_Constants_Atomic
+  implicit none
   private
   public :: chemicalStructure, atomicStructure,atomicBond, Chemical_Database_Get_Index
 

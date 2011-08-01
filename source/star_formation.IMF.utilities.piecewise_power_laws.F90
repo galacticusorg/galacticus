@@ -63,6 +63,7 @@
 
 module Star_Formation_IMF_PPL
   !% Implements calculations of piecewise power-law initial mass functions.
+  implicit none
   private
   public :: Piecewise_Power_Law_IMF_Normalize, Piecewise_Power_Law_IMF_Phi
   

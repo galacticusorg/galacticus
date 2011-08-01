@@ -63,6 +63,7 @@
 
 module Histories
   !% Defines the history object type.
+  implicit none
   private
   public :: history, History_Set_Times, operator(/), Histories_State_Store, Histories_State_Retrieve
 

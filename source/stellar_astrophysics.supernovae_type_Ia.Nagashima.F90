@@ -63,6 +63,7 @@
 
 module Supernovae_Type_Ia_Nagashima
   !% Implements calculations related to Type Ia supernovae.
+  implicit none
   private
   public :: Supernovae_Type_Ia_Nagashima_Initialize
   

@@ -63,6 +63,7 @@
 
 module Ideal_Gases_Thermodynamics
   !% Implements thermodynamic properties of ideal gases.
+  implicit none
   private
   public :: Ideal_Gas_Sound_Speed, Ideal_Gas_Jeans_Length
 

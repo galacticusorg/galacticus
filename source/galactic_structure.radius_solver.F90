@@ -65,6 +65,7 @@ module Galactic_Structure_Radii
   !% Implements calculations of sizes of galactic components (or more general components).
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Galactic_Structure_Radii_Solve
 

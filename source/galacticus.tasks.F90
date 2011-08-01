@@ -63,6 +63,7 @@
 
 module Galacticus_Tasks
   !% Defines and keeps track of the current task in {\sc Galacticus}.
+  implicit none
   private
   public :: Galacticus_Task_Do
 

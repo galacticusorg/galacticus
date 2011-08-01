@@ -66,6 +66,7 @@ module Critical_Overdensity
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Critical_Overdensity_for_Collapse, Critical_Overdensity_for_Collapse_Time_Gradient, Time_of_Collapse,&
        & Critical_Overdensity_State_Retrieve, Critical_Overdensity_Collapsing_Mass

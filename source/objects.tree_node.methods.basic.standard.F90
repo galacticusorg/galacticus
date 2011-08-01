@@ -65,6 +65,7 @@ module Tree_Node_Methods_Basic_Standard
   !% The standard implementation of basic tree node methods.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Basic_Initialize_Standard, Tree_Node_Basic_Promote_Standard, Halo_Mass_Accretion_Rate_Standard, Tree_Node_Mass_Stop_Accretion_Standard,&
        & Galacticus_Output_Tree_Basic_Names_Standard, Galacticus_Output_Tree_Basic_Property_Count_Standard, Galacticus_Output_Tree_Basic_Standard,&

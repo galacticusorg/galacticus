@@ -63,6 +63,7 @@
 
 module Merger_Trees_Information_Content
   !% Implements computation of the cladistic information content (CIC) of a merger tree.
+  implicit none
   private
   public :: Merger_Tree_Cladistic_Information_Content
 

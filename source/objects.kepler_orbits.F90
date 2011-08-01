@@ -63,6 +63,7 @@
 
 module Kepler_Orbits_Structure
   !% Defines an orbit structure for use in \glc.
+  implicit none
   private
   public :: keplerOrbit
 

@@ -65,6 +65,7 @@ module Galactic_Structure_Radii_Simple
   !% Implements a simple galactic radii solver (no adiabatic contraction and no self-gravity of baryons).
   use Tree_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
+  implicit none
   private
   public :: Galactic_Structure_Radii_Simple_Initialize
 

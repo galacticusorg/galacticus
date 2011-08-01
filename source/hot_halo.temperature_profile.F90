@@ -67,6 +67,7 @@ module Hot_Halo_Temperature_Profile
   !# <include directive="hotHaloTemperatureMethod" type="moduleUse">
   include 'hot_halo.temperature_profile.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Hot_Halo_Temperature, Hot_Halo_Temperature_Logarithmic_Slope
 

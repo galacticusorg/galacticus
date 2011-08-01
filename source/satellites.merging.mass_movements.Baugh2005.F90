@@ -64,6 +64,7 @@
 module Satellite_Merging_Mass_Movements_Baugh2005
   !% Implements the \cite{baugh_can_2005} model of mass movements during satellite mergers.
   use Satellite_Merging_Mass_Movements_Descriptors
+  implicit none
   private
   public :: Satellite_Merging_Mass_Movements_Baugh2005_Initialize
 

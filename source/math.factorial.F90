@@ -63,6 +63,7 @@
 
 module Factorials
   !% Implements calculations of factorials
+  implicit none
   private
   public :: Factorial, Logarithmic_Double_Factorial
 

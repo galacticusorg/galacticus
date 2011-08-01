@@ -63,6 +63,7 @@
 
 module Dark_Matter_Halo_Biases_Press_Schechter
   !% Implements calculations of halo bias using the Press-Schechter mass function \citep{mo_analytic_1996}.
+  implicit none
   private
   public :: Dark_Matter_Halo_Bias_Press_Schechter_Initialize
 

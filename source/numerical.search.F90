@@ -63,6 +63,7 @@
 
 module Arrays_Search
   !% Implements searching of ordered arrays.
+  implicit none
   private
   public :: Search_Array, Search_Array_For_Closest
 

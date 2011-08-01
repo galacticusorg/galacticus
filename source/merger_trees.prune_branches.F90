@@ -63,6 +63,7 @@
 
 module Merger_Trees_Prune_Branches
   !% Prunes branches below a given mass threshold from merger trees.
+  implicit none
   private
   public :: Merger_Tree_Prune_Branches
   

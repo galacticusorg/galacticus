@@ -63,6 +63,7 @@
 
 module Merger_Trees_Initialize
   !% Implements initialization of merger tree structures.
+  implicit none
   private
   public :: Merger_Tree_Initialize
 

@@ -65,6 +65,7 @@ module File_Utilities
   !% Contains a function which returns an available file unit. Also stores the name of the output directory and unit numbers for
   !% various files which remain open throughout.
   use iso_varying_string
+  implicit none
   private
   public :: File_Units_Get,Count_Lines_in_File,File_Exists
 

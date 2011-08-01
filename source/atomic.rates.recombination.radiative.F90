@@ -64,6 +64,7 @@
 module Atomic_Rates_Recombination_Radiative
   !% Implements calculations of atomic radiative recombination rates.
   use ISO_Varying_String 
+  implicit none
   private
   public :: Atomic_Rate_Recombination_Radiative
 

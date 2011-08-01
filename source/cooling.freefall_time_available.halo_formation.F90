@@ -65,6 +65,7 @@
 module Freefall_Times_Available_Halo_Formation
   !% Implements the \cite{cole_hierarchical_2000} method for computing the time available for freefall in
   !% cooling calculations in hot halos.
+  implicit none
   private
   public :: Freefall_Time_Available_Halo_Formation_Initialize
 

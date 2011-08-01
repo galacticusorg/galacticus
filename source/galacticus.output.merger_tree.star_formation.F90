@@ -68,6 +68,7 @@ module Galacticus_Output_Star_Formation_Histories
   use Abundances_Structure
   use Histories
   use Kind_Numbers
+  implicit none
   private
   public :: Star_Formation_History_Create, Star_Formation_History_Scales, Star_Formation_History_Record,&
        & Star_Formation_History_Output

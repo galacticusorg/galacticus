@@ -65,6 +65,7 @@ module Tree_Node_Methods_Formation_Times_Null
   !% Implements a null formation times method.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Formation_Times_Null_Initialize
 

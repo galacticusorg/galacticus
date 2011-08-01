@@ -63,6 +63,7 @@
 
 module Intergalactic_Medium_State
   !% Implements calculations of the intergalactic medium thermal and ionization state.
+  implicit none
   private
   public :: Intergalactic_Medium_Electron_Fraction, Intergalactic_Medium_Temperature
 

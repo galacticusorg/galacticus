@@ -63,6 +63,7 @@
 
 module Command_Arguments
   !% Provides an interface to read command line arguments of arbitrary type.
+  implicit none
   private
   public :: Get_Argument
 

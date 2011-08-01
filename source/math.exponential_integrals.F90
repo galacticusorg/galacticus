@@ -64,6 +64,7 @@
 module Exponential_Integrals
   !% Implements exponential integrals.
   use FGSL
+  implicit none
   private
   public :: Sine_Integral, Cosine_Integral
   

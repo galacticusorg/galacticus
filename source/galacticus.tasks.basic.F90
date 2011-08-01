@@ -61,6 +61,7 @@
 
 module Galacticus_Tasks_Basic
   use Galacticus_Display
+  implicit none
   private
   public :: Galacticus_Task_Start, Galacticus_Task_End
   

@@ -66,6 +66,7 @@ module Tree_Node_Methods_Satellite_Orbit
   use Tree_Nodes
   use Kepler_Orbits_Structure
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize, Satellite_Orbit_Create_Simple,&
        & Galacticus_Output_Tree_Satellite_Orbit_Simple, Galacticus_Output_Tree_Satellite_Orbit_Simple_Property_Count,&

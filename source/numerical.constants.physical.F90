@@ -65,6 +65,7 @@ module Numerical_Constants_Physical
   !% Contains various useful physical constants.
   use FGSL
   use Numerical_Constants_Prefixes
+  implicit none
   public
 
   ! Speed of light (m/s).

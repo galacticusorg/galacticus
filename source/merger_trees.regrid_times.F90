@@ -64,6 +64,7 @@
 module Merger_Trees_Regrid_Times
   !% Forces a merger tree onto a specified time grid.
   use ISO_Varying_String
+  implicit none
   private
   public :: Merger_Tree_Regrid_Time
   

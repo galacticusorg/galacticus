@@ -63,6 +63,7 @@
 
 module Galacticus_Tasks_Evolve_Tree
   !% Implements the task of evolving merger trees.
+  implicit none
   private
   public :: Galacticus_Task_Evolve_Tree
 

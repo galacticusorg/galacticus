@@ -64,6 +64,7 @@
 module Transfer_Function_BBKS
   !% Implements generation of a tabulated transfer function using the BBKS fitting formula.
   use ISO_Varying_String
+  implicit none
   private
   public :: Transfer_Function_BBKS_Initialize, Transfer_Function_BBKS_State_Store, Transfer_Function_BBKS_State_Retrieve
   

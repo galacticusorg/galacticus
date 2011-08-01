@@ -67,6 +67,7 @@ module Merger_Tree_Smooth_Accretion
   !% \cite{wechsler_concentrations_2002}.
   use Merger_Trees
   use ISO_Varying_String
+  implicit none
   private
   public :: Merger_Tree_Smooth_Accretion_Initialize
 

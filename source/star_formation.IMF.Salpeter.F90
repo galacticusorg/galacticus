@@ -63,6 +63,7 @@
 
 module Star_Formation_IMF_Salpeter
   !% Implements the Salpeter stellar initial mass function.
+  implicit none
   private
   public :: Star_Formation_IMF_Register_Salpeter, Star_Formation_IMF_Register_Name_Salpeter,&
        & Star_Formation_IMF_Recycled_Instantaneous_Salpeter, Star_Formation_IMF_Yield_Instantaneous_Salpeter,&

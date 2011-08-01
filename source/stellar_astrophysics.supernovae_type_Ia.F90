@@ -64,6 +64,7 @@
 module Supernovae_Type_Ia
   !% Provides calculations of Type Ia supernovae.
   use ISO_Varying_String
+  implicit none
   private
   public :: SNeIa_Cumulative_Number, SNeIa_Cumulative_Yield
 

@@ -63,6 +63,7 @@
 
 module Merger_Trees_Simple
   !% Handles reading of data from CSV files of simple merger trees.
+  implicit none
   private
   public :: Merger_Trees_Simple_Process
 

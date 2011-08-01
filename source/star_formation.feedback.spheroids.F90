@@ -65,6 +65,7 @@ module Star_Formation_Feedback_Spheroids
   !% Implements calculations of feedback from star formation in spheroids.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Feedback_Spheroid_Outflow_Rate
   

@@ -65,6 +65,7 @@ module Cooling_Rates_White_Frenk
   !% Implements a \cite{white_galaxy_1991} cooling rate calculation.
   use, intrinsic :: ISO_C_Binding
   use Tree_Nodes
+  implicit none
   private
   public :: Cooling_Rate_White_Frenk_Initialize
 

@@ -63,6 +63,7 @@
 
 module Array_Utilities
   !% Contains routines which implement useful operations on arrays.
+  implicit none
   private
   public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic
 

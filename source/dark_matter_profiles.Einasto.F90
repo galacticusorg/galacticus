@@ -65,6 +65,7 @@ module Dark_Matter_Profiles_Einasto
   !% Implements Einasto halo profiles.
   use Tree_Nodes
   use FGSL
+  implicit none
   private
   public :: Dark_Matter_Profile_Einasto_Initialize, Dark_Matter_Profiles_Einasto_State_Store, Dark_Matter_Profiles_Einasto_State_Retrieve
 

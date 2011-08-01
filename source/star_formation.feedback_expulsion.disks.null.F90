@@ -64,6 +64,7 @@
 module Star_Formation_Expulsive_Feedback_Disks_Null
   !% Implementss a null expulsive outflow rate in galactic disks.
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Disks_Null_Initialize
   

@@ -69,6 +69,7 @@ module Linear_Growth_Simple
   use Cosmology_Functions
   use, intrinsic :: ISO_C_Binding
   use FGSL
+  implicit none
   private
   public :: Growth_Factor_Simple_Initialize, Linear_Growth_Simple_State_Store,&
        & Linear_Growth_Simple_State_Retrieve

@@ -64,6 +64,7 @@
 module Merger_Trees_Dump
   !% Implements dumping of the structure of a merger tree to a file for plotting with \href{http://www.graphviz.org/}{\sc dot}.
   use Kind_Numbers
+  implicit none
   private
   public :: Merger_Tree_Dump
 

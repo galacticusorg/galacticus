@@ -65,6 +65,7 @@ module Merger_Tree_Build_Cole2000
   !% Implements building of merger trees using the algorithm of \cite{cole_hierarchical_2000}.
   use Merger_Trees
   use FGSL
+  implicit none
   private
   public :: Merger_Tree_Build_Cole2000_Initialize, Merger_Tree_Build_Cole2000_Snapshot, Merger_Tree_Build_Cole2000_State_Store,&
        & Merger_Tree_Build_Cole2000_State_Retrieve

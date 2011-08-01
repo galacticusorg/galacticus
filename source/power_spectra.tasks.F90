@@ -64,6 +64,7 @@
 module Power_Spectrum_Tasks
   !% Implements calculations of power spectra and related properties for output.
   use IO_HDF5
+  implicit none
   private
   public :: Power_Spectrum_Compute, Power_Spectrum_Open_File, Power_Spectrum_Close_File, Power_Spectrum_Output
   

@@ -67,6 +67,7 @@ module Tree_Node_Methods_Hernquist_Spheroid
   use Histories
   use Components
   use Stellar_Population_Properties
+  implicit none
   private
   public :: Tree_Node_Methods_Hernquist_Spheroid_Initialize, Tree_Node_Methods_Hernquist_Spheroid_Thread_Initialize,&
        & Hernquist_Spheroid_Satellite_Merging, Galacticus_Output_Tree_Spheroid_Hernquist,&

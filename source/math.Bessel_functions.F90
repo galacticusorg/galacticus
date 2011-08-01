@@ -64,6 +64,7 @@
 module Bessel_Functions
   !% Implements calculations of Bessel functions.
   use FGSL
+  implicit none
   private
   public :: Bessel_Function_K0, Bessel_Function_K1, Bessel_Function_I0, Bessel_Function_I1
 

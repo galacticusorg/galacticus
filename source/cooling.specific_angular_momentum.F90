@@ -68,6 +68,7 @@ module Cooling_Specific_Angular_Momenta
   !# <include directive="coolingSpecificAngularMomentumMethod" type="moduleUse">
   include 'cooling.specific_angular_momentum.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Cooling_Specific_Angular_Momentum
 

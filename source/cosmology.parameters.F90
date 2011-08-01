@@ -65,6 +65,7 @@ module Cosmological_Parameters
   !% Implements cosmological parameters and related derived quantities. Default parameter values are taken from
   !% \cite{komatsu_seven-year_2010}.
   use Input_Parameters
+  implicit none
   private
   public :: Omega_b, Omega_0, Omega_DE, Omega_Radiation, Omega_K, T_CMB, H_0, H_0_invGyr, Little_H_0, Critical_Density
 

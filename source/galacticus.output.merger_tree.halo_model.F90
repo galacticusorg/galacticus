@@ -63,6 +63,7 @@
 
 module Galacticus_Output_Halo_Models
   !% Handles outputting of data required by the halo model of galaxy clustering to the \glc\ output file.
+  implicit none
   private
   public :: Galacticus_Output_Halo_Model, Galacticus_Output_Halo_Model_Property_Count, Galacticus_Output_Halo_Model_Names,&
        & Galacticus_Linear_Power_Spectrum_Output, Galacticus_Growth_Factor_Output, Galacticus_Extra_Output_Halo_Fourier_Profile

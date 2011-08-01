@@ -63,6 +63,7 @@
 
 module Virial_Orbits_Fixed
   !% Implements a fixed orbital parameter distribution for merging subhalos.
+  implicit none
   private
   public :: Virial_Orbital_Parameters_Fixed_Initialize
   

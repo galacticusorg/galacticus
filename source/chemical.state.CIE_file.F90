@@ -65,6 +65,7 @@ module Chemical_States_CIE_File
   !% Reads and interpolates a collisional ionization equilibrium chemical state from a file.
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Chemical_State_CIE_File_Initialize, Chemical_State_CIE_File_Read, Electron_Density_CIE_File_Interpolate,&
        & Electron_Density_CIE_File_logTemperature_Interpolate, Chemical_Densities_CIE_File_Interpolate

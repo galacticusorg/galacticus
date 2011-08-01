@@ -65,6 +65,7 @@ module Abundances_Structure
   !% Defines the abundances structure used for describing elemental abundances in \glc.
   use ISO_Varying_String
   use Numerical_Constants_Astronomical
+  implicit none
   private
   public :: abundancesStructure, Abundances_Names, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
        &, Abundances_Mass_To_Mass_Fraction

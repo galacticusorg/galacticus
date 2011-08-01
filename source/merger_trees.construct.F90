@@ -65,6 +65,7 @@ module Merger_Tree_Construction
   !% Constructs/destructs merger trees.
   use ISO_Varying_String
   use Merger_Trees
+  implicit none
   private
   public :: Merger_Tree_Create
 

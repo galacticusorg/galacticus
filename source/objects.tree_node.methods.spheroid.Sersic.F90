@@ -68,13 +68,14 @@ module Tree_Node_Methods_Sersic_Spheroid
   use Components
   use Stellar_Population_Properties
   use FGSL
+  implicit none
   private
   public :: Tree_Node_Methods_Sersic_Spheroid_Initialize, Sersic_Spheroid_Satellite_Merging,&
        & Galacticus_Output_Tree_Spheroid_Sersic, Galacticus_Output_Tree_Spheroid_Sersic_Property_Count,&
        & Galacticus_Output_Tree_Spheroid_Sersic_Names, Sersic_Spheroid_Radius_Solver, Sersic_Spheroid_Enclosed_Mass,&
        & Sersic_Spheroid_Density, Sersic_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Sersic,&
        & Tree_Node_Methods_Sersic_Spheroid_Dump, Sersic_Spheroid_Radius_Solver_Plausibility, Sersic_Spheroid_Scale_Set&
-       &,Sersic_Spheroid_Star_Formation_History_Output, Sersic_Spheroid_Post_Evolve,&
+       &,Sersic_Spheroid_Star_Formation_History_Output,&
        & Sersic_Spheroid_Property_Identifiers_Decode, Sersic_Profile_Tabulate_State_Store, Sersic_Profile_Tabulate_State_Retrieve
   
   ! The index used as a reference for this component.

@@ -63,6 +63,7 @@
 
 module Galacticus_Banner
   !% Displays a banner for \glc.
+  implicit none
   private
   public :: Galacticus_Banner_Show
 

@@ -63,6 +63,7 @@
 
 module Dynamical_Friction_Timescale_Utilities
   !% Implements utiilities for dynamical friction timescale calculations.
+  implicit none
   private
   public :: Dynamical_Friction_Timescale_Multiplier
 

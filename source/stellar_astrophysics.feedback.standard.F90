@@ -64,6 +64,7 @@
 module Stellar_Feedback_Standard
   !% Implements a simple calculation of energy feedback from stellar populations.
   use Numerical_Constants_Astronomical
+  implicit none
   private
   public :: Stellar_Feedback_Standard_Initialize
 

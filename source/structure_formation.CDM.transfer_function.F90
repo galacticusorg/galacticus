@@ -62,6 +62,7 @@
 module CDM_Transfer_Function
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Transfer_Function_CDM, CDM_Transfer_Function_State_Retrieve
 

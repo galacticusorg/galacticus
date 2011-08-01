@@ -65,6 +65,7 @@ module Cooling_Functions_CIE_File
   !% Reads and interpolates a collisional ionization equilibrium cooling function from a file.
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Cooling_Function_CIE_File_Initialize, Cooling_Function_CIE_File_Read, Cooling_Function_CIE_File_Interpolate,&
        & Cooling_Function_CIE_File_logTemperature_Interpolate, Cooling_Function_CIE_File,&

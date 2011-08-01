@@ -64,6 +64,7 @@
 module Dark_Matter_Profiles_Isothermal
   !% Implements a isothermal halo spin distribution.
   use Tree_Nodes
+  implicit none
   private
   public :: Dark_Matter_Profile_Isothermal_Initialize
 

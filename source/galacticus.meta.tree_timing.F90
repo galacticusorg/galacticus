@@ -64,6 +64,7 @@
 module Galacticus_Meta_Tree_Timing
   !% Records and outputs timing data for processing trees.
   use Kind_Numbers
+  implicit none
   private
   public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
 

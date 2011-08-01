@@ -69,6 +69,7 @@ module Cooling_Radii_Simple
   use Tree_Nodes
   use Kind_Numbers
   use Radiation_Structure
+  implicit none
   private
   public :: Cooling_Radius_Simple_Initialize, Cooling_Radius_Simple_Reset
 

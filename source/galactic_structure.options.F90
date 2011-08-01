@@ -63,6 +63,7 @@
 
 module Galactic_Structure_Options
   !% Provides various internal option codes for the galactic structure functions.
+  implicit none
   public
 
   ! Values used to represent different mass types.

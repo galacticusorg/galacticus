@@ -64,6 +64,7 @@
 module Stellar_Feedback
   !% Provides calculations of stellar feedback.
   use ISO_Varying_String
+  implicit none
   private
   public :: Stellar_Feedback_Cumulative_Energy_Input
 

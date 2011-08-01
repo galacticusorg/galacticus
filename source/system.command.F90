@@ -63,6 +63,7 @@
 
 module System_Command
   !% Executes system commands.
+  implicit none
   private
   public :: System_Command_Do
   

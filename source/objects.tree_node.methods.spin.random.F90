@@ -65,6 +65,7 @@ module Tree_Node_Methods_Spin_Random
   !% Implement random spin tree node method.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Spin_Random_Initialize, Tree_Node_Methods_Spin_Random_Initialize_Spin,&
        & Galacticus_Output_Tree_Spin_Random, Galacticus_Output_Tree_Spin_Random_Property_Count,&

@@ -63,6 +63,7 @@
 
 module Satellite_Merging_Remnant_Sizes_Properties
   !% Stores properties of merger remnants related to their size.
+  implicit none
   public
   
   ! Value indicating that there was no change in the remnant spheroid.

@@ -65,6 +65,7 @@ module Tree_Node_Methods_Black_Hole_Simple
   !% Implement black hole tree node methods.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Black_Hole_Simple_Initialize, Galacticus_Output_Tree_Black_Hole_Simple,&
        & Galacticus_Output_Tree_Black_Hole_Simple_Property_Count, Galacticus_Output_Tree_Black_Hole_Simple_Names,&

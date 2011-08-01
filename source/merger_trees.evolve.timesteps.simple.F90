@@ -63,6 +63,7 @@
 
 module Merger_Tree_Timesteps_Simple
   !% Implements a simple time-stepping criterion for merger tree evolution.
+  implicit none
   private
   public :: Merger_Tree_Timestep_Simple
 

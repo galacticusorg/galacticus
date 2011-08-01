@@ -64,6 +64,7 @@
 module Unit_Tests
   !% Implements unit testing.
   use ISO_Varying_String
+  implicit none
   private
   public :: Assert, Unit_Tests_Finish, Unit_Tests_Begin_Group, Unit_Tests_End_Group
 

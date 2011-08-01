@@ -64,8 +64,9 @@
 module Radiation_IGB_File
   !% Implements an intergalatic background radiation component read from a file.
   use FGSL
-  public :: Radiation_IGB_File_Initialize
+  implicit none
   private
+  public :: Radiation_IGB_File_Initialize
 
   ! Flag indicating whether the module has been initialized yet.
   logical :: moduleInitialized=.false.

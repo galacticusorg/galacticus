@@ -69,6 +69,7 @@ module IO_HDF5
   use HDF5
   use ISO_Varying_String
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: hdf5Object, IO_HDF5_Set_Defaults
   ! <gfortran 4.6> The following routines should ideally only be accessible as type-bound procedures, but this is buggy for

@@ -68,6 +68,7 @@ module Tree_Nodes
   use Kind_Numbers
   use Histories
   use Kepler_Orbits_Structure
+  implicit none
   private
   public :: treeNode, treeNodeList, Tree_Nodes_New_Unique_ID, Tree_Node_Rate_Rate_Compute_Dummy, Tree_Node_Rate_Adjust_Dummy,&
        & Tree_Node_Rate_Adjust_Array_Dummy, Tree_Node_Rate_Adjust_History_Dummy, Get_Template, Set_Template

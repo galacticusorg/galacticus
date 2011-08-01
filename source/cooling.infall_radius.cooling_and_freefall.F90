@@ -64,8 +64,9 @@
 
 module Infall_Radii_Cooling_Freefall
   !% Implements an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
+  implicit none
   private
-  public :: Infall_Radius_Cooling_Freefall_Initialize, Infall_Radius_Cooling_Freefall_Reset
+  public :: Infall_Radius_Cooling_Freefall_Initialize
 
 contains
 

@@ -64,6 +64,7 @@
 module Stellar_Astrophysics_Tracks_File
   !% Implements stellar tracks.
   use FGSL
+  implicit none
   private
   public :: Stellar_Tracks_Initialize_File
 

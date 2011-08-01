@@ -66,6 +66,7 @@ module Star_Formation_Timescales_Disks
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Timescale_Disk
   

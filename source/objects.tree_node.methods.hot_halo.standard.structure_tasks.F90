@@ -64,6 +64,7 @@
 module Tree_Node_Methods_Hot_Halo_Structure_Tasks
   !% Implements structure tasks for the standard hot halo component.
   use Tree_Node_Methods_Hot_Halo_Data
+  implicit none
   private
   public :: Hot_Halo_Standard_Density
   

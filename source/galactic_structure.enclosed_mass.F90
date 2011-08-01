@@ -67,6 +67,7 @@ module Galactic_Structure_Enclosed_Masses
   use ISO_Varying_String
   use Tree_Nodes
   use Galactic_Structure_Options
+  implicit none
   private
   public :: Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
 

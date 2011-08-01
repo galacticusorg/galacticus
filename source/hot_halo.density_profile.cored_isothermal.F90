@@ -63,6 +63,7 @@
 
 module Hot_Halo_Density_Profile_Cored_Isothermal
   !% Implements a cored isothermal profile for hot gas halos.
+  implicit none
   private
   public :: Hot_Halo_Density_Cored_Isothermal
 

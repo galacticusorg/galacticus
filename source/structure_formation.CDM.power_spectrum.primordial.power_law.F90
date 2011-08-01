@@ -64,6 +64,7 @@
 module CDM_Primordial_Power_Spectrum_Power_Law
   !% Implements generation of a tabulated power-law primordial power spectrum. The default power spectrum parameters are taken
   !% from \cite{komatsu_seven-year_2010}.
+  implicit none
   private
   public :: CDM_Primordial_Power_Spectrum_Power_Law_Initialize, CDM_Primordial_Power_Spectrum_Power_Law_State_Store,&
        & CDM_Primordial_Power_Spectrum_Power_Law_State_Retrieve

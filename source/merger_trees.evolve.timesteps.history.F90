@@ -65,6 +65,7 @@
 module Merger_Tree_Timesteps_History
   !% Implements a simple time-stepping criterion for merger tree evolution.
   use FGSL
+  implicit none
   private
   public :: Merger_Tree_Timestep_History, Merger_Tree_History_Write
 

@@ -63,6 +63,7 @@
 
 module Supernovae_Population_III_HegerWoosley
   !% Implements calculations related to Population III supernovae.
+  implicit none
   private
   public :: Supernovae_Population_III_HegerWoosley_Initialize
   

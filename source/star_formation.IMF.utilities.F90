@@ -63,6 +63,7 @@
 
 module Star_Formation_IMF_Utilities
   !% Contains useful utilities required by the IMF subsystem.
+  implicit none
   private
   public :: IMF_Index_Lookup
 

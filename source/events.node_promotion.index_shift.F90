@@ -65,6 +65,7 @@
 module Node_Promotion_Index_Shifts
   !% Implements optional shifting of the index of a node about to be promoted to its parent node, allowing indices to be
   !% tracked along merger trees.
+  implicit none
   private
   public :: Node_Promotion_Index_Shift
   

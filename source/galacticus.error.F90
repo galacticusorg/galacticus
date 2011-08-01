@@ -63,6 +63,7 @@
 
 module Galacticus_Error
   !% Implements error reporting for the {\sc Galacticus} package.
+  implicit none
   private
   public :: Galacticus_Error_Report
   

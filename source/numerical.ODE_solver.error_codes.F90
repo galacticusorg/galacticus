@@ -63,6 +63,7 @@
 
 module ODE_Solver_Error_Codes
   !% Defines internal error codes for the \glc\ ODE solver.
+  implicit none
   public
 
   ! An interrupt has been triggered.

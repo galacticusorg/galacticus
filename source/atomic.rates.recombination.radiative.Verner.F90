@@ -65,6 +65,7 @@
 module Atomic_Rates_Recombination_Radiative_Verner
   !% Computes rates of atomic radiative recombination using a compilation of fitting functions. Based on the
   !% \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.
+  implicit none
   private
   public :: Atomic_Rate_Recombination_Radiative_Verner_Initialize
 

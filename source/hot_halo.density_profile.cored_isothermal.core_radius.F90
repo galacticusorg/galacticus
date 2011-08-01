@@ -65,6 +65,7 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii
   !% Implements calculations of the core radius in cored isothermal hot halo profiles.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Hot_Halo_Density_Cored_Isothermal_Core_Radius
   

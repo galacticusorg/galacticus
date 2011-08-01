@@ -64,6 +64,7 @@
 module Cooling_Functions_Atomic_CIE_Cloudy
   !% Generates a tabulated atomic collisional ionization equilibrium cooling function using {\sc Cloudy}.
   use ISO_Varying_String
+  implicit none
   private
   public :: Cooling_Function_Atomic_CIE_Cloudy_Initialize, Cooling_Function_Atomic_CIE_Cloudy,&
        & Cooling_Function_Density_Slope_Atomic_CIE_Cloudy, Cooling_Function_Temperature_Slope_Atomic_CIE_Cloudy

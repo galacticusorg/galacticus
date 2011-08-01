@@ -63,6 +63,7 @@
 
 module Halo_Mass_Function_Tinker2008
   !% Implements generation of a tabulated power-law primordial power spectrum.
+  implicit none
   private
   public :: Halo_Mass_Function_Tinker2008_Initialize
 

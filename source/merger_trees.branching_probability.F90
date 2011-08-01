@@ -64,6 +64,7 @@
 module Merger_Tree_Branching
   !% Implements calculations of merger tree branching probabilities.
   use ISO_Varying_String
+  implicit none
   private
   public :: Tree_Branching_Probability, Tree_Subresolution_Fraction, Tree_Branch_Mass, Tree_Maximum_Step
 

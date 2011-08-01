@@ -66,6 +66,7 @@ module Star_Formation_Expulsive_Feedback_Spheroids_Superwind
   !% Implements a``superwind'' outflow rate (as in \citep{baugh_can_2005}) due to star formation feedback in
   !% galactic spheroids.
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Spheroids_SW_Initialize
 

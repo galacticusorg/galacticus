@@ -63,6 +63,7 @@
 
 module Dark_Matter_Halo_Formation_Times
   !% Implements calculations of dark matter halo formation times.
+  implicit none
   private
   public :: Dark_Matter_Halo_Formation_Time
 

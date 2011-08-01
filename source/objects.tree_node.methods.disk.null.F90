@@ -63,6 +63,7 @@
 
 module Tree_Node_Methods_Disk_Null
   !% A null disk method.
+  implicit none
   private
   public :: Tree_Node_Methods_Disk_Null_Initialize
   

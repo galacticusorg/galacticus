@@ -64,6 +64,7 @@
 module Star_Formation_Timescale_Disks_KMT09
   !% Implements the \cite{krumholz_star_2009} star formation timescale for galactic disks.
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Timescale_Disks_KMT09_Initialize
 

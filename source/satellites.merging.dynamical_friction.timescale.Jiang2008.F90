@@ -63,6 +63,7 @@
 
 module Dynamical_Friction_Jiang2008
   !% Implements calculations of satellite merging times using the \cite{jiang_fitting_2008} method.
+  implicit none
   private
   public :: Satellite_Time_Until_Merging_Jiang2008_Initialize
 

@@ -68,6 +68,7 @@ module Cooling_Infall_Radii
   !# <include directive="infallRadiusMethod" type="moduleUse">
   include 'cooling.infall_radius.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Infall_Radius, Infall_Radius_Growth_Rate
 

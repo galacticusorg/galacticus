@@ -63,6 +63,7 @@
 
 module Galacticus_Output_Trees_Virial
   !% Handles outputting of node virial data to the \glc\ output file.
+  implicit none
   private
   public :: Galacticus_Output_Tree_Virial, Galacticus_Output_Tree_Virial_Property_Count, Galacticus_Output_Tree_Virial_Names
 

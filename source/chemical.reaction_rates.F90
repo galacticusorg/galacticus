@@ -65,6 +65,7 @@ module Chemical_Reaction_Rates
   !% Implements calculations of chemical reaction rates.
   use Chemical_Abundances_Structure
   use ISO_Varying_String 
+  implicit none
   private
   public :: Chemical_Reaction_Rate
 

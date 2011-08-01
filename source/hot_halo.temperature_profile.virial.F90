@@ -63,6 +63,7 @@
 
 module Hot_Halo_Temperature_Profile_Virial
   !% Implements an isothermal (virial temperature) profile for hot gas halos.
+  implicit none
   private
   public :: Hot_Halo_Temperature_Virial
 

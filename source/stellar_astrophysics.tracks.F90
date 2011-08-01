@@ -64,6 +64,7 @@
 module Stellar_Astrophysics_Tracks
   !% Implements stellar tracks.
   use ISO_Varying_String
+  implicit none
   private
   public :: Stellar_Luminosity, Stellar_Effective_Temperature
   

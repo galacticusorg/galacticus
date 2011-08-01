@@ -63,6 +63,7 @@
 
 module Star_Formation_IMF_Select_Fixed
   !% Implements a fixed choice of stellar initial mass function.
+  implicit none
   private
   public :: IMF_Select_Fixed_Initialize
 

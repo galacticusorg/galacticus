@@ -64,6 +64,7 @@
 module Galactic_Dynamics_Bar_Instabilities_ELN
   !% Implements calculations of bar instability based on the \cite{efstathiou_stability_1982} criterion.
   use Tree_Nodes
+  implicit none
   private
   public :: Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
 

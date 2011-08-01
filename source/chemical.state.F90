@@ -67,6 +67,7 @@ module Chemical_States
   use Radiation_Structure
   use Chemical_Abundances_Structure
   use ISO_Varying_String 
+  implicit none
   private
   public :: Electron_Density, Electron_Density_Temperature_Log_Slope, Electron_Density_Density_Log_Slope, Chemical_Densities
 

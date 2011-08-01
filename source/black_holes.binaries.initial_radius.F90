@@ -64,6 +64,7 @@
 module Black_Hole_Binary_Initial_Radii
   !% Implements calculations of black hole binary initial separations.
   use ISO_Varying_String
+  implicit none
   private
   public :: Black_Hole_Binary_Initial_Radius
 

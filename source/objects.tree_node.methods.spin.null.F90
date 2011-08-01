@@ -63,6 +63,7 @@
 
 module Tree_Node_Methods_Spin_Null
   !% A null spin method.
+  implicit none
   private
   public :: Tree_Node_Methods_Spin_Null_Initialize
   

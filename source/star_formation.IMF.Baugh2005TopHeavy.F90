@@ -63,6 +63,7 @@
 
 module Star_Formation_IMF_Baugh2005TopHeavy
   !% Implements the top-heavy stellar initial mass function from \cite{baugh_can_2005}.
+  implicit none
   private
   public :: Star_Formation_IMF_Register_Baugh2005TopHeavy, Star_Formation_IMF_Register_Name_Baugh2005TopHeavy,&
        & Star_Formation_IMF_Recycled_Instantaneous_Baugh2005TopHeavy, Star_Formation_IMF_Yield_Instantaneous_Baugh2005TopHeavy,&

@@ -62,6 +62,7 @@
 !% Contains a module which defines various kind types.
 module Kind_Numbers
   !% Defines various kind types.
+  implicit none
   public
   
   ! Integer kinds.

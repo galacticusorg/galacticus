@@ -63,6 +63,7 @@
 
 module Galacticus_Merger_Tree_Output_Filter_Lightcones
   !% Filters output for lightcone geometry.
+  implicit none
   private
   public :: Galacticus_Merger_Tree_Output_Filter_Lightcone,Galacticus_Output_Tree_Lightcone,&
        & Galacticus_Output_Tree_Lightcone_Property_Count, Galacticus_Output_Tree_Lightcone_Names,&

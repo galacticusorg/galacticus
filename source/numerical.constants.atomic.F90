@@ -64,6 +64,7 @@
 module Numerical_Constants_Atomic
   !% Contains various useful atomic constants.
   use FGSL
+  implicit none
   public
 
   ! Atomic mass unit (in kg).

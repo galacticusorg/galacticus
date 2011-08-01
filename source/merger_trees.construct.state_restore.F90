@@ -66,6 +66,7 @@ module Merger_Trees_State_Store
   !% begin running a tree from just prior to the point of failure.
   use Kind_Numbers
   use ISO_Varying_String
+  implicit none
   private
   public :: Merger_Tree_State_Store, Merger_Tree_State_Store_Initialize
 

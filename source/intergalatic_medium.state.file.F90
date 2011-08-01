@@ -65,6 +65,7 @@ module Intergalactic_Medium_State_File
   !% Implements calculations of the intergalactic medium thermal and ionization state read from a file.
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Intergalactic_Medium_State_File_Initialize, Intergalactic_Medium_Temperature_File,&
        & Intergalactic_Medium_Electron_Fraction_File, Intergalactic_Medium_File_Set_File

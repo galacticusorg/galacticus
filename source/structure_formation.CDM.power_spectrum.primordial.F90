@@ -62,6 +62,7 @@
 module CDM_Primordial_Power_Spectrum
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Primordial_Power_Spectrum_CDM, CDM_Primordial_Power_Spectrum_State_Retrieve
 

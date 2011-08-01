@@ -63,6 +63,7 @@
 
 module Merger_Trees_Millennium
   !% Handles reading of data from CSV files extracted from the Millennium Simulation database.
+  implicit none
   private
   public :: Merger_Trees_Millennium_Process
 

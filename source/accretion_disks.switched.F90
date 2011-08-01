@@ -67,6 +67,7 @@ module Accretion_Disks_Switched
   !% the accretion rate.
   use Accretion_Disks_ADAF
   use Accretion_Disks_Shakura_Sunyaev
+  implicit none
   private
   public :: Accretion_Disks_Switched_Initialize
 

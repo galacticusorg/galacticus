@@ -65,6 +65,7 @@ module Halo_Spin_Distributions_Lognormal
   !% Implements a lognormal halo spin distribution.
   use FGSL
   use Tree_Nodes
+  implicit none
   private
   public :: Halo_Spin_Distribution_Lognormal_Initialize, Halo_Spin_Distribution_Lognormal_Snapshot,&
        & Halo_Spin_Distribution_Lognormal_State_Store, Halo_Spin_Distribution_Lognormal_State_Retrieve

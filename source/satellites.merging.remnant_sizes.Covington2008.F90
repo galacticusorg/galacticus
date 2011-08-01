@@ -63,6 +63,7 @@
 
 module Satellite_Merging_Remnant_Sizes_Covington2008
   !% Implements the \cite{covington_predicting_2008} algorithm for merger remnant sizes.
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Sizes_Covington2008_Initialize
 

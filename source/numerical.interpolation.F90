@@ -67,6 +67,7 @@ module Numerical_Interpolation
   !% \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
   use FGSL
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: Interpolate, Interpolate_Derivative, Interpolate_Locate, Interpolate_Done, Interpolate_Linear_Generate_Factors,&
        & Interpolate_Linear_Do, Interpolate_Linear_Generate_Gradient_Factors

@@ -65,6 +65,7 @@ module Tree_Node_Methods_Positions_Preset
   !% Implements node positions using preset data.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Position_Initialize_Preset, Galacticus_Output_Tree_Position_Preset,&
        & Galacticus_Output_Tree_Position_Preset_Property_Count, Galacticus_Output_Tree_Position_Preset_Names,&

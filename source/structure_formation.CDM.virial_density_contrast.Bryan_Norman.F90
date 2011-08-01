@@ -63,6 +63,7 @@
 !% \cite{bryan_statistical_1998}.
 
 module Virial_Densities_Bryan_Norman
+  implicit none
   private
   public :: Virial_Density_Bryan_Norman_Initialize
 

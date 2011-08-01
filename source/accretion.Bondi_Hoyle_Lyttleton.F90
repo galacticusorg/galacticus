@@ -63,6 +63,7 @@
 
 module Bondi_Hoyle_Lyttleton_Accretion
   !% Implements calculations of Bondi-Hoyle-Lyttleton accretion (see \citealt{edgar_review_2004}).
+  implicit none
   private
   public :: Bondi_Hoyle_Lyttleton_Accretion_Rate, Bondi_Hoyle_Lyttleton_Accretion_Radius
 

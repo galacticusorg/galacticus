@@ -64,6 +64,7 @@
 
 module Cooling_Time_Available_White_Frenk
   !% Implements the \cite{white_galaxy_1991} method for computing the time available for cooling in hot halos.
+  implicit none
   private
   public :: Cooling_Time_Available_WF_Initialize
 

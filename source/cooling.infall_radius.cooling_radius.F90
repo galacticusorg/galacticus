@@ -63,8 +63,9 @@
 
 module Infall_Radii_Cooling_Radius
   !% Implements a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
+  implicit none
   private
-  public :: Infall_Radius_Cooling_Radius_Initialize, Infall_Radius_Cooling_Radius_Reset
+  public :: Infall_Radius_Cooling_Radius_Initialize
 
 contains
 

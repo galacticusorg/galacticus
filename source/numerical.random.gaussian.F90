@@ -65,6 +65,7 @@ module Gaussian_Random
   !% Implements Gaussian random deviates.
   use FGSL
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: Gaussian_Random_Get, Gaussian_Random_Free
   

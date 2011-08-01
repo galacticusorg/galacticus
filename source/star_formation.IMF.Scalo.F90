@@ -63,6 +63,7 @@
 
 module Star_Formation_IMF_Scalo
   !% Implements the Scalo stellar initial mass function.
+  implicit none
   private
   public :: Star_Formation_IMF_Register_Scalo, Star_Formation_IMF_Register_Name_Scalo,&
        & Star_Formation_IMF_Recycled_Instantaneous_Scalo, Star_Formation_IMF_Yield_Instantaneous_Scalo,&

@@ -61,6 +61,7 @@
 
 module Thermodynamics_Radiation
   !% Implements calculations of thermal radiation.
+  implicit none
   private
   public :: Blackbody_Emission
 

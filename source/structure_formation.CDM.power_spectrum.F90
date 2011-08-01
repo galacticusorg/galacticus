@@ -65,6 +65,7 @@ module CDM_Power_Spectrum
   !% Implements the CDM power spectrum.
   use FGSL
   use, intrinsic :: ISO_C_Binding                             
+  implicit none
   private
   public :: Power_Spectrum_CDM, sigma_CDM, Mass_from_Sigma, sigma_8, sigma_CDM_Logarithmic_Derivative,&
        & sigma_CDM_Plus_Logarithmic_Derivative, CDM_Power_Spectrum_State_Store, CDM_Power_Spectrum_State_Retrieve

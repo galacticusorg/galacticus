@@ -67,6 +67,7 @@ module Dynamical_Friction_Lacey_Cole_Tormen
   !% Implements calculations of satellite merging times using the \cite{lacey_merger_1993} method with a parameterization of
   !% orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
   use FGSL
+  implicit none
   private
   public :: Satellite_Time_Until_Merging_Lacey_Cole_Tormen_Initialize,&
        & Satellite_Time_Until_Merging_Lacey_Cole_Tormen_State_Retrieve,&

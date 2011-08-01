@@ -63,6 +63,7 @@
 
 module Accretion_Disks_Shakura_Sunyaev
   !% Implements calculations of properties of thin Shakura-Sunyaev accretion disks.
+  implicit none
   private
   public :: Accretion_Disks_Shakura_Sunyaev_Initialize, Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev,&
        & Black_Hole_Spin_Up_Rate_Shakura_Sunyaev, Accretion_Disk_Jet_Power_Shakura_Sunyaev

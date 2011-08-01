@@ -64,6 +64,7 @@
 module Black_Hole_Binary_Mergers
   !% Implements calculations of black hole binary mergers.
   use ISO_Varying_String
+  implicit none
   private
   public :: Black_Hole_Binary_Merger
 

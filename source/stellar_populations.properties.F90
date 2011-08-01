@@ -67,6 +67,7 @@ module Stellar_Population_Properties
   use Tree_Nodes
   use Abundances_Structure
   use Histories
+  implicit none
   private
   public :: Stellar_Population_Properties_Rates, Stellar_Population_Properties_Scales,&
        & Stellar_Population_Properties_History_Count, Stellar_Population_Properties_History_Create

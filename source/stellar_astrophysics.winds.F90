@@ -64,6 +64,7 @@
 module Stellar_Astrophysics_Winds
   !% Provides calculations of stellar winds.
   use ISO_Varying_String
+  implicit none
   private
   public :: Stellar_Winds_Mass_Loss_Rate, Stellar_Winds_Terminal_Velocity
 

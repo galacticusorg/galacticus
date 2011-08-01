@@ -63,6 +63,7 @@
 
 module Tree_Node_Methods_Black_Hole_Null
   !% A null black hole method.
+  implicit none
   private
   public :: Tree_Node_Methods_Black_Hole_Null_Initialize
   

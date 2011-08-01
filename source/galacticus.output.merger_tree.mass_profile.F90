@@ -64,6 +64,7 @@
 module Galacticus_Output_Tree_Mass_Profiles
   !% Handles outputting of node mass profiles.
   use Tree_Nodes
+  implicit none
   private
   public :: Galacticus_Output_Tree_Mass_Profile, Galacticus_Output_Tree_Mass_Profile_Property_Count, Galacticus_Output_Tree_Mass_Profile_Names
 

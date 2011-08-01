@@ -63,6 +63,7 @@
 
 module Star_Formation_Histories_Metallicity_Split
   !% Handles computation and output of star formation histories split by metallicity for galaxies.
+  implicit none
   private
   public :: Star_Formation_Histories_Metallicity_Split_Initialize
 

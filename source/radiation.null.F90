@@ -59,9 +59,10 @@
 !!    http://www.ott.caltech.edu
 
 
-module Radiation_Null
-  public :: Radiation_Set_Null, Radiation_Temperature_Null, Radiation_Flux_Null
+module Radiation_Null 
+  implicit none
   private
+  public :: Radiation_Set_Null, Radiation_Temperature_Null, Radiation_Flux_Null
 
 contains
 

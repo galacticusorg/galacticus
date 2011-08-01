@@ -64,6 +64,7 @@
 module Supernovae_Population_III
   !% Provides calculations of Population III supernovae.
   use ISO_Varying_String
+  implicit none
   private
   public :: SNePopIII_Cumulative_Energy
 

@@ -66,6 +66,7 @@ module Merger_Tree_Timesteps_Record_Evolution
   !% Implements a time-stepping criterion for merger tree evolution which permits evolution of the main
   !% branch galaxy to be stored.
   use FGSL
+  implicit none
   private
   public :: Merger_Tree_Timestep_Record_Evolution, Merger_Tree_Record_Evolution_Output
 

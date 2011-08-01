@@ -66,6 +66,7 @@ module Cooling_Specific_Angular_Momenta_Constant_Rotation
   !% Calculates the specific angular momentum of cooling gas assuming a constant rotation velocity as a function of radius.
   use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
+  implicit none
   private
   public :: Cooling_Specific_AM_Constant_Rotation_Initialize, Cooling_Specific_AM_Constant_Rotation_Reset
 

@@ -68,6 +68,7 @@ module Hot_Halo_Density_Profile
   !# <include directive="hotHaloDensityMethod" type="moduleUse">
   include 'hot_halo.density_profile.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Hot_Halo_Density, Hot_Halo_Density_Log_Slope, Hot_Halo_Enclosed_Mass, Hot_Halo_Profile_Density_Task,&
        & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task, Hot_Halo_Profile_Rotation_Normalization

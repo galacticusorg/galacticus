@@ -64,6 +64,7 @@
 module Chemical_States_Atomic_CIE_Cloudy
   !% Generates a tabulated atomic collisional ionization equilibrium ionization state using {\sc Cloudy}.
   use ISO_Varying_String
+  implicit none
   private
   public :: Chemical_State_Atomic_CIE_Cloudy_Initialize
   

@@ -63,6 +63,7 @@
 
 module Satellite_Promotion
   !% Handles events where a satellite is moved to a new host halo.
+  implicit none
   private
   public :: Satellite_Move_To_New_Host
   

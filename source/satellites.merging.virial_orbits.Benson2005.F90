@@ -64,6 +64,7 @@
 module Virial_Orbits_Benson2005
   !% Implements the \cite{benson_orbital_2005} orbital parameter distribution for merging subhalos.
   use FGSL
+  implicit none
   private
   public :: Virial_Orbital_Parameters_Benson2005_Initialize, Virial_Orbital_Parameters_Benson2005_Snapshot,&
        & Virial_Orbital_Parameters_Benson2005_State_Store, Virial_Orbital_Parameters_Benson2005_State_Retrieve

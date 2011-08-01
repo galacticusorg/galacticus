@@ -64,6 +64,7 @@
 module Test_Integration_Functions
   !% Contains integrands for unit tests.
   use FGSL
+  implicit none
   private
   public :: Integrand1, Integrand2, Integrand3, Integrand4
 

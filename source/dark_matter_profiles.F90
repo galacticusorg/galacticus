@@ -65,6 +65,7 @@ module Dark_Matter_Profiles
   !% Implements calculations related to the dark matter halo density profile.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Dark_Matter_Profile_Rotation_Normalization, Dark_Matter_Profile_Energy, Dark_Matter_Profile_Energy_Growth_Rate,&
        & Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum,Dark_Matter_Profile_Circular_Velocity &

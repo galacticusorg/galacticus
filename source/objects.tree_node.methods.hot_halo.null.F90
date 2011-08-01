@@ -63,6 +63,7 @@
 
 module Tree_Node_Methods_Hot_Halo_Null
   !% A null hot halo method.
+  implicit none
   private
   public :: Tree_Node_Methods_Hot_Halo_Null_Initialize
   

@@ -74,6 +74,7 @@ module Merger_Trees
   !# <include directive="treeNodeCreateInitialize" type="moduleUse">
   include 'objects.tree_node.create.modules.inc'
   !# </include>
+  implicit none
   private
   public :: mergerTree, Tree_Node_Is_Accurate, Tree_Node_Get
 

@@ -66,6 +66,7 @@ module Accretion_Disks_ADAF
   use ISO_Varying_String
   use Black_Hole_Fundamentals
   use FGSL
+  implicit none
   private
   public :: Accretion_Disks_ADAF_Initialize, Accretion_Disk_Radiative_Efficiency_ADAF,&
        & Black_Hole_Spin_Up_Rate_ADAF, Accretion_Disk_Jet_Power_ADAF

@@ -65,6 +65,7 @@ module Cooling_Rates
   !% Implements calculations of the cooling rate.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Cooling_Rate
 

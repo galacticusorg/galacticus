@@ -64,6 +64,7 @@
 module Stellar_Population_Spectra_Conroy
   !% Handles stellar spectra using the \cite{conroy_propagation_2009} package.
   use ISO_Varying_String
+  implicit none
   private
   public :: Stellar_Population_Spectra_Conroy_Initialize
   

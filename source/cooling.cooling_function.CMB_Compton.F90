@@ -65,6 +65,7 @@
 module Cooling_Functions_CMB_Compton
   !% Computes the contribution to the cooling function due to Compton cooling off of the cosmic microwave background.
   use ISO_Varying_String
+  implicit none
   private
   public :: Cooling_Function_CMB_Compton_Initialize, Cooling_Function_CMB_Compton,&
        & Cooling_Function_Density_Slope_CMB_Compton, Cooling_Function_Temperature_Slope_CMB_Compton

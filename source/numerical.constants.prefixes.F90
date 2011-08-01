@@ -63,6 +63,7 @@
 
 module Numerical_Constants_Prefixes
   !% Contains useful numerical prefixes.
+  implicit none
   public
   
   double precision, parameter :: hella =1.0d27

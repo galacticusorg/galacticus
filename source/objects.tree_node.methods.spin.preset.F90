@@ -65,6 +65,7 @@ module Tree_Node_Methods_Spin_Preset
   !% Implement preset spin tree node method.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Spin_Preset_Initialize, Tree_Node_Methods_Spin_Preset_Initialize_Rates,&
        & Galacticus_Output_Tree_Spin_Preset, Galacticus_Output_Tree_Spin_Preset_Property_Count,&

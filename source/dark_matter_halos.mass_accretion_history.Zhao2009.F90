@@ -66,6 +66,7 @@ module Dark_Matter_Halo_Mass_Accretion_Histories_Zhao2009
   use Tree_Nodes
   use, intrinsic :: ISO_C_Binding
   use FGSL
+  implicit none
   private
   public :: Dark_Matter_Mass_Accretion_Zhao2009_Initialize
 

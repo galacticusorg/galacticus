@@ -65,6 +65,7 @@
 module Freefall_Radii_Dark_Matter_Halo
   !% Implements a simple cooling radius calculation (finds the radius at which the time available for cooling equals the cooling
   !% time).
+  implicit none
   private
   public :: Freefall_Radius_Dark_Matter_Halo_Initialize
 

@@ -64,6 +64,7 @@
 module Stellar_Astrophysics_Winds_Leitherer1992
   !% Implements a calculation of winds from stellar populations using the fitting formulae of \cite{leitherer_deposition_1992}.
   use Numerical_Constants_Astronomical
+  implicit none
   private
   public :: Stellar_Winds_Leitherer1992_Initialize
 

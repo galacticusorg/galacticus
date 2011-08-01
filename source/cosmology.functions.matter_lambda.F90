@@ -68,6 +68,7 @@ module Cosmology_Functions_Matter_Lambda
   use Cosmological_Parameters
   use FGSL
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: Cosmology_Functions_Matter_Lambda_Initialize, Cosmology_Matter_Lambda_State_Store,&
        & Cosmology_Matter_Lambda_State_Retrieve

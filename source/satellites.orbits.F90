@@ -64,6 +64,7 @@
 module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
   use Tree_Nodes
+  implicit none
   private
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius
   

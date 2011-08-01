@@ -63,6 +63,7 @@
 
 module Tree_Node_Methods_Dark_Matter_Profile_Null
   !% A null dark matter profile method.
+  implicit none
   private
   public :: Tree_Node_Methods_Dark_Matter_Profile_Null_Initialize
   

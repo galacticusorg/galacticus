@@ -64,6 +64,7 @@
 module Transfer_Function_CMBFast
   !% Implements generation of a tabulated transfer function using {\sc CMBFast}.
   use ISO_Varying_String
+  implicit none
   private
   public :: Transfer_Function_CMBFast_Initialize
   

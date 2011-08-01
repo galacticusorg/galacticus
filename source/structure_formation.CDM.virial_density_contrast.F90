@@ -65,6 +65,7 @@ module Virial_Density_Contrast
   !% Implements the virial overdensity for halos.
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Halo_Virial_Density_Contrast, Halo_Virial_Density_Contrast_Rate_of_Change, Virial_Density_Contrast_State_Retrieve
 

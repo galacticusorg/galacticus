@@ -73,6 +73,7 @@ module Star_Formation_IMF
   !#  <subroutineArgs>imfSelectionMethod,IMF_Select,imfNames</subroutineArgs>
   include 'star_formation.IMF.select.modules.inc'
   !# </include>
+  implicit none
   private
   public :: IMF_Select, IMF_Recycled_Fraction_Instantaneous, IMF_Recycling_Rate_NonInstantaneous, IMF_Yield_Instantaneous,&
        & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate, IMF_Descriptor

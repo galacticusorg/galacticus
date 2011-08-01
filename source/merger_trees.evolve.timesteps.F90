@@ -63,6 +63,7 @@
 
 module Merger_Tree_Timesteps
   !% Implements calculations of timesteps for merger tree evolution.
+  implicit none
   private
   public :: Time_Step_Get
 

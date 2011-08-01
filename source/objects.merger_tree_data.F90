@@ -65,6 +65,7 @@ module Merger_Tree_Data_Structure
   !% Implements an object to store merger tree data for processing into \glc's preferred file format.
   use Kind_Numbers
   use ISO_Varying_String
+  implicit none
   private
   public :: mergerTreeData
 
@@ -180,6 +181,7 @@ module Merger_Tree_Data_Structure
 
   type mergerTreeData
      !% A structure that holds raw merger tree data.
+  implicit none
      private
      integer                                              :: treeCount,nodeCount,particlesCount
      double precision                                     :: particleMass=0.0d0

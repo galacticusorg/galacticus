@@ -66,6 +66,7 @@ module Stellar_Population_Luminosities
   use FGSL
   use, intrinsic :: ISO_C_Binding                             
   use Abundances_Structure
+  implicit none
   private
   public :: Stellar_Population_Luminosity
 

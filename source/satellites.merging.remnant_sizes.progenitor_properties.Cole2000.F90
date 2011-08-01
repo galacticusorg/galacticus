@@ -66,6 +66,7 @@ module Satellite_Merging_Remnant_Progenitors_Properties_Cole2000
   !% Implements calculations of progenitor properties for merger remnant calculations using the algorithm of
   !% \cite{cole_hierarchical_2000}.
   use Tree_Nodes
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init
 

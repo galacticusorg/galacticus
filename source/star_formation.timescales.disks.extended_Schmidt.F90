@@ -65,6 +65,7 @@
 module Star_Formation_Timescale_Disks_Extended_Schmidt
   !% Implements the extended Schmidt star formation timescale of \cite{shi_extended_2011} for galactic disks.
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Timescale_Disks_Extended_Schmidt_Initialize
 

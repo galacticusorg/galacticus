@@ -63,8 +63,9 @@
 
 module Radiation_CMB
   !% Implements a cosmic microwave background radiation component.
-  public :: Radiation_Set_CMB, Radiation_Temperature_CMB, Radiation_Flux_CMB
+  implicit none
   private
+  public :: Radiation_Set_CMB, Radiation_Temperature_CMB, Radiation_Flux_CMB
 
 contains
 

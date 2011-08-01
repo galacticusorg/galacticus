@@ -65,6 +65,7 @@ module Cosmology_Functions
   !% Implements useful cosmological functions.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
+  implicit none
   private
   public :: Cosmology_Age, Expansion_Factor, Hubble_Parameter, Early_Time_Density_Scaling, Expansion_Factor_Is_Valid,&
        & Cosmic_Time_Is_Valid, Omega_Matter, Omega_Dark_Energy, Expansion_Rate, Epoch_of_Matter_Dark_Energy_Equality,&

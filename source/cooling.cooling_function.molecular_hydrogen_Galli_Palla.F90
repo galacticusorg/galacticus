@@ -66,6 +66,7 @@ module Cooling_Functions_Molecular_Hydrogen_Galli_Palla
   !% Computes the contribution to the cooling function from molecular hydrogen using the cooling function of
   !\cite{galli_chemistry_1998}.
   use ISO_Varying_String
+  implicit none
   private
   public :: Cooling_Function_Molecular_Hydrogen_GP_Initialize, Cooling_Function_Molecular_Hydrogen_GP,&
        & Cooling_Function_Density_Slope_Molecular_Hydrogen_GP, Cooling_Function_Temperature_Slope_Molecular_Hydrogen_GP

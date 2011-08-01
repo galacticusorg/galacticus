@@ -68,6 +68,7 @@ module Stellar_Population_Spectra
   !# <include directive="stellarPopulationSpectraMethod" type="moduleUse">
   include 'stellar_populations.spectra.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Stellar_Population_Spectrum, Stellar_Population_Spectrum_Tabulation
 

@@ -64,6 +64,7 @@
 module Satellite_Merging_Remnant_Sizes_Progenitors
   !% Implements calculations for progenitor properties for merger remnant calculations.
   use ISO_Varying_String
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Progenitor_Properties
 

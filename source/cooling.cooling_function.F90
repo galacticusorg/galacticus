@@ -67,6 +67,7 @@ module Cooling_Functions
   use Chemical_Abundances_Structure
   use Radiation_Structure
   use ISO_Varying_String 
+  implicit none
   private
   public :: Cooling_Function, Cooling_Function_Density_Log_Slope, Cooling_Function_Temperature_Log_Slope
 

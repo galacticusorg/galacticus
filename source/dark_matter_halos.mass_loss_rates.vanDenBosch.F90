@@ -65,6 +65,7 @@
 module Dark_Matter_Halos_Mass_Loss_Rates_vanDenBosch
   !% Implements a calculation of dark matter halo mass loss rates using the method of \cite{van_den_bosch_mass_2005}.
   use Tree_Nodes
+  implicit none
   private
   public :: Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize
 

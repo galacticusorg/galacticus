@@ -64,6 +64,7 @@
 module Star_Formation_Expulsive_Feedback_Spheroids_Null
   !% Implementss a null expulsive outflow rate in galactic spheroids.
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Spheroids_Null_Initialize
   

@@ -63,6 +63,7 @@
 
 module Numerical_Ranges
   !% Implements construction of numerical ranges.
+  implicit none
   private
   public :: Make_Range
 

@@ -63,6 +63,7 @@
 
 module Dark_Matter_Halo_Biases_Tinker2010
   !% Implements calculations of halo bias using the fitting function of \cite{tinker_large_2010}.
+  implicit none
   private
   public :: Dark_Matter_Halo_Bias_Tinker2010_Initialize
 

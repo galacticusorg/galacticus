@@ -63,6 +63,7 @@
 
 module Galactic_Structure_Densities
   !% Implements calculations of the density at a specific position.
+  implicit none
   private
   public :: Galactic_Structure_Density
 

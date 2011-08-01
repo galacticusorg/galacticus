@@ -63,6 +63,7 @@
 
 module Virial_Densities_Fixed
   !% Implements calculations of virial overdensity using a fixed value.
+  implicit none
   private
   public :: Virial_Density_Fixed_Initialize
 

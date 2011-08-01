@@ -65,6 +65,7 @@ module Galacticus_Output_Trees_Density_Contrasts
   !% Handles outputting of node density contrast properties (radii and masses).
   use Tree_Nodes
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: Galacticus_Output_Tree_Density_Contrast, Galacticus_Output_Tree_Density_Contrast_Property_Count, Galacticus_Output_Tree_Density_Contrast_Names
 

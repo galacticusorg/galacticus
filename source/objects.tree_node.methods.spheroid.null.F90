@@ -63,6 +63,7 @@
 
 module Tree_Node_Methods_Spheroid_Null
   !% A null spheroid method.
+  implicit none
   private
   public :: Tree_Node_Methods_Spheroid_Null_Initialize
   

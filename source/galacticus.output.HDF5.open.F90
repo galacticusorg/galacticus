@@ -68,6 +68,7 @@ module Galacticus_Output_Open
   use IO_HDF5
   use Galacticus_Error
   use HDF5
+  implicit none
   private
   public :: Galacticus_Output_Open_File, Galacticus_Output_Close_File
 

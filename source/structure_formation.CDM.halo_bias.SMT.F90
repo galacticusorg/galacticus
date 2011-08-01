@@ -63,6 +63,7 @@
 
 module Dark_Matter_Halo_Biases_SMT
   !% Implements calculations of halo bias using the fitting function of \cite{sheth_ellipsoidal_2001}.
+  implicit none
   private
   public :: Dark_Matter_Halo_Bias_SMT_Initialize
 

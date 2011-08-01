@@ -68,6 +68,7 @@ module Cooling_Freefall_Times_Available
   !# <include directive="freefallTimeAvailableMethod" type="moduleUse">
   include 'cooling.freefall_time_available.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Cooling_Freefall_Time_Available, Cooling_Freefall_Time_Available_Increase_Rate
 

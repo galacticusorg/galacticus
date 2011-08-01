@@ -65,6 +65,7 @@ module Star_Formation_Timescales_Spheroids
   !% Implements calculations of star formation timescales for galactic spheroids.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Timescale_Spheroid
   

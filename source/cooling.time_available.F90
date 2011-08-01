@@ -67,6 +67,7 @@ module Cooling_Times_Available
   !# <include directive="coolingTimeAvailableMethod" type="moduleUse">
   include 'cooling.time_available.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Cooling_Time_Available, Cooling_Time_Available_Increase_Rate
 

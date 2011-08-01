@@ -64,6 +64,7 @@
 module Atomic_Rates_Ionization_Collisional
   !% Implements calculations of atomic collisional ionization rates.
   use ISO_Varying_String 
+  implicit none
   private
   public :: Atomic_Rate_Ionization_Collisional
 

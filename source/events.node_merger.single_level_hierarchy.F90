@@ -63,6 +63,7 @@
 
 module Events_Node_Mergers_SLH
   !% Implements merger of nodes utilizing a single level substructure hierarchy.
+  implicit none
   private
   public :: Events_Node_Merger_Initialize_SLH
   

@@ -64,6 +64,7 @@
 module Hypergeometric_Functions
   !% Implements hypergeometric functions.
   use FGSL
+  implicit none
   private
   public :: Hypergeometric_1F1, Hypergeometric_2F1
   

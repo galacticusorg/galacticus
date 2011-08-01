@@ -63,6 +63,7 @@
 
 module Satellite_Merging_Remnant_Progenitors_Properties_Standard
   !% Implements standard calculations of progenitor properties for merger remnant calculations.
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Progenitor_Properties_Standard_Init
 

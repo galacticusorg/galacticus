@@ -65,6 +65,7 @@ module Tree_Node_Methods_Positions_Null
   !% Implements node positions using null data.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Position_Initialize_Null
   

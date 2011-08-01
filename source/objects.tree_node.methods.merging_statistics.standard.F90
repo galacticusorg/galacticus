@@ -65,6 +65,7 @@ module Tree_Node_Methods_Merging_Stats_Standard
   !% Implement random spin tree node method.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Merging_Stats_Standard_Initialize, Galacticus_Output_Tree_Merging_Stats_Standard,&
        & Galacticus_Output_Tree_Merging_Stats_Standard_Property_Count, Galacticus_Output_Tree_Merging_Stats_Standard_Names,&

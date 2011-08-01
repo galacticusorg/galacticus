@@ -61,6 +61,7 @@
 
 module Stellar_Population_Properties_Luminosities
   use ISO_Varying_String
+  implicit none
   private
   public :: Stellar_Population_Luminosities_Count, Stellar_Population_Luminosities_Get, Stellar_Population_Luminosities_Name,&
        & Stellar_Population_Luminosities_Output_Count, Stellar_Population_Luminosities_Output

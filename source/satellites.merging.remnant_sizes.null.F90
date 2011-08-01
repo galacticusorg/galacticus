@@ -63,6 +63,7 @@
 
 module Satellite_Merging_Remnant_Sizes_Null
   !% Implements a null algorithm for merger remnant sizes.
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Sizes_Null_Initialize
 

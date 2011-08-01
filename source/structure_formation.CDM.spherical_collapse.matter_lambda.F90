@@ -65,6 +65,7 @@
 module Spherical_Collapse_Matter_Lambda
   use FGSL
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: Spherical_Collape_Delta_Critical_Initialize, Spherical_Collapse_Critical_Overdensity,&
        & Spherical_Collape_Delta_Virial_Initialize, Spherical_Collapse_Virial_Density_Contrast,&

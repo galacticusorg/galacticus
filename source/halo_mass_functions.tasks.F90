@@ -64,6 +64,7 @@
 module Halo_Mass_Function_Tasks
   !% Implements calculations of halo mass functions and related properties for output.
   use IO_HDF5
+  implicit none
   private
   public :: Halo_Mass_Function_Compute, Halo_Mass_Function_Open_File, Halo_Mass_Function_Close_File, Halo_Mass_Function_Output
   

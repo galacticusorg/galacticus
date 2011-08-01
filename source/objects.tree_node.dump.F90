@@ -63,6 +63,7 @@
 
 module Tree_Nodes_Dump
   !% Implements dumping of a node's data to screen.
+  implicit none
   private
   public :: Node_Dump
   

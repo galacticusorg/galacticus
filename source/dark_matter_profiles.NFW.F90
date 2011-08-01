@@ -66,6 +66,7 @@ module Dark_Matter_Profiles_NFW
   use Tree_Nodes
   use FGSL
   use Kind_Numbers
+  implicit none
   private
   public :: Dark_Matter_Profile_NFW_Initialize, Dark_Matter_Profiles_NFW_State_Store, Dark_Matter_Profiles_NFW_State_Retrieve,&
        & Dark_Matter_Profile_NFW_Reset

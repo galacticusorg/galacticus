@@ -65,6 +65,7 @@ module Virial_Orbits_Wetzel2010
   !% Implements the \cite{wetzel_orbits_2010} orbital parameter distribution for merging subhalos.
   use FGSL
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: Virial_Orbital_Parameters_Wetzel2010_Initialize, Virial_Orbital_Parameters_Wetzel2010_Snapshot,&
        & Virial_Orbital_Parameters_Wetzel2010_State_Store, Virial_Orbital_Parameters_Wetzel2010_State_Retrieve

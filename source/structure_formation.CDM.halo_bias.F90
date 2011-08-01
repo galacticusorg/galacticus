@@ -65,6 +65,7 @@ module Dark_Matter_Halo_Biases
   !% Implements calculations of dark matter halo bias.
   use Tree_Nodes
   use ISO_Varying_String
+  implicit none
   private
   public :: Dark_Matter_Halo_Bias
 

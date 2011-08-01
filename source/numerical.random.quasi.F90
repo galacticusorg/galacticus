@@ -64,6 +64,7 @@
 module Quasi_Random
   !% Implements quasi-random sequences.
   use FGSL
+  implicit none
   private
   public :: Quasi_Random_Get, Quasi_Random_Free
 

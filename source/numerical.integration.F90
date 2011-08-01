@@ -64,6 +64,7 @@
 module Numerical_Integration
   !% Implements numerical integration.
   use FGSL
+  implicit none
   private
   public :: Integrate, Integrate_Done
 

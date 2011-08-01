@@ -63,6 +63,7 @@
 
 module Chemical_Reaction_Rates_Utilities
   !% Implements various useful utility functions for calculations of chemical abundances and rates.
+  implicit none
   private
   public :: Chemicals_Mass_To_Density_Conversion
 

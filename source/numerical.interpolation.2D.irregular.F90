@@ -64,6 +64,7 @@
 
 module Numerical_Interpolation_2D_Irregular
   !% Implements a convenient interface to the {\tt BIVAR} 2D interpolation on irregularly spaced points package.
+  implicit none
   private
   public :: Interpolate_2D_Irregular, interp2dIrregularObject
 

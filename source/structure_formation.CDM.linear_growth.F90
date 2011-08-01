@@ -65,6 +65,7 @@ module Linear_Growth
   !% Implements the virial overdensity for halos.
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Linear_Growth_Factor, Linear_Growth_Factor_Logarithmic_Derivative, Linear_Growth_State_Retrieve
 

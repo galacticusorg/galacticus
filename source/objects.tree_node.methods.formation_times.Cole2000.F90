@@ -65,6 +65,7 @@ module Tree_Node_Methods_Formation_Times_Cole2000
   !% Implement tracking of halo formation times.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Formation_Times_Cole2000_Initialize, Tree_Node_Formation_Time_Cole2000_Initialize,&
        & Tree_Node_Methods_Formation_Times_Cole2000_Dump, Tree_Node_Formation_Time_Promote_Cole2000

@@ -64,6 +64,7 @@
 module Dark_Matter_Profiles_Concentrations_MunozCuartas2011
   !% Implements the \cite{munoz-cuartas_redshift_2011} NFW halo concentration algorithm.
   use Tree_Nodes
+  implicit none
   private
   public :: Dark_Matter_Concentrations_MunozCuartas2011_Initialize
 

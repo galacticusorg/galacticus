@@ -65,6 +65,7 @@ module Instruments_Filters
   !% Implements calculations of filter response curves.
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Filter_Get_Index, Filter_Response, Filter_Extent
 

@@ -68,6 +68,7 @@ module Freefall_Radii
   !# <include directive="freefallRadiusMethod" type="moduleUse">
   include 'cooling.freefall_radius.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Freefall_Radius, Freefall_Radius_Growth_Rate
 

@@ -63,6 +63,7 @@
 
 module Dates_and_Times
   !% Implements computation of formatted dates and times.
+  implicit none
   private
   public :: Formatted_Date_and_Time
 

@@ -63,6 +63,7 @@
 
 module Galacticus_Calculations_Resets
   !% Handles resetting of calculations before a new or updated node is processed.
+  implicit none
   private
   public :: Galacticus_Calculations_Reset
   

@@ -65,6 +65,7 @@ module Galactic_Dynamics_Bar_Instabilities
   !% Implements calculations of bar instability in galactic disks.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Bar_Instability_Timescale
 

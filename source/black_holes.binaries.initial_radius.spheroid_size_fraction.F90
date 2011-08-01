@@ -65,6 +65,7 @@
 module Black_Hole_Binary_Initial_Radii_Spheroid_Size
   !% Implements a black hole binary initial separation which is a fixed fraction of the scale radius of the larger of the host and
   !% satellite spheroids.
+  implicit none
   private
   public :: Black_Hole_Binary_Initial_Radii_Spheroid_Size_Initialize
 

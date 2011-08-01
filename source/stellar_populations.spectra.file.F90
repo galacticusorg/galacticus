@@ -65,6 +65,7 @@ module Stellar_Population_Spectra_File
   !% Reads and interpolates a file of stellar population spectra.
   use ISO_Varying_String
   use FGSL
+  implicit none
   private
   public :: Stellar_Population_Spectra_File_Initialize, Stellar_Population_Spectra_File_Read,&
        & Stellar_Population_Spectra_File_Interpolate, Stellar_Population_Spectra_File_Tabulation

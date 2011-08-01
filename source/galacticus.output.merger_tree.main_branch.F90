@@ -63,6 +63,7 @@
 
 module Galacticus_Output_Trees_Main_Branch
   !% Handles outputting of tree main branch data to the \glc\ output file.
+  implicit none
   private
   public :: Galacticus_Output_Tree_Main_Branch, Galacticus_Output_Tree_Main_Branch_Property_Count,&
        & Galacticus_Output_Tree_Main_Branch_Names

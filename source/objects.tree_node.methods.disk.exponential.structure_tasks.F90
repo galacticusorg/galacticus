@@ -65,6 +65,7 @@ module Tree_Node_Methods_Exponential_Disk_Structure_Tasks
   !% Implement structure tasks exponential disk tree node methods.
   use Tree_Node_Methods_Disk_Exponential_Data
   use Kind_Numbers
+  implicit none
   private
   public :: Exponential_Disk_Density, Exponential_Disk_Surface_Density, Exponential_Disk_Structure_Tasks_Reset
   

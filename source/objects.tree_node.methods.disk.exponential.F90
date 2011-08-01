@@ -68,6 +68,7 @@ module Tree_Node_Methods_Exponential_Disk
   use Histories
   use Components
   use Stellar_Population_Properties
+  implicit none
   private
   public :: Tree_Node_Methods_Exponential_Disk_Initialize, Tree_Node_Methods_Exponential_Disk_Thread_Initialize,&
        & Exponential_Disk_Satellite_Merging, Galacticus_Output_Tree_Disk_Exponential,&

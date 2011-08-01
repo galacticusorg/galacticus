@@ -69,6 +69,7 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core
   !% to the algorithm of \citep{cole_hierarchical_2000}).
   use Tree_Nodes
   use FGSL
+  implicit none
   private
   public :: Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize
 

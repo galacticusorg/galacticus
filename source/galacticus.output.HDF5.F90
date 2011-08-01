@@ -65,6 +65,7 @@ module Galacticus_HDF5
   !% Manages HDF5 output from \glc.
   use HDF5
   use IO_HDF5
+  implicit none
   public
 
   ! Flag indicating if output file has been opened.

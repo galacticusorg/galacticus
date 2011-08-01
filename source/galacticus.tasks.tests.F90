@@ -63,6 +63,7 @@
 
 module Galacticus_Tasks_Tests
 !% Performs self tests of \glc.
+  implicit none
   private
   public :: Galacticus_Task_Test
   

@@ -67,6 +67,7 @@ module Modified_Press_Schechter_Branching
   use, intrinsic :: ISO_C_Binding                             
   use CDM_Power_Spectrum
   use Numerical_Constants_Math
+  implicit none
   private
   public :: Modified_Press_Schechter_Branching_Initialize
   

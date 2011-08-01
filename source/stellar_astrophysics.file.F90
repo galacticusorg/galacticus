@@ -64,6 +64,7 @@
 module Stellar_Astrophysics_File
   !% Implements calculation related to stellar astrophyics.
   use Numerical_Interpolation_2D_Irregular
+  implicit none
   private
   public :: Stellar_Astrophysics_File_Initialize
 

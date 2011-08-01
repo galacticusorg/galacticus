@@ -63,6 +63,7 @@
 
 module Galacticus_Output_Trees_Links
   !% Handles outputting of tree link data to the \glc\ output file.
+  implicit none
   private
   public :: Galacticus_Output_Tree_Links, Galacticus_Output_Tree_Links_Property_Count, Galacticus_Output_Tree_Links_Names
 

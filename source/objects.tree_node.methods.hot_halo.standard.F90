@@ -67,6 +67,7 @@ module Tree_Node_Methods_Hot_Halo
   use Components
   use Tree_Node_Methods_Hot_Halo_Data
   use Radiation_Structure
+  implicit none
   private
   public :: Tree_Node_Methods_Hot_Halo_Initialize, Tree_Node_Methods_Hot_Halo_Thread_Initialize, Hot_Halo_Starve,&
        & Hot_Halo_Remove_Before_Satellite_Merging, Tree_Node_Hot_Halo_Promote, Hot_Halo_Subresolution_Initialize,&

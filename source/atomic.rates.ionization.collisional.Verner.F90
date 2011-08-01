@@ -67,6 +67,7 @@ module Atomic_Rates_Ionization_Collisional_Verner
   !% Computes rates of atomic direct collisional ionization using the fitting function of
   !% \citeauthor{voronov_practical_1997}~(\citeyear{voronov_practical_1997}; Version 2, March 24, 1997). Based on the
   !% \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code} originally written by Dima Verner.
+  implicit none
   private
   public :: Atomic_Rate_Ionization_Collisional_Verner_Initialize
 

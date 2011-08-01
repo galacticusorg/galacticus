@@ -65,6 +65,7 @@ module Halo_Spin_Distributions_Bett2007
   !% Implements the \cite{bett_spin_2007} halo spin distribution.
   use FGSL
   use Tree_Nodes
+  implicit none
   private
   public :: Halo_Spin_Distribution_Bett2007_Initialize, Halo_Spin_Distribution_Bett2007_Snapshot,&
        & Halo_Spin_Distribution_Bett2007_State_Store, Halo_Spin_Distribution_Bett2007_State_Retrieve

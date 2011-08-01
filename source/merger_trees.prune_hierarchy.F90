@@ -63,6 +63,7 @@
 
 module Merger_Trees_Prune_Hierarchy
   !% Prunes hierarchy below a given depth in merger trees.
+  implicit none
   private
   public :: Merger_Tree_Prune_Hierarchy
   

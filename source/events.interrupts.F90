@@ -64,6 +64,7 @@
 module Events_Interrupts
   !% Specifies the template for interrupt procedures.
   use Tree_Nodes
+  implicit none
   private
   public :: Interrupt_Procedure_Template
 

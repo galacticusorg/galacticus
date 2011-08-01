@@ -63,6 +63,7 @@
 
 module Atomic_Data
   !% Provides various atomic data.
+  implicit none
   private
   public :: Atom_Lookup, Abundance_Pattern_Lookup, Atomic_Mass, Atomic_Abundance, Atomic_Data_Atoms_Count, Atomic_Short_Label
 

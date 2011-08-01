@@ -69,6 +69,7 @@ module Merger_Tree_Read
   use IO_HDF5
   use HDF5
   use Kind_Numbers
+  implicit none
   private
   public :: Merger_Tree_Read_Initialize
 

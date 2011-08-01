@@ -67,6 +67,7 @@ module Accretion_Halos
   use Tree_Nodes
   use Abundances_Structure
   use Chemical_Abundances_Structure
+  implicit none
   private
   public :: Halo_Baryonic_Accretion_Rate, Halo_Baryonic_Accreted_Mass, Halo_Baryonic_Failed_Accretion_Rate,&
        & Halo_Baryonic_Failed_Accreted_Mass, Halo_Baryonic_Accretion_Rate_Abundances, Halo_Baryonic_Accreted_Abundances,&

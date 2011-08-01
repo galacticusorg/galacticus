@@ -64,6 +64,7 @@
 module Satellite_Merging_Remnant_Sizes
   !% Implements calculations of merger remnant sizes.
   use ISO_Varying_String
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Size
 

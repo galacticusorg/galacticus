@@ -64,6 +64,7 @@
 module Accretion_Disks
   !% Implements calculations related to accretion disks.
   use ISO_Varying_String
+  implicit none
   private
   public :: Accretion_Disk_Radiative_Efficiency,Black_Hole_Spin_Up_Rate,Accretion_Disk_Jet_Power
 

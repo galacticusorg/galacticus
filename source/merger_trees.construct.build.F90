@@ -65,6 +65,7 @@ module Merger_Tree_Build
   !% Implements building of merger trees after drawing masses at random from a mass function.
   use Merger_Trees
   use ISO_Varying_String
+  implicit none
   private
   public :: Merger_Tree_Build_Initialize
 

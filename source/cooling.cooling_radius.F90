@@ -68,6 +68,7 @@ module Cooling_Radii
   !# <include directive="coolingRadiusMethod" type="moduleUse">
   include 'cooling.cooling_radius.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Cooling_Radius, Cooling_Radius_Growth_Rate
 

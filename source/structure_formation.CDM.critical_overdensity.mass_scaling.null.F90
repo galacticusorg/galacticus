@@ -64,6 +64,7 @@
 module Critical_Overdensity_Mass_Scalings_Null
   !% Implements a null scaling of critical overdensities for collapse.
   use Tree_Nodes
+  implicit none
   private
   public :: Critical_Overdensity_Mass_Scaling_Null_Initialize
   

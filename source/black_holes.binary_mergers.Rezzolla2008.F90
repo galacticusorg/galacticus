@@ -65,6 +65,7 @@
 module Black_Hole_Binary_Mergers_Rezzolla
   !% Implements calculations of black hole mass and spin resulting from binary mergers utilizing the approximations of
   !% \cite{rezzolla_final_2008}.
+  implicit none
   private
   public :: Black_Hole_Binary_Merger_Rezzolla_Initialize
 

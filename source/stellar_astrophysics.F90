@@ -64,6 +64,7 @@
 module Stellar_Astrophysics
   !% Implements calculation of stellar astrophysics.
   use ISO_Varying_String
+  implicit none
   private
   public :: Star_Ejected_Mass, Star_Initial_Mass, Star_Metal_Yield_Mass, Star_Lifetime
   

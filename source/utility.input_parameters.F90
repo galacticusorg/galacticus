@@ -69,6 +69,7 @@ module Input_Parameters
   use IO_HDF5
   use ISO_Varying_String
   use Galacticus_Error
+  implicit none
   private
   public :: Input_Parameters_File_Open, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size, Write_Parameter
 

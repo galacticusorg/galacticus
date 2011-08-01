@@ -67,6 +67,7 @@ module Chemical_Hydrogen_Rates
   !% \cite{tegmark_small_1997}.
   use Chemical_Structures
   use Chemical_Abundances_Structure
+  implicit none
   private
   public :: Chemical_Hydrogen_Rates_Initialize, Chemical_Hydrogen_Rates_Compute
 

@@ -65,6 +65,7 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   !% Implements calculations of dark matter halo mass accretion histories.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Dark_Matter_Halo_Mass_Accretion_Time
 

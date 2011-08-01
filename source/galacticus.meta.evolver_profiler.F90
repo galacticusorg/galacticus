@@ -64,6 +64,7 @@
 module Galacticus_Meta_Evolver_Profiler
   !% Constructs a profile of \glc\ ODE evolver statistics.
   use Hashes
+  implicit none
   private
   public :: Galacticus_Meta_Evolver_Profile, Galacticus_Meta_Evolver_Profiler_Output
 

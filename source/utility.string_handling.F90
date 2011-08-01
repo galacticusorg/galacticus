@@ -64,6 +64,7 @@
 module String_Handling
   !% Implements various useful functionality for manipulating character strings.
   use ISO_Varying_String
+  implicit none
   private
   public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
        & Convert_VarString_To_Char, String_C_to_Fortran

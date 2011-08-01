@@ -64,6 +64,7 @@
 module Transfer_Function_Eisenstein_Hu
   !% Implements generation of a tabulated transfer function using the Eisenstein \& Hu fitting formula.
   use ISO_Varying_String
+  implicit none
   private
   public :: Transfer_Function_Eisenstein_Hu_Initialize, Transfer_Function_Eisenstein_Hu_State_Store,&
        & Transfer_Function_Eisenstein_Hu_State_Retrieve

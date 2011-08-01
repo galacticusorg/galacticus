@@ -63,6 +63,7 @@ module Halo_Mass_Function
   use ISO_Varying_String
   use FGSL
   use, intrinsic :: ISO_C_Binding                             
+  implicit none
   private
   public :: Halo_Mass_Function_Differential, Halo_Mass_Function_Integrated, Halo_Mass_Fraction_Integrated
 

@@ -63,6 +63,7 @@
 
 module Merger_Tree_Mass_Accretion_History
   !% Outputs mass accretion histories of merger trees.
+  implicit none
   private
   public :: Merger_Tree_Mass_Accretion_History_Output
   

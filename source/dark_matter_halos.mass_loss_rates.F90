@@ -65,6 +65,7 @@ module Dark_Matter_Halos_Mass_Loss_Rates
   !% Implements calculations of mass loss rates from dark matter halos.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Dark_Matter_Halos_Mass_Loss_Rate
   

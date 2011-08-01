@@ -66,6 +66,7 @@ module ODE_Solver
   use ODE_Solver_Error_Codes
   use FGSL
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: ODE_Solve, ODE_Solver_Free
   

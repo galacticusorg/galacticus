@@ -63,6 +63,7 @@
 
 module Star_Formation_IMF_MillerScalo
   !% Implements the MillerScalo stellar initial mass function.
+  implicit none
   private
   public :: Star_Formation_IMF_Register_MillerScalo, Star_Formation_IMF_Register_Name_MillerScalo,&
        & Star_Formation_IMF_Recycled_Instantaneous_MillerScalo, Star_Formation_IMF_Yield_Instantaneous_MillerScalo,&

@@ -65,6 +65,7 @@ module Sort
   !% Implements sorting.
   use FGSL
   use, intrinsic :: iso_c_binding
+  implicit none
   private
   public :: Sort_Do
 

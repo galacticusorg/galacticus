@@ -63,6 +63,7 @@
 
 module Tree_Node_Methods_Disk_Exponential_Data
   !% Stores data that is shared between modules for the exponential disk method.
+  implicit none
   public
 
   ! The index used as a reference for this component.

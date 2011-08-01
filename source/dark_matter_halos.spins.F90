@@ -63,6 +63,7 @@
 
 module Dark_Matter_Halo_Spins
   !% Implements calculations of dark matter halo angular momentum.
+  implicit none
   private
   public :: Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Angular_Momentum_Growth_Rate
 

@@ -63,6 +63,7 @@
 
 module Dynamical_Friction_BoylanKolchin2008
   !% Implements calculations of satellite merging times using the \cite{boylan-kolchin_dynamical_2008} method.
+  implicit none
   private
   public :: Satellite_Time_Until_Merging_BoylanKolchin2008_Initialize
 

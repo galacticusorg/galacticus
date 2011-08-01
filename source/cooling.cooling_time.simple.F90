@@ -64,6 +64,7 @@
 
 module Cooling_Times_Simple
   !% Implements a simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).
+  implicit none
   private
   public :: Cooling_Time_Simple_Initialize
 

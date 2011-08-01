@@ -65,6 +65,7 @@ module Star_Formation_Feedback_Expulsion_Disks
   !% Implements calculations of expulsive feedback from star formation in disks.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate
   

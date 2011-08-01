@@ -63,6 +63,7 @@
 
 module Satellite_Merging_Remnant_Sizes_Cole2000
   !% Implements the \cite{cole_hierarchical_2000} algorithm for merger remnant sizes.
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
 

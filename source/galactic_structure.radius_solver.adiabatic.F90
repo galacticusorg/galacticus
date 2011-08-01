@@ -67,6 +67,7 @@ module Galactic_Structure_Radii_Adiabatic
   !% contraction algorithm of \cite{gnedin_response_2004}.
   use Tree_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
+  implicit none
   private
   public :: Galactic_Structure_Radii_Adiabatic_Initialize
 

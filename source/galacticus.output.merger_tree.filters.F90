@@ -64,6 +64,7 @@
 module Galacticus_Merger_Tree_Output_Filters
   !% Provides filtering of output.
   use ISO_Varying_String
+  implicit none
   private
   public :: Galacticus_Merger_Tree_Output_Filter, Galacticus_Merger_Tree_Output_Filter_Initialize
 

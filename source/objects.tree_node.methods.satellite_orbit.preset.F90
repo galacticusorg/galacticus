@@ -65,6 +65,7 @@ module Tree_Node_Methods_Satellite_Orbit_Preset
   !% Implement satellite orbit tree node methods in which properties are preset.
   use Tree_Nodes
   use Components
+  implicit none
   private
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize_Preset, Satellite_Orbit_Create_Preset, Galacticus_Output_Tree_Satellite_Orbit_Preset,&
        & Galacticus_Output_Tree_Satellite_Orbit_Preset_Property_Count, Galacticus_Output_Tree_Satellite_Orbit_Preset_Names,&

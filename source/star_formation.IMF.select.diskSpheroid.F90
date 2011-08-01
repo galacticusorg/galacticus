@@ -63,6 +63,7 @@
 
 module Star_Formation_IMF_Select_Disk_Spheroid
   !% Implements selection of stellar {\IMF}s with one \IMF\ for disks and another for spheroids.
+  implicit none
   private
   public :: IMF_Select_Disk_Spheroid_Initialize
 

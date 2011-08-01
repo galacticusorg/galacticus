@@ -64,6 +64,7 @@
 module Star_Formation_Timescale_Disks_Blitz_Rosolowsky
   !% Implements the \cite{blitz_role_2006} star formation timescale for galactic disks.
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Timescale_Disks_Blitz_Rosolowsky_Initialize
 

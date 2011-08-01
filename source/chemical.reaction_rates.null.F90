@@ -63,6 +63,7 @@
 
 module Chemical_Reaction_Rates_Null
   !% Implements a null calculation of chemical reaction rates.
+  implicit none
   private
   public :: Chemical_Reaction_Rates_Null_Initialize, Chemical_Reaction_Rates_Null_Compute
 

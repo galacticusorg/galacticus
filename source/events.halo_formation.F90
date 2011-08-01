@@ -63,6 +63,7 @@
 
 module Events_Halo_Formation
   !% Performs tasks associated with ``halo formation'' events.
+  implicit none
   private
   public :: Event_Halo_Formation
   

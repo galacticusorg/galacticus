@@ -65,6 +65,7 @@
 module Radiation_Structure
   !% Defines the radiation structure data type, used to describe radiation fields. (Currently only includes
   !% CMB radiation temperature.)
+  implicit none
   private
   public :: radiationStructure, Radiation_Temperature, Radiation_Flux
 

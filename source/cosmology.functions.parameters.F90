@@ -63,6 +63,7 @@
 
 module Cosmology_Functions_Parameters
   !% Defines option parameters for cosmology functions.
+  implicit none
   public
 
   ! Labels for request types.

@@ -63,6 +63,7 @@
 
 module Galacticus_Output_Times
   !% Provides output times.
+  implicit none
   private
   public :: Galacticus_Output_Time_Count, Galacticus_Output_Time, Galacticus_Next_Output_Time
 

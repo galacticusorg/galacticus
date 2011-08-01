@@ -63,6 +63,7 @@
 
 module Numerical_Comparison
   !% Implements comparisons of values.
+  implicit none
   private
   public :: Values_Differ, Values_Agree
 

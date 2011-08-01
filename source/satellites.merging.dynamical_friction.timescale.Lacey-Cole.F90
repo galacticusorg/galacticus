@@ -63,6 +63,7 @@
 
 module Dynamical_Friction_Lacey_Cole
   !% Implements calculations of satellite merging times using the \cite{lacey_merger_1993} method.
+  implicit none
   private
   public :: Satellite_Time_Until_Merging_Lacey_Cole_Initialize
 

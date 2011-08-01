@@ -63,6 +63,7 @@
 
 module Satellite_Merging_Mass_Movements_Descriptors
   !% Defines descriptors for satellite merger mass movements.
+  implicit none
   public
 
   integer, parameter :: doesNotMove    =0

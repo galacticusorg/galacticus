@@ -63,6 +63,7 @@
 
 module Hot_Halo_Density_Profile_Null
   !% Implements a null hot gas halo density profile..
+  implicit none
   private
   public :: Hot_Halo_Density_Null
 

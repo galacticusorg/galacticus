@@ -68,6 +68,7 @@ module Stellar_Population_Spectra_Postprocess
   !# <include directive="stellarPopulationSpectraPostprocessMethod" type="moduleUse">
   include 'stellar_populations.spectra.postprocess.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Stellar_Population_Spectrum_Postprocess
 

@@ -66,6 +66,7 @@ module Accretion_Halos_Simple
   !% Implements calculations of baryonic accretion onto halos using a simple truncation to mimic reionization.
   use Radiation_Structure
   use Abundances_Structure
+  implicit none
   private
   public :: Accretion_Halos_Simple_Initialize
 

@@ -63,6 +63,7 @@
 !% about to happen.
 
 module Merger_Tree_Timesteps_Satellite
+  implicit none
   private
   public :: Merger_Tree_Timestep_Satellite
 

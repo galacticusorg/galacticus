@@ -64,6 +64,7 @@
 module Dark_Matter_Profiles_Concentrations_NFW1996
   !% Implements the \cite{navarro_structure_1996} NFW halo concentration algorithm.
   use Tree_Nodes
+  implicit none
   private
   public :: Dark_Matter_Concentrations_NFW1996_Initialize
 

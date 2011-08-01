@@ -64,6 +64,7 @@
 module Star_Formation_Timescale_Disks_Kennicutt_Schmidt
   !% Implements the Kennicutt-Schmidt star formation timescale for galactic disks.
   use Tree_Nodes
+  implicit none
   private
   public :: Star_Formation_Timescale_Disks_Kennicutt_Schmidt_Initialize
 

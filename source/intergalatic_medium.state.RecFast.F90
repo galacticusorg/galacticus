@@ -64,6 +64,7 @@
 module Intergalactic_Medium_State_RecFast
   !% Implements calculations of the intergalactic medium thermal and ionization state using RecFast.
   use ISO_Varying_String
+  implicit none
   private
   public :: Intergalactic_Medium_State_RecFast_Initialize
   

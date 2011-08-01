@@ -64,6 +64,7 @@
 module Atomic_Cross_Sections_Ionization_Photo
   !% Implements calculations of atomic photo-ionization cross-sections.
   use ISO_Varying_String 
+  implicit none
   private
   public :: Atomic_Cross_Section_Ionization_Photo
 

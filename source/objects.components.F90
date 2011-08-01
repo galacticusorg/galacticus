@@ -64,6 +64,7 @@
 module Components
   !% Defines the merger tree object type.
   use Histories
+  implicit none
   private
   public :: component, componentArray
 

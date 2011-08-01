@@ -64,6 +64,7 @@
 module Dark_Matter_Halo_Mass_Accretion_Histories_Wechsler2002
   !% Implements the \cite{wechsler_concentrations_2002} halo mass accretion algorithm.
   use Tree_Nodes
+  implicit none
   private
   public :: Dark_Matter_Mass_Accretion_Wechsler2002_Initialize
 

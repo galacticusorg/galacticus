@@ -70,6 +70,7 @@ module Galacticus_Output_Merger_Tree
   use Galacticus_Error
   use Galacticus_HDF5
   use Kind_Numbers
+  implicit none
   private
   public :: Galacticus_Merger_Tree_Output
 

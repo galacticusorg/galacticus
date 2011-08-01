@@ -73,6 +73,7 @@ module Atomic_Cross_Sections_Ionization_Photo_Verner
   !% Inner-shell ionization energies of some low-ionized species are slightly
   !% improved to fit smoothly the experimental inner-shell ionization energies 
   !% of neutral atoms.
+  implicit none
   private
   public :: Atomic_Cross_Section_Ionization_Photo_Verner_Initialize
 

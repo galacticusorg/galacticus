@@ -65,6 +65,7 @@ module Hashes
   !% Implements ``hashes'' (i.e. associative arrays).
   use ISO_Varying_String
   use Kind_Numbers
+  implicit none
   private
   public :: integerScalarHash
 

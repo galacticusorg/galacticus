@@ -65,6 +65,7 @@ module Virial_Orbits
   !% Implements satellite orbital parameters at virial radius crossing.
   use ISO_Varying_String
   use Tree_Nodes
+  implicit none
   private
   public :: Virial_Orbital_Parameters
 
