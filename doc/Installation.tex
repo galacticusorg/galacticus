@@ -181,7 +181,7 @@ Alternatively, GNU Make can be downloaded and installed from source as described
 \begin{verbatim}
 yum install gcc-gfortran
 \end{verbatim}
-Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.4 of {\tt gcc-gfortran}. On some systems (e.g. RHEL5) this is available in package {\tt gcc44-gfortran}.
+Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.6 of {\tt gcc-gfortran}.
 
  \item [g++] $\star$ \glc\ contains some C++ components. We use \href{http://gcc.gnu.org/projects/cxx0x.html}{GNU C++} to compile \glc. You can use other C++ compilers, but we make no claims as to whether they will produce correctly working code. On Fedora the following (as root) will install GNU C++:
 \begin{verbatim}
@@ -224,7 +224,7 @@ This will create the {\tt Galacticus.exe} executable. The build takes some time,
 
 The {\tt Makefile} contains a few options that you may want to adjust:
 \begin{description}
- \item[{\tt F03COMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only\footnote{{\sc GFortran} v4.5 seems to have problems compiling \glc. {\sc GFortran} v4.6 has additional functionality which means that it will not accept the syntax used by \glc\ at present. However v4.6 has better OpenMP support and will eventually become the default compiler forglc\ once it reaches a stable release.} tried it using {\sc GFortran} v4.4. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers and type-bound procedures) which older compilers might not handle (and some newer compilers might still have difficulty with);
+ \item[{\tt F03COMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.6. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers and type-bound procedures) which older compilers might not handle (and some newer compilers might still have difficulty with);
  \item[{\tt PREPROCESSOR}] The command to invoke a preprocessor to handle {\tt \#IFDEF} etc. statements. We normally use {\tt cpp};
  \item[{\tt MODULETYPE}] A label identifying the structure of modules built by the compiler. This is used to detected when module interfaces have been changed (requiring a recompile of all dependent code) and when only the module internals have changed. When the {\sc GFortran} compiler is used {\tt GCC-f95-on-LINUX} should be used here. Look in {\tt ./scripts/build/Compare\_Module\_Files.pl} for other possibilities (if your compiler isn't listed you'll need to either edit that script or deal with longer recompiles if you edit the code).
  \item[{\tt F03FLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
@@ -335,11 +335,11 @@ make install
 
 ! Install GFortran, GCC and G++:
 
-wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.4.4/gcc-4.4.4.tar.bz2"
-tar xvfj gcc-4.4.4.tar.bz2
+wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.6.0/gcc-4.6.0.tar.bz2"
+tar xvfj gcc-4.6.0.tar.bz2
 mkdir gcc-build
 cd gcc-build
-../gcc-4.4.4/configure --prefix=/your/install/path/gcc-trunk --enable-languages=c,c++,fortran --disable-multilib
+../gcc-4.6.0/configure --prefix=/your/install/path/gcc-trunk --enable-languages=c,c++,fortran --disable-multilib
 make
 make install
 
