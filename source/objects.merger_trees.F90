@@ -347,6 +347,7 @@ contains
     
     ! Copy any formation node data to the parent, and update the formation node's parentNode pointer to point to the new parent.
     if (associated(thisNode%formationNode)) then
+       allocate(parentNode%formationNode)
        call parentNode%formationNode%copy(thisNode%formationNode)
        parentNode%formationNode%parentNode => parentNode
     end if

@@ -312,10 +312,10 @@ contains
              call thisDataset%close()
           end if
        end do
-       !$omp end critical(HDF5_Access)
        integerPropertiesWritten=integerPropertiesWritten+integerBufferCount
        integerBufferCount=0
        outputGroups(iOutput)%integerAttributesWritten=.true.
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Integer_Buffer_Dump
@@ -339,10 +339,10 @@ contains
              call thisDataset%close()
           end if
        end do
-       !$omp end critical(HDF5_Access)
        doublePropertiesWritten=doublePropertiesWritten+doubleBufferCount
        doubleBufferCount=0
        outputGroups(iOutput)%doubleAttributesWritten=.true.
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Double_Buffer_Dump

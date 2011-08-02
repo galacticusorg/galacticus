@@ -301,8 +301,10 @@ contains
     blackHoleSpinParameter=1.0d0-blackHoleSpin
 
     ! Compute the jet power.
+    !$omp critical(ADAF_Jet_Power_Interpolate)
     Accretion_Disk_Jet_Power_ADAF=massAccretionRate*Interpolate(jetPowerTableCount,jetPowerSpinParameterTable,jetPowerTable&
          &,jetPowerInterpolationObject,jetPowerInterpolationAccelerator,blackHoleSpinParameter,reset=jetPowerInterpolationReset)
+    !$omp end critical(ADAF_Jet_Power_Interpolate)
 
     return
   end function Accretion_Disk_Jet_Power_ADAF
@@ -374,8 +376,10 @@ contains
     blackHoleSpinParameter=1.0d0-blackHoleSpin
 
     ! Compute the ratio of spin and mass rates of change.
+    !$omp critical(ADAF_Spin_Up_Rate_Interpolate)
     spinToMassRateOfChangeRatio=Interpolate(spinUpTableCount,spinUpSpinParameterTable,spinUpTable,spinUpInterpolationObject&
          &,spinUpInterpolationAccelerator,blackHoleSpinParameter,reset=spinUpInterpolationReset)
+    !$omp end critical(ADAF_Spin_Up_Rate_Interpolate)
 
     ! Scale to the mass rate of change.
     Black_Hole_Spin_Up_Rate_ADAF=spinToMassRateOfChangeRatio*massAccretionRate/Tree_Node_Black_Hole_Mass(thisNode)

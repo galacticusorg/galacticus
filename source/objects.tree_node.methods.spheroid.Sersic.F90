@@ -75,7 +75,7 @@ module Tree_Node_Methods_Sersic_Spheroid
        & Galacticus_Output_Tree_Spheroid_Sersic_Names, Sersic_Spheroid_Radius_Solver, Sersic_Spheroid_Enclosed_Mass,&
        & Sersic_Spheroid_Density, Sersic_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Sersic,&
        & Tree_Node_Methods_Sersic_Spheroid_Dump, Sersic_Spheroid_Radius_Solver_Plausibility, Sersic_Spheroid_Scale_Set&
-       &,Sersic_Spheroid_Star_Formation_History_Output,&
+       &,Sersic_Spheroid_Star_Formation_History_Output,Tree_Node_Methods_Sersic_Spheroid_Thread_Initialize,&
        & Sersic_Spheroid_Property_Identifiers_Decode, Sersic_Profile_Tabulate_State_Store, Sersic_Profile_Tabulate_State_Retrieve
   
   ! The index used as a reference for this component.
@@ -226,21 +226,6 @@ contains
        ! Get number of luminosity properties.
        luminositiesCount=Stellar_Population_Luminosities_Count()
 
-       ! Allocate work arrays for abundances.
-       !$omp parallel
-       call Alloc_Array(abundancesOutflowRate,[abundancesCount])
-       call Alloc_Array(abundancesValue      ,[abundancesCount])
-       call Alloc_Array(abundancesDisk       ,[abundancesCount])
-       call Alloc_Array(abundancesSpheroid   ,[abundancesCount])
-       !$omp end parallel
-
-       ! Allocate work arrays for luminosities.
-       !$omp parallel
-       call Alloc_Array(stellarLuminositiesRates,[luminositiesCount])
-       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
-       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
-       !$omp end parallel
-
        ! Determine number of properties needed, including those for stars etc.
        propertyCount=propertyCountBase+2*abundancesCount+luminositiesCount
        dataCount    =dataCountBase
@@ -369,6 +354,31 @@ contains
     return
   end subroutine Tree_Node_Methods_Sersic_Spheroid_Initialize
   
+  !# <treeNodeCreateThreadInitialize>
+  !#  <unitName>Tree_Node_Methods_Sersic_Spheroid_Thread_Initialize</unitName>
+  !# </treeNodeCreateThreadInitialize>
+  subroutine Tree_Node_Methods_Sersic_Spheroid_Thread_Initialize
+    !% Initializes each thread for the tree node Sersic spheroid methods module.
+    use Memory_Management
+    implicit none
+
+    ! Check if this implementation is selected.
+    if (methodSelected.and..not.allocated(abundancesOutflowRate)) then
+
+       ! Allocate work arrays for abundances.
+       call Alloc_Array(abundancesOutflowRate,[abundancesCount])
+       call Alloc_Array(abundancesValue      ,[abundancesCount])
+       call Alloc_Array(abundancesDisk       ,[abundancesCount])
+       call Alloc_Array(abundancesSpheroid   ,[abundancesCount])
+
+       ! Allocate work arrays for luminosities.
+       call Alloc_Array(stellarLuminositiesRates,[luminositiesCount])
+       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
+       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
+
+    end if
+    return
+  end subroutine Tree_Node_Methods_Sersic_Spheroid_Thread_Initialize
   
   !# <postEvolveTask>
   !# <unitName>Tree_Node_Spheroid_Post_Evolve_Sersic</unitName>
@@ -2210,7 +2220,7 @@ contains
     if (methodSelected.and..not.matchedProperty) then
        if (propertyComponent == componentIndex) then
           matchedProperty=.true.
-          propertyName="hernquistSpheroid:"
+          propertyName="sersicSpheroid:"
           select case (propertyObject)
           case (objectTypeProperty)
              if      (propertyIndex == angularMomentumIndex                                                       ) then
