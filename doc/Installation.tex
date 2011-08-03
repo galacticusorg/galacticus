@@ -1,21 +1,89 @@
 \chapter{Installation}
 
+\section{Binaries}
+
+If you just want to run \glc, and don't want to modify the code in any way you can try using a standalone binary copy of \glc. This is often a good way to try out \glc\ without the overhead of installing libraries and tools required to compile \glc. Binaries can be found at the \href{http://www.ctcp.caltech.edu/galacticus/download.htm}{download page} and are currently available only for x86\_64 Linux. The binary is updated every night to reflect any updates to \glc.
+
+\section{Installation Scripts}
+
+Installing all the tools required for \glc\ can take some time. To make this process easier we've developed some simple installation scripts for Ubuntu, Fedora and Red Hat flavors of Linux. You can find these at the \href{http://www.ctcp.caltech.edu/galacticus/download.htm}{download page}. These should be run as root and will attempt to install everything need to run \glc. We suggest that you look through the scripts to see what they're doing before running them---we make no guarantees that they won't install something that breaks other aspects of your system---use them at your own risk!
+
 \section{Required Libraries and Tools}
 
-We run \glc\ on \href{http://fedoraproject.org/}{Fedora} Linux primarily. Installation instructions below are general, but we give some examples that are specific to Fedora (they probably work on other \href{http://yum.baseurl.org/}{{\tt yum}}-based Linux distributions though). For other distributions/OSs you'll need to figure out how to install pre-built packages or else install from source. Items marked with a ``$\star$'' are required to compile and run \glc. Others are only needed for some of the analysis and post-processing scripts so can be ignored it you don't want to use those.
+We run \glc\ on \href{http://fedoraproject.org/}{Fedora} Linux primarily. Installation instructions below are general, but we give some examples that are specific to Fedora (they probably work on other \href{http://yum.baseurl.org/}{{\tt yum}}-based Linux distributions though). For other distributions/OSs you'll need to figure out how to install pre-built packages or else install from source. We list tools and libraries in three categories: ``essential'', ``typical'' and ``full''. Essential tools are those required to compile and run \glc. Typical tools includes those additionally needed for common analysis tasks. The full set of tools allows you to run any of the scripts/programs included with \glc. The order in which tools are listed is the suggested order for installation---some tools depend on others which should therefore be installed first.
+
+\subsection{Essential Requirements}\label{sec:requirementsEssential}
 
 \begin{description}
- \item [Perl] $\star$ The Perl language is a part of every Linux distribution that we know of, so use whatever method your distribution prefers to install it if you don't already have it. On Fedora the following (as root) will install Perl:
+ \item [Perl] The Perl language is a part of every Linux distribution that we know of, so use whatever method your distribution prefers to install it if you don't already have it. On Fedora the following (as root) will install Perl:
 \begin{verbatim}
-yum install perl perl-CPAN
+yum install perl
 \end{verbatim}
- If you need to install from source visit \href{http://www.perl.org/}{\tt http://www.perl.org/} and follow the instructions given there. We currently use Perl v5.12.0. \glc\ requires some Perl modules which probably are not installed by default. We recommend that you install these via \href{http://www.cpan.org/}{CPAN} (which probably is installed by default). The following modules should be installed.
- \begin{description}
-  \item [\href{http://search.cpan.org/~rgarcia/Switch-2.16/Switch.pm}{{\tt Switch }}] $\star$ This module implements distributed conditional testing. It is part of the core Perl distribution up to Perl v5.12.0. From Perl v5.14.0 onward it must be installed using
+If you need to install from source visit \href{http://www.perl.org/}{\tt http://www.perl.org/} and follow the instructions given there. We currently use Perl v5.12.4, although earlier versions may work (for compiling \glc\ we have had success with versions as early as 5.8.8---you can use {\tt perl -v} to discover which version of Perl you have installed).
+
+\item [GNU Make] \glc\ uses \href{http://www.gnu.org/software/make/}{GNU Make} to build executables. Other implementations of {\tt make} may work, but we make no guarantees. On Fedora the following (as root) will install GNU Make:
+\begin{verbatim}
+yum install make
+\end{verbatim}
+Alternatively, GNU Make can be downloaded and installed from source as described online.
+
+\item [GFortran] \glc\ is written primarily in Fortran using various aspects of the Fortran 2003 specification. We use \href{http://gcc.gnu.org/fortran/}{GNU Fortran} to compile \glc. You can use other Fortran compilers, but we make no claims as to whether they will support all required features of the Fortran language, or that they will produce correctly working code. On Fedora the following (as root) will install GNU Fortran:
+\begin{verbatim}
+yum install gcc-gfortran
+\end{verbatim}
+Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.6 or later of {\tt gcc-gfortran}---earlier versions \emph{will not work}.
+
+\item [g++] \glc\ contains some C++ components. We use \href{http://gcc.gnu.org/projects/cxx0x.html}{GNU C++} to compile \glc. You can use other C++ compilers, but we make no claims as to whether they will produce correctly working code. On Fedora the following (as root) will install GNU C++:
+\begin{verbatim}
+yum install gcc-c++
+\end{verbatim}
+Alternatively, GNU C++ can be downloaded and installed from source as described online.
+
+\item [GNU Scientific Library] The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.15 of GSL---other versions may or may not work (we have had success with v1.13 and v1.14). On Fedora the following (as root) will install GSL:
+\begin{verbatim}
+yum install gsl gsl-devel
+\end{verbatim}
+Alternatively, GSL can be downloaded and installed from source as described online.
+
+\item [FoX] \href{http://uszla.me.uk/space/software/FoX/}{FoX} is an XML parser for Fortran. The source can be downloaded from \newline\href{http://www1.gly.bris.ac.uk/~walker/FoX/source/FoX-4.1.0-full.tar.gz}{\tt http://www1.gly.bris.ac.uk/\textasciitilde{}walker/FoX/source/FoX-4.1.0-full.tar.gz}. We recommend following the instructions provided with the download for install. We use FoX v4.1.0.
+
+\item [HDF5] The \href{http://www.hdfgroup.org/HDF5/}{HDF5} specification is used for storing output data from \glc. We currently use HDF5\footnote{Early versions of HDF5 may work, but versions prior to v1.8.5 have known memory leak problems.} v1.8.7. On Fedora the following (as root) will install the HDF5 libraries:
+\begin{verbatim}
+yum install hdf5 hdf5-devel
+\end{verbatim}
+Alternatively, HDF5 can be downloaded and installed from source. If this is done, we recommend the following build sequence:
+\begin{verbatim}
+ F9X=gfortran
+ export F9X
+ ./configure --prefix=/usr/local --enable-fortran --enable-production
+ make
+ make check
+ make install
+\end{verbatim}
+
+\item [FGSL] \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL} is a Fortran interface to the GNU Scientific Library and is used extensively by \glc. It can be downloaded from the link above. We use FGSL v0.9.4\footnote{Note that if you use v1.13 or earlier of the GNU Scientific Library you should used FGSL v0.9.2 instead.} and recommend the following build sequence. 
+\begin{verbatim}
+ ./configure --f90 gfortran
+ make
+ make install
+\end{verbatim}
+
+\item [CPAN] \glc\ requires some Perl modules which probably are not installed by default. We recommend that you install these via \href{http://www.cpan.org/}{CPAN} which probably is installed by default. If it is not, on Fedora the following (as root) will install CPAN:
+\begin{verbatim}
+yum install perl-CPAN
+\end{verbatim}
+Note that you can check if any of the following Perl modules are already installed using
+\begin{verbatim}
+ perl -e "use Module::Name"
+\end{verbatim}
+If no error message is given, the module is already installed. When installing modules using CPAN (see below for example), if the install fails because of a failed test, you can often force the install by running {\tt perl -MCPAN -e 'force("install","Module::Name")'}. Of course, this may mean that the module is not working correctly\ldots
+
+\item [\href{http://search.cpan.org/~rgarcia/Switch-2.16/Switch.pm}{{\tt Switch }}] This module implements distributed conditional testing. It is part of the core Perl distribution up to Perl v5.12.0. From Perl v5.14.0 onward it must be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install Switch'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] $\star$ Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
+
+\item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
 \begin{verbatim}
 yum install perl-XML-Simple
 \end{verbatim}
@@ -23,15 +91,81 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install XML::Simple'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~smueller/Data-Dumper-2.131/Dumper.pm}{{\tt Data::Dumper }}] $\star$ This module provides formatted output of arbitrary data structures. It can be installed using
-\begin{verbatim}
-perl -MCPAN -e 'install Data::Dumper'
-\end{verbatim}
-  \item [\href{http://search.cpan.org/~kstephens/Data-Match-0.06/lib/Sort/Topological.pm}{{\tt Sort::Topological }}] $\star$ This module implements dependency based sort and is used by the \glc\ build system to ensure that tasks are performed in the correct order. It can be installed using
+
+\item [\href{http://search.cpan.org/~kstephens/Data-Match-0.06/lib/Sort/Topological.pm}{{\tt Sort::Topological }}] This module implements dependency based sort and is used by the \glc\ build system to ensure that tasks are performed in the correct order. It can be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install Sort::Topological'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~andrewf/LaTeX-Encode-0.03/lib/LaTeX/Encode.pm}{{\tt LaTeX::Encode }}] This module formats text for output to a \LaTeX\ document. It can be installed using
+
+\item [\href{http://search.cpan.org/~smueller/Data-Dumper-2.131/Dumper.pm}{{\tt Data::Dumper }}] This module provides formatted output of arbitrary data structures. It can be installed using
+\begin{verbatim}
+perl -MCPAN -e 'install Data::Dumper'
+\end{verbatim}
+\end{description}
+
+\subsection{Typical Requirements}\label{sec:requirementsTypical}
+
+In addition to the tools listed in \S\ref{sec:requirementsEssential} a typical install (allowing you to run typical analysis tasks for example) requires the following tools to be installed:
+
+\begin{description}
+\item [\href{http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files\footnote{This is a modified version of the  original \protect\href{http://search.cpan.org/~cerney/PDL-IO-HDF5-0.63/}{{\tt PDL::IO::HDF5}} module. It supports creation and automatic de-referencing of HDF5 region references and also supports reading of numerical attributes and 1-D attribute arrays.}. It is used by analysis scripts to extract data from \glc\ output files. Follow the following instructions (as root) to install this module:
+\begin{verbatim}
+ wget http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
+ tar xvfz PDL-IO-HDF5-0.6.tar.gz
+ cd PDL-IO-HDF5-0.6
+ perl Makefile.PL
+ make
+ make test
+ make install
+\end{verbatim}
+
+  \item [\href{http://perldoc.perl.org/IO/Compress/Bzip2.html}{{\tt IO::Compress::Bzip2}}] This module provides the {\tt bzip2} compression tool in Perl. On Fedora the following (as root) will install {\tt IO::Compress::Bzip2}:
+\begin{verbatim}
+yum install perl-Compress-Bzip2
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install IO::Compress::Bzip2'
+\end{verbatim}
+  \item [\href{http://search.cpan.org/~anno/Text-Table-1.114/lib/Text/Table.pm}{{\tt Text::Table}}] This module provides formatted table output in Perl. On Fedora the following (as root) will install {\tt Text::Table}:
+\begin{verbatim}
+yum install perl-Text-Table
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Text::Table'
+\end{verbatim}
+  \item [\href{http://pdl.perl.org/}{{\tt PDL}}] Provides array math handling in Perl. It is used extensively by \glc\ for analysis of models. On Fedora the following (as root) will install {\tt PDL}:
+\begin{verbatim}
+yum install perl-PDL
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install PDL'
+\end{verbatim}
+
+\item [\href{http://search.cpan.org/dist/PDL-NiceSlice/NiceSlice.pm}{{\tt PDL::NiceSlice}}] Provides convenient array slicing for PDL. {\tt PDL::NiceSlice} can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install PDL::NiceSlice'
+\end{verbatim}
+
+item [\href{http://search.cpan.org/~sbeck/Math-SigFigs-1.09/lib/Math/SigFigs.pod}{{\tt Math::SigFigs}}] Provides formatting of numbers to a given number of significant figures. It is used by \glc\ when making plots. It can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Math::SigFigs'
+\end{verbatim}
+
+\item [\href{http://search.cpan.org/~djburke/Astro-Cosmology-0.90/Cosmology.pm}{{\tt Astro::Cosmology}}] Provides basic cosmological calculations. It is used by \glc\ when making plots to convert data points measured under the assumptions of one set of cosmological parameters to the cosmological parameters assumed by \glc. It can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'force("install","Astro::Cosmology")'
+\end{verbatim}
+\end{description}
+
+\subsection{Full Requirements}\label{sec:requirementsFull}
+
+In addition to the tools listed in \S\ref{sec:requirementsEssential} and \S\ref{sec:requirementsTypical} a full install (allowing you to run all scripts and programs included with \glc) requires the following tools to be installed:
+
+\begin{description}
+\item [\href{http://search.cpan.org/~andrewf/LaTeX-Encode-0.03/lib/LaTeX/Encode.pm}{{\tt LaTeX::Encode }}] This module formats text for output to a \LaTeX\ document. It can be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install LaTeX::Encode'
 \end{verbatim}
@@ -51,22 +185,7 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Image::Magick'
 \end{verbatim}
-  \item [\href{http://perldoc.perl.org/IO/Compress/Bzip2.html}{{\tt IO::Compress::Bzip2}}] This module provides the {\tt bzip2} compression tool in Perl. On Fedora the following (as root) will install {\tt IO::Compress::Bzip2}:
-\begin{verbatim}
-yum install perl-Compress-Bzip2
-\end{verbatim}
-Alternatively, it can be installed from CPAN using:
-\begin{verbatim}
-perl -MCPAN -e 'install IO::Compress::Bzip2'
-\end{verbatim}
-  \item [\href{http://search.cpan.org/~anno/Text-Table-1.114/lib/Text/Table.pm}{{\tt Text::Table}}] This module provides formatted table output in Perl. On Fedora the following (as root) will install {\tt Text::Table}:
-\begin{verbatim}
-yum install perl-Text-Table
-\end{verbatim}
-Alternatively, it can be installed from CPAN using:
-\begin{verbatim}
-perl -MCPAN -e 'install Text::Table'
-\end{verbatim}
+
   \item [\href{http://search.cpan.org/dist/TermReadKey/ReadKey.pm}{{\tt Term::ReadKey}}] This module provides a simple interface for accepting key reads from standard input in Perl. On Fedora the following (as root) will install {\tt Term::ReadKey}:
 \begin{verbatim}
 yum install perl-TermReadKey
@@ -107,18 +226,7 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Net::DBus'
 \end{verbatim}
-  \item [\href{http://pdl.perl.org/}{{\tt PDL}}] Provides array math handling in Perl. It is used extensively by \glc\ for analysis of models. On Fedora the following (as root) will install {\tt PDL}:
-\begin{verbatim}
-yum install perl-PDL
-\end{verbatim}
-Alternatively, it can be installed from CPAN using:
-\begin{verbatim}
-perl -MCPAN -e 'install PDL'
-\end{verbatim}
-  \item [\href{http://search.cpan.org/dist/PDL-NiceSlice/NiceSlice.pm}{{\tt PDL::NiceSlice}}] Provides convenient array slicing for PDL. {\tt PDL::NiceSlice} can be installed from CPAN using:
-\begin{verbatim}
-perl -MCPAN -e 'install PDL::NiceSlice'
-\end{verbatim}
+
   \item [\href{http://search.cpan.org/~chm/PDL-2.4.7/Basic/MatrixOps/matrixops.pd}{{\tt PDL::MatrixOps}}] Provides matrix operators for PDL. It is used when generating Monte Carlo samples of parameters from covariance matrices. {\tt PDL::MatrixOps} can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install PDL::MatrixOps'
@@ -127,25 +235,6 @@ perl -MCPAN -e 'install PDL::MatrixOps'
 \begin{verbatim}
 perl -MCPAN -e 'install PDL::LinearAlgebra'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~sbeck/Math-SigFigs-1.09/lib/Math/SigFigs.pod}{{\tt Math::SigFigs}}] Provides formatting of numbers to a given number of significant figures. It is used by \glc\ when making plots. It can be installed from CPAN using:
-\begin{verbatim}
-perl -MCPAN -e 'install Math::SigFigs'
-\end{verbatim}
-  \item [\href{http://search.cpan.org/~djburke/Astro-Cosmology-0.90/Cosmology.pm}{{\tt Astro::Cosmology}}] Provides basic cosmological calculations. It is used by \glc\ when making plots to convert data points measured under the assumptions of one set of cosmological parameters to the cosmological parameters assumed by \glc. It can be installed from CPAN using:
-\begin{verbatim}
-perl -MCPAN -e 'force("install","Astro::Cosmology")'
-\end{verbatim}
-  \item [\href{http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files\footnote{This is a modified version of the  original \protect\href{http://search.cpan.org/~cerney/PDL-IO-HDF5-0.6/}{{\tt PDL::IO::HDF5}} module. It supports creation and automatic de-referencing of HDF5 region references and also supports reading of numerical attributes and 1-D attribute arrays.}. It is used by analysis scripts to extract data from \glc\ output files. Follow the following instructions (as root) to install this module:
-\begin{verbatim}
- wget http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
- tar xvfz PDL-IO-HDF5-0.6.tar.gz
- cd PDL-IO-HDF5-0.6
- perl Makefile.PL
- make
- make test
- make install
-\end{verbatim}
-\end{description}
 
 \item[Gnuplot] The \href{http://www.gnuplot.info/}{\sc Gnuplot} plotting package is used extensively by \glc\ to produce plots. While not required for running \glc\ it is recommended as it allows you to easily check model results using the preexisting plotting scripts. On Fedora the following (as root) will install {\tt Gnuplot}:
 \begin{verbatim}
@@ -165,53 +254,6 @@ Alternatively, GraphViz can be installed from source, following the online instr
 perl -MCPAN -e 'install GraphViz'
 \end{verbatim}
 
- \item [GNU Scientific Library] $\star$ The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.13 or v1.14 of GSL---other versions may or may not work. On Fedora the following (as root) will install GSL:
-\begin{verbatim}
-yum install gsl gsl-devel
-\end{verbatim}
-Alternatively, GSL can be downloaded and installed from source as described online.
-
- \item [GNU Make] $\star$ \glc\ uses \href{http://www.gnu.org/software/make/}{GNU Make} to build executables. Other implementations of {\tt make} may work, but we make no guarantees. On Fedora the following (as root) will install GNU Make:
-\begin{verbatim}
-yum install make
-\end{verbatim}
-Alternatively, GNU Make can be downloaded and installed from source as described online.
-
- \item [GFortran] $\star$ \glc\ is written primarily in Fortran using various aspects of the Fortran 2003 specification. We use \href{http://gcc.gnu.org/fortran/}{GNU Fortran} to compile \glc. You can use other Fortran compilers, but we make no claims as to whether they will support all required features of the Fortran language, or that they will produce correctly working code. On Fedora the following (as root) will install GNU Fortran:
-\begin{verbatim}
-yum install gcc-gfortran
-\end{verbatim}
-Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.6 of {\tt gcc-gfortran}.
-
- \item [g++] $\star$ \glc\ contains some C++ components. We use \href{http://gcc.gnu.org/projects/cxx0x.html}{GNU C++} to compile \glc. You can use other C++ compilers, but we make no claims as to whether they will produce correctly working code. On Fedora the following (as root) will install GNU C++:
-\begin{verbatim}
-yum install gcc-c++
-\end{verbatim}
-Alternatively, GNU C++ can be downloaded and installed from source as described online.
-
- \item [FoX] $\star$ \href{http://uszla.me.uk/space/software/FoX/}{FoX} is an XML parser for Fortran. The source can be downloaded from the link above\footnote{Alternatively, the source can be downloaded from \href{http://www.ctcp.caltech.edu/galacticus/tools/FoX-4.0.4-full.tar.gz}{\tt http://www.ctcp.caltech.edu/galacticus/tools/FoX-4.0.4-full.tar.gz}, since the FoX website is frequently down.}. We recommend following the instructions provided with the download for install. We use FoX v4.0.4.
-
- \item [HDF5] $\star$ The \href{http://hdf4.org/HDF5/}{HDF5} specification is used for storing output data from \glc. We currently use HDF5\footnote{Early versions of HDF5 may work, but versions prior to v1.8.5 have known memory leak problems.} v1.8.5.patch1. On Fedora the following (as root) will install the HDF5 libraries:
-\begin{verbatim}
-yum install hdf5 hdf5-devel
-\end{verbatim}
-Alternatively, HDF5 can be downloaded and installed from source. If this is done, we recommend the following build sequence:
-\begin{verbatim}
- F9X=gfortran
- export F9X
- ./configure --prefix=/usr/local --enable-fortran --enable-production
- make
- make check
- make install
-\end{verbatim}
-
- \item [FGSL] $\star$ \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL} is a Fortran interface to the GNU Scientific Library and is used extensively by \glc. It can be downloaded from the link above. We use FGSL v0.9.2\footnote{Note that if you use v1.14 of the GNU Scientific Library you should used FGSL v0.9.3 instead.} and recommend the following build sequence. 
-\begin{verbatim}
- ./configure --f90 gfortran
- make
- make install
-\end{verbatim}
-
 \end{description}
 
 \section{Compiling Galacticus}
@@ -224,7 +266,7 @@ This will create the {\tt Galacticus.exe} executable. The build takes some time,
 
 The {\tt Makefile} contains a few options that you may want to adjust:
 \begin{description}
- \item[{\tt F03COMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.6. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers and type-bound procedures) which older compilers might not handle (and some newer compilers might still have difficulty with);
+ \item[{\tt F03COMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.6. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
  \item[{\tt PREPROCESSOR}] The command to invoke a preprocessor to handle {\tt \#IFDEF} etc. statements. We normally use {\tt cpp};
  \item[{\tt MODULETYPE}] A label identifying the structure of modules built by the compiler. This is used to detected when module interfaces have been changed (requiring a recompile of all dependent code) and when only the module internals have changed. When the {\sc GFortran} compiler is used {\tt GCC-f95-on-LINUX} should be used here. Look in {\tt ./scripts/build/Compare\_Module\_Files.pl} for other possibilities (if your compiler isn't listed you'll need to either edit that script or deal with longer recompiles if you edit the code).
  \item[{\tt F03FLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
@@ -251,19 +293,91 @@ in {\tt bash} and variants. If you get stack overflows while running \glc\ in pa
 
 \section{Installing Without Root Access}
 
-It is possible to install \glc\ without root access to your computer. The following approach has worked in many cases---some adjustments may be required for your specific system. Depending on what is already installed on your system, you may be able to skip some of the following installs. (Or, alternatively, you may need to install additional tools.) Choose a location to install that has at least 4Gb of free space. In the following, this install location is referred to as {\tt /your/install/path}.
+It is possible to install \glc\ without root access to your computer. The following approach has worked in many cases---some adjustments may be required for your specific system. Depending on what is already installed on your system, you may be able to skip some of the following installs. Refer to \S\ref{sec:requirementsEssential}, \S\ref{sec:requirementsTypical} and \S\ref{sec:requirementsFull} to decide which of the following tools you want to install. (Or, alternatively, you may need to install additional tools.) Choose a location to install that has at least 4Gb of free space. In the following, this install location is referred to as {\tt /your/install/path}. In the following, we assume you're using some variant of the C-shell. If you're using {\tt bash} or some other Bourne shell, {\tt setenv VAR abcd} should be translated to {\tt export VAR=abcd}.
 
 \lstdefinelanguage{simple}{morecomment=[l]!}
 \begin{lstlisting}[language=simple,stringstyle=\ttfamily,commentstyle=\itshape]
+
+! Install GFortran, GCC and G++:
+
+wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.6.1/gcc-4.6.1.tar.bz2"
+tar xvfj gcc-4.6.1.tar.bz2
+mkdir gcc-build
+cd gcc-build
+../gcc-4.6.1/configure --prefix=/your/install/path/gcc-trunk --enable-languages=c,c++,fortran --disable-multilib
+make
+make install
+
+! Add to .cshrc (or equivalent):
+
+setenv PATH /your/install/path:$PATH                                                                                           
+setenv LD_LIBRARY_PATH /your/install/path/gcc-trunk/lib:/your/install/path/lib:$LD_LIBRARY_PATH                                         
+! Install GSL:
+
+wget "http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-1.15.tar.gz"
+tar xvfz gsl-1.15.tar.gz
+cd  gsl-1.15
+./configure --prefix=/your/install/path
+make
+make check
+make install
+
+! Install FGSL:
+
+wget "http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/fgsl-0.9.4.tar.gz"
+tar xvfz fgsl-0.9.4.tar.gz
+cd fgsl-0.9.4
+./configure --f90 gfortran --gsl /your/install/path
+make
+make install
+
+! Install zlib:
+
+wget "http://zlib.net/zlib-1.2.5.tar.gz"
+tar xvfz zlib-1.2.5.tar.gz
+cd zlib-1.2.5
+./configure --prefix=/your/install/path
+make
+make check
+make install
+
+! Install HDF5:
+
+wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.7.tar.bz2
+tar xvfz hdf5-1.8.7.tar.gz
+cd hdf5-1.8.7
+setenv F9X gfortran
+./configure --prefix=/your/install/path --enable-fortran --enable-production --with-zlib=/your/install/path
+make
+make check
+make install
+
+! Install FoX:
+
+wget "http://www1.gly.bris.ac.uk/~walker/FoX/source/FoX-4.1.0-full.tar.gz"
+tar xvfz FoX-4.1.0-full.tar.gz
+cd FoX-4.1.0
+setenv FC gfortran
+./configure --prefix=/your/install/path
+make
+make check
+make install
+
+! Install Bazaar:
+
+wget "http://launchpad.net/bzr/2.4/2.4b5/+download/bzr-2.4b5.tar.gz"
+tar xvfz bzr-2.4b5.tar.gz
+python setup.py install --home /your/install/path
+
 ! Install Perl local::lib for local installs of modules:
 
 mkdir .cpan
 mkdir perl5
 ln -sf /your/install/path/.cpan $HOME/
 ln -sf /your/install/path/perl5 $HOME/
-wget http://search.cpan.org/CPAN/authors/id/M/MS/MSTROUT/local-lib-1.006000.tar.gz
-tar xvfz local-lib-1.006000.tar.gz 
-cd local-lib-1.006000
+wget http://search.cpan.org/CPAN/authors/id/A/AP/APEIRON/local-lib-1.008004.tar.gz
+tar xvfz local-lib-1.008004.tar.gz 
+cd local-lib-1.008004
 perl Makefile.PL --bootstrap
 make
 make test
@@ -306,100 +420,28 @@ make install
 
 ! Install GnuPlot:
 
-wget "http://downloads.sourceforge.net/project/gnuplot/gnuplot/4.4.0/gnuplot-4.4.0.tar.gz"
-tar xvfz gnuplot-4.4.0.tar.gz
-cd gnuplot-4.4.0
+wget "http://downloads.sourceforge.net/project/gnuplot/gnuplot/4.4.3/gnuplot-4.4.3.tar.gz"
+tar xvfz gnuplot-4.4.3.tar.gz
+cd gnuplot-4.4.3
 ./configure --prefix=/your/install/path
 make
 make install
 
 ! Install GraphViz:
 
-wget "http://www.graphviz.org/pub/graphviz/stable/SOURCES/graphviz-2.26.3.tar.gz"
-tar xvfz graphviz-2.26.3.tar.gz
-cd graphviz-2.26.3
+wget "http://www.graphviz.org/pub/graphviz/stable/SOURCES/graphviz-2.28.0.tar.gz"
+tar xvfz graphviz-2.28.0.tar.gz
+cd graphviz-2.28.0
 ./configure --prefix=/your/install/path
 make
 make check
 make install
-
-! Install GSL:
-
-wget "http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-1.14.tar.gz"
-tar xvfz gsl-1.14.tar.gz
-cd  gsl-1.14
-./configure --prefix=/your/install/path
-make
-make check
-make install
-
-! Install GFortran, GCC and G++:
-
-wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.6.0/gcc-4.6.0.tar.bz2"
-tar xvfj gcc-4.6.0.tar.bz2
-mkdir gcc-build
-cd gcc-build
-../gcc-4.6.0/configure --prefix=/your/install/path/gcc-trunk --enable-languages=c,c++,fortran --disable-multilib
-make
-make install
-
-! Add to .cshrc (or equivalent):
-
-setenv PATH /your/install/path:$PATH                                                                                           
-setenv LD_LIBRARY_PATH /your/install/path/gcc-trunk/lib:/your/install/path/lib:$LD_LIBRARY_PATH                                                                     
-
-! Install FGSL:
-
-wget "http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/fgsl-0.9.3.tar.gz"
-tar xvfz fgsl-0.9.3.tar.gz
-cd fgsl-0.9.3
-./configure --f90 gfortran --gsl /your/install/path
-make
-make install
-
-! Install zlib:
-
-wget "http://zlib.net/zlib-1.2.5.tar.gz"
-tar xvfz zlib-1.2.5.tar.gz
-cd zlib-1.2.5
-./configure --prefix=/your/install/path
-make
-make check
-make install
-
-! Install HDF5:
-
-wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.5-patch1.tar.bz2
-tar xvfz hdf5-1.8.5-patch1.tar.gz
-cd hdf5-1.8.5-patch1
-setenv F9X gfortran
-./configure --prefix=/your/install/path --enable-fortran --enable-production --with-zlib=/your/install/path
-make
-make check
-make install
-
-! Install FoX:
-
-wget "http://www.uszla.me.uk/FoX/source/FoX-4.0.4-full.tar.gz"
-tar xvfz FoX-4.0.4-full.tar.gz
-cd FoX-4.0.4
-setenv FC gfortran
-./configure --prefix=/your/install/path
-make
-make check
-make install
-
-! Install Bazaar:
-
-wget "http://launchpad.net/bzr/2.2/2.2b3/+download/bzr-2.2b3.tar.gz"
-tar xvfz bzr-2.2b3.tar.gz
-python setup.py install --home /your/install/path
 
 ! Install Galacticus:
 
-wget "http://www.ctcp.caltech.edu/galacticus/galacticus_v0.0.1.tar.bz2"
-tar xvfj galacticus_v0.0.1.tar.bz2
-cd Galacticus/v0.0.1
+wget "http://www.ctcp.caltech.edu/galacticus/galacticus_v0.9.0.tar.bz2"
+tar xvfj galacticus_v0.9.0.tar.bz2
+cd Galacticus/v0.9.0
 
 ! Add to Makefile (below the F03FLAGS = line):
 
