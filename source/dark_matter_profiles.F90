@@ -398,6 +398,7 @@ contains
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
 
+    componentDensity=Dark_Matter_Profile_Density(thisNode,positionSpherical(1))
     return
   end subroutine Dark_Matter_Profile_Density_Task
 
