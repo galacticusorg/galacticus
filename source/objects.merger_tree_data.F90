@@ -181,7 +181,6 @@ module Merger_Tree_Data_Structure
 
   type mergerTreeData
      !% A structure that holds raw merger tree data.
-  implicit none
      private
      integer                                              :: treeCount,nodeCount,particlesCount
      double precision                                     :: particleMass=0.0d0
