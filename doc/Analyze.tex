@@ -19,6 +19,8 @@ Figure~\ref{fig:glcOutputFileStructure} shows the structure of a typical \glc\ o
 \begin{verbatim}
 outputFile.hdf5
  |
+ +-> UUID                                     Attribute {1}
+ |
  +-> Outputs                                  Group
  |    |
  |    +-> Output1                             Group
@@ -85,6 +87,10 @@ outputFile.hdf5
 \caption{Structure of a \glc\ HDF5 output file. {\tt <treeCount>} is the total number of merger trees present in a given output, and {\tt <nodeCount} is the total number of nodes (in all trees) present in an output.}
 \label{fig:glcOutputFileStructure}
 \end{figure}
+
+\subsection{UUID}\label{sec:UUID}
+
+The UUID (\href{https://secure.wikimedia.org/wikipedia/en/wiki/Universally_unique_identifier}{Universally Unique Identifier}) is a unique identifier assigned to each \glc\ model that is run. It allows identification of a given model and can be referenced from, for example, an external database.
 
 \subsection{Parameters}
 

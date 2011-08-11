@@ -6,6 +6,7 @@ use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::IO::HDF5::Group;
 use Switch;
+use Data::UUID;
 use Data::Dumper;
 
 # Merges Galacticus models.
@@ -26,6 +27,16 @@ foreach my $mergeFileName ( @mergeFileNames ) {
     print "-> Opening file for merge: ".$mergeFileName."\n";
     $mergeFiles[++$#mergeFiles] = new PDL::IO::HDF5($mergeFileName);
 }
+
+# Copy UUID attributes.
+my @mergeUUIDs;
+foreach my $mergeFile ( @mergeFiles ) {
+	push(@mergeUUIDs,$mergeFile->attrGet("UUID"));
+}
+$outputFile->attrSet("UUIDs" => join(":",@mergeUUIDs));
+my $ug    = new Data::UUID;
+my $uuid1 = $ug->create_str();
+$outputFile->attrSet("UUID" => $uuid1);
 
 # Copy parameters and version groups from merge files to output file.
 print "-> Copying Parameters and Version groups\n";

@@ -20,6 +20,7 @@ $workDir = "/work/build/";
     "h5fortran_types" => 1,
     "fox_dom" => 1,
     "fox_wxml" => 1,
+    "fox_utils" => 1,
     "fgsl" => 1
     );
 

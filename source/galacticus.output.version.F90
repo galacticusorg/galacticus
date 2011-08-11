@@ -81,6 +81,7 @@ contains
     use Dates_and_Times
     use File_Utilities
     use FoX_dom
+    use FoX_utils
     implicit none
     include 'galacticus.output.version.revision.inc'
     type(Node),           pointer      :: doc,thisNode,nameNode,emailNode
@@ -90,12 +91,15 @@ contains
     type(hdf5Object)                   :: versionGroup
     type(varying_string)               :: runTime
 
+	! Write a UUID for this model.
+    call galacticusOutputFile%writeAttribute(generate_UUID(4),'UUID')
+
     ! Create a group for version information.
     versionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Version','Version and timestamp for this model.')
-!    call versionGroup%writeAttribute(0             ,'versionMajor'   )
-!    call versionGroup%writeAttribute(9             ,'versionMinor'   )
-!    call versionGroup%writeAttribute(0             ,'versionRevision')
-!    call versionGroup%writeAttribute(bazaarRevision,'bazaarRevision' )
+    call versionGroup%writeAttribute(0             ,'versionMajor'   )
+    call versionGroup%writeAttribute(9             ,'versionMinor'   )
+    call versionGroup%writeAttribute(1             ,'versionRevision')
+    call versionGroup%writeAttribute(bazaarRevision,'bazaarRevision' )
     runTime=Formatted_Date_and_Time()
     call versionGroup%writeAttribute(runTime       ,'runTime'        )
 
