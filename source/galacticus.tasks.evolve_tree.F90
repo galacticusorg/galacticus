@@ -93,6 +93,9 @@ contains
     use Galacticus_Display
     use Input_Parameters
     use Galacticus_Output_Times
+
+use omp_lib
+
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
@@ -106,11 +109,12 @@ contains
     implicit none
     type(mergerTree),     save, pointer :: thisTree
     logical,              save          :: finished,skipTree
-    integer,              save          :: iOutput,iTree
+    integer,              save          :: iOutput
     double precision,     save          :: outputTime
     type(varying_string), save          :: message
     character(len=20),    save          :: label
-    !$omp threadprivate(thisTree,finished,skipTree,iOutput,iTree,outputTime,message,label)
+    !$omp threadprivate(thisTree,finished,skipTree,iOutput,outputTime,message,label)
+    integer                             :: iTree
 
     ! Initialize the task if necessary.
     !$omp critical (Tasks_Evolve_Tree_Initialize)
@@ -148,18 +152,20 @@ contains
     !$omp parallel copyin(finished)
     do while (.not.finished)
        ! Increment the tree number.
+       !$omp atomic
        iTree=iTree+1
        ! Decide whether or not to skip this tree.
        skipTree=.not.(modulo(iTree-1+(iTree-1)/treeEvolveWorkerCount,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
-
        ! Perform any pre-tree construction tasks.
        !# <include directive="mergerTreePreTreeConstructionTask" type="code" action="subroutine">
        include 'galacticus.tasks.evolve_tree.preConstructionTask.inc'
        !# </include>
        
        ! Get a tree.
+       !$omp critical(Tree_Sharing)
        thisTree => Merger_Tree_Create(skipTree)
        finished=finished.or..not.associated(thisTree)
+       !$omp end critical(Tree_Sharing)
        if (.not.finished) then
           
           ! Skip this tree if necessary.
