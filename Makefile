@@ -50,6 +50,11 @@ LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
 
+# Get versions of build tools.
+F03COMPILER_VERSION = `$(F03COMPILER) -v 2>&1`
+CCOMPILER_VERSION = `$(CCOMPILER) -v 2>&1`
+CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
+
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
 # Object (*.o) files are built by compiling Fortran 90 (*.F90) source files. Ensure that any modules they make are "touch"ed so
@@ -142,6 +147,22 @@ vpath %.cpp source
 # Rules for version routines.
 ./work/build/galacticus.output.version.revision.inc: $(wildcard .bzr/branch/*)
 	@if [ -d .bzr ] ; then awk '{print "integer, parameter :: bazaarRevision="$$1}' .bzr/branch/last-revision > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: bazaarRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
+
+# Rules for build information routines.
+./work/build/galacticus.output.build.environment.inc:
+	@echo PREPROCESSOR=\"$(PREPROCESSOR)\" > ./work/build/galacticus.output.build.environment.inc
+	@echo F03COMPILER=\"$(F03COMPILER)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo CCOMPILER=\"$(CCOMPILER)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo CPPCOMPILER=\"$(CPPCOMPILER)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo MODULETYPE=\"$(MODULETYPE)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo F03FLAGS=\"$(F03FLAGS)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo F03FLAGS_NOOPT=\"$(F03FLAGS_NOOPT)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo CFLAGS=\"$(CFLAGS)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo CPPFLAGS=\"$(CPPFLAGS)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo LIBS=\"$(LIBS)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo F03COMPILER_VERSION=\"$(F03COMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
 
 # Rules for cleaning up.
 clean: tidy

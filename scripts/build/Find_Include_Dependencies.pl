@@ -34,6 +34,7 @@ if ( -e $sourcedir."/Source_Codes" ) {
 # Open the source directory
 #
 $ibase=-1;
+my %nonAutoInclude;
 foreach $srcdir ( @sourcedirs ) {
     ++$ibase;
     $base = $bases[$ibase];
@@ -59,12 +60,14 @@ foreach $srcdir ( @sourcedirs ) {
 	    $oname =~ s/\.h$/\.o/;
 	    @incfiles = ();
 	    while (my $line = <infile>) {
-# Locate any lines which use the "include" statement and extract the name of the file they include
+# Locate any lines which use the "include" statemalent and extract the name of the file they include
 		if ( $line =~ m/^\s*#??include\s*['"](.+\.(inc|h)\d*)['"]/ ) {
-		     my $incfile = $1." ";
-		     if ( $hasincludes == 0 ) {$hasincludes = 1};
-		     @incfiles = ( @incfiles, $incfile);
-		 }
+		    my $incfile = $1;
+		    $nonAutoInclude{$incfile} = 1 if ( $line =~ m/! NO_USES/ );
+		    $incfile .= " ";
+		    if ( $hasincludes == 0 ) {$hasincludes = 1};
+		    @incfiles = ( @incfiles, $incfile);
+		}
 	    }
 # Process output for files which had include statements
 	    if ( $hasincludes == 1 ) {
@@ -94,21 +97,21 @@ foreach $srcdir ( @sourcedirs ) {
 		    if ( -e $ext_Iinc ) {
 			if ( $ibase == 0 ) {
 			    print outfile " ./work/build/$inc";
-			    if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$Iinc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$Iinc};
 			} else {
 			    print outfile " ./work/build/$srcdir/$inc";
-			    if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$Iinc};			}
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$Iinc};			}
 		    } elsif ( -e $ext_inc ) {
 			if ( $ibase == 0 ) {
 			    print outfile " ./work/build/$inc";
-			    if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
 			} else {
 			    print outfile " ./work/build/$srcdir/$inc";
-			    if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$inc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$inc};
 			}
 		    } else {
 			print outfile " ./work/build/$inc";
-			if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
+			if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
 		    }
 		}
 		print outfile "\n\n";

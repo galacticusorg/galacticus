@@ -21,6 +21,25 @@ outputFile.hdf5
  |
  +-> UUID                                     Attribute {1}
  |
+ +-> Build                                    Group
+ |    |
+ |    +-> FGSL_library_version                Attribute {1}
+ |    +-> FoX_library_version                 Attribute {1}
+ |    +-> GSL_library_version                 Attribute {1}
+ |    +-> HDF5_library_version                Attribute {1}
+ |    +-> make_CCOMPILER                      Attribute {1}
+ |    +-> make_CCOMPILER_VERSION              Attribute {1}
+ |    +-> make_CFLAGS                         Attribute {1}
+ |    +-> make_CPPCOMPILER                    Attribute {1}
+ |    +-> make_CPPCOMPILER_VERSION            Attribute {1}
+ |    +-> make_CPPFLAGS                       Attribute {1}
+ |    +-> make_F03COMPILER                    Attribute {1}
+ |    +-> make_F03COMPILER_VERSION            Attribute {1}
+ |    +-> make_F03FLAGS                       Attribute {1}
+ |    +-> make_F03FLAGS_NOOPT                 Attribute {1}
+ |    +-> make_MODULETYPE                     Attribute {1}
+ |    +-> make_PREPROCESSOR                   Attribute {1}
+ |
  +-> Outputs                                  Group
  |    |
  |    +-> Output1                             Group
@@ -91,6 +110,28 @@ outputFile.hdf5
 \subsection{UUID}\label{sec:UUID}
 
 The UUID (\href{https://secure.wikimedia.org/wikipedia/en/wiki/Universally_unique_identifier}{Universally Unique Identifier}) is a unique identifier assigned to each \glc\ model that is run. It allows identification of a given model and can be referenced from, for example, an external database.
+
+\subsection{Build Information}\label{sec:BuildInformation}
+
+\glc\ automatically stores various information about how it was built in the {\tt Build} group attributes. Currently, included attributes consist of:
+\begin{description}
+\item[{\tt FGSL\_library\_version}] The version number of the FGSL library;
+\item[{\tt FoX\_library\_version}] The version number of the FoX library;
+\item[{\tt GSL\_library\_version}] The version number of the GSL library;
+\item[{\tt HDF5\_library\_version}] The version number of the HDF5 library;
+\item[{\tt make\_CCOMPILER}] The C compiler command used;
+\item[{\tt make\_CCOMPILER\_VERSION}] The C compiler version information;
+\item[{\tt make\_CFLAGS}] The flags passed to the C compiler;
+\item[{\tt make\_CPPCOMPILER}] The C++ compiler command used;
+\item[{\tt make\_CPPCOMPILER\_VERSION}] The C++ compiler version information;
+\item[{\tt make\_CPPFLAGS}] The flags passed to the C++ compiler;
+\item[{\tt make\_F03COMPILER}] The Fortran compiler command used;
+\item[{\tt make\_F03COMPILER\_VERSION}] The Fortran compiler version information;
+\item[{\tt make\_F03FLAGS}] The flags passed to the Fortran compiler;
+\item[{\tt make\_F03FLAGS\_NOOPT}] The flags passed to the Fortran compiler for unoptimized compiles;
+\item[{\tt make\_MODULETYPE}] The Fortran module type identifier string;
+\item[{\tt make\_PREPROCESSOR}] The preprocessor command used.
+\end{description}
 
 \subsection{Parameters}
 
