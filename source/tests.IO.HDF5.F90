@@ -139,6 +139,13 @@ program Tests_IO_HDF5
      call groupObject%readAttribute("integerAttribute",integerValueReread)
      call Assert("re-read scalar integer attribute",integerValue,integerValueReread)
 
+     ! Write a pseudo-scalar integer attribute to the group.
+     integerValueArray=7
+     call groupObject%writeAttribute(integerValueArray(1:1),"integerAttributePseudoScalar")
+     ! Read the pseudo-scalar integer attribute back.
+     call groupObject%readAttribute("integerAttributePseudoScalar",integerValueReread,allowPseudoScalar=.true.)
+     call Assert("re-read pseudo-scalar integer attribute",integerValueArray(1),integerValueReread)
+
      ! Write an integer 1-D array attribute to the group.
      integerValueArray=7
      call groupObject%writeAttribute(integerValueArray,"integerAttribute1dArray")
@@ -161,6 +168,13 @@ program Tests_IO_HDF5
      ! Read the scalar long integer attribute back.
      call groupObject%readAttribute("integer8Attribute",integer8ValueReread)
      call Assert("re-read scalar long integer attribute",integer8Value,integer8ValueReread)
+
+     ! Write a pseudo-scalar long integer attribute to the group.
+     integer8ValueArray=20202021
+     call groupObject%writeAttribute(integer8ValueArray(1:1),"integer8AttributePseudoScalar")
+     ! Read the scalar long integer attribute back.
+     call groupObject%readAttribute("integer8AttributePseudoScalar",integer8ValueReread,allowPseudoScalar=.true.)
+     call Assert("re-read pseudo-scalar long integer attribute",integer8ValueArray(1),integer8ValueReread)
 
      ! Write a long integer 1-D array attribute to the group.
      integer8ValueArray=7
@@ -185,6 +199,13 @@ program Tests_IO_HDF5
      call groupObject%readAttribute("doubleAttribute",doubleValueReread)
      call Assert("re-read scalar double attribute",doubleValue,doubleValueReread)
 
+     ! Write a pseudo-scalar double attribute to the group.
+     doubleValueArray=9.12345d0
+     call groupObject%writeAttribute(doubleValueArray(1:1),"doubleAttributePseudoScalar")
+     ! Read the scalar double attribute back.
+     call groupObject%readAttribute("doubleAttributePseudoScalar",doubleValueReread,allowPseudoScalar=.true.)
+     call Assert("re-read pseudo-scalar double attribute",doubleValueArray(1),doubleValueReread)
+
      ! Write an double 1-D array attribute to the group.
      doubleValueArray=7.676767d0
      call groupObject%writeAttribute(doubleValueArray,"doubleAttribute1dArray")
@@ -207,6 +228,13 @@ program Tests_IO_HDF5
      ! Read the scalar character attribute back.
      call groupObject%readAttribute("characterAttribute",characterValueReread)
      call Assert("re-read scalar character attribute",characterValue,characterValueReread)
+
+     ! Write a pseudo-scalar character attribute to the group.
+     characterValueArray='abcdefghijklmnopqrstuvwxyz'
+     call groupObject%writeAttribute(characterValueArray(1:1),"characterAttributePseudoScalar")
+     ! Read the scalar character attribute back.
+     call groupObject%readAttribute("characterAttributePseudoScalar",characterValueReread,allowPseudoScalar=.true.)
+     call Assert("re-read pseudo-scalar character attribute",characterValueArray(1),characterValueReread)
 
      ! Write a character 1-D array attribute to the group.
      characterValueArray='aAbBcCdDeEfFgGhH'
@@ -239,6 +267,13 @@ program Tests_IO_HDF5
      ! Read the varying string 1-D array attribute back to a static array.
      call groupObject%readAttributeStatic("varStringAttribute1dArray",varStringValueArrayRereadStatic)
      call Assert("re-read 1-D array varString attribute to static array",varStringValueArray,varStringValueArrayRereadStatic)
+
+     ! Write a pseudo-scalar varString attribute to the group.
+     varStringValueArray="le sange est dans l'arbre. pad pad pad pad!!"
+     call groupObject%writeAttribute(varStringValueArray(1:1),"varStringAttributePseudoScalar")
+     ! Read the scalar varString attribute back.
+     call groupObject%readAttribute("varStringAttributePseudoScalar",varStringValueReread,allowPseudoScalar=.true.)
+     call Assert("re-read pseudo-scalar varString attribute",varStringValueArray(1),varStringValueReread)
 
      ! Write an extensible integer 1-D array dataset to the group.
      if (appendableOK) then

@@ -282,7 +282,7 @@ contains
 
        ! Check that we can handle the type of tree in this file.
        if (haloTreesGroup%hasAttribute("haloMassesIncludeSubhalos")) then
-          call haloTreesGroup%readAttribute("haloMassesIncludeSubhalos",haloMassesIncludeSubhalosInteger)
+          call haloTreesGroup%readAttribute("haloMassesIncludeSubhalos",haloMassesIncludeSubhalosInteger,allowPseudoScalar=.true.)
           haloMassesIncludeSubhalos=(haloMassesIncludeSubhalosInteger == 1)
        else
           call Galacticus_Error_Report('Merger_Tree_Read_Initialize','required attribute "haloMassesIncludeSubhalos" not present')
@@ -290,32 +290,33 @@ contains
 
        ! Determine if subhalo masses have been included in halo masses.
        if (haloTreesGroup%hasAttribute("treesAreSelfContained")) then
-          call haloTreesGroup%readAttribute("treesAreSelfContained",treesAreSelfContained)
+          call haloTreesGroup%readAttribute("treesAreSelfContained",treesAreSelfContained,allowPseudoScalar=.true.)
           if (treesAreSelfContained == 0) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','only self-contained trees are supported')
        end if
 
        ! Compute unit conversion factors.
        unitsGroup=IO_HDF5_Open_Group(mergerTreeFile,"units")
-       call unitsGroup%readAttribute("massUnitsInSI"              ,unitConversionMass       )
-       call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  )
-       call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           )
+       call unitsGroup%readAttribute("massUnitsInSI"              ,unitConversionMass       ,allowPseudoScalar=.true.)
+       call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  ,allowPseudoScalar=.true.)
+       call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           ,allowPseudoScalar=.true.)
        unitConversionMass    =unitConversionMass    *(Little_H_0()**hubbleExponent)/massSolar
-       if (unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI")) then
-          call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     )
-          call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength)
-          call unitsGroup%readAttribute("lengthHubbleExponent"       ,hubbleExponent           )
+       if (mergerTreeReadPresetPositions.and..not.(unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI"))) call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities are to be preset')
+       if (unitsGroup%hasAttribute("lengthUnitsInSI")) then
+          call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     ,allowPseudoScalar=.true.)
+          call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength,allowPseudoScalar=.true.)
+          call unitsGroup%readAttribute("lengthHubbleExponent"       ,hubbleExponent           ,allowPseudoScalar=.true.)
           unitConversionLength  =unitConversionLength  *(Little_H_0()**hubbleExponent)/megaParsec
-          call unitsGroup%readAttribute("velocityUnitsInSI"          ,unitConversionVelocity     )
-          call unitsGroup%readAttribute("velocityScaleFactorExponent",scaleFactorExponentVelocity)
-          call unitsGroup%readAttribute("velocityHubbleExponent"     ,hubbleExponent           )
+       end if
+       if (unitsGroup%hasAttribute("velocityUnitsInSI")) then
+          call unitsGroup%readAttribute("velocityUnitsInSI"          ,unitConversionVelocity     ,allowPseudoScalar=.true.)
+          call unitsGroup%readAttribute("velocityScaleFactorExponent",scaleFactorExponentVelocity,allowPseudoScalar=.true.)
+          call unitsGroup%readAttribute("velocityHubbleExponent"     ,hubbleExponent             ,allowPseudoScalar=.true.)
           unitConversionVelocity=unitConversionVelocity*(Little_H_0()**hubbleExponent)/kilo
-       else if (mergerTreeReadPresetPositions) then
-          call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities are to be preset')
        end if
        if (unitsGroup%hasAttribute("timeUnitsInSI")) then
-          call unitsGroup%readAttribute("timeUnitsInSI"           ,unitConversionTime       )
-          call unitsGroup%readAttribute("timeScaleFactorExponent" ,scaleFactorExponentTime  )
-          call unitsGroup%readAttribute("timeHubbleExponent"      ,hubbleExponent           )
+          call unitsGroup%readAttribute("timeUnitsInSI"           ,unitConversionTime       ,allowPseudoScalar=.true.)
+          call unitsGroup%readAttribute("timeScaleFactorExponent" ,scaleFactorExponentTime  ,allowPseudoScalar=.true.)
+          call unitsGroup%readAttribute("timeHubbleExponent"      ,hubbleExponent           ,allowPseudoScalar=.true.)
           unitConversionTime =unitConversionTime    *(Little_H_0()**hubbleExponent)/gigayear
           if (scaleFactorExponentTime /= 0) call Galacticus_Error_Report("Merger_Tree_Read_Do","expect no scaling of time units with expansion factor")
        end if
@@ -325,7 +326,7 @@ contains
        if (mergerTreeFile%hasGroup("simulation")) then
           simulationGroup=IO_HDF5_Open_Group(mergerTreeFile,"simulation")
           if (simulationGroup%hasAttribute("boxSize")) then
-             call simulationGroup%readAttribute("boxSize",lengthSimulationBox)
+             call simulationGroup%readAttribute("boxSize",lengthSimulationBox,allowPseudoScalar=.true.)
              lengthSimulationBox=lengthSimulationBox*unitConversionLength
              treeVolumeWeightUniform=1.0d0/lengthSimulationBox**3
           else
@@ -339,7 +340,7 @@ contains
        ! Check that cosmological parameters are consistent with the internal ones.
        cosmologicalParametersGroup=IO_HDF5_Open_Group(mergerTreeFile,"cosmology")
        if (cosmologicalParametersGroup%hasAttribute("Omega0")) then
-          call cosmologicalParametersGroup%readAttribute("Omega0",cosmologicalParameter)
+          call cosmologicalParametersGroup%readAttribute("Omega0",cosmologicalParameter,allowPseudoScalar=.true.)
           if (Values_Differ(cosmologicalParameter,Omega_0(),absTol=0.001d0)) then
              message='Omega_0 in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
@@ -350,7 +351,7 @@ contains
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("OmegaBaryon")) then
-          call cosmologicalParametersGroup%readAttribute("OmegaBaryon",cosmologicalParameter)
+          call cosmologicalParametersGroup%readAttribute("OmegaBaryon",cosmologicalParameter,allowPseudoScalar=.true.)
           if (Values_Differ(cosmologicalParameter,Omega_b(),absTol=0.001d0)) then
              message='Omega_b in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
@@ -361,7 +362,7 @@ contains
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("OmegaLambda")) then
-          call cosmologicalParametersGroup%readAttribute("OmegaLambda",cosmologicalParameter)
+          call cosmologicalParametersGroup%readAttribute("OmegaLambda",cosmologicalParameter,allowPseudoScalar=.true.)
           if (Values_Differ(cosmologicalParameter,Omega_DE(),absTol=0.001d0)) then
              message='Omega_DE in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
@@ -372,7 +373,7 @@ contains
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("HubbleParam")) then
-          call cosmologicalParametersGroup%readAttribute("HubbleParam",cosmologicalParameter)
+          call cosmologicalParametersGroup%readAttribute("HubbleParam",cosmologicalParameter,allowPseudoScalar=.true.)
           if (Values_Differ(cosmologicalParameter,Little_H_0(),absTol=0.00001d0)) then
              message='H_0 in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
@@ -383,27 +384,30 @@ contains
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("sigma_8")) then
-          call cosmologicalParametersGroup%readAttribute("sigma_8",cosmologicalParameter)
+          call cosmologicalParametersGroup%readAttribute("sigma_8",cosmologicalParameter,allowPseudoScalar=.true.)
           if (Values_Differ(cosmologicalParameter,sigma_8(),absTol=0.00001d0)) then
              message='sigma_0 in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
              write (valueString,'(e14.8)') sigma_8()
-             message=message//trim(valueString)//'] - may not matter if sigma_8 is not other functions'
+             message=message//trim(valueString)//'] - may not matter if sigma_8 is not use in other functions'
              call Galacticus_Display_Message(message)
           end if
        end if
 
-       ! Read the indexing data for merger tree halos.
-       treeIndexGroup=IO_HDF5_Open_Group(mergerTreeFile,"treeIndex")
-       call treeIndexGroup%readDataset("firstNode"    ,mergerTreeFirstNodeIndex)
-       call treeIndexGroup%readDataset("numberOfNodes",mergerTreeNodeCount     )
-       call treeIndexGroup%readDataset("treeIndex"    ,mergerTreeIndex         )
-       if (treeIndexGroup%hasDataset("treeWeight")) then
-          call treeIndexGroup%readDataset("treeWeight",treeVolumeWeight)
-          treeVolumeWeight=treeVolumeWeight/unitConversionLength**3
+       if (mergerTreeFile%hasGroup("treeIndex")) then
+          treeIndexGroup=IO_HDF5_Open_Group(mergerTreeFile,"treeIndex")
+          call treeIndexGroup%readDataset("firstNode"    ,mergerTreeFirstNodeIndex)
+          call treeIndexGroup%readDataset("numberOfNodes",mergerTreeNodeCount     )
+          call treeIndexGroup%readDataset("treeIndex"    ,mergerTreeIndex         )
+          if (treeIndexGroup%hasDataset("treeWeight")) then
+             call treeIndexGroup%readDataset("treeWeight",treeVolumeWeight)
+             treeVolumeWeight=treeVolumeWeight/unitConversionLength**3
+          end if
+          call treeIndexGroup%close()
+       else
+          call Galacticus_Error_Report('Merger_Tree_Read_Initialize','merger tree file must contain the treeIndex group')
        end if
-       call treeIndexGroup%close()
 
        ! Check that position information is present if required.
        if (mergerTreeReadPresetPositions) then

@@ -99,9 +99,9 @@ module IO_HDF5
   integer(kind=HSIZE_T)      :: hdf5ChunkSize       =-1
 
   ! Arrays of compatible datatypes.
-  integer(kind=HID_T), dimension(3) :: H5T_NATIVE_DOUBLES
-  integer(kind=HID_T), dimension(5) :: H5T_NATIVE_INTEGERS
-  integer(kind=HID_T), dimension(3) :: H5T_NATIVE_INTEGER_8S
+  integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_DOUBLES
+  integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_INTEGERS
+  integer(kind=HID_T), public, dimension(3) :: H5T_NATIVE_INTEGER_8S
 
   type hdf5Object
      !% A structure that holds properties of HDF5 objects.
@@ -424,9 +424,9 @@ contains
        if (errorCode < 0) call Galacticus_Error_Report('IO_HDF5_Initialize','failed to initialize HDF5 subsystem')
 
        ! Ensure native datatype arrays are initialized.
-       H5T_NATIVE_DOUBLES   =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F64BE,H5T_IEEE_F64LE                            ]
-       H5T_NATIVE_INTEGERS  =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE,H5T_STD_I64LE]
-       H5T_NATIVE_INTEGER_8S=[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                             ]
+       H5T_NATIVE_DOUBLES   =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
+       H5T_NATIVE_INTEGERS  =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
+       H5T_NATIVE_INTEGER_8S=[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
 
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
@@ -1686,20 +1686,31 @@ contains
     return
   end subroutine IO_HDF5_Write_Attribute_VarString_1D
 
-  subroutine IO_HDF5_Read_Attribute_Integer_Scalar(thisObject,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_Integer_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read an integer scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
     integer,               intent(out)             :: attributeValue
     class(hdf5Object),     intent(inout), target   :: thisObject
     character(len=*),      intent(in),    optional :: attributeName
-    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
+    logical,               intent(in),    optional :: allowPseudoScalar
+    integer,               dimension(1)            :: pseudoScalarValue
+    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions,attributeMaximumDimensions
+    integer(kind=HID_T)                            :: attributeDataspaceID
     integer                                        :: errorCode
     type(hdf5Object)                               :: attributeObject
     type(varying_string)                           :: message,attributeNameActual
+    logical                                        :: matches,allowPseudoScalarActual
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
+
+    ! Check if pseudo-scalars are allowed.
+    if (present(allowPseudoScalar)) then
+       allowPseudoScalarActual=allowPseudoScalar
+    else
+       allowPseudoScalarActual=.false.
+    end if
 
     ! Get the name of the attribute.
     if (present(attributeName)) then
@@ -1742,14 +1753,44 @@ contains
     end if
 
     ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,0)
-
-    ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions&
-         &,errorCode) 
-    if (errorCode /= 0) then
-       message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_Scalar',message)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,0,matches)
+    if (matches) then
+       ! Read the scalar attribute.
+       call h5aread_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions&
+            &,errorCode) 
+       if (errorCode /= 0) then
+          message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_Scalar',message)
+       end if
+    else if (allowPseudoScalarActual) then
+       ! Attribute is not a scalar. Check if it is a pseudo-scalar.
+       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1,matches)
+       if (matches) then          
+          ! Get the dimensions of the array.
+          call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_Scalar',message)
+          end if
+          call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode) 
+          if (errorCode < 0) then
+             message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_Scalar',message)
+          end if
+          call h5sclose_f(attributeDataspaceID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer_Scalar',message)
+          end if
+          if (attributeDimensions(1) == 1) then
+             call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
+             attributeValue=pseudoScalarValue(1)
+          else
+             call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Integer_Scalar","attribute must be an integer scalar or pseudo-scalar")
+          end if
+       end if
+    else
+       call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Integer_Scalar","attribute must be an integer scalar") 
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -1950,7 +1991,7 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Static
 
-  subroutine IO_HDF5_Read_Attribute_Integer8_Scalar(thisObject,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_Integer8_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read a long integer scalar attribute in {\tt thisObject}.
     use Kind_Numbers
     use Galacticus_Error
@@ -1958,13 +1999,25 @@ contains
     integer(kind=kind_int8), intent(out),   target   :: attributeValue
     class(hdf5Object),       intent(inout), target   :: thisObject
     character(len=*),        intent(in),    optional :: attributeName
+    logical,                 intent(in),    optional :: allowPseudoScalar
+    integer(kind=kind_int8), dimension(1)            :: pseudoScalarValue
+    integer(kind=HSIZE_T),   dimension(1)            :: attributeDimensions,attributeMaximumDimensions
+    integer(kind=HID_T)                              :: attributeDataspaceID
     integer                                          :: errorCode
     type(hdf5Object)                                 :: attributeObject
     type(varying_string)                             :: message,attributeNameActual
+    logical                                          :: matches,allowPseudoScalarActual
     type(c_ptr)                                      :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
+
+    ! Check if pseudo-scalars are allowed.
+    if (present(allowPseudoScalar)) then
+       allowPseudoScalarActual=allowPseudoScalar
+    else
+       allowPseudoScalarActual=.false.
+    end if
 
     ! Get the name of the attribute.
     if (present(attributeName)) then
@@ -2007,14 +2060,44 @@ contains
     end if
 
     ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0)
-
-    ! Read the attribute.
-    dataBuffer=c_loc(attributeValue)
-    errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
-    if (errorCode /= 0) then
-       message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_Scalar',message)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0,matches)
+    if (matches) then
+       ! Read the attribute.
+       dataBuffer=c_loc(attributeValue)
+       errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
+       if (errorCode /= 0) then
+          message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_Scalar',message)
+       end if
+    else if (allowPseudoScalarActual) then
+       ! Attribute is not a scalar. Check if it is a pseudo-scalar.
+       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1,matches)
+       if (matches) then          
+          ! Get the dimensions of the array.
+          call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_Scalar',message)
+          end if
+          call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode) 
+          if (errorCode < 0) then
+             message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_Scalar',message)
+          end if
+          call h5sclose_f(attributeDataspaceID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Integer8_Scalar',message)
+          end if
+          if (attributeDimensions(1) == 1) then
+             call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
+             attributeValue=pseudoScalarValue(1)
+          else
+             call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Integer8_Scalar","attribute must be a long integer scalar or pseudo-scalar")
+          end if
+       end if
+    else
+       call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Integer8_Scalar","attribute must be a long integer scalar") 
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2226,20 +2309,31 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Static
 
-  subroutine IO_HDF5_Read_Attribute_Double_Scalar(thisObject,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_Double_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read an double scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
     double precision,      intent(out)             :: attributeValue
     class(hdf5Object),     intent(inout), target   :: thisObject
     character(len=*),      intent(in),    optional :: attributeName
-    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
+    logical,               intent(in),    optional :: allowPseudoScalar
+    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions,attributeMaximumDimensions
+    double precision,      dimension(1)            :: pseudoScalarValue
+    integer(kind=HID_T)                            :: attributeDataspaceID
     integer                                        :: errorCode
     type(hdf5Object)                               :: attributeObject
     type(varying_string)                           :: message,attributeNameActual
+    logical                                        :: matches,allowPseudoScalarActual
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
+
+    ! Check if pseudo-scalars are allowed.
+    if (present(allowPseudoScalar)) then
+       allowPseudoScalarActual=allowPseudoScalar
+    else
+       allowPseudoScalarActual=.false.
+    end if
 
     ! Get the name of the attribute.
     if (present(attributeName)) then
@@ -2282,14 +2376,44 @@ contains
     end if
 
     ! Check that the object is a scalar double.
-    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,0)
-
-    ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions&
-         &,errorCode) 
-    if (errorCode /= 0) then
-       message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_Scalar',message)
+    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,0,matches)
+    if (matches) then
+       ! Read the attribute.
+       call h5aread_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions&
+            &,errorCode) 
+       if (errorCode /= 0) then
+          message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_Scalar',message)
+       end if
+    else if (allowPseudoScalarActual) then
+       ! Attribute is not a scalar. Check if it is a pseudo-scalar.
+       call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1,matches)
+       if (matches) then
+          ! Get the dimensions of the array.
+          call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_Scalar',message)
+          end if
+          call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode) 
+          if (errorCode < 0) then
+             message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_Scalar',message)
+          end if
+          call h5sclose_f(attributeDataspaceID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Double_Scalar',message)
+          end if
+          if (attributeDimensions(1) == 1) then
+             call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
+             attributeValue=pseudoScalarValue(1)
+          else
+             call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Double_Scalar","attribute must be a double scalar or pseudo-scalar")
+          end if
+       end if
+    else
+       call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Double_Scalar","attribute must be a double scalar") 
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2490,21 +2614,33 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Static
 
-  subroutine IO_HDF5_Read_Attribute_Character_Scalar(thisObject,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_Character_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read an character scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    character(len=*),      intent(out)             :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional :: attributeName
-    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
-    integer(kind=HID_T)                            :: dataTypeID(2)
-    integer                                        :: errorCode
-    type(hdf5Object)                               :: attributeObject
-    type(varying_string)                           :: message,attributeNameActual
+    character(len=*),                   intent(out)             :: attributeValue
+    class(hdf5Object),                  intent(inout), target   :: thisObject
+    character(len=*),                   intent(in),    optional :: attributeName
+    logical,                            intent(in),    optional :: allowPseudoScalar
+    integer(kind=HSIZE_T),              dimension(1)            :: attributeDimensions,attributeMaximumDimensions
+    character(len=len(attributeValue)), dimension(1)            :: pseudoScalarValue
+    integer(kind=HID_T)                                         :: attributeDataspaceID
+    integer(kind=HID_T)                                         :: dataTypeID(2)
+    integer                                                     :: errorCode
+    type(hdf5Object)                                            :: attributeObject
+    type(varying_string)                                        :: message,attributeNameActual
+    logical                                                     :: matches,allowPseudoScalarActual
+
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
+
+    ! Check if pseudo-scalars are allowed.
+    if (present(allowPseudoScalar)) then
+       allowPseudoScalarActual=allowPseudoScalar
+    else
+       allowPseudoScalarActual=.false.
+    end if
 
     ! Get the name of the attribute.
     if (present(attributeName)) then
@@ -2550,14 +2686,44 @@ contains
     end if
 
     ! Check that the object is a scalar character.
-    call attributeObject%assertAttributeType(dataTypeID,0)
-
-    ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,dataTypeID(1),attributeValue,attributeDimensions&
-         &,errorCode) 
-    if (errorCode /= 0) then
-       message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_Scalar',message)
+    call attributeObject%assertAttributeType(dataTypeID,0,matches)
+    if (matches) then
+       ! Read the attribute.
+       call h5aread_f(attributeObject%objectID,dataTypeID(1),attributeValue,attributeDimensions&
+            &,errorCode) 
+       if (errorCode /= 0) then
+          message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_Scalar',message)
+       end if
+    else if (allowPseudoScalarActual) then
+       ! Attribute is not a scalar. Check if it is a pseudo-scalar.
+       call attributeObject%assertAttributeType(dataTypeID,1,matches)
+       if (matches) then          
+          ! Get the dimensions of the array.
+          call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_Scalar',message)
+          end if
+          call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode) 
+          if (errorCode < 0) then
+             message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_Scalar',message)
+          end if
+          call h5sclose_f(attributeDataspaceID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Read_Attribute_Character_Scalar',message)
+          end if
+          if (attributeDimensions(1) == 1) then
+             call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
+             attributeValue=pseudoScalarValue(1)
+          else
+             call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Character_Scalar","attribute must be a character scalar or pseudo-scalar")
+          end if
+       end if
+    else
+       call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Character_Scalar","attribute must be an character scalar") 
     end if
 
     ! Close the datatype.
@@ -2800,13 +2966,14 @@ contains
     return
   end subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static
 
-  subroutine IO_HDF5_Read_Attribute_VarString_Scalar(thisObject,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_VarString_Scalar(thisObject,attributeName,attributeValue,allowPseudoScalar)
     !% Open and read an varying string scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
     type(varying_string),  intent(out)             :: attributeValue
     class(hdf5Object),     intent(inout), target   :: thisObject
     character(len=*),      intent(in),    optional :: attributeName
+    logical,               intent(in),    optional :: allowPseudoScalar
     integer(kind=HID_T)                            :: dataTypeID
     integer(kind=SIZE_T)                           :: dataTypeSize
     integer                                        :: errorCode
@@ -2878,23 +3045,24 @@ contains
     end if
 
     ! Call wrapper routine that will do the remainder of the read.
-    call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
+    call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
 
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_Scalar
 
-  subroutine IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
+  subroutine IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
     !% Open and read an varying string scalar attribute in {\tt thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
     implicit none
     type(varying_string),       intent(out)             :: attributeValue
     class(hdf5Object),     intent(inout), target   :: thisObject
     character(len=*),           intent(in),    optional :: attributeName
+    logical,                    intent(in),    optional :: allowPseudoScalar
     integer(kind=SIZE_T),       intent(in)              :: dataTypeSize
     character(len=dataTypeSize)                         :: temporaryBuffer
 
     ! Call the character version of this routine to perform the red.
-    call IO_HDF5_Read_Attribute_Character_Scalar(thisObject,attributeName,temporaryBuffer)
+    call IO_HDF5_Read_Attribute_Character_Scalar(thisObject,attributeName,temporaryBuffer,allowPseudoScalar)
 
     ! Transfer the results to the varying string variable.
     attributeValue=temporaryBuffer
@@ -3138,18 +3306,22 @@ contains
     return
   end function IO_HDF5_Has_Attribute
 
-  subroutine IO_HDF5_Assert_Attribute_Type(attributeObject,attributeAssertedType,attributeAssertedRank)
+  subroutine IO_HDF5_Assert_Attribute_Type(attributeObject,attributeAssertedType,attributeAssertedRank,matches)
     !% Asserts that an attribute is of a certain type and rank.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),   intent(in)               :: attributeObject
-    integer,             intent(in)               :: attributeAssertedRank
-    integer(kind=HID_T), intent(in), dimension(:) :: attributeAssertedType
-    integer                                       :: errorCode,attributeRank
-    integer(kind=HID_T)                           :: attributeTypeID,attributeDataspaceID
-    logical                                       :: isCorrectType
-    integer                                       :: iType
-    type(varying_string)                          :: message
+    class(hdf5Object),   intent(in)                :: attributeObject
+    integer,             intent(in)                :: attributeAssertedRank
+    integer(kind=HID_T), intent(in),  dimension(:) :: attributeAssertedType
+    logical,             intent(out), optional     :: matches
+    integer                                        :: errorCode,attributeRank
+    integer(kind=HID_T)                            :: attributeTypeID,attributeDataspaceID
+    logical                                        :: isCorrectType
+    integer                                        :: iType
+    type(varying_string)                           :: message
+
+    ! Set the return value if present.
+    if (present(matches)) matches=.true.
 
     ! Check the attribute type
     call h5aget_type_f(attributeObject%objectID,attributeTypeID,errorCode)
@@ -3173,8 +3345,13 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
     end if
     if (.not.isCorrectType) then
-       message="attribute '"//attributeObject%objectName//"' is of incorrect type"
-       call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
+       if (present(matches)) then
+          matches=.false.
+          return
+       else
+          message="attribute '"//attributeObject%objectName//"' is of incorrect type"
+          call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
+       end if
     end if
 
     ! Check that the attribute has the correct rank.
@@ -3188,14 +3365,19 @@ contains
        message="unable to get rank of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
     end if
-    if (attributeRank /= attributeAssertedRank) then
-       message="attribute '"//attributeObject%objectName//"' has incorrect rank"
-       call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
-    end if
     call h5sclose_f(attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
+     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
+    end if
+    if (attributeRank /= attributeAssertedRank) then
+       if (present(matches)) then
+          matches=.false.
+          return
+       else
+          message="attribute '"//attributeObject%objectName//"' has incorrect rank"
+          call Galacticus_Error_Report('IO_HDF5_Assert_Attribute_Type',message)
+       end if
     end if
 
     return
