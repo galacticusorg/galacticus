@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/usr/bin/env tcsh
 
 # Build the Galacticus documentation.
 # Andrew Benson (20-February-2011)
