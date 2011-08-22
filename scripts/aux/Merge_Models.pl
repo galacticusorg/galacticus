@@ -200,32 +200,37 @@ if ( $parameters[0] eq "true" ) {
 # Other datasets.
 my %outputRules = (
 		   globalHistory          => {
-		       "^historyExpansion\$"                                 => "singleCopy",
-		       "^historyTime\$"                                      => "singleCopy",
-		       "^historyGasDensity\$"                                => "cumulate",
-		       "^historyHotGasDensity\$"                             => "cumulate",
-		       "^historyNodeDensity\$"                               => "cumulate",
-		       "^historyStellarDensity\$"                            => "cumulate",
-		       "^historyDiskStellarDensity\$"                        => "cumulate",
-		       "^historySpheroidStellarDensity\$"                    => "cumulate",
-		       "^historyStarFormationRate\$"                         => "cumulate",
-		       "^historyDiskStarFormationRate\$"                     => "cumulate",
-		       "^historySpheroidStarFormationRate\$"                 => "cumulate"
+		       "^historyExpansion\$"                                   => "singleCopy",
+		       "^historyTime\$"                                        => "singleCopy",
+		       "^historyGasDensity\$"                                  => "cumulate",
+		       "^historyHotGasDensity\$"                               => "cumulate",
+		       "^historyNodeDensity\$"                                 => "cumulate",
+		       "^historyStellarDensity\$"                              => "cumulate",
+		       "^historyDiskStellarDensity\$"                          => "cumulate",
+		       "^historySpheroidStellarDensity\$"                      => "cumulate",
+		       "^historyStarFormationRate\$"                           => "cumulate",
+		       "^historyDiskStarFormationRate\$"                       => "cumulate",
+		       "^historySpheroidStarFormationRate\$"                   => "cumulate"
 		       },
 		   haloModel              => {
-		       "^powerSpectrum\$"                                    => "singleCopy",
-		       "^wavenumber\$"                                       => "singleCopy",
-		       "^Output\\d+\\/mergerTree\\d+\\/fourierProfile\\d+\$" => "copy"
+		       "^powerSpectrum\$"                                      => "singleCopy",
+		       "^wavenumber\$"                                         => "singleCopy",
+		       "^Output\\d+\\/mergerTree\\d+\\/fourierProfile\\d+\$"   => "copy"
 		       },
 		   massAccretionHistories => {
-		       "^mergerTree\\d+\\/node*"                             => "copy"
+		       "^mergerTree\\d+\\/node*"                               => "copy"
 		       },
 		   mergerTreeStructures   => {
-		       "^mergerTree\\d+\\/*"                                 => "copy"
+		       "^mergerTree\\d+\\/*"                                   => "copy"
 		       },
 		   starFormationHistories => {
-		       "^metallicities\$"                                    => "singleCopy",
-		       "^Output\\d+\\/mergerTree\\d+\\/(disk|spheroid).*\$" => "copy"
+		       "^metallicities\$"                                      => "singleCopy",
+		       "^Output\\d+\\/mergerTree\\d+\\/(disk|spheroid).*\$"    => "copy"
+		       },
+		   grasilSEDs             => {
+		       "^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/SED"         => "copy",
+		       "^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/inclination" => "copy",
+		       "^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/wavelength"  => "copy"
 		       }
 		   );
 my %availableGroupNames;

@@ -79,6 +79,10 @@ sub Get_Flux {
     }
     $wavelengthCount = $dataSet->{'grasilOptions'}->{'wavelengthCount'} if ( exists($dataSet->{'grasilOptions'}->{'wavelengthCount'}) );
     $radialGridCount = $dataSet->{'grasilOptions'}->{'radialGridCount'} if ( exists($dataSet->{'grasilOptions'}->{'radialGridCount'}) );
+
+    # Determine the number of CPUs available.
+    my $cpuCount = Sys::CPU::cpu_count();
+    $cpuCount = $dataSet->{'grasilOptions'}->{'maxThreads'} if ( exists($dataSet->{'grasilOptions'}->{'maxThreads'}) );
     
     # Open the file for reading.
     &HDF5::Open_File($dataSet);
@@ -98,9 +102,6 @@ sub Get_Flux {
     	$outputGroup = new PDL::IO::HDF5::Group( name => "Output".$outputIndex, parent => $grasilSEDsGroup,
     						 fileObj => $dataSet->{'hdf5File'} );
     }
-
-    # Determine the number of CPUs available.
-    my $cpuCount = Sys::CPU::cpu_count();
 
     # Initialize a queue of galaxies to process through Grasil.
     my @grasilQueue;

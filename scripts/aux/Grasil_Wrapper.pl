@@ -16,14 +16,23 @@ my @grasilThreads;
 my $pwd = `pwd`;
 chomp($pwd);
 
-# Launch a thread for each given name.
-foreach my $grasilFilesRoot ( @grasilFilesRoots ) {
-    $grasilThreads[++$#grasilThreads] = threads->create({'void' => 1},sub {system("cd `dirname ".$grasilFilesRoot."`; ".$pwd."/aux/Grasil/grasil `basename ".$grasilFilesRoot."` &> `basename ".$grasilFilesRoot.".log`")});
-}
+if ( scalar(@grasilFilesRoots) > 1 ) {
 
-# Wait for threads to finish.
-foreach my $grasilThread ( @grasilThreads ) {
-    $grasilThread->join();
+    # Launch a thread for each given name.
+    foreach my $grasilFilesRoot ( @grasilFilesRoots ) {
+	$grasilThreads[++$#grasilThreads] = threads->create({'void' => 1},sub {system("cd `dirname ".$grasilFilesRoot."`; ".$pwd."/aux/Grasil/grasil `basename ".$grasilFilesRoot."` &> `basename ".$grasilFilesRoot.".log`")});
+    }
+    
+    # Wait for threads to finish.
+    foreach my $grasilThread ( @grasilThreads ) {
+	$grasilThread->join();
+    }
+
+} else {
+
+    # Run a single instance without launching a thread.
+    system("cd `dirname ".$grasilFilesRoots[0]."`; ".$pwd."/aux/Grasil/grasil `basename ".$grasilFilesRoots[0]."` &> `basename ".$grasilFilesRoots[0].".log`");
+
 }
 
 exit;
