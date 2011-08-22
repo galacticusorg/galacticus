@@ -91,7 +91,7 @@ sub Count_Trees {
     my $dataBlock = shift;
     unless ( exists($dataBlock->{'mergerTreesAvailable'}) ) {
 	&Open_File($dataBlock);
-	my $treesAvailable = $dataBlock->{'hdf5File'}->group("Outputs/Output1")->dataset("mergerTreeIndex")->get;
+	my $treesAvailable = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'})->dataset("mergerTreeIndex")->get;
 	@{$dataBlock->{'mergerTreesAvailable'}} = $treesAvailable->list();
     }
 }
@@ -115,6 +115,7 @@ sub Get_Dataset {
     if ( $dataBlock->{'tree'} eq "all" ) {
 	&Count_Trees($dataBlock);
 	@mergerTrees = @{$dataBlock->{'mergerTreesAvailable'}};
+	my $treeCount = scalar(@mergerTrees);
     } else {
 	$mergerTrees[0] = $dataBlock->{'tree'};
     }
@@ -161,6 +162,10 @@ sub Get_Dataset {
      		foreach my $mergerTree ( @mergerTrees ) {
      		    # Check that this tree contains some nodes at this output. If it does not, skip it.
      		    my $treeIndex      = which($mergerTreeIndex == $mergerTree);
+		    if ( nelem($treeIndex) > 1 ) {
+			print "Galacticus::HDF5 - Warning: apparent repeated merger tree index - taking the first instance (** could be a PDL bug**)\n";
+			$treeIndex = $treeIndex(0:0);
+		    }
      		    my $treeStartIndex = $mergerTreeStartIndex->index($treeIndex);
      		    my $treeCount      = $mergerTreeCount     ->index($treeIndex)->squeeze;
      		    my $treeWeight     = $mergerTreeWeight    ->index($treeIndex)->squeeze;
@@ -240,4 +245,22 @@ sub Get_Dataset {
 	    }
 	}
    }
+}
+
+sub Reset_Structure {
+    # Attempts to remove all data from the data structure, thereby resetting it.
+    my $dataBlock = shift;
+    
+    foreach my $element ( keys(%{$dataBlock}) ) {
+	if ( $element eq "hdf5File" ) {
+	    undef($dataBlock->{$element});
+	} else {
+	    if ( UNIVERSAL::isa( $dataBlock->{$element}, "HASH" ) ) {
+		foreach my $key ( keys(%{$dataBlock->{$element}}) ) {
+		    undef($dataBlock->{$element}->{$key});
+		}
+	    }
+	    undef($dataBlock->{$element});
+	}
+    }
 }
