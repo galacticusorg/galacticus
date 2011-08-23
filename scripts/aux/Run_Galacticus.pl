@@ -297,6 +297,7 @@ sub Launch_Models {
 			    $condorJobs{$jobID}->{'directory'} = $galacticusOutputDirectory;
 			    @{$condorJobs{$jobID}->{'temporaryFiles'}} = [$condorScript,$condorSubmit];
 			}
+			sleep 10;
 
 		    }
 		}
