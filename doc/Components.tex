@@ -14,6 +14,7 @@ The standard black hole implementation defines the following properties:
 \begin{description}
  \item [{\tt Black\_Hole\_Mass}] The mass of the black hole: $M_\bullet$ {\tt [blackHoleMass]}.
  \item [{\tt Black\_Hole\_Spin}] The spin of the black hole, $j_\bullet$ {\tt [blackHoleSpin]}.
+ \item [{\tt Black\_Hole\_Radial\_Position}] The radial position of the black hole: $r_\bullet$ {\tt [blackHoleRadius]} 
 \end{description}
 
 \subsubsection{Initialization}
@@ -54,17 +55,102 @@ For numerical ease, the fraction, $f_{\rm wind}$, of the wind luminosity added t
 where $x=\rho_{\rm ISM}/\rho_{\rm wind,critical}-1/2$.
 \end{description}
 
+The radial position, $r_\bullet$, evolves according to the selected radial migration method (see \S\ref{sec:SMBHRadialMotion}).
+
+Interactions between black hole triplets are accounted for if {\tt [tripleBlackHoleInteraction]}$=${\tt true} (and if at least three black holes exist within the node of course). In this case the triple is treated as consisting of an inner binary (assumed to be the central black hole and the black hole closest to it) and a third, singleton black hole. When the tertiary black hole reaches a separation of 
+\begin{equation}
+a_{\rm h}= {{\rm G} (M_{\bullet, 1} + M_{\rm bullet, 2}) \over 4 \sigma^2}
+\end{equation}
+it is assumed to undergo a triple interaction with the binary. Once a triple interaction occurs, no further triple interaction for the specific tertiary black hole can occur unless the host galaxy merges with another galaxy, at which point the black holes from the merging galaxy are eligible for another triple interaction in their new host.
+
+The logic of what happens in a triple black hole interaction is taken from \cite{volonteri_assembly_2003}. Labelling the central black hole as $1$, its binary partner as $2$ and the tertiary black hole as $3$, and defining
+\begin{equation}
+q_3 = {M_{\bullet, 3} \over M_{\bullet, 1} + M_{\rm \bullet, 2} },
+\end{equation}
+then if $q_3 \le 2$ then, if $M_{\bullet, 3} \le M_{\rm \bullet, 2}$ we set
+\begin{equation}
+a_3 = {a_2 \over 1 + 0.4 q_3}, 
+\end{equation}
+and define
+\begin{equation}
+E_{\rm bind} = {{\rm G} M_{\bullet, 3} M_{\bullet, 1} \over a_3},
+\end{equation}
+and
+\begin{equation}
+\Delta K =0.4 q_3 E_{\rm bind},
+\end{equation}
+$i=3$ and $j=2$. 
+
+Otherwise if $q_3 \le 2$ and $M_{\bullet, 3} > M_{\rm \bullet, 2}$ we set
+\begin{equation}
+a_3 = { a_3 \over 1 +0.4 q_3},
+\end{equation}
+and define
+\begin{equation}
+E_{\rm bind} = {{\rm G} M_{\bullet, 2} M_{\bullet, 1} \over a_2},
+\end{equation}
+and
+\begin{equation}
+ \Delta K =0.4 q_3 E_{\rm bind},
+\end{equation}
+$i=2$ and $j=3$.
+
+Finally, if $q_3 > 2$, then we set
+\begin{equation}
+a_3 =0.53 a_3,
+\end{equation}
+and define
+\begin{equation}
+E_{\rm bind} = {{\rm G} M_{\bullet, 2} M_{\bullet, 1} \over a_2},
+\end{equation}
+and
+\begin{equation}
+\Delta K =0.9 q_3 E_{\rm bind},
+\end{equation}
+$i=2$, $j=3$.
+
+Black hole $i$ is identified as the ``ejected'' hole, with black hole $j$ becoming the new binary member. Therefore
+\begin{equation}
+ M_{\bullet, \rm ejected} = M_{\bullet, i}.
+\end{equation}
+and
+\begin{equation}
+ M_{\rm binary} = M_{\rm \bullet, j} + M_{\rm \bullet, 1}.
+\end{equation}
+The imparted velocities of these two systems are
+\begin{equation}
+ V_{\rm ejected} = \left[ {2 \Delta K \over (1+M_{\bullet, \rm ejected}/M_{\rm binary} ) M_{\bullet, \rm ejected} }\right]^{1/2}
+\end{equation}
+and
+\begin{equation}
+ V_{\rm binary} = \left[ {2 \Delta K \over (1+M_{\rm binary} /M_{\bullet, \rm ejected}) M_{\rm binary}}\right]^{1/2}.
+\end{equation}
+If
+\begin{equation}
+ \frac{1}{2} V_{\rm ejected|binary}^2 + \Phi(a_{\rm ejected|binary}) \ge 0
+\end{equation}
+for either velocity, then that system is ejected from the node. Ejected black holes are removed from the node. If the binary is ejected the central black hole is replaced with a ``null'', zero mass placeholder.
+
 \subsubsection{Event Evolution}
 
 \noindent\emph{Node mergers:} None.\\
 
-\noindent\emph{Satellite merging:} The black holes in the two merging galaxies are instantaneously merged. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:BlackHoleBinaryMergers}).\\
+\noindent\emph{Satellite merging:} The black holes in the two merging galaxies can be instantaneously merged, or taken at an initial separation (see \S\ref{sec:blackHoleBinaryInitialRadii}), it is then evolved until reaching zero separation whereupon it is assumed to undergo merger. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:BlackHoleBinaryMergers}). In addition, the recoil velocity of the new black hole due to gravitational wave emission is computed using the selected method (see \S\ref{sec:binaryBlackHoleRecoil}), and if greater than the potential at the center of the galaxy, is assumed to have escaped the galaxy. Black holes which escape the galaxy are simply discarded and no longer tracked. For computational purposes, they are replaced with a ``null'', zero mass black hole at the center of the galaxy. If any other black hole comes within a distance 
+\begin{equation}
+a_{\rm h} = {{\rm G} M_\bullet \over 4 \sigma^2},
+\end{equation}
+where $\sigma$ is approximated to be the virial velocity of the dark matter halo, it is promoted to being the new ``central'' black hole of the node.\\
 
 \noindent\emph{Node promotion:} None.\\
 
 \subsubsection{Additional Output}
 
 If the {\tt [blackHoleOutputAccretion]}\index{black holes!accretion}\index{accretion!black holes} input parameter is set to true, then rest mass accretion rate (in $M_\odot$ Gyr$^{-1}$), jet power (in $M_\odot$ km$^2$ s$^{-1}$ Gyr$^{-1}$) and radiative efficiency of the black hole\footnote{Technically of the black hole plus accretion disk system.} are output as {\tt blackHoleAccretionRate}, {\tt blackHoleJetPower} and {\tt blackHoleRadiativeEfficiency} respectively.
+
+If the {\tt [blackHoleOutputData]} input parameter is set to true, then the Masses (in $M_\odot$), Spins (for now just a scalar with no direction), final Radius (in $Mpc$), timescales (in $Gyr$) until merger, accretion rates (in $M_\odot per Gyr$) and radiative Efficiencies of all the black holes in the galaxy are given as outputs in the {\tt blackHole} section of the output hdf5. This also saves the tree node and merger tree index for further use when using the data.
+
+The outputs of mergers are also automatically saved, as outputs in the {\tt blackHoleMergers} section of the output hdf5. Those outputs are the time at which mergers happened and the mass ratio between  the two merging black holes.
+
 
 \subsection{``Simple'' Implementation}
 

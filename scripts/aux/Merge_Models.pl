@@ -226,7 +226,16 @@ my %outputRules = (
 		   starFormationHistories => {
 		       "^metallicities\$"                                      => "singleCopy",
 		       "^Output\\d+\\/mergerTree\\d+\\/(disk|spheroid).*\$"    => "copy"
+                       },
+		   blackHole              => {
+		       "^Output\\d+\\/.*\$"                                    => "append"
 		       },
+		   blackHoleMergers       => {
+		       "^massBlackHole1\$"                                     => "append",
+		       "^massBlackHole2\$"                                     => "append",
+		       "^timeOfMerger\$"                                       => "append",
+		       "^volumeWeight\$"                                       => "append"
+                       },
 		   grasilSEDs             => {
 		       "^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/SED"         => "copy",
 		       "^Output\\d+\\/mergerTree\\d+\\/node\\d+\\/inclination" => "copy",
@@ -332,6 +341,23 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 				    $datasetValues += $newDataset->get;
 				}
 				$newDataset->set($datasetValues);
+				&Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			    }
+			    case ( "append" ) {
+				my $thisGroupObject = $outputFile->group($thisGroup);
+				my $originalDataset = $mergeFile ->group($thisGroup)->dataset($dataset);
+				my $datasetValues   = $originalDataset->get();
+				my $newDataset;
+				if ( $isFirstFile == 1 ) {
+				    $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									      parent  => $thisGroupObject,
+									      fileObj => $outputFile
+									      );
+				} else {
+				    $newDataset    = $thisGroupObject->dataset($dataset);
+				    $datasetValues = $datasetValues->append($newDataset->get());
+				}
+				$newDataset->set($datasetValues,unlimited => 1);
 				&Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
 			    }
 			}

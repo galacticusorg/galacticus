@@ -137,10 +137,12 @@ contains
     !% units of Mpc).
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
+    use Galacticus_Error
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
 
+    if (radius <= 0.0d0) call Galacticus_Error_Report('Dark_Matter_Profile_Potential_Isothermal','isothermal profile potential is infinite at zero radius')
     Dark_Matter_Profile_Potential_Isothermal=(-1.0d0+dlog(radius/Dark_Matter_Halo_Virial_Radius(thisNode)))&
          &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
     return

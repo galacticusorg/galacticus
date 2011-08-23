@@ -59,50 +59,43 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a program to test integration routines.
+!+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-program Test_Integration
-  !% Tests that numerical integration routines work.
-  use, intrinsic :: ISO_C_Binding
-  use Unit_Tests
-  use Numerical_Integration
-  use FGSL
-  use Test_Integration_Functions
-  use Numerical_Constants_Math
+!% Contains a module which implements a black hole binary separation growth rate which is always zero.
+
+module Black_Hole_Binary_Separations_Null
+  !% Implements a black hole binary initial separation growth rate which is always zero.
   implicit none
-  double precision                 :: integral
-  type(fgsl_function)              :: integrandFunction
-  type(fgsl_integration_workspace) :: integrationWorkspace
-  type(c_ptr)                      :: parameterPointer
-  logical                          :: integrationReset
+  private
+  public :: Black_Hole_Binary_Separation_Growth_Rate_Null_Initialize
 
-  ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Numerical integration")
+contains
 
-  ! Test simple integrations.
-  integrationReset=.true.
-  integral=Integrate(0.0d0,1.0d0,Integrand1,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=x from 0 to 1",integral,0.5d0,relTol=1.0d-6)
+  !# <blackHoleBinarySeparationGrowthRateMethod>
+  !#  <unitName>Black_Hole_Binary_Separation_Growth_Rate_Null_Initialize</unitName>
+  !# </blackHoleBinarySeparationGrowthRateMethod>
+  subroutine Black_Hole_Binary_Separation_Growth_Rate_Null_Initialize(blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get)
+    !% Test if this method is to be used and set procedure pointer appropriately.
+    use ISO_Varying_String
+    use Input_Parameters
+    implicit none
+    type(varying_string),                 intent(in)    :: blackHoleBinarySeparationGrowthRateMethod
+    procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Separation_Growth_Rate_Get
+    
+    if (blackHoleBinarySeparationGrowthRateMethod == 'null') Black_Hole_Binary_Separation_Growth_Rate_Get => Black_Hole_Binary_Separation_Growth_Rate_Null
+    return
+  end subroutine Black_Hole_Binary_Separation_Growth_Rate_Null_Initialize
 
-  integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand2,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=sin(x) from 0 to 2 Pi",integral,0.0d0,absTol=1.0d-6)
+  double precision function Black_Hole_Binary_Separation_Growth_Rate_Null(thisNode)
+    !% Returns a separation growth rate for a binary black hole that is always zero.
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
 
-  integrationReset=.true.
-  integral=Integrate(0.0d0,10.0d0,Integrand3,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=1/sqrt(x) from 0 to 10",integral,2.0d0*sqrt(10.0d0),relTol=1.0d-6)
+    Black_Hole_Binary_Separation_Growth_Rate_Null=0.0d0 
+    return
+  end function Black_Hole_Binary_Separation_Growth_Rate_Null
 
-  ! Test 2D integrations.
-  integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand4,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x,y)=cos(x)*y from x=0 to 2 Pi and y=0 to x",integral,2.0d0*Pi,relTol=1.0d-6)
-
-  ! End unit tests.
-  call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
-end program Test_Integration
+end module Black_Hole_Binary_Separations_Null

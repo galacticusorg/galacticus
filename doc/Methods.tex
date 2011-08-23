@@ -10,6 +10,28 @@
 \end{verbatim}
 This directive would typically appear just prior to a subroutine which initializes the Shakura-Sunyaev accretion disk module (it could appear anywhere throughout that module, but it makes sense to keep it close to the subroutine that it references). The {\tt accretionDisksMethod} tag explains to the \glc\ build system that this module contains an implementation of black hole accretion disks. The {\tt unitName} tag specifies the name of a program unit which (in this case) should be called to initialize this accretion disk implementation. The build system will then insert appropriate {\tt use} and {\tt call} statements into the \glc\ code such that this routine will be called if and when accretion disks are required by \glc.
 
+\section{Identifying Components and Mass Types}\label{sec:ComponentMassTypes}
+
+Many functions can be applied to different components or groups of components and to different types of mass within a node. In general, these functions make use of a set of label defined in the \hyperlink{galactic_structure.options.F90:galactic_structure_options}{{\tt Galactic\_Structure\_Options}} module. Components are identified by a {\tt componentType} label which can take on the following values:
+\begin{description}
+ \item [{\tt componentTypeAll}] All components are matched;
+ \item [{\tt componentTypeDisk}] Only disk components are matched;
+ \item [{\tt componentTypeSpheroid}] Only spheroid components are matched.
+ \item [{\tt componentTypeBlackHole}] Only black hole components are matched.
+ \item [{\tt componentTypeHotHalo}] Only hot halo components are matched.
+ \item [{\tt componentTypeDarkHalo}] Only dark matter halo components are matched.
+\end{description}
+Types of mass are identified by a {\tt massType} which can take one of the following values:
+\begin{description}
+ \item [{\tt massTypeAll}] All mass is included;
+ \item [{\tt massTypeDark}] Only dark matter is included;
+ \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
+ \item [{\tt massTypeGalactic}] Only galactic mass is included.
+ \item [{\tt massTypeGaseous}] Only gaseous mass is included.
+ \item [{\tt massTypeStellar}] Only stellar mass is included.
+ \item [{\tt massTypeBlackHole}] Only black hole mass is included.
+\end{description}
+
 \section{Components}\index{components}
 
 This section describes the internal structure of node components, and how a component is implemented.
@@ -630,6 +652,40 @@ The function must return the initial separation (in Mpc) of the active black hol
 Currently defined black hole binary initial separation methods are:
 \begin{description}
  \item [{\tt spheroid radius fraction}] Assumes that the initial separation is equal to a fraction {\tt [blackHoleInitialRadiusSpheroidRadiusRatio]} of the larger of the spheroid scale radii in {\tt thisNode} and {\tt hostNode}.
+ \item [{\tt Volonteri 2003}] Assumes that the initial separation follows the relationship described in \cite{volonteri_assembly_2003} following the black hole masses in {\tt thisNode} and {\tt hostNode}.
+\item [{\tt tidal radius}] Solves the radius at which the satellite galaxy is stripped of its stars, and assume only the central black hole remains, at that specific radius. This uses the masses in {\tt thisNode} and {\tt hostNode}.
+\end{description}
+
+\subsubsection{Black Hole Binaries: Separation Growth Rate}\label{sec:SMBHRadialMotion}
+
+Additional methods for black hole binary separation growth rate calculations can be added using the {\tt blackHoleBinarySeparationGrowthRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Volonteri 2003} method is described by a directive:
+
+\begin{verbatim}
+  !# <blackHoleBinarySeparationGrowthRateMethod>
+  !#  <unitName>Black_Hole_Binary_Separation_Growth_Rate_Standard_Init</unitName>
+  !# </blackHoleBinarySeparationGrowthRateMethod>
+\end{verbatim}
+
+Currently defined black hole binary separation growth rate methods are:
+\begin{description}
+ \item [{\tt null}] Assumes that the initial separation stays constant.
+ \item [{\tt standard}] Assumes that the separation growth rate follows \cite{volonteri_assembly_2003} following the black hole masses in {\tt thisNode}. Although it innovates as it encompasses all three influences: Dynamical Friction, Hardening due to stars and finally due to Gravitational Wave expulsion. Dynamical friction here occurs until a certain hardening separation is reached, it then is replaced by the (faster) three-body interactions with stars.
+\end{description}
+
+\subsubsection{Black Hole Binaries: Recoil Velocity}
+
+Additional methods for the recoil velocity of a binary black hole can be added using the {\tt blackHoleBinaryRecoilVelocityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Standard} method is described by a directive:
+
+\begin{verbatim}
+  !# <blackHoleBinaryRecoilVelocityMethod>
+  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_Initialize</unitName>
+  !# </blackHoleBinaryRecoilVelocityMethod>
+\end{verbatim}
+
+Currently defined black hole binary recoil velocity methods are:
+\begin{description}
+ \item [{\tt null}] Assumes that there is zero recoil velocity.
+ \item [{\tt Campanelli 2008}] Assumes that the recoil velocity follows \cite{campanelli_large_2007}, utilizing the black hole masses and spins in {\tt thisNode}. For now it does not take the direction of the spin into account, and assumes a zero perpendicular velocity.
 \end{description}
 
 \subsubsection{Black Hole Binaries: Mergers}\label{sec:BlackHoleBinaryMergers}
@@ -650,7 +706,7 @@ Here, {\tt Black\_Hole\_Binary\_Merger\_Initialize} is the name of a subroutine 
     if (blackHoleBinaryMergersMethod == 'myMethod') Black_Hole_Binary_Merger_Do => My_Method_Do_Procedure
     return
   end subroutine Method_Initialize
-\end{verbatim}
+\end{verbatim}http://www.facebook.com/groups/172995192751085?view=search&query=beawwch
 where {\tt myMethod} is the name of this method as will be specified by the {\tt blackHoleBinaryMergersMethod} input parameter. The procedure pointer {\tt Black\_Hole\_Binary\_Merger\_Do} must be set to point to a function which returns the properties (mass and spin) of the merged black hole as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The cooling radius function must have the form:
@@ -4324,17 +4380,6 @@ Here, {\tt Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name of a subroutine w
 \end{verbatim}
 where {\tt thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives or resetting the state so that stored quantities will be recomputed as needed.
 
-
-
-
-
-
-
-
-
-
-
-
 \subsubsection{Decode Property Identifier Tasks}\label{sec:DecodePropertyIndentifierTask}
 
 Additional property identifier decoding tasks (i.e. determining the name of a property from a set of integer identifiers) can be added using the {\tt decodePropertyIdentifiersTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the Hernquist spheroid component adds a task as follows:
@@ -4412,27 +4457,7 @@ where {\tt Density\_Procedure} is the name of a subroutine with the following te
     return
  end subroutine Density_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentDensity}, the density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} can take on the following values:
-\begin{description}
- \item [{\tt componentTypeAll}] All components are matched;
- \item [{\tt componentTypeDisk}] Only disk components are matched;
- \item [{\tt componentTypeSpheroid}] Only spheroid components are matched.
-\end{description}
-{\tt massType} can take one of the following values:
-\begin{description}
- \item [{\tt massTypeAll}] All mass is included;
- \item [{\tt massTypeDark}] Only dark matter is included;
- \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
- \item [{\tt massTypeGalactic}] Only galactic mass is included.
- \item [{\tt massTypeGaseous}] Only gaseous mass is included.
- \item [{\tt massTypeStellar}] Only stellar mass is included.
-\end{description}
-The coordinate system in which {\tt position} is specified is given by {\tt coordinateSystem} which can take on the following values:
-\begin{description}
- \item [{\tt coordinateSystemCartesian}] Cartesian $(x,y,z)$;
- \item [{\tt coordinateSystemSpherical}] Spherical $(r,\theta,\phi)$;
- \item [{\tt coordinateSystemCylindrical}] Cylindrical $(R,\phi,z)$.
-\end{description}
+If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentDensity}, the density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 
 \subsubsection{Galactic Component Enclosed Mass}
 
@@ -4455,21 +4480,7 @@ where {\tt Enclosed\_Mass\_Procedure} is the name of a subroutine with the follo
     return
  end subroutine Enclosed_Mass_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentMass}, the ``mass'' of the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} can take on the following values:
-\begin{description}
- \item [{\tt componentTypeAll}] All components are matched;
- \item [{\tt componentTypeDisk}] Only disk components are matched;
- \item [{\tt componentTypeSpheroid}] Only spheroid components are matched.
-\end{description}
-{\tt massType} can take one of the following values:
-\begin{description}
- \item [{\tt massTypeAll}] All mass is included;
- \item [{\tt massTypeDark}] Only dark matter is included;
- \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
- \item [{\tt massTypeGalactic}] Only galactic mass is included.
- \item [{\tt massTypeGaseous}] Only gaseous mass is included.
- \item [{\tt massTypeStellar}] Only stellar mass is included.
-\end{description}
+If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentMass}, the ``mass'' of the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}.  {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 If {\tt radius} is equal to or greater than {\tt radiusLarge} the routine should the total ``mass'' (i.e. ``mass'' within infinite radius). In the above ``mass'' can actually refer to different quantities depending on the values of {\tt weightBy} (and {\tt weightIndex}):
 \begin{description}
 \item [{\tt weightByMass}] The actual mass should be returned (the value of {\tt weightIndex} is irrelevant);
@@ -4497,21 +4508,54 @@ where {\tt Rotation\_Curve\_Procedure} is the name of a subroutine with the foll
     return
  end subroutine Rotation_Curve_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentVelocity}, the contribution to the rotation curve due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} can take on the following values:
-\begin{description}
- \item [{\tt componentTypeAll}] All components are matched;
- \item [{\tt componentTypeDisk}] Only disk components are matched;
- \item [{\tt componentTypeSpheroid}] Only spheroid components are matched.
-\end{description}
-{\tt massType} can take one of the following values:
-\begin{description}
- \item [{\tt massTypeAll}] All mass is included;
- \item [{\tt massTypeDark}] Only dark matter is included;
- \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
- \item [{\tt massTypeGalactic}] Only galactic mass is included.
- \item [{\tt massTypeGaseous}] Only gaseous mass is included.
- \item [{\tt massTypeStellar}] Only stellar mass is included.
-\end{description}
+If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentVelocity}, the contribution to the rotation curve due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+
+\subsubsection{Galactic Component Rotation Curve Gradient}
+
+The function {\tt Galactic\_Structure\_Rotation\_Curve\_Gradient()} computes the gradient of the rotation curve at a specified radius in a node. To have their contribution counted, each component must register a task using:
+\begin{verbatim}
+ !# <rotationCurveGradientTask>
+ !#  <unitName>Rotation_Curve_Gradient_Procedure</unitName>
+ !# </rotationCurveGradientTask>
+\end{verbatim}
+where {\tt Rotation\_Curve\_Gradient\_Procedure} is the name of a subroutine with the following template
+\begin{verbatim}
+ subroutine Rotation_Curve_Gradient_Procedure(thisNode,radius,massType,componentType,componentGradient)
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentGradient
+    .
+    .
+    .
+    return
+ end subroutine Rotation_Curve_Gradient_Procedure
+\end{verbatim}
+If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentGradient}, the contribution to the gradient of $V_{\rm c}^2(r)$ due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+
+\subsubsection{Galactic Component Potential}
+
+The function {\tt Galactic\_Structure\_Potential()} computes the potential at a specified radius in a node. To have their contribution counted, each component must register a task using:
+\begin{verbatim}
+  !# <potentialTask>
+  !#  <unitName>Potential_Task</unitName>
+  !# </potentialTask>
+\end{verbatim}
+where {\tt Potential\_Task} is the name of a subroutine with the following template
+\begin{verbatim}
+ subroutine Potential_Procedure(thisNode,radius,massType,componentType,componentVelocity)
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    integer,          intent(in),    optional :: componentType  
+    double precision, intent(in)              :: radius
+    integer                                   :: componentTypeActual  
+    double precision                          :: componentPotential
+    .
+    .
+    .
+    return
+ end subroutine Potential_Procedure
+\end{verbatim}
+If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentPotential}, the contribution to the rotation curve due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 
 \subsubsection{Galactic Component Surface Density}
 
@@ -4534,21 +4578,7 @@ where {\tt Surface\_Density\_Procedure} is the name of a subroutine with the fol
     return
  end subroutine Surface_Density_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentSurfaceDensity}, the surface density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} can take on the following values:
-\begin{description}
- \item [{\tt componentTypeAll}] All components are matched;
- \item [{\tt componentTypeDisk}] Only disk components are matched;
- \item [{\tt componentTypeSpheroid}] Only spheroid components are matched.
-\end{description}
-{\tt massType} can take one of the following values:
-\begin{description}
- \item [{\tt massTypeAll}] All mass is included;
- \item [{\tt massTypeDark}] Only dark matter is included;
- \item [{\tt massTypeBaryonic}] Only baryonic mass is included;
- \item [{\tt massTypeGalactic}] Only galactic mass is included.
- \item [{\tt massTypeGaseous}] Only gaseous mass is included.
- \item [{\tt massTypeStellar}] Only stellar mass is included.
-\end{description}
+If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentSurfaceDensity}, the surface density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 The coordinate system in which {\tt position} is specified is given by {\tt coordinateSystem} which can take on the following values:
 \begin{description}
  \item [{\tt coordinateSystemCartesian}] Cartesian $(x,y,z)$;

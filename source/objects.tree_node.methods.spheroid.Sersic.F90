@@ -73,10 +73,11 @@ module Tree_Node_Methods_Sersic_Spheroid
   public :: Tree_Node_Methods_Sersic_Spheroid_Initialize, Sersic_Spheroid_Satellite_Merging,&
        & Galacticus_Output_Tree_Spheroid_Sersic, Galacticus_Output_Tree_Spheroid_Sersic_Property_Count,&
        & Galacticus_Output_Tree_Spheroid_Sersic_Names, Sersic_Spheroid_Radius_Solver, Sersic_Spheroid_Enclosed_Mass,&
-       & Sersic_Spheroid_Density, Sersic_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Sersic,&
-       & Tree_Node_Methods_Sersic_Spheroid_Dump, Sersic_Spheroid_Radius_Solver_Plausibility, Sersic_Spheroid_Scale_Set&
-       &,Sersic_Spheroid_Star_Formation_History_Output,Tree_Node_Methods_Sersic_Spheroid_Thread_Initialize,&
-       & Sersic_Spheroid_Property_Identifiers_Decode, Sersic_Profile_Tabulate_State_Store, Sersic_Profile_Tabulate_State_Retrieve
+       & Sersic_Spheroid_Density,Sersic_Spheroid_Potential,Sersic_Spheroid_Rotation_Curve,Sersic_Spheroid_Rotation_Curve_Gradient&
+       &, Tree_Node_Spheroid_Post_Evolve_Sersic, Tree_Node_Methods_Sersic_Spheroid_Dump,&
+       & Sersic_Spheroid_Radius_Solver_Plausibility, Sersic_Spheroid_Scale_Set ,Sersic_Spheroid_Star_Formation_History_Output&
+       &,Tree_Node_Methods_Sersic_Spheroid_Thread_Initialize, Sersic_Spheroid_Property_Identifiers_Decode,&
+       & Sersic_Profile_Tabulate_State_Store, Sersic_Profile_Tabulate_State_Retrieve
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -180,7 +181,7 @@ module Tree_Node_Methods_Sersic_Spheroid
   double precision                            :: sersicTable3dHalfMassRadius=1.0d+0
   double precision                            :: sersicTableAngularMomentumHalfMassRadiusToMeanRatio
   integer,          parameter                 :: sersicTablePointsPerDecade=100
-  double precision, allocatable, dimension(:) :: sersicTableRadius,sersicTableDensity,sersicTableEnclosedMass
+  double precision, allocatable, dimension(:) :: sersicTableRadius,sersicTableDensity,sersicTableEnclosedMass,sersicTablePotential
   type(fgsl_interp)                           :: sersicTableInterpolationObject
   type(fgsl_interp_accel)                     :: sersicTableInterpolationAccelerator
   logical                                     :: sersicTableInterpolationReset=.true.
@@ -1551,10 +1552,12 @@ contains
              call Dealloc_Array(sersicTableRadius      )
              call Dealloc_Array(sersicTableDensity     )
              call Dealloc_Array(sersicTableEnclosedMass)
+             call Dealloc_Array(sersicTablePotential   )
           end if
           call Alloc_Array(sersicTableRadius      ,[sersicTableCount])
           call Alloc_Array(sersicTableDensity     ,[sersicTableCount])
           call Alloc_Array(sersicTableEnclosedMass,[sersicTableCount])
+          call Alloc_Array(sersicTablePotential   ,[sersicTableCount])
           ! Create an array of logarithmically distributed radii.
           sersicTableRadius=Make_Range(sersicTableRadiusMinimum,sersicTableRadiusMaximum,sersicTableCount,rangeType=rangeTypeLogarithmic)
           ! Compute the coefficient appearing in the Sérsic profile.
@@ -1613,6 +1616,22 @@ contains
           ! Scale radii and densities to be in units of the 3D half mass radius.
           sersicTableRadius =sersicTableRadius /sersicTable3dHalfMassRadius
           sersicTableDensity=sersicTableDensity*sersicTable3dHalfMassRadius**3
+
+          ! Compute the gravitational potential at each radius using a simple trapezoidal rule integration.
+          sersicTablePotential(sersicTableCount)=0.0d0 ! Assume zero potential at effective infinity.
+          do iRadius=sersicTableCount-1,1,-1
+             sersicTablePotential(iRadius)= sersicTablePotential(iRadius+1)                                      &
+                  &                        -(                                                                    &
+                  &                           sersicTableEnclosedMass(iRadius+1)/sersicTableRadius(iRadius+1)**2 &
+                  &                          +sersicTableEnclosedMass(iRadius  )/sersicTableRadius(iRadius  )**2 &
+                  &                         )                                                                    &
+                  &                        *0.5d0                                                                &
+                  &                        *(                                                                    &
+                  &                           sersicTableRadius(iRadius+1)                                       &
+                  &                          -sersicTableRadius(iRadius  )                                       &
+                  &                         )
+          end do
+
           ! Test that the table has sufficient extent for the requested radius.
           tableHasSufficientExtent=(radiusActual >= sersicTableRadiusMinimum) & 
                &                    .and. &
@@ -1632,7 +1651,7 @@ contains
     implicit none
     real(c_double)        :: Sersic_Abel_Integrand
     real(c_double), value :: radius
-    type(c_ptr)           :: parameterPointer
+    type(c_ptr),    value :: parameterPointer
 
     if (radius > radiusStart) then
        Sersic_Abel_Integrand= (1.0d0/Pi)                                                                         &
@@ -1701,6 +1720,44 @@ contains
     return
   end subroutine Sersic_Spheroid_Enclosed_Mass
 
+  !# <potentialTask>
+  !#  <unitName>Sersic_Spheroid_Potential</unitName>
+  !# </potentialTask>
+  subroutine Sersic_Spheroid_Potential(thisNode,radius,massType,componentType,componentPotential)
+    !% Computes the gravitational potential at a given radius for a Sérsic spheroid.
+    use Numerical_Constants_Physical
+    use Galactic_Structure_Options
+    use Numerical_Interpolation
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentPotential
+    double precision                         :: fractionalRadius,spheroidRadius,componentMass
+    
+    componentMass=0.0d0
+    if (radius <= 0.0d0                                                                     ) return
+    if (.not.methodSelected                                                                 ) return
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+    if (.not.thisNode%componentExists(componentIndex)                                       ) return
+
+    ! Get the relevant mass.
+    call Sersic_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,componentMass)
+    ! Return if mass is zero.
+    if (componentMass <= 0.0d0) return
+    ! Compute the potential.
+    spheroidRadius=Sersic_Spheroid_Radius(thisNode)
+    if (spheroidRadius > 0.0d0) then
+       fractionalRadius=radius/spheroidRadius
+       call Sersic_Profile_Tabulate(fractionalRadius)
+       if (fractionalRadius < sersicTableRadius(sersicTableCount)) componentPotential=(gravitationalConstantGalacticus&
+            &*componentMass/spheroidRadius)*Interpolate(sersicTableCount,sersicTableRadius,sersicTablePotential &
+            &,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,fractionalRadius,reset &
+            &=sersicTableInterpolationReset)
+    end if
+    return
+  end subroutine Sersic_Spheroid_Potential
+
   !# <rotationCurveTask>
   !#  <unitName>Sersic_Spheroid_Rotation_Curve</unitName>
   !# </rotationCurveTask>
@@ -1727,6 +1784,44 @@ contains
     end if
     return
   end subroutine Sersic_Spheroid_Rotation_Curve
+
+  !# <rotationCurveGradientTask>
+  !#  <unitName>Sersic_Spheroid_Rotation_Curve_Gradient</unitName>
+  !# </rotationCurveGradientTask>
+  subroutine Sersic_Spheroid_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,componentRotationCurveGradient)
+    !% Computes the rotation curve gradient for the Sérsic spheroid.
+    use Tree_Nodes
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentRotationCurveGradient
+    double precision                         :: positionSpherical(3),componentMass,componentDensity
+
+    ! Set to zero by default.
+    componentRotationCurveGradient=0.0d0
+    if (.not.methodSelected                           ) return
+    if (.not.methodSelected                           ) return
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+    if (.not.(massType == massTypeAll .or. massType == massTypeBaryonic .or. massType == massTypeGalactic &
+                                 &    .or. massType == massTypeGaseous  .or. massType == massTypeStellar)) return
+    if (.not.thisNode%componentExists(componentIndex)) return
+    if (Sersic_Spheroid_Radius(thisNode) <= 0.0d0) return
+    if (radius <= 0.0d0) return
+    positionSpherical = [radius,0.0d0,0.0d0]
+    call Sersic_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,0,componentMass)
+    call Sersic_Spheroid_Density(thisNode,positionSpherical,massType,componentType,componentDensity)
+    if (componentMass ==0.0d0 .or. componentDensity == 0.0d0 ) return
+    componentRotationCurveGradient = gravitationalConstantGalacticus                                   &
+                 &          / radius *(-       componentMass                                           &
+                 & - 4.0d0   *radius * Pi *    componentDensity                                        &
+                 &                    ) 
+    return
+  end subroutine Sersic_Spheroid_Rotation_Curve_Gradient
 
   !# <densityTask>
   !#  <unitName>Sersic_Spheroid_Density</unitName>

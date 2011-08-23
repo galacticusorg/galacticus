@@ -315,6 +315,26 @@
     <parameter>
       <name>blackHoleBinaryInitialRadiiMethod</name>
       <value>spheroid radius fraction</value>
+      <value>tidal radius
+      <parameter>
+	<name>blackHoleBinaryRecoilVelocityMethod</name>
+	<value>null</value>
+	<value>Campanelli 2007
+	<parameter>
+	  <name>blackHoleBinarySeparationGrowthRateMethod</name>
+	  <value>null</value>
+	  <value>standard
+	  <parameter>
+	    <name>tripleBlackHoleInteraction</name>
+	    <value>false</value>
+	    <value>true</value>
+	  </parameter>
+	  </value>
+	</parameter>
+	</value>
+      </parameter>
+      </value>
+      <value>Volonteri 2003</value>
     </parameter>
   </parameters>
   

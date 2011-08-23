@@ -72,7 +72,7 @@ module Star_Formation_Timescale_Disks_Blitz_Rosolowsky
   integer          :: abundancesCount
 
   ! Parameters of the model.
-  double precision :: velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCriticalBlitzRosolowsky&
+  double precision :: velocityDispersionDiskGas,heightToRadialScaleDiskBlitzRosolowsky,surfaceDensityCriticalBlitzRosolowsky&
        &,surfaceDensityExponentBlitzRosolowsky,starFormationFrequencyNormalizationBlitzRosolowsky&
        &,pressureCharacteristicBlitzRosolowsky,pressureExponentBlitzRosolowsky
 
@@ -113,14 +113,14 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('velocityDispersionDiskGas',velocityDispersionDiskGas,defaultValue=10.0d0)
        !@ <inputParameter>
-       !@   <name>heightToRadialScaleDisk</name>
+       !@   <name>heightToRadialScaleDiskBlitzRosolowskyBlitzRosolowsky</name>
        !@   <defaultValue>0.137 \citep{kregel_flattening_2002}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The ratio of scale height to scale radius for disks in the ``Blitz-Rosolowsky'' star formation timescale calculation.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('heightToRadialScaleDisk',heightToRadialScaleDisk,defaultValue=0.137d0)
+       call Get_Input_Parameter('heightToRadialScaleDiskBlitzRosolowsky',heightToRadialScaleDiskBlitzRosolowsky,defaultValue=0.137d0)
        !@ <inputParameter>
        !@   <name>surfaceDensityCriticalBlitzRosolowsky</name>
        !@   <defaultValue>200 \citep{bigiel_star_2008}</defaultValue>
@@ -255,9 +255,9 @@ contains
          &=coordinateSystemCylindrical,massType=massTypeStellar,componentType=componentTypeDisk)
 
     ! Compute the pressure ratio that Blitz & Rosolowsky use to compute the molecular fraction.
-    pressureRatio=0.5d0*Pi*gravitationalConstantGalacticus*surfaceDensityGas*(surfaceDensityGas+velocityDispersionDiskGas&
-         &*dsqrt(surfaceDensityStellar/Pi/gravitationalConstantGalacticus/heightToRadialScaleDisk/diskScaleRadius))&
-         &/pressureCharacteristicBlitzRosolowsky
+    pressureRatio=0.5d0*Pi*gravitationalConstantGalacticus*surfaceDensityGas*(surfaceDensityGas+velocityDispersionDiskGas &
+         &*dsqrt(surfaceDensityStellar/Pi/gravitationalConstantGalacticus/heightToRadialScaleDiskBlitzRosolowsky&
+         &/diskScaleRadius)) /pressureCharacteristicBlitzRosolowsky
 
     ! Compute the molecular fraction, limited to 100% molecular.
     if (pressureRatio >= 1.0d0) then

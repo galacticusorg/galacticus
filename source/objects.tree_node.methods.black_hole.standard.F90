@@ -64,22 +64,23 @@
 module Tree_Node_Methods_Black_Hole
   !% Implement black hole tree node methods.
   use Tree_Nodes
+  use Tree_Node_Methods_Black_Hole_Data
   use Components
   implicit none
   private
   public :: Tree_Node_Methods_Black_Hole_Initialize, Galacticus_Output_Tree_Black_Hole_Standard,&
        & Galacticus_Output_Tree_Black_Hole_Standard_Property_Count, Galacticus_Output_Tree_Black_Hole_Standard_Names,&
        & Tree_Node_Black_Hole_Reset_Standard, Black_Hole_Satellite_Merging, Tree_Node_Methods_Black_Hole_Standard_Dump,&
-       & Black_Hole_Standard_Scale_Set, Black_Hole_Standard_Property_Identifiers_Decode
+       & Black_Hole_Standard_Scale_Set, Black_Hole_Standard_Property_Identifiers_Decode,                              &
+       & Galacticus_Output_Tree_Black_Hole_Properties,Galacticus_Output_Tree_Black_Hole_Merger,                       &
+       & Black_Hole_Triple_Interaction_Black_Holes
   
-  ! The index used as a reference for this component.
-  integer :: componentIndex=-1
-
   ! Property indices.
-  integer, parameter :: propertyCount=3, dataCount=0, historyCount=0
-  integer, parameter :: massIndex  =1
-  integer, parameter :: spinIndex  =2
-  integer, parameter :: radiusIndex=3
+  integer, parameter :: propertyCount=3, dataCount=1, historyCount=0
+  integer, parameter :: massIndex                 =1
+  integer, parameter :: spinIndex                 =2
+  integer, parameter :: radiusIndex               =3
+  integer, parameter :: tripleInteractionTimeIndex=1
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -91,9 +92,6 @@ module Tree_Node_Methods_Black_Hole
   !# <treeNodeMethodsPointer>
   !#  <methodName>Tree_Node_Black_Hole_Radial_Position</methodName>
   !# </treeNodeMethodsPointer>
-
-  ! Flag to indicate if this method is selected.
-  logical          :: methodSelected=.false.
 
   ! Seed mass for black holes.
   double precision :: blackHoleSeedMass
@@ -118,10 +116,21 @@ module Tree_Node_Methods_Black_Hole
 
   ! Output options.
   logical          :: blackHoleOutputAccretion
+  logical          :: blackHoleOutputData
+  logical          :: blackHoleOutputMergers
   
+  ! Option specifying whether the triple black hole interaction should be used.
+  logical          :: tripleBlackHoleInteraction
+
   ! Index of black hole instance about to merge.
   integer          :: mergingInstance
   !$omp threadprivate(mergingInstance)
+
+  ! Index of black hole involved in three-body interactions
+  integer          :: binaryInstance,tripleInstance
+  !$omp threadprivate(binaryInstance)
+  !$omp threadprivate(tripleInstance)
+
 
 contains
 
@@ -245,6 +254,38 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleOutputAccretion",blackHoleOutputAccretion,defaultValue=.false.)
+
+       ! Get options controlling output.
+       !@ <inputParameter>
+       !@   <name>blackHoleOutputData</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Determines whether or not properties for all black holes (rather than just the central black hole) will be output.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("blackHoleOutputData",blackHoleOutputData,defaultValue=.false.)
+
+       !@ <inputParameter>
+       !@   <name>blackHoleOutputMergers</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Determines whether or not properties of black hole mergers will be output.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("blackHoleOutputMergers",blackHoleOutputMergers,defaultValue=.false.)
+
+       ! Get options controlling three body interactions.
+       !@ <inputParameter>
+       !@   <name>tripleBlackHoleInteraction</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Determines whether or not triple black hole interactions will be accounted for.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter("tripleBlackHoleInteraction",tripleBlackHoleInteraction,defaultValue=.false.)
 
     end if
     return
@@ -596,31 +637,109 @@ contains
 
   subroutine Tree_Node_Black_Hole_Radial_Position_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
     !% Compute the black hole node radial position rate of change.
+    use Tree_Nodes
+    use Black_Hole_Binary_Separations
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Physical
+    use Merger_Tree_Active
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
     integer                                  :: iInstance,thisIndex
+    double precision                         :: radialMigrationRate,radiusHardBinary,binaryRadius
+    logical                                  :: binaryRadiusFound
 
     ! If a black hole exists, compute the rate of change of its radial position.
     if (thisNode%componentExists(componentIndex)) then    
        thisIndex=Tree_Node_Black_Hole_Index(thisNode)
        do iInstance=1,size(thisNode%components(thisIndex)%instance)
-          if (iInstance > 1) call thisNode%components(thisIndex)%activeInstanceSet(iInstance)
-
-          ! Check for a black hole that is about to merge.
-          if (iInstance > 1 .and. Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance) <= 0.0d0) then    
-             ! Record which instance is merging, then trigger an interrupt.
-             mergingInstance=iInstance
-             interrupt=.true.
-             interruptProcedure => Black_Hole_Standard_Merge_Black_Holes
-             return
+          if (iInstance > 1) then
+             call thisNode%components(thisIndex)%activeInstanceSet(iInstance)
+             ! Compute the hard binary radius.
+             radiusHardBinary= (                                                                 &
+                  &              gravitationalConstantGalacticus                                 &
+                  &             *(                                                               &
+                  &                Tree_Node_Black_Hole_Mass       (thisNode,instance=1        ) &
+                  &               +Tree_Node_Black_Hole_Mass       (thisNode,instance=iInstance) &
+                  &              )                                                               &
+                  &            )                                                                 &
+                  &           /(                                                                 &
+                  &              4.0d0                                                           &
+                  &             *  Dark_Matter_Halo_Virial_Velocity(thisNode)**2                 &
+                  &            )
+             ! Places a new black hole in the center of the galaxy in case there is no central one.
+             if (          Tree_Node_Black_Hole_Mass (thisNode,instance=1        ) == 0.0d0               .and. &
+               & Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance) <= radiusHardBinary  ) then
+                mergingInstance=iInstance
+                interrupt=.true.
+                interruptProcedure => Black_Hole_Standard_Merge_Black_Holes
+                return
+             end if
+             ! Check for a black hole that is about to merge.
+             if (Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance) <= 0.0d0) then    
+                ! Record which instance is merging, then trigger an interrupt.
+                mergingInstance=iInstance
+                interrupt=.true.
+                interruptProcedure => Black_Hole_Standard_Merge_Black_Holes
+                return
+             end if
+             ! Set the rate of radial migration.
+             radialMigrationRate=Black_Hole_Binary_Separation_Growth_Rate(thisNode)
+             call Tree_Node_Black_Hole_Radial_Position_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,radialMigrationRate,instance=iInstance)
           end if
-
-          ! Set the rate of radial migration.
-          call Tree_Node_Black_Hole_Radial_Position_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,0.0d0,instance=iInstance)
        end do
        call thisNode%components(thisIndex)%activeInstanceNullify()
+    end if
+
+    ! Loop over black holes, testing for triple black hole interactions. Find the three closest black holes then check if a three
+    ! body interaction occurs using the radial condition derived in Hoffman and Loeb (2007).
+    binaryRadiusFound=.false.
+    if (thisNode%componentExists(componentIndex) .and. tripleBlackHoleInteraction) then
+       thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+       if (size(thisNode%components(thisIndex)%instance) >= 3 .and. .not. Tree_Node_Black_Hole_Mass(thisNode,instance=1) <= 0.0d0 ) then
+          do iInstance=2,size(thisNode%components(thisIndex)%instance)
+             if     (                                                                                             &
+                  &  (          Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance) <= binaryRadius &
+                  &   .or. .not.binaryRadiusFound                                                                 &
+                  &  )                                                                                            &
+                  &  .and. .not.Tree_Node_Black_Hole_Mass           (thisNode,instance=iInstance) <= 0.0d0        &
+                  &  .and. .not.Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance) <= 0.0d0        &
+                  & ) then
+                binaryRadius     =Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance)
+                binaryInstance   =iInstance
+                binaryRadiusFound=.true.
+             end if
+          end do
+          if (binaryRadiusFound) then
+             ! Compute the hard binary radius.
+             radiusHardBinary= (                                                                      &
+                  &              gravitationalConstantGalacticus                                      &
+                  &             *(                                                                    &
+                  &                Tree_Node_Black_Hole_Mass       (thisNode,instance=1             ) &
+                  &               +Tree_Node_Black_Hole_Mass       (thisNode,instance=binaryInstance) &
+                  &              )                                                                    &
+                  &            )                                                                      &
+                  &           /(                                                                      &
+                  &              4.0d0                                                                &
+                  &             *  Dark_Matter_Halo_Virial_Velocity(thisNode)**2                      &
+                  &            )
+             ! Search for a third black hole.  
+             do iInstance=2,size(thisNode%components(thisIndex)%instance)
+                if     (      .not.                                                        iInstance                    == binaryInstance   &
+                     &  .and. .not. Tree_Node_Black_Hole_Mass           (thisNode,instance=iInstance)                   <= 0.0d0            &
+                     &  .and. .not. Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance)                   <= 0.0d0            &
+                     &  .and.       Tree_Node_Black_Hole_Radial_Position(thisNode,instance=iInstance)                   <= radiusHardBinary &
+                     &  .and.       thisNode%components(thisIndex)%instance(iInstance)%data(tripleInteractionTimeIndex) == 0                &
+                     & ) then
+                   tripleInstance=iInstance
+                   interrupt=.true.
+                   interruptProcedure => Black_Hole_Triple_Interaction_Black_Holes
+                   return
+                end if
+             end do
+          end if
+       end if
     end if
     return
   end subroutine Tree_Node_Black_Hole_Radial_Position_Rate_Compute_Standard
@@ -694,8 +813,7 @@ contains
                &                                               ]                                                                            &
                &                                              )
           
-       end do
-       
+       end do       
     end if
     return
   end subroutine Black_Hole_Standard_Scale_Set
@@ -707,14 +825,17 @@ contains
     !% Merge (instantaneously) any black hole associated with {\tt thisNode} before it merges with its host halo.
     use Black_Hole_Binary_Mergers
     use Black_Hole_Binary_Initial_Radii
+    use Black_Hole_Binary_Recoil_Velocities
+    use Galactic_Structure_Potentials
+    use Galactic_Structure_Options
     use Components
     implicit none
     type(treeNode),   pointer,     intent(inout) :: thisNode
     type(treeNode),   pointer                    :: hostNode
     type(component),  allocatable, dimension(:)  :: instancesTemporary
-    integer                                      :: thisIndex,hostIndex,iInstance
+    integer                                      :: thisIndex,hostIndex,iInstance,nonNullBlackHoleCount,firstNonNullBlackHole
     double precision                             :: radiusInitial,blackHoleMassNew,blackHoleSpinNew
-
+    double precision                             :: recoilVelocity,massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2
     if (methodSelected.and.thisNode%componentExists(componentIndex)) then
        
        ! Find the node to merge with.
@@ -729,15 +850,38 @@ contains
              ! Loop over all black holes in the satellite galaxy.
              thisIndex=Tree_Node_Black_Hole_Index(thisNode)
              do iInstance=1,size(thisNode%components(thisIndex)%instance)
-                ! Merge the black holes instantaneously.
                 call Black_Hole_Binary_Merger(Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance), &
                      &                        Tree_Node_Black_Hole_Mass_Standard(hostNode                   ), &
                      &                        Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance), &
                      &                        Tree_Node_Black_Hole_Spin_Standard(hostNode                   ), &
                      &                        blackHoleMassNew                                               , &
                      &                        blackHoleSpinNew                                                 &
-                     &                       )          
+                     &                       )     
+                ! Merge the black holes instantaneously.
+                ! Check which black hole is more massive in order to compute an appropriate recoil velocity
+                if (Tree_Node_Black_Hole_Mass_Standard(hostNode) >= Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)) then
+                   massBlackHole1=Tree_Node_Black_Hole_Mass_Standard(hostNode                   ) 
+                   massBlackHole2=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)
+                   spinBlackHole1=Tree_Node_Black_Hole_Spin_Standard(hostNode                   )
+                   spinBlackHole2=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance)
+                else
+                   massBlackHole2=Tree_Node_Black_Hole_Mass_Standard(hostNode                   ) 
+                   massBlackHole1=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)
+                   spinBlackHole2=Tree_Node_Black_Hole_Spin_Standard(hostNode                   )
+                   spinBlackHole1=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance)
+                end if
+                ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy. (Note that
+                ! we subtract the black hole's own contribution to the potential here.)
+                recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
+                if (recoilVelocity > 0.0d0) then
+                   if (0.5d0*recoilVelocity**2+Galactic_Structure_Potential(thisNode,0.0d0)-Galactic_Structure_Potential(thisNode&
+                        &,0.0d0,componentType=componentTypeBlackHole) > 0.0d0) then
+                      blackHoleMassNew=0.0d0
+                      blackHoleSpinNew=0.0d0
+                   end if
+                end if
                 ! Move the black hole to the host.
+                call Galacticus_Output_Tree_Black_Hole_Merger(thisNode,massBlackHole1,massBlackHole2)
                 call Tree_Node_Black_Hole_Mass_Set_Standard(hostNode,blackHoleMassNew)
                 call Tree_Node_Black_Hole_Spin_Set_Standard(hostNode,blackHoleSpinNew)
              end do
@@ -749,23 +893,34 @@ contains
                 ! Adjust the radii of the black holes in the satellite galaxy.
                 forall(iInstance=1:size(thisNode%components(thisIndex)%instance))
                    thisNode%components(thisIndex)%instance(iInstance)%properties(radiusIndex,propertyValue)=radiusInitial
+                   ! Declares them as not having interacted in a triple black hole interaction.
+                   thisNode%components(thisIndex)%instance(iInstance)%data(tripleInteractionTimeIndex)=0
                 end forall
-                ! The host already has some black holes, so append those from the satellite to this list.
-                allocate(                                                                  &
-                     &   instancesTemporary(                                               &
-                     &                       size(thisNode%components(thisIndex)%instance) &
-                     &                      +size(hostNode%components(hostIndex)%instance) &
-                     &                     )                                               &
-                     &  )
-                instancesTemporary(                                               1                                             &
-                     &             :size(hostNode%components(hostIndex)%instance)                                               &
-                     &            )=hostNode%components(hostIndex)%instance
-                instancesTemporary( size(hostNode%components(hostIndex)%instance)+1                                             &
-                     &             :size(hostNode%components(hostIndex)%instance)+size(thisNode%components(thisIndex)%instance) &
-                     &            )=thisNode%components(thisIndex)%instance
-                deallocate(thisNode%components(thisIndex)%instance)
-                deallocate(hostNode%components(hostIndex)%instance)
-                call Move_Alloc(instancesTemporary,hostNode%components(hostIndex)%instance)
+                ! Determine how many non-null black holes the satellite contains.
+                nonNullBlackHoleCount=size(thisNode%components(thisIndex)%instance)
+                firstNonNullBlackHole=1
+                if (thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue) <= 0.0d0) then
+                   nonNullBlackHoleCount=nonNullBlackHoleCount-1
+                   firstNonNullBlackHole=2
+                end if
+                if (nonNullBlackHoleCount > 0) then
+                   ! The host already has some black holes, so append those from the satellite to this list.
+                   allocate(                                                                  &
+                        &   instancesTemporary(                                               &
+                        &                       nonNullBlackHoleCount                         &
+                        &                      +size(hostNode%components(hostIndex)%instance) &
+                        &                     )                                               &
+                        &  )
+                   instancesTemporary(                                               1                     &
+                        &             :size(hostNode%components(hostIndex)%instance)                       &
+                        &            )=hostNode%components(hostIndex)%instance
+                   instancesTemporary( size(hostNode%components(hostIndex)%instance)+1                     &
+                        &             :size(hostNode%components(hostIndex)%instance)+nonNullBlackHoleCount &
+                        &            )=thisNode%components(thisIndex)%instance(firstNonNullBlackHole:firstNonNullBlackHole+nonNullBlackHoleCount-1)
+                   deallocate(thisNode%components(thisIndex)%instance)
+                   deallocate(hostNode%components(hostIndex)%instance)
+                   call Move_Alloc(instancesTemporary,hostNode%components(hostIndex)%instance)
+                end if
              else
                 ! The host has no black hole of its own. Simply move those from the satellite to the host.
                 hostIndex=Tree_Node_Black_Hole_Index(hostNode)
@@ -785,23 +940,53 @@ contains
   
   subroutine Black_Hole_Standard_Merge_Black_Holes(thisNode)
     !% Merge two black holes.
+    use Black_Hole_Binary_Recoil_Velocities
     use Black_Hole_Binary_Mergers
+    use Galactic_Structure_Options
+    use Galactic_Structure_Potentials
     implicit none
     type(treeNode),   pointer,     intent(inout) :: thisNode
     type(component),  allocatable, dimension(:)  :: componentsTemporary
     integer                                      :: thisIndex,instanceCount
     double precision                             :: blackHoleMassNew,blackHoleSpinNew
-
+    double precision                             :: recoilVelocity,massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2
+    
     call Black_Hole_Binary_Merger(Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=mergingInstance), &
          &                        Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=1              ), &
          &                        Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=mergingInstance), &
          &                        Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=1              ), &
          &                        blackHoleMassNew                                                     , &
          &                        blackHoleSpinNew                                                       &
-         &                       )          
+         &                       )
+ 
+    ! Check which black hole is more massive in order to compute an appropriate recoil velocity.
+    if (Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=1) >= Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=mergingInstance)) then
+       massBlackHole1=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=1              ) 
+       massBlackHole2=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=mergingInstance)
+       spinBlackHole1=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=1              )
+       spinBlackHole2=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=mergingInstance)
+    else
+       massBlackHole2=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=1              ) 
+       massBlackHole1=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=mergingInstance)
+       spinBlackHole2=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=1              )
+       spinBlackHole1=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=mergingInstance)
+    end if
+    
+    ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
+    recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
+    
+    ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.           
+    if (0.5d0*recoilVelocity**2+Galactic_Structure_Potential(thisNode,0.0d0)-Galactic_Structure_Potential(thisNode&
+         &,0.0d0,componentType=componentTypeBlackHole) > 0.0d0) then
+       blackHoleMassNew=0.0d0
+       blackHoleSpinNew=0.0d0
+    end if
+    
     ! Set the mass and spin of the central black hole.
+    call Galacticus_Output_Tree_Black_Hole_Merger(thisNode,massBlackHole1,massBlackHole2)
     call Tree_Node_Black_Hole_Mass_Set_Standard(thisNode,blackHoleMassNew,instance=1)
     call Tree_Node_Black_Hole_Spin_Set_Standard(thisNode,blackHoleSpinNew,instance=1)
+    
     ! Remove the merging black hole from the list.
     thisIndex=Tree_Node_Black_Hole_Index(thisNode)
     instanceCount=size(thisNode%components(thisIndex)%instance)
@@ -813,6 +998,99 @@ contains
     return
   end subroutine Black_Hole_Standard_Merge_Black_Holes
 
+  subroutine Black_Hole_Triple_Interaction_Black_Holes(thisNode,interrupt,interruptProcedure)
+    !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
+    use Black_Hole_Binary_Mergers
+    use Tree_Nodes
+    use Memory_Management
+    use Numerical_Constants_Physical
+    use Galactic_Structure_Options
+    use Galactic_Structure_Potentials
+    use Merger_Tree_Active
+    use Components
+    implicit none
+    type(component),  allocatable, dimension(:)  :: componentsTemporary
+    logical,                       intent(inout) :: interrupt
+    procedure(),      pointer,     intent(inout) :: interruptProcedure
+    type(treeNode),   pointer,     intent(inout) :: thisNode
+    integer                                      :: thisIndex,ejectedInstance,instanceCount,newBinaryInstance
+    double precision                             :: massEjected,massBinary,massRatioIntruder,velocityEjected,kineticEnergyChange,bindingEnergy,newRadius,velocityBinary
+
+    ! We have to distinguish two cases, where a different black hole is ejected, the one with the lowest mass.
+    massRatioIntruder=   Tree_Node_Black_Hole_Mass(thisNode,instance=tripleInstance)  &
+         &            /( Tree_Node_Black_Hole_Mass(thisNode,instance=1             )  &
+         &              +Tree_Node_Black_Hole_Mass(thisNode,instance=binaryInstance)  &
+         &             )
+
+    thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+    thisNode%components(thisIndex)%instance(tripleInstance)%data(tripleInteractionTimeIndex)=Tree_Node_Time(thisNode)
+    if (massRatioIntruder <= 2.0d0) then
+       if (Tree_Node_Black_Hole_Mass(thisNode,instance=tripleInstance) <= Tree_Node_Black_Hole_Mass(thisNode,instance=binaryInstance)) then
+          newRadius           = Tree_Node_Black_Hole_Radial_Position(thisNode,instance=binaryInstance)/(1.0d0+0.4d0*massRatioIntruder)
+          call Tree_Node_Black_Hole_Radial_Position_Set(thisNode,newRadius,instance=binaryInstance)
+          bindingEnergy       = gravitationalConstantGalacticus*( Tree_Node_Black_Hole_Mass(thisNode,instance=tripleInstance)                     &
+               &                                                 *Tree_Node_Black_Hole_Mass(thisNode,instance=1             )                     &
+               &                                                )                                                                                 &
+               &               / Tree_Node_Black_Hole_Radial_Position(thisNode,instance=tripleInstance)
+          kineticEnergyChange=0.4d0*massRatioIntruder*bindingEnergy
+          ejectedInstance    =tripleInstance
+          newBinaryInstance  =binaryInstance
+       else  
+          newRadius           = Tree_Node_Black_Hole_Radial_Position(thisNode,instance=tripleInstance)/(1.0d0+0.4d0*massRatioIntruder )
+          call Tree_Node_Black_Hole_Radial_Position_Set(thisNode,newRadius,instance=tripleInstance)
+          bindingEnergy       = gravitationalConstantGalacticus*( Tree_Node_Black_Hole_Mass(thisNode,instance=binaryInstance)                     &
+               &                                                 *Tree_Node_Black_Hole_Mass(thisNode,instance=1             )                     &
+               &                                                )                                                                                 &
+               &               / Tree_Node_Black_Hole_Radial_Position(thisNode,instance=binaryInstance)
+          kineticEnergyChange=0.4d0*massRatioIntruder*bindingEnergy
+          ejectedInstance    =binaryInstance
+          newBinaryInstance  =tripleInstance
+       end if
+    else
+       ! This latter case can be referred to as head-on collision. 
+       newRadius             =0.53d0*Tree_Node_Black_Hole_Radial_Position(thisNode,instance=tripleInstance)
+       call Tree_Node_Black_Hole_Radial_Position_Set(thisNode,newRadius,instance=tripleInstance)
+       bindingEnergy         = gravitationalConstantGalacticus*(                                                                                 &
+            &                                                    Tree_Node_Black_Hole_Mass(thisNode,instance=binaryInstance)                     &
+            &                                                   *Tree_Node_Black_Hole_Mass(thisNode,instance=1             )                     &
+            &                                                  )                                                                                 &
+            &                 /Tree_Node_Black_Hole_Radial_Position(thisNode,instance=binaryInstance)
+       kineticEnergyChange=0.9d0*massRatioIntruder*bindingEnergy
+       ejectedInstance    =binaryInstance
+       newBinaryInstance  =tripleInstance
+    end if          
+    ! First we find the lightest black hole and tag it as being ejected.
+    massEjected= Tree_Node_Black_Hole_Mass(thisNode,instance=ejectedInstance  )
+    massBinary = Tree_Node_Black_Hole_Mass(thisNode,instance=newBinaryInstance) &
+         &      +Tree_Node_Black_Hole_Mass(thisNode,instance=1                )
+    velocityEjected=dsqrt(kineticEnergyChange/(1.0d0+massEjected/massBinary )/massEjected*2.0d0)
+    velocityBinary =dsqrt(kineticEnergyChange/(1.0d0+massBinary /massEjected)/massBinary *2.0d0)
+    if (0.5d0*velocityEjected**2+Galactic_Structure_Potential(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode,instance=ejectedInstance)) > 0.0d0) then
+       ! Remove the ejected black hole from the list.
+       instanceCount=size(thisNode%components(thisIndex)%instance)
+       call Move_Alloc(thisNode%components(thisIndex)%instance,componentsTemporary)
+       allocate(thisNode%components(thisIndex)%instance(instanceCount-1))
+       thisNode%components(thisIndex)%instance(1:ejectedInstance-1)=componentsTemporary(1:ejectedInstance-1)
+       if (instanceCount > 2) thisNode%components(thisIndex)%instance(ejectedInstance:instanceCount-1)=componentsTemporary(ejectedInstance+1:instanceCount)
+       deallocate(componentsTemporary)
+    end if 
+    if (0.5d0*velocityBinary**2+Galactic_Structure_Potential(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode,instance&
+         &=newBinaryInstance))-Galactic_Structure_Potential(thisNode ,Tree_Node_Black_Hole_Radial_Position(thisNode,instance&
+         &=newBinaryInstance),componentType=componentTypeBlackHole) > 0.0d0) then
+       ! Remove the binary black hole from the list.
+       instanceCount=size(thisNode%components(thisIndex)%instance)
+       call Move_Alloc(thisNode%components(thisIndex)%instance,componentsTemporary)
+       allocate(thisNode%components(thisIndex)%instance(instanceCount-1))
+       thisNode%components(thisIndex)%instance(1:newBinaryInstance-1)=componentsTemporary(1:newBinaryInstance-1)
+       if (instanceCount > 2) thisNode%components(thisIndex)%instance(newBinaryInstance:instanceCount-1)=componentsTemporary(newBinaryInstance+1:instanceCount)
+       deallocate(componentsTemporary)
+       ! And set the central black hole as a zero mass component.
+       call Tree_Node_Black_Hole_Mass_Set_Standard(thisNode,0.0d0,instance=1)
+       call Tree_Node_Black_Hole_Spin_Set_Standard(thisNode,0.0d0,instance=1)
+    end if   
+    return
+  end subroutine Black_Hole_Triple_Interaction_Black_Holes
+  
   double precision function Mass_Accretion_Rate(thisNode)
     !% Returns the rate of mass accretion onto the black hole in {\tt thisNode}.
     use Cosmological_Parameters
@@ -821,9 +1099,13 @@ contains
     use Galactic_Structure_Options
     use Ideal_Gases_Thermodynamics
     use Black_Hole_Fundamentals
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Prefixes
     use Accretion_Disks
     use Hot_Halo_Temperature_Profile
     use Memory_Management
+    use Black_Hole_Binary_Separations
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, parameter              :: gasDensityMinimum=1.0d0 ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
@@ -858,14 +1140,20 @@ contains
 
        ! Check black hole mass is positive.
        if (blackHoleMass > 0.0d0) then
-          ! Assume black hole is stationary with respect to surrounding gas.
-          relativeVelocity=0.0d0
+
+          ! Compute the relative velocity of black hole and gas. We assume that relative motion arises only from the radial
+          ! migration of the black hole.
+          relativeVelocity=Black_Hole_Binary_Separation_Growth_Rate(thisNode)*Mpc_per_km_per_s_To_Gyr
 
           ! Contribution from spheroid:
 
-          ! Get the accretion radius.
-          accretionRadius=Bondi_Hoyle_Lyttleton_Accretion_Radius(blackHoleMass,bondiHoyleAccretionTemperatureSpheroid)
-          
+          ! Get the accretion radius. We take this to be the larger of the Bondi-Hoyle radius and the current radius position of
+          ! the black hole.
+          accretionRadius=max(                                                                                              &
+               &               Bondi_Hoyle_Lyttleton_Accretion_Radius(blackHoleMass,bondiHoyleAccretionTemperatureSpheroid) &
+               &              ,Tree_Node_Black_Hole_Radial_Position  (thisNode                                            ) &
+               &             )
+
           ! Set the position.
           position=[accretionRadius,0.0d0,0.0d0]
           ! Get density of gas at the galactic center.
@@ -1098,6 +1386,143 @@ contains
     return
   end subroutine Galacticus_Output_Tree_Black_Hole_Standard
 
+  subroutine Galacticus_Output_Tree_Black_Hole_Merger(thisNode,massBlackHole1,massBlackHole2)
+    !% Outputs properties of merging black holes.
+    use Tree_Nodes
+    use IO_HDF5
+    use Galacticus_HDF5
+    use Memory_Management
+    use Kind_Numbers
+    use ISO_Varying_String
+    use String_Handling
+    use Merger_Tree_Active
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode   
+    double precision, intent(in)             :: massBlackHole1,massBlackHole2
+    type(hdf5Object)                         :: mergersGroup
+
+    ! Exit if merger data is not to be output.
+    if (.not.blackHoleOutputMergers) return
+
+    ! Ignore mergers with zero mass black holes.
+    if (massBlackHole2 <= 0.0d0) return
+
+    ! Open the group to which black hole mergers should be written.
+    mergersGroup=IO_HDF5_Open_Group(galacticusOutputFile,"blackHoleMergers","Black hole mergers data.")
+    ! Append to the datasets.
+    call mergersGroup%writeDataset([massBlackHole1          ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
+    call mergersGroup%writeDataset([massBlackHole2          ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
+    call mergersGroup%writeDataset([Tree_Node_Time(thisNode)],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
+    call mergersGroup%writeDataset([activeTreeWeight        ],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
+    ! Close the group.
+    call mergersGroup%close()  
+    return
+  end subroutine Galacticus_Output_Tree_Black_Hole_Merger
+
+  !# <mergerTreeExtraOutputTask>
+  !#  <unitName>Galacticus_Output_Tree_Black_Hole_Properties</unitName>
+  !# </mergerTreeExtraOutputTask>
+  subroutine Galacticus_Output_Tree_Black_Hole_Properties(thisNode,iOutput,treeIndex,nodePassesFilter)
+    !% Output properties for all black holes in {\tt thisNode}.
+    use Tree_Nodes
+    use IO_HDF5
+    use Galacticus_HDF5
+    use Memory_Management
+    use Kind_Numbers
+    use ISO_Varying_String
+    use String_Handling
+    use Dark_Matter_Profiles
+    use Cosmology_Functions
+    use Black_Hole_Binary_Separations
+    use Black_Hole_Binary_Separations_Standard
+    use Accretion_Disks
+    use Cooling_Radii
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),          intent(inout), pointer      :: thisNode
+    integer(kind=kind_int8), intent(in)                  :: treeIndex
+    integer,                 intent(in)                  :: iOutput
+    logical,                 intent(in)                  :: nodePassesFilter
+    integer(kind=kind_int8), allocatable,   dimension(:) :: nodeIndex, mergerTreeIndex
+    double precision,        allocatable,   dimension(:) :: accretionRate, radiativeEfficiency, mass, spin, timescale, radius
+    integer                                              :: iBlackHoleNumber,blackHoleCount,thisIndex
+    type(hdf5Object)                                     :: blackHolesGroup, outputGroup
+    type(varying_string)                                 :: groupName
+
+    ! If black hole output was requested , output their properties.
+    if (nodePassesFilter .and. blackHoleOutputData) then
+
+       ! Get a count of the number of black holes present.
+       blackHoleCount=1
+       if (thisNode%componentExists(componentIndex)) then
+          thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+          blackHoleCount=size(thisNode%components(thisIndex)%instance)
+       end if
+
+       ! Open the output group.
+       blackHolesGroup=IO_HDF5_Open_Group(galacticusOutputFile,"blackHole","Black hole data.")
+       groupName="Output"
+       groupName=groupName//iOutput
+       outputGroup=IO_HDF5_Open_Group(blackHolesGroup,char(groupName),"Properties of black holes for all trees at each output.")  
+
+       ! Allocate array to store profile.
+       call Alloc_Array(radius,             [blackHoleCount])
+       call Alloc_Array(spin,               [blackHoleCount])
+       call Alloc_Array(mass,               [blackHoleCount])
+       call Alloc_Array(timescale,          [blackHoleCount])
+       call Alloc_Array(accretionRate,      [blackHoleCount])
+       call Alloc_Array(radiativeEfficiency,[blackHoleCount])
+       call Alloc_Array(nodeIndex,          [blackHoleCount])
+       call Alloc_Array(mergerTreeIndex,    [blackHoleCount])
+
+       ! Construct arrays of black hole properties.
+       do iBlackHoleNumber=1,blackHoleCount
+          thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+          call thisNode%components(thisIndex)%activeInstanceSet(iBlackHoleNumber)
+          mass               (iBlackHoleNumber)=Tree_Node_Black_Hole_Mass           (thisNode                              )
+          spin               (iBlackHoleNumber)=Tree_Node_Black_Hole_Spin           (thisNode                              )
+          radius             (iBlackHoleNumber)=Tree_Node_Black_Hole_Radial_Position(thisNode                              )
+          radiativeEfficiency(iBlackHoleNumber)=Accretion_Disk_Radiative_Efficiency (thisNode,Mass_Accretion_Rate(thisNode))
+          accretionRate      (iBlackHoleNumber)=Mass_Accretion_Rate                 (thisNode                              ) 
+          nodeIndex          (iBlackHoleNumber)=thisIndex  
+          mergerTreeIndex    (iBlackHoleNumber)=treeIndex     
+          if (iBlackHoleNumber > 1) then
+             if (.not. Black_Hole_Binary_Separation_Growth_Rate(thisNode) == 0.0d0)then
+                timescale(iBlackHoleNumber)=-Tree_Node_Black_Hole_Radial_Position    (thisNode) &
+                     &                      /Black_Hole_Binary_Separation_Growth_Rate(thisNode) 
+             else
+                timescale(iBlackHoleNumber)=0.0d0
+             end if
+          else
+             timescale   (iBlackHoleNumber)=0.0d0
+          end if
+       end do
+       ! Write dataset to the group, first the arrays containing all data.
+       call outputGroup%writeDataset(mass,               "mass"               ,"The black holes masses.",                appendTo=.true.)
+       call outputGroup%writeDataset(spin,               "spin"               ,"The black holes spins.",                 appendTo=.true.)
+       call outputGroup%writeDataset(radius,             "radius"             ,"The black holes radial position.",       appendTo=.true.)
+       call outputGroup%writeDataset(timescale,          "timescale"          ,"The black holes timescale for merger.",  appendTo=.true.)
+       call outputGroup%writeDataset(radiativeEfficiency,"radiativeEfficiency","The black holes radiative efficiencies.",appendTo=.true.)
+       call outputGroup%writeDataset(accretionRate,      "accretionRate"      ,"The black holes accretion rates.",       appendTo=.true.)
+       call outputGroup%writeDataset(nodeIndex,          "nodeIndex"          ,"The black holes host galaxy index.",     appendTo=.true.)
+       call outputGroup%writeDataset(mergerTreeIndex,    "mergerTreeIndex"    ,"The black holes merger tree index.",     appendTo=.true.)
+
+       !Deallocatate profile array
+       call Dealloc_Array(mass               )
+       call Dealloc_Array(spin               )
+       call Dealloc_Array(radius             )
+       call Dealloc_Array(timescale          )
+       call Dealloc_Array(radiativeEfficiency)
+       call Dealloc_Array(accretionRate      )
+       call Dealloc_Array(nodeIndex          )
+       call Dealloc_Array(mergerTreeIndex    )
+       call outputGroup    %close()
+       call blackHolesGroup%close()   
+       end if
+    
+    return
+  end subroutine Galacticus_Output_Tree_Black_Hole_Properties
+
   !# <nodeDumpTask>
   !#  <unitName>Tree_Node_Methods_Black_Hole_Standard_Dump</unitName>
   !# </nodeDumpTask>
@@ -1140,10 +1565,12 @@ contains
           select case (propertyObject)
           case (objectTypeProperty)
              select case (propertyIndex)
-             case (massIndex)
+             case (massIndex  )
                 propertyName=propertyName//":mass"
-             case (spinIndex)
+             case (spinIndex  )
                 propertyName=propertyName//":spin"
+             case (radiusIndex)
+                propertyName=propertyName//":radius"
              end select
           end select
        end if

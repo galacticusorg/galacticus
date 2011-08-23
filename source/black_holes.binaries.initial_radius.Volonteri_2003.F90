@@ -59,50 +59,49 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a program to test integration routines.
+!+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-program Test_Integration
-  !% Tests that numerical integration routines work.
-  use, intrinsic :: ISO_C_Binding
-  use Unit_Tests
-  use Numerical_Integration
-  use FGSL
-  use Test_Integration_Functions
-  use Numerical_Constants_Math
+!% Contains a module which implements a black hole binary initial separation which follows that of \cite{volonteri_assembly_2003}.
+
+module Black_Hole_Binary_Initial_Radii_Volonteri_2003
+  !% Implements a black hole binary initial separation which follows that of \cite{volonteri_assembly_2003}.
   implicit none
-  double precision                 :: integral
-  type(fgsl_function)              :: integrandFunction
-  type(fgsl_integration_workspace) :: integrationWorkspace
-  type(c_ptr)                      :: parameterPointer
-  logical                          :: integrationReset
+  private
+  public :: Black_Hole_Binary_Initial_Radii_Volonteri_2003_Initialize
 
-  ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Numerical integration")
+contains
 
-  ! Test simple integrations.
-  integrationReset=.true.
-  integral=Integrate(0.0d0,1.0d0,Integrand1,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=x from 0 to 1",integral,0.5d0,relTol=1.0d-6)
+  !# <blackHoleBinaryInitialRadiiMethod>
+  !#  <unitName>Black_Hole_Binary_Initial_Radii_Volonteri_2003_Initialize</unitName>
+  !# </blackHoleBinaryInitialRadiiMethod>
+  subroutine Black_Hole_Binary_Initial_Radii_Volonteri_2003_Initialize(blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get)
+    !% Test if this method is to be used and set procedure pointer appropriately.
+    use ISO_Varying_String
+    use Input_Parameters
+    implicit none
+    type(varying_string),                 intent(in)    :: blackHoleBinaryInitialRadiiMethod
+    procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
+    
+    if (blackHoleBinaryInitialRadiiMethod == 'Volonteri 2003') Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Volonteri_2003
+    return
+  end subroutine Black_Hole_Binary_Initial_Radii_Volonteri_2003_Initialize
 
-  integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand2,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=sin(x) from 0 to 2 Pi",integral,0.0d0,absTol=1.0d-6)
+  double precision function Black_Hole_Binary_Initial_Radius_Volonteri_2003(thisNode,hostNode)
+    !% Returns an initial separation for binary black holes using the method of \cite{volonteri_assembly_2003}, with the assumption that
+    !% the local velocity dispersion is approximately the dark matter halo virial velocity.
+    use Tree_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Physical
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode,hostNode
 
-  integrationReset=.true.
-  integral=Integrate(0.0d0,10.0d0,Integrand3,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=1/sqrt(x) from 0 to 10",integral,2.0d0*sqrt(10.0d0),relTol=1.0d-6)
+    Black_Hole_Binary_Initial_Radius_Volonteri_2003=gravitationalConstantGalacticus*(       Tree_Node_Black_Hole_Mass(thisNode)    &
+       &                                                                           +        Tree_Node_Black_Hole_Mass(hostNode)    &
+       &                                                                            )                                              &
+       &                                                             /(2.0d0       * Dark_Matter_Halo_Virial_Velocity(hostNode)**2 &
+       &                                                              )
 
-  ! Test 2D integrations.
-  integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand4,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x,y)=cos(x)*y from x=0 to 2 Pi and y=0 to x",integral,2.0d0*Pi,relTol=1.0d-6)
+    return
+  end function Black_Hole_Binary_Initial_Radius_Volonteri_2003
 
-  ! End unit tests.
-  call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
-end program Test_Integration
+end module Black_Hole_Binary_Initial_Radii_Volonteri_2003

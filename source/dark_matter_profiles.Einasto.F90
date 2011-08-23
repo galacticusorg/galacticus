@@ -731,16 +731,25 @@ contains
     use Gamma_Functions
     implicit none
     double precision, intent(in) :: radius,concentration,alpha
- 
-    Potential_Einasto_Scale_Free=                                                                                 &
-         & -(                                                                                                     &
-         &           Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha)/radius &
-         &   +((2.0d0/alpha)**(1.0d0/alpha))                                                                      &
-         &   *(1.0d0+Gamma_Function_Incomplete              (2.0d0/alpha,2.0d0*radius       **alpha/alpha))       &
-         &   *       Gamma_Function                         (2.0d0/alpha                                 )        &
-         &   /       Gamma_Function                         (3.0d0/alpha                                 )        &
-         &  )                                                                                                     &
-         & /         Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
+       if (radius <= 0.0d0) then
+         Potential_Einasto_Scale_Free=                                                                  &
+               & -((2.0d0/alpha)**(1.0d0/alpha))                                                        &
+               & *2.0d0                                                                                 &
+               & *Gamma_Function                         (2.0d0/alpha                                 ) &
+               & /Gamma_Function                         (3.0d0/alpha                                 ) &
+               & /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
+
+       else
+          Potential_Einasto_Scale_Free=                                                                                 &
+               & -(                                                                                                     &
+               &           Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha)/radius &
+               &   +((2.0d0/alpha)**(1.0d0/alpha))                                                                      &
+               &   *(1.0d0+Gamma_Function_Incomplete              (2.0d0/alpha,2.0d0*radius       **alpha/alpha))       &
+               &   *       Gamma_Function                         (2.0d0/alpha                                 )        &
+               &   /       Gamma_Function                         (3.0d0/alpha                                 )        &
+               &  )                                                                                                     &
+               & /         Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
+       end if
     return
    end function Potential_Einasto_Scale_Free
   
@@ -1161,7 +1170,7 @@ contains
     implicit none
     real(c_double)            :: Freefall_Time_Scale_Free_Integrand_Einasto
     real(c_double), value     :: radius
-    type(c_ptr)               :: parameterPointer
+    type(c_ptr),    value     :: parameterPointer
 
     Freefall_Time_Scale_Free_Integrand_Einasto= 1.0d0                                                                   &
          &                                     /dsqrt(                                                                  &

@@ -63,6 +63,7 @@
 
 module Test_Integration_Functions
   !% Contains integrands for unit tests.
+  use, intrinsic :: ISO_C_Binding
   use FGSL
   implicit none
   private
@@ -76,11 +77,10 @@ contains
   
   function Integrand1(x,parameterPointer) bind(c)
     !% Integral for unit testing.
-    use, intrinsic :: ISO_C_Binding
     implicit none
     real(c_double)        :: Integrand1
     real(c_double), value :: x
-    type(c_ptr)           :: parameterPointer
+    type(c_ptr),    value :: parameterPointer
     
     Integrand1=x
     return
@@ -88,11 +88,10 @@ contains
   
   function Integrand2(x,parameterPointer) bind(c)
     !% Integral for unit testing.
-    use, intrinsic :: ISO_C_Binding
     implicit none
     real(c_double)        :: Integrand2
     real(c_double), value :: x
-    type(c_ptr)           :: parameterPointer
+    type(c_ptr),    value :: parameterPointer
     
     Integrand2=sin(x)
     return
@@ -100,11 +99,10 @@ contains
   
   function Integrand3(x,parameterPointer) bind(c)
     !% Integral for unit testing.
-    use, intrinsic :: ISO_C_Binding
     implicit none
     real(c_double)        :: Integrand3
     real(c_double), value :: x
-    type(c_ptr)           :: parameterPointer
+    type(c_ptr),    value :: parameterPointer
     
     Integrand3=1.0d0/dsqrt(x)
     return
@@ -112,13 +110,11 @@ contains
   
   function Integrand4(x,parameterPointer) bind(c)
     !% Integral for unit testing.
-    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
-    use FGSL
     implicit none
     real(c_double)        :: Integrand4
     real(c_double), value :: x
-    type(c_ptr)           :: parameterPointer
+    type(c_ptr),    value :: parameterPointer
     
     Integrand4=cos(x)*Integrate(0.0d0,x,Integrand1,parameterPointer,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)

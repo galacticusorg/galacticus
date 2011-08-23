@@ -100,6 +100,13 @@ contains
     double precision              :: blackHoleMass1,blackHoleMass2,blackHoleSpin1,blackHoleSpin2,massRatio,symmetricMassRatio&
          &,orbitalAngularMomentum
 
+    ! Check for case of two zero-mass black holes.
+    if (blackHoleMassA <= 0.0d0 .and. blackHoleMassB <= 0.0d0) then
+       blackHoleMassFinal=0.0d0
+       blackHoleSpinFinal=0.0d0
+       return
+    end if
+
     ! Find which is the more massive of the two black holes.
     if (blackHoleMassA < blackHoleMassB) then
        blackHoleMass1=blackHoleMassB

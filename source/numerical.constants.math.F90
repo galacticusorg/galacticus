@@ -63,16 +63,20 @@
 
 module Numerical_Constants_Math
   !% Contains various useful mathematical constants.
+  use FGSL
   implicit none
   public
   
   ! Pi.
-  double precision, parameter :: Pi=3.14159265358979323846d0
+  double precision, parameter :: Pi=m_pi
 
   ! Natural logarithm of 10.
-  double precision, parameter :: ln10=dlog(10.0d0)
+  double precision, parameter :: ln10=m_ln10
 
   ! Natural logarithm of 2.
-  double precision, parameter :: ln2 =dlog( 2.0d0)
+  double precision, parameter :: ln2 =m_ln2
+
+  ! Euler's constant.
+  double precision, parameter :: eulersConstant=m_euler
 
 end module Numerical_Constants_Math

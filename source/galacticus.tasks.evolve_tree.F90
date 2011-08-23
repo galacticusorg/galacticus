@@ -93,9 +93,7 @@ contains
     use Galacticus_Display
     use Input_Parameters
     use Galacticus_Output_Times
-
-use omp_lib
-
+    use Merger_Tree_Active
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
@@ -170,6 +168,9 @@ use omp_lib
           
           ! Skip this tree if necessary.
           if (.not.skipTree) then
+
+             ! Set this as the active tree.
+             activeTreeWeight=thisTree%volumeWeight
 
              ! Perform any pre-evolution tasks on the tree.
              !# <include directive="mergerTreePreEvolveTask" type="code" action="subroutine">

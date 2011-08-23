@@ -64,7 +64,6 @@
 module Modified_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in modified Press-Schechter theory.
   use FGSL
-  use, intrinsic :: ISO_C_Binding                             
   use CDM_Power_Spectrum
   use Numerical_Constants_Math
   implicit none
@@ -155,6 +154,7 @@ contains
     !% {\tt probability}. Typically, {\tt probabilityFraction} is found by multiplying {\tt
     !% Modified\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
+    use, intrinsic :: ISO_C_Binding
     use Root_Finder
     implicit none
     double precision,        intent(in) :: haloMass,deltaCritical,massResolution,probability
@@ -172,6 +172,7 @@ contains
   end function Modified_Press_Schechter_Branch_Mass
 
   function Modified_Press_Schechter_Branch_Mass_Root(massMaximum,parameterPointer) bind(c)
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     real(c_double)                         :: Modified_Press_Schechter_Branch_Mass_Root
@@ -211,6 +212,7 @@ contains
   double precision function Modified_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
     !% Return the probability per unit change in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\tt massResolution}.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
     double precision,                 intent(in) :: haloMass,deltaCritical,massResolution
@@ -273,6 +275,7 @@ contains
 
   function Branching_Probability_Integrand(childHaloMass,parameterPointer) bind(c)
     !% Integrand for the branching probability.
+    use, intrinsic :: ISO_C_Binding
     implicit none
     real(c_double)          :: Branching_Probability_Integrand
     real(c_double), value   :: childHaloMass
@@ -286,6 +289,7 @@ contains
   
   function Subresolution_Fraction_Integrand(childHaloMass,parameterPointer) bind(c)
     !% Integrand for the subresolution fraction.
+    use, intrinsic :: ISO_C_Binding
     implicit none
     real(c_double)          :: Subresolution_Fraction_Integrand
     real(c_double), value   :: childHaloMass

@@ -1010,7 +1010,7 @@ where we assume that the velocity dispersion in the gas is fixed at $\sigma_{\rm
 \begin{equation}
  \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
 \end{equation}
-where we assume $h_\star/R_{\rm disk}=${\tt [heightToRadialScaleDisk]}. The star formation rate integated over the disk is
+where we assume $h_\star/R_{\rm disk}=${\tt [heightToRadialScaleDiskBlitzRosolowsky]}. The star formation rate integated over the disk is
 \begin{equation}
  \Psi = \int_0^\infty 2 \pi R \dot{\Sigma}_\star(R) \d R.
 \end{equation}
@@ -1284,13 +1284,99 @@ Selected with {\tt starFormationExpulsiveFeedback[Disks|Spheroids]Method}$=${\tt
 \end{equation}
 where $V_{\rm superwind}=${\tt [disk|spheroid]SuperwindVelocity} (in km/s) and $\beta_{\rm superwind}=${\tt [disk|spheroid]SuperwindMassLoading} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
 
-\section{Supermassive Black Hole Binaries: Initial Separation}\index{supermassive black holes!binary separation}
+\section{Supermassive Black Hole Binaries: Initial Separation}\label{sec:blackHoleBinaryInitialRadii}\index{supermassive black holes!binary separation}
 
-The method to be used for computing the initial separation of black hole binaries specified by the {\tt blackHoleBinaryInitialRadiiMethod} parameter.
+The method to be used for computing the initial separation of black hole binaries is specified by the {\tt blackHoleBinaryInitialRadiiMethod} parameter.
 
 \subsection{Spheroid Radius Fraction}
 
 Selected with {\tt blackHoleBinaryInitialRadiiMethod}$=${\tt spheroid radius fraction}, this method assumes that the initial separation of the binary is equal to a fixed fraction {\tt [blackHoleInitialRadiusSpheroidRadiusRatio]} of the larger of the spheroid scale radii of the two merging galaxies.
+
+\subsection{Volonteri 2003}
+
+Selected with {\tt blackHoleBinaryInitialRadiiMethod}$=${\tt Volonteri 2003}, this method assumes that the initial separation follows the relationship described in \cite{volonteri_assembly_2003} 
+\begin{equation}
+ r_{\rm initial} = { {\rm G} (M_{\bullet,1} + M_{\bullet, 2}) \over 2
+\sigma_{\rm DM}^2 }
+\end{equation}
+where $M_{\bullet, 1}$ and $M_{\bullet, 2}$ are the masses of the black holes
+and $\sigma_{\rm DM}$ is the velocity dispersion of the dark matter, which we
+assume to equal the virial velocity of the dark matter halo.
+
+\subsection{Tidal Radius}
+
+Selected with {\tt blackHoleBinaryInitialRadiiMethod}$=${\tt tidal radius}, this method assumes an initial separation that corresponds to the distance at which the satellite galaxy is tidally stripped to its half-mass radius, thus only leaving the central massive black hole.
+Specifically, the initial radius is given by:
+\begin{equation}
+{M_{\rm sat} \over 2 r_{\rm sat,1/2}^3 } = - {{\rm d} \over {\rm d} r} {M_{\rm host}(r_{\rm initial}) \over r_{\rm initial}^2}
+\end{equation}
+Where $M_{\rm sat}$ is the mass of the satellite galaxy, $r_{\rm sat,1/2}$ is its half mass radius, $M_{\rm host}(r)$ is the mass of the host galaxy within radius $r$ and $r_{\rm initial}$ is the initial radius.
+
+\section{Supermassive Black Hole Binaries: Separation Growth Rate}\index{supermassive black holes!separation growth rate}
+
+The method to be used for computing the separation growth rate of black hole binaries is specified by the {\tt blackHoleBinarySeparationGrowthRateMethod} parameter.
+
+\subsection{Null}
+
+Selected by default and with {\tt blackHoleBinarySeparationGrowthRateMethod}$=${\tt null}, this method assumes that the initial separation of the binaries is final.
+
+\subsection{Standard}
+
+Selected with {\tt blackHoleBinarySeparationGrowthRateMethod}$=${\tt Standard}, this method computes the separation growth rate of the binaries following a modified version of \cite {volonteri_assembly_2003} which include terms for dynamical friction, hardening due to scattering of stars and gravitational wave emission.
+\begin{equation}
+\dot{a} = \hbox{min} \left( - \frac{{\rm G}\rho _{*}a^2 H}{\sigma}, +\frac{2 \dot{v}_{\rm DF} a}{v_c} \right) - \frac{256 G^3 M_{\bullet, 1} M_{\bullet, 2} (M_{\bullet, 1} +M_{\bullet, 2})}{5 c^5 a^3}
+\end{equation}
+where $a$ is the black hole binary
+separation, $H$ is a dimensionless hardening parameter $H\approx 15$ in the limit of 
+a very hard, equal mass binary, $\rho _\star$ is the density of stars,
+$\dot{v}_{\rm DF}$ is the acceleration (negative) due to dynamical friction,
+$v_{\rm c}$ is the circular velocity, $\sigma$ is the velocity dispersion of stars. Here the first factor represents hardening due to strong scattering of stars, the second results from dynamical friction with distant stars, gas and dark matter and the last results from the emission of gravitational waves \cite{peters_gravitational_1964}.
+
+The acceleration due to dynamical friction is computed using Chandrasekhar's formula:
+\begin{equation}
+ \dot{v}_{\rm DF}=- {2 \pi {\rm G}^2 M_\bullet \over V_{\rm C}^2} \sum_{i} \rho_i \log(1+\Lambda_i^2) \left[ \hbox{erf}(X_i)-\left\{ {2 X_i \over \sqrt{\pi}} \exp\left(-X_i^2\right) \right\} \right],
+\end{equation}
+where the sum is taken over the spheroid (gaseous plus stellar mass) and dark matter halo components\footnote{The disk is ignored as the black hole is assumed to be orbitting in a circular orbit in the disk.}. Here,
+\begin{equation}
+\Lambda_i =  {a \sigma^2  \over {\rm G}(M_{\bullet, 1}+M_{\bullet, 2})},
+\end{equation}
+is the Coulomb logarithm and
+\begin{equation}
+X_i = V_{\rm c} / \sqrt{2} \sigma.
+\end{equation}
+In all of the above equations, the velocity dispersion $\sigma_i$ is computed from the spherical Jeans equation assuming an isotropic velocity dispersion if {\tt [blackHoleBinariesComputeVelocityDispersion]}$=${\tt true}. Otherwise, $\sigma_i$ is set to the halo virial velocity for dark matter and to the spheroid characteristic velocity for the spheroid.
+
+In calculating the rate of hardening due to scattering of stars, the stellar density is reduced by a factor \citep{volonteri_assembly_2003}
+\begin{equation}
+f_\rho = \hbox{min}\left\{ \left[ { 4 a \sigma_{\rm spheroid}^2 \over 3 {\rm G} (M_{\bullet, 1}+M_{\bullet, 2})} \log\left({{\rm G} M_{\bullet, 2} \over 4 \sigma_{\rm spheroid}^2  a }\right) \right]^2 , 1 \right\},
+\end{equation}
+if {\tt [stellarDensityChangeBinaryMotion]}$=${\tt true} to account for the ejection of stars from the loss cone.
+
+\section{Supermassive Black Holes Binaries: Recoil Velocity}\label{sec:binaryBlackHoleRecoil}\index{supermassive black holes!recoil velocity}
+
+The method to be used for computing the recoil velocity due to gravitaional waves ejection during a binary merger specified by the {\tt blackHoleBinaryRecoilVelocityMethod} parameter.
+
+\subsection{Null}
+
+Selected by default and with {\tt blackHoleBinaryRecoilVelocityMethod}$=${\tt null}, this method assumes that there is no recoil velocity.
+
+\subsection{Campanelli et al. (2007)}
+
+Selected with {\tt blackHoleBinaryRecoilVelocityMethod}$=${\tt Campanelli 2007}, this method computes the recoil velocity during a black hole binary merger due to the emission of gravitational waves, following the formulae derived in \cite {campanelli_large_2007}
+\begin{equation}
+V_{recoil}=V_m\mathbf{\hat{e_1}}+V_\perp(cos\xi\mathbf{\hat{e_1}}+sin\xi\mathbf{\hat{e_2}})+V_\parallel\mathbf{\hat{e_2}} 
+\end{equation}
+with:
+\begin{equation}
+V_m=A\frac{q^2(1-q)}{(1+q)^5}(1+B\frac{q}{(1+q)^2})
+\end{equation}
+\begin{equation}
+V_\perp=H\frac{q^2}{(1+q)^5}(\alpha^\parallel_2-q\alpha^\parallel_1)
+\end{equation}
+\begin{equation}
+V_\parallel=Kcos(\theta-\theta_0)\frac{q^2}{(1+q)^5}(\alpha^\perp_2-q\alpha^\perp_1)
+\end{equation}
+where $\theta$ is defined as the angle between the inplane component of $\Delta$ and the infall direction at merger. $q$ is the mass ratio of the black holes as $q=\frac{M_{\bullet,1}}{M_{\bullet,2}}$ and $\alpha_i=\frac{\mathbf{S_i}}{M_{\bullet,i}}$ depends of the spin and mass of the black hole $\xi$ measures the angle between the unequal mass and the spin contribution to the recoil velocity in the orbital plane. $\mathbf{\hat{e_1}} , \mathbf{\hat{e_2}}$ are orthogonal unit vectors in the orbital plane. Our method assumes the spin of the second black hole is randomly generated, while that of the first is aligned with the angular momentum of the system. The constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K\cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
 
 \section{Supermassive Black Hole Binaries: Mergers}\index{supermassive black holes!mergers}
 

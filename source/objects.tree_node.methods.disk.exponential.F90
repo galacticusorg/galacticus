@@ -63,11 +63,17 @@
 
 module Tree_Node_Methods_Exponential_Disk
   !% Implement exponential disk tree node methods.
+  use ISO_Varying_String
   use Tree_Node_Methods_Disk_Exponential_Data
   use Tree_Nodes
   use Histories
   use Components
   use Stellar_Population_Properties
+  use FGSL
+  use Memory_Management
+  use Bessel_Functions
+  use Numerical_Interpolation
+  use Abundances_Structure
   implicit none
   private
   public :: Tree_Node_Methods_Exponential_Disk_Initialize, Tree_Node_Methods_Exponential_Disk_Thread_Initialize,&
@@ -76,8 +82,9 @@ module Tree_Node_Methods_Exponential_Disk
        & Exponential_Disk_Radius_Solver, Exponential_Disk_Enclosed_Mass, Exponential_Disk_Rotation_Curve,&
        & Tree_Node_Disk_Post_Evolve_Exponential, Tree_Node_Methods_Exponential_Disk_Dump,&
        & Exponential_Disk_Radius_Solver_Plausibility, Tree_Node_Methods_Exponential_Disk_State_Store,&
-       & Tree_Node_Methods_Exponential_Disk_State_Retrieve, Exponential_Disk_Scale_Set,&
-       & Exponential_Disk_Star_Formation_History_Output, Exponential_Disk_Property_Identifiers_Decode
+       & Tree_Node_Methods_Exponential_Disk_State_Retrieve, Exponential_Disk_Scale_Set,Exponential_Disk_Potential,&
+       & Exponential_Disk_Star_Formation_History_Output, Exponential_Disk_Property_Identifiers_Decode,Exponential_Disk_Rotation_Curve_Gradient,&
+       & Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors
   
   ! Internal count of abundances and work arrays.
   integer                                     :: abundancesCount
@@ -143,7 +150,7 @@ module Tree_Node_Methods_Exponential_Disk
   !# </treeNodeMethodsPointer>
 
   ! Parameters controlling the physical implementation.
-  double precision :: diskMassToleranceAbsolute,diskOutflowTimescaleMinimum,diskStructureSolverRadius
+  double precision :: diskMassToleranceAbsolute,diskOutflowTimescaleMinimum,diskStructureSolverRadius,heightToRadialScaleDisk
   logical          :: diskRadiusSolverCole2000Method
 
   ! Tabulation of the exponential disk rotation curve.
@@ -154,8 +161,23 @@ module Tree_Node_Methods_Exponential_Disk
   double precision                            :: rotationCurveHalfRadiusMinimum=rotationCurveHalfRadiusMinimumDefault&
        &,rotationCurveHalfRadiusMaximum=rotationCurveHalfRadiusMaximumDefault
   double precision, allocatable, dimension(:) :: rotationCurveHalfRadius,rotationCurveBesselFactors
+  type(fgsl_interp)                           :: interpolationObject
+  type(fgsl_interp_accel)                     :: interpolationAccelerator
+  logical                                     :: interpolationReset=.true.
   double precision                            :: scaleLengthFactor,diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
   logical                                     :: scaleLengthFactorSet=.false.
+
+  ! Tabulation of the exponential disk rotation curve gradient.
+  integer,          parameter                 :: rotationCurveGradientPointsPerDecade=10
+  integer                                     :: rotationCurveGradientPointsCount
+  logical                                     :: rotationCurveGradientInitialized=.false.
+  double precision, parameter                 :: rotationCurveGradientHalfRadiusMinimumDefault=1.0d-6,rotationCurveGradientHalfRadiusMaximumDefault=10.0d0
+  double precision                            :: rotationCurveGradientHalfRadiusMinimum=rotationCurveGradientHalfRadiusMinimumDefault&
+       &,rotationCurveGradientHalfRadiusMaximum=rotationCurveGradientHalfRadiusMaximumDefault
+  double precision, allocatable, dimension(:) :: rotationCurveGradientHalfRadius,rotationCurveGradientBesselFactors
+  type(fgsl_interp)                           :: interpolationObjectGradient
+  type(fgsl_interp_accel)                     :: interpolationAcceleratorGradient
+  logical                                     :: interpolationResetGradient=.true.
 
   ! Options controlling output.
   logical                                     :: diskOutputStarFormationRate
@@ -173,14 +195,11 @@ contains
   !# </treeNodeCreateInitialize>
   subroutine Tree_Node_Methods_Exponential_Disk_Initialize(componentOption,componentTypeCount)
     !% Initializes the tree node exponential disk methods module.
-    use ISO_Varying_String
     use Input_Parameters
     use String_Handling
     use Galacticus_Display
     use Galacticus_Error
     use Stellar_Population_Properties_Luminosities
-    use Abundances_Structure
-    use Memory_Management
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
@@ -342,6 +361,15 @@ contains
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('diskRadiusSolverCole2000Method',diskRadiusSolverCole2000Method,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>heightToRadialScaleDisk</name>
+       !@   <defaultValue>0.137 \citep{kregel_flattening_2002}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The ratio of scale height to scale radius for exponential disks.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('heightToRadialScaleDisk',heightToRadialScaleDisk,defaultValue=0.137d0)
 
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
@@ -392,7 +420,6 @@ contains
     !% Trim histories attached to the disk.
     use Galacticus_Display
     use String_Handling
-    use ISO_Varying_String
     use Histories
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -596,7 +623,6 @@ contains
     use Cooling_Rates
     use Star_Formation_Feedback_Disks
     use Star_Formation_Feedback_Expulsion_Disks
-    use Abundances_Structure
     use Galactic_Structure_Options
     use Galactic_Dynamics_Bar_Instabilities
     use Galacticus_Output_Star_Formation_Histories 
@@ -1063,7 +1089,6 @@ contains
   !# </scaleSetTask>
   subroutine Exponential_Disk_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
-    use Abundances_Structure
     use Galacticus_Output_Star_Formation_Histories
     implicit none
     type(treeNode),            pointer, intent(inout) :: thisNode
@@ -1356,17 +1381,21 @@ contains
 
   double precision function Exponential_Disk_Rotation_Curve_Bessel_Factors(halfRadius)
     !% Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
-    use Bessel_Functions
-    use Memory_Management
     use Numerical_Ranges
-    use Numerical_Interpolation
-    use FGSL
+    use Numerical_Constants_Math
     implicit none
     double precision,        intent(in) :: halfRadius
+    double precision,        parameter  :: halfRadiusSmall=1.0d-3
     integer                             :: iPoint
-    type(fgsl_interp),       save       :: interpolationObject
-    type(fgsl_interp_accel), save       :: interpolationAccelerator
-    logical,                 save       :: interpolationReset=.true.
+
+    ! For small half-radii, use a series expansion for a more accurate result.
+    if (halfRadius == 0.0d0) then
+       Exponential_Disk_Rotation_Curve_Bessel_Factors=0.0d0
+       return
+    else if (halfRadius < halfRadiusSmall) then
+       Exponential_Disk_Rotation_Curve_Bessel_Factors=(ln2-eulersConstant-0.5d0-log(halfRadius))*halfRadius**2
+       return
+    end if
 
     !$omp critical(Exponential_Disk_Rotation_Curve_Tabulate)
     if (.not.rotationCurveInitialized .or. halfRadius <  rotationCurveHalfRadiusMinimum .or. halfRadius > rotationCurveHalfRadiusMaximum) then
@@ -1410,6 +1439,165 @@ contains
 
     return
   end function Exponential_Disk_Rotation_Curve_Bessel_Factors
+
+  !# <rotationCurveGradientTask>
+  !#  <unitName>Exponential_Disk_Rotation_Curve_Gradient</unitName>
+  !# </rotationCurveGradientTask>
+  subroutine Exponential_Disk_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,componentRotationCurveGradient)
+    !% Computes the rotation curve gradient for an exponential disk.
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Prefixes
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentRotationCurveGradient
+    double precision                         :: componentMass,besselArgument,besselFactor
+
+    ! Set to zero by default.
+    componentRotationCurveGradient=0.0d0
+    if (.not.methodSelected                                                                  ) return
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+    if (.not.thisNode%componentExists(componentIndex)                                        ) return
+    if (radius <= 0.0d0                                                                      ) return
+
+    call Exponential_Disk_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,componentMass)
+    if (componentMass == 0.0d0) return
+    besselArgument= radius                          &
+         &         /2.0d0                           &
+         &         /Tree_Node_Disk_Radius(thisNode)
+    
+    ! Checks for low radius and approximations.
+    besselFactor=Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors(besselArgument)
+    componentRotationCurveGradient= gravitationalConstantGalacticus    &
+         &                         *componentMass                      &
+         &                         *besselFactor                       &
+         &                         /Tree_Node_Disk_Radius(thisNode)**2 
+    return
+  end subroutine Exponential_Disk_Rotation_Curve_Gradient
+
+  double precision function Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors(halfRadius)
+    !% Compute Bessel function factors appearing in the expression for a razor-thin exponential disk rotation curve gradient.
+    use Numerical_Ranges
+    use Numerical_Constants_Math
+    implicit none
+    double precision,        intent(in) :: halfRadius
+    double precision,        parameter  :: halfRadiusSmall=1.0d-3
+    integer                             :: iPoint
+    
+    ! For small half-radii, use a series expansion for a more accurate result.
+    if (halfRadius == 0.0d0) then
+       Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors=0.0d0
+       return
+    else if (halfRadius < halfRadiusSmall) then
+       Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors=(ln2-log(halfRadius)-eulersConstant-1.0d0)*halfRadius &
+            & +(1.5d0*ln2-1.5d0*log(halfRadius)+0.25d0-1.5d0*eulersConstant)*halfRadius**3
+       return
+    end if
+
+    !$omp critical(Exponential_Disk_Rotation_Curve_Gradient_Tabulate)
+    if (.not.rotationCurveGradientInitialized .or. halfRadius <  rotationCurveHalfRadiusMinimum .or. halfRadius > rotationCurveGradientHalfRadiusMaximum) then
+       ! Find the minimum and maximum half-radii to tabulate.
+       rotationCurveGradientHalfRadiusMinimum=min(rotationCurveGradientHalfRadiusMinimum,0.5d0*halfRadius)
+       rotationCurveGradientHalfRadiusMaximum=max(rotationCurveGradientHalfRadiusMaximum,2.0d0*halfRadius)
+
+       ! Determine how many points to tabulate.
+       rotationCurveGradientPointsCount=int(dlog10(rotationCurveGradientHalfRadiusMaximum/rotationCurveGradientHalfRadiusMinimum)*dble(rotationCurveGradientPointsPerDecade))+1
+
+       ! Allocate table arrays.
+       if (allocated(rotationCurveGradientHalfRadius   )) call Dealloc_Array(rotationCurveGradientHalfRadius   )
+       if (allocated(rotationCurveGradientBesselFactors)) call Dealloc_Array(rotationCurveGradientBesselFactors)
+       call Alloc_Array(rotationCurveGradientHalfRadius   ,[rotationCurveGradientPointsCount])
+       call Alloc_Array(rotationCurveGradientBesselFactors,[rotationCurveGradientPointsCount])
+
+       ! Create range of half-radii.
+       rotationCurveGradientHalfRadius=Make_Range(rotationCurveGradientHalfRadiusMinimum,rotationCurveGradientHalfRadiusMaximum,rotationCurveGradientPointsCount,rangeType=rangeTypeLogarithmic)
+       
+       ! Compute Bessel factors.
+       do iPoint=1,rotationCurveGradientPointsCount
+          rotationCurveGradientBesselFactors(iPoint)= rotationCurveGradientHalfRadius(iPoint)**2                                                                                  &
+               &                                     *( rotationCurveGradientHalfRadius(iPoint)                                                                                   &
+               &                                       *  Bessel_Function_I0(rotationCurveGradientHalfRadius(iPoint))*Bessel_Function_K0(rotationCurveGradientHalfRadius(iPoint)) &
+               &                                       +rotationCurveGradientHalfRadius(iPoint)**2                                                                                &
+               &                                       *( Bessel_Function_I1(rotationCurveGradientHalfRadius(iPoint))*Bessel_Function_K0(rotationCurveGradientHalfRadius(iPoint)) &
+               &                                         -Bessel_Function_I0(rotationCurveGradientHalfRadius(iPoint))*Bessel_Function_K1(rotationCurveGradientHalfRadius(iPoint)) &
+               &                                        )                                                                                                                         &
+               &                                      )
+       end do
+       
+       ! Reset the interpolations.
+       call Interpolate_Done(interpolationObjectGradient,interpolationAcceleratorGradient,interpolationResetGradient)
+       interpolationResetGradient=.true.
+       
+       ! Flag that the rotation curve is now initialized.
+       rotationCurveGradientInitialized=.true.
+    end if
+    !$omp end critical(Exponential_Disk_Rotation_Curve_Gradient_Tabulate)
+    
+    ! Interpolate in the tabulated function.
+    !$omp critical(Exponential_Disk_Rotation_Curve_Gradient_Interpolate)
+    Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors=Interpolate(rotationCurveGradientPointsCount,rotationCurveGradientHalfRadius&
+         &,rotationCurveGradientBesselFactors,interpolationObjectGradient,interpolationAcceleratorGradient,halfRadius,reset=interpolationResetGradient)
+    !$omp end critical(Exponential_Disk_Rotation_Curve_Gradient_Interpolate)
+
+    return
+  end function Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors
+
+  !# <potentialTask>
+  !#  <unitName>Exponential_Disk_Potential</unitName>
+  !# </potentialTask>
+  subroutine Exponential_Disk_Potential(thisNode,radius,componentType,massType,componentPotential)
+    !% Compute the gravitational potential due to an exponential disk.
+    use Numerical_Constants_Physical 
+    use Galactic_Structure_Options
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: componentType,massType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentPotential
+    double precision                         :: halfRadius,correctionSmallRadius,componentMass
+
+    componentPotential=0.0d0
+    if (.not.methodSelected                                                             ) return
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
+    if (.not.thisNode%componentExists(componentIndex)                                   ) return
+
+    ! Avoid an arithmetic exception at radius zero.
+    if (radius <= 0.0d0) return
+
+    ! Get the relevant mass of the disk.
+    call Exponential_Disk_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,componentMass)
+    if (componentMass <= 0.0d0) return
+
+    ! Compute the potential. If the radius is lower than the height then approximate the disk mass as being spherically distributed.
+    if (radius > heightToRadialScaleDisk*Tree_Node_Disk_Radius(thisNode)) then
+       halfRadius           =radius/2.0d0/Exponential_Disk_Radius(thisNode)
+       correctionSmallRadius=0.0d0
+    else
+       halfRadius            =heightToRadialScaleDisk/2.0d0
+       correctionSmallRadius       =                     -Exponential_Disk_Enclosed_Mass_Dimensionless(heightToRadialScaleDisk                 )/heightToRadialScaleDisk/Tree_Node_Disk_Radius(thisNode)
+       if (radius > 0.0d0) &
+            & correctionSmallRadius=correctionSmallRadius+Exponential_Disk_Enclosed_Mass_Dimensionless(radius/Exponential_Disk_Radius(thisNode))/radius          
+       correctionSmallRadius=-correctionSmallRadius*gravitationalConstantGalacticus*componentMass
+    end if
+    
+    ! Compute the potential including the correction to small radii.
+    componentPotential=-0.5d0                             &
+         &             *gravitationalConstantGalacticus   &
+         &             *componentMass                     &
+         &             /Exponential_Disk_Radius(thisNode) & 
+         &             *(                                 &
+         &                Bessel_Function_I0(halfRadius)  &
+         &               *Bessel_Function_K1(halfRadius)  &
+         &               -Bessel_Function_I1(halfRadius)  &
+         &               *Bessel_Function_K0(halfRadius)  &
+         &              )                                 &
+         &             + correctionSmallRadius
+     
+     return
+    end subroutine Exponential_Disk_Potential
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Exponential_Disk_Radius_Solver_Plausibility</unitName>
@@ -1705,7 +1893,6 @@ contains
   subroutine Galacticus_Output_Tree_Disk_Exponential_Names(integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of exponential disk properties to be written to the \glc\ output file.
-    use Abundances_Structure
     use ISO_Varying_String
     use Stellar_Population_Properties_Luminosities
     use Numerical_Constants_Prefixes
@@ -1845,7 +2032,6 @@ contains
   !# </nodeDumpTask>
   subroutine Tree_Node_Methods_Exponential_Disk_Dump(thisNode)
     !% Dump all properties of {\tt thisNode} to screen.
-    use Abundances_Structure
     use ISO_Varying_String
     use Stellar_Population_Properties_Luminosities
     implicit none
@@ -1884,12 +2070,12 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Tree_Node_Methods_Exponential_Disk_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
-    use FGSL
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
 
-    write (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,scaleLengthFactor,scaleLengthFactorSet
+    write (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,scaleLengthFactor,scaleLengthFactorSet,&
+                    & rotationCurveGradientHalfRadiusMinimum,rotationCurveGradientHalfRadiusMaximum
     return
   end subroutine Tree_Node_Methods_Exponential_Disk_State_Store
   
@@ -1898,13 +2084,13 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Tree_Node_Methods_Exponential_Disk_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
-    use FGSL
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
-    read (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,scaleLengthFactor,scaleLengthFactorSet
+    read (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,scaleLengthFactor,scaleLengthFactorSet,&
+                   & rotationCurveGradientHalfRadiusMinimum,rotationCurveGradientHalfRadiusMaximum
     ! Flag that the table is now uninitialized.
     rotationCurveInitialized=.false.
     return
@@ -1916,7 +2102,6 @@ contains
   subroutine Exponential_Disk_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use Kind_Numbers
-    use Tree_Nodes
     use Galacticus_Output_Star_Formation_Histories
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode

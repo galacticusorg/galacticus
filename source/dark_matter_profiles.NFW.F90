@@ -319,14 +319,21 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
-    double precision                         :: radiusOverScaleRadius,virialRadiusOverScaleRadius
+    double precision, parameter              :: radiusSmall=1.0d-10
+    double precision                         :: radiusOverScaleRadius,virialRadiusOverScaleRadius,radiusTerm
 
     radiusOverScaleRadius            =radius                                  /Tree_Node_Dark_Matter_Profile_Scale(thisNode)
     virialRadiusOverScaleRadius      =Dark_Matter_Halo_Virial_Radius(thisNode)/Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    Dark_Matter_Profile_Potential_NFW=(-1.0d0-virialRadiusOverScaleRadius*(dlog(1.0d0+radiusOverScaleRadius)&
-         &/radiusOverScaleRadius-dlog(1.0d0+virialRadiusOverScaleRadius)/virialRadiusOverScaleRadius)/(dlog(1.0d0&
-         &+virialRadiusOverScaleRadius)-virialRadiusOverScaleRadius/(1.0d0+virialRadiusOverScaleRadius)))&
-         &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+    if (radiusOverScaleRadius < radiusSmall) then
+       ! Use a series solution for very small radii.
+       radiusTerm=1.0d0-0.5d0*radiusOverScaleRadius
+    else
+       ! Use the full expression for larger radii.
+       radiusTerm=dlog(1.0d0+radiusOverScaleRadius)/radiusOverScaleRadius
+    end if
+    Dark_Matter_Profile_Potential_NFW=(-1.0d0-virialRadiusOverScaleRadius*(radiusTerm-dlog(1.0d0+virialRadiusOverScaleRadius)&
+         &/virialRadiusOverScaleRadius)/(dlog(1.0d0 +virialRadiusOverScaleRadius)-virialRadiusOverScaleRadius/(1.0d0&
+         &+virialRadiusOverScaleRadius))) *Dark_Matter_Halo_Virial_Velocity(thisNode)**2
     return
   end function Dark_Matter_Profile_Potential_NFW
   
@@ -852,7 +859,7 @@ contains
     implicit none
     real(c_double)            :: Freefall_Time_Scale_Free_Integrand
     real(c_double), value     :: radius
-    type(c_ptr)               :: parameterPointer
+    type(c_ptr),    value     :: parameterPointer
     real(c_double), parameter :: radiusSmall        =1.0d-6
     real(c_double), parameter :: radiusSmallFraction=1.0d-3
     real(c_double)            :: x

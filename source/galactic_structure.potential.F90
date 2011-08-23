@@ -59,50 +59,75 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a program to test integration routines.
+!+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-program Test_Integration
-  !% Tests that numerical integration routines work.
+!% Contains a module which implements calculations of gravitationl potential.
+
+module Galactic_Structure_Potentials
+  !% Implements calculations of the gravitational potential.
   use, intrinsic :: ISO_C_Binding
-  use Unit_Tests
-  use Numerical_Integration
-  use FGSL
-  use Test_Integration_Functions
-  use Numerical_Constants_Math
+  use ISO_Varying_String
+  use Tree_Nodes
+  use Galactic_Structure_Options
   implicit none
-  double precision                 :: integral
-  type(fgsl_function)              :: integrandFunction
-  type(fgsl_integration_workspace) :: integrationWorkspace
-  type(c_ptr)                      :: parameterPointer
-  logical                          :: integrationReset
+  private
+  public :: Galactic_Structure_Potential
 
-  ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Numerical integration")
+contains
 
-  ! Test simple integrations.
-  integrationReset=.true.
-  integral=Integrate(0.0d0,1.0d0,Integrand1,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=x from 0 to 1",integral,0.5d0,relTol=1.0d-6)
+  double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType)
+    !% Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
+    use Galacticus_Error
+    use Input_Parameters
+    use Dark_Matter_Profiles
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Prefixes
+    !# <include directive="potentialTask" type="moduleUse">
+    include 'galactic_structure.potential.tasks.modules.inc'
+    !# </include>
+    implicit none
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    integer,          intent(in),    optional :: componentType,massType
+    double precision, intent(in)              :: radius
+    integer                                   :: componentTypeActual,massTypeActual
+    double precision                          :: componentPotential
 
-  integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand2,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=sin(x) from 0 to 2 Pi",integral,0.0d0,absTol=1.0d-6)
+    ! Determine which component type to use.
+    if (present(componentType)) then
+       componentTypeActual=componentType
+    else
+       componentTypeActual=componentTypeAll
+    end if
+    ! Determine which mass type to use.
+    if (present(massType)) then
+       massTypeActual     =massType
+    else
+       massTypeActual     =massTypeAll
+    end if
 
-  integrationReset=.true.
-  integral=Integrate(0.0d0,10.0d0,Integrand3,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=1/sqrt(x) from 0 to 10",integral,2.0d0*sqrt(10.0d0),relTol=1.0d-6)
+    ! Initialize to zero potential.
+    Galactic_Structure_Potential=0.0d0
+    
+    ! Call routines to supply the potential for all components.
+    !# <include directive="potentialTask" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode,radius,componentTypeActual,massTypeActual,componentPotential</subroutineArgs>
+    !#  <subroutineAction>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</subroutineAction>
+    include 'galactic_structure.potential.tasks.inc'
+    !# </include>
 
-  ! Test 2D integrations.
-  integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand4,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x,y)=cos(x)*y from x=0 to 2 Pi and y=0 to x",integral,2.0d0*Pi,relTol=1.0d-6)
+    return
+  end function Galactic_Structure_Potential
+  
+end module Galactic_Structure_Potentials
+    
+    
+    
+    
 
-  ! End unit tests.
-  call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
 
-end program Test_Integration
+
+
+
+
+
+

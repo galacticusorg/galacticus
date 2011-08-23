@@ -70,9 +70,9 @@ module Dark_Matter_Profiles
   public :: Dark_Matter_Profile_Rotation_Normalization, Dark_Matter_Profile_Energy, Dark_Matter_Profile_Energy_Growth_Rate,&
        & Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum,Dark_Matter_Profile_Circular_Velocity &
        &,Dark_Matter_Profile_Potential,Dark_Matter_Profile_Enclosed_Mass,Dark_Matter_Profile_kSpace,&
-       & Dark_Matter_Profile_Density_Task, Dark_Matter_Profile_Density,Dark_Matter_Profile_Rotation_Curve_Task,&
-       & Dark_Matter_Profile_Enclosed_Mass_Task,Dark_Matter_Profile_Freefall_Radius&
-       &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate
+       & Dark_Matter_Profile_Density_Task, Dark_Matter_Profile_Density,Dark_Matter_Profile_Rotation_Curve_Task&
+       &,Dark_Matter_Profile_Potential_Task, Dark_Matter_Profile_Enclosed_Mass_Task,Dark_Matter_Profile_Freefall_Radius &
+       &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate,Dark_Matter_Profile_Rotation_Curve_Gradient_Task
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: darkMatterProfileInitialized=.false.
@@ -401,5 +401,58 @@ contains
     componentDensity=Dark_Matter_Profile_Density(thisNode,positionSpherical(1))
     return
   end subroutine Dark_Matter_Profile_Density_Task
+
+  !# <rotationCurveGradientTask>
+  !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</unitName>
+  !# </rotationCurveGradientTask>
+  subroutine Dark_Matter_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,massType,componentType,componentRotationCurveGradient)
+    !% Computes the rotation curve gradient for the dark matter.
+    use Tree_Nodes
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentRotationCurveGradient
+    double precision                         :: positionSpherical(3),componentMass,componentDensity
+
+    ! Set to zero by default.
+    componentRotationCurveGradient=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
+    if (.not.(     massType == massTypeAll      .or.      massType == massTypeDark         )) return
+    if (radius <= 0.0d0) return
+    positionSpherical=[radius,0.0d0,0.0d0]
+    call Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius           ,massType,componentType,weightByMass,weightIndexNull,componentMass   )
+    call Dark_Matter_Profile_Density_Task      (thisNode,positionSpherical,massType,componentType                             ,componentDensity)
+    if (componentMass ==0.0d0 .or. componentDensity == 0.0d0) return
+    componentRotationCurveGradient = gravitationalConstantGalacticus    &
+                 &                  *(-componentMass/radius**2          &
+                 &                    +4.0d0*Pi*radius*componentDensity &
+                 &                   )  
+    return
+  end subroutine Dark_Matter_Profile_Rotation_Curve_Gradient_Task
+
+  !# <potentialTask>
+  !#  <unitName>Dark_Matter_Profile_Potential_Task</unitName>
+  !# </potentialTask>
+  subroutine Dark_Matter_Profile_Potential_Task(thisNode,radius,componentType,massType,componentPotential)
+    !% Return the potential due to dark matter.
+    use Galactic_Structure_Options
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: componentType,massType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentPotential
+
+    componentPotential=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
+
+    componentPotential=Dark_Matter_Profile_Potential(thisNode,radius)
+    return
+  end subroutine Dark_Matter_Profile_Potential_Task
 
 end module Dark_Matter_Profiles

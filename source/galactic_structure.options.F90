@@ -67,19 +67,21 @@ module Galactic_Structure_Options
   public
 
   ! Values used to represent different mass types.
-  integer,          parameter :: massTypeAll     =0
-  integer,          parameter :: massTypeDark    =1
-  integer,          parameter :: massTypeBaryonic=2
-  integer,          parameter :: massTypeGalactic=3
-  integer,          parameter :: massTypeGaseous =4
-  integer,          parameter :: massTypeStellar =5
+  integer,          parameter :: massTypeAll      =0
+  integer,          parameter :: massTypeDark     =1
+  integer,          parameter :: massTypeBaryonic =2
+  integer,          parameter :: massTypeGalactic =3
+  integer,          parameter :: massTypeGaseous  =4
+  integer,          parameter :: massTypeStellar  =5
+  integer,          parameter :: massTypeBlackHole=6
 
   ! Values used to represent different component types.
-  integer,          parameter :: componentTypeAll     =0
-  integer,          parameter :: componentTypeDisk    =1
-  integer,          parameter :: componentTypeSpheroid=2
-  integer,          parameter :: componentTypeHotHalo =3
-  integer,          parameter :: componentTypeDarkHalo=4
+  integer,          parameter :: componentTypeAll      =0
+  integer,          parameter :: componentTypeDisk     =1
+  integer,          parameter :: componentTypeSpheroid =2
+  integer,          parameter :: componentTypeHotHalo  =3
+  integer,          parameter :: componentTypeDarkHalo =4
+  integer,          parameter :: componentTypeBlackHole=5
 
   ! Coordinate system options.
   integer,          parameter :: coordinateSystemSpherical  =1

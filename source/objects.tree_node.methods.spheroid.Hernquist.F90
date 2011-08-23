@@ -75,7 +75,8 @@ module Tree_Node_Methods_Hernquist_Spheroid
        & Hernquist_Spheroid_Radius_Solver, Hernquist_Spheroid_Enclosed_Mass, Hernquist_Spheroid_Density,&
        & Hernquist_Spheroid_Rotation_Curve, Tree_Node_Spheroid_Post_Evolve_Hernquist, Tree_Node_Methods_Hernquist_Spheroid_Dump,&
        & Hernquist_Spheroid_Radius_Solver_Plausibility, Hernquist_Spheroid_Scale_Set,&
-       & Hernquist_Spheroid_Star_Formation_History_Output, Hernquist_Spheroid_Property_Identifiers_Decode
+       & Hernquist_Spheroid_Star_Formation_History_Output, Hernquist_Spheroid_Property_Identifiers_Decode&
+       &,Hernquist_Spheroid_Potential,Hernquist_Spheroid_Rotation_Curve_Gradient
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
@@ -1524,6 +1525,69 @@ contains
     end if
     return
   end subroutine Hernquist_Spheroid_Rotation_Curve
+
+  !# <rotationCurveGradientTask>
+  !#  <unitName>Hernquist_Spheroid_Rotation_Curve_Gradient</unitName>
+  !# </rotationCurveGradientTask>
+  subroutine Hernquist_Spheroid_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,componentRotationCurveGradient)
+    !% Computes the rotation curve gradient for the Hernquist spheroid.
+    use Tree_Nodes
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentRotationCurveGradient
+    double precision                         :: positionSpherical(3),componentMass,componentDensity
+
+    ! Set to zero by default.
+    componentRotationCurveGradient=0.0d0
+    if (.not.methodSelected                           ) return
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+    if (.not.(massType == massTypeAll .or. massType == massTypeBaryonic .or. massType == massTypeGalactic &
+                                 &    .or. massType == massTypeGaseous  .or. massType == massTypeStellar )) return
+    if (.not.thisNode%componentExists(componentIndex)) return
+    if (Hernquist_Spheroid_Radius(thisNode) <= 0.0d0) return
+    if (radius <= 0.0d0) return
+    positionSpherical = [radius,0.0d0,0.0d0]
+    call Hernquist_Spheroid_Enclosed_Mass(thisNode,radius           ,massType,componentType,weightByMass,weightIndexNull,componentMass   )
+    call Hernquist_Spheroid_Density      (thisNode,positionSpherical,massType,componentType                             ,componentDensity)
+    if (componentMass ==0.0d0 .or. componentDensity == 0.0d0 ) return
+    componentRotationCurveGradient= gravitationalConstantGalacticus    &
+                 &                 *(-componentMass/radius**2          &
+                 &                   +4.0d0*Pi*radius*componentDensity &
+                 &                  ) 
+    return
+  end subroutine Hernquist_Spheroid_Rotation_Curve_Gradient
+
+  !# <potentialTask>
+  !#  <unitName>Hernquist_Spheroid_Potential</unitName>
+  !# </potentialTask>
+  subroutine Hernquist_Spheroid_Potential(thisNode,radius,componentType,massType,componentPotential)
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
+    !% Return the potential due to the Hernquist spheroid.
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: componentType,massType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentPotential
+    double precision                         :: componentMass
+
+    componentPotential=0.0d0
+    if (.not.methodSelected                           ) return
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+    if (.not.thisNode%componentExists(componentIndex)) return
+
+    call Hernquist_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,componentMass)
+    if (componentMass <= 0.0d0) return
+    componentPotential=-gravitationalConstantGalacticus              &
+         &             *componentMass                                &
+         &             /(Hernquist_Spheroid_Radius(thisNode)+radius)
+    return
+  end subroutine Hernquist_Spheroid_Potential
 
   !# <densityTask>
   !#  <unitName>Hernquist_Spheroid_Density</unitName>

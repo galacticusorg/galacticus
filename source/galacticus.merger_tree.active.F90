@@ -59,50 +59,15 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a program to test integration routines.
+!% Contains a module which provides details of the active merger tree.
 
-program Test_Integration
-  !% Tests that numerical integration routines work.
-  use, intrinsic :: ISO_C_Binding
-  use Unit_Tests
-  use Numerical_Integration
-  use FGSL
-  use Test_Integration_Functions
-  use Numerical_Constants_Math
+module Merger_Tree_Active
+  !% Contains details of the active merger tree.
   implicit none
-  double precision                 :: integral
-  type(fgsl_function)              :: integrandFunction
-  type(fgsl_integration_workspace) :: integrationWorkspace
-  type(c_ptr)                      :: parameterPointer
-  logical                          :: integrationReset
+  private
 
-  ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Numerical integration")
-
-  ! Test simple integrations.
-  integrationReset=.true.
-  integral=Integrate(0.0d0,1.0d0,Integrand1,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=x from 0 to 1",integral,0.5d0,relTol=1.0d-6)
-
-  integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand2,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=sin(x) from 0 to 2 Pi",integral,0.0d0,absTol=1.0d-6)
-
-  integrationReset=.true.
-  integral=Integrate(0.0d0,10.0d0,Integrand3,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x)=1/sqrt(x) from 0 to 10",integral,2.0d0*sqrt(10.0d0),relTol=1.0d-6)
-
-  ! Test 2D integrations.
-  integrationReset=.true.
-  integral=Integrate(0.0d0,2.0d0*Pi,Integrand4,parameterPointer,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
-  call Assert("integrate f(x,y)=cos(x)*y from x=0 to 2 Pi and y=0 to x",integral,2.0d0*Pi,relTol=1.0d-6)
-
-  ! End unit tests.
-  call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
-end program Test_Integration
+  ! Public pointer to the active tree.
+  double precision, public :: activeTreeWeight
+  !$omp threadprivate(activeTreeWeight)
+  
+end module Merger_Tree_Active
