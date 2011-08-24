@@ -91,7 +91,9 @@ sub Count_Trees {
     my $dataBlock = shift;
     unless ( exists($dataBlock->{'mergerTreesAvailable'}) ) {
 	&Open_File($dataBlock);
-	my $treesAvailable = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'})->dataset("mergerTreeIndex")->get;
+	my $outputIndex = 1;
+	$outputIndex = $dataBlock->{'output'} if ( exists($dataBlock->{'output'}) );
+	my $treesAvailable = $dataBlock->{'hdf5File'}->group("Outputs/Output".$outputIndex)->dataset("mergerTreeIndex")->get;
 	@{$dataBlock->{'mergerTreesAvailable'}} = $treesAvailable->list();
     }
 }
