@@ -149,7 +149,7 @@
   </parameter>
   <parameter>
     <name>effectiveNumberNeutrinos</name>
-    <value>4.34</value>
+    <value>3.04</value>
   </parameter>
   <parameter>
     <name>galacticStructureRadiusSolverMethod</name>
