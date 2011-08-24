@@ -2,7 +2,7 @@
 
 This chapter contains step-by-step guides to performing common tasks with \glc.
 
-\section{Running \glc\ on N-body Merger Trees}\index{merger trees!N-body}\index{N-body!merger trees}
+\section{Running \glc\ on N-body Merger Trees}\label{sec:nBodyRun}\index{merger trees!N-body}\index{N-body!merger trees}
 
 \subsection{Creating the Merger Tree Files}
 
@@ -198,3 +198,46 @@ Components of the position of each node are output as {\tt positionX}, {\tt posi
 \subsubsection{Subhalo Masses}
 
 The current mass of subhalos is available via the {\tt nodeBoundMass} otuput dataset and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}). For non-subhalos this property is equal to the usual {\tt nodeMass} property.
+
+\section{Generating Mock Catalogs with Lightcones from the Millennium Simulation}\index{lightcone}\index{Millennium Simulation}\index{mock catalog}
+
+Suppose that you want to create a catalog of galaxies as would be found in a survey of an area of the sky out to some redshift. Such a ``mock catalog'' can be built by populating with galaxies all of the dark matter halos which happen to lie within the cone which that area makes as it is projected from the observer through the Universe.
+
+Generating such a mock catalog using \glc\ involves first extracting the halos (and their merger trees) within this ``lightcone'' from a suitable N-body simulation, and then processing them through \glc. In this tutorial, we will specifically make use of the \href{http://gavo.mpa-garching.mpg.de/MyMillennium3/MyDB}{Millennium Simulation database} to provide the merger trees, but the same principles apply to any N-body simulation.
+
+The script, {\tt scripts/aux/Millennium\_Lightcone\_Grab.pl} can be used to retrieve merger trees that intersect a given lightcone from the Millennium Database and to store them in \glc's format (see \S\ref{sec:MergerTreeFileFormat}). The script is used as follows:
+\begin{verbatim}
+scripts/aux/Millennium_Lightcone_Grab.pl <lightconeDirectory> <fieldSize> <maximumRedshift>
+    --user <myUserName> --password <myPassword> --treesPerFile <treesPerFile>
+\end{verbatim}
+Here, {\tt \textless lightconeDirectory\textgreater} is the name of a (pre-existing) directory into which merger tree data will be stored, {\tt \textless fieldSize\textgreater} is the length (in degrees) of one side of the square field of view of the lightcone, {\tt \textless maximumRedshift\textgreater} is the highist redshift for which halos should be included in the catalog. The {\tt --user} and {\tt --password} options allow you to specify your username and password for accessing the Millennium Simulation database. Finally, the {\tt --treesPerFile} specifies how many merger trees should be stored in each file (the script will split the lightcone between many files---this is primarily so that each request sent to the Millennium Database server is not too large). If no value is specified a default of 200 trees per file will be used.
+
+The script generates multiple SQL queries to the Millennium database in order to first find all halos which intersect the lightcone and second to retrieve the complete merger tree associated with each such halo. These merger trees are then stored in \glc's merger tree file format in files named {\tt Lightcone\_Trees\_AAA:BBB.hdf5} in the given {\tt \textless lightconeDirectory\textgreater}, where {\tt AAA} and {\tt BBB} are numbers giving the first and last trees in the file\footnote{Note that these are not the ID numbers of the trees, just a sequential count of all trees retrieved.}
+
+Each of the merger tree files created can then be run through \glc\ in the usual way (see \S\ref{sec:nBodyRun}).  Outputs should be requested at every Millennium snapshot (up to the largest redshift to be considered), and the {\tt lightcone} filter should be used to cause only those galaxies which intersect the lightcone to be output---for example:
+\begin{verbatim}
+<!-- Set output redshifts to the snapshots in the milliMillennium. -->                                                                                                
+<parameter>
+  <name>outputRedshifts</name>
+  <value>
+    0.0000 0.0199 0.0414 0.0645 0.0893 0.1159 0.1444 0.1749 0.2075 0.2425
+    0.2798 0.3197 0.3623 0.4079 0.4566 0.5086 0.5642 0.6236 0.6871 0.7550
+    0.8277 0.9055 0.9887 1.0779 1.1734 1.2758 1.3857 1.5036 1.6303 1.7663
+    1.9126 2.0700 2.2395 2.4220 2.6189 2.8312 3.0604 3.3081 3.5759 3.8657
+    4.1795 4.5196 4.8884 5.2888 5.7239 6.1968
+  </value>
+</parameter>
+
+<!-- Add a lightcone filter with the required geometry -->                                                                    
+<parameter>
+  <name>mergerTreeOutputFilters</name>
+  <value>lightcone</value>
+</parameter>
+<parameter>
+  <name>filterLightconeGeometryFileName</name>
+  <value>lightconeDirectory/geometry.xml</value>
+</parameter>                                                                                                                                                          
+\end{verbatim}
+where the {\tt geometry.xml} file will have been automatically created within the {\tt \textless lightconeDirectory\textgreater} directory.
+
+Selecting the lightcone filter automatically causes lightcone coordinate information (i.e. the position and velocity of each galaxy in a coordinate system with axes aligned along the line of sight of the lightcone and parallel to the two edges of the square field of view) to be output (see \S\ref{sec:OutputLightcone}). The redshift of each galaxy is also output.

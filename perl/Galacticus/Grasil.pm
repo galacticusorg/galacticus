@@ -63,6 +63,8 @@ sub Get_Flux {
     my $fluctuatingTemperatures = "1.0";
     my $wavelengthCount         = 400;
     my $radialGridCount         = 40;
+    my $dustToMetalsRatio       = 0.61;
+    my $recomputeSEDs           = 0;
     if ( exists($dataSet->{'grasilOptions'}->{'includePAHs'}) ) {
     	if ( $dataSet->{'grasilOptions'}->{'includePAHs'} == 1 ) {
     	    $includePAHs = "1.0";
@@ -77,8 +79,10 @@ sub Get_Flux {
     	    $fluctuatingTemperatures = "0.0";
     	}
     }
-    $wavelengthCount = $dataSet->{'grasilOptions'}->{'wavelengthCount'} if ( exists($dataSet->{'grasilOptions'}->{'wavelengthCount'}) );
-    $radialGridCount = $dataSet->{'grasilOptions'}->{'radialGridCount'} if ( exists($dataSet->{'grasilOptions'}->{'radialGridCount'}) );
+    $wavelengthCount   = $dataSet->{'grasilOptions'}->{'wavelengthCount'  } if ( exists($dataSet->{'grasilOptions'}->{'wavelengthCount'  }) );
+    $radialGridCount   = $dataSet->{'grasilOptions'}->{'radialGridCount'  } if ( exists($dataSet->{'grasilOptions'}->{'radialGridCount'  }) );
+    $dustToMetalsRatio = $dataSet->{'grasilOptions'}->{'dustToMetalsRatio'} if ( exists($dataSet->{'grasilOptions'}->{'dustToMetalsRatio'}) );
+    $recomputeSEDs     = $dataSet->{'grasilOptions'}->{'recomputeSEDs'    } if ( exists($dataSet->{'grasilOptions'}->{'recomputeSEDs'    }) );
 
     # Determine the number of CPUs available.
     my $cpuCount = Sys::CPU::cpu_count();
@@ -134,16 +138,18 @@ sub Get_Flux {
 	my $inclinationDatasetName = "grasilSEDs/Output".$outputIndex."/mergerTree".$mergerTreeIndex."/node".$nodeIndex."/inclination";
 	my $wavelength;
 	my $SED;
-	unless ( my $testID = $dataSet->{'hdf5File'}->dataset($grasilDatasetName)->IDget() ) {
+	unless ( my $testID = $dataSet->{'hdf5File'}->dataset($grasilDatasetName)->IDget() && $recomputeSEDs == 0 ) {
+
 	    # Get a queue number for this galaxy.
 	    my $queueNumber = 1+$#grasilQueue;
 
 	    # Extract the star formation history for this galaxy.
-	    &Grasil::Extract_Star_Formation_History($dataSet,$outputIndex,$mergerTreeIndex,$nodeIndex,"grasilTmp".$queueNumber."/grasil".$queueNumber.".dat");
+	    system("mkdir -p grasilTmp_".$$."_".$queueNumber);
+	    &Grasil::Extract_Star_Formation_History($dataSet,$outputIndex,$mergerTreeIndex,$nodeIndex,"grasilTmp_".$$."_".$queueNumber."/grasil".$queueNumber.".dat");
 
 	    # Generate a parameter file for Grasil.
 	    open(iHndl,"data/grasilBaseParameters.txt");
-	    open(oHndl,">grasilTmp".$queueNumber."/grasil".$queueNumber.".par");
+	    open(oHndl,">grasilTmp_".$$."_".$queueNumber."/grasil".$queueNumber.".par");
 	    my $inInclinations = 0;
 	    $inclinations = pdl [];
 	    while ( my $line = <iHndl> ) {
@@ -151,6 +157,7 @@ sub Get_Flux {
 		$line =~ s/^(\s*flutflag\s+)[\d\.]+/$1$fluctuatingTemperatures/;
 		$line =~ s/^(\s*nlf\s+)\d+/$1$wavelengthCount/;
 		$line =~ s/^(\s*ndr\s+)\d+/$1$radialGridCount/;
+		$line =~ s/^(\s*dsug\s+)[\d\.]+/$1$dustToMetalsRatio/;
 		if ( $inInclinations == 1 ) {
 		    if ( $line =~ m/^([\d\.]+)/ ) { 
 			$inclinations = $inclinations->append($1);
@@ -166,11 +173,10 @@ sub Get_Flux {
 	    
 	    # Add this galaxy to the queue for processing by Grasil.
 	    $grasilQueue[$queueNumber] = {
-		grasilFilesRoot => "grasilTmp".$queueNumber."/grasil".$queueNumber,
+		grasilFilesRoot => "grasilTmp_".$$."_".$queueNumber."/grasil".$queueNumber,
 		galaxyIndex     => $i,
 		nodeGroup       => $nodeGroup
 	    };
-	    system("mkdir -p grasilTmp".$queueNumber);
 
 	    # Process through Grasil if the queue is full.
 	    if ( $#grasilQueue >= $cpuCount-1 ) {
@@ -492,6 +498,7 @@ sub Compute_Flux {
     
     # Store in the dataset.
     $dataSets->{$dataSetName}->index($i) .= $flux;
+
 }
 
 sub Process_Through_Grasil {
@@ -514,46 +521,58 @@ sub Process_Through_Grasil {
 
     # Read the data from the processed galaxies.
     foreach my $galaxy ( @{$grasilQueue} ) {
-	
-	# Count number of wavelengths in output file.
-	my $wavelengthCount = 0;
-	open(iHndl,$galaxy->{'grasilFilesRoot'}.".spe");
-	while ( my $line = <iHndl> ) {
-	    ++$wavelengthCount unless ( $line =~ m/^\#/ );
-	}
-	close(iHndl);
 
-	# Parse and store the output SEDs.
-	my $wavelength   = pdl zeroes(                     $wavelengthCount);
-	my $SED          = pdl zeroes(nelem($inclinations),$wavelengthCount);
-	my $iInclination = -1;
-	foreach my $inclination ( $inclinations->list() ) {
-	    ++$iInclination;
-	    my $iWavelength = -1;
-	    open(iHndl,$galaxy->{'grasilFilesRoot'}.".".$inclination);
+	# Check that Grasil completed.	
+	if ( -e $galaxy->{'grasilFilesRoot'}.".spe" ) {
+
+	    # Count number of wavelengths in output file.
+	    my $wavelengthCount = 0;
+	    open(iHndl,$galaxy->{'grasilFilesRoot'}.".spe");
 	    while ( my $line = <iHndl> ) {
-		unless ( $line =~ m/^\#/ ) {
-		    ++$iWavelength;
-		    $line =~ s/^\s*//;
-		    $line =~ s/\s*$//;
-		    my @columns = split(/\s+/,$line);
-		    $wavelength(                ($iWavelength)) .= $columns[0];
-		    $SED       (($iInclination),($iWavelength)) .= $columns[5];
-		}
+		++$wavelengthCount unless ( $line =~ m/^\#/ );
 	    }
 	    close(iHndl);
+	    
+	    # Parse and store the output SEDs.
+	    my $wavelength   = pdl zeroes(                     $wavelengthCount);
+	    my $SED          = pdl zeroes(nelem($inclinations),$wavelengthCount);
+	    my $iInclination = -1;
+	    foreach my $inclination ( $inclinations->list() ) {
+		++$iInclination;
+		my $iWavelength = -1;
+		open(iHndl,$galaxy->{'grasilFilesRoot'}.".".$inclination);
+		while ( my $line = <iHndl> ) {
+		    unless ( $line =~ m/^\#/ ) {
+			++$iWavelength;
+			$line =~ s/^\s*//;
+			$line =~ s/\s*$//;
+			my @columns = split(/\s+/,$line);
+			$wavelength(                ($iWavelength)) .= $columns[0];
+			$SED       (($iInclination),($iWavelength)) .= $columns[5];
+		    }
+		}
+		close(iHndl);
+	    }
+	    my $wavelengthDataset  = new PDL::IO::HDF5::Dataset( name => "wavelength",  parent => $galaxy->{'nodeGroup'}, 
+								 fileObj => $dataSet->{'hdf5File'});
+	    my $sedDataset         = new PDL::IO::HDF5::Dataset( name => "SED",         parent => $galaxy->{'nodeGroup'}, 
+								 fileObj => $dataSet->{'hdf5File'});
+	    my $inclinationDataset = new PDL::IO::HDF5::Dataset( name => "inclination", parent => $galaxy->{'nodeGroup'}, 
+								 fileObj => $dataSet->{'hdf5File'});
+	    $wavelengthDataset ->set($wavelength  );
+	    $sedDataset        ->set($SED         );
+	    $inclinationDataset->set($inclinations);
+	    
+	    # Using the SED, compute the flux and store it.
+	    &Compute_Flux($wavelength,$SED,$inclinations,$observedWavelength,$dataSets,$dataSetName,$galaxy->{'galaxyIndex'});
+	    
+	    # Remove the folder.
+	    system("rm -rf `dirname ".$galaxy->{'grasilFilesRoot'}."`");
+
+	} else {
+	    # Grasil did not complete.
+	    print "Galacticus::Grasil - Grasil appears to have failed for ".$galaxy->{'grasilFilesRoot'}."\n";
+	    system("mv `dirname ".$galaxy->{'grasilFilesRoot'}."` `dirname ".$galaxy->{'grasilFilesRoot'}."_".$galaxy->{'galaxyIndex'}."`");
 	}
-	my $wavelengthDataset  = new PDL::IO::HDF5::Dataset( name => "wavelength",  parent => $galaxy->{'nodeGroup'}, 
-							     fileObj => $dataSet->{'hdf5File'});
-	my $sedDataset         = new PDL::IO::HDF5::Dataset( name => "SED",         parent => $galaxy->{'nodeGroup'}, 
-							     fileObj => $dataSet->{'hdf5File'});
-	my $inclinationDataset = new PDL::IO::HDF5::Dataset( name => "inclination", parent => $galaxy->{'nodeGroup'}, 
-							     fileObj => $dataSet->{'hdf5File'});
-	$wavelengthDataset ->set($wavelength  );
-	$sedDataset        ->set($SED         );
-	$inclinationDataset->set($inclinations);
-		   
-	# Using the SED, compute the flux and store it.
-	&Compute_Flux($wavelength,$SED,$inclinations,$observedWavelength,$dataSets,$dataSetName,$galaxy->{'galaxyIndex'});
     }
 }

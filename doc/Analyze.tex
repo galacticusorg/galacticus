@@ -419,10 +419,12 @@ A more automated way to compute fluxes using {\tt Grasil} is to use the {\tt Gal
 
 The module will automatically run {\sc Grasil} using the parameters given in {\tt data/grasilBaseParameters.txt}, subject the modifications specified in the {\tt grasilOptions} element of {\tt \$dataBlock}. Allowed options are:
 \begin{description}
+ \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'dustToMetalsRatio\}}] Sets the dust to metals ratio used in {\sc Grasil};
  \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'includePAHs'\}}] Set to 0/1 to switch off/on calculations of PAH features in {\sc Grasil};
  \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'fluctuatingTemperatures'\}}] Set to 0/1 to switch off/on calculations of fluctuating dust grain temperatures in {\sc Grasil};
  \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'wavelengthCount'\}}] Specifies the number of wavelengths to use in calculating radiative transfer (i.e. the ``{\tt nlf}'' parameter in {\sc Grasil});
  \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'radialGridCount'\}}] Specifies the number of radial grid cells to use in calculating radiative transfer (i.e. the ``{\tt ndr}'' parameter in {\sc Grasil}).
+ \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'recomputeSEDs\}}] If set to 1, SEDs will be computed for all galaxies even if they have been previously computed. (This can be useful to recompute SEDs with different options passed to {\sc Grasil} for example.) Set to 0 to re-use previously computed SEDs.
  \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'maxThreads\}}] Specifies the number of parallel threads to launch, each of which will run an instance of {\sc Grasil}. If not specified this number will default to the number of available cores.
 \end{description}
 Where possible, multiple instances of {\sc Grasil} are run in parallel to speed up the calculation.
