@@ -35,8 +35,8 @@ sub Compute_Power_Spectrum {
     # Compute the power spectrum of a selection of galaxies, using the halo model.
 
     # Get the data hash and indices of selected galaxies.
-    my $dataHash = shift;
-    my $selected = shift;
+    my $dataBlock = shift;
+    my $selected  = shift;
     if ( $#_ >= 1 ) {(%options) = @_};
 
     # Check that some galaxies were selected.
@@ -54,15 +54,15 @@ sub Compute_Power_Spectrum {
     }
 
     # Open the file.
-    my $HDFfile = new PDL::IO::HDF5(${$dataHash}{'file'});
+    &HDF5::Open_File($dataBlock);
 
     # Read the linear power spectrum.
-    my $waveNumber          = $HDFfile->group("haloModel")->dataset("wavenumber"   )->get;
-    my $linearPowerSpectrum = $HDFfile->group("haloModel")->dataset("powerSpectrum")->get;
+    my $waveNumber          = $dataBlock->{'hdf5File'}->group("haloModel")->dataset("wavenumber"   )->get;
+    my $linearPowerSpectrum = $dataBlock->{'hdf5File'}->group("haloModel")->dataset("powerSpectrum")->get;
 
     # Get the linear growth factor for this output.
-    my @growthFactor              = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->attrGet("linearGrowthFactor"             );
-    my @growthFactorLogDerivative = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->attrGet("linearGrowthFactorLogDerivative");
+    my @growthFactor              = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'})->attrGet("linearGrowthFactor"             );
+    my @growthFactorLogDerivative = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'})->attrGet("linearGrowthFactorLogDerivative");
 
     # Scale the power spectrum by the growth factor.
     $linearPowerSpectrum *= $growthFactor[0]**2;
@@ -70,8 +70,8 @@ sub Compute_Power_Spectrum {
     # Get galaxy data.
     @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','volumeWeight','nodeBias');
     if ( $redshiftSpace == 1 ) {push(@properties,'nodeVirialVelocity','nodeVirialRadius','nodeMass')};
-    &HDF5::Get_Dataset($dataHash,\@properties);
-    my $dataSets = $dataHash->{'dataSets'};
+    &HDF5::Get_Dataset($dataBlock,\@properties);
+    my $dataSets = $dataBlock->{'dataSets'};
 
     # Acquire data on profiles and occupancy.
     undef($occupancy);
@@ -80,7 +80,7 @@ sub Compute_Power_Spectrum {
 	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
 	# Read Fourier profiles of all relevant dark matter halos.
 	unless ( exists($profiles->{$treeIndex}->{$hostIndex}) ) {
-	    $profiles->{$treeIndex}->{$hostIndex} = $HDFfile->group("haloModel/Output".${$dataHash}{'output'}."/mergerTree".$treeIndex)->dataset("fourierProfile".$hostIndex)->get;
+	    $profiles->{$treeIndex}->{$hostIndex} = $dataBlock->{'hdf5File'}->group("haloModel/Output".$dataBlock->{'output'}."/mergerTree".$treeIndex)->dataset("fourierProfile".$hostIndex)->get;
 	}
 	# Compute occupancy of isolated halos.
 	++$occupancy->{$treeIndex}->{$hostIndex};
@@ -92,12 +92,12 @@ sub Compute_Power_Spectrum {
     # Compute redshift space terms if required.
     if ( $redshiftSpace == 1 ) {
 	# Compute the Hubble parameter at the selected redshift.
-	$expansionFactor = ${$dataHash->{'outputs'}->{'expansionFactor'}}->index(${$dataHash}{'output'}-1);
-	$hubble = ${$dataHash}{'parameters'}->{'H_0'}
+	$expansionFactor = $dataBlock->{'outputs'}->{'expansionFactor'}->index($dataBlock->{'output'}-1);
+	$hubble = $dataBlock->{'parameters'}->{'H_0'}
 	*sqrt(
-	    ${$dataHash}{'parameters'}->{'Omega_Matter'}/($expansionFactor**3)
-	    +${$dataHash}{'parameters'}->{'Omega_DE'}
-	    +(1.0-${$dataHash}{'parameters'}->{'Omega_Matter'}-${$dataHash}{'parameters'}->{'Omega_DE'})/($expansionFactor**2)
+	    $dataBlock->{'parameters'}->{'Omega_Matter'}/($expansionFactor**3)
+	    +$dataBlock->{'parameters'}->{'Omega_DE'}
+	    +(1.0-$dataBlock->{'parameters'}->{'Omega_Matter'}-$dataBlock->{'parameters'}->{'Omega_DE'})/($expansionFactor**2)
 	    );
 	# Compute the growth rate (the quantity often approximated as f(Omega)=Omega^0.6 at z=0).
 	$growthRate = $growthFactorLogDerivative[0];
