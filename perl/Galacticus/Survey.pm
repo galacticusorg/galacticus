@@ -38,7 +38,7 @@ sub Get_SurveyProperties {
 	# Initialize a cosmology.
 	my $cosmology = Astro::Cosmology->new(
 					      omega_matter => $dataBlock->{'parameters'}->{'Omega_Matter' },
-					      omega_lambda => $dataBlock->{'parameters'}->{'Lambda_0'},
+					      omega_lambda => $dataBlock->{'parameters'}->{'Omega_DE'},
 					      H0           => $dataBlock->{'parameters'}->{'H_0'     }
 					      );
 	

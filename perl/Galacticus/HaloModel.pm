@@ -96,8 +96,8 @@ sub Compute_Power_Spectrum {
 	$hubble = ${$dataHash}{'parameters'}->{'H_0'}
 	*sqrt(
 	    ${$dataHash}{'parameters'}->{'Omega_Matter'}/($expansionFactor**3)
-	    +${$dataHash}{'parameters'}->{'Lambda_0'}
-	    +(1.0-${$dataHash}{'parameters'}->{'Omega_Matter'}-${$dataHash}{'parameters'}->{'Lambda_0'})/($expansionFactor**2)
+	    +${$dataHash}{'parameters'}->{'Omega_DE'}
+	    +(1.0-${$dataHash}{'parameters'}->{'Omega_Matter'}-${$dataHash}{'parameters'}->{'Omega_DE'})/($expansionFactor**2)
 	    );
 	# Compute the growth rate (the quantity often approximated as f(Omega)=Omega^0.6 at z=0).
 	$growthRate = $growthFactorLogDerivative[0];
