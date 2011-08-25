@@ -253,6 +253,18 @@ sub Launch_Models {
 			$condorEnvironment            =   $modelsToRun->{'condor'}->{'environment'        }  if ( exists($modelsToRun->{'condor'}->{'environment'        }) );
 			my @condorRequirements;
 			@condorRequirements           = @{$modelsToRun->{'condor'}->{'requirement'        }} if ( exists($modelsToRun->{'condor'}->{'requirement'        }) );
+			my @condorTransferFiles       = ( $pwd."/Galacticus.exe", "newParameters.xml" );
+			if ( exists($modelsToRun->{'condor'}->{'transferFile'}) ) {
+			    if ( UNIVERSAL::isa($modelsToRun->{'condor'}->{'transferFile'},"ARRAY") ) {
+				push(@condorTransferFiles,@{$modelsToRun->{'condor'}->{'transferFile'}});
+			    } else {
+				push(@condorTransferFiles,$modelsToRun->{'condor'}->{'transferFile'});             
+			    }
+			    foreach ( @condorTransferFiles ) {
+				$_ =~ s/{PWD}/$pwd/;
+			    }
+			}
+
 			# Create the script that Condor will execute.
 			my $condorScript = "condor_run_".$modelCounter."_".$$.".csh";
 			open(oHndl,">".$condorScript);
@@ -276,7 +288,7 @@ sub Launch_Models {
 			print oHndl "InitialDir              = ".$galacticusOutputDirectory."\n";
 			print oHndl "Should_Transfer_Files   = YES\n";
 			print oHndl "When_To_Transfer_Output = ON_EXIT\n";
-			print oHndl "Transfer_Input_Files    = ".$pwd."/Galacticus.exe,newParameters.xml\n";
+			print oHndl "Transfer_Input_Files    = ".join(",",@condorTransferFiles)."\n";
 			print oHndl "Universe                = ".$condorUniverse."\n";
 			print oHndl "Allow_Startup_Script    = True\n" if ( $condorUniverse eq "standard" );
 			print oHndl "Environment             = ".$condorEnvironment."\n" unless ( $condorEnvironment eq "" );

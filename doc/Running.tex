@@ -103,6 +103,7 @@ The {\tt runFile} is an XML file with the following structure:
    <universe>vanilla</universe>
    <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
    <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
+   <transferFile>{PWD}/myFile.data</transferFile>
  </condor>
  <parameters>
   <label>modelLabel</label>
@@ -151,6 +152,7 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt universe}] Specifies to which {\sc Condor} universe jobs should be submitted. Allowed options are ``vanilla'' and ``standard''. If the standard universe is to be used then \glc\ must have been linked with {\tt condor\_compile}---the {\tt Makefile} allows this if the relevant lines are uncommented;
 \item[{\tt environment}] Any settings here are passed to {\sc Condor}'s {\tt environment} option in order to set appropriate environment variables on the machine where a job is executed;
 \item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
+\item[{\tt transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\tt \{PWD\}} will be automatically expanded to the present working directory. Multiple {\tt transferFile} entries can be given.
 \end{description}
 \end{description}
 
