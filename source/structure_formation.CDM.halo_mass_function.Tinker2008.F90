@@ -207,7 +207,7 @@ contains
        mass=dexp(haloMassFunctionLogMass(iMass))
        sigma=sigma_CDM(mass)*growthFactor
        alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
-       haloMassFunctionLogAbundance(iMass)=(Omega_0()*Critical_Density()/mass**2)*alpha*normalization*dexp(-c/sigma**2)*(1.0d0+(b&
+       haloMassFunctionLogAbundance(iMass)=(Omega_Matter()*Critical_Density()/mass**2)*alpha*normalization*dexp(-c/sigma**2)*(1.0d0+(b&
             &/sigma)**a)
     end do
     where (haloMassFunctionLogAbundance > 0.0d0)

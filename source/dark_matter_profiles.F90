@@ -352,7 +352,7 @@ contains
        componentMass=Dark_Matter_Profile_Enclosed_Mass(thisNode,radius)
     end if
     ! Scale to account for just the dark component.
-    componentMass=componentMass*(Omega_0()-Omega_b())/Omega_0()
+    componentMass=componentMass*(Omega_Matter()-Omega_b())/Omega_Matter()
     return
   end subroutine Dark_Matter_Profile_Enclosed_Mass_Task
 

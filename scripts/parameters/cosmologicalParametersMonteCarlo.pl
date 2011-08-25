@@ -47,15 +47,15 @@ $deviates = grandom($parameterCount);
 $parameters = $mean + ($deviates x $choleskyDecomposed);
 
 # Compute required parameters.
-$Omega_0            = $parameters(($parameterMap{'omega_0'}))/($parameters(($parameterMap{'H_0'}))/100.0)**2;
-$Omega_DE           = 1.0-$Omega_0;
+$Omega_M            = $parameters(($parameterMap{'omega_M'}))/($parameters(($parameterMap{'H_0'}))/100.0)**2;
+$Omega_DE           = 1.0-$Omega_M;
 $Omega_b            = $parameters(($parameterMap{'omega_b'}))/($parameters(($parameterMap{'H_0'}))/100.0)**2;
 $sigma_8            = $parameters(($parameterMap{'sigma_8'}));
 $H_0                = $parameters(($parameterMap{'H_0'}));
 $powerSpectrumIndex = $parameters(($parameterMap{'n_s'}));
 
 # Construct data for XML output.
-${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "Omega_0"           , value => $Omega_0           ->list};
+${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "Omega_M"           , value => $Omega_M           ->list};
 ${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "Omega_DE"          , value => $Omega_DE          ->list};
 ${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "Omega_b"           , value => $Omega_b           ->list};
 ${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "sigma_8"           , value => $sigma_8           ->list};

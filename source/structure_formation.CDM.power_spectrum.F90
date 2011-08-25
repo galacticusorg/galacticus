@@ -103,7 +103,7 @@ contains
     ! If this function is called not via the sigma(M) normalization routines, then ensure that sigma has been initialized so that
     ! we have the correct normalization.
     if (.not.normalizingSigma) then
-       mass=(4.0d0*PI/3.0d0)*Omega_0()*Critical_Density()/waveNumber**3
+       mass=(4.0d0*PI/3.0d0)*Omega_Matter()*Critical_Density()/waveNumber**3
        logMass=dlog(mass)
        call Initialize_Sigma(logMass)
     end if
@@ -233,7 +233,7 @@ contains
           !@   </description>
           !@ </inputParameter>
           call Get_Input_Parameter('sigma_8',sigma_8_Value,defaultValue=0.807d0)
-          massNormalization=(4.0d0*PI/3.0d0)*Omega_0()*Critical_Density()*(radiusNormalization/Little_H_0())**3
+          massNormalization=(4.0d0*PI/3.0d0)*Omega_Matter()*Critical_Density()*(radiusNormalization/Little_H_0())**3
           sigmaNormalization=sigma_8_Value/sigma_CDM_Integral(massNormalization)
           sigmaNormalized=.true.
        end if
@@ -286,7 +286,7 @@ contains
     type(fgsl_integration_workspace)             :: integrationWorkspace
 
     parameterPointer=c_loc(topHatRadius)
-    topHatRadius=((3.0d0/4.0d0/Pi)*mass/Omega_0()/Critical_Density())**(1.0d0/3.0d0)
+    topHatRadius=((3.0d0/4.0d0/Pi)*mass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
     wavenumberMinimum=0.0d0/topHatRadius
     wavenumberMaximum=1.0d3/topHatRadius
     normalizingSigma=.true.

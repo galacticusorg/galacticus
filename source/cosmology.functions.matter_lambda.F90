@@ -121,7 +121,7 @@ contains
   !#  <unitName>Cosmology_Functions_Matter_Lambda_Initialize</unitName>
   !# </cosmologyMethod>
   subroutine Cosmology_Functions_Matter_Lambda_Initialize(cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
-       &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get &
+       &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get &
        &,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get&
        &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get)
     !% Initialize the module.
@@ -133,7 +133,7 @@ contains
     procedure(),                 pointer, intent(inout) :: Early_Time_Density_Scaling_Get
     procedure(logical),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get
     procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get &
-         &,Omega_Matter_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
+         &,Omega_Matter_Total_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
          &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get&
          &,Time_From_Comoving_Distance_Get
     double precision,            parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
@@ -151,7 +151,7 @@ contains
        Expansion_Factor_Get                     => Expansion_Factor_Matter_Lambda
        Hubble_Parameter_Get                     => Hubble_Parameter_Matter_Lambda
        Early_Time_Density_Scaling_Get           => Early_Time_Density_Scaling_Matter_Lambda
-       Omega_Matter_Get                         => Omega_Matter_Matter_Lambda
+       Omega_Matter_Total_Get                   => Omega_Matter_Total_Matter_Lambda
        Omega_Dark_Energy_Get                    => Omega_Dark_Energy_Matter_Lambda
        Expansion_Rate_Get                       => Expansion_Rate_Matter_Lambda
        Epoch_of_Matter_Dark_Energy_Equality_Get => Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda
@@ -175,31 +175,31 @@ contains
                 collapsingUniverse=.false.
              else
                 collapsingUniverse=.true.
-                aExpansionMax=-(Omega_0()*Omega_DE()**2)**(1.0d0/3.0d0)/Omega_DE()
+                aExpansionMax=-(Omega_Matter()*Omega_DE()**2)**(1.0d0/3.0d0)/Omega_DE()
              end if
           end if
        else
           if (Values_Agree(Omega_DE(),0.0d0,absTol=omegaTolerance)) then
              ! Simple case for a matter-only universe.
-             collapsingUniverse=Omega_0() > 1.0d0
-             if (collapsingUniverse) aExpansionMax=Omega_0()/(Omega_0()-1.0d0)
+             collapsingUniverse=Omega_Matter() > 1.0d0
+             if (collapsingUniverse) aExpansionMax=Omega_Matter()/(Omega_Matter()-1.0d0)
           else
              ! Case of matter plus dark energy.
              cubicTerm1 =1.0d0/Omega_DE()
-             cubicTerm5 =Omega_0()**2
+             cubicTerm5 =Omega_Matter()**2
              cubicTerm9 =Omega_DE()**2
-             cubicTerm21Squared=-(-0.12d2+0.36d2*Omega_0()+36.0d0*Omega_DE()-0.36d2*cubicTerm5-0.72d2*Omega_0()*Omega_DE()-36.0d0&
-                  &*cubicTerm9+0.12d2*cubicTerm5*Omega_0()-0.45d2*cubicTerm5*Omega_DE()+0.36d2*Omega_0()*cubicTerm9+12.0d0*cubicTerm9&
+             cubicTerm21Squared=-(-0.12d2+0.36d2*Omega_Matter()+36.0d0*Omega_DE()-0.36d2*cubicTerm5-0.72d2*Omega_Matter()*Omega_DE()-36.0d0&
+                  &*cubicTerm9+0.12d2*cubicTerm5*Omega_Matter()-0.45d2*cubicTerm5*Omega_DE()+0.36d2*Omega_Matter()*cubicTerm9+12.0d0*cubicTerm9&
                   &*Omega_DE())*cubicTerm1
              if (cubicTerm21Squared > 0.0d0) then
                 cubicTerm21=dsqrt(cubicTerm21Squared)
-                cubicTerm25Cubed=(-0.108d3*Omega_0()+0.12d2*cubicTerm21)*cubicTerm9
+                cubicTerm25Cubed=(-0.108d3*Omega_Matter()+0.12d2*cubicTerm21)*cubicTerm9
                 if (cubicTerm25Cubed >= 0.0d0) then
                    cubicTerm25=cubicTerm25Cubed**(1.0d0/3.0d0)
                 else
                    cubicTerm25=-dabs(cubicTerm25Cubed)**(1.0d0/3.0d0)
                 end if
-                aMaximum=cubicTerm1*cubicTerm25/0.6d1+0.2d1*(-0.1d1+Omega_0()+Omega_DE())/cubicTerm25
+                aMaximum=cubicTerm1*cubicTerm25/0.6d1+0.2d1*(-0.1d1+Omega_Matter()+Omega_DE())/cubicTerm25
                 collapsingUniverse=aMaximum > 0.0d0
                 if (collapsingUniverse) aExpansionMax=aMaximum
              end if
@@ -505,7 +505,7 @@ contains
        end if
     end if
     ! Compute the Hubble parameter at the specified expansion factor.
-    sqrtArgument=max(Omega_0()/aExpansionActual**3+Omega_DE()+Omega_K()/aExpansionActual**2,0.0d0)
+    sqrtArgument=max(Omega_Matter()/aExpansionActual**3+Omega_DE()+Omega_K()/aExpansionActual**2,0.0d0)
     Hubble_Parameter_Matter_Lambda=H_0()*dsqrt(sqrtArgument)
     ! Make the Hubble parameter negative if we are in the collapsing phase of the Universe.
     if (collapsingUniverse) then
@@ -534,7 +534,7 @@ contains
     aDominant=Epoch_of_Matter_Domination_Matter_Lambda(dominateFactor)
 
     ! Return the density parameter in the dominant species if required.
-    if (present(Omega_Dominant)) Omega_Dominant=Omega_0()
+    if (present(Omega_Dominant)) Omega_Dominant=Omega_Matter()
     return
   end subroutine Early_Time_Density_Scaling_Matter_Lambda
 
@@ -574,7 +574,7 @@ contains
     return
   end function Epoch_of_Matter_Domination_Matter_Lambda
 
-  double precision function Omega_Matter_Matter_Lambda(tCosmological,aExpansion,collapsingPhase)
+  double precision function Omega_Matter_Total_Matter_Lambda(tCosmological,aExpansion,collapsingPhase)
     !% Return the matter density parameter at expansion factor {\tt aExpansion}.
     use Galacticus_Error
     implicit none
@@ -585,7 +585,7 @@ contains
     ! Determine the actual expansion factor to use.
     if (present(tCosmological)) then
        if (present(aExpansion)) then
-          call Galacticus_Error_Report('Omega_Matter_Matter_Lambda','only one of time or expansion factor can be specified')
+          call Galacticus_Error_Report('Omega_Matter_Total_Matter_Lambda','only one of time or expansion factor can be specified')
        else
           aExpansionActual=Expansion_Factor_Matter_Lambda(tCosmological)
        end if
@@ -593,12 +593,12 @@ contains
        if (present(aExpansion)) then
           aExpansionActual=aExpansion
        else
-          call Galacticus_Error_Report('Omega_Matter_Matter_Lambda','either a time or expansion factor must be specified')
+          call Galacticus_Error_Report('Omega_Matter_Total_Matter_Lambda','either a time or expansion factor must be specified')
        end if
     end if
-    Omega_Matter_Matter_Lambda=Omega_0()*((H_0()/Hubble_Parameter_Matter_Lambda(aExpansion=aExpansionActual))**2)/(aExpansionActual**3)
+    Omega_Matter_Total_Matter_Lambda=Omega_Matter()*((H_0()/Hubble_Parameter_Matter_Lambda(aExpansion=aExpansionActual))**2)/(aExpansionActual**3)
     return
-  end function Omega_Matter_Matter_Lambda
+  end function Omega_Matter_Total_Matter_Lambda
 
   double precision function Omega_Dark_Energy_Matter_Lambda(tCosmological,aExpansion,collapsingPhase)
     !% Return the dark energy density parameter at expansion factor {\tt aExpansion}.
@@ -665,7 +665,7 @@ contains
        requestTypeActual=requestTypeExpansionFactor
     end if
 
-    Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda=(Omega_0()/dabs(Omega_DE()))**(1.0d0/3.0d0)
+    Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda=(Omega_Matter()/dabs(Omega_DE()))**(1.0d0/3.0d0)
     if (requestType == requestTypeTime) Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda&
          &=Cosmology_Age_Matter_Lambda(Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda)
     return
@@ -684,7 +684,7 @@ contains
        requestTypeActual=requestTypeExpansionFactor
     end if
 
-    Epoch_of_Matter_Curvature_Equality_Matter_Lambda=Omega_0()/dabs(Omega_K())
+    Epoch_of_Matter_Curvature_Equality_Matter_Lambda=Omega_Matter()/dabs(Omega_K())
     if (requestType == requestTypeTime) Epoch_of_Matter_Curvature_Equality_Matter_Lambda&
          &=Cosmology_Age_Matter_Lambda(Epoch_of_Matter_Curvature_Equality_Matter_Lambda)
     return

@@ -168,8 +168,8 @@ contains
           case ("Omega_b")
              if (Values_Differ(parameterValue,Omega_b(),absTol=1.0d-3)) call Galacticus_Display_Message('Omega_b from transfer &
                   & function file does not match internal value')
-          case ("Omega_0")
-             if (Values_Differ(parameterValue,Omega_0(),absTol=1.0d-3)) call Galacticus_Display_Message('Omega_0 from transfer &
+          case ("Omega_Matter")
+             if (Values_Differ(parameterValue,Omega_Matter(),absTol=1.0d-3)) call Galacticus_Display_Message('Omega_Matter from transfer &
                   & function file does not match internal value')
           case ("Omega_DE")
              if (Values_Differ(parameterValue,Omega_DE(),absTol=1.0d-3)) call Galacticus_Display_Message('Omega_DE from transfer &

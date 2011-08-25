@@ -71,7 +71,8 @@ module Input_Parameters
   use Galacticus_Error
   implicit none
   private
-  public :: Input_Parameters_File_Open, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size, Write_Parameter
+  public :: Input_Parameters_File_Open, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
+       & Write_Parameter, Input_Parameter_Is_Present
 
   ! Node to hold the parameter document.
   type(Node),     pointer :: parameterDoc => null()
@@ -154,6 +155,29 @@ contains
     call destroy(parameterDoc)
     return
   end subroutine Input_Parameters_File_Close
+
+  logical function Input_Parameter_Is_Present(parameterName)
+    !% Return true if {\tt parameterName} is present in the input file.
+    implicit none
+    character(len=*), intent(in) :: parameterName
+    type(Node),       pointer    :: thisParameter,nameElement
+    integer                      :: iParameter
+
+    ! If no parameter file has been read, stop with an error message.
+    if (.not.associated(parameterDoc)) call Galacticus_Error_Report('Input_Parameter_Is_Present','parameter file has not been parsed.')
+
+    !$omp critical (FoX_DOM_Access)
+    iParameter=0
+    Input_Parameter_Is_Present=.false.
+    do while (.not.Input_Parameter_Is_Present.and.iParameter<parameterCount)
+       thisParameter => item(parameterList, iParameter)
+       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       if (parameterName == getTextContent(nameElement)) Input_Parameter_Is_Present=.true.
+       iParameter=iParameter+1
+    end do
+    !$omp end critical (FoX_DOM_Access)
+    return
+  end function Input_Parameter_Is_Present
 
   integer function Get_Input_Parameter_Array_Size(parameterName)
     !% Get the number of elements in the parameter specified by parameter name is specified by {\tt parameterName}.

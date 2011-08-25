@@ -154,7 +154,7 @@ contains
     logical                                  :: makeTable
 
     ! Find the fraction of gas in the hot halo relative to that expected from the universal baryon fraction.
-    hotGasFraction=(Tree_Node_Hot_Halo_Mass(thisNode)/Tree_Node_Mass(thisNode))*(Omega_0()/Omega_b())
+    hotGasFraction=(Tree_Node_Hot_Halo_Mass(thisNode)/Tree_Node_Mass(thisNode))*(Omega_Matter()/Omega_b())
 
     ! Return an arbitrary value for empty halos.
     if (hotGasFraction <= 0.0d0) then

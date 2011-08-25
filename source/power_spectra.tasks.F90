@@ -160,7 +160,7 @@ contains
        ! Compute power spectrum.
        powerSpectrum_Power        (iWavenumber)=Power_Spectrum_CDM(powerSpectrum_Wavenumber(iWavenumber))
        ! Compute corresponding mass scale.
-       powerSpectrum_Mass         (iWavenumber)=4.0d0*Pi*Omega_0()*Critical_Density()/3.0d0/powerSpectrum_Wavenumber(iWavenumber)**3
+       powerSpectrum_Mass         (iWavenumber)=4.0d0*Pi*Omega_Matter()*Critical_Density()/3.0d0/powerSpectrum_Wavenumber(iWavenumber)**3
        ! Compute fluctuation on this mass scale.
        powerSpectrum_sigma        (iWavenumber)=sigma_CDM                       (powerSpectrum_Mass(iWavenumber))
        ! Compute gradient of mass fluctuations.

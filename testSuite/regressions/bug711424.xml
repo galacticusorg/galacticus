@@ -4,7 +4,7 @@
 <!-- 01-February-2011 -->
 <parameters>
   <parameter>
-    <name>Omega_0</name>
+    <name>Omega_Matter</name>
     <value>0.2725</value>
   </parameter>
   <parameter>

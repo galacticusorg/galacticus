@@ -184,7 +184,7 @@ contains
     end do
 
     ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
-    normalizationMatterDominated(:)=((9.0d0*Omega_0()/4.0d0)**(1.0d0/3.0d0))*((H_0_invGyr()*growthTableTime(1))**(2.0d0/3.0d0)) &
+    normalizationMatterDominated(:)=((9.0d0*Omega_Matter()/4.0d0)**(1.0d0/3.0d0))*((H_0_invGyr()*growthTableTime(1))**(2.0d0/3.0d0)) &
          &/growthTableGrowthFactor(:,1,1)
     return
   end subroutine Linear_Growth_Factor_Simple_Tabulate
@@ -200,7 +200,7 @@ contains
 
     aExpansion=Expansion_Factor(t)
     dDdt(1)=D(2)
-    dDdt(2)=1.5d0*(Expansion_Rate(aExpansion)**2)*Omega_Matter(aExpansion=aExpansion)*D(1)-2.0d0*Expansion_Rate(aExpansion)*D(2)
+    dDdt(2)=1.5d0*(Expansion_Rate(aExpansion)**2)*Omega_Matter_Total(aExpansion=aExpansion)*D(1)-2.0d0*Expansion_Rate(aExpansion)*D(2)
     growthTableODEs=FGSL_Success
   end function growthTableODEs
   

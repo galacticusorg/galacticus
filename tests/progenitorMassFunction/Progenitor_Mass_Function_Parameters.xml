@@ -32,7 +32,7 @@
     <value>BBKS</value>
   </parameter>
   <parameter>
-    <name>Omega_0</name>
+    <name>Omega_Matter</name>
     <value>0.25</value>
   </parameter>
   <parameter>

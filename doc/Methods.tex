@@ -464,7 +464,7 @@ The mass functions must have the form:
 \end{verbatim}
 In the case of the accretion rate functions, the function must return the accretion rate of baryons from the \IGM\ onto {\tt thisNode} in $M_\odot$ Gyr$^{-1}$. For total accreted mass functions, the total mass of baryons (in $M_\odot$) accreted onto {\tt thisNode} should be returned under the assumption that {\tt thisNode} formed instataneously with no progenitors. The ``failed'' accretion refers to mass which would have been accreted onto the halo if it simply traced the growth of overall mass. That is:
 \begin{equation}
- \dot{M}_{\rm failed} = {\Omega_{\rm b} \over \Omega_0} \dot{M} - \dot{M}_{\rm accreted},
+ \dot{M}_{\rm failed} = {\Omega_{\rm b} \over \Omega_{\rm M}} \dot{M} - \dot{M}_{\rm accreted},
 \end{equation}
 where $\dot{M}$ is the growth rate of total halo mass and $\dot{M}_{\rm accreted}$ is the accretion rate of baryons onto the halo. If desired, this failed mass can be transferred back into the accreted component once the halo is deemed able to accrete, by simply adjusting the accretion rates returned appropriately.
 
@@ -2565,7 +2565,7 @@ The subroutine must tabulate the virial overdensity in array {\tt deltaVirialDel
 Currently defined virial density contrast methods are:
 \begin{description}
  \item [{\tt spherical top hat}] The virial density contrast is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
- \item [{\tt Bryan + Norman}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
+ \item [{\tt Bryan + Norman}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_{\rm M}+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
  \item [{\tt fixed}] The virial density contrast is fixed at {\tt [virialDensityConstrastFixed]}, defined relative to {\tt critical density} and {\tt mean density} as specified by {\tt [virialDensityConstrastFixedType]}.
 \end{description}
 
@@ -2855,7 +2855,7 @@ The tabulation subroutine must have the form:
     return
    end subroutine Linear_Growth_Tabulate
 \end{verbatim}
-The subroutine must tabulate the linear growth factor in array {\tt growthTableGrowthFactor()} for dark matter, baryons and radiation (entries 1, 2 and 3 of the first dimension respectively) as a function of time {\tt growthTableTime()} (second dimension) and wavenumber {\tt growthTableWavenumber()} (third dimension). These arrays must be allocated to the correct size, and may be prevously allocated, therefore requiring a deallocation. The number of tabulated points in the time dimension should be returned in {\tt growthTableNumberPoints}. It is permissible to tabulate for just a single wavenumber if the growth function is independent of wavenumber. The subroutine should ensure that the currently requested {\tt time} is within the range of the tabulated function (preferably with some buffer). The linear growth factors must be normalized to unity at $a=1$. Additionally, {\tt normalizationMatterDominated} should be set to the factor by which the tabulated growth factor (for the smallest wavenumber tabulated) must be multiplied such that it scales as $(9 \Omega_0 / 4.0d0)^{1/3} (H_0 t)^{2/3}$ during the matter dominated regime.
+The subroutine must tabulate the linear growth factor in array {\tt growthTableGrowthFactor()} for dark matter, baryons and radiation (entries 1, 2 and 3 of the first dimension respectively) as a function of time {\tt growthTableTime()} (second dimension) and wavenumber {\tt growthTableWavenumber()} (third dimension). These arrays must be allocated to the correct size, and may be prevously allocated, therefore requiring a deallocation. The number of tabulated points in the time dimension should be returned in {\tt growthTableNumberPoints}. It is permissible to tabulate for just a single wavenumber if the growth function is independent of wavenumber. The subroutine should ensure that the currently requested {\tt time} is within the range of the tabulated function (preferably with some buffer). The linear growth factors must be normalized to unity at $a=1$. Additionally, {\tt normalizationMatterDominated} should be set to the factor by which the tabulated growth factor (for the smallest wavenumber tabulated) must be multiplied such that it scales as $(9 \Omega_{\rm M} / 4.0d0)^{1/3} (H_0 t)^{2/3}$ during the matter dominated regime.
 
 Currently defined linear growth factor methods are:
 \begin{description}
@@ -4257,7 +4257,7 @@ The XML file format for transfer functions looks like:
     <value>0.0450</value>
   </parameter>
   <parameter>
-    <name>Omega_0</name>
+    <name>Omega_Matter</name>
     <value>0.250</value>
   </parameter>
   <parameter>

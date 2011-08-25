@@ -55,13 +55,13 @@ $data = $xml->XMLin($parameterFile);
 $parameterHash = $data->{'parameter'};
 
 # Check that required parameters exist.
-@parameters = ( "Omega_b", "Omega_0", "Omega_DE", "H_0", "T_CMB", "Y_He" );
+@parameters = ( "Omega_b", "Omega_Matter", "Omega_DE", "H_0", "T_CMB", "Y_He" );
 foreach $parameter ( @parameters ) {
     die("CMBFast_Driver.pl: FATAL - parameter ".$parameter." can not be found.") unless ( exists($data->{'parameter'}->{$parameter}) );
 }
 
 # Calculate derived parameters.
-$Omega_c = $parameterHash->{'Omega_0'}->{'value'}-$parameterHash->{'Omega_b'}->{'value'};
+$Omega_c = $parameterHash->{'Omega_Matter'}->{'value'}-$parameterHash->{'Omega_b'}->{'value'};
 $kMax = $kMax/($parameterHash->{'H_0'}->{'value'}/100.0);
 
 unless ( -e $transferFunctionFile ) {

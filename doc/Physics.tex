@@ -8,7 +8,7 @@ The accretion rate of gas from the \IGM\ into a dark matter halo is expected to 
 
 Currently the only option, and selected using {\tt accretionHalosMethod}$=${\tt simple}, this method sets the accretion rate of baryons into a halo to be:
 \begin{equation}
- \dot{M}_{\rm accretion} = \left\{ \begin{array}{ll} (\Omega_{\rm b}/\Omega_0) \dot{M}_{\rm halo} & \hbox{ if } V_{\rm virial} > V_{\rm reionization} \hbox{ or } z > z_{\rm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
+ \dot{M}_{\rm accretion} = \left\{ \begin{array}{ll} (\Omega_{\rm b}/\Omega_{\rm M}) \dot{M}_{\rm halo} & \hbox{ if } V_{\rm virial} > V_{\rm reionization} \hbox{ or } z > z_{\rm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
 \end{equation}
 where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\rm reionization}=${\tt [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\rm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the ``failed'' reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine \IGM\ and so has zero abundances. Chemical abundances are computed from the chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
 
@@ -120,11 +120,11 @@ Selected with {\tt criticalOverdensityMassScalingMethod}$=${\tt warm dark matter
 \end{equation}
 where $M$ is the mass in question, $M_{\rm J}$ is the effective Jeans mass of the warm dark matter as defined by \citeauthor{barkana_constraints_2001}~[\citeyear{barkana_constraints_2001}; their eqn.~10]:
 \begin{equation}
-M_{\rm J} =  3.06 \times 10^8 \left( {1+z_{\rm eq} \over 3000}\right)^{1.5} \left({\Omega_0 h_0^2 \over 0.15}\right)^{1/2} \left({g_{\rm X} \over 1.5} \right)^{-1} \left({m_{\rm X}/1.0\hbox{keV}}\right)^{-4},
+M_{\rm J} =  3.06 \times 10^8 \left( {1+z_{\rm eq} \over 3000}\right)^{1.5} \left({\Omega_{\rm M} h_0^2 \over 0.15}\right)^{1/2} \left({g_{\rm X} \over 1.5} \right)^{-1} \left({m_{\rm X}/1.0\hbox{keV}}\right)^{-4},
 \end{equation}
 the redshift of matter-radiation equality is given by
 \begin{equation}
-z_{\rm eq} = 3600 \left({\Omega_0 h_0^2 \over 0.15}\right)-1,
+z_{\rm eq} = 3600 \left({\Omega_{\rm M} h_0^2 \over 0.15}\right)-1,
 \end{equation}
 and $g_{\rm X}$ and $m_{\rm X}$ are the effective number of degrees of freedom and the mass of the warm dark matter particle respectively. This fitting function has been found the fit the numerical results of \cite{barkana_constraints_2001} well.
 
@@ -134,7 +134,7 @@ The method used to compute the mean density contrast of virialized dark matter h
 
 \subsubsection{Bryan \& Norman Fitting Function}
 
-Selected with {\tt virialDensityContrastMethod}$=${\tt Bryan + Norman} this method calculates virial density contrast using the fitting functions given by \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_M+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
+Selected with {\tt virialDensityContrastMethod}$=${\tt Bryan + Norman} this method calculates virial density contrast using the fitting functions given by \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_{\rm M}+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
 
 \subsubsection{Fixed}
 

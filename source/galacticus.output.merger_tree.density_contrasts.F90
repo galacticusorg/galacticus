@@ -127,10 +127,10 @@ contains
        select case (outputDensityContrastDataDarkOnly)
        case (.true.)
           massTypeSelected=massTypeDark
-          referenceDensity=(Omega_0()-Omega_b())*Critical_Density()
+          referenceDensity=(Omega_Matter()-Omega_b())*Critical_Density()
        case (.false.)
           massTypeSelected=massTypeAll
-          referenceDensity= Omega_0()           *Critical_Density()
+          referenceDensity= Omega_Matter()           *Critical_Density()
        end select
 
        ! Read density contrast values if necessary.

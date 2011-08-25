@@ -99,7 +99,7 @@ program Tests_Sigma
 
   ! Compute the mass corresponding to 8Mpc/h.
   radius8=8.0d0/Little_H_0()
-  mass8=4.0d0*Pi*Critical_Density()*Omega_0()*radius8**3/3.0d0
+  mass8=4.0d0*Pi*Critical_Density()*Omega_Matter()*radius8**3/3.0d0
   sigma8=sigma_CDM(mass8)
   call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=1.0d-6) 
 

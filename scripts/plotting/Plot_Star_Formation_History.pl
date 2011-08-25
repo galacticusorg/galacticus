@@ -82,7 +82,7 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
 	H0           => $columns->{'sfr'}->{'hubble'}
 	);
     $cosmologyGalacticus = Astro::Cosmology->new(
-	omega_matter => $dataBlock->{'parameters'}->{'Omega_0'},
+	omega_matter => $dataBlock->{'parameters'}->{'Omega_Matter'},
 	omega_lambda => $dataBlock->{'parameters'}->{'Lambda_0'},
 	H0           => $dataBlock->{'parameters'}->{'H_0'}
 	);

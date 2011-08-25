@@ -68,7 +68,7 @@ module Cosmology_Functions
   implicit none
   private
   public :: Cosmology_Age, Expansion_Factor, Hubble_Parameter, Early_Time_Density_Scaling, Expansion_Factor_Is_Valid,&
-       & Cosmic_Time_Is_Valid, Omega_Matter, Omega_Dark_Energy, Expansion_Rate, Epoch_of_Matter_Dark_Energy_Equality,&
+       & Cosmic_Time_Is_Valid, Omega_Matter_Total, Omega_Dark_Energy, Expansion_Rate, Epoch_of_Matter_Dark_Energy_Equality,&
        & Epoch_of_Matter_Domination, Expansion_Factor_from_Redshift, Redshift_from_Expansion_Factor, CMB_Temperature,&
        & Comoving_Distance, Time_From_Comoving_Distance
 
@@ -85,7 +85,7 @@ module Cosmology_Functions
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Factor_Get                     => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Hubble_Parameter_Get                     => null()
   procedure(Cosmology_Density_Scaling_Template),                  pointer :: Early_Time_Density_Scaling_Get           => null()
-  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Matter_Get                         => null()
+  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Matter_Total_Get                  => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Dark_Energy_Get                    => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: CMB_Temperature_Get                      => null()
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Rate_Get                       => null()
@@ -161,7 +161,7 @@ contains
        call Get_Input_Parameter('cosmologyMethod',cosmologyMethod,defaultValue='matter + lambda')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="cosmologyMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get</subroutineArgs>
+       !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get</subroutineArgs>
        include 'cosmology_functions.inc'
        !# </include>
        if     (                                                                &
@@ -172,7 +172,7 @@ contains
             &        .and.associated(Expansion_Factor_Get                    ) &
             &        .and.associated(Hubble_Parameter_Get                    ) &
             &        .and.associated(Early_Time_Density_Scaling_Get          ) &
-            &        .and.associated(Omega_Matter_Get                        ) &
+            &        .and.associated(Omega_Matter_Total_Get                  ) &
             &        .and.associated(Omega_Dark_Energy_Get                   ) &
             &        .and.associated(Expansion_Rate_Get                      ) &
             &        .and.associated(Epoch_of_Matter_Dark_Energy_Equality_Get) &
@@ -317,7 +317,7 @@ contains
      return
    end function Epoch_of_Matter_Domination
 
-   double precision function Omega_Matter(tCosmological,aExpansion,collapsingPhase)
+   double precision function Omega_Matter_Total(tCosmological,aExpansion,collapsingPhase)
      !% Return the matter density parameter at expansion factor {\tt aExpansion}.
      implicit none
      double precision, intent(in), optional :: tCosmological,aExpansion
@@ -327,10 +327,10 @@ contains
      call Cosmology_Functions_Initialize
 
      ! Get the answer using the selected method.
-     Omega_Matter=Omega_Matter_Get(tCosmological,aExpansion,collapsingPhase)
+     Omega_Matter_Total=Omega_Matter_Total_Get(tCosmological,aExpansion,collapsingPhase)
 
      return
-   end function Omega_Matter
+   end function Omega_Matter_Total
    
    double precision function Omega_Dark_Energy(tCosmological,aExpansion,collapsingPhase)
      !% Return the dark energy density parameter at expansion factor {\tt aExpansion}.

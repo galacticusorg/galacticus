@@ -113,7 +113,7 @@ contains
     call mergerTrees%setUnits(unitsMass,unitsInSI=massSolar,hubbleExponent=0,scaleFactorExponent=0)
 
     ! Set cosmology metadata.
-    call mergerTrees%addMetadata(metaDataCosmology  ,'Omega0'                    ,0.300d0                            )
+    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,0.300d0                            )
     call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,0.040d0                            )
     call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,0.700d0                            )
     call mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,0.700d0                            )

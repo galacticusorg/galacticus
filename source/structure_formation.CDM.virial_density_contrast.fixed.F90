@@ -164,7 +164,7 @@ contains
     ! If the fixed value is defined with respect to the critical density, then translate it to be with respect to mean density.
     if (densityType == densityTypeCritical) then
        do iTime=1,deltaTableNumberPoints
-          deltaTableDelta(iTime)= deltaTableDelta(iTime)/Omega_Matter(deltaTableTime(iTime))
+          deltaTableDelta(iTime)= deltaTableDelta(iTime)/Omega_Matter_Total(deltaTableTime(iTime))
        end do
     end if
     return

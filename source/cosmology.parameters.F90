@@ -67,13 +67,13 @@ module Cosmological_Parameters
   use Input_Parameters
   implicit none
   private
-  public :: Omega_b, Omega_0, Omega_DE, Omega_Radiation, Omega_K, T_CMB, H_0, H_0_invGyr, Little_H_0, Critical_Density
+  public :: Omega_b, Omega_Matter, Omega_DE, Omega_Radiation, Omega_K, T_CMB, H_0, H_0_invGyr, Little_H_0, Critical_Density
 
   ! Stored values of cosmological parameters.
-  logical          :: Omega_b_Is_Set=.false., Omega_0_Is_Set=.false., Omega_DE_Is_Set=.false., Omega_Radiation_Is_Set=.false.,&
+  logical          :: Omega_b_Is_Set=.false., Omega_Matter_Is_Set=.false., Omega_DE_Is_Set=.false., Omega_Radiation_Is_Set=.false.,&
        & Omega_K_Is_Set=.false., T_CMB_Is_Set=.false., H_0_Is_Set =.false., H_0_invGyr_Is_Set=.false., Critical_Density_Is_Set&
        &=.false.
-  double precision :: Omega_b_Value,Omega_0_Value,Omega_DE_Value,Omega_Radiation_Value,Omega_K_Value,T_CMB_Value,H_0_Value&
+  double precision :: Omega_b_Value,Omega_Matter_Value,Omega_DE_Value,Omega_Radiation_Value,Omega_K_Value,T_CMB_Value,H_0_Value&
        &,H_0_invGyr_Value,Critical_Density_Value
 
 contains
@@ -101,28 +101,33 @@ contains
     return
   end function Omega_b
 
-  double precision function Omega_0()
+  double precision function Omega_Matter()
     !% Returns the value of $\Omega_{\rm b}$, reading it in first if necessary.
+    use Galacticus_Error
     implicit none
 
-    !$omp critical (Omega_0_Initialization)
-    if (.not.Omega_0_Is_Set) then
+    !$omp critical (Omega_Matter_Initialization)
+    if (.not.Omega_Matter_Is_Set) then
+
+       ! Check for deprecated parameter name.
+       if (Input_Parameter_Is_Present('Omega_0')) call Galacticus_Error_Report('Omega_Matter','use of "Omega_0" in parameter file is deprecated - use "Omega_Matter" instead')
+
        !@ <inputParameter>
-       !@   <name>Omega_0</name>
+       !@   <name>Omega_Matter</name>
        !@   <defaultValue>0.2725 \citep{komatsu_seven-year_2010}</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The density of matter in the Universe in units of the critical density.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('Omega_0',Omega_0_Value,defaultValue=0.2725d0)
-       Omega_0_Is_Set=.true.
+       call Get_Input_Parameter('Omega_Matter',Omega_Matter_Value,defaultValue=0.2725d0)
+       Omega_Matter_Is_Set=.true.
     end if
-    !$omp end critical (Omega_0_Initialization)
+    !$omp end critical (Omega_Matter_Initialization)
 
-    Omega_0=Omega_0_Value
+    Omega_Matter=Omega_Matter_Value
     return
-  end function Omega_0
+  end function Omega_Matter
 
   double precision function Omega_DE()
     !% Returns the value of $\Omega_{\rm b}$, reading it in first if necessary.
@@ -193,7 +198,7 @@ contains
 
     !$omp critical (Omega_K_Initialization)
     if (.not.Omega_K_Is_Set) then
-       Omega_K_Value=1.0d0-Omega_0()-Omega_DE()
+       Omega_K_Value=1.0d0-Omega_Matter()-Omega_DE()
        Omega_K_Is_Set=.true.
     end if
     !$omp end critical (Omega_K_Initialization)

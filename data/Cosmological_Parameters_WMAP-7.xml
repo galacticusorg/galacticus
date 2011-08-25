@@ -14,8 +14,8 @@
     </parameter>
   </parameter>
   <parameter>
-    <description>Matter density parameter, Omega_0*h^2.</description>
-    <label>omega_0</label>
+    <description>Matter density parameter, Omega_M*h^2.</description>
+    <label>omega_M</label>
     <units>none</units>
     <mean>1.33448803e-01</mean>
     <standardDeviation>5.63815369e-03</standardDeviation>
@@ -25,7 +25,7 @@
       <correlation>0.0141136</correlation>
     </parameter>
     <parameter>
-      <label>omega_0</label>
+      <label>omega_M</label>
       <covariance>3.17887771e-05</covariance>
       <correlation>1.0000000</correlation>
     </parameter>
@@ -42,7 +42,7 @@
       <correlation>0.2813558</correlation>
     </parameter>
     <parameter>
-      <label>omega_0</label>
+      <label>omega_M</label>
       <covariance>-1.81921614e-05</covariance>
       <correlation>-0.2048610</correlation>
     </parameter>
@@ -64,7 +64,7 @@
       <correlation>0.5076830</correlation>
     </parameter>
     <parameter>
-      <label>omega_0</label>
+      <label>omega_M</label>
       <covariance>-1.16199060e-02</covariance>
       <correlation>-0.8040972</correlation>
     </parameter>
@@ -91,7 +91,7 @@
       <correlation>0.8141620</correlation>
     </parameter>
     <parameter>
-      <label>omega_0</label>
+      <label>omega_M</label>
       <covariance>-1.63464944e-05</covariance>
       <correlation>-0.2035668</correlation>
     </parameter>
@@ -123,7 +123,7 @@
       <correlation>0.1687917</correlation>
     </parameter>
     <parameter>
-      <label>omega_0</label>
+      <label>omega_M</label>
       <covariance>1.54519094e-04</covariance>
       <correlation>0.8815483</correlation>
     </parameter>

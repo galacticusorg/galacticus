@@ -96,7 +96,7 @@ contains
        ! Check that fitting formulae are applicable to this cosmology.
        if (Omega_DE() == 0.0d0) then
           fitType=fitTypeZeroLambda
-       else if (.not.Values_Differ(Omega_0()+Omega_DE(),1.0d0,absTol=1.0d-6)) then
+       else if (.not.Values_Differ(Omega_Matter()+Omega_DE(),1.0d0,absTol=1.0d-6)) then
           fitType=fitTypeFlatUniverse
        else
           call Galacticus_Error_Report('Virial_Density_Bryan_Norman_Initialize','no fitting formula available for this cosmology')
@@ -138,12 +138,12 @@ contains
     
     ! Evaluate the fitting formulae of Bryan & Norman at each time to get the density contrast.
     do iTime=1,deltaTableNumberPoints
-       x=Omega_Matter(deltaTableTime(iTime))-1.0d0
+       x=Omega_Matter_Total(deltaTableTime(iTime))-1.0d0
        select case (fitType)
        case (fitTypeZeroLambda)
-          deltaTableDelta(iTime)=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/Omega_Matter(deltaTableTime(iTime))
+          deltaTableDelta(iTime)=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/Omega_Matter_Total(deltaTableTime(iTime))
        case (fitTypeFlatUniverse)
-          deltaTableDelta(iTime)=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/Omega_Matter(deltaTableTime(iTime))
+          deltaTableDelta(iTime)=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/Omega_Matter_Total(deltaTableTime(iTime))
        end select
     end do
     return

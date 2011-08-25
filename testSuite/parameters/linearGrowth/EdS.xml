@@ -4,7 +4,7 @@
     <value>simple</value>
   </parameter>
   <parameter>
-    <name>Omega_0</name>
+    <name>Omega_Matter</name>
     <value>1.0</value>
   </parameter>
   <parameter>

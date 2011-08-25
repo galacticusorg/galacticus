@@ -167,7 +167,7 @@ contains
             & reionizationSuppressionVelocity) then
           Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
        else
-          Halo_Baryonic_Accretion_Rate_Simple_Get=(Omega_b()/Omega_0())*Tree_Node_Mass_Accretion_Rate(thisNode)
+          Halo_Baryonic_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*Tree_Node_Mass_Accretion_Rate(thisNode)
           unaccretedMass=Tree_Node_Hot_Halo_Unaccreted_Mass(thisNode)
           if (unaccretedMass > 0.0d0) then
              growthRate=Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)
@@ -190,7 +190,7 @@ contains
          & reionizationSuppressionVelocity) then
        Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
     else
-       Halo_Baryonic_Accreted_Mass_Simple_Get=(Omega_b()/Omega_0())*Tree_Node_Mass(thisNode)
+       Halo_Baryonic_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*Tree_Node_Mass(thisNode)
     end if
     return
   end function Halo_Baryonic_Accreted_Mass_Simple_Get
@@ -209,7 +209,7 @@ contains
     else
        if (Tree_Node_Time(thisNode) > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
             & reionizationSuppressionVelocity) then
-          Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(Omega_b()/Omega_0())*Tree_Node_Mass_Accretion_Rate(thisNode)
+          Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*Tree_Node_Mass_Accretion_Rate(thisNode)
        else
           unaccretedMass=Tree_Node_Hot_Halo_Unaccreted_Mass(thisNode)
           if (unaccretedMass > 0.0d0) then
@@ -233,7 +233,7 @@ contains
 
     if (Tree_Node_Time(thisNode) > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
          & reionizationSuppressionVelocity) then
-       Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=(Omega_b()/Omega_0())*Tree_Node_Mass(thisNode)
+       Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*Tree_Node_Mass(thisNode)
     else
        Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
     end if
@@ -341,7 +341,7 @@ contains
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
     temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
-    numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_0())*Tree_Node_Mass(thisNode)*massToDensityConversion/atomicMassHydrogen
+    numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_Matter())*Tree_Node_Mass(thisNode)*massToDensityConversion/atomicMassHydrogen
     
     ! Set the radiation field.
     call radiation%set(thisNode)

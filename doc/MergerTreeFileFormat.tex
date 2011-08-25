@@ -53,7 +53,7 @@ GROUP "cosmology" {
       (0): 0.73
       }
    }
-   ATTRIBUTE "Omega0" {
+   ATTRIBUTE "OmegaMatter" {
       DATATYPE  H5T_IEEE_F64LE
       DATASPACE  SCALAR
       DATA {
@@ -109,7 +109,7 @@ The following are standard attributes in the {\tt cosmology} group (others may b
 
 \begin{description}
  \item [{\tt HubbleParam}] The Hubble parameter in units of 100 km/s/Mpc at $z=0$, $h_0$;
- \item [{\tt Omega0}] The density of matter (both dark and baryonic matter) in units of the critical density at $z=0$, $\Omega_0$;
+ \item [{\tt OmegaMatter}] The density of matter (both dark and baryonic matter) in units of the critical density at $z=0$, $\Omega_{\rm M}$;
  \item [{\tt OmegaLambda}] The density of dark energy in units of the critical density at $z=0$, $\Omega_\Lambda$;
  \item [{\tt OmegaBaryon}] The density of matter (both dark and baryonic matter) in units of the critical density at $z=0$, $\Omega_{\rm b}$;
  \item [{\tt powerSpectrumIndex}] The index of the primordial power spectrum of matter fluctuations, i.e. $n_{\rm s}$ for power spectrum $P(k) \propto k^{n_{\rm s}}$;

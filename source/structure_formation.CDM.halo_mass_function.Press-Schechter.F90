@@ -123,7 +123,7 @@ contains
        mass=dexp(haloMassFunctionLogMass(iMass))
        nu=Critical_Overdensity_for_Collapse(time=time,mass=mass)/sigma_CDM(mass)
        alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
-       haloMassFunctionLogAbundance(iMass)=(Omega_0()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0/Pi)*nu&
+       haloMassFunctionLogAbundance(iMass)=(Omega_Matter()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0/Pi)*nu&
             &*dexp(-0.5d0*nu**2)
     end do
     where (haloMassFunctionLogAbundance > 0.0d0)

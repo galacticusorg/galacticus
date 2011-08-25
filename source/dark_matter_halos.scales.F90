@@ -228,7 +228,7 @@ contains
     ! overdensity of a collapsing halo, and store it.
     if (time /= timePrevious) then
        timePrevious=time
-       densityPrevious=Halo_Virial_Density_Contrast(time)*Omega_0()*Critical_Density()/Expansion_Factor(time)**3
+       densityPrevious=Halo_Virial_Density_Contrast(time)*Omega_Matter()*Critical_Density()/Expansion_Factor(time)**3
     end if
     ! Return the stored value.
     Dark_Matter_Halo_Mean_Density=densityPrevious

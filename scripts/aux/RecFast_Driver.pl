@@ -23,7 +23,7 @@ unlink($parameterFile);
 my $output;
 
 # Check that required parameters exist.
-my @parameters = ( "Omega_b", "Omega_0", "Omega_DE", "H_0", "T_CMB", "Y_He" );
+my @parameters = ( "Omega_b", "Omega_Matter", "Omega_DE", "H_0", "T_CMB", "Y_He" );
 foreach my $parameter ( @parameters ) {
     die("CMBFast_Driver.pl: FATAL - parameter ".$parameter." can not be found.") unless ( exists($data->{'parameter'}->{$parameter}) );
 $output->{'provenance'}->{'recFast'}->{'parameters'}->{$parameter} = $data->{'parameter'}->{$parameter};
@@ -31,15 +31,15 @@ $output->{'provenance'}->{'recFast'}->{'parameters'}->{$parameter} = $data->{'pa
 }
 
 # Extract variables.
-my $OmegaB = $parameterHash->{'Omega_b' }->{'value'};
-my $Omega0 = $parameterHash->{'Omega_0' }->{'value'};
-my $OmegaL = $parameterHash->{'Omega_DE'}->{'value'};
-my $H0     = $parameterHash->{'H_0'     }->{'value'};
-my $T0     = $parameterHash->{'T_CMB'   }->{'value'};
-my $Yp     = $parameterHash->{'Y_He'    }->{'value'};
+my $OmegaB = $parameterHash->{'Omega_b'      }->{'value'};
+my $OmegaM = $parameterHash->{'Omega_Matter' }->{'value'};
+my $OmegaL = $parameterHash->{'Omega_DE'     }->{'value'};
+my $H0     = $parameterHash->{'H_0'          }->{'value'};
+my $T0     = $parameterHash->{'T_CMB'        }->{'value'};
+my $Yp     = $parameterHash->{'Y_He'         }->{'value'};
 
 # Compute derived quantities.
-my $OmegaDM = $Omega0-$OmegaB;
+my $OmegaDM = $OmegaM-$OmegaB;
 
 # Download the code.
 unless ( -e "aux/RecFast/recfast.for" ) {

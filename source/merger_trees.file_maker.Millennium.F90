@@ -175,7 +175,7 @@ contains
     call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo            ,hubbleExponent= 0,scaleFactorExponent=0)
 
     ! Set cosmology metadata.
-    call mergerTrees%addMetadata(metaDataCosmology  ,'Omega0'                    ,0.250d0                            )
+    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,0.250d0                            )
     call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,0.045d0                            )
     call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,0.750d0                            )
     call mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,0.730d0                            )

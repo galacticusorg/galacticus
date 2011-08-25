@@ -187,7 +187,7 @@ contains
        aExpansionNow=Expansion_Factor(deltaTableTime(iTime))
        ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
        if (Omega_Dark_Energy(aExpansion=aExpansionNow)>0.0d0) then
-          epsilonPerturbationMaximum=-(27.0d0*Omega_Dark_Energy(aExpansion=aExpansionNow)*(Omega_Matter(aExpansion=aExpansionNow)&
+          epsilonPerturbationMaximum=-(27.0d0*Omega_Dark_Energy(aExpansion=aExpansionNow)*(Omega_Matter_Total(aExpansion=aExpansionNow)&
                & **2)/4.0d0)**(1.0d0/3.0d0)
        else
           epsilonPerturbationMaximum=-1.0d-6
@@ -196,9 +196,9 @@ contains
        ! Estimate a suitably negative minimum value for epsilon.
        epsilonPerturbationMinimum=-10.0d0
 
-       OmegaM               =Omega_Matter     (aExpansion=aExpansionNow)
-       OmegaDE              =Omega_Dark_Energy(aExpansion=aExpansionNow)
-       hubbleParameterInvGyr=Expansion_Rate   (           aExpansionNow)
+       OmegaM               =Omega_Matter_Total(aExpansion=aExpansionNow)
+       OmegaDE              =Omega_Dark_Energy (aExpansion=aExpansionNow)
+       hubbleParameterInvGyr=Expansion_Rate    (           aExpansionNow)
        tNow                 =deltaTableTime(iTime)
        
        ! Find the value of epsilon for which the perturbation just collapses at this time.

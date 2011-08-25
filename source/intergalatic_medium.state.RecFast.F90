@@ -103,9 +103,9 @@ contains
        parameterFile='data/recfast_parameters.xml'
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
-       write (parameterLabel,'(f5.3)') Omega_0()
-       recfastFile=recfastFile//'_Omega0'//trim(parameterLabel)
-       call Write_Parameter(parameterDoc,"Omega_0",parameterLabel)
+       write (parameterLabel,'(f5.3)') Omega_Matter()
+       recfastFile=recfastFile//'_OmegaM'//trim(parameterLabel)
+       call Write_Parameter(parameterDoc,"Omega_Matter",parameterLabel)
        write (parameterLabel,'(f5.3)') Omega_DE()
        recfastFile=recfastFile//'_OmegaDE'//trim(parameterLabel)
        call Write_Parameter(parameterDoc,"Omega_DE",parameterLabel)

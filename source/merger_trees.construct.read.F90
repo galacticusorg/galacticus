@@ -339,13 +339,13 @@ contains
 
        ! Check that cosmological parameters are consistent with the internal ones.
        cosmologicalParametersGroup=IO_HDF5_Open_Group(mergerTreeFile,"cosmology")
-       if (cosmologicalParametersGroup%hasAttribute("Omega0")) then
-          call cosmologicalParametersGroup%readAttribute("Omega0",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,Omega_0(),absTol=0.001d0)) then
-             message='Omega_0 in merger tree file ['
+       if (cosmologicalParametersGroup%hasAttribute("OmegaMatter")) then
+          call cosmologicalParametersGroup%readAttribute("OmegaMatter",cosmologicalParameter,allowPseudoScalar=.true.)
+          if (Values_Differ(cosmologicalParameter,Omega_Matter(),absTol=0.001d0)) then
+             message='Omega_Matter in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') Omega_0()
+             write (valueString,'(e14.8)') Omega_Matter()
              message=message//trim(valueString)//']'
              call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
           end if

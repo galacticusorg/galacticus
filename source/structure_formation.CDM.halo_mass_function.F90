@@ -154,7 +154,7 @@ contains
          &=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Convert to a mass fraction.
-    Halo_Mass_Fraction_Integrated=Halo_Mass_Fraction_Integrated/Critical_Density()/Omega_0()
+    Halo_Mass_Fraction_Integrated=Halo_Mass_Fraction_Integrated/Critical_Density()/Omega_Matter()
     return
   end function Halo_Mass_Fraction_Integrated
 

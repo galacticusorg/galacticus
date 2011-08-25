@@ -137,7 +137,7 @@ contains
     transferFunctionLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,transferFunctionNumberPoints&
          &,rangeTypeLinear)
     ! Create transfer function.
-    Gamma=Omega_0()*Little_H_0()*dexp(-Omega_b()*(1.0d0+dsqrt(2.0d0*Little_H_0())/Omega_0()))/((T_CMB()/2.7d0)**2)
+    Gamma=Omega_Matter()*Little_H_0()*dexp(-Omega_b()*(1.0d0+dsqrt(2.0d0*Little_H_0())/Omega_Matter()))/((T_CMB()/2.7d0)**2)
     do iWavenumber=1,transferFunctionNumberPoints
        wavenumber         =dexp(transferFunctionLogWavenumber(iWavenumber))
        wavenumberHUnits   =wavenumber/Little_H_0()

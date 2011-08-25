@@ -115,9 +115,9 @@ contains
     parameterFile='data/transfer_function_parameters.xml'
     call xml_OpenFile(char(parameterFile),parameterDoc)
     call xml_NewElement(parameterDoc,"parameters")
-    write (parameterLabel,'(f5.3)') Omega_0()
-    transferFunctionFile=transferFunctionFile//'_Omega0'//trim(parameterLabel)
-    call Write_Parameter(parameterDoc,"Omega_0",parameterLabel)
+    write (parameterLabel,'(f5.3)') Omega_Matter()
+    transferFunctionFile=transferFunctionFile//'_OmegaMatter'//trim(parameterLabel)
+    call Write_Parameter(parameterDoc,"Omega_Matter",parameterLabel)
     write (parameterLabel,'(f5.3)') Omega_DE()
     transferFunctionFile=transferFunctionFile//'_OmegaDE'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"Omega_DE",parameterLabel)
