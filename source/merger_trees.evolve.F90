@@ -93,6 +93,9 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use Input_Parameters
+    !# <include directive="mergerTreeEvolveThreadInitialize" type="moduleUse">
+    include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
+    !# </include>
     implicit none
     type(mergerTree),                         intent(inout) :: thisTree
     double precision,                         intent(in)    :: endTime
@@ -135,6 +138,11 @@ contains
        mergerTreeEvolveToInitialized=.true.
     end if
     !$omp end critical(Merger_Tree_Evolve_To_Initialize)
+
+    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    !# <include directive="mergerTreeEvolveThreadInitialize" type="code" action="subroutine">
+    include 'merger_trees.evolve.threadInitialize.inc'
+    !# </include>
 
     ! Initialize the tree if necessary.
     call Merger_Tree_Initialize(thisTree)

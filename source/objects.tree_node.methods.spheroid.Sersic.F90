@@ -355,9 +355,9 @@ contains
     return
   end subroutine Tree_Node_Methods_Sersic_Spheroid_Initialize
   
-  !# <treeNodeCreateThreadInitialize>
+  !# <mergerTreeEvolveThreadInitialize>
   !#  <unitName>Tree_Node_Methods_Sersic_Spheroid_Thread_Initialize</unitName>
-  !# </treeNodeCreateThreadInitialize>
+  !# </mergerTreeEvolveThreadInitialize>
   subroutine Tree_Node_Methods_Sersic_Spheroid_Thread_Initialize
     !% Initializes each thread for the tree node Sersic spheroid methods module.
     use Memory_Management

@@ -384,9 +384,9 @@ contains
     return
   end subroutine Tree_Node_Methods_Exponential_Disk_Initialize
   
-  !# <treeNodeCreateThreadInitialize>
+  !# <mergerTreeEvolveThreadInitialize>
   !#  <unitName>Tree_Node_Methods_Exponential_Disk_Thread_Initialize</unitName>
-  !# </treeNodeCreateThreadInitialize>
+  !# </mergerTreeEvolveThreadInitialize>
   subroutine Tree_Node_Methods_Exponential_Disk_Thread_Initialize
     !% Initializes each thread for the tree node exponential disk methods module.
     use Memory_Management

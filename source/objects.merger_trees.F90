@@ -304,11 +304,6 @@ contains
     end if
     !$omp end critical (Tree_Node_Create_Initialize)
 
-    ! Call routines to perform initializations which must occur for all threads if run in parallel.
-    !# <include directive="treeNodeCreateThreadInitialize" type="code" action="subroutine">
-    include 'objects.tree_node.create.thread_initialize.inc'
-    !# </include>
-
     return
   end subroutine Tree_Node_Create_Initialize
 

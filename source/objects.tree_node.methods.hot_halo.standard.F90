@@ -354,9 +354,9 @@ contains
     return
   end subroutine Tree_Node_Methods_Hot_Halo_Initialize
   
-  !# <treeNodeCreateThreadInitialize>
+  !# <mergerTreeEvolveThreadInitialize>
   !#  <unitName>Tree_Node_Methods_Hot_Halo_Thread_Initialize</unitName>
-  !# </treeNodeCreateThreadInitialize>
+  !# </mergerTreeEvolveThreadInitialize>
   subroutine Tree_Node_Methods_Hot_Halo_Thread_Initialize
     !% Initializes the tree node hot halo methods module.
     use Memory_Management

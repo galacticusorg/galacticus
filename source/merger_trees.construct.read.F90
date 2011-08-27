@@ -186,6 +186,8 @@ contains
     character(len=14)                            :: valueString
     type(varying_string)                         :: message
 
+double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon,localSigma8
+
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'read') then
        ! Assign pointer to our merger tree construction subroutine.
@@ -274,7 +276,15 @@ contains
           outputTimes(iOutput)=Galacticus_Output_Time(iOutput)
        end do
 
+       ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
+       localLittleH0   =Little_H_0()
+       localOmegaMatter=Omega_Matter()
+       localOmegaDE    =Omega_DE()
+       localOmegaBaryon=Omega_b()
+       localSigma8     =sigma_8()
+
        ! Read basic data from the merger tree file.
+       !$omp critical(HDF5_Access)
        ! Open the file.
        call mergerTreeFile%openFile(char(mergerTreeReadFileName),readOnly=.true.)
        ! Open the merger trees group.
@@ -299,25 +309,25 @@ contains
        call unitsGroup%readAttribute("massUnitsInSI"              ,unitConversionMass       ,allowPseudoScalar=.true.)
        call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  ,allowPseudoScalar=.true.)
        call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           ,allowPseudoScalar=.true.)
-       unitConversionMass    =unitConversionMass    *(Little_H_0()**hubbleExponent)/massSolar
+       unitConversionMass    =unitConversionMass    *(localLittleH0**hubbleExponent)/massSolar
        if (mergerTreeReadPresetPositions.and..not.(unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI"))) call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities are to be preset')
        if (unitsGroup%hasAttribute("lengthUnitsInSI")) then
           call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     ,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("lengthHubbleExponent"       ,hubbleExponent           ,allowPseudoScalar=.true.)
-          unitConversionLength  =unitConversionLength  *(Little_H_0()**hubbleExponent)/megaParsec
+          unitConversionLength  =unitConversionLength  *(localLittleH0**hubbleExponent)/megaParsec
        end if
        if (unitsGroup%hasAttribute("velocityUnitsInSI")) then
           call unitsGroup%readAttribute("velocityUnitsInSI"          ,unitConversionVelocity     ,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("velocityScaleFactorExponent",scaleFactorExponentVelocity,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("velocityHubbleExponent"     ,hubbleExponent             ,allowPseudoScalar=.true.)
-          unitConversionVelocity=unitConversionVelocity*(Little_H_0()**hubbleExponent)/kilo
+          unitConversionVelocity=unitConversionVelocity*(localLittleH0**hubbleExponent)/kilo
        end if
        if (unitsGroup%hasAttribute("timeUnitsInSI")) then
           call unitsGroup%readAttribute("timeUnitsInSI"           ,unitConversionTime       ,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("timeScaleFactorExponent" ,scaleFactorExponentTime  ,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("timeHubbleExponent"      ,hubbleExponent           ,allowPseudoScalar=.true.)
-          unitConversionTime =unitConversionTime    *(Little_H_0()**hubbleExponent)/gigayear
+          unitConversionTime =unitConversionTime    *(localLittleH0**hubbleExponent)/gigayear
           if (scaleFactorExponentTime /= 0) call Galacticus_Error_Report("Merger_Tree_Read_Do","expect no scaling of time units with expansion factor")
        end if
        call unitsGroup%close()
@@ -341,11 +351,11 @@ contains
        cosmologicalParametersGroup=IO_HDF5_Open_Group(mergerTreeFile,"cosmology")
        if (cosmologicalParametersGroup%hasAttribute("OmegaMatter")) then
           call cosmologicalParametersGroup%readAttribute("OmegaMatter",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,Omega_Matter(),absTol=0.001d0)) then
+          if (Values_Differ(cosmologicalParameter,localOmegaMatter,absTol=0.001d0)) then
              message='Omega_Matter in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') Omega_Matter()
+             write (valueString,'(e14.8)') localOmegaMatter
              message=message//trim(valueString)//']'
              call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
           end if
@@ -356,55 +366,55 @@ contains
           ! </expiry>
           call Galacticus_Display_Message('WARNING: Use of "Omega0" in merger tree files is deprecated - use OmegaMatter instead',verbosityWarn)
           call cosmologicalParametersGroup%readAttribute("Omega0",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,Omega_Matter(),absTol=0.001d0)) then
+          if (Values_Differ(cosmologicalParameter,localOmegaMatter,absTol=0.001d0)) then
              message='Omega_Matter in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') Omega_Matter()
+             write (valueString,'(e14.8)') localOmegaMatter
              message=message//trim(valueString)//']'
              call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("OmegaBaryon")) then
           call cosmologicalParametersGroup%readAttribute("OmegaBaryon",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,Omega_b(),absTol=0.001d0)) then
+          if (Values_Differ(cosmologicalParameter,localOmegaBaryon,absTol=0.001d0)) then
              message='Omega_b in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') Omega_b()
+             write (valueString,'(e14.8)') localOmegaBaryon
              message=message//trim(valueString)//']'
              call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("OmegaLambda")) then
           call cosmologicalParametersGroup%readAttribute("OmegaLambda",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,Omega_DE(),absTol=0.001d0)) then
+          if (Values_Differ(cosmologicalParameter,localOmegaDE,absTol=0.001d0)) then
              message='Omega_DE in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') Omega_DE()
+             write (valueString,'(e14.8)') localOmegaDE
              message=message//trim(valueString)//']'
              call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("HubbleParam")) then
           call cosmologicalParametersGroup%readAttribute("HubbleParam",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,Little_H_0(),absTol=0.00001d0)) then
+          if (Values_Differ(cosmologicalParameter,localLittleH0,absTol=0.00001d0)) then
              message='H_0 in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') Little_H_0()
+             write (valueString,'(e14.8)') localLittleH0
              message=message//trim(valueString)//']'
              call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("sigma_8")) then
           call cosmologicalParametersGroup%readAttribute("sigma_8",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,sigma_8(),absTol=0.00001d0)) then
+          if (Values_Differ(cosmologicalParameter,localSigma8,absTol=0.00001d0)) then
              message='sigma_0 in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') sigma_8()
+             write (valueString,'(e14.8)') localSigma8
              message=message//trim(valueString)//'] - may not matter if sigma_8 is not use in other functions'
              call Galacticus_Display_Message(message)
           end if
@@ -462,6 +472,7 @@ contains
              call Galacticus_Error_Report("Merger_Tree_Read_Do","particles group must have one of time, redshift or expansionFactor datasets")
           end if
        end if
+       !$omp end critical(HDF5_Access)
     end if
     return
   end subroutine Merger_Tree_Read_Initialize
@@ -517,10 +528,12 @@ contains
        mergerTreeReadBeginAt=-1
        if (nextTreeToRead > size(mergerTreeFirstNodeIndex))  then
           ! All trees have been read.
+          !$omp critical(HDF5_Access)
           ! Close the halo trees group.
-          call haloTreesGroup%close()
+          if (haloTreesGroup%isOpen()) call haloTreesGroup%close()
           ! Close the file.
-          call mergerTreeFile%close()
+          if (mergerTreeFile%isOpen()) call mergerTreeFile%close()
+          !$omp end critical(HDF5_Access)
           ! Flag that we do not have a tree.
           haveTree=.false.
        else
@@ -692,6 +705,7 @@ contains
     integer(kind=kind_int8)                              :: iNode
     integer                                              :: iOutput,scaleFactorExponentAngularMomentum
 
+    !$omp critical(HDF5_Access)
     ! nodeIndex
     call haloTreesGroup%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
     ! hostIndex
@@ -742,6 +756,7 @@ contains
        end forall
        call Dealloc_Array(angularMomentum)
     end if
+    !$omp end critical(HDF5_Access)
 
     ! Snap node times to output times if a tolerance has been specified.
     if (mergerTreeReadOutputTimeSnapTolerance > 0.0d0) then
@@ -765,13 +780,14 @@ contains
     type(nodeData),        intent(inout), dimension(:)                :: nodes
     integer(kind=HSIZE_T), intent(in),    dimension(1)                :: nodeCount,firstNodeIndex
     double precision,      intent(inout), dimension(:,:), allocatable :: position,velocity
-    integer                                                           :: iNode
+    integer(kind=HSIZE_T)                                             :: iNode
     
     ! Initial particle data to null values.
     nodes%particleIndexStart=-1_kind_int8
     nodes%particleIndexCount=-1_kind_int8
 
     if (mergerTreeReadPresetPositions) then
+       !$omp critical(HDF5_Access)
        ! position.
        call haloTreesGroup%readDataset("position",position,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
        ! velocity.
@@ -781,6 +797,7 @@ contains
           call haloTreesGroup%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount)
           call haloTreesGroup%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount)
        end if
+       !$omp end critical(HDF5_Access)
        ! Convert to Galacticus internal units.
        position=position*unitConversionLength
        if (scaleFactorExponentLength   /= 0) then
@@ -1014,7 +1031,6 @@ contains
     type(nodeData),     intent(inout), dimension(:) :: nodes
     type(treeNodeList), intent(inout), dimension(:) :: nodeList
     integer,            intent(inout)               :: iExtraTree,primaryRootIndex
-type(treeNode), pointer :: thisNode
     integer                                         :: iNode,iIsolatedNode
 
     iIsolatedNode=0
@@ -1260,7 +1276,8 @@ type(treeNode), pointer :: thisNode
     type(nodeData),          pointer                     :: thisNode
     type(treeNode),          pointer                     :: firstProgenitor
     double precision,        parameter                   :: timeUntilMergingInfinite=1.0d30
-    integer                                              :: iNode,jNode,iIsolatedNode,historyCount
+    integer                                              :: iNode,jNode,iIsolatedNode
+    integer(kind=kind_int8)                              :: historyCount
     logical                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge
     double precision                                     :: timeSubhaloMerges
     
@@ -1440,7 +1457,8 @@ type(treeNode), pointer :: thisNode
     double precision,   intent(inout), dimension(:,:)         :: position,velocity
     type(nodeData),                                   pointer :: thisNode
     type(treeNode),                                   pointer :: firstProgenitor
-    integer                                                   :: iIsolatedNode,iNode,jNode,iAxis,iTime,historyCount
+    integer(kind=kind_int8)                                   :: iTime,historyCount
+    integer                                                   :: iIsolatedNode,iNode,jNode,iAxis
     logical                                                   :: endOfBranch
     double precision                                          :: expansionFactor
     type(varying_string)                                      :: message
@@ -1521,6 +1539,7 @@ type(treeNode), pointer :: thisNode
                          call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
                       end if
                       ! Read position data.
+                      !$omp critical(HDF5_Access)
                       call particlesGroup%readDatasetStatic("position",position   (:,historyCount+1:historyCount&
                            &+thisNode%particleIndexCount),[1_kind_int8,thisNode%particleIndexStart+1],[3_kind_int8&
                            &,thisNode%particleIndexCount])
@@ -1532,6 +1551,7 @@ type(treeNode), pointer :: thisNode
                       call particlesGroup%readDatasetStatic(trim(particleEpochDatasetName),historyTime(historyCount&
                            &+1:historyCount +thisNode%particleIndexCount),[thisNode%particleIndexStart+1]&
                            &,[thisNode%particleIndexCount])
+                      !$omp end critical(HDF5_Access)
                       do iTime=historyCount+1,historyCount+thisNode%particleIndexCount
                          ! Get the cosmic age and expansion factor.
                          select case (particleEpochType)
