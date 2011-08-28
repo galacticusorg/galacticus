@@ -209,7 +209,7 @@ contains
        timingDataGroup=IO_HDF5_Open_Group(metaDataGroup       ,'treeTiming','Meta-data on tree timing.')
        
        ! Write timing data.
-       call timingDataGroup%writeDataset(treeMasses        (1:treesRecordedCount),"treeMasses"        ,"Tree mass [M_Solar]"       ,datasetReturned=metaDataDataset)
+       call timingDataGroup%writeDataset(treeMasses        (1:treesRecordedCount),"treeMasses"        ,"Tree mass [M⊙]"       ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(massSolar,"unitsInSI")
        call metaDataDataset%close()
        call timingDataGroup%writeDataset(treeConstructTimes(1:treesRecordedCount),"treeConstructTimes","Tree construction time [s]",datasetReturned=metaDataDataset)

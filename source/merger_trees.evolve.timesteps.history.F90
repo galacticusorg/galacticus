@@ -283,39 +283,39 @@ contains
        
        call historyGroup%writeDataset(historyExpansion                ,"historyExpansion"                ,"Expansion factor []"                                                             )
        
-       call historyGroup%writeDataset(historyStarFormationRate        ,"historyStarFormationRate"        ,"Star formation rate [Msun/Gyr/Mpc^3]"             ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyStarFormationRate        ,"historyStarFormationRate"        ,"Star formation rate [M⊙/Gyr/Mpc³]"             ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyDiskStarFormationRate    ,"historyDiskStarFormationRate"    ,"Star formation rate in disks [Msun/Gyr/Mpc^3]"    ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyDiskStarFormationRate    ,"historyDiskStarFormationRate"    ,"Star formation rate in disks [M⊙/Gyr/Mpc³]"    ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historySpheroidStarFormationRate,"historySpheroidStarFormationRate","Star formation rate in spheroids [Msun/Gyr/Mpc^3]",datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historySpheroidStarFormationRate,"historySpheroidStarFormationRate","Star formation rate in spheroids [M⊙/Gyr/Mpc³]",datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyStellarDensity           ,"historyStellarDensity"           ,"Stellar mass density [Msun/Mpc^3]"                ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyStellarDensity           ,"historyStellarDensity"           ,"Stellar mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyDiskStellarDensity       ,"historyDiskStellarDensity"       ,"Stellar mass density in disks [Msun/Mpc^3]"       ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyDiskStellarDensity       ,"historyDiskStellarDensity"       ,"Stellar mass density in disks [M⊙/Mpc³]"       ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historySpheroidStellarDensity   ,"historySpheroidStellarDensity"   ,"Stellar mass density in spheroids [Msun/Mpc^3]"   ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historySpheroidStellarDensity   ,"historySpheroidStellarDensity"   ,"Stellar mass density in spheroids [M⊙/Mpc³]"   ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyGasDensity               ,"historyGasDensity"               ,"Gas mass density [Msun/Mpc^3]"                    ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyGasDensity               ,"historyGasDensity"               ,"Gas mass density [M⊙/Mpc³]"                    ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyHotGasDensity            ,"historyHotGasDensity"            ,"Hot gas mass density [Msun/Mpc^3]"                ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyHotGasDensity            ,"historyHotGasDensity"            ,"Hot gas mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
-       call historyGroup%writeDataset(historyNodeDensity              ,"historyNodeDensity"              ,"Node mass density [Msun/Mpc^3]"                   ,datasetReturned=historyDataset)
+       call historyGroup%writeDataset(historyNodeDensity              ,"historyNodeDensity"              ,"Node mass density [M⊙/Mpc³]"                   ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        

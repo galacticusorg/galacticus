@@ -110,14 +110,14 @@ program Test_NFW96_Concentration_Dark_Energy
      call Tree_Node_Time_Set(thisNode,Cosmology_Age(1.00d0))
      ourConcentration=Dark_Matter_Profile_Concentration(thisNode)
      message="10^"
-     message=message//chardenLogHaloMass(iMass)//" Msun/h halo concentration at z=0"
+     message=message//chardenLogHaloMass(iMass)//" M⊙/h halo concentration at z=0"
      call Assert(char(message),ourConcentration,chardenConcentrationZ0(iMass),relTol=0.02d0)
      
      ! Compute and compare concentration at z=3.
      call Tree_Node_Time_Set(thisNode,Cosmology_Age(0.25d0))
      ourConcentration=Dark_Matter_Profile_Concentration(thisNode)
      message="10^"
-     message=message//chardenLogHaloMass(iMass)//" Msun/h halo concentration at z=3"
+     message=message//chardenLogHaloMass(iMass)//" M⊙/h halo concentration at z=3"
      call Assert(char(message),ourConcentration,chardenConcentrationZ3(iMass),relTol=0.01d0)
      
   end do

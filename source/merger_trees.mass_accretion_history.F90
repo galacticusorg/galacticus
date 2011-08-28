@@ -155,7 +155,7 @@ contains
        call treeGroup%writeDataset(accretionHistoryNodeTime ,'nodeTime' ,'Time at node [Gyr].'        ,datasetReturned=accretionDataset)
        call accretionDataset%writeAttribute(gigaYear ,"unitsInSI")
        call accretionDataset%close()
-       call treeGroup%writeDataset(accretionHistoryNodeMass ,'nodeMass' ,'Mass of the node [M_Solar].',datasetReturned=accretionDataset)
+       call treeGroup%writeDataset(accretionHistoryNodeMass ,'nodeMass' ,'Mass of the node [M⊙].',datasetReturned=accretionDataset)
        call accretionDataset%writeAttribute(massSolar,"unitsInSI")
        call accretionDataset%close()
        call treeGroup       %close()

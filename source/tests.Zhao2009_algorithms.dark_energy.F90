@@ -159,10 +159,10 @@ program Test_Zhao2009_Dark_Energy
      
      ! Perform the tests.
      message='10^'
-     message=message//logarithmicHaloMasses(iMass)//' Msun halo mass accretion history'
+     message=message//logarithmicHaloMasses(iMass)//' M⊙ halo mass accretion history'
      call Assert(char(message),timeDifferenceMaximum         ,0.0d0,absTol=timeDifferenceTolerance         (iMass))
      message='10^'
-     message=message//logarithmicHaloMasses(iMass)//' Msun halo concentration history'
+     message=message//logarithmicHaloMasses(iMass)//' M⊙ halo concentration history'
      call Assert(char(message),concentrationDifferenceMaximum,0.0d0,absTol=concentrationDifferenceTolerance(iMass))
 
   end do

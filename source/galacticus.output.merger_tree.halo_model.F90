@@ -273,10 +273,10 @@ contains
        end do
 
        ! Store the power spectrum
-       call haloModelGroup%writeDataset(wavenumber   ,'wavenumber','Wavenumber at which power spectrum is tabulated [Mpc^-1].',datasetReturned=haloModelDataset)
+       call haloModelGroup%writeDataset(wavenumber   ,'wavenumber','Wavenumber at which power spectrum is tabulated [Mpc⁻¹].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(1.0d0/megaParsec,'unitsInSI')
        call haloModelDataset%close()
-       call haloModelGroup%writeDataset(powerSpectrum,'powerSpectrum','Linear theory power spectrum [Mpc^3].',datasetReturned=haloModelDataset)
+       call haloModelGroup%writeDataset(powerSpectrum,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
        call haloModelDataset%close()
        

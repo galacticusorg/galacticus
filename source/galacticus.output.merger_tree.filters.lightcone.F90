@@ -381,7 +381,7 @@ contains
        doublePropertyUnitsSI (doubleProperty)=0.0d0
        doubleProperty=doubleProperty+1
        doublePropertyNames   (doubleProperty)='angularWeight'
-       doublePropertyComments(doubleProperty)='Number of such galaxies per unit area [degrees^-2].'
+       doublePropertyComments(doubleProperty)='Number of such galaxies per unit area [degrees⁻²].'
        doublePropertyUnitsSI (doubleProperty)=(180.0d0/Pi)**2
     end if
     return

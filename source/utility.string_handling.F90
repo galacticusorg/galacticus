@@ -67,7 +67,7 @@ module String_Handling
   implicit none
   private
   public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
-       & Convert_VarString_To_Char, String_C_to_Fortran
+       & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -89,6 +89,11 @@ module String_Handling
 
   ! Character strings used in whitespace detection.
   character(len=*), parameter :: charactersWhiteSpace=' '//char(0)//char(9)//char(10)//char(13)
+
+  ! Character strings used in converting to subscripts and superscripts.
+  character(len=*), parameter :: charactersScript     ='0123456789+-=()'
+  character(len=*), parameter :: charactersSubscript  ='₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎'
+  character(len=*), parameter :: charactersSuperscript='⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾'
 
 contains
 
@@ -305,5 +310,41 @@ contains
     end do
     return
   end function String_C_to_Fortran
+
+  function String_Subscript(stringInput) result (stringOutput)
+    !% Converts an input string to Unicode subscripts.
+    character(len=*),           intent(in) :: stringInput
+    character(len(stringInput))            :: stringOutput
+    integer                                :: iString,iCharacter
+
+    ! Transfer input string to output string.
+    stringOutput=stringInput
+    ! Loop through each character in the string.
+    do iString=1,len(stringOutput)
+       ! Find position of current character in string in list of upper case characters.
+       iCharacter=index(charactersScript,stringOutput(iString:iString))
+       ! If a match is found, repace with the lower case equivalent.
+       if (iCharacter /= 0) stringOutput(iString:iString)=charactersSubscript(iCharacter:iCharacter)
+    end do
+    return
+  end function String_Subscript
+
+  function String_Superscript(stringInput) result (stringOutput)
+    !% Converts an input string to Unicode superscripts.
+    character(len=*),           intent(in) :: stringInput
+    character(len(stringInput))            :: stringOutput
+    integer                                :: iString,iCharacter
+
+    ! Transfer input string to output string.
+    stringOutput=stringInput
+    ! Loop through each character in the string.
+    do iString=1,len(stringOutput)
+       ! Find position of current character in string in list of upper case characters.
+       iCharacter=index(charactersScript,stringOutput(iString:iString))
+       ! If a match is found, repace with the lower case equivalent.
+       if (iCharacter /= 0) stringOutput(iString:iString)=charactersSuperscript(iCharacter:iCharacter)
+    end do
+    return
+  end function String_Superscript
 
 end module String_Handling
