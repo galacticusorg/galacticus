@@ -131,6 +131,7 @@ contains
     double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
     type(fgsl_function),     save                   :: rootFunction
     type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    !$omp threadprivate(rootFunction,rootFunctionSolver)
     double precision                                :: nodeMass,nodeTime,collapseMass,collapseCriticalOverdensity,collapseTime&
          &,collapseExpansionFactor,expansionFactor,collapseOverdensity,concentrationMinimum,concentrationMaximum
     type(c_ptr)                                     :: parameterPointer
