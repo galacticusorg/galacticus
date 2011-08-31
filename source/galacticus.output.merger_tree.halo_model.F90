@@ -339,6 +339,7 @@ contains
  
     ! If halo model output was requested, output the Fourier-space halo profiles.
     if (nodePassesFilter.and.outputHaloModelData.and..not.thisNode%isSatellite()) then
+       !$omp critical (HDF5_Access)
        ! Create a group for the profile datasets.
        profilesGroup=IO_HDF5_Open_Group(galacticusOutputFile,"haloModel","Halo model data.")
        groupName="Output"
@@ -366,6 +367,7 @@ contains
        call treeGroup    %close()
        call outputGroup  %close()
        call profilesGroup%close()
+       !$omp end critical (HDF5_Access)
     end if
     return
   end subroutine Galacticus_Extra_Output_Halo_Fourier_Profile
