@@ -782,7 +782,7 @@ contains
     logical                      :: retabulate
     integer                      :: iRadius
 
-    !$omp critical (Dark_Matter_Profile_NFW_Freefall)
+    !$omp critical (NFW_Freefall_Interpolation)
     retabulate=.not.nfwFreefallTableInitialized
     ! If the table has not yet been made, compute and store the freefall corresponding to the minimum and maximum
     ! radii that will be tabulated by default.
@@ -823,7 +823,7 @@ contains
        ! Specify that tabulation has been made.
        nfwFreefallTableInitialized=.true.
     end if
-    !$omp end critical (Dark_Matter_Profile_NFW_Freefall)
+    !$omp end critical (NFW_Freefall_Interpolation)
     return
   end subroutine Dark_Matter_Profile_NFW_Freefall_Tabulate
   

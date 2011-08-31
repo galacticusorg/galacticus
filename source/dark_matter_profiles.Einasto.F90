@@ -1066,7 +1066,7 @@ contains
     integer                      :: iRadius,iAlpha,percentage
     double precision             :: alpha
 
-    !$omp critical (Dark_Matter_Profile_Einasto_Freefall)
+    !$omp critical (Einasto_Freefall_Interpolation)
     retabulate=.not.freefallRadiusTableInitialized
     ! If the table has not yet been made, compute and store the freefall times corresponding to the minimum and maximum
     ! radii that will be tabulated by default.
@@ -1141,7 +1141,7 @@ contains
        ! Specify that tabulation has been made.
        freefallRadiusTableInitialized=.true.
     end if
-    !$omp end critical (Dark_Matter_Profile_Einasto_Freefall)
+    !$omp end critical (Einasto_Freefall_Interpolation)
     return
   end subroutine Dark_Matter_Profile_Einasto_Freefall_Tabulate
   
