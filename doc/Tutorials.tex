@@ -22,7 +22,7 @@ To utilize merger trees from the file that you created in a \glc\ run it's neces
 \end{verbatim}
 The first of these {\tt [mergerTreeConstructMethod]}$=${\tt read} tells \glc\ that merger trees will be constructed by reading them from a file. The second, {\tt [mergerTreeReadFileName]}, gives the name of the file from which to read the trees. In this example, we use the name of the file that was jus created.
 
-In addition to specifying that trees should be read from a file, it's also important to ensure that the values of cosmological parameters in \glc\ match those in the merger tree file. (If they don't match, \glc\ will stop with an error message.) In our case of using merger trees from the Millennium Simulation, the correct cosmological parameter values can be set as follows:
+In addition to specifying that trees should be read from a file, it's also important to ensure that the values of cosmological parameters in \glc\ match those in the merger tree file. (If they don't match, \glc\ will stop with an error message unless you set {\tt [mergerTreeReadMismatchIsFatal]}$=${\tt false} in which case you'll just be warned about any mismatch.) In our case of using merger trees from the Millennium Simulation, the correct cosmological parameter values can be set as follows:
 \begin{verbatim}
   <!-- Use Millennium Simulation cosmology. -->
   <parameter>

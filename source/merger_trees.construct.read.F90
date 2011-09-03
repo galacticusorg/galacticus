@@ -121,6 +121,9 @@ module Merger_Tree_Read
   double precision,        allocatable, dimension(:) :: treeVolumeWeight
   !$omp threadprivate(treeVolumeWeightCurrent)
 
+  ! Flag indicating whether mismatches in cosmological parameters should be considered fatal.
+  logical                                            :: mergerTreeReadMismatchIsFatal
+
   ! Flag indicating whether or not subhalo masses are included in halo masses.
   logical                                            :: haloMassesIncludeSubhalos
 
@@ -201,6 +204,15 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadMismatchIsFatal</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
+       !@   <description>
+       !@     Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadMismatchIsFatal',mergerTreeReadMismatchIsFatal,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetMergerTimes</name>
        !@   <attachedTo>module</attachedTo>
@@ -357,7 +369,11 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
              message=message//trim(valueString)//'] differs from the internal value ['
              write (valueString,'(e14.8)') localOmegaMatter
              message=message//trim(valueString)//']'
-             call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             if (mergerTreeReadMismatchIsFatal) then
+                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             else
+                call Galacticus_Display_Message(message,verbosityWarn)
+             end if
           end if
        else if (cosmologicalParametersGroup%hasAttribute("Omega0")) then
           ! <expiry>
@@ -372,7 +388,11 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
              message=message//trim(valueString)//'] differs from the internal value ['
              write (valueString,'(e14.8)') localOmegaMatter
              message=message//trim(valueString)//']'
-             call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             if (mergerTreeReadMismatchIsFatal) then
+                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             else
+                call Galacticus_Display_Message(message,verbosityWarn)
+             end if
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("OmegaBaryon")) then
@@ -383,7 +403,11 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
              message=message//trim(valueString)//'] differs from the internal value ['
              write (valueString,'(e14.8)') localOmegaBaryon
              message=message//trim(valueString)//']'
-             call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             if (mergerTreeReadMismatchIsFatal) then
+                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             else
+                call Galacticus_Display_Message(message,verbosityWarn)
+             end if
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("OmegaLambda")) then
@@ -394,7 +418,11 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
              message=message//trim(valueString)//'] differs from the internal value ['
              write (valueString,'(e14.8)') localOmegaDE
              message=message//trim(valueString)//']'
-             call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             if (mergerTreeReadMismatchIsFatal) then
+                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             else
+                call Galacticus_Display_Message(message,verbosityWarn)
+             end if
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("HubbleParam")) then
@@ -405,7 +433,11 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
              message=message//trim(valueString)//'] differs from the internal value ['
              write (valueString,'(e14.8)') localLittleH0
              message=message//trim(valueString)//']'
-             call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             if (mergerTreeReadMismatchIsFatal) then
+                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
+             else
+                call Galacticus_Display_Message(message,verbosityWarn)
+             end if
           end if
        end if
        if (cosmologicalParametersGroup%hasAttribute("sigma_8")) then

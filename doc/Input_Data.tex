@@ -113,7 +113,7 @@ Note that \glc\ does not require that nodes be placed on a uniform grid of times
 
 The following requirements must be met for the input parameters to \glc\ when using merger trees read from file:
 \begin{itemize}
- \item The cosmological parameters ($\Omega_{\rm M}$, $\Omega_\Lambda$, $\Omega_{\rm b}$, $H_0$, $\sigma_8$), if defined in the file, must be set identically in the \glc\ input file;
+ \item The cosmological parameters ($\Omega_{\rm M}$, $\Omega_\Lambda$, $\Omega_{\rm b}$, $H_0$, $\sigma_8$), if defined in the file, must be set identically in the \glc\ input file unless you set {\tt [mergerTreeReadMismatchIsFatal]}$=${\tt false} in which case you'll just be warned about any mismatch;
  \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set {\tt [allTreesExistAtFinalTime]}$=${\tt false}.
 \end{itemize}
 
