@@ -139,7 +139,7 @@ contains
     logical                      :: remakeTable
 
     ! Check if we need to recompute our table.
-    !$omp critical(Delta_Virial_Factor_Initialize)
+    !$omp critical(Halo_Virial_Density_Contrast_Interpolate)
     if (deltaVirialInitialized.and.tablesInitialized) then
        remakeTable=(time<deltaVirialTableTime(1).or.time>deltaVirialTableTime(deltaVirialTableNumberPoints))
     else
@@ -150,7 +150,7 @@ contains
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.
     end if
-    !$omp end critical(Delta_Virial_Factor_Initialize)
+    !$omp end critical(Halo_Virial_Density_Contrast_Interpolate)
     return
   end subroutine Virial_Density_Contrast_Retabulate
 
