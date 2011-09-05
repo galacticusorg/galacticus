@@ -179,7 +179,7 @@ contains
     integer                                :: iConcentration
     logical                                :: retabulate
 
-    !$omp critical (Dark_Matter_Profile_NFW_Tabulate)
+    !$omp critical (NFW_Interpolation)
     retabulate=.not.nfwTableInitialized
     if (present(concentration)) then
        if (concentration < concentrationMinimum) then
@@ -216,7 +216,7 @@ contains
        ! Specify that tabulation has been made.
        nfwTableInitialized=.true.
     end if
-    !$omp end critical (Dark_Matter_Profile_NFW_Tabulate)
+    !$omp end critical (NFW_Interpolation)
     return
   end subroutine Dark_Matter_Profile_NFW_Tabulate
 
@@ -230,7 +230,7 @@ contains
     integer                                :: iRadius
     logical                                :: retabulate
 
-    !$omp critical (Dark_Matter_Profile_NFW_Inverse_AM)
+    !$omp critical (NFW_Inverse_Interpolation)
     retabulate=.not.nfwInverseTableInitialized
     ! If the table has not yet been made, compute and store the specific angular momenta corresponding to the minimum and maximum
     ! radii that will be tabulated by default.
@@ -271,7 +271,7 @@ contains
        ! Specify that tabulation has been made.
        nfwInverseTableInitialized=.true.
     end if
-    !$omp end critical (Dark_Matter_Profile_NFW_Inverse_AM)
+    !$omp end critical (NFW_Inverse_Interpolation)
     return
   end subroutine Dark_Matter_Profile_NFW_Inverse_Angular_Momentum
 

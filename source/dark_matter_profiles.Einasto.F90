@@ -318,8 +318,10 @@ contains
     call Radius_from_Specific_Angular_Momentum_Table_Make(alpha,specificAngularMomentumScaleFree)
 
     ! Get interpolating factors in alpha.
+    !$omp critical (Einasto_Interpolate_Specific_Angular_Momentum)
     jAlpha(0)=Interpolate_Locate(angularMomentumTableAlphaCount,angularMomentumTableAlpha&
          &,angularMomentumTableAlphaInterpolationAccelerator,alpha,reset=angularMomentumTableAlphaInterpolationReset)
+    !$omp end critical (Einasto_Interpolate_Specific_Angular_Momentum)
     jAlpha(1)=jAlpha(0)+1
     hAlpha=Interpolate_Linear_Generate_Factors(angularMomentumTableAlphaCount,angularMomentumTableAlpha,jAlpha(0),alpha)
 
@@ -354,7 +356,7 @@ contains
     logical                      :: makeTable
     double precision             :: alpha,radius,enclosedMass
 
-    !$omp critical (Einasto_Radius_from_Specific_Angular_Momentum_Table_Make)
+    !$omp critical (Einasto_Interpolate_Specific_Angular_Momentum)
     ! Always check if we need to make the table.
     makeTable=.true.
     do while (makeTable)
@@ -418,7 +420,7 @@ contains
           angularMomentumTableInitialized=.true.
        end if
     end do
-    !$omp end critical (Einasto_Radius_from_Specific_Angular_Momentum_Table_Make)
+    !$omp end critical (Einasto_Interpolate_Specific_Angular_Momentum)
     return
   end subroutine Radius_from_Specific_Angular_Momentum_Table_Make
 
@@ -561,7 +563,7 @@ contains
     type(fgsl_function)                         :: integrandFunction
     type(fgsl_integration_workspace)            :: integrationWorkspace
 
-    !$omp critical (Einasto_Energy_Table_Make)
+    !$omp critical (Einasto_Interpolation)
     ! Assume table does not need remaking.
     makeTable=.false.
     ! Check for uninitialized table.
@@ -644,10 +646,10 @@ contains
             &,energyTableAlphaInterpolationReset        )
        energyTableConcentrationInterpolationReset=.true.
        energyTableAlphaInterpolationReset        =.true.
-    ! Flag that the table is now initialized.
+       ! Flag that the table is now initialized.
        energyTableInitialized=.true.
     end if
-    !$omp end critical (Einasto_Energy_Table_Make)
+    !$omp end critical (Einasto_Interpolation)
     return
   end subroutine Energy_Table_Make
 
@@ -775,7 +777,7 @@ contains
     ! Ensure the table exists and is sufficiently tabulated.
     call Fourier_Profile_Table_Make(wavenumberScaleFree,virialRadiusOverScaleRadius,alpha)
 
-    !$omp critical(Einasto_Interpolation)
+    !$omp critical(Einasto_Fourier_Interpolation)
     ! Get interpolating factors in alpha.
     jAlpha(0)=Interpolate_Locate(fourierProfileTableAlphaCount,fourierProfileTableAlpha&
          &,fourierProfileTableAlphaInterpolationAccelerator,alpha,reset=fourierProfileTableAlphaInterpolationReset)
@@ -800,7 +802,7 @@ contains
                &,wavenumberScaleFree,reset =fourierProfileTableWavenumberInterpolationReset)*hAlpha(iAlpha)*hConcentration(iConcentration)
        end do
     end do
-    !$omp end critical(Einasto_Interpolation)
+    !$omp end critical(Einasto_Fourier_Interpolation)
     return
   end function Dark_Matter_Profile_kSpace_Einasto
 
@@ -823,7 +825,7 @@ contains
     type(fgsl_function)                         :: integrandFunction
     type(fgsl_integration_workspace)            :: integrationWorkspace
 
-    !$omp critical (Einasto_Fourier_Profile_Table_Make)
+    !$omp critical (Einasto_Fourier_Interpolation)
     ! Assume table does not need remaking.
     makeTable=.false.
     ! Check for uninitialized table.
@@ -917,7 +919,7 @@ contains
        ! Display a message.
        call Galacticus_Display_Unindent('done',verbosityInfo)
     end if
-    !$omp end critical (Einasto_Fourier_Profile_Table_Make)
+    !$omp end critical (Einasto_Fourier_Interpolation)
     return
   end subroutine Fourier_Profile_Table_Make
 
