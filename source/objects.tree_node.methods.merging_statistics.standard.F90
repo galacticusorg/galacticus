@@ -158,7 +158,7 @@ contains
        call Get_Input_Parameter('trackMergerStatistics',trackMergerStatistics,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>nodeMajorMergerFraction</name>
-       !@   <defaultValue>false</defaultValue>
+       !@   <defaultValue>0.25</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.

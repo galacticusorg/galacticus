@@ -200,7 +200,7 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
        !@   <name>mergerTreeReadFileName</name>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The minimum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.
+       !@     The name of the file from which merger tree data should be read when using the {\tt [mergerTreeConstructMethod]}$=${\tt read} tree construction method.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)

@@ -119,7 +119,7 @@ contains
        !@   <defaultValue>9</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The chunk size used for outputting HDF5 datasets.
+       !@    The compression level used for outputting HDF5 datasets.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('hdf5CompressionLevel',hdf5CompressionLevel,defaultValue=9)
