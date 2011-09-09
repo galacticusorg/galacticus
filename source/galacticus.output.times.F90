@@ -98,7 +98,7 @@ contains
        !@   <defaultValue>0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     A list of redshifts at which \glc\ results should be output.
+       !@     A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.
        !@   </description>
        !@ </inputParameter>
        if (outputCount == 1) then
