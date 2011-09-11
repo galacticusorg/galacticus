@@ -135,8 +135,10 @@ contains
     do while (Tidal_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
        radiusMaximum=2.0d0*radiusMaximum
     end do
+    !$omp critical (Black_Hole_Binary_Initial_Radius_Tidal_Radius_Root)
     Black_Hole_Binary_Initial_Radius_Tidal_Radius=Root_Find(radiusMinimum,radiusMaximum,Tidal_Radius_Root,parameterPointer&
          &,rootFunction,rootFunctionSolver,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+    !$omp end critical (Black_Hole_Binary_Initial_Radius_Tidal_Radius_Root)
     return
   end function Black_Hole_Binary_Initial_Radius_Tidal_Radius
 
