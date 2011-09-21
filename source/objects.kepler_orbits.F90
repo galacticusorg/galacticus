@@ -247,7 +247,7 @@ contains
   end subroutine Kepler_Orbits_Reset
 
   subroutine Kepler_Orbits_Masses_Set(thisOrbit,satelliteMass,hostMass)
-    !% Sets the radial velocity to the specified value.
+    !% Sets the masses of the two orbitting objects in a {\tt keplerOrbit} object.
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
     double precision,   intent(in)    :: satelliteMass,hostMass
