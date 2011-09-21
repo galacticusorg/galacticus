@@ -104,7 +104,7 @@ contains
     procedure(),          pointer, intent(inout) :: Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do&
          &,Star_Formation_History_Record_Do ,Star_Formation_History_Output_Do
     
-    if (starFormationHistoriesMethod == 'metallicity split') then
+    if (starFormationHistoriesMethod == 'metallicitySplit') then
        ! Associate procedure pointers.
        Star_Formation_History_Create_Do => Star_Formation_History_Create_Metallicity_Split
        Star_Formation_History_Scales_Do => Star_Formation_History_Scales_Metallicity_Split

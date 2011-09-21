@@ -102,13 +102,13 @@ contains
        ! Get the mass accretion history method parameter.
        !@ <inputParameter>
        !@   <name>darkMatterAccretionHistoryMethod</name>
-       !@   <defaultValue>Wechsler 2002</defaultValue>
+       !@   <defaultValue>Wechsler2002</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of dark matter halo mass accretion histories.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterAccretionHistoryMethod',darkMatterAccretionHistoryMethod,defaultValue='Wechsler 2002')
+       call Get_Input_Parameter('darkMatterAccretionHistoryMethod',darkMatterAccretionHistoryMethod,defaultValue='Wechsler2002')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="darkMatterAccretionHistoryMethod" type="code" action="subroutine">
        !#  <subroutineArgs>darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get</subroutineArgs>

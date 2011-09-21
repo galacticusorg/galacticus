@@ -82,7 +82,7 @@ contains
     type(varying_string),                 intent(in)    :: blackHoleBinaryInitialRadiiMethod
     procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
     
-    if (blackHoleBinaryInitialRadiiMethod == 'Volonteri 2003') Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Volonteri_2003
+    if (blackHoleBinaryInitialRadiiMethod == 'Volonteri2003') Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Volonteri_2003
     return
   end subroutine Black_Hole_Binary_Initial_Radii_Volonteri_2003_Initialize
 

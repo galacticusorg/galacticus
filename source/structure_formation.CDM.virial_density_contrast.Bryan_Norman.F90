@@ -91,7 +91,7 @@ contains
     type(varying_string),          intent(in)    :: virialDensityContrastMethod
     procedure(),          pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
     
-    if (virialDensityContrastMethod == 'Bryan + Norman') then
+    if (virialDensityContrastMethod == 'Bryan-Norman1998') then
        Virial_Density_Contrast_Tabulate => Virial_Density_Bryan_Norman
        ! Check that fitting formulae are applicable to this cosmology.
        if (Omega_DE() == 0.0d0) then

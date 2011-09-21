@@ -118,13 +118,13 @@ contains
        ! Get the chemical state method parameter.
        !@ <inputParameter>
        !@   <name>chemicalStateMethod</name>
-       !@   <defaultValue>atomic CIE Cloudy</defaultValue>
+       !@   <defaultValue>atomicCIECloudy</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing the chemical state.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('chemicalStateMethod',chemicalStateMethod,defaultValue='atomic_CIE_Cloudy')
+       call Get_Input_Parameter('chemicalStateMethod',chemicalStateMethod,defaultValue='atomicCIECloudy')
 
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="chemicalStateMethod" type="code" action="subroutine">

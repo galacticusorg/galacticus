@@ -81,7 +81,7 @@ contains
     type(varying_string),                 intent(in)    :: infallRadiusMethod
     procedure(double precision), pointer, intent(inout) :: Infall_Radius_Get,Infall_Radius_Growth_Rate_Get
     
-    if (infallRadiusMethod == 'cooling radius') then
+    if (infallRadiusMethod == 'coolingRadius') then
        Infall_Radius_Get             => Infall_Radius_Cooling_Radius
        Infall_Radius_Growth_Rate_Get => Infall_Radius_Growth_Rate_Cooling_Radius
     end if

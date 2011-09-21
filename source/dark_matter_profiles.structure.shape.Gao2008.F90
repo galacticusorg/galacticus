@@ -74,13 +74,13 @@ contains
   !#  <unitName>Dark_Matter_Shapes_Gao2008_Initialize</unitName>
   !# </darkMatterShapeMethod>
   subroutine Dark_Matter_Shapes_Gao2008_Initialize(darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get)
-    !% Initializes the ``Gao 2008'' halo shape module.
+    !% Initializes the ``Gao2008'' halo shape module.
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterShapeMethod
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Shape_Get
     
-    if (darkMatterShapeMethod == 'Gao 2008') Dark_Matter_Profile_Shape_Get => Dark_Matter_Profile_Shape_Gao2008
+    if (darkMatterShapeMethod == 'Gao2008') Dark_Matter_Profile_Shape_Get => Dark_Matter_Profile_Shape_Gao2008
   
     return
   end subroutine Dark_Matter_Shapes_Gao2008_Initialize

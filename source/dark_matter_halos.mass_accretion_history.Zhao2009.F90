@@ -90,14 +90,14 @@ contains
   !#  <unitName>Dark_Matter_Mass_Accretion_Zhao2009_Initialize</unitName>
   !# </darkMatterAccretionHistoryMethod>
   subroutine Dark_Matter_Mass_Accretion_Zhao2009_Initialize(darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get)
-    !% Initializes the ``Zhao 2009'' mass accretion history module.
+    !% Initializes the ``Zhao2009'' mass accretion history module.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterAccretionHistoryMethod
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Mass_Accretion_Time_Get
     
-    if (darkMatterAccretionHistoryMethod == 'Zhao 2009') then
+    if (darkMatterAccretionHistoryMethod == 'Zhao2009') then
        ! Set procedure pointers.
        Dark_Matter_Halo_Mass_Accretion_Time_Get => Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009       
     end if

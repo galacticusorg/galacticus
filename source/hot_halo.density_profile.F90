@@ -112,13 +112,13 @@ contains
        ! Get the cooling time available method parameter.
        !@ <inputParameter>
        !@   <name>hotHaloDensityMethod</name>
-       !@   <defaultValue>cored isothermal</defaultValue>
+       !@   <defaultValue>coredIsothermal</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of the hot halo density profile.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='cored isothermal')
+       call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='coredIsothermal')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="hotHaloDensityMethod" type="code" action="subroutine">
        !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get</subroutineArgs>

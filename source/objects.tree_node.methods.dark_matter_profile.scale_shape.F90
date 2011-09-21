@@ -124,7 +124,7 @@ contains
     type(varying_string)                :: message
 
     ! Check if this implementation is selected.
-    if (componentOption == 'scale + shape') then
+    if (componentOption == 'scale+shape') then
        ! Record that method is selected.
        methodSelected=.true.
 

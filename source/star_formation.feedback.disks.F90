@@ -102,13 +102,13 @@ contains
        ! Get the disk star formation feedback method parameter.
        !@ <inputParameter>
        !@   <name>starFormationFeedbackDisksMethod</name>
-       !@   <defaultValue>power law</defaultValue>       
+       !@   <defaultValue>powerLaw</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of \SNe\ feedback in disks.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFeedbackDisksMethod',starFormationFeedbackDisksMethod,defaultValue='power law')
+       call Get_Input_Parameter('starFormationFeedbackDisksMethod',starFormationFeedbackDisksMethod,defaultValue='powerLaw')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="starFormationFeedbackDisksMethod" type="code" action="subroutine">
        !#  <subroutineArgs>starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get</subroutineArgs>

@@ -101,13 +101,13 @@ contains
        ! Get the halo spin distribution method parameter.
        !@ <inputParameter>
        !@   <name>darkMatterConcentrationMethod</name>
-       !@   <defaultValue>Gao 2008</defaultValue>
+       !@   <defaultValue>Gao2008</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of dark matter halo density profile concentrations.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterConcentrationMethod',darkMatterConcentrationMethod,defaultValue='Gao 2008')
+       call Get_Input_Parameter('darkMatterConcentrationMethod',darkMatterConcentrationMethod,defaultValue='Gao2008')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="darkMatterConcentrationMethod" type="code" action="subroutine">
        !#  <subroutineArgs>darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get</subroutineArgs>

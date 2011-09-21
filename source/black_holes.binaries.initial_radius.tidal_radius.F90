@@ -88,7 +88,7 @@ contains
     type(varying_string),                 intent(in)    :: blackHoleBinaryInitialRadiiMethod
     procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
     
-    if (blackHoleBinaryInitialRadiiMethod == 'tidal radius') Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Tidal_Radius
+    if (blackHoleBinaryInitialRadiiMethod == 'tidalRadius') Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Tidal_Radius
     return
   end subroutine Black_Hole_Binary_Initial_Radii_Tidal_Radius_Initialize
 

@@ -617,7 +617,7 @@ Currently defined radiative recombination rate methods are:
 
 \subsubsection{Black Hole Binaries: Initial Separation}
 
-Additional methods for black hole binary initial separation calculations can be added using the {\tt blackHoleBinaryInitialRadiiMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt spheroid radius fraction} method is described by a directive:
+Additional methods for black hole binary initial separation calculations can be added using the {\tt blackHoleBinaryInitialRadiiMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt spheroidRadiusFraction} method is described by a directive:
 \begin{verbatim}
  !# <blackHoleBinaryInitialRadiiMethod>
  !#  <unitName>Black_Hole_Binary_Initial_Radii_Spheroid_Size_Initialize</unitName>
@@ -651,14 +651,14 @@ The function must return the initial separation (in Mpc) of the active black hol
 
 Currently defined black hole binary initial separation methods are:
 \begin{description}
- \item [{\tt spheroid radius fraction}] Assumes that the initial separation is equal to a fraction {\tt [blackHoleInitialRadiusSpheroidRadiusRatio]} of the larger of the spheroid scale radii in {\tt thisNode} and {\tt hostNode}.
- \item [{\tt Volonteri 2003}] Assumes that the initial separation follows the relationship described in \cite{volonteri_assembly_2003} following the black hole masses in {\tt thisNode} and {\tt hostNode}.
-\item [{\tt tidal radius}] Solves the radius at which the satellite galaxy is stripped of its stars, and assume only the central black hole remains, at that specific radius. This uses the masses in {\tt thisNode} and {\tt hostNode}.
+ \item [{\tt spheroidRadiusFraction}] Assumes that the initial separation is equal to a fraction {\tt [blackHoleInitialRadiusSpheroidRadiusRatio]} of the larger of the spheroid scale radii in {\tt thisNode} and {\tt hostNode}.
+ \item [{\tt Volonteri2003}] Assumes that the initial separation follows the relationship described in \cite{volonteri_assembly_2003} following the black hole masses in {\tt thisNode} and {\tt hostNode}.
+\item [{\tt tidalRadius}] Solves the radius at which the satellite galaxy is stripped of its stars, and assume only the central black hole remains, at that specific radius. This uses the masses in {\tt thisNode} and {\tt hostNode}.
 \end{description}
 
 \subsubsection{Black Hole Binaries: Separation Growth Rate}\label{sec:SMBHRadialMotion}
 
-Additional methods for black hole binary separation growth rate calculations can be added using the {\tt blackHoleBinarySeparationGrowthRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Volonteri 2003} method is described by a directive:
+Additional methods for black hole binary separation growth rate calculations can be added using the {\tt blackHoleBinarySeparationGrowthRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Volonteri2003} method is described by a directive:
 
 \begin{verbatim}
   !# <blackHoleBinarySeparationGrowthRateMethod>
@@ -685,7 +685,7 @@ Additional methods for the recoil velocity of a binary black hole can be added u
 Currently defined black hole binary recoil velocity methods are:
 \begin{description}
  \item [{\tt null}] Assumes that there is zero recoil velocity.
- \item [{\tt Campanelli 2008}] Assumes that the recoil velocity follows \cite{campanelli_large_2007}, utilizing the black hole masses and spins in {\tt thisNode}. For now it does not take the direction of the spin into account, and assumes a zero perpendicular velocity.
+ \item [{\tt Campanelli2008}] Assumes that the recoil velocity follows \cite{campanelli_large_2007}, utilizing the black hole masses and spins in {\tt thisNode}. For now it does not take the direction of the spin into account, and assumes a zero perpendicular velocity.
 \end{description}
 
 \subsubsection{Black Hole Binaries: Mergers}\label{sec:BlackHoleBinaryMergers}
@@ -854,7 +854,7 @@ Currently defined chemical state methods are:
   \item[{\tt power law}] The electron density is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the electron density is everywhere positive.
  \end{description}
  If the electron density is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and electron density. Otherwise, interpolation is linear in these quantities. The electron density is scaled assuming a linear dependence on hydrogen density.
- \item [{\tt atomic CIE Cloudy}] Uses the {\sc Cloudy} software to compute the chemical state for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the chemical state suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}.
+ \item [{\tt atomicCIECloudy}] Uses the {\sc Cloudy} software to compute the chemical state for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the chemical state suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}.
  \item [{\tt PIE\_from\_file}]  Reads a tabulated PIE ionization state from a file and interpolates in the table to give a result. The HDF5 file containing the table should have the following form:
 \begin{verbatim}
 GROUP "/" {
@@ -923,7 +923,7 @@ The datasets should contain the following information:
 
 \subsubsection{Cooling Rate}
 
-Additional methods for the cooling rate from the hot halo can be added using the {\tt coolingRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt White + Frenk} method is described by a directive:
+Additional methods for the cooling rate from the hot halo can be added using the {\tt coolingRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt White-Frenk1991} method is described by a directive:
 \begin{verbatim}
  !# <coolingRateMethod>
  !#  <unitName>Cooling_Rate_White_Frenk_Initialize</unitName>
@@ -957,7 +957,7 @@ The function must return the rate of mass drop-out from the hot halo (in units o
 
 Currently defined cooling rate methods are:
 \begin{description}
- \item [\hyperlink{cooling.cooling_rate.White-Frenk.F90:cooling_rates_white_frenk:cooling_rate_white_frenk}{{\tt White + Frenk}}] Implements something similar to that proposed by \cite{white_galaxy_1991}. Namely, the cooling rate is set equal to
+ \item [\hyperlink{cooling.cooling_rate.White-Frenk.F90:cooling_rates_white_frenk:cooling_rate_white_frenk}{{\tt White-Frenk1991}}] Implements something similar to that proposed by \cite{white_galaxy_1991}. Namely, the cooling rate is set equal to
  \begin{equation}
   \dot{M}_{\rm cool} = 4 \pi \rho(r_{\rm infal}) r_{\rm infall}^2 \dot{r}_{\rm infall}
  \end{equation}
@@ -971,7 +971,7 @@ Currently defined cooling rate methods are:
 
 \subsubsection{Cooling Function}\label{sec:CoolingFunctionMethods}
 
-Additional methods for cooling functions can be added using the {\tt coolingFunctionMethods}, {\tt coolingFunctionCompute}, {\tt coolingFunctionDensitySlopeCompute} and {\tt coolingFunctionTemperatureSlopeCompute} directives. Each directive should contain a single argument, giving the name of a subroutine to be called to either initialize the method or compute the relevant quantity. For example, the {\tt atomic CIE Cloudy} method is initialized by a directive:
+Additional methods for cooling functions can be added using the {\tt coolingFunctionMethods}, {\tt coolingFunctionCompute}, {\tt coolingFunctionDensitySlopeCompute} and {\tt coolingFunctionTemperatureSlopeCompute} directives. Each directive should contain a single argument, giving the name of a subroutine to be called to either initialize the method or compute the relevant quantity. For example, the {\tt atomicCIECloudy} method is initialized by a directive:
 \begin{verbatim}
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_Atomic_CIE_Cloudy_Initialize</unitName>
@@ -1160,12 +1160,12 @@ The function must return the freefall radius (in units of Mpc) for {\tt thisNode
 
 Currently defined freefall radius methods are:
 \begin{description}
- \item [\hyperlink{cooling.freefall_radii.dark_matter_halo.F90:freefall_radii_dark_matter_halo:freefall_radius_dark_matter_halo}{{\tt dark matter halo}}] Computes the freefall radius by finding the radius in the dark matter halo profile from which a test particle could have free-fallen to zero radius (assuming it began at rest) in the time available for freefall.
+ \item [\hyperlink{cooling.freefall_radii.dark_matter_halo.F90:freefall_radii_dark_matter_halo:freefall_radius_dark_matter_halo}{{\tt darkMatterHalo}}] Computes the freefall radius by finding the radius in the dark matter halo profile from which a test particle could have free-fallen to zero radius (assuming it began at rest) in the time available for freefall.
 \end{description}
 
 \subsubsection{Cooling: Infall Radius}
 
-Additional methods for the infall radius in cooling calculations can be added using the {\tt infallRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt cooling radius} method is described by a directive:
+Additional methods for the infall radius in cooling calculations can be added using the {\tt infallRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt coolingRadius} method is described by a directive:
 \begin{verbatim}
  !# <infallRadiusMethod>
  !#  <unitName>Infall_Radius_Cooling_Radius_Initialize</unitName>
@@ -1202,7 +1202,7 @@ The function must return the infall radius (in units of Mpc) for {\tt thisNode},
 
 Currently defined infall radius methods are:
 \begin{description}
- \item [\hyperlink{cooling.infall_radius.cooling_radius.F90:infall_radii_cooling_radius:infall_radius_cooling_radius}{{\tt cooling radius}}] Assumes that the infall radius equals the cooling radius.
+ \item [\hyperlink{cooling.infall_radius.cooling_radius.F90:infall_radii_cooling_radius:infall_radius_cooling_radius}{{\tt coolingRadius}}] Assumes that the infall radius equals the cooling radius.
  \item [\hyperlink{cooling.infall_radius.cooling_and_freefall.F90:infall_radii_cooling_freefall:infall_radius_cooling_freefall}{{\tt cooling and freefall}}] Assumes that the infall radius is equal to the smaller of the cooling and freefall radii.
 \end{description}
 
@@ -1244,7 +1244,7 @@ The function must return the specific angular momentum (in units of km/s Mpc) of
 
 Currently defined specific angular momentum of cooling gas methods are:
 \begin{description}
- \item [\hyperlink{cooling.specific_angular_momentum.constant_rotation.F90:cooling_specific_angular_momenta_constant_rotation:cooling_specific_angular_momentum_constant_rotation}{{\tt constant rotation}}] Computes the specific angular momentum of the cooling gas based on the cooling radius, mean specific angular momentum and the assumption of a constant mean rotation speed in the cooling gas as a function of radius.
+ \item [\hyperlink{cooling.specific_angular_momentum.constant_rotation.F90:cooling_specific_angular_momenta_constant_rotation:cooling_specific_angular_momentum_constant_rotation}{{\tt constantRotation}}] Computes the specific angular momentum of the cooling gas based on the cooling radius, mean specific angular momentum and the assumption of a constant mean rotation speed in the cooling gas as a function of radius.
 \end{description}
 
 \subsubsection{Cooling Time Available}
@@ -1288,12 +1288,12 @@ The first function must return the time available for cooling (in units of Gyr) 
 Currently defined cooling time available methods are:
 \begin{description}
  \item [\hyperlink{cooling.time_available.White-Frenk.F90:cooling_time_available_white_frenk:cooling_time_available_wf}{{\tt White-Frenk}}] The time available is set to a value between the age of the Universe and the dynamical time of the halo, depending on the interpolating parameter {\tt [coolingTimeAvailableAgeFactor]};
- \item [\hyperlink{cooling.time_available.halo_formation.F90:cooling_times_available_halo_formation:cooling_time_available_halo_formation}{{\tt halo formation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
+ \item [\hyperlink{cooling.time_available.halo_formation.F90:cooling_times_available_halo_formation:cooling_time_available_halo_formation}{{\tt haloFormation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
 \end{description}
 
 \subsubsection{Cooling Time Available For Freefall}
 
-Additional methods for the time available for freefall in cooling calculations can be added using the {\tt freefallTimeAvailableMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt halo formation} method is described by a directive:
+Additional methods for the time available for freefall in cooling calculations can be added using the {\tt freefallTimeAvailableMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt haloFormation} method is described by a directive:
 \begin{verbatim}
  !# <freefallTimeAvailableMethod>
  !#  <unitName>Freefall_Time_Available_Halo_Formation_Initialize</unitName>
@@ -1331,7 +1331,7 @@ The first function must return the time available for freefall cooling calculati
 
 Currently defined freefall time available methods are:
 \begin{description}
- \item [\hyperlink{cooling.freefall_time_available.halo_formation.F90:freefall_times_available_halo_formation:freefall_time_available_halo_formation}{{\tt halo formation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
+ \item [\hyperlink{cooling.freefall_time_available.halo_formation.F90:freefall_times_available_halo_formation:freefall_time_available_halo_formation}{{\tt haloFormation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
 \end{description}
 
 \subsubsection{Cooling Time}
@@ -1382,7 +1382,7 @@ Currently defined cooling time methods are:
 
 \subsubsection{Cosmology}\label{sec:CosmologyMethods}
 
-Additional methods for cosmology can be added using the {\tt cosmologyMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt matter + lambda} method is described by a directive:
+Additional methods for cosmology can be added using the {\tt cosmologyMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt matter-lambda} method is described by a directive:
 \begin{verbatim}
   !# <cosmologyMethod>
   !#  <unitName>Cosmology_Functions_Matter_Lambda_Initialize</unitName>
@@ -1605,12 +1605,12 @@ Should return the cosmic time (in units of Gyr) corresponding to the given comov
 
 Currently defined cosmology methods are:
 \begin{description}
- \item [{\tt matter + lambda}] Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.
+ \item [{\tt matter-lambda}] Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.
 \end{description}
 
 \subsubsection{Critical Overdensity for Halo Collapse}
 
-Additional methods for the critical linear theory overdensity for halo collapse can be added using the {\tt criticalOverdensityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt spherical top hat} method is described by a directive:
+Additional methods for the critical linear theory overdensity for halo collapse can be added using the {\tt criticalOverdensityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt sphericalTopHat} method is described by a directive:
 \begin{verbatim}
   !# <criticalOverdensityMethod>
   !#  <unitName>Spherical_Collape_Delta_Critical_Initialize</unitName>
@@ -1651,7 +1651,7 @@ The subroutine must tabulate the critical overdensity in array {\tt deltaCritDel
 
 Currently defined critical overdensity methods are:
 \begin{description}
- \item [{\tt spherical top hat}] The critical overdensity is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
+ \item [{\tt sphericalTopHat}] The critical overdensity is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
 \end{description}
 
 
@@ -1838,7 +1838,7 @@ Currently defined dark matter density profile methods are:
 
 \subsubsection{Dark Matter Halo Mass Accretion History}\index{dark matter halo!mass accretion history}\index{mass accretion history!dark matter halo}\label{sec:HaloMassAccretionHistory}
 
-Additional methods for dark matter halo mass accretion histories can be added using the {\tt darkMatterAccretionHistoryMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Zhao 2009} method is described by a directive:
+Additional methods for dark matter halo mass accretion histories can be added using the {\tt darkMatterAccretionHistoryMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Zhao2009} method is described by a directive:
 \begin{verbatim}
  !# <darkMatterAccretionHistoryMethod>
  !#  <unitName>Dark_Matter_Mass_Accretion_Zhao2009_Initialize</unitName>
@@ -1878,8 +1878,8 @@ The function should compute and return the time at which the mass accretion hist
 
 Currently defined mass accretion history methods are:
 \begin{description}
- \item [{\tt Wechsler 2002}] Uses the fitting function from \cite{wechsler_concentrations_2002} to compute the mass accretion history. If {\tt [accretionHistoryWechslerFormationRedshiftCompute]} is set to true then the formation redshift for each history is set sing the method of \cite{bullock_profiles_2001}, otherwise it can be set directly via the {\tt [accretionHistoryWechslerFormationRedshift]} parameter;
- \item [{\tt Zhao 2009}] Uses the algorithm of \cite{zhao_accurate_2009} to compute the mass accretion history.
+ \item [{\tt Wechsler2002}] Uses the fitting function from \cite{wechsler_concentrations_2002} to compute the mass accretion history. If {\tt [accretionHistoryWechslerFormationRedshiftCompute]} is set to true then the formation redshift for each history is set sing the method of \cite{bullock_profiles_2001}, otherwise it can be set directly via the {\tt [accretionHistoryWechslerFormationRedshift]} parameter;
+ \item [{\tt Zhao2009}] Uses the algorithm of \cite{zhao_accurate_2009} to compute the mass accretion history.
 \end{description}
 
 \subsubsection{Dark Matter Density Profile Concentration}
@@ -1923,10 +1923,10 @@ The function should compute and return the concentration for {\tt thisNode}.
 
 Currently defined darl matter profile concentration methods are:
 \begin{description}
- \item [{\tt NFW 1996}] The concentration is computed using the algorithm given by \cite{navarro_structure_1996};
- \item [{\tt Gao 2008}] The concentration is computed using a fitting function from \cite{gao_redshift_2008};
- \item [{\tt Zhao 2009}] The concentration is computed using a fitting function from \cite{zhao_accurate_2009}. Halo formation times (as defined by \citealt{zhao_accurate_2009}) are computed directly from the merger tree branch associated with each node. Where the tree does not exist or has insufficient resolution to contain the merging time the merging time will be found by extrapolation of the earliest resolved progenitor halo using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory});
- \item [{\tt Munoz-Cuartas 2011}] The concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011};
+ \item [{\tt NFW1996}] The concentration is computed using the algorithm given by \cite{navarro_structure_1996};
+ \item [{\tt Gao2008}] The concentration is computed using a fitting function from \cite{gao_redshift_2008};
+ \item [{\tt Zhao2009}] The concentration is computed using a fitting function from \cite{zhao_accurate_2009}. Halo formation times (as defined by \citealt{zhao_accurate_2009}) are computed directly from the merger tree branch associated with each node. Where the tree does not exist or has insufficient resolution to contain the merging time the merging time will be found by extrapolation of the earliest resolved progenitor halo using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory});
+ \item [{\tt Munoz-Cuartas2011}] The concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011};
 \end{description}
 
 \subsubsection{Dark Matter Density Profile Shape}\label{sec:darkMatterProfileShape}
@@ -1970,7 +1970,7 @@ The function should compute and return the shape parameter for {\tt thisNode}.
 
 Currently defined darl matter profile shape parameter methods are:
 \begin{description}
- \item [{\tt Gao 2008}] The shape parameter is computed using a fitting function from \cite{gao_redshift_2008} - see \S\ref{sec:DarkMatterProfileShape} for details.
+ \item [{\tt Gao2008}] The shape parameter is computed using a fitting function from \cite{gao_redshift_2008} - see \S\ref{sec:DarkMatterProfileShape} for details.
 \end{description}
 
 \subsubsection{Dark Matter Halo Spin Distribution}\label{sec:HaloSpinDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
@@ -2016,7 +2016,7 @@ Currently defined spin distribution methods are:
 \begin{description}
  \item [{\tt lognormal}] The spin is drawn from a lognormal distribution with median {\tt [lognormalSpinDistributionMedian]} and width {\tt [lognormalSpinDistributionSigma]}.
  \item [{\tt Bett2007}] The spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$ and $\alpha$ parameter of Bett et al.'s distribution are set by the {\tt [spinDistributionBett2007Lambda0]} and {\tt [spinDistributionBett2007Alpha]} input parameters.
- \item [{\tt delta function}] The spin is drawn from a delta function distribution, i.e. a value equal to {\tt [deltaFunctionSpinDistributionSpin]} is always returned.
+ \item [{\tt deltaFunction}] The spin is drawn from a delta function distribution, i.e. a value equal to {\tt [deltaFunctionSpinDistributionSpin]} is always returned.
 \end{description}
 
 \subsubsection{Dark Matter Halo Mass Loss Rates}\label{sec:HaloMassLossRates}\index{dark matter halo!mass loss}\index{mass loss!dark matter halo}
@@ -2151,7 +2151,7 @@ Currently defined radius solver methods are:
 
 \subsubsection{Hot Halo Density Profile}
 
-Additional methods for the hot halo density profile can be added using the {\tt hotHaloDensityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt cored isothermal} method is described by a directive:
+Additional methods for the hot halo density profile can be added using the {\tt hotHaloDensityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt coredIsothermal} method is described by a directive:
 \begin{verbatim}
  !# <hotHaloDensityMethod>
  !#  <unitName>Hot_Halo_Density_Cored_Isothermal</unitName>
@@ -2204,7 +2204,7 @@ and should compute and return the normalization between rotation speed and mean 
 
 Currently defined hot halo density profile methods are:
 \begin{description}
- \item [\hyperlink{hot_halo.density_profile.cored_isothermal.F90:hot_halo_density_profile_cored_isothermal:hot_halo_density_cored_isothermal_get}{{\tt cored isothermal}}] Implements a cored isothermal profile for the hot halo. The density is given by
+ \item [\hyperlink{hot_halo.density_profile.cored_isothermal.F90:hot_halo_density_profile_cored_isothermal:hot_halo_density_cored_isothermal_get}{{\tt coredIsothermal}}] Implements a cored isothermal profile for the hot halo. The density is given by
  \begin{equation}
   \rho(r) = {\rho_0 \over 1 + (r/r_{\rm core})^2}
  \end{equation}
@@ -2249,7 +2249,7 @@ The function must return the radius (in units of Mpc) of the cored isothermal ho
 Currently defined hot halo cored isothermal density profile core radii methods are:
 \begin{description}
  \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.virial_radius_fraction.F90:hot_halo_density_cored_isothermal_core_radii_virial_fraction:hot_halo_density_cored_isothermal_core_radius_virial_fraction}{{\tt virialRadiusFraction}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
- \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.growing_core.F90:hot_halo_density_cored_isothermal_core_radii_growing_core:hot_halo_density_cored_isothermal_core_radius_growing_core}{{\tt growing core}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+ \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.growing_core.F90:hot_halo_density_cored_isothermal_core_radii_growing_core:hot_halo_density_cored_isothermal_core_radius_growing_core}{{\tt growingCore}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
 \end{description}
 
 \subsubsection{Hot Halo Temperature Profile}
@@ -2524,7 +2524,7 @@ Currently defined halo profile methods are:
 
 \subsubsection{Halo Virial Density Contrast}
 
-Additional methods for the halo virial density contrast can be added using the {\tt virialDensityContrastMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt spherical top hat} method is described by a directive:
+Additional methods for the halo virial density contrast can be added using the {\tt virialDensityContrastMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt sphericalTopHat} method is described by a directive:
 \begin{verbatim}
   !# <virialDensityContrastMethod>
   !#  <unitName>Spherical_Collape_Delta_Virial_Initialize</unitName>
@@ -2564,9 +2564,9 @@ The subroutine must tabulate the virial overdensity in array {\tt deltaVirialDel
 
 Currently defined virial density contrast methods are:
 \begin{description}
- \item [{\tt spherical top hat}] The virial density contrast is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
- \item [{\tt Bryan + Norman}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_{\rm M}+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
- \item [{\tt fixed}] The virial density contrast is fixed at {\tt [virialDensityConstrastFixed]}, defined relative to {\tt critical density} and {\tt mean density} as specified by {\tt [virialDensityConstrastFixedType]}.
+ \item [{\tt sphericalTopHat}] The virial density contrast is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
+ \item [{\tt Bryan-Norman1998}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_{\rm M}+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
+ \item [{\tt fixed}] The virial density contrast is fixed at {\tt [virialDensityConstrastFixed]}, defined relative to {\tt criticalDensity} and {\tt meanDensity} as specified by {\tt [virialDensityConstrastFixedType]}.
 \end{description}
 
 \subsubsection{Initial Mass Function Functions}\label{sec:IMF_functions}
@@ -2864,7 +2864,7 @@ Currently defined linear growth factor methods are:
 
 \subsubsection{Merger Tree Branching}
 
-Additional methods for merger tree branching can be added using the {\tt treeBranchingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt modified Press-Schechter} method is described by a directive:
+Additional methods for merger tree branching can be added using the {\tt treeBranchingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt modifiedPress-Schechter} method is described by a directive:
 \begin{verbatim}
  !# <treeBranchingMethod>
  !#  <unitName>Modified_Press_Schechter_Branching_Initialize</unitName>
@@ -2928,7 +2928,7 @@ The procedure pointers must point to functions with the following templates:
 
 Currently defined merger tree branching methods are:
 \begin{description}
- \item [{\tt modified Press-Schechter}] Branching probabilities are computed using the method of \cite{parkinson_generating_2008}. Progenitor mass functions generated using \glc's implementation of this algorithm (and the \cite{cole_hierarchical_2000} merger tree building algorithm) are shown in Fig.~\ref{fig:PCH_Progenitor_MFs}.
+ \item [{\tt modifiedPress-Schechter}] Branching probabilities are computed using the method of \cite{parkinson_generating_2008}. Progenitor mass functions generated using \glc's implementation of this algorithm (and the \cite{cole_hierarchical_2000} merger tree building algorithm) are shown in Fig.~\ref{fig:PCH_Progenitor_MFs}.
 \end{description}
 
 \begin{figure}
@@ -3023,7 +3023,7 @@ Currently defined merger tree construction methods are:
  \item [{\tt build}] Generates a set of halo masses distributed between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} (with {\tt mergerTreeBuildTreesPerDecade} halos per decade of mass) at redshift {\tt mergerTreeBuildTreesBaseRedshift}, or with masses read from a file, and then uses the selected merger tree build method (see \S\ref{sec:MergerTreeBuildMethod}) to build trees from these base nodes;
  \item [{\tt read}] Reads merger tree data from an HDF5 file (see \S\ref{sec:MergerTreeFiles}). The file to read is specified by the {\tt [mergerTreeReadFileName]} parameter.
  \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). See \S\ref{sec:SmoothAccretion} for details.
- \item [{\tt state restore}] Intended primarily for debugging purposes, this method will restore a tree whose complete internal state was written to file. See \S\ref{sec:TreeConstructStateRestore} for details of how to use this method.
+ \item [{\tt stateRestore}] Intended primarily for debugging purposes, this method will restore a tree whose complete internal state was written to file. See \S\ref{sec:TreeConstructStateRestore} for details of how to use this method.
 \end{description}
 
 \subsubsection{Chemical Reaction Rates}
@@ -3086,7 +3086,7 @@ Currently defined chemical reaction rate methods are:
 
 \subsubsection{Population III Supernovae}
 
-Additional methods for Population III supernovae can be added using the {\tt supernovaePopIIIMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Heger + Woosley} method is described by a directive:
+Additional methods for Population III supernovae can be added using the {\tt supernovaePopIIIMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Heger-Woosley2002} method is described by a directive:
 \begin{verbatim}
   !# <supernovaePopIIIMethod>
   !#  <unitName>Supernovae_Population_III_HegerWoosley_Initialize</unitName>
@@ -3125,12 +3125,12 @@ This function must return the cumulative energy (in $M_\odot$ (km/s)$^2$) from P
 
 Currently defined population III supernovae methods are:
 \begin{description}
- \item [{\tt Heger + Woosley}] Computes the energy input from the pair-instability results of \cite{heger_nucleosynthetic_2002}.
+ \item [{\tt Heger-Woosley2002}] Computes the energy input from the pair-instability results of \cite{heger_nucleosynthetic_2002}.
 \end{description}
 
 \subsubsection{Primordial Power Spectrum}
 
-Additional methods for the primordial power spectrum can be added using the {\tt powerSpectrumMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt power law} method is described by a directive:
+Additional methods for the primordial power spectrum can be added using the {\tt powerSpectrumMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt powerLaw} method is described by a directive:
 \begin{verbatim}
   !# <powerSpectrumMethod>
   !#  <unitName>CDM_Primordial_Power_Spectrum_Power_Law_Initialize</unitName>
@@ -3171,7 +3171,7 @@ The subroutine must tabulate the natural log of the power spectrum in array {\tt
 
 Currently defined power spectrum methods are:
 \begin{description}
- \item [{\tt power law}] The power spectrum is assumed to be a power law, possibly with a running index. It is defined by
+ \item [{\tt powerLaw}] The power spectrum is assumed to be a power law, possibly with a running index. It is defined by
 \begin{equation}
  P(k)\propto k^{n_{\rm s} + \ln(k/k_{\rm ref}) [\d n /\d\ln k]},
 \end{equation}
@@ -3522,7 +3522,7 @@ The function must return the merging timescale for {\tt thisNode} orbitting with
 Currently defined satellite virial orbit methods are:
 \begin{description}
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole.F90:dynamical_friction_lacey_cole:satellite_time_until_merging_lacey_cole}{{\tt Lacey-Cole}}] Computes the merging timescale using the method of \cite{lacey_merger_1993}.
- \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole_Tormen.F90:dynamical_friction_lacey_cole_tormen:satellite_time_until_merging_lacey_cole_tormen}{{\tt Lacey-Cole + Tormen}}] Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000};
+ \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole_Tormen.F90:dynamical_friction_lacey_cole_tormen:satellite_time_until_merging_lacey_cole_tormen}{{\tt Lacey-Cole+Tormen}}] Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000};
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Jiang2008.F90:dynamical_friction_jiang2008:satellite_time_until_merging_jiang2008}{{\tt Jiang2008}}] Computes the merging timescale using the method of \cite{jiang_fitting_2008};
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Boylan-Kolchin2008.F90:dynamical_friction_boylankolchin2008:satellite_time_until_merging_boylankolchin2008}{{\tt BoylanKolchin2008}}] Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008};
  \item [\hyperlink{satellites.merging.preset.F90:satellite_merging_times_preset:satellite_time_until_merging_preset}{{\tt preset}}] This method assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time;
@@ -3574,7 +3574,7 @@ Currently defined satellite virial orbit methods are:
 
 \subsubsection{Star Formation Feedback in Disks/Spheroids}
 
-Additional methods for computing feedback from star formation in disks/spheroids can be added using the {\tt starFormationFeedback[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt power law} method is described by a directive:
+Additional methods for computing feedback from star formation in disks/spheroids can be added using the {\tt starFormationFeedback[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt powerLaw} method is described by a directive:
 \begin{verbatim}
  !# <starFormationFeedbackSpheroidsMethod>
  !#  <unitName>Star_Formation_Feedback_Spheroids_Power_Law_Initialize</unitName>
@@ -3609,7 +3609,7 @@ The function must return the mass outflow rate (in $M_\odot$ Gyr$^{-1}$) for {\t
 
 Currently defined star formation feedback methods are:
 \begin{description}
- \item [\hyperlink{star_formation.feedback.spheroids.power_law.F90:star_formation_feedback_spheroids_power_law:star_formation_feedback_spheroid_outflow_rate_power_law}{{\tt power law}}] The outflow rate is given by
+ \item [\hyperlink{star_formation.feedback.spheroids.power_law.F90:star_formation_feedback_spheroids_power_law:star_formation_feedback_spheroid_outflow_rate_power_law}{{\tt powerLaw}}] The outflow rate is given by
 \begin{equation}
  \dot{M}_{\rm outflow} = \left({V_{\rm outflow} \over V}\right)^{\alpha_{\rm outflow}} {\dot{E} \over E_{\rm canonical}},
 \end{equation}
@@ -3618,7 +3618,7 @@ where $V_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} (in km/s) and $\alp
 
 \subsubsection{(Expulsive) Star Formation Feedback in Disks/Spheroids}\index{feedback!expulsive}
 
-Additional methods for computing expulsive feedback\footnote{``Expulsive'' feedback implies outflows in which gas is driven not only out of a galaxy but also out of its host dark matter halo.} from star formation in disks/spheroids can be added using the {\tt starFormationExpulsiveFeedback[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt power law} method is described by a directive:
+Additional methods for computing expulsive feedback\footnote{``Expulsive'' feedback implies outflows in which gas is driven not only out of a galaxy but also out of its host dark matter halo.} from star formation in disks/spheroids can be added using the {\tt starFormationExpulsiveFeedback[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt powerLaw} method is described by a directive:
 \begin{verbatim}
  !# <starFormationExpulsiveFeedbackSpheroidsMethod>
  !#  <unitName>Star_Formation_Expulsive_Feedback_Spheroids_Power_Law_Initialize</unitName>
@@ -3663,7 +3663,7 @@ where $V_{\rm superwind}=${\tt [disk|spheroid]SuperwindVelocity} (in km/s) and $
 
 \subsubsection{Star Formation Timescale in Disks/Spheroids}
 
-Additional methods for computing star formation timescales in disks/spheroids can be added using the {\tt starFormationTimescale[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt dynamical time} method is described by a directive:
+Additional methods for computing star formation timescales in disks/spheroids can be added using the {\tt starFormationTimescale[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt dynamicalTime} method is described by a directive:
 \begin{verbatim}
  !# <starFormationTimescaleDisksMethod>
  !#  <unitName>Star_Formation_Timescale_Disks_Dynamical_Time_Initialize</unitName>
@@ -3697,14 +3697,14 @@ The function must return the star formation timescale (in units of Gyr) for {\tt
 
 Currently defined star formation timescale methods are:
 \begin{description}
- \item [\hyperlink{star_formation.timescales.disks.dynamical_time.F90:star_formation_timescale_disks_dynamical_time:star_formation_timescale_disk_dynamical_time}{{\tt dynamical time}}]  The timescale is given by
+ \item [\hyperlink{star_formation.timescales.disks.dynamical_time.F90:star_formation_timescale_disks_dynamical_time:star_formation_timescale_disk_dynamical_time}{{\tt dynamicalTime}}]  The timescale is given by
 \begin{equation}
  \tau_\star = \epsilon_\star^{-1} \tau_{\rm dynamical, [disk|spheroid]} \left( {V_{\rm [disk|spheroid]} \over 200\hbox{km/s}} \right)^{\alpha_\star},
 \end{equation}
 where $\epsilon_\star$(={\tt starFormation[Disk|Spheroid]Efficiency}) is a star formation efficiency and $\alpha_\star$(={\tt starFormation[Disk|Spheroid]VelocityExponent}) controls the scaling with velocity. Note that $\tau_{\rm dynamical,[disk|spheroid]}=R_{\rm [disk|spheroid]}/V_{\rm [disk|spheroid]}$ where the radius and velocity are whatever characteristic values returned by the disk/spheroid method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the half-mass radius and circular velocity at that radius.
  \item [\hyperlink{star_formation.timescales.disks.Kennicutt-Schmidt.F90:star_formation_timescale_disks_kennicutt_schmidt:star_formation_timescale_disk_kennicutt_schmidt}{{\tt Kennicutt-Schmidt}}] The timescale is given by the Kennicutt-Schmidt law (\citealt{schmidt_rate_1959,kennicutt_global_1998}; see \S\ref{sec:StarFormationKennicuttSchmidt}).
- \item [\hyperlink{star_formation.timescales.disks.extended_Schmidt.F90:star_formation_timescale_disks_extended_schmidt:star_formation_timescale_disk_extended_schmidt}{{\tt extended Schmidt}}] The timescale is given by the extended Schmidt law (\citealt{shi_extended_2011}; see \S\ref{sec:StarFormationExtendedSchmidt}).
- \item [\hyperlink{star_formation.timescales.disks.Blitz-Rosolowsky.F90:star_formation_timescale_disks_blitz_rosolowsky:star_formation_timescale_disk_blitz_rosolowsky}{{\tt Blitz-Rosolowsky}}] The timescale is given by the Blitz-Rosolowsky rule (\citealt{blitz_role_2006}; see \S\ref{sec:StarFormationBlitzRosolowsky}).
+ \item [\hyperlink{star_formation.timescales.disks.extended_Schmidt.F90:star_formation_timescale_disks_extended_schmidt:star_formation_timescale_disk_extended_schmidt}{{\tt extendedSchmidt}}] The timescale is given by the extended Schmidt law (\citealt{shi_extended_2011}; see \S\ref{sec:StarFormationExtendedSchmidt}).
+ \item [\hyperlink{star_formation.timescales.disks.Blitz-Rosolowsky.F90:star_formation_timescale_disks_blitz_rosolowsky:star_formation_timescale_disk_blitz_rosolowsky}{{\tt Blitz-Rosolowsky2006}}] The timescale is given by the Blitz-Rosolowsky rule (\citealt{blitz_role_2006}; see \S\ref{sec:StarFormationBlitzRosolowsky}).
  \item [\hyperlink{star_formation.timescales.disks.KMT09.F90:star_formation_timescale_disks_kmt09:star_formation_timescale_disk_kmt09}{{\tt KMT09}}] The timescale is given by the Krumholz-McKee-Tumlinson (\citealt{krumholz_star_2009}; see \S\ref{sec:StarFormationKMT09});
  \item {\tt Baugh2005}] The timescale is given by $\tau_0 (V_{\rm disk}/200\hbox{km/s})^\alpha a^\beta$.
 \end{description}
@@ -3876,7 +3876,7 @@ Currently defined stellar population properties methods are:
 
 \subsubsection{Stellar Population Spectra}\label{sec:StellarPopulationSpectra}
 
-Additional methods for computing specta of stellar populations can be added using the {\tt stellarPopulationSpectraMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Conroy, White \& Gunn} method is described by a directive:
+Additional methods for computing specta of stellar populations can be added using the {\tt stellarPopulationSpectraMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Conroy-White-Gunn2009} method is described by a directive:
 \begin{verbatim}
  !# <stellarPopulationSpectraMethod>
  !#  <unitName>Stellar_Population_Spectra_Conroy_Initialize</unitName>
@@ -3930,7 +3930,7 @@ and should return the number of ages and metallicities at which stellar populati
 
 Currently defined stellar population properties methods are:
 \begin{description}
- \item [\hyperlink{stellar_populations.spectra.Conroy_et_al.F90:stellar_population_spectra_conroy}{{\tt Conroy, White \& Gunn}}] Uses the {\tt FSPS} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\tt FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval.
+ \item [\hyperlink{stellar_populations.spectra.Conroy_et_al.F90:stellar_population_spectra_conroy}{{\tt Conroy-White-Gunn2009}}] Uses the {\tt FSPS} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\tt FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval.
  \item [\hyperlink{stellar_populations.spectra.file.F90:stellar_population_spectra_file}{{\tt file}}] Stellar spectra for a given \IMF\ are read from the file specified by the {\tt stellarPopulationSpectraForXXXXIMF} where {\tt XXXX} is the name of the \IMF. This should specify an HDF5 file with the following structure:
 \begin{verbatim}
  ages                     Dataset {ageCount}
@@ -4235,7 +4235,7 @@ Currently defined transfer function methods are:
  \item [{\tt file}] The transfer function is read from an XML file specified by input parameter {\tt transferFunctionFile}.
  \item [{\tt CMBFast}] The transfer function is generated by {\sc CMBFast} using the specified cosmological parameters. The transfer function is written out to a file in the {\tt data/} directory and will be re-read later if needed.
  \item [{\tt BBKS}] The transfer function is computed using the fitting formula of \cite{bardeen_statistics_1986}.
- \item [{\tt Eisenstein + Hu}] The transfer function is computed using the fitting formula of \cite{eisenstein_power_1999}. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the {\tt effectiveNumberNeutrinos} and {\tt summedNeutrinoMasses} parameters respectively.
+ \item [{\tt Eisenstein-Hu1999}] The transfer function is computed using the fitting formula of \cite{eisenstein_power_1999}. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the {\tt effectiveNumberNeutrinos} and {\tt summedNeutrinoMasses} parameters respectively.
 \end{description}
 
 The XML file format for transfer functions looks like:
@@ -4297,7 +4297,7 @@ Events are triggered during merger tree evolution. Examples are when a node need
 
 \subsubsection{Node Merger Events}
 
-Additional methods for the node merging (i.e. when a non-primary progenitor merges with its parent) can be added using the {\tt nodeMergersMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt single level hierarchy} method is described by a directive:
+Additional methods for the node merging (i.e. when a non-primary progenitor merges with its parent) can be added using the {\tt nodeMergersMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt singleLevelHierarchy} method is described by a directive:
 \begin{verbatim}
   !# <nodeMergersMethod>
   !#  <unitName>Events_Node_Merger_Initialize_SLH</unitName>
@@ -4332,7 +4332,7 @@ The function must perform any processing required for the merger, and move {\tt 
 
 Currently defined node merger event methods are:
 \begin{description}
- \item [\hyperlink{events.node_merger.single_level_hierarchy.F90:events_node_mergers_slh:events_node_merger_do_slh}{{\tt single level hierarchy}}] The node merger is handled by placing the merging node into the linked list of satellites of the parent node. Any satellites in the merging node are also promoted to be satellites in the new node, thereby maintaining just a single hierarchy level of substructure.
+ \item [\hyperlink{events.node_merger.single_level_hierarchy.F90:events_node_mergers_slh:events_node_merger_do_slh}{{\tt singleLevelHierarchy}}] The node merger is handled by placing the merging node into the linked list of satellites of the parent node. Any satellites in the merging node are also promoted to be satellites in the new node, thereby maintaining just a single hierarchy level of substructure.
 \end{description}
 
 \subsubsection{Node Promotion Events}
@@ -5011,7 +5011,7 @@ where {\tt thisNode} is the node about to merge with {\tt thisNode\%parentNode}.
 
 \subsubsection{Star Formation History Tasks}\index{star formation history}\label{sec:StarFormationHistoryTasks}
 
-Additional methods for star formation history tracking  can be added using the {\tt starFormationHistoriesMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt metallicity split} method uses this directive as follows:
+Additional methods for star formation history tracking  can be added using the {\tt starFormationHistoriesMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt metallicitySplit} method uses this directive as follows:
 \begin{verbatim}
   !# <starFormationHistoriesMethod>
   !#  <unitName>Star_Formation_Histories_Metallicity_Split_Initialize</unitName>
@@ -5141,7 +5141,7 @@ where {\tt nodeID} is the index of the relevant node. The specifics of each data
 
 Currently defined star formation history methods are:
 \begin{description}
- \item [\hyperlink{galacticus.output.merger_tree.star_formation.metallicity_split.F90:star_formation_histories_metallicity_split}{{\tt metallicity split}}] The star formation history is tabulated on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size {\tt [starFormationHistoryTimeStep]} between the time at which each galaxy formed and the final output time, and at most of size {\tt [starFormationHistoryFineTimeStep]} in the period {\tt [starFormationHistoryFineTime]} prior to each output time (all times specified in Gyr). The allows fine binning of recent star formation just prior to each output. The metallicity binning is arranged logarithmically in metallicity with {\tt [starFormationHistoryMetallicityCount]} bins between {\tt [starFormationHistoryMetallicityMinimum]} and {\tt [starFormationHistoryMetallicityMaximum]} (specified in Solar units). Note that the metallicity associated with each bin is the minimum metallicity for that bin (the maximum being the metallicity value associated with the next bin, except for the final bin which extends to infinite metallicity). If {\tt [starFormationHistoryMetallicityCount]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is used).  Output follows the conventional format, with 2D star formation history datasets to represent the history as a function of time and metallicity. An additional {\tt metallicities} dataset is added to the {\tt starFormationHistories} output group to record the metallicity binning as follows:
+ \item [\hyperlink{galacticus.output.merger_tree.star_formation.metallicity_split.F90:star_formation_histories_metallicity_split}{{\tt metallicitySplit}}] The star formation history is tabulated on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size {\tt [starFormationHistoryTimeStep]} between the time at which each galaxy formed and the final output time, and at most of size {\tt [starFormationHistoryFineTimeStep]} in the period {\tt [starFormationHistoryFineTime]} prior to each output time (all times specified in Gyr). The allows fine binning of recent star formation just prior to each output. The metallicity binning is arranged logarithmically in metallicity with {\tt [starFormationHistoryMetallicityCount]} bins between {\tt [starFormationHistoryMetallicityMinimum]} and {\tt [starFormationHistoryMetallicityMaximum]} (specified in Solar units). Note that the metallicity associated with each bin is the minimum metallicity for that bin (the maximum being the metallicity value associated with the next bin, except for the final bin which extends to infinite metallicity). If {\tt [starFormationHistoryMetallicityCount]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is used).  Output follows the conventional format, with 2D star formation history datasets to represent the history as a function of time and metallicity. An additional {\tt metallicities} dataset is added to the {\tt starFormationHistories} output group to record the metallicity binning as follows:
 \begin{verbatim}
 DATASET "metallicities" {
  COMMENT "Metallicities at which star formation histories are tabulated"

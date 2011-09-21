@@ -78,13 +78,13 @@ contains
   !# </stellarPopulationSpectraMethod>
   subroutine Stellar_Population_Spectra_Conroy_Initialize(stellarPopulationSpectraMethod,Stellar_Population_Spectra_Get&
        &,Stellar_Population_Spectrum_Tabulation_Get)
-    !% Initializes the ``Conroy, White \& Gunn'' module.
+    !% Initializes the ``Conroy-White-Gunn2009'' module.
     implicit none
     type(varying_string),                 intent(in)    :: stellarPopulationSpectraMethod
     procedure(double precision), pointer, intent(inout) :: Stellar_Population_Spectra_Get
     procedure(),                 pointer, intent(inout) :: Stellar_Population_Spectrum_Tabulation_Get
     
-    if (stellarPopulationSpectraMethod == 'Conroy, White & Gunn') then
+    if (stellarPopulationSpectraMethod == 'Conroy-White-Gunn2009') then
        Stellar_Population_Spectra_Get             => Stellar_Population_Spectra_Conroy_Get
        Stellar_Population_Spectrum_Tabulation_Get => Stellar_Population_Spectrum_Tabulation_Conroy
     end if

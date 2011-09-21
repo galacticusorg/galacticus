@@ -74,13 +74,13 @@ contains
   !#  <unitName>Dark_Matter_Concentrations_Zhao2009_Initialize</unitName>
   !# </darkMatterConcentrationMethod>
   subroutine Dark_Matter_Concentrations_Zhao2009_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    !% Initializes the ``Zhao 2009'' halo concentration module.
+    !% Initializes the ``Zhao2009'' halo concentration module.
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterConcentrationMethod
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
     
-    if (darkMatterConcentrationMethod == 'Zhao 2009')                                          &
+    if (darkMatterConcentrationMethod == 'Zhao2009')                                          &
          & Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Zhao2009
   
     return

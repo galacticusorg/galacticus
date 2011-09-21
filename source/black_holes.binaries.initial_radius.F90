@@ -95,13 +95,13 @@ contains
        ! Get the binary black hole initial radii method parameter.
        !@ <inputParameter>
        !@   <name>blackHoleBinaryInitialRadiiMethod</name>
-       !@   <defaultValue>spheroid radius fraction</defaultValue>
+       !@   <defaultValue>spheroidRadiusFraction</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing the initial separation of black hole binaries.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('blackHoleBinaryInitialRadiiMethod',blackHoleBinaryInitialRadiiMethod,defaultValue='spheroid radius fraction')
+       call Get_Input_Parameter('blackHoleBinaryInitialRadiiMethod',blackHoleBinaryInitialRadiiMethod,defaultValue='spheroidRadiusFraction')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="blackHoleBinaryInitialRadiiMethod" type="code" action="subroutine">
        !#  <subroutineArgs>blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get</subroutineArgs>

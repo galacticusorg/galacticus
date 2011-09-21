@@ -86,7 +86,7 @@ contains
     type(varying_string),          intent(in)    :: coolingTimeAvailableMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get
     
-    if (coolingTimeAvailableMethod == 'White-Frenk') then
+    if (coolingTimeAvailableMethod == 'White-Frenk1991') then
        Cooling_Time_Available_Get => Cooling_Time_Available_WF
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_WF
        !@ <inputParameter>
@@ -94,7 +94,7 @@ contains
        !@   <defaultValue>0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the {\tt White-Frenk} method.
+       !@     Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the {\tt White-Frenk1991} method.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingTimeAvailableAgeFactor',coolingTimeAvailableAgeFactor,defaultValue=0.0d0)

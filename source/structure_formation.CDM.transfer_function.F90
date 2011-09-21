@@ -141,13 +141,13 @@ contains
        ! Get the transfer function method parameter.
        !@ <inputParameter>
        !@   <name>transferFunctionMethod</name>
-       !@   <defaultValue>CMBFast</defaultValue>
+       !@   <defaultValue>Eisenstein-Hu1999</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing the transfer function.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('transferFunctionMethod',transferFunctionMethod,defaultValue='Eisenstein + Hu')
+       call Get_Input_Parameter('transferFunctionMethod',transferFunctionMethod,defaultValue='Eisenstein-Hu1999')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="transferFunctionMethod" type="code" action="subroutine">
        !#  <subroutineArgs>transferFunctionMethod,Transfer_Function_Tabulate</subroutineArgs>

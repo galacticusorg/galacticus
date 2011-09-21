@@ -124,13 +124,13 @@ contains
        ! Get the critical overdensity method parameter.
        !@ <inputParameter>
        !@   <name>criticalOverdensityMethod</name>
-       !@   <defaultValue>spherical top hat</defaultValue>
+       !@   <defaultValue>sphericalTopHat</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for critical overdensities for halo collapse.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('criticalOverdensityMethod',criticalOverdensityMethod,defaultValue='spherical top hat')
+       call Get_Input_Parameter('criticalOverdensityMethod',criticalOverdensityMethod,defaultValue='sphericalTopHat')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="criticalOverdensityMethod" type="code" action="subroutine">
        !#  <subroutineArgs>criticalOverdensityMethod,Critical_Overdensity_Tabulate</subroutineArgs>

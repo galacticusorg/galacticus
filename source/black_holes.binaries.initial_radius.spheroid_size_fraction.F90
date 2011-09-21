@@ -85,7 +85,7 @@ contains
     type(varying_string),                 intent(in)    :: blackHoleBinaryInitialRadiiMethod
     procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
     
-    if (blackHoleBinaryInitialRadiiMethod == 'spheroid radius fraction') then
+    if (blackHoleBinaryInitialRadiiMethod == 'spheroidRadiusFraction') then
        Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Spheroid_Size
        !@ <inputParameter>
        !@   <name>blackHoleInitialRadiusSpheroidRadiusRatio</name>

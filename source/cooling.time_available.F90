@@ -101,13 +101,13 @@ contains
        ! Get the cooling time available method parameter.
        !@ <inputParameter>
        !@   <name>coolingTimeAvailableMethod</name>
-       !@   <defaultValue>White-Frenk</defaultValue>
+       !@   <defaultValue>White-Frenk1991</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used when computing the time available for cooling.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingTimeAvailableMethod',coolingTimeAvailableMethod,defaultValue='White-Frenk')
+       call Get_Input_Parameter('coolingTimeAvailableMethod',coolingTimeAvailableMethod,defaultValue='White-Frenk1991')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="coolingTimeAvailableMethod" type="code" action="subroutine">
        !#  <subroutineArgs>coolingTimeAvailableMethod,Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get</subroutineArgs>

@@ -84,7 +84,7 @@ contains
     type(varying_string), intent(in) :: coolingFunctionMethods(:)
  
     ! Check if this cooling function has been selected.
-    if (any(coolingFunctionMethods == 'CMB_Compton')) functionSelected=.true.
+    if (any(coolingFunctionMethods == 'CMBCompton')) functionSelected=.true.
 
     return
   end subroutine Cooling_Function_CMB_Compton_Initialize

@@ -102,13 +102,13 @@ contains
        ! Get the cooling rate method parameter.
        !@ <inputParameter>
        !@   <name>coolingRateMethod</name>
-       !@   <defaultValue>White + Frenk</defaultValue>
+       !@   <defaultValue>White-Frenk1991</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used when computing the cooling rate.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateMethod',coolingRateMethod,defaultValue='White + Frenk')
+       call Get_Input_Parameter('coolingRateMethod',coolingRateMethod,defaultValue='White-Frenk1991')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="coolingRateMethod" type="code" action="subroutine">
        !#  <subroutineArgs>coolingRateMethod,Cooling_Rate_Get</subroutineArgs>

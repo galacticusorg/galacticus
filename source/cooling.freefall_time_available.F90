@@ -102,13 +102,13 @@ contains
        ! Get the cooling time available method parameter.
        !@ <inputParameter>
        !@   <name>freefallTimeAvailableMethod</name>
-       !@   <defaultValue>halo formation</defaultValue>
+       !@   <defaultValue>haloFormation</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used when computing the time available for freefall in cooling calculations.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('freefallTimeAvailableMethod',freefallTimeAvailableMethod,defaultValue='halo formation')
+       call Get_Input_Parameter('freefallTimeAvailableMethod',freefallTimeAvailableMethod,defaultValue='haloFormation')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="freefallTimeAvailableMethod" type="code" action="subroutine">
        !#  <subroutineArgs>freefallTimeAvailableMethod,Cooling_Freefall_Time_Available_Get,Cooling_Freefall_Time_Available_Increase_Rate_Get</subroutineArgs>

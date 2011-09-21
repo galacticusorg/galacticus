@@ -96,7 +96,7 @@ contains
        ! Get the cooling function method parameter.
        !@ <inputParameter>
        !@   <name>coolingFunctionMethods</name>
-       !@   <defaultValue>atomic CIE Cloudy</defaultValue>
+       !@   <defaultValue>atomicCIECloudy</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The names of the methods to be used for computing the cooling function.
@@ -105,7 +105,7 @@ contains
        coolingFunctionsCount=max(1,Get_Input_Parameter_Array_Size('coolingFunctionMethods'))
        allocate(coolingFunctionMethods(coolingFunctionsCount))
        call Memory_Usage_Record(sizeof(coolingFunctionMethods))
-       call Get_Input_Parameter('coolingFunctionMethods',coolingFunctionMethods,defaultValue=['atomic_CIE_Cloudy'])
+       call Get_Input_Parameter('coolingFunctionMethods',coolingFunctionMethods,defaultValue=['atomicCIECloudy'])
 
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="coolingFunctionMethods" type="code" action="subroutine">

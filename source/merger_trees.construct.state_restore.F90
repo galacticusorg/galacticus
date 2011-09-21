@@ -89,7 +89,7 @@ contains
     procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
 
     ! Check if our method is to be used.
-    if (mergerTreeConstructMethod == 'state restore') then
+    if (mergerTreeConstructMethod == 'stateRestore') then
        ! Assign pointer to our merger tree construction subroutine.
        Merger_Tree_Construct => Merger_Tree_State_Restore
        ! Get the name of the file from which to read the stored merger tree state.

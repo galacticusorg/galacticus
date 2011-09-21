@@ -101,13 +101,13 @@ contains
        ! Get the spheroid star formation timescale method parameter.
        !@ <inputParameter>
        !@   <name>starFormationTimescaleSpheroidsMethod</name>
-       !@   <defaultValue>dynamical time</defaultValue>
+       !@   <defaultValue>dynamicalTime</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing star formation timescales in spheroids.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleSpheroidsMethod',starFormationTimescaleSpheroidsMethod,defaultValue='dynamical time')
+       call Get_Input_Parameter('starFormationTimescaleSpheroidsMethod',starFormationTimescaleSpheroidsMethod,defaultValue='dynamicalTime')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="starFormationTimescaleSpheroidsMethod" type="code" action="subroutine">
        !#  <subroutineArgs>starFormationTimescaleSpheroidsMethod,Star_Formation_Timescale_Spheroid_Get</subroutineArgs>

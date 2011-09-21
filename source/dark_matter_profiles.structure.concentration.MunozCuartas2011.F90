@@ -74,13 +74,13 @@ contains
   !#  <unitName>Dark_Matter_Concentrations_MunozCuartas2011_Initialize</unitName>
   !# </darkMatterConcentrationMethod>
   subroutine Dark_Matter_Concentrations_MunozCuartas2011_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    !% Initializes the ``Mu\~noz-Cuartas 20011'' halo concentration module.
+    !% Initializes the ``Munoz-Cuartas2011'' halo concentration module.
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterConcentrationMethod
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
     
-    if (darkMatterConcentrationMethod == 'Munoz-Cuartas 2011') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_MunozCuartas2011
+    if (darkMatterConcentrationMethod == 'Munoz-Cuartas2011') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_MunozCuartas2011
   
     return
   end subroutine Dark_Matter_Concentrations_MunozCuartas2011_Initialize

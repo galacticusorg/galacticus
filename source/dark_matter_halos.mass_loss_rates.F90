@@ -101,7 +101,7 @@ contains
        ! Get the dark matter halo mass loss rate method parameter.
        !@ <inputParameter>
        !@   <name>darkMatterHaloMassLossRateMethod</name>
-       !@   <defaultValue>dynamical time</defaultValue>
+       !@   <defaultValue>dynamicalTime</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing mass loss rates from dark matter halos.

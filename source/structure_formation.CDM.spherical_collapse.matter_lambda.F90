@@ -94,7 +94,7 @@ contains
     type(varying_string),          intent(in)    :: criticalOverdensityMethod
     procedure(),          pointer, intent(inout) :: Critical_Overdensity_Tabulate
     
-    if (criticalOverdensityMethod == 'spherical top hat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
+    if (criticalOverdensityMethod == 'sphericalTopHat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
     return
   end subroutine Spherical_Collape_Delta_Critical_Initialize
 
@@ -109,7 +109,7 @@ contains
     type(varying_string),          intent(in)    :: virialDensityContrastMethod
     procedure(),          pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
     
-    if (virialDensityContrastMethod == 'spherical top hat') Virial_Density_Contrast_Tabulate =>&
+    if (virialDensityContrastMethod == 'sphericalTopHat') Virial_Density_Contrast_Tabulate =>&
          & Spherical_Collapse_Virial_Density_Contrast
     return
   end subroutine Spherical_Collape_Delta_Virial_Initialize

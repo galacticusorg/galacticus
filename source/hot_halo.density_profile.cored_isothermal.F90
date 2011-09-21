@@ -82,7 +82,7 @@ contains
     procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
          &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get
     
-    if (hotHaloDensityMethod == 'cored isothermal') then
+    if (hotHaloDensityMethod == 'coredIsothermal') then
        Hot_Halo_Density_Get                        => Hot_Halo_Density_Cored_Isothermal_Get
        Hot_Halo_Density_Log_Slope_Get              => Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get
        Hot_Halo_Enclosed_Mass_Get                  => Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get

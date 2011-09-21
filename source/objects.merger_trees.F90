@@ -965,13 +965,13 @@ contains
        ! Get the node mergers method parameter.
        !@ <inputParameter>
        !@   <name>nodeMergersMethod</name>
-       !@   <defaultValue>single level hierarchy</defaultValue>
+       !@   <defaultValue>singleLevelHierarchy</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Selects the method to be used for handling node merger events.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('nodeMergersMethod',nodeMergersMethod,defaultValue='single level hierarchy')
+       call Get_Input_Parameter('nodeMergersMethod',nodeMergersMethod,defaultValue='singleLevelHierarchy')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="nodeMergersMethod" type="code" action="subroutine">
        !#  <subroutineArgs>nodeMergersMethod,Events_Node_Merger_Do</subroutineArgs>

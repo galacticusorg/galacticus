@@ -102,13 +102,13 @@ contains
        ! Get the spheroid star formation feedback method parameter.
        !@ <inputParameter>
        !@   <name>starFormationFeedbackSpheroidsMethod</name>
-       !@   <defaultValue>power law</defaultValue>       
+       !@   <defaultValue>powerLaw</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of \SNe\ feedback in spheroids.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFeedbackSpheroidsMethod',starFormationFeedbackSpheroidsMethod,defaultValue='power law')
+       call Get_Input_Parameter('starFormationFeedbackSpheroidsMethod',starFormationFeedbackSpheroidsMethod,defaultValue='powerLaw')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="starFormationFeedbackSpheroidsMethod" type="code" action="subroutine">
        !#  <subroutineArgs>starFormationFeedbackSpheroidsMethod,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get</subroutineArgs>

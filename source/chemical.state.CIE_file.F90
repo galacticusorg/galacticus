@@ -112,7 +112,7 @@ contains
          &,Electron_Density_Density_Log_Slope_Get
     procedure(),                 pointer, intent(inout) :: Chemical_Densities_Get
 
-    if (chemicalStateMethod == 'CIE_from_file') then
+    if (chemicalStateMethod == 'cieFromFile') then
        ! Set the procedure pointer.
        Electron_Density_Get                       => Electron_Density_CIE_File
        Electron_Density_Temperature_Log_Slope_Get => Electron_Density_Temperature_Log_Slope_CIE_File

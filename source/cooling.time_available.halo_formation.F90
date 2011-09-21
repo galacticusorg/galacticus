@@ -84,7 +84,7 @@ contains
     type(varying_string),                 intent(in)    :: coolingTimeAvailableMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get
     
-    if (coolingTimeAvailableMethod == 'halo formation') then
+    if (coolingTimeAvailableMethod == 'haloFormation') then
        ! Set pointers to our implementation.
        Cooling_Time_Available_Get               => Cooling_Time_Available_Halo_Formation
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_Halo_Formation

@@ -108,7 +108,7 @@ contains
     implicit none
     type(varying_string), intent(in)    :: coolingFunctionMethods(:)
     
-    if (any(coolingFunctionMethods == 'CIE_from_file')) then
+    if (any(coolingFunctionMethods == 'cieFromFile')) then
        ! Flag that this cooling function has been selected.
        functionSelected=.true.
        !@ <inputParameter>

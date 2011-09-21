@@ -42,7 +42,7 @@
       <value>Einasto
       <parameter>
 	<name>treeNodeMethodDarkMatterProfile</name>
-	<value>scale + shape</value>
+	<value>scale+shape</value>
       </parameter>
       </value>
     </parameter>
@@ -67,7 +67,7 @@
       <name>haloSpinDistributionMethod</name>
       <value>Bett2007</value>
       <value>lognormal</value>
-      <value>delta function</value>
+      <value>deltaFunction</value>
     </parameter>
   </parameters>
   <parameters>
@@ -77,8 +77,8 @@
     </parameter>
     <parameter>
       <name>chemicalStateMethod</name>
-      <value>atomic_CIE_Cloudy</value>
-      <value>CIE_from_file</value>
+      <value>atomicCIECloudy</value>
+      <value>cieFromFile</value>
     </parameter>
   </parameters>
   <parameters>
@@ -91,8 +91,8 @@
       <value>smoothAccretion
         <parameter>
 	  <name>darkMatterAccretionHistoryMethod</name>
-	  <value>Wechsler 2002</value>
-	  <value>Zhao 2009</value>
+	  <value>Wechsler2002</value>
+	  <value>Zhao2009</value>
         </parameter>
       </value>
       <value>build
@@ -176,8 +176,8 @@
       <value>BoylanKolchin2008</value>
       <value>Lacey-Cole</value>
       <value>Jiang2008</value>
-      <value>Lacey-Cole + Tormen</value>
-      <value>Wetzel-White</value>
+      <value>Lacey-Cole+Tormen</value>
+      <value>Wetzel-White2010</value>
     </parameter>
   </parameters>
   <parameters>
@@ -203,7 +203,7 @@
     </parameter>
     <parameter>
       <name>stellarPopulationSpectraMethod</name>
-      <value>Conroy, White &amp; Gunn</value>
+      <value>Conroy-White-Gunn2009</value>
       <value>file</value>
     </parameter>
   </parameters>
@@ -225,14 +225,14 @@
       <!-- <value>file</value> -->
       <value>BBKS</value>
       <value>CMBFast</value>
-      <value>Eisenstein + Hu</value>
+      <value>Eisenstein-Hu1999</value>
     </parameter>
   </parameters>
   <parameters>
     <parameter>
       <name>virialDensityContrastMethod</name>
-      <value>spherical top hat</value>
-      <value>Bryan + Norman</value>
+      <value>sphericalTopHat</value>
+      <value>Bryan-Norman1998</value>
       <value>fixed</value>
     </parameter>
   </parameters>
@@ -253,8 +253,8 @@
 	  <value>false</value>
         </parameter>
       </value>
-      <value>dynamical time</value>
-      <value>Blitz-Rosolowsky</value>
+      <value>dynamicalTime</value>
+      <value>Blitz-Rosolowsky2006</value>
       <value>KMT09
         <parameter>
 	  <name>molecularFractionFastKMT09</name>
@@ -262,7 +262,7 @@
 	  <value>true</value>
         </parameter>
       </value>
-      <value>extended Schmidt</value>
+      <value>extendedSchmidt</value>
       <value>Baugh2005</value>
     </parameter>
   </parameters>
@@ -276,10 +276,10 @@
   <parameters>
     <parameter>
       <name>darkMatterConcentrationMethod</name>
-      <value>Gao 2008</value>
-      <value>Zhao 2009</value>
-      <value>Munoz-Cuartas 2011</value>
-      <value>NFW 1996</value>
+      <value>Gao2008</value>
+      <value>Zhao2009</value>
+      <value>Munoz-Cuartas2011</value>
+      <value>NFW1996</value>
     </parameter>
   </parameters>
 
@@ -303,7 +303,7 @@
     </parameter>
     <parameter>
       <name>coolingFunctionMethod</name>
-      <value>atomic_CIE_Cloudy CMB_Compton molecularHydrogenGalliPalla</value>
+      <value>atomicCIECloudy CMBCompton molecularHydrogenGalliPalla</value>
     </parameter>
     <parameter>
       <name>mergerTreeBuildHaloMassMaximum</name>
@@ -315,12 +315,12 @@
   <parameters>
     <parameter>
       <name>blackHoleBinaryInitialRadiiMethod</name>
-      <value>spheroid radius fraction</value>
-      <value>tidal radius
+      <value>spheroidRadiusFraction</value>
+      <value>tidalRadius
       <parameter>
 	<name>blackHoleBinaryRecoilVelocityMethod</name>
 	<value>null</value>
-	<value>Campanelli 2007
+	<value>Campanelli2007
 	<parameter>
 	  <name>blackHoleBinarySeparationGrowthRateMethod</name>
 	  <value>null</value>
@@ -335,7 +335,7 @@
 	</value>
       </parameter>
       </value>
-      <value>Volonteri 2003</value>
+      <value>Volonteri2003</value>
     </parameter>
   </parameters>
   
@@ -343,7 +343,7 @@
   <parameters>
     <parameter>
       <name>coolingRateMethod</name>
-      <value>White + Frenk</value>
+      <value>White-Frenk1991</value>
       <value>Cole2000
       <parameter>
 	<name>treeNodeMethodFormationTimes</name>
@@ -375,15 +375,15 @@
   <parameters>
     <parameter>
       <name>infallRadiusMethod</name>
-      <value>cooling radius</value>
-      <value>cooling and freefall
+      <value>coolingRadius</value>
+      <value>coolingAndFreefall
       <parameter>
 	<name>freefallRadiusMethod</name>
-	<value>dark matter halo</value>
+	<value>darkMatterHalo</value>
       </parameter> 
       <parameter>
 	<name>freefallTimeAvailableMethod</name>
-	<value>halo formation</value>
+	<value>haloFormation</value>
       </parameter> 
       <parameter>
 	<name>treeNodeMethodFormationTimes</name>
@@ -397,8 +397,8 @@
   <parameters>
     <parameter>
       <name>coolingTimeAvailableMethod</name>
-      <value>White-Frenk</value>
-      <value>halo formation
+      <value>White-Frenk1991</value>
+      <value>haloFormation
       <parameter>
 	<name>treeNodeMethodFormationTimes</name>
 	<value>Cole2000</value>
@@ -411,11 +411,11 @@
   <parameters>
     <parameter>
       <name>coolingSpecificAngularMomentumMethod</name>
-      <value>constant rotation
+      <value>constantRotation
       <parameter>
 	<name>coolingMeanAngularMomentumFrom</name>
-	<value>hot gas</value>
-	<value>dark matter</value>
+	<value>hotGas</value>
+	<value>darkMatter</value>
       </parameter>
       </value>
     </parameter>
@@ -497,11 +497,11 @@
   <parameters>
     <parameter>
       <name>hotHaloDensityMethod</name>
-      <value>cored isothermal
+      <value>coredIsothermal
       <parameter>
 	<name>hotHaloCoredIsothermalCoreRadiiMethod</name>
 	<value>virialRadiusFraction</value>
-	<value>growing core</value>
+	<value>growingCore</value>
       </parameter>
       </value>
     </parameter>
@@ -575,7 +575,7 @@
   <parameters>
     <parameter>
       <name>starFormationHistoriesMethod</name>
-      <value>metallicity split</value>
+      <value>metallicitySplit</value>
     </parameter>
   </parameters>
 

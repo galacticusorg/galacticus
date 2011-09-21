@@ -77,7 +77,7 @@ contains
   !#  <unitName>Critical_Overdensity_Mass_Scaling_WDM_Initialize</unitName>
   !# </criticalOverdensityMassScalingMethod>
   subroutine Critical_Overdensity_Mass_Scaling_WDM_Initialize(criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get)
-    !% Initializes the ``warm dark matter'' critical overdensity mass scaling method.
+    !% Initializes the ``warmDarkMatter'' critical overdensity mass scaling method.
     use ISO_Varying_String
     use Input_Parameters
     use Cosmological_Parameters
@@ -87,7 +87,7 @@ contains
     double precision                                    :: matterRadiationEqualityRedshift,warmDarkMatterCriticalOverdensityGX&
          &,warmDarkMatterCriticalOverdensityMX    
 
-    if (criticalOverdensityMassScalingMethod == 'warm dark matter') then
+    if (criticalOverdensityMassScalingMethod == 'warmDarkMatter') then
        ! Return a pointer to our implementation of the mass scaling function.
        Critical_Overdensity_Mass_Scaling_Get => Critical_Overdensity_Mass_Scaling_WDM
 

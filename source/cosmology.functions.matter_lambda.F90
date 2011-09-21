@@ -143,7 +143,7 @@ contains
     type(c_ptr)                                         :: parameterPointer
 
     ! Check if our method is selected.
-    if (cosmologyMethod == 'matter + lambda') then
+    if (cosmologyMethod == 'matter-lambda') then
        ! Set up procedure pointers.
        Expansion_Factor_Is_Valid_Get            => Expansion_Factor_Is_Valid_Matter_Lambda
        Cosmic_Time_Is_Valid_Get                 => Cosmic_Time_Is_Valid_Matter_Lambda

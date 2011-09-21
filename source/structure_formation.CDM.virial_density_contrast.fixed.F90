@@ -109,17 +109,17 @@ contains
        call Get_Input_Parameter("virialDensityConstrastFixed"    ,virialDensityConstrastFixed    ,defaultValue=200.0d0           )
        !@ <inputParameter>
        !@   <name>virialDensityConstrastFixedType</name>
-       !@   <defaultValue>critical density</defaultValue>
+       !@   <defaultValue>criticalDensity</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The reference density to use in the fixed value virial density contrast model. Either of {\tt critical density} and {\tt mean density} are allowed.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter("virialDensityConstrastFixedType",virialDensityConstrastFixedType,defaultValue='critical density')
+       call Get_Input_Parameter("virialDensityConstrastFixedType",virialDensityConstrastFixedType,defaultValue='criticalDensity')
        select case (char(virialDensityConstrastFixedType))
-       case ("critical density")
+       case ("criticalDensity")
           densityType=densityTypeCritical
-       case ("mean density"    )
+       case ("meanDensity"    )
           densityType=densityTypeMean
        case default
           call Galacticus_Error_Report('Virial_Density_Fixed_Initialize','[virialDensityConstrastFixedType] must be either "critical density" or "mean density"')

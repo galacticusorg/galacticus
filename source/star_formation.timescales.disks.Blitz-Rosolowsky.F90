@@ -88,7 +88,7 @@ contains
   !# </starFormationTimescaleDisksMethod>
   subroutine Star_Formation_Timescale_Disks_Blitz_Rosolowsky_Initialize(starFormationTimescaleDisksMethod&
        &,Star_Formation_Timescale_Disk_Get)
-    !% Initializes the ``Blitz-Rosolowsky'' disk star formation timescale module.
+    !% Initializes the ``Blitz-Rosolowsky2006'' disk star formation timescale module.
     use ISO_Varying_String
     use Input_Parameters
     use Numerical_Constants_Physical
@@ -99,7 +99,7 @@ contains
     type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
     
-    if (starFormationTimescaleDisksMethod == 'Blitz-Rosolowsky') then
+    if (starFormationTimescaleDisksMethod == 'Blitz-Rosolowsky2006') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Blitz_Rosolowsky
 
        ! Get parameters of for the timescale calculation.

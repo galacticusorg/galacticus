@@ -147,17 +147,17 @@ contains
        call Get_Input_Parameter("adafRadiativeEfficiency",adafRadiativeEfficiency,defaultValue=0.01d0)
        !@ <inputParameter>
        !@   <name>adafEnergyOption</name>
-       !@   <defaultValue>pure ADAF</defaultValue>
+       !@   <defaultValue>pureADAF</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pure ADAF} makes the specific energy equal
+       !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
        !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
        !@     stable circular orbit.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter("adafEnergyOption",adafEnergyOption,defaultValue="pure ADAF")
+       call Get_Input_Parameter("adafEnergyOption",adafEnergyOption,defaultValue="pureADAF")
        select case (char(adafEnergyOption))
-       case ("pure ADAF")
+       case ("pureADAF")
           adafEnergy=adafEnergy1
        case ("ISCO")
           adafEnergy=adafEnergyIsco

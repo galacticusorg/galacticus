@@ -94,7 +94,7 @@ contains
     type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
 
-    if (starFormationTimescaleDisksMethod == 'extended Schmidt') then
+    if (starFormationTimescaleDisksMethod == 'extendedSchmidt') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Extended_Schmidt
        ! Get parameters of for the timescale calculation.
        !@ <inputParameter>

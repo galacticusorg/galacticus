@@ -81,14 +81,14 @@ contains
   !#  <unitName>Dark_Matter_Concentrations_NFW1996_Initialize</unitName>
   !# </darkMatterConcentrationMethod>
   subroutine Dark_Matter_Concentrations_NFW1996_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    !% Initializes the ``NFW 1996'' halo concentration module.
+    !% Initializes the ``NFW1996'' halo concentration module.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterConcentrationMethod
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
     
-    if (darkMatterConcentrationMethod == 'NFW 1996') then
+    if (darkMatterConcentrationMethod == 'NFW1996') then
        ! Return a pointer to our implementation.
        Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_NFW1996
        ! Get parameters of the model.

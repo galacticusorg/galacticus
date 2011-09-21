@@ -57,11 +57,11 @@
   </parameter>
   <parameter>
     <name>stellarPopulationSpectraMethod</name>
-    <value>Conroy, White &amp; Gunn</value>
+    <value>Conroy-White-Gunn2009</value>
   </parameter>
   <parameter>
     <name>powerSpectrumMethod</name>
-    <value>power law</value>
+    <value>powerLaw</value>
   </parameter>
   <parameter>
     <name>diskMassToleranceAbsolute</name>
@@ -93,11 +93,11 @@
   </parameter>
   <parameter>
     <name>cosmologyMethod</name>
-    <value>matter + lambda</value>
+    <value>matter-lambda</value>
   </parameter>
   <parameter>
     <name>criticalOverdensityMethod</name>
-    <value>spherical top hat</value>
+    <value>sphericalTopHat</value>
   </parameter>
   <parameter>
     <name>adafRadiativeEfficiency</name>
@@ -125,7 +125,7 @@
   </parameter>
   <parameter>
     <name>adafEnergyOption</name>
-    <value>pure ADAF</value>
+    <value>pureADAF</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildTreesBaseRedshift</name>
@@ -157,7 +157,7 @@
   </parameter>
   <parameter>
     <name>coolingFunctionMethods</name>
-    <value>atomic_CIE_Cloudy</value>
+    <value>atomicCIECloudy</value>
   </parameter>
   <parameter>
     <name>adiabaticContractionGnedinA</name>
@@ -165,7 +165,7 @@
   </parameter>
   <parameter>
     <name>coolingTimeAvailableMethod</name>
-    <value>White-Frenk</value>
+    <value>White-Frenk1991</value>
   </parameter>
   <parameter>
     <name>odeToleranceRelative</name>
@@ -217,7 +217,7 @@
   </parameter>
   <parameter>
     <name>darkMatterConcentrationMethod</name>
-    <value>Gao 2008</value>
+    <value>Gao2008</value>
   </parameter>
   <parameter>
     <name>spinDistributionBett2007Alpha</name>
@@ -241,7 +241,7 @@
   </parameter>
   <parameter>
     <name>hotHaloDensityMethod</name>
-    <value>cored isothermal</value>
+    <value>coredIsothermal</value>
   </parameter>
   <parameter>
     <name>spheroidMassToleranceAbsolute</name>
@@ -269,11 +269,11 @@
   </parameter>
   <parameter>
     <name>virialDensityContrastMethod</name>
-    <value>spherical top hat</value>
+    <value>sphericalTopHat</value>
   </parameter>
   <parameter>
     <name>nodeMergersMethod</name>
-    <value>single level hierarchy</value>
+    <value>singleLevelHierarchy</value>
   </parameter>
   <parameter>
     <name>starFormationSpheroidMinimumTimescale</name>
@@ -317,7 +317,7 @@
   </parameter>
   <parameter>
     <name>starFormationTimescaleSpheroidsMethod</name>
-    <value>dynamical time</value>
+    <value>dynamicalTime</value>
   </parameter>
   <parameter>
     <name>bondiHoyleAccretionEnhancementSpheroid</name>
@@ -349,7 +349,7 @@
   </parameter>
   <parameter>
     <name>transferFunctionMethod</name>
-    <value>Eisenstein + Hu</value>
+    <value>Eisenstein-Hu1999</value>
   </parameter>
   <parameter>
     <name>odeToleranceAbsolute</name>
@@ -357,11 +357,11 @@
   </parameter>
   <parameter>
     <name>starFormationTimescaleDisksMethod</name>
-    <value>dynamical time</value>
+    <value>dynamicalTime</value>
   </parameter>
   <parameter>
     <name>treeBranchingMethod</name>
-    <value>modified Press-Schechter</value>
+    <value>modifiedPress-Schechter</value>
   </parameter>
   <parameter>
     <name>accretionHalosMethod</name>
@@ -413,7 +413,7 @@
   </parameter>
   <parameter>
     <name>starFormationFeedbackSpheroidsMethod</name>
-    <value>power law</value>
+    <value>powerLaw</value>
   </parameter>
   <parameter>
     <name>mergerTreeStructureOutput</name>
@@ -457,11 +457,11 @@
   </parameter>
   <parameter>
     <name>starFormationFeedbackDisksMethod</name>
-    <value>power law</value>
+    <value>powerLaw</value>
   </parameter>
   <parameter>
     <name>coolingRateMethod</name>
-    <value>White + Frenk</value>
+    <value>White-Frenk1991</value>
   </parameter>
   <parameter>
     <name>treeNodeMethodSpin</name>

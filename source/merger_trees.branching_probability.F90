@@ -169,13 +169,13 @@ contains
        ! Get the tree branching method parameter.
        !@ <inputParameter>
        !@   <name>treeBranchingMethod</name>
-       !@   <defaultValue>modified Press-Schechter</defaultValue>
+       !@   <defaultValue>modifiedPress-Schechter</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing merger tree branching probabilities when building merger trees.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modified Press-Schechter')
+       call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modifiedPress-Schechter')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="treeBranchingMethod" type="code" action="subroutine">
        !#  <subroutineArgs>treeBranchingMethod,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</subroutineArgs>

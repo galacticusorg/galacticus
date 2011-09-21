@@ -102,13 +102,13 @@ contains
        ! Get the cooling radius method parameter.
        !@ <inputParameter>
        !@   <name>freefallRadiusMethod</name>
-       !@   <defaultValue>dark matter halo</defaultValue>
+       !@   <defaultValue>darkMatterHalo</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of the freefall radius in cooling calculations.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('freefallRadiusMethod',freefallRadiusMethod,defaultValue='dark matter halo')
+       call Get_Input_Parameter('freefallRadiusMethod',freefallRadiusMethod,defaultValue='darkMatterHalo')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="freefallRadiusMethod" type="code" action="subroutine">
        !#  <subroutineArgs>freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get</subroutineArgs>

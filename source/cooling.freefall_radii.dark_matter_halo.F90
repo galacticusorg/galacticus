@@ -75,13 +75,13 @@ contains
   !#  <unitName>Freefall_Radius_Dark_Matter_Halo_Initialize</unitName>
   !# </freefallRadiusMethod>
   subroutine Freefall_Radius_Dark_Matter_Halo_Initialize(freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get)
-    !% Initializes the ``dark matter halo'' freefall radius module.
+    !% Initializes the ``darkMatterHalo'' freefall radius module.
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: freefallRadiusMethod
     procedure(double precision), pointer, intent(inout) :: Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get
     
-    if (freefallRadiusMethod == 'dark matter halo') then
+    if (freefallRadiusMethod == 'darkMatterHalo') then
        Freefall_Radius_Get             => Freefall_Radius_Dark_Matter_Halo
        Freefall_Radius_Growth_Rate_Get => Freefall_Radius_Growth_Rate_Dark_Matter_Halo
     end if

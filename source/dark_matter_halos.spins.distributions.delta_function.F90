@@ -85,7 +85,7 @@ contains
     type(varying_string),                 intent(in)    :: haloSpinDistributionMethod
     procedure(double precision), pointer, intent(inout) :: Halo_Spin_Sample_Get
     
-    if (haloSpinDistributionMethod == 'delta function') then
+    if (haloSpinDistributionMethod == 'deltaFunction') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Delta_Function
        !@ <inputParameter>
        !@   <name>deltaFunctionSpinDistributionSpin</name>

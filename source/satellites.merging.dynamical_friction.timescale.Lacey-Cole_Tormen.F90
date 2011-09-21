@@ -90,7 +90,7 @@ contains
     type(varying_string),                 intent(in)    :: satelliteMergingMethod
     procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
 
-    if (satelliteMergingMethod == 'Lacey-Cole + Tormen') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Lacey_Cole_Tormen
+    if (satelliteMergingMethod == 'Lacey-Cole+Tormen') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Lacey_Cole_Tormen
     return
   end subroutine Satellite_Time_Until_Merging_Lacey_Cole_Tormen_Initialize
 

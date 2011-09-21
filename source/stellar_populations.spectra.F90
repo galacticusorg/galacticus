@@ -111,13 +111,13 @@ contains
        ! Get the cooling function method parameter.
        !@ <inputParameter>
        !@   <name>stellarPopulationSpectraMethod</name>
-       !@   <defaultValue>Conroy, White \&amp; Gunn</defaultValue>
+       !@   <defaultValue>Conroy-White-Gunn2010</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of stellar population spectra.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy, White & Gunn')
+       call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy-White-Gunn2009')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="stellarPopulationSpectraMethod" type="code" action="subroutine">
        !#  <subroutineArgs>stellarPopulationSpectraMethod,Stellar_Population_Spectrum_Get,Stellar_Population_Spectrum_Tabulation_Get</subroutineArgs>

@@ -81,7 +81,7 @@ contains
     type(varying_string),                 intent(in)    :: satelliteMergingMethod
     procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
 
-    if (satelliteMergingMethod == 'Wetzel-White') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Wetzel_White
+    if (satelliteMergingMethod == 'Wetzel-White2010') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Wetzel_White
     return
   end subroutine Satellite_Time_Until_Merging_Wetzel_White_Initialize
 

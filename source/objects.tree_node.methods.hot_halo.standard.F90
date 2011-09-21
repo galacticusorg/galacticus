@@ -301,17 +301,17 @@ contains
        ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
        !@ <inputParameter>
        !@   <name>hotHaloCoolingFromNode</name>
-       !@   <defaultValue>current node</defaultValue>
+       !@   <defaultValue>currentNode</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloCoolingFromNode',hotHaloCoolingFromText,defaultValue='current node')
+       call Get_Input_Parameter('hotHaloCoolingFromNode',hotHaloCoolingFromText,defaultValue='currentNode')
        select case (char(hotHaloCoolingFromText))
-       case ("current node"  )
+       case ("currentNode"  )
           hotHaloCoolingFromNode=currentNode
-       case ("formation node")
+       case ("formationNode")
           hotHaloCoolingFromNode=formationNode
        case default
           call Galacticus_Error_Report('Tree_Node_Methods_Hot_Halo_Initialize','hotHaloCoolingFromNode must be one of "current node" or "formation node"')

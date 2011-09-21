@@ -82,7 +82,7 @@ contains
   !#  <unitName>Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize</unitName>
   !# </darkMatterHaloMassLossRateMethod>
   subroutine Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize(darkMatterHaloMassLossRateMethod,Dark_Matter_Halos_Mass_Loss_Rate_Get)
-    !% Initializes the ``van den Bosch 2005'' dark matter halo mass loss rate method.
+    !% Initializes the ``vanDenBosch2005'' dark matter halo mass loss rate method.
     use ISO_Varying_String
     use Virial_Density_Contrast
     use Cosmology_Functions

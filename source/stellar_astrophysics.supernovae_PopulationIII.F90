@@ -99,13 +99,13 @@ contains
        ! Get the halo spin distribution method parameter.
        !@ <inputParameter>
        !@   <name>supernovaePopIIIMethod</name>
-       !@   <defaultValue>Heger + Woosley</defaultValue>       
+       !@   <defaultValue>Heger-Woosley2002</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The method to use for computing properties of Population III supernovae.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('supernovaePopIIIMethod',supernovaePopIIIMethod,defaultValue='Heger + Woosley')
+       call Get_Input_Parameter('supernovaePopIIIMethod',supernovaePopIIIMethod,defaultValue='Heger-Woosley2002')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="supernovaePopIIIMethod" type="code" action="subroutine">
        !#  <subroutineArgs>supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get</subroutineArgs>

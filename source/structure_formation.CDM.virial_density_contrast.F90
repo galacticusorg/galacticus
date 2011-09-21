@@ -108,13 +108,13 @@ contains
        ! Get the virial overdensity method parameter.
        !@ <inputParameter>
        !@   <name>virialDensityContrastMethod</name>
-       !@   <defaultValue>spherical top hat</defaultValue>
+       !@   <defaultValue>sphericalTopHat</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Selects the method to be used for computing halo virial density contrasts.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('virialDensityContrastMethod',virialDensityContrastMethod,defaultValue='spherical top hat')
+       call Get_Input_Parameter('virialDensityContrastMethod',virialDensityContrastMethod,defaultValue='sphericalTopHat')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="virialDensityContrastMethod" type="code" action="subroutine">
        !#  <subroutineArgs>virialDensityContrastMethod,Virial_Density_Contrast_Tabulate</subroutineArgs>

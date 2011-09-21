@@ -84,7 +84,7 @@ contains
     type(varying_string),                 intent(in)    :: blackHoleBinaryRecoilVelocityMethod
     procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Recoil_Velocity_Get
 
-    if (blackHoleBinaryRecoilVelocityMethod == 'Campanelli 2007') Black_Hole_Binary_Recoil_Velocity_Get => Black_Hole_Binary_Recoil_Velocity_Standard
+    if (blackHoleBinaryRecoilVelocityMethod == 'Campanelli2007') Black_Hole_Binary_Recoil_Velocity_Get => Black_Hole_Binary_Recoil_Velocity_Standard
     return
   end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Initialize
 

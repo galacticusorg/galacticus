@@ -102,13 +102,13 @@ contains
        ! Get the infall radius method parameter.
        !@ <inputParameter>
        !@   <name>infallRadiusMethod</name>
-       !@   <defaultValue>cooling radius</defaultValue>
+       !@   <defaultValue>coolingRadius</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of the infall radius for cooling calculations.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('infallRadiusMethod',infallRadiusMethod,defaultValue='cooling radius')
+       call Get_Input_Parameter('infallRadiusMethod',infallRadiusMethod,defaultValue='coolingRadius')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="infallRadiusMethod" type="code" action="subroutine">
        !#  <subroutineArgs>infallRadiusMethod,Infall_Radius_Get,Infall_Radius_Growth_Rate_Get</subroutineArgs>

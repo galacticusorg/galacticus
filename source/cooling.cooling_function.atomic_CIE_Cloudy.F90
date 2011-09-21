@@ -100,7 +100,7 @@ contains
     type(varying_string), intent(in) :: coolingFunctionMethods(:)
  
     ! Check if this cooling function has been selected.
-    if (any(coolingFunctionMethods == 'atomic_CIE_Cloudy')) functionSelected=.true.
+    if (any(coolingFunctionMethods == 'atomicCIECloudy')) functionSelected=.true.
 
     return
   end subroutine Cooling_Function_Atomic_CIE_Cloudy_Initialize

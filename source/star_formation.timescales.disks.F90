@@ -117,13 +117,13 @@ contains
        ! Get the disk star formation timescale method parameter.
        !@ <inputParameter>
        !@   <name>starFormationTimescaleDisksMethod</name>
-       !@   <defaultValue>dynamical time</defaultValue>
+       !@   <defaultValue>dynamicalTime</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing star formation timescales in disks.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksMethod',starFormationTimescaleDisksMethod,defaultValue='dynamical time')
+       call Get_Input_Parameter('starFormationTimescaleDisksMethod',starFormationTimescaleDisksMethod,defaultValue='dynamicalTime')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="starFormationTimescaleDisksMethod" type="code" action="subroutine">
        !#  <subroutineArgs>

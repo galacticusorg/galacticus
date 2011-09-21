@@ -85,7 +85,7 @@ contains
     type(varying_string),          intent(in)    :: starFormationFeedbackSpheroidsMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get
     
-    if (starFormationFeedbackSpheroidsMethod == 'power law') then
+    if (starFormationFeedbackSpheroidsMethod == 'powerLaw') then
        Star_Formation_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law
        ! Get parameters of for the feedback calculation.
        !@ <inputParameter>

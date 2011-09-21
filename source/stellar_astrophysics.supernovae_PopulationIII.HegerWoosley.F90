@@ -77,7 +77,7 @@ contains
   !#  <unitName>Supernovae_Population_III_HegerWoosley_Initialize</unitName>
   !# </supernovaePopIIIMethod>
   subroutine Supernovae_Population_III_HegerWoosley_Initialize(supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get)
-    !% Initialize the ``HegerWoosley'' Population III supernovae module.
+    !% Initialize the ``Heger-Woosley2002'' Population III supernovae module.
     use Numerical_Constants_Units
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
@@ -92,7 +92,7 @@ contains
     type(NodeList),              pointer                :: massList,energyList,massDataList,energyDataList
     integer                                             :: ioErr,iSupernovae
 
-    if (supernovaePopIIIMethod == 'Heger + Woosley') then
+    if (supernovaePopIIIMethod == 'Heger-Woosley2002') then
        ! Set up pointers to our procedures.
        SNePopIII_Cumulative_Energy_Get => SNePopIII_Cumulative_Energy_HegerWoosley
 

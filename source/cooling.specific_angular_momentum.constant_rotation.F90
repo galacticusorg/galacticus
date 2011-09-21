@@ -101,40 +101,40 @@ contains
     procedure(double precision), pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
     type(varying_string)                                :: inputOption    
 
-    if (coolingSpecificAngularMomentumMethod == 'constant rotation') then
+    if (coolingSpecificAngularMomentumMethod == 'constantRotation') then
        Cooling_Specific_Angular_Momentum_Get => Cooling_Specific_Angular_Momentum_Constant_Rotation
 
        !@ <inputParameter>
        !@   <name>coolingMeanAngularMomentumFrom</name>
-       !@   <defaultValue>hot gas</defaultValue>
+       !@   <defaultValue>hotGas</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The component (``hot gas'' or ``dark matter'') from which the mean specific angular momentum should be computed for
+       !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the mean specific angular momentum should be computed for
        !@     calculations of cooling gas specific angular momentum.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingMeanAngularMomentumFrom',inputOption,defaultValue='hot gas')
+       call Get_Input_Parameter('coolingMeanAngularMomentumFrom',inputOption,defaultValue='hotGas')
        select case (char(inputOption))
-       case ("dark matter")
+       case ("darkMatter")
           meanSpecificAngularMomentumFrom=profileDarkMatter
-       case ("hot gas")
+       case ("hotGas")
           meanSpecificAngularMomentumFrom=profileHotGas
        end select
 
        !@ <inputParameter>
        !@   <name>coolingRotationVelocityFrom</name>
-       !@   <defaultValue>dark matter</defaultValue>
+       !@   <defaultValue>darkMatter</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The component (``hot gas'' or ``dark matter'') from which the constant rotation speed should be computed for
+       !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the constant rotation speed should be computed for
        !@     calculations of cooling gas specific angular momentum.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingRotationVelocityFrom',inputOption,defaultValue='dark matter')
+       call Get_Input_Parameter('coolingRotationVelocityFrom',inputOption,defaultValue='darkMatter')
        select case (char(inputOption))
-       case ("dark matter")
+       case ("darkMatter")
           rotationNormalizationFrom=profileDarkMatter
-       case ("hot gas")
+       case ("hotGas")
           rotationNormalizationFrom=profileHotGas
        end select
 

@@ -78,14 +78,14 @@ contains
   !#  <unitName>Dark_Matter_Mass_Accretion_Wechsler2002_Initialize</unitName>
   !# </darkMatterAccretionHistoryMethod>
   subroutine Dark_Matter_Mass_Accretion_Wechsler2002_Initialize(darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get)
-    !% Initializes the ``Wechsler 2002'' mass accretion history module.
+    !% Initializes the ``Wechsler2002'' mass accretion history module.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterAccretionHistoryMethod
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Mass_Accretion_Time_Get
     
-    if (darkMatterAccretionHistoryMethod == 'Wechsler 2002') then
+    if (darkMatterAccretionHistoryMethod == 'Wechsler2002') then
        ! Set procedure pointers.
        Dark_Matter_Halo_Mass_Accretion_Time_Get => Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002
 

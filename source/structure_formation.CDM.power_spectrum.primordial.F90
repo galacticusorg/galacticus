@@ -140,13 +140,13 @@ contains
        ! Get the primordial power spectrum method parameter.
        !@ <inputParameter>
        !@   <name>powerSpectrumMethod</name>
-       !@   <defaultValue>power law</defaultValue>
+       !@   <defaultValue>powerLaw</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing the primordial power spectrum.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('powerSpectrumMethod',powerSpectrumMethod,defaultValue='power law')
+       call Get_Input_Parameter('powerSpectrumMethod',powerSpectrumMethod,defaultValue='powerLaw')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="powerSpectrumMethod" type="code" action="subroutine">
        !#  <subroutineArgs>powerSpectrumMethod,Power_Spectrum_Tabulate</subroutineArgs>

@@ -100,7 +100,7 @@ contains
     procedure(),                 pointer, intent(inout) :: Chemical_Densities_Get
  
     ! Check if this chemical state has been selected.
-    if (chemicalStateMethod == 'atomic_CIE_Cloudy') then
+    if (chemicalStateMethod == 'atomicCIECloudy') then
        Electron_Density_Get                       => Electron_Density_Atomic_CIE_Cloudy
        Electron_Density_Temperature_Log_Slope_Get => Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy
        Electron_Density_Density_Log_Slope_Get     => Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy

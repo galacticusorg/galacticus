@@ -84,7 +84,7 @@ contains
     type(varying_string),                 intent(in)    :: starFormationTimescaleSpheroidsMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Spheroid_Get
     
-    if (starFormationTimescaleSpheroidsMethod == 'dynamical time') then
+    if (starFormationTimescaleSpheroidsMethod == 'dynamicalTime') then
        Star_Formation_Timescale_Spheroid_Get => Star_Formation_Timescale_Spheroid_Dynamical_Time
        ! Get parameters of for the timescale calculation.
        !@ <inputParameter>

@@ -101,13 +101,13 @@ contains
        ! Get the cooling radius method parameter.
        !@ <inputParameter>
        !@   <name>coolingSpecificAngularMomentumMethod</name>
-       !@   <defaultValue>constant rotation</defaultValue>
+       !@   <defaultValue>constantRotation</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of the specific angular momentum of cooling gas.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingSpecificAngularMomentumMethod',coolingSpecificAngularMomentumMethod,defaultValue='constant rotation')
+       call Get_Input_Parameter('coolingSpecificAngularMomentumMethod',coolingSpecificAngularMomentumMethod,defaultValue='constantRotation')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="coolingSpecificAngularMomentumMethod" type="code" action="subroutine">
        !#  <subroutineArgs>coolingSpecificAngularMomentumMethod,Cooling_Specific_Angular_Momentum_Get</subroutineArgs>

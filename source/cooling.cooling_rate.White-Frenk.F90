@@ -78,14 +78,14 @@ contains
   !#  <unitName>Cooling_Rate_White_Frenk_Initialize</unitName>
   !# </coolingRateMethod>
   subroutine Cooling_Rate_White_Frenk_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    !% Initializes the ``White + Frenk'' cooling rate module.
+    !% Initializes the ``White-Frenk1991'' cooling rate module.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: coolingRateMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Rate_Get
     
-    if (coolingRateMethod == 'White + Frenk') then
+    if (coolingRateMethod == 'White-Frenk1991') then
        Cooling_Rate_Get => Cooling_Rate_White_Frenk
 
        ! Get cooling rate parameters.
@@ -94,7 +94,7 @@ contains
        !@   <defaultValue>1000</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White + Frenk} cooling rate model.
+       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White-Frenk1991} cooling rate model.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
