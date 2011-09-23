@@ -5,7 +5,7 @@ use PDL;
 use Galacticus::HDF5;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "hostNodeMass" => "HostNode::Get_Host_Node_Mass"
+    "hostNodeMass" => \&HostNode::Get_Host_Node_Mass
     );
 
 my $status = 1;
@@ -33,13 +33,14 @@ sub Get_Host_Node_Mass {
     for($i=0;$i<nelem($isolatedNodes);++$i) {
 	# Find satellite nodes in the current isolated node.
 	$satelliteNodes = which(
-	    $dataSets->{"nodeIsIsolated"} == 0 &
-	    $dataSets->{"parentNode"} == $dataSets->{"nodeIndex"}->index($isolatedNodes->index($i))
+				$dataSets->{"nodeIsIsolated" } == 0                                                                &
+				$dataSets->{'mergerTreeIndex'} == $dataSets->{"mergerTreeIndex"}->index($isolatedNodes->index($i)) &
+				$dataSets->{"parentNode"     } == $dataSets->{"nodeIndex"      }->index($isolatedNodes->index($i))
 	    );
 	# Set the host node mass of these satellites to the node mass of their host.
 	$hostNodeMass->index($satelliteNodes) .= $dataSets->{"nodeMass"}->index($isolatedNodes->index($i));
     }
 
     # Transfer to the output data structure.
-    $dataSets->{"hostNodeMass"} = $hostNodeMass;
+    $dataSet->{'dataSets'}->{"hostNodeMass"} = $hostNodeMass;
 }
