@@ -186,7 +186,11 @@ module Tree_Node_Methods_Exponential_Disk
   integer                                     :: radiusSolverIteration
   double precision                            :: radiusHistory(2)
   !$omp threadprivate(radiusHistory,radiusSolverIteration)
- 
+
+  ! The largest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk. 
+  double precision, parameter                 :: angularMomentumMaximum=10.0d0
+
+
 contains
 
   !# <treeNodeCreateInitialize>
@@ -421,6 +425,8 @@ contains
     use Galacticus_Display
     use String_Handling
     use Histories
+!    use Dark_Matter_Halo_Scales
+!    use Galacticus_Error
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, save                   :: fractionalErrorMaximum=0.0d0
@@ -1604,6 +1610,7 @@ contains
   !# </radiusSolverPlausibility>
   subroutine Exponential_Disk_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
+    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: galaxyIsPhysicallyPlausible
@@ -1614,9 +1621,15 @@ contains
     ! Determine the plausibility of the current disk.
     if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) < -diskMassToleranceAbsolute) then
        galaxyIsPhysicallyPlausible=.false.
-    else
-       if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) > 0.0d0 .and.&
-            & Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) galaxyIsPhysicallyPlausible=.false.
+    else if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) > 0.0d0 .and.&
+         & Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) then
+       galaxyIsPhysicallyPlausible=.false.
+    else if (Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) > angularMomentumMaximum&
+         &*(Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode))&
+         &*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode)) then
+       ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
+       ! virial radius of their halo.
+       galaxyIsPhysicallyPlausible=.false.
     end if
 
     ! Reset the record of trial radii - negative values indicate that the entries have not yet been set to physically meaningful

@@ -159,8 +159,8 @@ module Tree_Node_Methods_Hot_Halo
 
   ! Quantities stored to avoid repeated computation.
   logical          :: gotCoolingRate=.false.
-  double precision :: coolingRate,massHeatingRateRemaining
-  !$omp threadprivate(gotCoolingRate,coolingRate,massHeatingRateRemaining)
+  double precision :: coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining
+  !$omp threadprivate(gotCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
 
   ! Output controls.
   logical          :: hotHaloOutputCooling
@@ -604,6 +604,16 @@ contains
           coolingFromNode => thisNode%formationNode
        end select
        angularMomentumCoolingRate=massRate*Cooling_Specific_Angular_Momentum(coolingFromNode)
+       if (massRate > 0.0d0) then
+          angularMomentumHeatingRateRemaining=angularMomentumCoolingRate
+       else if (massHeatingRateRemaining == 0.0d0) then
+          angularMomentumCoolingRate=-angularMomentumHeatingRateRemaining
+          angularMomentumHeatingRateRemaining=0.0d0
+       else
+          angularMomentumCoolingRate=max(angularMomentumCoolingRate,-angularMomentumHeatingRateRemaining)
+          angularMomentumHeatingRateRemaining=angularMomentumHeatingRateRemaining+angularMomentumCoolingRate
+       end if
+
        call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, &
             &-angularMomentumCoolingRate)
        ! Pipe the cooling rate to which ever component claimed it.
