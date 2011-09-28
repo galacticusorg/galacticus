@@ -158,9 +158,9 @@ module Tree_Node_Methods_Hot_Halo
   double precision            :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction
 
   ! Quantities stored to avoid repeated computation.
-  logical          :: gotCoolingRate=.false.
+  logical          :: gotCoolingRate=.false.,gotAngularMomentumCoolingRate=.false.
   double precision :: coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining
-  !$omp threadprivate(gotCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
+  !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
 
   ! Output controls.
   logical          :: hotHaloOutputCooling
@@ -394,7 +394,8 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
 
-    gotCoolingRate=.false.
+    gotCoolingRate               =.false.
+    gotAngularMomentumCoolingRate=.false.
     return
   end subroutine Tree_Node_Hot_Halo_Reset_Standard
 
@@ -558,6 +559,7 @@ contains
     massHeatingRate=min(rateAdjustment/Dark_Matter_Halo_Virial_Velocity(thisNode)**2,massHeatingRateRemaining)
     
     ! Update the remaining budget of allowed mass heating rate.
+    if (massHeatingRateRemaining-massHeatingRate <= 0.0d0) massHeatingRate=massHeatingRateRemaining
     massHeatingRateRemaining=max(massHeatingRateRemaining-massHeatingRate,0.0d0)
 
     ! Call routine to apply this mass heating rate to all hot halo cooling pipes.
@@ -604,16 +606,19 @@ contains
           coolingFromNode => thisNode%formationNode
        end select
        angularMomentumCoolingRate=massRate*Cooling_Specific_Angular_Momentum(coolingFromNode)
-       if (massRate > 0.0d0) then
-          angularMomentumHeatingRateRemaining=angularMomentumCoolingRate
-       else if (massHeatingRateRemaining == 0.0d0) then
-          angularMomentumCoolingRate=-angularMomentumHeatingRateRemaining
-          angularMomentumHeatingRateRemaining=0.0d0
-       else
-          angularMomentumCoolingRate=max(angularMomentumCoolingRate,-angularMomentumHeatingRateRemaining)
-          angularMomentumHeatingRateRemaining=angularMomentumHeatingRateRemaining+angularMomentumCoolingRate
+       if (.not.gotAngularMomentumCoolingRate) then
+          angularMomentumHeatingRateRemaining=coolingRate*Cooling_Specific_Angular_Momentum(coolingFromNode)
+          gotAngularMomentumCoolingRate=.true.
        end if
-
+       if (massRate < 0.0d0) then
+          if (massHeatingRateRemaining == 0.0d0) then
+             angularMomentumCoolingRate=-angularMomentumHeatingRateRemaining
+             angularMomentumHeatingRateRemaining=0.0d0
+          else
+             angularMomentumCoolingRate=max(angularMomentumCoolingRate,-angularMomentumHeatingRateRemaining)
+             angularMomentumHeatingRateRemaining=angularMomentumHeatingRateRemaining+angularMomentumCoolingRate
+          end if
+       end if
        call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, &
             &-angularMomentumCoolingRate)
        ! Pipe the cooling rate to which ever component claimed it.
