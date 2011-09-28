@@ -1621,15 +1621,16 @@ contains
     ! Determine the plausibility of the current disk.
     if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) < -diskMassToleranceAbsolute) then
        galaxyIsPhysicallyPlausible=.false.
-    else if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) > 0.0d0 .and.&
-         & Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) then
-       galaxyIsPhysicallyPlausible=.false.
-    else if (Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) > angularMomentumMaximum&
-         &*(Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode))&
-         &*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode)) then
-       ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
-       ! virial radius of their halo.
-       galaxyIsPhysicallyPlausible=.false.
+    else if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) > 0.0d0) then
+       if (Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) then
+          galaxyIsPhysicallyPlausible=.false.
+       else if (Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) > angularMomentumMaximum&
+            &*(Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode))&
+            &*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode)) then
+          ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
+          ! virial radius of their halo.
+          galaxyIsPhysicallyPlausible=.false.
+       end if
     end if
 
     ! Reset the record of trial radii - negative values indicate that the entries have not yet been set to physically meaningful
