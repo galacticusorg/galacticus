@@ -3,7 +3,7 @@ use XML::Simple;
 use Data::Dumper;
 use File::Copy;
 
-# Driver script for FSPS_v2.2 (Conroy, White & Gunn stellar population code).
+# Driver script for FSPS_v2.3 (Conroy, White & Gunn stellar population code).
 # Andrew Benson (15-Apr-2011)
 
 # Get arguments.
@@ -15,50 +15,50 @@ $stellarPopulationFile = $ARGV[1];
 unless ( -e $stellarPopulationFile ) {
     
     # Check out the code.
-    unless ( -e "aux/FSPS_v2.2" ) {
+    unless ( -e "aux/FSPS_v2.3" ) {
 	print "Conroy_SPS_Driver.pl: downloading source code.\n";
-	system("svn checkout http://fsps.googlecode.com/svn/trunk/ aux/FSPS_v2.2");
-	die("Conroy_SPS_Driver.pl: FATAL - failed to check out svn repository.") unless ( -e "aux/FSPS_v2.2" );
+	system("svn checkout http://fsps.googlecode.com/svn/trunk/ aux/FSPS_v2.3");
+	die("Conroy_SPS_Driver.pl: FATAL - failed to check out svn repository.") unless ( -e "aux/FSPS_v2.3" );
     }
 
     # Check for updates to the code.
-    open(pHndl,"svn info -r HEAD aux/FSPS_v2.2 |");
+    open(pHndl,"svn info -r HEAD aux/FSPS_v2.3 |");
     while ( $line = <pHndl> ) {
 	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$availableRevision = $1};
     }
     close(pHndl);
-    open(pHndl,"svn info aux/FSPS_v2.2 |");
+    open(pHndl,"svn info aux/FSPS_v2.3 |");
     while ( $line = <pHndl> ) {
 	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$currentRevision = $1};
     }
     close(pHndl);
     if ( $currentRevision < $availableRevision ) {
 	print "Conroy_SPS_Driver.pl: updating source code.\n";
-	system("svn revert -R aux/FSPS_v2.2"); # Revert the code.
-	system("svn update aux/FSPS_v2.2"); # Grab updates
-	unlink("aux/FSPS_v2.2/src/galacticus_IMF.f90") # Remove this file to trigger re-patching of the code.
+	system("svn revert -R aux/FSPS_v2.3"); # Revert the code.
+	system("svn update aux/FSPS_v2.3"); # Grab updates
+	unlink("aux/FSPS_v2.3/src/galacticus_IMF.f90") # Remove this file to trigger re-patching of the code.
     }
 
     # Patch the code.
-    unless ( -e "aux/FSPS_v2.2/src/galacticus_IMF.f90" ) {
+    unless ( -e "aux/FSPS_v2.3/src/galacticus_IMF.f90" ) {
 	foreach $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch" ) {
-	    copy("aux/FSPS_v2.2_Galacticus_Modifications/".$file,"aux/FSPS_v2.2/src/".$file);
-	    if ( $file =~ m/\.patch$/ ) {system("cd aux/FSPS_v2.2/src; patch < $file")};
+	    copy("aux/FSPS_v2.3_Galacticus_Modifications/".$file,"aux/FSPS_v2.3/src/".$file);
+	    if ( $file =~ m/\.patch$/ ) {system("cd aux/FSPS_v2.3/src; patch < $file")};
 	    print "$file\n";
 	}
-	unlink("aux/FSPS_v2.2/src/autosps.exe");
+	unlink("aux/FSPS_v2.3/src/autosps.exe");
     }
 
     # Build the code.
-    unless ( -e "aux/FSPS_v2.2/src/autosps.exe" ) {
+    unless ( -e "aux/FSPS_v2.3/src/autosps.exe" ) {
 	print "Conroy_SPS_Driver.pl: compiling autosps.exe code.\n";
-	system("cd aux/FSPS_v2.2/src; export SPS_HOME=`pwd`; make clean; make -j 1");
-	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e "aux/FSPS_v2.2/src/autosps.exe" );
+	system("cd aux/FSPS_v2.3/src; export SPS_HOME=`pwd`; make clean; make -j 1");
+	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e "aux/FSPS_v2.3/src/autosps.exe" );
     }
 
     # Read the wavelength array.
     undef(%data);
-    open(lambdaFile,"aux/FSPS_v2.2/SPECTRA/BaSeL3.1/basel.lambda");
+    open(lambdaFile,"aux/FSPS_v2.3/SPECTRA/BaSeL3.1/basel.lambda");
     while ( $line = <lambdaFile> ) {
 	chomp($line);
 	$line =~ s/^\s*//;
@@ -70,7 +70,7 @@ unless ( -e $stellarPopulationFile ) {
     # Run the code.
     $pwd = `pwd`;
     chomp($pwd);
-    $ENV{'SPS_HOME'} = $pwd."/aux/FSPS_v2.2";
+    $ENV{'SPS_HOME'} = $pwd."/aux/FSPS_v2.3";
     $iMetallicity = -1;
 
     # Add a description of the file.
@@ -83,8 +83,8 @@ unless ( -e $stellarPopulationFile ) {
     # Loop over metallicities.
     for($iZ=1;$iZ<=22;++$iZ) {
 	$outFile = "imf".$imfName.".iZ".$iZ;
-	unless ( -e "aux/FSPS_v2.2/OUTPUTS/".$outFile.".spec" ) {
-	    open(spsPipe,"|aux/FSPS_v2.2/src/autosps.exe");
+	unless ( -e "aux/FSPS_v2.3/OUTPUTS/".$outFile.".spec" ) {
+	    open(spsPipe,"|aux/FSPS_v2.3/src/autosps.exe");
 	    print spsPipe "6\n";        # IMF.
 	    print spsPipe "0\n";        # Generate SSP.
 	    print spsPipe "$iZ\n";      # Specify metallicity.
@@ -97,7 +97,7 @@ unless ( -e $stellarPopulationFile ) {
 	$ageCount = 0;
 	$iAge     = -1;
 	$gotAge   = 0;
-	open(specFile,"aux/FSPS_v2.2/OUTPUTS/".$outFile.".spec");
+	open(specFile,"aux/FSPS_v2.3/OUTPUTS/".$outFile.".spec");
 	while ( $line = <specFile> ) {
 	    chomp($line);
 	    $line =~ s/^\s*//;
