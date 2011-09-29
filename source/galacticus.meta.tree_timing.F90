@@ -87,11 +87,8 @@ module Galacticus_Meta_Tree_Timing
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
-  !#   <unitName>Meta_Tree_Timing_Pre_Construction</unitName>
-  !# </mergerTreePreTreeConstructionTask>
-  subroutine Meta_Tree_Timing_Pre_Construction()
-    !% Record the CPU time prior to construction of a tree.
+  subroutine Meta_Tree_Timing_Initialize()
+    !% Initialize the tree timing meta-data module.
     use Input_Parameters
     implicit none
 
@@ -112,6 +109,19 @@ contains
        metaTimingDataInitialized=.true.
     end if
     !$omp end critical (Meta_Tree_Timing_Pre_Construct_Initialize)
+
+    return
+  end subroutine Meta_Tree_Timing_Initialize
+
+  !# <mergerTreePreTreeConstructionTask>
+  !#   <unitName>Meta_Tree_Timing_Pre_Construction</unitName>
+  !# </mergerTreePreTreeConstructionTask>
+  subroutine Meta_Tree_Timing_Pre_Construction()
+    !% Record the CPU time prior to construction of a tree.
+    implicit none
+
+    ! Ensure the module is initialized.
+    call Meta_Tree_Timing_Initialize()
 
     if (metaCollectTimingData) then
        ! Record the CPU time prior to construction.
@@ -134,6 +144,9 @@ contains
     type(mergerTree), intent(in) :: thisTree
     type(treeNode),   pointer    :: thisNode
 
+    ! Ensure the module is initialized.
+    call Meta_Tree_Timing_Initialize()
+
     if (metaCollectTimingData) then
        ! Record the CPU time.
        call CPU_Time(timePreEvolution)
@@ -154,6 +167,9 @@ contains
     use Memory_Management
     implicit none
     double precision, allocatable, dimension(:) :: treeMassesTemporary,treeConstructTimesTemporary,treeEvolveTimesTemporary
+
+    ! Ensure the module is initialized.
+    call Meta_Tree_Timing_Initialize()
 
     if (metaCollectTimingData) then
        ! Record the final CPU time.
@@ -200,6 +216,9 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     type(hdf5Object) :: metaDataGroup,timingDataGroup,metaDataDataset
+
+    ! Ensure the module is initialized.
+    call Meta_Tree_Timing_Initialize()
 
     ! Output tree evolution meta-data if any was collected.
     if (metaCollectTimingData) then
