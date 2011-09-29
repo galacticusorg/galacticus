@@ -418,6 +418,13 @@ GROUP "haloTrees" {
       (0): 0
       }
    }
+   ATTRIBUTE "positionsArePeriodic" {
+      DATATYPE  H5T_STD_I32LE
+      DATASPACE  SCALAR
+      DATA {
+      (0): 0
+      }
+   }
    DATASET "descendentIndex" {
    COMMENT "The index of each descendent node."
       DATATYPE  H5T_STD_I64LE
@@ -495,6 +502,7 @@ The following are standard attributes in the {\tt haloTrees} group (others may b
  \item [{\tt treesAreSelfContained}] Indicates whether or not trees are self-contained, in the sense that nodes never transfer from one tree to another. A value of 0 implies that nodes \emph{can} move from one tree to another, while a value of 1 implies that they can not;
  \item [{\tt treesHaveSubhalos}] Indicates whether or not trees contain information on subhalos. A value of 0 implies that they do not, while a value of 1 implies that they do. This attribute is a convenience, as subhalo presence can be determined from the node data directly;
  \item [{\tt velocitiesIncludeHubbleFlow}] Indicates whether or not velocities include the Hubble flow. A value of 0 indicates that they do not, while a value of 1 indicates that they do.
+ \item [{\tt positionsArePeriodic}] Indicates whether or not positions are periodic (as in a cosmological cube simulation). A value of 0 indicates that they are not, while a value of 1 indicates that they are periodic, with a period of {\tt boxSize}.
 \end{description}
 
 \subsection{Standard Datasets}

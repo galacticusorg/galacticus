@@ -198,7 +198,7 @@ module Merger_Tree_Data_Structure
           &,hasParticlePositionY,hasParticlePositionZ,hasParticleVelocityX,hasParticleVelocityY,hasParticleVelocityZ&
           &,hasParticleIndex,hasParticles,hasMostBoundParticleIndex
      logical                                              :: areSelfContained=.true., includesHubbleFlow=.false.,&
-          & includesSubhaloMasses=.false.,doMakeReferences=.true.
+          & includesSubhaloMasses=.false.,doMakeReferences=.true., isPeriodic=.false.
      type(unitsMetaData),     dimension(unitTypeCount)    :: units
      logical,                 dimension(unitTypeCount)    :: unitsSet=.false.
      integer                                              :: metaDataCount=0
@@ -213,6 +213,7 @@ module Merger_Tree_Data_Structure
      procedure                                            :: setParticleMass          => Merger_Tree_Data_Structure_Set_Particle_Mass
      procedure                                            :: setSelfContained         => Merger_Tree_Data_Structure_Set_Self_Contained
      procedure                                            :: setIncludesHubbleFlow    => Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow
+     procedure                                            :: setPositionsArePeriodic  => Merger_Tree_Data_Structure_Set_Is_Periodic
      procedure                                            :: setIncludesSubhaloMasses => Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
      procedure                                            :: setUnits                 => Merger_Tree_Data_Structure_Set_Units
      procedure                                            ::                             Merger_Tree_Data_Structure_Add_Metadata_Double
@@ -397,6 +398,18 @@ contains
 
     return
   end subroutine Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow
+
+  subroutine Merger_Tree_Data_Structure_Set_Is_Periodic(mergerTrees,isPeriodic)
+    !% Set whether or not positions are periodic.
+    implicit none
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    logical,               intent(in)    :: isPeriodic
+
+    ! Set whether positions are periodic.
+    mergerTrees%isPeriodic=isPeriodic
+
+    return
+  end subroutine Merger_Tree_Data_Structure_Set_Is_Periodic
 
   subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses(mergerTrees,includesSubhaloMasses)
     !% Set the particle mass used in the trees.
@@ -769,10 +782,9 @@ contains
     character(len=*),      intent(in),   optional     :: separator
     character(len=32),     allocatable,  dimension(:) :: inputColumns
     integer                                           :: lineNumberStartActual,lineNumberStopActual,columnsCount,lineNumber&
-         &,fileUnit,iColumn,iNode,iTree
+         &,fileUnit,iColumn,iNode
     logical                                           :: gotFirstDataLine
     character(len=1024)                               :: inputLine
-    type(varying_string)                              :: message
 
     ! Flag that these trees have particles.
     mergerTrees%hasParticles=.true.
@@ -1077,6 +1089,13 @@ contains
        integerAttribute=0
     end if
     call haloTrees%writeAttribute(integerAttribute,"velocitiesIncludeHubbleFlow")
+    ! Determine if positions are periodic.
+    if (mergerTrees%isPeriodic) then
+       integerAttribute=1
+    else
+       integerAttribute=0
+    end if
+    call haloTrees%writeAttribute(integerAttribute,"positionsArePeriodic")
     ! Determine if halo masses include subhalo contributions.
     if (mergerTrees%includesSubhaloMasses) then
        integerAttribute=1

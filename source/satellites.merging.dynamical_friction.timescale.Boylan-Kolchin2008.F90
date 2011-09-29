@@ -114,10 +114,15 @@ contains
          &,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
     massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)-1.0d0
-    ! Compute dynamical friction timescale.
-    Satellite_Time_Until_Merging_BoylanKolchin2008=Dynamical_Friction_Timescale_Multiplier()&
-         &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*A*((massRatio**b)/dlog(1.0d0 +massRatio))*dexp(c*orbitalCircularity)&
-         &*((equivalentCircularOrbitRadius/radialScale)**d)
+    if (massRatio <= 0.0d0) then
+       ! Assume zero merging time as the satellite is as massive as the host.
+       Satellite_Time_Until_Merging_BoylanKolchin2008=0.0d0
+    else
+       ! Compute dynamical friction timescale.
+       Satellite_Time_Until_Merging_BoylanKolchin2008=Dynamical_Friction_Timescale_Multiplier() &
+            &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*A*((massRatio**b)/dlog(1.0d0 +massRatio))*dexp(c*orbitalCircularity)&
+            & *((equivalentCircularOrbitRadius/radialScale)**d)
+    end if
     return
   end function Satellite_Time_Until_Merging_BoylanKolchin2008
 

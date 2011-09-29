@@ -113,7 +113,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('velocityDispersionDiskGas',velocityDispersionDiskGas,defaultValue=10.0d0)
        !@ <inputParameter>
-       !@   <name>heightToRadialScaleDiskBlitzRosolowskyBlitzRosolowsky</name>
+       !@   <name>heightToRadialScaleDiskBlitzRosolowsky</name>
        !@   <defaultValue>0.137 \citep{kregel_flattening_2002}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>

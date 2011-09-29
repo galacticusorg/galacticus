@@ -166,6 +166,9 @@ contains
     ! Specify that velocities do not include the Hubble flow.
     call mergerTrees%setIncludesHubbleFlow   (.false.)
 
+    ! Specify that positions are periodic.
+    call mergerTrees%setPositionsArePeriodic (.true. )
+
     ! Specify that halo masses do not include subhalo contributions.
     call mergerTrees%setIncludesSubhaloMasses(.false.)
 

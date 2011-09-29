@@ -80,7 +80,7 @@ Further parameters can be set to control what information from the stored trees 
 
 \subsubsection{Node Positions}
 
-If position and velocity information for tree nodes is available within the merger tree file than \glc\ can be instructed to use this information by using the ``preset'' method for tree node positions and telling the merger tree construction method to preset node positions as follows:
+If position and velocity information for tree nodes is available within the merger tree file then \glc\ can be instructed to use this information by using the ``preset'' method for tree node positions and telling the merger tree construction method to preset node positions as follows:
 \begin{verbatim}
   <!-- Use merger tree node positions -->
   <parameter>
@@ -104,6 +104,22 @@ If position information is unavailable, the ``null'' position method can be sele
     <value>false</value>
   </parameter>
 \end{verbatim}
+
+\subsubsection{Virial Orbits}\index{orbits!virial}\index{orbits!setting}\index{orbits!N-body}
+
+If position and velocity information for tree nodes is available within the merger tree file then \glc\ can be instructed to use this information to estimate the orbit of each subhalo at the point at which it crosses the virial radius of its host halo. This ``virial orbit'' may then be used by, for example, calculations of merging timescales.
+\begin{verbatim}
+  <!-- Use merger tree node positions to compute orbits at the virial radius -->
+  <parameter>
+    <name>mergerTreeReadPresetOrbits</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetOrbitsBoundOnly</name>
+    <value>true</value>
+  </parameter>
+\end{verbatim}
+Typically, a merging halo is not seen at precisely the time at which it crosses the virial radius of its host (due to the fact that N-body simulations are output at discretely spaced timesteps). Therefore, \glc\ computes the orbit at the time just prior to merging and assumes that the orbital parameters (energy and angular momentum) remain fixed to propagate the orbit to the virial radius of the host. The second parameter in the above example, {\tt [mergerTreeReadPresetOrbitsBoundOnly]}, specifies whether or not only bound orbits should be set. Some calculations (e.g. of subhalo merging times) assume bound orbits and may fail if given an unbound orbit. Setting this option to {\tt true} causes only bound orbits to be preset---unbound orbits are ignored and must either be set elsewhere or may be assigned a random value (as in the case of the ``simple'' satellite orbit component for example; see \S\ref{sec:SatelliteOrbitComponentSimple}).
 
 \subsubsection{Merging Times and Targets}
 

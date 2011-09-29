@@ -121,11 +121,20 @@ module Merger_Tree_Read
   double precision,        allocatable, dimension(:) :: treeVolumeWeight
   !$omp threadprivate(treeVolumeWeightCurrent)
 
+  ! Size of the simulation box.
+  double precision                                   :: lengthSimulationBox
+
   ! Flag indicating whether mismatches in cosmological parameters should be considered fatal.
   logical                                            :: mergerTreeReadMismatchIsFatal
 
   ! Flag indicating whether or not subhalo masses are included in halo masses.
   logical                                            :: haloMassesIncludeSubhalos
+
+  ! Flag indicating whether or not positions are periodic.
+  logical                                            :: simulationIsPeriodic
+
+  ! Flag indicating whether or not velocities include Hubble flow.
+  logical                                            :: velocitiesIncludeHubbleFlow
 
   ! Flags indicating whether or not to preset subhalo properties.
   logical                                            :: mergerTreeReadPresetMergerTimes
@@ -134,6 +143,7 @@ module Merger_Tree_Read
   logical                                            :: mergerTreeReadPresetPositions
   logical                                            :: mergerTreeReadPresetScaleRadii
   logical                                            :: mergerTreeReadPresetSpins
+  logical                                            :: mergerTreeReadPresetOrbits,mergerTreeReadPresetOrbitsBoundOnly
 
   ! Buffer to hold additional merger trees.
   type(mergerTree),        allocatable, dimension(:) :: mergerTreesQueued
@@ -184,12 +194,12 @@ contains
     implicit none
     type(varying_string),          intent(in)    :: mergerTreeConstructMethod
     procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
-    integer                                      :: treesAreSelfContained,hubbleExponent,haloMassesIncludeSubhalosInteger,iOutput
-    double precision                             :: cosmologicalParameter,lengthSimulationBox
+    integer                                      :: treesAreSelfContained,hubbleExponent,haloMassesIncludeSubhalosInteger&
+         &,simulationIsPeriodicInteger,velocitiesIncludeHubbleFlowInteger,iOutput
+    double precision                             :: cosmologicalParameter
     character(len=14)                            :: valueString
     type(varying_string)                         :: message
-
-double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon,localSigma8
+    double precision                             :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon,localSigma8
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'read') then
@@ -262,6 +272,22 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetSpins',mergerTreeReadPresetSpins,defaultValue=.true.)
        !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetOrbits</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether node orbits should be preset when reading merger trees from a file.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetOrbits',mergerTreeReadPresetOrbits,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetOrbitsBoundOnly</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether only bound node orbits should be set.
+       !@   </description>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetOrbitsBoundOnly',mergerTreeReadPresetOrbitsBoundOnly,defaultValue=.true.)
+       !@ <inputParameter>
        !@   <name>mergerTreeReadBeginAt</name>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -322,7 +348,7 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
        call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  ,allowPseudoScalar=.true.)
        call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           ,allowPseudoScalar=.true.)
        unitConversionMass    =unitConversionMass    *(localLittleH0**hubbleExponent)/massSolar
-       if (mergerTreeReadPresetPositions.and..not.(unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI"))) call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities are to be preset')
+       if ((mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits).and..not.(unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI"))) call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities are to be preset')
        if (unitsGroup%hasAttribute("lengthUnitsInSI")) then
           call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     ,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength,allowPseudoScalar=.true.)
@@ -344,6 +370,22 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
        end if
        call unitsGroup%close()
 
+       ! Determine if velocities include Hubble flow.
+       if (haloTreesGroup%hasAttribute("velocitiesIncludeHubbleFlow")) then
+          call haloTreesGroup%readAttribute("velocitiesIncludeHubbleFlow",velocitiesIncludeHubbleFlowInteger,allowPseudoScalar=.true.)
+          velocitiesIncludeHubbleFlow=(velocitiesIncludeHubbleFlowInteger == 1)
+       else
+          velocitiesIncludeHubbleFlow=.true.
+       end if
+
+       ! Determine if positions are periodic.
+       if (haloTreesGroup%hasAttribute("positionsArePeriodic")) then
+          call haloTreesGroup%readAttribute("positionsArePeriodic",simulationIsPeriodicInteger,allowPseudoScalar=.true.)
+          simulationIsPeriodic=(simulationIsPeriodicInteger == 1)
+       else
+          simulationIsPeriodic=.false.
+       end if
+
        ! Get the volume of the simulation.
        if (mergerTreeFile%hasGroup("simulation")) then
           simulationGroup=IO_HDF5_Open_Group(mergerTreeFile,"simulation")
@@ -357,6 +399,7 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
           call simulationGroup%close()
        else
           treeVolumeWeightUniform=1.0d0
+          if (simulationIsPeriodic) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','the boxSize attribute of the simulation group is required')
        end if
 
        ! Check that cosmological parameters are consistent with the internal ones.
@@ -467,7 +510,7 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
        end if
 
        ! Check that position information is present if required.
-       if (mergerTreeReadPresetPositions) then
+       if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
           if (.not.(haloTreesGroup%hasDataset("position").and.haloTreesGroup%hasDataset("velocity"))) call&
                & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting positions requires that both position and&
                & velocity datasets be present in merger tree file")
@@ -675,6 +718,11 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
                 if (.not.associated(Tree_Node_Spin_Set                     )) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
                      & 'presetting spins requires a component that supports setting of spins')
              end if
+             if (mergerTreeReadPresetOrbits     ) then
+                ! Orbit property is required.
+                if (.not.associated(Tree_Node_Satellite_Virial_Orbit_Set   )) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
+                     & 'presetting orbits requires a component that supports setting of orbits')
+             end if
 
              ! Assign scale radii.
              if (mergerTreeReadPresetScaleRadii) call Assign_Scale_Radii    (nodes,thisNodeList)
@@ -696,9 +744,9 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
                 if (allocated(position)) call Dealloc_Array(position)
                 if (allocated(velocity)) call Dealloc_Array(velocity)
                 call Alloc_Array(historyTime,[int(historyCountMaximum)])
-                if (mergerTreeReadPresetSubhaloMasses) call Alloc_Array(historyMass,[  int(historyCountMaximum)])
-                if (mergerTreeReadPresetPositions    ) call Alloc_Array(position   ,[3,int(historyCountMaximum)])
-                if (mergerTreeReadPresetPositions    ) call Alloc_Array(velocity   ,[3,int(historyCountMaximum)])
+                if (mergerTreeReadPresetSubhaloMasses                              ) call Alloc_Array(historyMass,[  int(historyCountMaximum)])
+                if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(position   ,[3,int(historyCountMaximum)])
+                if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(velocity   ,[3,int(historyCountMaximum)])
              end if
              
              ! Build subhalo mass histories if required.
@@ -818,7 +866,7 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
     nodes%particleIndexStart=-1_kind_int8
     nodes%particleIndexCount=-1_kind_int8
 
-    if (mergerTreeReadPresetPositions) then
+    if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
        !$omp critical(HDF5_Access)
        ! position.
        call haloTreesGroup%readDataset("position",position,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
@@ -1025,7 +1073,6 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
     implicit none
     type(nodeData), intent(inout), dimension(:), target  :: nodes
     integer,        intent(out)                          :: iExtraTree,primaryRootIndex
-    type(nodeData),                              pointer :: thisNode
     integer                                              :: iNode,treeRootCount
     double precision                                     :: baseNodeMass
     
@@ -1301,17 +1348,25 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
 
   subroutine Scan_For_Mergers(nodes,nodeList,historyCountMaximum)
     !% Scan for and record mergers between nodes.
+    use Vectors
+    use Kepler_Orbits_Structure
+    use Tree_Nodes
+    use Cosmology_Functions
+    use Dark_Matter_Halo_Scales
     implicit none
     type(nodeData),          intent(inout), dimension(:) :: nodes
     type(treeNodeList),      intent(inout), dimension(:) :: nodeList
     integer(kind=kind_int8), intent(out)                 :: historyCountMaximum
     type(nodeData),          pointer                     :: thisNode
-    type(treeNode),          pointer                     :: firstProgenitor
+    type(treeNode),          pointer                     :: firstProgenitor,satelliteNode,hostNode
     double precision,        parameter                   :: timeUntilMergingInfinite=1.0d30
+    double precision,                       dimension(3) :: satellitePosition,hostPosition,relativePosition
+    double precision,                       dimension(3) :: satelliteVelocity,hostVelocity,relativeVelocity
+    type(keplerOrbit)                                    :: thisOrbit
     integer                                              :: iNode,jNode,iIsolatedNode
     integer(kind=kind_int8)                              :: historyCount
     logical                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge
-    double precision                                     :: timeSubhaloMerges
+    double precision                                     :: timeSubhaloMerges,radiusPericenter,radiusApocenter,radiusVirial
     
     iIsolatedNode        = 0
     historyCountMaximum  = 0
@@ -1396,7 +1451,7 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
                 ! Ensure the history arrays will be large enough to hold data for this node.
                 historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,nodes(iNode)%particleIndexCount))
              end if
-             ! Set a merging time if this node will merge.
+             ! Set a merging time and/or orbit if this node will merge.
              if (nodeWillMerge.and.mergerTreeReadPresetMergerTimes) then
                 ! Store the time of merging for this node and all of its primary progenitors.
                 firstProgenitor => nodeList(iIsolatedNode)%node
@@ -1413,6 +1468,63 @@ double precision :: localLittleH0,localOmegaMatter,localOmegaDE,localOmegaBaryon
           end if
        end if
     end do
+
+    ! Set orbits.
+    if (mergerTreeReadPresetOrbits) then
+       iIsolatedNode=0
+       do iNode=1,size(nodes)
+          if (nodes(iNode)%nodeIndex == nodes(iNode)%hostNode%nodeIndex) then
+             iIsolatedNode=iIsolatedNode+1
+             ! Set the orbit for this halo.
+             satelliteNode => nodeList(iIsolatedNode)%node
+             if (associated(satelliteNode%parentNode).and..not.satelliteNode%isPrimaryProgenitor()) then
+                ! Find the orbital partner.
+                hostNode => satelliteNode%parentNode%childNode
+                ! Get position and velocity.
+                call Tree_Node_Position(satelliteNode,satellitePosition)
+                call Tree_Node_Velocity(satelliteNode,satelliteVelocity)
+                call Tree_Node_Position(hostNode     ,hostPosition     )
+                call Tree_Node_Velocity(hostNode     ,hostVelocity     )
+                ! Find relative position and velocity.
+                relativePosition=satellitePosition-hostPosition
+                relativeVelocity=satelliteVelocity-hostVelocity
+                ! Account for periodicity.
+                if (simulationIsPeriodic) then
+                   relativePosition=mod(relativePosition+0.5d0*lengthSimulationBox,lengthSimulationBox)-0.5d0*lengthSimulationBox
+                   relativePosition=mod(relativePosition-0.5d0*lengthSimulationBox,lengthSimulationBox)+0.5d0*lengthSimulationBox
+                end if
+                ! Account for Hubble flow.
+                if (.not.velocitiesIncludeHubbleFlow) relativeVelocity=relativeVelocity+relativePosition*Hubble_Parameter(tCosmological=Tree_Node_Time(satelliteNode))
+                ! Create the orbit.
+                call thisOrbit%reset()
+                call thisOrbit%massesSet            (                                     &
+                     &                               Tree_Node_Mass(satelliteNode      ), &
+                     &                               Tree_Node_Mass(hostNode%parentNode)  &
+                     &                              )
+                call thisOrbit%radiusSet            (                                                                   Vector_Magnitude(relativePosition))
+                call thisOrbit%velocityRadialSet    (                 Dot_Product   (relativeVelocity,relativePosition)/Vector_Magnitude(relativePosition))
+                call thisOrbit%velocityTangentialSet(Vector_Magnitude(Vector_Product(relativeVelocity,relativePosition)/Vector_Magnitude(relativePosition)))
+                ! Propagate to the virial radius.
+                radiusPericenter=thisOrbit%radiusPericenter()
+                radiusApocenter =thisOrbit%radiusApocenter ()
+                radiusVirial    =Dark_Matter_Halo_Virial_Radius(hostNode%parentNode)
+                ! Check if the orbit intersects the virial radius.
+                if     (                                                                          &
+                     &    radiusVirial >= radiusPericenter                                        &
+                     &  .and.                                                                     &
+                     &   (radiusVirial <= radiusApocenter          .or. .not.thisOrbit%isBound()) &
+                     &  .and.                                                                     &
+                     &   (.not.mergerTreeReadPresetOrbitsBoundOnly .or.      thisOrbit%isBound()) &
+                     & ) then
+                   call thisOrbit%propagate(radiusVirial,infalling=.true.)
+                   ! Set the orbit.
+                   call Tree_Node_Satellite_Virial_Orbit_Set(satelliteNode,thisOrbit)
+                end if
+             end if
+          end if
+       end do
+    end if
+
     return
   end subroutine Scan_For_Mergers
 

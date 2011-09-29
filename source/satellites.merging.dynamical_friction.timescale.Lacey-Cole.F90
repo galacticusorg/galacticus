@@ -109,10 +109,16 @@ contains
     orbitalCircularity=thisOrbit%angularMomentum()/velocityScale/radialScale/equivalentCircularOrbitRadius
     ! Compute mass ratio.
     massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)
-    ! Compute dynamical friction timescale.
-    Satellite_Time_Until_Merging_Lacey_Cole=Dynamical_Friction_Timescale_Multiplier()*(orbitalCircularity**0.78d0)&
-         &*(equivalentCircularOrbitRadius**2) *Dark_Matter_Halo_Dynamical_Timescale(hostNode)*inverseTwoB1*massRatio&
-         &/dlog(massRatio)
+    ! Check for a greater than unity mass ratio.
+    if (massRatio <= 1.0d0) then
+       ! Assume zero merging time as the satellite is as massive as the host.
+       Satellite_Time_Until_Merging_Lacey_Cole=0.0d0
+    else
+       ! Compute dynamical friction timescale.
+       Satellite_Time_Until_Merging_Lacey_Cole=Dynamical_Friction_Timescale_Multiplier()*(orbitalCircularity**0.78d0)&
+            &*(equivalentCircularOrbitRadius**2) *Dark_Matter_Halo_Dynamical_Timescale(hostNode)*inverseTwoB1*massRatio&
+            &/dlog(massRatio)
+    end if
     return
   end function Satellite_Time_Until_Merging_Lacey_Cole
 

@@ -107,6 +107,14 @@ module Kepler_Orbits_Structure
      !@     <description>Asserts that an orbit is fully defined.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>isBound</method>
+     !@     <description>Returns true if the orbit is bound.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>propagte</method>
+     !@     <description>Propagates an orbit to a new position.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>velocityRadialSet</method>
      !@     <description>Sets the radial velocity of an orbit.</description>
      !@   </objectMethod>
@@ -198,6 +206,8 @@ module Kepler_Orbits_Structure
      procedure :: reset                 => Kepler_Orbits_Reset
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
      procedure :: assertIsDefined       => Kepler_Orbits_Assert_Is_Defined
+     procedure :: isBound               => Kepler_Orbits_Is_Bound
+     procedure :: propagate             => Kepler_Orbits_Propagate
      procedure :: massesSet             => Kepler_Orbits_Masses_Set
      procedure :: radiusSet             => Kepler_Orbits_Radius_Set
      procedure :: radiusPericenterSet   => Kepler_Orbits_Pericenter_Radius_Set
@@ -631,7 +641,7 @@ contains
     !% masses of the orbitting bodies).
     implicit none
     class(keplerOrbit), intent(in) :: thisOrbit
-    integer                       :: orbitalParameterCount          
+    integer                        :: orbitalParameterCount          
 
     select type(thisOrbit)
     type is (keplerOrbit)
@@ -670,6 +680,21 @@ contains
     return
   end subroutine Kepler_Orbits_Assert_Is_Defined
 
+  logical function Kepler_Orbits_Is_Bound(thisOrbit)
+    !% Returns true if the orbit is bound.
+    implicit none
+    class(keplerOrbit), intent(in) :: thisOrbit
+
+    select type(thisOrbit)
+    type is (keplerOrbit)
+       ! Assert that the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Test if the energy is negative (indicating a bound orbit).
+       Kepler_Orbits_Is_Bound=(thisOrbit%energy() < 0.0d0)
+    end select
+    return
+  end function Kepler_Orbits_Is_Bound
+
   double precision function Kepler_Orbits_Velocity_Scale(thisOrbit)
     !% Return the velocity scale for the orbit.
     use Galacticus_Error
@@ -687,5 +712,43 @@ contains
     end select
     return
   end function Kepler_Orbits_Velocity_Scale
+
+  subroutine Kepler_Orbits_Propagate(thisOrbit,newRadius,infalling)
+    !% Propagate an orbit along its path.
+    use Galacticus_Error
+    use Numerical_Constants_Physical
+    implicit none
+    class(keplerOrbit), intent(inout)           :: thisOrbit
+    double precision,   intent(in   )           :: newRadius
+    logical,            intent(in   ), optional :: infalling
+    double precision                            :: energy,angularMomentum,newVelocityRadial,newVelocityTangential
+
+    select type(thisOrbit)
+    type is (keplerOrbit)
+       ! Assert that the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Check that the radius is within the allowed range.
+       if     (                                                                                                               &
+            &    newRadius < thisOrbit%radiusPericenter()                                                                     &
+            &  .or.                                                                                                           &
+            &   (newRadius > thisOrbit%radiusApocenter () .and. thisOrbit%radiusApocenter() > 0.0d0)                          &
+            & ) call Galacticus_Error_Report('Kepler_Orbits_Propagate','radius lies outside of allowed range for this orbit')
+       ! Get the energy and angular momentum
+       energy         =thisOrbit%energy         ()
+       angularMomentum=thisOrbit%angularMomentum()
+       ! Compute velocity components.
+       newVelocityTangential=angularMomentum/newRadius
+       newVelocityRadial    =sqrt(2.0d0*(energy+gravitationalConstantGalacticus*thisOrbit%hostMass()/newRadius)/thisOrbit%specificReducedMass()-newVelocityTangential**2)
+       ! Move to the infalling phase of the orbit if requested.
+       if (present(infalling)) then
+          if (infalling) newVelocityRadial=-newVelocityRadial
+       end if
+       ! Set new values for the state vector.
+       call thisOrbit%radiusSet            (newRadius            )
+       call thisOrbit%velocityTangentialSet(newVelocityTangential)
+       call thisOrbit%velocityRadialSet    (newVelocityRadial    )
+    end select
+    return
+  end subroutine Kepler_Orbits_Propagate
 
 end module Kepler_Orbits_Structure

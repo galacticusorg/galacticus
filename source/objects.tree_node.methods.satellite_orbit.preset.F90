@@ -75,9 +75,13 @@ module Tree_Node_Methods_Satellite_Orbit_Preset
   integer :: componentIndex=-1
 
   ! Property indices.
-  integer, parameter :: propertyCount =0, dataCount=1, historyCountInitial=0, historyCount=1
-  integer, parameter :: mergeTimeIndex=1
-  integer, parameter :: boundMassIndex=1
+  integer, parameter :: propertyCount =0, dataCount=5, historyCountInitial=0, historyCount=1
+  integer, parameter :: mergeTimeIndex         =1
+  integer, parameter :: boundMassIndex         =1
+  integer, parameter :: velocityRadialIndex    =2
+  integer, parameter :: velocityTangentialIndex=3
+  integer, parameter :: virialRadiusIndex      =4
+  integer, parameter :: hostMassIndex          =5
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -91,6 +95,9 @@ module Tree_Node_Methods_Satellite_Orbit_Preset
   !# </treeNodeMethodsPointer>
   !# <treeNodeMethodsPointer type="history">
   !#  <methodName>Tree_Node_Bound_Mass_History</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer type="keplerOrbit">
+  !#  <methodName>Tree_Node_Satellite_Virial_Orbit</methodName>
   !# </treeNodeMethodsPointer>
 
   ! Flag to indicate if this method is selected.
@@ -148,6 +155,9 @@ contains
        Tree_Node_Bound_Mass_History_Set            => Tree_Node_Bound_Mass_History_Set_Preset
        Tree_Node_Bound_Mass_History_Rate_Adjust    => null()
        Tree_Node_Bound_Mass_History_Rate_Compute   => Tree_Node_Rate_Rate_Compute_Dummy
+
+       Tree_Node_Satellite_Virial_Orbit            => Tree_Node_Satellite_Virial_Orbit_Preset
+       Tree_Node_Satellite_Virial_Orbit_Set        => Tree_Node_Satellite_Virial_Orbit_Set_Preset
     end if
 
     return
@@ -300,6 +310,55 @@ contains
     thisNode%components(thisIndex)%instance(1)%histories(boundMassIndex)=thisHistory
     return
   end subroutine Tree_Node_Bound_Mass_History_Set_Preset
+
+  subroutine Tree_Node_Satellite_Virial_Orbit_Set_Preset(thisNode,thisOrbit)
+    !% Set the orbit of the satellite at the virial radius.
+    use Kepler_Orbits_Structure
+    use Galacticus_Error
+    implicit none
+    type(keplerOrbit),         intent(inout) :: thisOrbit
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),   pointer                :: hostNode
+    integer                                  :: thisIndex
+
+    if (.not.thisNode%componentExists(componentIndex)) call Satellite_Orbit_Create_Preset(thisNode)
+    thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+    ! Ensure the orbit is defined.
+    call thisOrbit%assertIsDefined()
+    ! Extract components of the orbit.
+    thisNode%components(thisIndex)%instance(1)%data(hostMassIndex      )=thisOrbit%hostMass          ()
+    thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex  )=thisOrbit%radius            ()
+    thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex)=thisOrbit%velocityRadial    ()
+    thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex)=thisOrbit%velocityTangential()
+    return
+  end subroutine Tree_Node_Satellite_Virial_Orbit_Set_Preset
+
+  function Tree_Node_Satellite_Virial_Orbit_Preset(thisNode) result (thisOrbit)
+    !% Return the orbit of the satellite at the virial radius.
+    use Kepler_Orbits_Structure
+    use Virial_Orbits
+    implicit none
+    type(keplerOrbit)                        :: thisOrbit
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),   pointer                :: hostNode
+    integer                                  :: thisIndex
+
+    if (thisNode%isSatellite().or..not.thisNode%isPrimaryProgenitor()) then
+       if (.not.thisNode%componentExists(componentIndex)) call Satellite_Orbit_Create_Preset(thisNode)
+       call thisOrbit%reset()
+       thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+       call thisOrbit%massesSet            (                                                          &
+            &                               Tree_Node_Mass(thisNode)                                , &
+            &                               thisNode%components(thisIndex)%instance(1)%data(hostMassIndex      )  &
+            &                              )
+       call thisOrbit%radiusSet            (thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex  ))
+       call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex))
+       call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex))
+    else
+       call thisOrbit%reset()
+    end if
+    return
+  end function Tree_Node_Satellite_Virial_Orbit_Preset
 
   !# <nodeMergerTask>
   !#  <unitName>Satellite_Orbit_Create_Preset</unitName>

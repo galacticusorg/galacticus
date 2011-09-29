@@ -166,7 +166,7 @@ contains
        Tree_Node_Bound_Mass_Rate_Compute           => Tree_Node_Bound_Mass_Rate_Compute_Simple
 
        Tree_Node_Satellite_Virial_Orbit            => Tree_Node_Satellite_Virial_Orbit_Simple
-       Tree_Node_Satellite_Virial_Orbit_Set        => null()
+       Tree_Node_Satellite_Virial_Orbit_Set        => Tree_Node_Satellite_Virial_Orbit_Set_Simple
 
        ! Determine if satellite orbits are to be stored.
        !@ <inputParameter>
@@ -337,6 +337,36 @@ contains
     end if
     return
   end subroutine Tree_Node_Bound_Mass_Rate_Compute_Simple
+
+  subroutine Tree_Node_Satellite_Virial_Orbit_Set_Simple(thisNode,thisOrbit)
+    !% Set the orbit of the satellite at the virial radius.
+    use Kepler_Orbits_Structure
+    use Galacticus_Error
+    implicit none
+    type(keplerOrbit),         intent(inout) :: thisOrbit
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    type(treeNode),   pointer                :: hostNode
+    integer                                  :: thisIndex
+    double precision                         :: mergeTime
+
+    if (satelliteOrbitStoreOrbitalParameters) then
+       if (.not.thisNode%componentExists(componentIndex)) call Satellite_Orbit_Create_Simple(thisNode)
+       thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+       ! Ensure the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Extract components of the orbit.
+       thisNode%components(thisIndex)%instance(1)%data(hostMassIndex      )=thisOrbit%hostMass          ()
+       thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex  )=thisOrbit%radius            ()
+       thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex)=thisOrbit%velocityRadial    ()
+       thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex)=thisOrbit%velocityTangential()
+       ! Update the stored time until merging to reflect the new orbit.
+       mergeTime=Satellite_Time_Until_Merging(thisNode,thisOrbit)
+       if (mergeTime >= 0.0d0) call Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime)
+    else
+       call Galacticus_Error_Report('Tree_Node_Satellite_Virial_Orbit_Set_Simple','standard satellite component is not tracking virial orbits - set [satelliteOrbitStoreOrbitalParameters]=true if you want to set the orbit')
+    end if
+    return
+  end subroutine Tree_Node_Satellite_Virial_Orbit_Set_Simple
 
   function Tree_Node_Satellite_Virial_Orbit_Simple(thisNode) result (thisOrbit)
     !% Return the orbit of the satellite at the virial radius.

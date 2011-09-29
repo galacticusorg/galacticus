@@ -590,6 +590,7 @@ The preset satellite orbit implementation defines the following properties:
  \item [{\tt Satellite\_Time\_Of\_Merging}] The cosmological time at which the satellite will merge with its host: $T_{\rm satellite, merge}$.
  \item [{\tt Bound\_Mass}] The remaining, total bound mass of the satellite (this property is read only---it is determined from the {\tt Bound\_Mass\_History} property).
  \item [{\tt Bound\_Mass\_History}] A history time-series of the total bound mass of the satellite.
+ \item [{\tt Satellite\_Virial\_Orbit}] The orbit (a {\tt keplerOrbit} object; see \S\ref{sec:KeplerOrbits}) of the satellite at virial orbit crossing.
 \end{description}
 
 Note that the {\tt Satellite\_Merge\_Time} and {\tt Satellite\_Time\_Of\_Merging} effectively provide the same information. For that reason, setting one of them will automatically set the other accordingly.
@@ -610,7 +611,7 @@ None.
 
 \noindent\emph{Node promotion:} None.\\
 
-\subsection{``Simple'' Implementation}
+\subsection{``Simple'' Implementation}\label{sec:SatelliteOrbitComponentSimple}
 
 \subsubsection{Properties}
 
@@ -635,7 +636,7 @@ with $\dot{M}_{\rm node,bound}$ set to the rate given by the {\tt darkMatterHalo
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} The component is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\tt satelliteOrbitStoreOrbitalParameters}$=${\tt true} then a virial orbit is selected using the {\tt virialOrbitsMethod} (see \S\ref{sec:SatelliteVirialOrbits}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested). If {\tt [satelliteOrbitResetOnHaloFormation]}$=${\tt true} then satellite orbits will be reset on halo formation events (see \S\ref{sec:ComponentFormationTimes}).\\
+\noindent\emph{Node mergers:} The component is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\tt satelliteOrbitStoreOrbitalParameters}$=${\tt true} then a virial orbit is selected (unless one has already been set for the node) using the {\tt virialOrbitsMethod} (see \S\ref{sec:SatelliteVirialOrbits}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested). If {\tt [satelliteOrbitResetOnHaloFormation]}$=${\tt true} then satellite orbits will be reset on halo formation events (see \S\ref{sec:ComponentFormationTimes}).\\
 
 \noindent\emph{Satellite merging:} None.\\
 
