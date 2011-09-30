@@ -5,14 +5,17 @@ use strict;
 use warnings;
 use PDL;
 use PDL::NiceSlice;
+use PDL::GSL::INTERP;
 use Text::Table;
 use Galacticus::HDF5;
 use Galacticus::Inclination;
 use Sys::CPU;
 use Data::Dumper;
+use List::Util qw(first);
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "^grasilFlux[\\d\\.]+microns" => \&Grasil::Get_Flux
+			       "^grasilFlux[\\d\\.]+microns" => \&Grasil::Get_Flux,
+			       "^grasilInfraredLuminosity"   => \&Grasil::Get_Flux
     );
 
 # Compute conversion factor for units from luminosity to flux.
@@ -23,6 +26,11 @@ my $speedOfLight     = pdl 2.998e8;
 my $megaParsec       = pdl 3.086e22;
 my $Pi               = pdl 3.1415927;
 my $conversionFactor = pdl 1.0e30*$ergs*$Angstrom/$speedOfLight/$megaParsec**2/$Jansky;
+my $solarLuminosity  = pdl 3.845e3; # Solar luminosity in units of 10^30 ergs/s.
+
+# Define the range used for total IR luminosity.
+my $irWavelengthMinimum =    8.0e4; # Angstroms.
+my $irWavelengthMaximum = 1000.0e4; # Angstroms.
 
 my $status = 1;
 $status;
@@ -90,21 +98,36 @@ sub Get_Flux {
     
     # Open the file for reading.
     &HDF5::Open_File($dataSet);
+    my @groupsList;
+    my @datasetsList;
 
     # Create groups as necessary.
     my $grasilSEDsGroup;
-    if ( my $testID = $dataSet->{'hdf5File'}->group("grasilSEDs")->IDget() ) {
+    @groupsList = $dataSet->{'hdf5File'}->groups();
+    if ( defined(first { $_ eq "grasilSEDs" } @groupsList) ) {
     	$grasilSEDsGroup = $dataSet->{'hdf5File'}->group("grasilSEDs");
     } else {
     	$grasilSEDsGroup = new PDL::IO::HDF5::Group( name => "grasilSEDs", parent => $dataSet->{'hdf5File'},
     						     fileObj => $dataSet->{'hdf5File'} );
     }
+    @groupsList = $dataSet->{'hdf5File'}->groups();
+    unless ( defined(first { $_ eq "grasilSEDs" } @groupsList) ) {
+	print "Failed to open grasilSEDs in ".$dataSet->{'file'}."\n";
+	return;
+    }
+
     my $outputGroup;
-    if ( my $testID = $grasilSEDsGroup->group("Output".$outputIndex)->IDget() ) {
+    @groupsList = $grasilSEDsGroup->groups();
+    if ( defined(first { $_ eq "Output".$outputIndex } @groupsList) ) {
     	$outputGroup = $grasilSEDsGroup->group("Output".$outputIndex);
     } else {
     	$outputGroup = new PDL::IO::HDF5::Group( name => "Output".$outputIndex, parent => $grasilSEDsGroup,
     						 fileObj => $dataSet->{'hdf5File'} );
+    }
+    @groupsList = $grasilSEDsGroup->groups();
+    unless ( defined(first { $_ eq "Output".$outputIndex } @groupsList) ) {
+	print "Failed to open grasilSEDs/Output".$outputIndex." in ".$dataSet->{'file'}."\n";
+	return;
     }
 
     # Initialize a queue of galaxies to process through Grasil.
@@ -120,36 +143,48 @@ sub Get_Flux {
 	my $nodeIndex       = $dataSets->{'nodeIndex'      }->index($i);
 	my $mergerTreeIndex = $dataSets->{'mergerTreeIndex'}->index($i);
 	my $mergerTreeGroup;
-	if ( my $testID = $outputGroup->group("mergerTree".$mergerTreeIndex)->IDget() ) {
+	@groupsList = $outputGroup->groups();
+	if ( defined(first { $_ eq "mergerTree".$mergerTreeIndex } @groupsList) ) {
 	    $mergerTreeGroup = $outputGroup->group("mergerTree".$mergerTreeIndex);
 	} else {
 	    $mergerTreeGroup = new PDL::IO::HDF5::Group( name => "mergerTree".$mergerTreeIndex, parent => $outputGroup,
 							 fileObj => $dataSet->{'hdf5File'} );
 	}
+	@groupsList = $outputGroup->groups();
+	unless ( defined(first { $_ eq "mergerTree".$mergerTreeIndex } @groupsList) ) {
+	    print "Failed to open grasilSEDs/Output".$outputIndex."/mergerTree".$mergerTreeIndex." in ".$dataSet->{'file'}."\n";
+	    return;
+	}
 	my $nodeGroup;
-	if ( my $testID = $mergerTreeGroup->group("node".$nodeIndex)->IDget() ) {
+	@groupsList = $mergerTreeGroup->groups();
+	if ( defined(first { $_ eq "node".$nodeIndex } @groupsList) ) {
 	    $nodeGroup = $mergerTreeGroup->group("node".$nodeIndex);
 	} else {
 	    $nodeGroup = new PDL::IO::HDF5::Group( name => "node".$nodeIndex, parent => $mergerTreeGroup,
 						   fileObj => $dataSet->{'hdf5File'} );
+	}
+	@groupsList = $mergerTreeGroup->groups();
+	unless ( defined(first { $_ eq "node".$nodeIndex } @groupsList) ) {
+	    print "Failed to open grasilSEDs/Output".$outputIndex."/mergerTree".$mergerTreeIndex."/node".$nodeIndex." in ".$dataSet->{'file'}."\n";
+	    return;
 	}
 	my $wavelengthDatasetName  = "grasilSEDs/Output".$outputIndex."/mergerTree".$mergerTreeIndex."/node".$nodeIndex."/wavelength";
 	my $grasilDatasetName      = "grasilSEDs/Output".$outputIndex."/mergerTree".$mergerTreeIndex."/node".$nodeIndex."/SED";
 	my $inclinationDatasetName = "grasilSEDs/Output".$outputIndex."/mergerTree".$mergerTreeIndex."/node".$nodeIndex."/inclination";
 	my $wavelength;
 	my $SED;
-	unless ( my $testID = $dataSet->{'hdf5File'}->dataset($grasilDatasetName)->IDget() && $recomputeSEDs == 0 ) {
-
+	@datasetsList = $nodeGroup->datasets();
+	unless ( defined(first { $_ eq "SED" } @datasetsList) && $recomputeSEDs == 0 ) {
 	    # Get a queue number for this galaxy.
 	    my $queueNumber = 1+$#grasilQueue;
 
 	    # Extract the star formation history for this galaxy.
-	    system("mkdir -p grasilTmp_".$$."_".$queueNumber);
-	    &Grasil::Extract_Star_Formation_History($dataSet,$outputIndex,$mergerTreeIndex,$nodeIndex,"grasilTmp_".$$."_".$queueNumber."/grasil".$queueNumber.".dat");
+	    system("mkdir -p ".$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber);
+	    &Grasil::Extract_Star_Formation_History($dataSet,$outputIndex,$mergerTreeIndex,$nodeIndex,$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".dat");
 
 	    # Generate a parameter file for Grasil.
 	    open(iHndl,"data/grasilBaseParameters.txt");
-	    open(oHndl,">grasilTmp_".$$."_".$queueNumber."/grasil".$queueNumber.".par");
+	    open(oHndl,">".$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".par");
 	    my $inInclinations = 0;
 	    $inclinations = pdl [];
 	    while ( my $line = <iHndl> ) {
@@ -173,7 +208,7 @@ sub Get_Flux {
 	    
 	    # Add this galaxy to the queue for processing by Grasil.
 	    $grasilQueue[$queueNumber] = {
-		grasilFilesRoot => "grasilTmp_".$$."_".$queueNumber."/grasil".$queueNumber,
+		grasilFilesRoot => $dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber,
 		galaxyIndex     => $i,
 		nodeGroup       => $nodeGroup
 	    };
@@ -191,7 +226,13 @@ sub Get_Flux {
 	    $inclinations = $dataSet->{'hdf5File'}->dataset($inclinationDatasetName)->get();
 
 	    # Using the SED, compute the flux and store it.
+	    if ( $dataSetName eq "grasilInfraredLuminosity" ) {
+		# The total infrared luminosity was requested.
+		&Compute_Infrared_Luminosity($wavelength,$SED,$inclinations,$dataSets,$dataSetName,$i);
+	    } else {
+		# An individual flux was requested.
 	    &Compute_Flux($wavelength,$SED,$inclinations,$observedWavelength,$dataSets,$dataSetName,$i);
+	}
 	}
 
     }
@@ -498,6 +539,29 @@ sub Compute_Flux {
     
     # Store in the dataset.
     $dataSets->{$dataSetName}->index($i) .= $flux;
+}
+
+sub Compute_Infrared_Luminosity {
+    # Compute the total infrared (8-1000 microns) luminosity given the SED of a galaxy.
+    my $wavelength         = shift;
+    my $SED                = shift;
+    my $inclinations       = shift;
+    my $dataSets           = shift;
+    my $dataSetName        = shift;
+    my $i                  = shift;
+
+    # Find unique wavelengths.
+    my $uniqueWavelengths = $wavelength->uniqind();
+
+    # Set up an interpolator and integrate over the luminosity range.
+    my $interpolator = PDL::GSL::INTERP->init('linear',$wavelength->index($uniqueWavelengths),$SED((0),:)->index($uniqueWavelengths),{Sort => 0}); 
+    my $luminosity = $interpolator->integ($irWavelengthMinimum,$irWavelengthMaximum,{Extrapolate => 0});
+
+    # Convert to Solar luminosities.
+    $luminosity /= $solarLuminosity;
+
+    # Store in the dataset.
+    $dataSets->{$dataSetName}->index($i) .= $luminosity;
 
 }
 
@@ -564,7 +628,13 @@ sub Process_Through_Grasil {
 	    $inclinationDataset->set($inclinations);
 	    
 	    # Using the SED, compute the flux and store it.
+	    if ( $dataSetName eq "grasilInfraredLuminosity" ) {
+		# The total infrared luminosity was requested.
+		&Compute_Infrared_Luminosity($wavelength,$SED,$inclinations,$dataSets,$dataSetName,,$galaxy->{'galaxyIndex'});
+	    } else {
+		# An individual flux was requested.
 	    &Compute_Flux($wavelength,$SED,$inclinations,$observedWavelength,$dataSets,$dataSetName,$galaxy->{'galaxyIndex'});
+	    }
 	    
 	    # Remove the folder.
 	    system("rm -rf `dirname ".$galaxy->{'grasilFilesRoot'}."`");
