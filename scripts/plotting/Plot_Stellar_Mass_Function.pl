@@ -34,7 +34,7 @@ $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
 &HDF5::Get_Parameters($dataSet);
 &HDF5::Count_Trees($dataSet);
-&HDF5::Select_Output($dataSet,0.0);
+&HDF5::Select_Output($dataSet,0.1);
 
 # Read the XML data file.
 $xml       = new XML::Simple;
