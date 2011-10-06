@@ -231,12 +231,12 @@ sub Get_Flux {
 		&Compute_Infrared_Luminosity($wavelength,$SED,$inclinations,$dataSets,$dataSetName,$i);
 	    } else {
 		# An individual flux was requested.
-	    &Compute_Flux($wavelength,$SED,$inclinations,$observedWavelength,$dataSets,$dataSetName,$i);
+		&Compute_Flux($wavelength,$SED,$inclinations,$observedWavelength,$dataSets,$dataSetName,$i);
+	    }
 	}
-	}
-
+	
     }
-
+    
     # Process through Grasil if any galaxies remain in the queue.
     if ( $#grasilQueue >= 0 ) {
 	&Process_Through_Grasil(\@grasilQueue,$observedWavelength,$inclinations,$dataSet,$dataSets,$dataSetName);
@@ -633,7 +633,7 @@ sub Process_Through_Grasil {
 		&Compute_Infrared_Luminosity($wavelength,$SED,$inclinations,$dataSets,$dataSetName,,$galaxy->{'galaxyIndex'});
 	    } else {
 		# An individual flux was requested.
-	    &Compute_Flux($wavelength,$SED,$inclinations,$observedWavelength,$dataSets,$dataSetName,$galaxy->{'galaxyIndex'});
+		&Compute_Flux($wavelength,$SED,$inclinations,$observedWavelength,$dataSets,$dataSetName,$galaxy->{'galaxyIndex'});
 	    }
 	    
 	    # Remove the folder.
