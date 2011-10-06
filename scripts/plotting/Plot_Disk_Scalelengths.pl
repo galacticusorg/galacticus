@@ -36,10 +36,11 @@ $dataBlock->{'store'} = 0;
 &HDF5::Count_Trees($dataBlock);
 &HDF5::Select_Output($dataBlock,0.0);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega']);
+&HDF5::Get_Dataset($dataBlock,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosity:RGO_I:rest:z0.0000:dustAtlas']);
 $dataSets = $dataBlock->{'dataSets'};
 $scaleLength = $dataSets->{'diskScaleLength'};
 $magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
+$morphology = $dataSets->{'bulgeToTotalLuminosity:RGO_I:rest:z0.0000:dustAtlas'};
 $weight = $dataSets->{'volumeWeight'};
 delete($dataBlock->{'dataSets'});
 
@@ -69,10 +70,12 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $yUpperLimitArrow = pdl -0.3*$yUpperLimit;
     $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});;
     $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});;
+    $morphologyMinimum = 0.05; # Morpology constraints are approximate, based on De Jong & Lacey's T-type selection of 3 < T < 8.
+    $morphologyMaximum = 0.30;
 
     # Select Galacticus galaxies.
-    $logScaleLengthSelected = where(3.0+log10($scaleLength),$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum);
-    $weightSelected         = where($weight                ,$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum);
+    $logScaleLengthSelected = where(3.0+log10($scaleLength),$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum & $morphology >= $morphologyMinimum & $morphology <= $morphologyMaximum);
+    $weightSelected         = where($weight                ,$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum & $morphology >= $morphologyMinimum & $morphology <= $morphologyMaximum);
     $xBins = log10($x);
     ($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logScaleLengthSelected,$weightSelected
 							     ,differential => 1);
