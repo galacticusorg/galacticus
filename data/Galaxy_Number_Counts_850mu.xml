@@ -463,4 +463,51 @@
       <errorUp>194.4</errorUp>
     </datum>
   </dataset>
+  <dataset>
+    <label>Zemcov et al. (2010)</label>
+    <url>http://adsabs.harvard.edu/abs/2010ApJ...721..424Z</url>
+    <source>Table 2 of Zemcov et al. (2010)</source>
+    <datum>
+      <flux>8.0</flux>
+      <count>259.0</count>
+      <errorDown>45.0</errorDown>
+      <errorUp>41.0</errorUp>
+    </datum>
+    <datum>
+      <flux>6.0</flux>
+      <count>541.0</count>
+      <errorDown>74.0</errorDown>
+      <errorUp>68.0</errorUp>
+    </datum>
+    <datum>
+      <flux>4.0</flux>
+      <count>974.0</count>
+      <errorDown>109.0</errorDown>
+      <errorUp>119.0</errorUp>
+    </datum>
+    <datum>
+      <flux>2.0</flux>
+      <count>1950.0</count>
+      <errorDown>310.0</errorDown>
+      <errorUp>340.0</errorUp>
+    </datum>
+    <datum>
+      <flux>1.0</flux>
+      <count>3730.0</count>
+      <errorDown>720.0</errorDown>
+      <errorUp>950.0</errorUp>
+    </datum>
+    <datum>
+      <flux>0.5</flux>
+      <count>7620.0</count>
+      <errorDown>1810.0</errorDown>
+      <errorUp>2410.0</errorUp>
+    </datum>
+    <datum>
+      <flux>0.25</flux>
+      <count>17300.0</count>
+      <errorDown>5000.0</errorDown>
+      <errorUp>6700.0</errorUp>
+    </datum>
+  </dataset>
 </numberCounts>
