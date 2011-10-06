@@ -81,7 +81,7 @@ foreach $class ( @classes ) {
 }
 
 # Compute cumulative fraction of model galaxies by bulge-to-total ratio.
-$weight = where($dataSets->{'volumeWeight'}},
+$weight = where($dataSets->{'volumeWeight'},
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= $bulgeToTotal->{"Total"}->{"magnitude"}->{"minimum"} &
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} < $bulgeToTotal->{"Total"}->{"magnitude"}->{"maximum"}
 		);
