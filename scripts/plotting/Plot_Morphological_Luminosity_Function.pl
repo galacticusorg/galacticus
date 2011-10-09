@@ -44,7 +44,7 @@ $dataSet->{'tree'} = "all";
 		       'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega',
 		       'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'
 		   ]);
-$dataSets  = $dataSet{'dataSets'};
+$dataSets  = $dataSet->{'dataSets'};
 
 # Read the XML data file.
 $xml     = new XML::Simple;
@@ -111,6 +111,7 @@ print gnuPlot "set output \"tmp.ps\"\n";
 
 # Loop over all morphologies and make plots.
 foreach $morphology ( @{$data->{'morphology'}} ) {
+
     if ( exists($bulgeToTotal->{$morphology->{'class'}}) ) {
 	# Get the luminosity function.
 	$x     = pdl @{$morphology->{'magnitude'              }->{'datum'}};
