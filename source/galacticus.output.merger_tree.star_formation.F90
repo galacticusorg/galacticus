@@ -148,6 +148,9 @@ contains
        !@   <description>
        !@     The method to use for computing and outputting star formation histories.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoriesMethod',starFormationHistoriesMethod,defaultValue='null')
        ! Include file that makes calls to all available method initialization routines.

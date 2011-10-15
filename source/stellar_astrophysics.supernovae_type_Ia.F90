@@ -111,6 +111,8 @@ contains
        !@   <description>
        !@     The method to use for computing properties of Type Ia supernovae.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('supernovaeIaMethod',supernovaeIaMethod,defaultValue='Nagashima')
        ! Include file that makes calls to all available method initialization routines.

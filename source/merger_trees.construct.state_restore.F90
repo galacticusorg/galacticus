@@ -100,6 +100,8 @@ contains
        !@   <description>
        !@     The name of a file from which to restore a merger tree state.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeStateStoreFile',mergerTreeStateStoreFile,defaultValue='storedTree.dat')
     end if

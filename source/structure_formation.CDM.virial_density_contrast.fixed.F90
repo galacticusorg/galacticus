@@ -105,6 +105,8 @@ contains
        !@   <description>
        !@     The virial density contrast to use in the fixed value model.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("virialDensityConstrastFixed"    ,virialDensityConstrastFixed    ,defaultValue=200.0d0           )
        !@ <inputParameter>
@@ -114,6 +116,8 @@ contains
        !@   <description>
        !@     The reference density to use in the fixed value virial density contrast model. Either of {\tt critical density} and {\tt mean density} are allowed.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("virialDensityConstrastFixedType",virialDensityConstrastFixedType,defaultValue='criticalDensity')
        select case (char(virialDensityConstrastFixedType))

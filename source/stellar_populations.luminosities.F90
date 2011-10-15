@@ -143,6 +143,8 @@ contains
        !@   <description>
        !@    The relative tolerance used when integrating the flux of stellar populations through filters.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=1.0d-3)
 

@@ -107,6 +107,8 @@ contains
        !@   <description>
        !@     Selects the method to be used for finding orbital parameters of satellites at virial radius crossing.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('virialOrbitsMethod',virialOrbitsMethod,defaultValue='Benson2005')
        ! Include file that makes calls to all available method initialization routines.

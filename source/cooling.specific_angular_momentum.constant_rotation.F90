@@ -112,6 +112,8 @@ contains
        !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the mean specific angular momentum should be computed for
        !@     calculations of cooling gas specific angular momentum.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingMeanAngularMomentumFrom',inputOption,defaultValue='hotGas')
        select case (char(inputOption))
@@ -129,6 +131,8 @@ contains
        !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the constant rotation speed should be computed for
        !@     calculations of cooling gas specific angular momentum.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingRotationVelocityFrom',inputOption,defaultValue='darkMatter')
        select case (char(inputOption))

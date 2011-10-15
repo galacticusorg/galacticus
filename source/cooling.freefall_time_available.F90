@@ -107,6 +107,8 @@ contains
        !@   <description>
        !@     The name of the method to be used when computing the time available for freefall in cooling calculations.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('freefallTimeAvailableMethod',freefallTimeAvailableMethod,defaultValue='haloFormation')
        ! Include file that makes calls to all available method initialization routines.

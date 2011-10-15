@@ -193,6 +193,8 @@ contains
           !@   <description>
           !@     The names of the elements to be tracked.
           !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1..*</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('elementsToTrack',elementsToTrack)
           ! Validate the input names by looking them up in the list of atomic names.

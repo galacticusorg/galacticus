@@ -150,6 +150,9 @@ contains
        !@   <description>
        !@    Specifies whether or not references to individual merger tree datasets should be output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeOutputReferences',mergerTreeOutputReferences,defaultValue=.true.)
 
@@ -475,6 +478,10 @@ contains
 
        !$omp critical(HDF5_Access)
        ! Create a group for the tree.
+       !@ <outputType>
+       !@   <name>nodeData</name>
+       !@   <description>A representation of the state of all nodes in the simulation at a given time. It consists of numerous datasets which gives the properties of nodes in all merger trees at that time.</description>
+       !@ </outputType>
        outputGroups(iOutput)%hdf5Group    =IO_HDF5_Open_Group(outputsGroup,char(groupName),char(commentText))
        outputGroups(iOutput)%nodeDataGroup=IO_HDF5_Open_Group(outputGroups(iOutput)%hdf5Group,"nodeData","Group containing data on all nodes at this output.")
        outputGroups(iOutput)%opened                  =.true.

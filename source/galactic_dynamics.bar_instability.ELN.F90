@@ -94,6 +94,8 @@ contains
        !@   <description>
        !@     The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely stellar disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stabilityThresholdStellar',stabilityThresholdStellar,defaultValue=1.1d0)
        !@ <inputParameter>
@@ -103,6 +105,8 @@ contains
        !@   <description>
        !@     The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely gaseous disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stabilityThresholdGaseous',stabilityThresholdGaseous,defaultValue=0.9d0)
     end if

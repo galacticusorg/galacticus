@@ -101,6 +101,8 @@ contains
        !@   <description>
        !@     The effective number of neutrino species as used in the \cite{eisenstein_power_1999} transfer function.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('effectiveNumberNeutrinos',effectiveNumberNeutrinos,defaultValue=3.04d0)
        !@ <inputParameter>
@@ -110,6 +112,8 @@ contains
        !@   <description>
        !@     The summed mass (in electron volts) of all neutrino species.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('summedNeutrinoMasses'    ,summedNeutrinoMasses    ,defaultValue=0.00d0)
     end if

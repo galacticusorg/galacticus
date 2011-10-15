@@ -100,6 +100,9 @@ contains
        !@   <description>
        !@     A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1..*</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        if (outputCount == 1) then
           ! If only one (or zero) output redshifts present, make redshift zero the default.

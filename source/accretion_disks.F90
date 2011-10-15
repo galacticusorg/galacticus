@@ -100,6 +100,8 @@ contains
        !@   <description>
        !@    Selects which accretion disk method should be used.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('accretionDisksMethod',accretionDisksMethod,defaultValue='ADAF')
        ! Include file that makes calls to all available method initialization routines.

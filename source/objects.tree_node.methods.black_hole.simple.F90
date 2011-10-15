@@ -144,6 +144,9 @@ contains
        !@   <description>
        !@     The mass of the seed black hole placed at the center of each newly formed galaxy.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleSeedMass",blackHoleSeedMass,defaultValue=100.0d0)
 
@@ -155,6 +158,9 @@ contains
        !@   <description>
        !@     The ratio of the rates of black hole growth and spheroid stellar mass growth.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleToSpheroidStellarGrowthRatio",blackHoleToSpheroidStellarGrowthRatio,defaultValue&
             &=1.0d-3)
@@ -167,6 +173,9 @@ contains
        !@   <description>
        !@     Specifies whether or not the black hole should heat the hot halo.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleHeatsHotHalo",blackHoleHeatsHotHalo,defaultValue=.true.)
        if (blackHoleHeatsHotHalo) then
@@ -177,6 +186,9 @@ contains
           !@   <description>
           !@     The efficiency with which accretion onto a black hole heats the hot halo.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>blackHoles</group>
           !@ </inputParameter>
           call Get_Input_Parameter("blackHoleHeatingEfficiency",blackHoleHeatingEfficiency,defaultValue=1.0d-3)
        else
@@ -191,6 +203,9 @@ contains
        !@   <description>
        !@     The efficiency of the black hole accretion-driven wind.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=1.0d-3)
 
@@ -202,6 +217,8 @@ contains
        !@   <description>
        !@     Determines whether or not accretion rates and jet powers will be output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleOutputAccretion",blackHoleOutputAccretion,defaultValue=.false.)
 
@@ -432,12 +449,33 @@ contains
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     
     if (methodSelected) then
+       !@ <outputPropertyGroup>
+       !@   <name>blackHole</name>
+       !@   <description>Black hole properities</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>blackHoleMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of the black hole.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='blackHoleMass'
        doublePropertyComments(doubleProperty)='Mass of the black hole.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>blackHoleAccretionRate</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Rest-mass accretion rate onto the black hole.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
           doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear

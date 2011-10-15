@@ -113,6 +113,9 @@ contains
        !@   <description>
        !@     Specifies whether or not density contrast data (i.e. radius and mass at a given density contrast) should be included in the output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('outputDensityContrastData',outputDensityContrastData,defaultValue=.false.)
        !@ <inputParameter>
@@ -122,6 +125,9 @@ contains
        !@   <description>
        !@     Specifies whether or not density contrast data should be computed using the dark matter component alone.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('outputDensityContrastDataDarkOnly',outputDensityContrastDataDarkOnly,defaultValue=.false.)
        select case (outputDensityContrastDataDarkOnly)
@@ -144,6 +150,9 @@ contains
           !@   <description>
           !@     A list of density contrasts at which to output data.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1..*</cardinality>
+          !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('outputDensityContrastValues',outputDensityContrastValues)
        end if

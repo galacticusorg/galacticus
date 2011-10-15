@@ -99,6 +99,8 @@ contains
        !@   <description>
        !@     The effective number of degrees of freedom for the warm dark matter particle.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('warmDarkMatterCriticalOverdensityGX',warmDarkMatterCriticalOverdensityGX,defaultValue=1.5d0)
        !@ <inputParameter>
@@ -108,6 +110,8 @@ contains
        !@   <description>
        !@     The mass (in keV) of the warm dark matter particle.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('warmDarkMatterCriticalOverdensityMX',warmDarkMatterCriticalOverdensityMX,defaultValue=1.0d0)
 

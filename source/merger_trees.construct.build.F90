@@ -136,6 +136,8 @@ contains
        !@   <description>
        !@     The minimum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildHaloMassMinimum'  ,mergerTreeBuildHaloMassMinimum  ,defaultValue=1.0d10)
        !@ <inputParameter>
@@ -145,6 +147,8 @@ contains
        !@   <description>
        !@     The maximum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildHaloMassMaximum'  ,mergerTreeBuildHaloMassMaximum  ,defaultValue=1.0d15)
        !@ <inputParameter>
@@ -154,6 +158,8 @@ contains
        !@   <description>
        !@     The number of merger trees to build per decade of base halo mass.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesPerDecade'   ,mergerTreeBuildTreesPerDecade   ,defaultValue=10    )
        !@ <inputParameter>
@@ -163,6 +169,8 @@ contains
        !@   <description>
        !@     The redshift at which to plant the base node when building merger trees.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesBaseRedshift',mergerTreeBuildTreesBaseRedshift,defaultValue=0.0d0 )
        !@ <inputParameter>
@@ -172,6 +180,8 @@ contains
        !@   <description>
        !@     The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesBeginAtTree' ,mergerTreeBuildTreesBeginAtTree ,defaultValue=1     )
        nextTreeIndex=mergerTreeBuildTreesBeginAtTree
@@ -182,6 +192,8 @@ contains
        !@   <description>
        !@     The method to be used to construct a distribution of base halo masses.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesHaloMassDistribution',mergerTreeBuildTreesHaloMassDistribution,defaultValue="uniform")
        !@ <inputParameter>
@@ -191,6 +203,8 @@ contains
        !@   <description>
        !@     Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\tt mergerTreeBuildTreesHaloMassExponent}.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesHaloMassExponent',mergerTreeBuildTreesHaloMassExponent,defaultValue=1.0d0)
        !@ <inputParameter>
@@ -200,6 +214,8 @@ contains
        !@   <description>
        !@     If true, causes merger trees to be processed in order of decreasing mass.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.false.)
        !@ <inputParameter>
@@ -208,6 +224,8 @@ contains
        !@   <description>
        !@     Specifies the name of a file from which to read the masses of merger tree root halos when building merger trees.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreeMassesFile',mergerTreeBuildTreeMassesFile,defaultValue='null')
 
@@ -301,6 +319,8 @@ contains
        !@   <description>
        !@     The name of the method to be used to build merger trees.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildMethod',mergerTreeBuildMethod,defaultValue='Cole2000')
        ! Include file that makes calls to all available method initialization routines.

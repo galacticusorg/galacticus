@@ -114,6 +114,9 @@ contains
        !@   <description>
        !@     Specifies whether or not to output mass accretion histories for the main branches of merger trees.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('massAccretionHistoryOutput',massAccretionHistoryOutput,defaultValue=.false.)
        ! Create an output group if necessary.

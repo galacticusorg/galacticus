@@ -146,6 +146,8 @@ contains
     !@   <description>
     !@     A list of redshifts at which halo mass functions should be computed.
     !@   </description>
+    !@   <type>real</type>
+    !@   <cardinality>1</cardinality>
     !@ </inputParameter>
     if (outputCount == 1) then
        ! If only one (or zero) output redshifts present, make redshift zero the default.
@@ -172,6 +174,8 @@ contains
     !@   <description>
     !@     The minimum mass at which to tabulate halo mass functions.
     !@   </description>
+    !@   <type>real</type>
+    !@   <cardinality>1</cardinality>
     !@ </inputParameter>
     call Get_Input_Parameter('haloMassFunctionsMassMinimum',haloMassFunctionsMassMinimum,defaultValue=1.0d10)
     !@ <inputParameter>
@@ -181,6 +185,8 @@ contains
     !@   <description>
     !@     The maximum mass at which to tabulate halo mass functions.
     !@   </description>
+    !@   <type>real</type>
+    !@   <cardinality>1</cardinality>
     !@ </inputParameter>
     call Get_Input_Parameter('haloMassFunctionsMassMaximum',haloMassFunctionsMassMaximum,defaultValue=1.0d15)
     !@ <inputParameter>
@@ -190,6 +196,8 @@ contains
     !@   <description>
     !@     The number of points per decade of halo mass at which to tabulate halo mass functions.
     !@   </description>
+    !@   <type>integer</type>
+    !@   <cardinality>1</cardinality>
     !@ </inputParameter>
     call Get_Input_Parameter('haloMassFunctionsPointsPerDecade',haloMassFunctionsPointsPerDecade,defaultValue=10)
 

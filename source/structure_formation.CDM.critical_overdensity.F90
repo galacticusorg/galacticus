@@ -129,6 +129,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for critical overdensities for halo collapse.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('criticalOverdensityMethod',criticalOverdensityMethod,defaultValue='sphericalTopHat')
        ! Include file that makes calls to all available method initialization routines.
@@ -391,6 +393,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for scaling critical overdensities for halo collapse with mass.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('criticalOverdensityMassScalingMethod',criticalOverdensityMassScalingMethod,defaultValue='null')
        ! Include file that makes calls to all available method initialization routines.

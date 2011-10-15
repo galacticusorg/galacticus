@@ -96,6 +96,8 @@ contains
        !@   <description>
        !@     The core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadius',isothermalCoreRadiusOverVirialRadius,defaultValue=0.1d0)
     end if

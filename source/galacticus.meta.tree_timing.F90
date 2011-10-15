@@ -103,6 +103,8 @@ contains
        !@   <description>
        !@     Specifies whether or not collect and output data on the time spent processing trees.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('metaCollectTimingData',metaCollectTimingData,defaultValue=.false.)
        ! Flag that module is initialized.

@@ -231,6 +231,8 @@ contains
           !@   <description>
           !@     The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('sigma_8',sigma_8_Value,defaultValue=0.807d0)
           massNormalization=(4.0d0*PI/3.0d0)*Omega_Matter()*Critical_Density()*(radiusNormalization/Little_H_0())**3

@@ -94,6 +94,8 @@ contains
        !@   <description>
        !@     The fixed value of spin in a delta function spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('deltaFunctionSpinDistributionSpin',deltaFunctionSpinDistributionSpin,defaultValue=0.03687d0)
     end if

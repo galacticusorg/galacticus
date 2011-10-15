@@ -154,6 +154,8 @@ contains
        !@   <description>
        !@     Indicates whether or not galaxy and node merger statistics should be tracked.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('trackMergerStatistics',trackMergerStatistics,defaultValue=.false.)
        !@ <inputParameter>
@@ -163,6 +165,8 @@ contains
        !@   <description>
        !@     The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('nodeMajorMergerFraction',nodeMajorMergerFraction,defaultValue=0.25d0)
        !@ <inputParameter>
@@ -172,6 +176,8 @@ contains
        !@   <description>
        !@     The mass fraction in the main branch progenitor used to define the formation time of each halo.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('nodeFormationMassFraction',nodeFormationMassFraction,defaultValue=0.5d0)
     end if
@@ -346,14 +352,38 @@ contains
 
     if (methodSelected.and.trackMergerStatistics) then
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>majorMergerTimeLapse</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Time since the last major merger.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='majorMergerTimeLapse'
        doublePropertyComments(doubleProperty)='Time since the last major merger.'
        doublePropertyUnitsSI (doubleProperty)=gigaYear
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeMajorMergerTimeLapse</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Time since the last node major merger.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeMajorMergerTimeLapse'
        doublePropertyComments(doubleProperty)='Time since the last node major merger.'
        doublePropertyUnitsSI (doubleProperty)=gigaYear
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeFormationTime</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Formation time of the node.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeFormationTime'
        doublePropertyComments(doubleProperty)='Formation time of the node.'
        doublePropertyUnitsSI (doubleProperty)=gigaYear

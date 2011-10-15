@@ -97,6 +97,9 @@ contains
        !@   <description>
        !@     Specifies whether or not half-light radius data (i.e. radius and mass) should be included in the output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('outputHalfLightData',outputHalfLightData,defaultValue=.false.)
 
@@ -138,12 +141,28 @@ contains
     if (outputHalfLightData) then
        do iLuminosity=1,luminositiesCount
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>halfLightRadius</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Radius enclosing half the galaxy light [Mpc]</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='halfLightRadius'//Stellar_Population_Luminosities_Name(iLuminosity)
           doublePropertyComments(doubleProperty)='Radius enclosing half the galaxy light [Mpc]'
           doublePropertyUnitsSI (doubleProperty)=megaParsec
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>halfLightMass</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Mass enclosed within the galaxy half-light radius [Solar masses]</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='halfLightMass'//Stellar_Population_Luminosities_Name(iLuminosity)
-          doublePropertyComments(doubleProperty)='Mass enclosed within the galaxy half-lighr radius [Solar masses]'
+          doublePropertyComments(doubleProperty)='Mass enclosed within the galaxy half-light radius [Solar masses]'
           doublePropertyUnitsSI (doubleProperty)=massSolar
        end do
     end if

@@ -95,6 +95,9 @@ contains
        !@   <description>
        !@     The name of the initial mass function to use in the ``fixed initial mass function'' module.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfSelectionFixed',imfSelectionFixed,defaultValue='Salpeter')
        imfSelectedIndex=IMF_Index_Lookup(imfSelectionFixed,imfNames)

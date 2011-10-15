@@ -143,6 +143,8 @@ contains
        !@   <description>
        !@    Specifies the radiative efficiency of an ADAF (i.e. the fraction of $\dot{M}\clight^2$ that is emitted in radiation).
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("adafRadiativeEfficiency",adafRadiativeEfficiency,defaultValue=0.01d0)
        !@ <inputParameter>
@@ -154,6 +156,8 @@ contains
        !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
        !@     stable circular orbit.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("adafEnergyOption",adafEnergyOption,defaultValue="pureADAF")
        select case (char(adafEnergyOption))
@@ -173,6 +177,8 @@ contains
        !@    to be used, while {\tt linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
        !@    to achieve a sensible spin-up function in each case.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("adafFieldEnhanceType",adafFieldEnhanceType,defaultValue="exponential")
        select case (char(adafFieldEnhanceType))
@@ -192,6 +198,8 @@ contains
        !@   <description>
        !@    Specifies the effective adiabatic index of gas in an ADAF.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("adafAdiabaticIndex",adafAdiabaticIndex,defaultValue=1.444d0)
        adafThermalPressureFraction=(8.0d0-6.0d0*adafAdiabaticIndex)/3.0d0/(1.0d0-adafAdiabaticIndex)
@@ -204,6 +212,8 @@ contains
        !@    using the fitting function of \cite{benson_maximum_2009}; {\tt fixed} will cause $\alpha=${\tt [adafViscosityFixedAlpha]}
        !@    to be used.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("adafViscosityOption",adafViscosityOption,defaultValue="fit")
        select case (char(adafViscosityOption))
@@ -216,6 +226,8 @@ contains
           !@   <description>
           !@    The value for the viscosity parameter $\alpha$ in an ADAF to be used if {\tt [adafViscosityOption]}$=${\tt fixed}.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter("adafViscosityFixedAlpha",adafViscosityFixedAlpha,defaultValue=0.1d0)
        case ("fit")

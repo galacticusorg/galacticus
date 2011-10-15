@@ -89,6 +89,8 @@ contains
        !@   <description>
        !@     A multiplier for the merging timescale in dynamical friction timescale calculations.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergingTimescaleMultiplier',mergingTimescaleMultiplier,defaultValue=1.0d0)
        ! Flag that the module is now initialized. 

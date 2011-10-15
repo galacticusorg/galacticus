@@ -113,6 +113,8 @@ contains
        !@   <description>
        !@     Selects the method to be used for computing halo virial density contrasts.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('virialDensityContrastMethod',virialDensityContrastMethod,defaultValue='sphericalTopHat')
        ! Include file that makes calls to all available method initialization routines.

@@ -137,6 +137,8 @@ contains
        !@   <description>
        !@     The minimum concentration allowed for dark matter profiles.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('darkMatterProfileMinimumConcentration',darkMatterProfileMinimumConcentration,defaultValue=4.0d0)
        !@ <inputParameter>
@@ -146,6 +148,9 @@ contains
        !@   <description>
        !@     Determines whether or not dark matter halo scale radius is included in outputs of merger trees.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeStructureOutputDarkMatterScaleRadius',mergerTreeStructureOutputDarkMatterScaleRadius,defaultValue=.false.)
 
@@ -366,7 +371,21 @@ contains
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     if (methodSelected) then
+       !@ <outputPropertyGroup>
+       !@   <name>darkMatterProfile</name>
+       !@   <description>Dark matter profile properities</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>darkMatterScaleRadius</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Scale radius of the dark matter profile [Mpc].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>darkMatterProfile</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='darkMatterScaleRadius'
        doublePropertyComments(doubleProperty)='Scale radius of the dark matter profile [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec

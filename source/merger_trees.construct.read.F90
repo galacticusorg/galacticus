@@ -212,6 +212,8 @@ contains
        !@   <description>
        !@     The name of the file from which merger tree data should be read when using the {\tt [mergerTreeConstructMethod]}$=${\tt read} tree construction method.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
        !@ <inputParameter>
@@ -221,6 +223,8 @@ contains
        !@   <description>
        !@     Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadMismatchIsFatal',mergerTreeReadMismatchIsFatal,defaultValue=.true.)
        !@ <inputParameter>
@@ -229,6 +233,8 @@ contains
        !@   <description>
        !@     Specifies whether merging times for subhalos should be preset when reading merger trees from a file.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetMergerTimes',mergerTreeReadPresetMergerTimes,defaultValue=.true.)
        !@ <inputParameter>
@@ -237,6 +243,8 @@ contains
        !@   <description>
        !@     Specifies whether the target nodes for mergers should be preset (i.e. determined from descendent nodes). If they are not, merging will be with each satellite's host node.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetMergerNodes',mergerTreeReadPresetMergerNodes,defaultValue=.true.)
        !@ <inputParameter>
@@ -245,6 +253,8 @@ contains
        !@   <description>
        !@     Specifies whether subhalo mass should be preset when reading merger trees from a file.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetSubhaloMasses',mergerTreeReadPresetSubhaloMasses,defaultValue=.true.)
        !@ <inputParameter>
@@ -253,6 +263,8 @@ contains
        !@   <description>
        !@     Specifies whether node positions should be preset when reading merger trees from a file.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetPositions',mergerTreeReadPresetPositions,defaultValue=.true.)
        !@ <inputParameter>
@@ -261,6 +273,8 @@ contains
        !@   <description>
        !@     Specifies whether node scale radii should be preset when reading merger trees from a file.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetScaleRadii',mergerTreeReadPresetScaleRadii,defaultValue=.true.)
        !@ <inputParameter>
@@ -269,6 +283,8 @@ contains
        !@   <description>
        !@     Specifies whether node spins should be preset when reading merger trees from a file.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetSpins',mergerTreeReadPresetSpins,defaultValue=.true.)
        !@ <inputParameter>
@@ -277,6 +293,8 @@ contains
        !@   <description>
        !@     Specifies whether node orbits should be preset when reading merger trees from a file.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetOrbits',mergerTreeReadPresetOrbits,defaultValue=.true.)
        !@ <inputParameter>
@@ -285,6 +303,8 @@ contains
        !@   <description>
        !@     Specifies whether only bound node orbits should be set.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetOrbitsBoundOnly',mergerTreeReadPresetOrbitsBoundOnly,defaultValue=.true.)
        !@ <inputParameter>
@@ -293,6 +313,8 @@ contains
        !@   <description>
        !@     Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadBeginAt',mergerTreeReadBeginAt,defaultValue=-1_kind_int8)
        !@ <inputParameter>
@@ -301,6 +323,8 @@ contains
        !@   <description>
        !@     The relative tolerance required to ``snap'' a node time to the closest output time.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadOutputTimeSnapTolerance',mergerTreeReadOutputTimeSnapTolerance,defaultValue=0.0d0)
 

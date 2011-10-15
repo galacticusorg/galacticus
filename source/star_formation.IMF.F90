@@ -228,6 +228,9 @@ contains
        !@   <description>
        !@     The name of the method to be used for selecting which \IMF\ to use.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfSelectionMethod',imfSelectionMethod,defaultValue='fixed')
        ! Include file that makes calls to all available method initialization routines.

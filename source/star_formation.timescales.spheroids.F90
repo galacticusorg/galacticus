@@ -106,6 +106,9 @@ contains
        !@   <description>
        !@     The name of the method to be used for computing star formation timescales in spheroids.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationTimescaleSpheroidsMethod',starFormationTimescaleSpheroidsMethod,defaultValue='dynamicalTime')
        ! Include file that makes calls to all available method initialization routines.

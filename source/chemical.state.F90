@@ -123,6 +123,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for computing the chemical state.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('chemicalStateMethod',chemicalStateMethod,defaultValue='atomicCIECloudy')
 

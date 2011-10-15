@@ -114,6 +114,8 @@ contains
        !@   <description>
        !@     The core radius in the ``cored isothermal'' hot halo density profile in units of the dark matter profile scale radius.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('isothermalCoreRadiusOverScaleRadius',isothermalCoreRadiusOverScaleRadius,defaultValue=0.1d0)
        !@ <inputParameter>
@@ -123,6 +125,8 @@ contains
        !@   <description>
        !@     The maximum core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadiusMaximum',isothermalCoreRadiusOverVirialRadiusMaximum,defaultValue=10.0d0)
 

@@ -93,6 +93,9 @@ contains
        !@   <description>
        !@     The efficiency of star formation in disks for the dynamical time method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationDiskEfficiency'      ,starFormationDiskEfficiency      ,defaultValue= 0.01d0)
        !@ <inputParameter>
@@ -102,6 +105,9 @@ contains
        !@   <description>
        !@     The velocity exponent for star formation in disks for the dynamical time method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationDiskVelocityExponent',starFormationDiskVelocityExponent,defaultValue=-1.500d0)
        !@ <inputParameter>
@@ -111,6 +117,9 @@ contains
        !@   <description>
        !@     The minimum timescale for star formation in disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationDiskMinimumTimescale',starFormationDiskMinimumTimescale,defaultValue=1.0d-3)
     end if

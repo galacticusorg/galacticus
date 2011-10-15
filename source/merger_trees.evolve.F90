@@ -122,6 +122,8 @@ contains
        !@     Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
        !@     then trees which finish before a given output time will be ignored.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('allTreesExistAtFinalTime',allTreesExistAtFinalTime,defaultValue=.true.)
        !@ <inputParameter>
@@ -131,6 +133,8 @@ contains
        !@   <description>
        !@     Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\sc dot} file.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreesDumpStructure',mergerTreesDumpStructure,defaultValue=.false.)
   
@@ -314,6 +318,8 @@ contains
        !@   <description>
        !@     The maximum allowed relative timestep for node evolution relative to the time of the host halo.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('timestepHostRelative',timestepHostRelative,defaultValue=0.1d0)
        !@ <inputParameter>
@@ -323,6 +329,8 @@ contains
        !@   <description>
        !@     The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('timestepHostAbsolute',timestepHostAbsolute,defaultValue=1.0d0)       
        evolveToTimeInitialized=.true.

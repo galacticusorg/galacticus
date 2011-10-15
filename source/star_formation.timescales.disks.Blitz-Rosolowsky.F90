@@ -110,6 +110,9 @@ contains
        !@   <description>
        !@     The velocity dispersion of gas in disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('velocityDispersionDiskGas',velocityDispersionDiskGas,defaultValue=10.0d0)
        !@ <inputParameter>
@@ -119,6 +122,9 @@ contains
        !@   <description>
        !@     The ratio of scale height to scale radius for disks in the ``Blitz-Rosolowsky'' star formation timescale calculation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('heightToRadialScaleDiskBlitzRosolowsky',heightToRadialScaleDiskBlitzRosolowsky,defaultValue=0.137d0)
        !@ <inputParameter>
@@ -128,6 +134,9 @@ contains
        !@   <description>
        !@     The surface density (in units of $M_\odot$ pc$^{-2}$) in the ``Blitz-Rosolowsky'' star formation timescale calculation at which low-density truncation begins.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('surfaceDensityCriticalBlitzRosolowsky',surfaceDensityCriticalBlitzRosolowsky,defaultValue=200.0d0)
        !@ <inputParameter>
@@ -137,6 +146,9 @@ contains
        !@   <description>
        !@     The exponent for surface density in the ``Blitz-Rosolowsky'' star formation timescale calculation at in the high density regime.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('surfaceDensityExponentBlitzRosolowsky',surfaceDensityExponentBlitzRosolowsky,defaultValue=0.4d0)
        !@ <inputParameter>
@@ -146,6 +158,9 @@ contains
        !@   <description>
        !@     The star formation frequency (in the low-density limit and in units of yr$^{-1}$) in the ``Blitz-Rosolowsky'' star formation timescale calculation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationFrequencyNormalizationBlitzRosolowsky',starFormationFrequencyNormalizationBlitzRosolowsky,defaultValue=5.25d-10)
        !@ <inputParameter>
@@ -155,6 +170,9 @@ contains
        !@   <description>
        !@     The characteristic pressure (given as $P_0/k_{\rm B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('pressureCharacteristicBlitzRosolowsky',pressureCharacteristicBlitzRosolowsky,defaultValue=4.54d0)
        !@ <inputParameter>
@@ -164,6 +182,9 @@ contains
        !@   <description>
        !@     The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('pressureExponentBlitzRosolowsky',pressureExponentBlitzRosolowsky,defaultValue=0.92d0)
        if (pressureExponentBlitzRosolowsky < 0.0d0) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_Blitz_Rosolowsky_Initialize','pressureExponentBlitzRosolowsky < 0 violates assumptions')

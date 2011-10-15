@@ -98,6 +98,8 @@ contains
        !@   <description>
        !@     The mass ratio above which mergers are considered to be ``major'' in the \cite{baugh_can_2005} merger mass movements method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("majorMergerMassRatio"    ,majorMergerMassRatio    ,defaultValue=0.30d0    )
        !@ <inputParameter>
@@ -107,6 +109,8 @@ contains
        !@   <description>
        !@     The mass ratio above which mergers are considered to trigger a burst in the \cite{baugh_can_2005} merger mass movements method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("burstMassRatio"          ,burstMassRatio          ,defaultValue=0.05d0    )
        !@ <inputParameter>
@@ -116,6 +120,8 @@ contains
        !@   <description>
        !@     The host gas fraction above which mergers are considered to trigger a burst in the \cite{baugh_can_2005} merger mass movements method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("burstCriticalGasFraction",burstCriticalGasFraction,defaultValue=0.75d0    )
        !@ <inputParameter>
@@ -125,6 +131,8 @@ contains
        !@   <description>
        !@     The component to which satellite galaxy gas moves to as a result of a minor merger.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("minorMergerGasMovesTo"   ,minorMergerGasMovesTo   ,defaultValue="spheroid")
        select case (trim(minorMergerGasMovesTo))

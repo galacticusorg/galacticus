@@ -124,6 +124,8 @@ contains
        !@   <description>
        !@     The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPropertiesFile',stellarPropertiesFile,defaultValue='data&
             &/Stellar_Properties_Compilation.xml')

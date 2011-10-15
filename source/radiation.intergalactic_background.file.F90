@@ -114,6 +114,8 @@ contains
        !@   <description>
        !@     The name of the file containing a tabulation of the radiation field.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('radiationIGBFileName',radiationIGBFileName,defaultValue="data/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml")
 

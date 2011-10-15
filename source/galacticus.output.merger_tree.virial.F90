@@ -92,6 +92,9 @@ contains
        !@   <description>
        !@     Specifies whether or not virial data (radius, velocity) should be included in the output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('outputVirialData',outputVirialData,defaultValue=.false.)
 
@@ -124,10 +127,26 @@ contains
     ! Return property names if we are outputting virial data.
     if (outputVirialData) then
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeVirialRadius</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Virial radius of the node [Mpc].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeVirialRadius'
        doublePropertyComments(doubleProperty)='Virial radius of the node [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeVirialVelocity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Virial velocity of the node [km/s].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeVirialVelocity'
        doublePropertyComments(doubleProperty)='Virial velocity of the node [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo

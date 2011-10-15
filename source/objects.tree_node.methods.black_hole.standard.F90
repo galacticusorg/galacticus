@@ -186,6 +186,9 @@ contains
        !@   <description>
        !@     The mass of the seed black hole placed at the center of each newly formed galaxy.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleSeedMass",blackHoleSeedMass,defaultValue=100.0d0)
 
@@ -197,6 +200,9 @@ contains
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("bondiHoyleAccretionEnhancementSpheroid",bondiHoyleAccretionEnhancementSpheroid,defaultValue&
             &=1.0d0)
@@ -207,6 +213,9 @@ contains
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=1.0d0)
 
@@ -218,6 +227,9 @@ contains
        !@   <description>
        !@     The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("bondiHoyleAccretionTemperatureSpheroid",bondiHoyleAccretionTemperatureSpheroid,defaultValue&
             &=1.0d2)
@@ -230,6 +242,9 @@ contains
        !@   <description>
        !@     The efficiency of the black hole-driven wind: $L_{\rm wind} = \epsilon_{\rm wind} \dot{M}_\bullet \clight^2$.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=1.0d-3)
 
@@ -241,6 +256,9 @@ contains
        !@   <description>
        !@     Specifies whether or not the black hole launched jets should heat the hot halo.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleHeatsHotHalo",blackHoleHeatsHotHalo,defaultValue=.true.)
 
@@ -252,6 +270,9 @@ contains
        !@   <description>
        !@     Determines whether or not accretion rates and jet powers will be output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleOutputAccretion",blackHoleOutputAccretion,defaultValue=.false.)
 
@@ -263,6 +284,9 @@ contains
        !@   <description>
        !@     Determines whether or not properties for all black holes (rather than just the central black hole) will be output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleOutputData",blackHoleOutputData,defaultValue=.false.)
 
@@ -273,6 +297,9 @@ contains
        !@   <description>
        !@     Determines whether or not properties of black hole mergers will be output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleOutputMergers",blackHoleOutputMergers,defaultValue=.false.)
 
@@ -284,6 +311,9 @@ contains
        !@   <description>
        !@     Determines whether or not triple black hole interactions will be accounted for.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("tripleBlackHoleInteraction",tripleBlackHoleInteraction,defaultValue=.false.)
 
@@ -1287,28 +1317,87 @@ contains
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     
     if (methodSelected) then
+       !@ <outputPropertyGroup>
+       !@   <name>blackHole</name>
+       !@   <description>Black hole properities</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        integerProperty=integerProperty+1
+       !@ <outputProperty>
+       !@   <name>blackHoleCount</name>
+       !@   <datatype>integer</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Number of super-massive black holes in the galaxy.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>blackHole</group>
+       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='blackHoleCount'
        integerPropertyComments(integerProperty)='Number of super-massive black holes in the galaxy.'
        integerPropertyUnitsSI (integerProperty)=0.0d0
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>blackHoleMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of the black hole.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>blackHole</group>
+       !@ </outputProperty>
        doublePropertyNames    (doubleProperty )='blackHoleMass'
        doublePropertyComments (doubleProperty )='Mass of the black hole.'
        doublePropertyUnitsSI  (doubleProperty )=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>blackHoleSpin</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Spin of the black hole.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>blackHole</group>
+       !@ </outputProperty>
        doublePropertyNames    (doubleProperty )='blackHoleSpin'
        doublePropertyComments (doubleProperty )='Spin of the black hole.'
        doublePropertyUnitsSI  (doubleProperty )=0.0d0
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>blackHoleAccretionRate</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Rest-mass accretion rate onto the black hole.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>blackHole</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
           doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>blackHoleJetPower</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Power of the black hole-driven jet.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>blackHole</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleJetPower'
           doublePropertyComments(doubleProperty)='Power of the black hole-driven jet.'
           doublePropertyUnitsSI (doubleProperty)=massSolar*kilo**2/gigaYear
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>blackHoleRadiativeEfficiency</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>The radiative efficiency of the black hole accretion system.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>blackHole</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleRadiativeEfficiency'
           doublePropertyComments(doubleProperty)='The radiative efficiency of the black hole accretion system.'
           doublePropertyUnitsSI (doubleProperty)=0.0d0

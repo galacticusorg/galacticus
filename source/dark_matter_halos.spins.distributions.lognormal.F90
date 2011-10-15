@@ -100,6 +100,8 @@ contains
        !@   <description>
        !@     The median in a lognormal halo spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('lognormalSpinDistributionMedian',lognormalSpinDistributionMedian,defaultValue=0.03687d0)
        !@ <inputParameter>
@@ -109,6 +111,8 @@ contains
        !@   <description>
        !@     The dispersion in a lognormal halo spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('lognormalSpinDistributionSigma' ,lognormalSpinDistributionSigma ,defaultValue=0.51025d0)
        lognormalSpinDistributionMedian=dlog(lognormalSpinDistributionMedian)

@@ -102,6 +102,9 @@ contains
           !@   <description>
           !@    A list of filters that should be applied when deciding which galaxies to output.
           !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1..*</cardinality>
+          !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeOutputFilters',mergerTreeOutputFilters)
 

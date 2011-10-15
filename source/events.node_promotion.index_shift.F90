@@ -99,6 +99,8 @@ contains
        !@   <description>
        !@    Specifies whether or not the index of a node should be shifted to its parent node prior to promotion.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('nodePromotionIndexShift',nodePromotionIndexShift,defaultValue=.false.)
        ! Flag that the module is now initialized.

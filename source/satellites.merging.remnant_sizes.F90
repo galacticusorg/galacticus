@@ -104,6 +104,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for computing merger remnant sizes.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteMergingRemnantSizeMethod',satelliteMergingRemnantSizeMethod,defaultValue='Cole2000')
        ! Include file that makes calls to all available method initialization routines.

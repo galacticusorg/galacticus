@@ -99,6 +99,8 @@ contains
        !@   <description>
        !@     The parameter $C$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("nfw96ConcentrationF",nfw96ConcentrationF,defaultValue=   0.01d0)
        !@ <inputParameter>
@@ -108,6 +110,8 @@ contains
        !@   <description>
        !@     The parameter $f$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("nfw96ConcentrationC",nfw96ConcentrationC,defaultValue=2000.0d0)
     end if

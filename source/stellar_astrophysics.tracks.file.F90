@@ -118,6 +118,8 @@ contains
        !@   <description>
        !@     The name of the HDF5 file from which to read stellar tracks.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue='data/Stellar_Tracks_Padova.hdf5')
        

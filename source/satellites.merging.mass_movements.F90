@@ -116,6 +116,8 @@ contains
        !@   <description>
        !@    Selects the method to be used for deciding mass movements during satellite mergers.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteMergingMassMovementsMethod',satelliteMergingMassMovementsMethod,defaultValue='simple')
        ! Include file that makes calls to all available method initialization routines.

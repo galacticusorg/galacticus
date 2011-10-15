@@ -104,6 +104,9 @@ contains
        !@   <description>
        !@     The normalization of the extended Schmidt star formation law [$M_\odot$ yr$^{-1}$pc$^{-2}$].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationExtendedSchmidtNormalization',starFormationExtendedSchmidtNormalization,defaultValue=0.5248d-10)
        !@ <inputParameter>
@@ -113,6 +116,9 @@ contains
        !@   <description>
        !@     The exponent of gas surface density in the extended Schmidt star formation law.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationExtendedSchmidtGasExponent'  ,starFormationExtendedSchmidtGasExponent  ,defaultValue=1.0000d+0 )
        !@ <inputParameter>
@@ -122,6 +128,9 @@ contains
        !@   <description>
        !@     The exponent of stellar surface density in the extended Schmidt star formation law.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationExtendedSchmidtStarExponent' ,starFormationExtendedSchmidtStarExponent ,defaultValue=0.4800d+0 )
 

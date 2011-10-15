@@ -349,27 +349,91 @@ contains
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     
     if (methodSelected) then
+       !@ <outputPropertyGroup>
+       !@   <name>position</name>
+       !@   <description>X-Y-Z coordinates</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
+       !@ <outputPropertyGroup>
+       !@   <name>velocity</name>
+       !@   <description>X-Y-Z velocity components</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>positionX</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>X position of the node.</description>
+       !@   <label>pos.cartesian.x</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>position</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='positionX'
        doublePropertyComments(doubleProperty)='X position of the node.'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>positionY</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Y position of the node.</description>
+       !@   <label>pos.cartesian.y</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>position</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='positionY'
        doublePropertyComments(doubleProperty)='Y position of the node.'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>positionZ</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Z position of the node.</description>
+       !@   <label>pos.cartesian.z</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>position</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='positionZ'
        doublePropertyComments(doubleProperty)='Z position of the node.'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>velocityX</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>X velocity of the node.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>velocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='velocityX'
        doublePropertyComments(doubleProperty)='X velocity of the node.'
        doublePropertyUnitsSI (doubleProperty)=kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>velocityY</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Y velocity of the node.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>velocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='velocityY'
        doublePropertyComments(doubleProperty)='Y velocity of the node.'
        doublePropertyUnitsSI (doubleProperty)=kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>velocityZ</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Z velocity of the node.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>velocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='velocityZ'
        doublePropertyComments(doubleProperty)='Z velocity of the node.'
        doublePropertyUnitsSI (doubleProperty)=kilo

@@ -100,6 +100,8 @@ contains
        !@   <description>
        !@     The depth in the hierarchy at which to prune merger trees. (Zero indicates to not prune.)
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreePruneHierarchyAtDepth',mergerTreePruneHierarchyAtDepth,defaultValue=0)
        ! Flag that module is initialized.

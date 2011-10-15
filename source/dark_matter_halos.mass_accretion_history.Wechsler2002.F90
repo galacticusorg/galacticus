@@ -96,6 +96,8 @@ contains
        !@   <description>
        !@     Compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories?
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('accretionHistoryWechslerFormationRedshiftCompute',accretionHistoryWechslerFormationRedshiftCompute,defaultValue=.true.)
        if (.not.accretionHistoryWechslerFormationRedshiftCompute) then
@@ -107,6 +109,8 @@ contains
           !@   <description>
           !@     The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('accretionHistoryWechslerFormationRedshift',accretionHistoryWechslerFormationRedshift,defaultValue=0.4d0)
         end if

@@ -134,6 +134,8 @@ contains
        !@   <description>
        !@     Factor by which halo mass must have increased to trigger a new formation event.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('haloReformationMassFactor',haloReformationMassFactor,defaultValue=2.0d0)
        !@ <inputParameter>
@@ -144,6 +146,8 @@ contains
        !@     Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
        !@     the halo mass has increased sufficiently in mass.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('haloReformationOnPromotionOnly',haloReformationOnPromotionOnly,defaultValue=.false.)
     end if

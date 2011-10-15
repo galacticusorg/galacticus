@@ -97,6 +97,9 @@ contains
        !@   <description>
        !@     The mass loading of the disk superwind.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('diskSuperwindMassLoading',diskSuperwindMassLoading,defaultValue=2.0d0)
        !@ <inputParameter>
@@ -106,6 +109,9 @@ contains
        !@   <description>
        !@     The velocity scale of the disk superwind.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('diskSuperwindVelocity',diskSuperwindVelocity,defaultValue=200.0d0)
     end if

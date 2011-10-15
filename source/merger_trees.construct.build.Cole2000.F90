@@ -104,6 +104,8 @@ contains
        !@   <description>
        !@     The largest probability of branching allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildCole2000MergeProbability',mergerTreeBuildCole2000MergeProbability,defaultValue=1.0d-1)
        !@ <inputParameter>
@@ -114,6 +116,8 @@ contains
        !@     The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the
        !@     \cite{cole_hierarchical_2000} method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildCole2000AccretionLimit'  ,mergerTreeBuildCole2000AccretionLimit  ,defaultValue=1.0d-1)
        !@ <inputParameter>
@@ -124,6 +128,8 @@ contains
        !@     The minimum mass (in units of $M_\odot$) of halos to be resolved in merger trees built using the
        !@     \cite{cole_hierarchical_2000} method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildCole2000MassResolution'  ,mergerTreeBuildCole2000MassResolution  ,defaultValue&
             &=5.0d9 )

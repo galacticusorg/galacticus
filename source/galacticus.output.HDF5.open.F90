@@ -95,6 +95,9 @@ contains
        !@   <description>
        !@     The name of the file to which \glc\ results will be written.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('galacticusOutputFileName',galacticusOutputFileName,defaultValue='galacticus.hdf5',writeOutput=.false.)
        ! Open the file.
@@ -111,6 +114,9 @@ contains
        !@   <description>
        !@    The chunk size used for outputting HDF5 datasets.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('hdf5ChunkSize',chunksize,defaultValue=1024)
        hdf5ChunkSize=chunksize
@@ -121,6 +127,9 @@ contains
        !@   <description>
        !@    The compression level used for outputting HDF5 datasets.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('hdf5CompressionLevel',hdf5CompressionLevel,defaultValue=9)
 

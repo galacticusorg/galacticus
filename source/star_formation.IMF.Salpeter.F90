@@ -127,6 +127,9 @@ contains
        !@   <description>
        !@     The recycled fraction for the Salpeter \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfSalpeterRecycledInstantaneous',imfSalpeterRecycledInstantaneous,defaultValue=0.39d0)
        !@ <inputParameter>
@@ -136,6 +139,9 @@ contains
        !@   <description>
        !@     The yield for the Salpeter \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfSalpeterYieldInstantaneous'   ,imfSalpeterYieldInstantaneous   ,defaultValue=0.02d0)
 

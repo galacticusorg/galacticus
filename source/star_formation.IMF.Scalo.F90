@@ -128,6 +128,9 @@ contains
        !@   <description>
        !@     The recycled fraction for the Scalo \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfScaloRecycledInstantaneous',imfScaloRecycledInstantaneous,defaultValue=0.24d0)
        !@ <inputParameter>
@@ -137,6 +140,9 @@ contains
        !@   <description>
        !@     The yield for the Scalo \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfScaloYieldInstantaneous'   ,imfScaloYieldInstantaneous   ,defaultValue=0.0086d0)
 

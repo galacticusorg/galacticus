@@ -104,6 +104,8 @@ contains
        !@   <description>
        !@     The minimum mass that a star must have in order that is result in a Type II supernova.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('initialMassForSupernovaeTypeII',initialMassForSupernovaeTypeII,defaultValue=8.0d0)
        !@ <inputParameter>
@@ -113,6 +115,8 @@ contains
        !@   <description>
        !@     The energy produced by a supernova (in ergs).
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('supernovaEnergy',supernovaEnergy,defaultValue=1.0d51)
        ! Convert energy to MSolar (km/s)^2.

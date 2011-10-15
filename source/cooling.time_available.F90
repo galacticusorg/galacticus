@@ -106,6 +106,8 @@ contains
        !@   <description>
        !@     The name of the method to be used when computing the time available for cooling.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingTimeAvailableMethod',coolingTimeAvailableMethod,defaultValue='White-Frenk1991')
        ! Include file that makes calls to all available method initialization routines.

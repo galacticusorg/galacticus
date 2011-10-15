@@ -96,6 +96,8 @@ contains
        !@   <description>
        !@    The velocity below which cooling is suppressed in the `Cole2000' cooling rate algorithm.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("coolingCutOffVelocity",coolingCutOffVelocity,defaultValue=60.0d0)
        !@ <inputParameter>
@@ -105,6 +107,8 @@ contains
        !@   <description>
        !@    The redshift below which cooling is suppressed in the `Cole2000' cooling rate algorithm.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("coolingCutOffRedshift",coolingCutOffRedshift,defaultValue= 6.0d0)
        coolingCutOffTime=Cosmology_Age(Expansion_Factor_from_Redshift(coolingCutOffRedshift))

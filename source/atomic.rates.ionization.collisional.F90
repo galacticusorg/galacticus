@@ -105,6 +105,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for computing atomic collisional ionization rates.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('atomicCollisionalIonizationMethod',atomicCollisionalIonizationMethod,defaultValue='Verner')
 

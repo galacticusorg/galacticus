@@ -105,6 +105,8 @@ contains
        !@   <description>
        !@     The method to use for computing aspects of stellar winds.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarWindsMethod',stellarWindsMethod,defaultValue='Leitherer1992')
        ! Include file that makes calls to all available method initialization routines.

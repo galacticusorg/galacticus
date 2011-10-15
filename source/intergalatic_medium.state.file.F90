@@ -112,6 +112,8 @@ contains
        !@   <description>
        !@     The name of the file from which to read intergalactic medium state data.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('intergalaticMediumStateFileName',intergalaticMediumStateFileName)
     end if

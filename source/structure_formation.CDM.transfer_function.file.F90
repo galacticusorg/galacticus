@@ -101,6 +101,8 @@ contains
        !@   <description>
        !@     The name of a file containing a tabulation of the transfer function for the ``file'' transfer function method.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('transferFunctionFile',transferFunctionFile)
     end if

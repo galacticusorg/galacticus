@@ -87,26 +87,74 @@ contains
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     integerProperty=integerProperty+1
+    !@ <outputProperty>
+    !@   <name>nodeIndex</name>
+    !@   <datatype>integer</datatype>
+    !@   <cardinality>0..1</cardinality>
+    !@   <description>Tree-unique ID for this node.</description>
+    !@   <label>???</label>
+    !@   <outputType>nodeData</outputType>
+    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='nodeIndex'
     integerPropertyComments(integerProperty)='Tree-unique ID for this node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
+    !@ <outputProperty>
+    !@   <name>parentNode</name>
+    !@   <datatype>integer</datatype>
+    !@   <cardinality>0..1</cardinality>
+    !@   <description>ID of parent node.</description>
+    !@   <label>???</label>
+    !@   <outputType>nodeData</outputType>
+    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='parentNode'
     integerPropertyComments(integerProperty)='ID of parent node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
+    !@ <outputProperty>
+    !@   <name>childNode</name>
+    !@   <datatype>integer</datatype>
+    !@   <cardinality>0..1</cardinality>
+    !@   <description>ID of primary child node.</description>
+    !@   <label>???</label>
+    !@   <outputType>nodeData</outputType>
+    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='childNode'
     integerPropertyComments(integerProperty)='ID of primary child node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
+    !@ <outputProperty>
+    !@   <name>siblingNode</name>
+    !@   <datatype>integer</datatype>
+    !@   <cardinality>0..1</cardinality>
+    !@   <description>ID of sibling node.</description>
+    !@   <label>???</label>
+    !@   <outputType>nodeData</outputType>
+    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='siblingNode'
     integerPropertyComments(integerProperty)='ID of sibling node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
+    !@ <outputProperty>
+    !@   <name>satelliteNode</name>
+    !@   <datatype>integer</datatype>
+    !@   <cardinality>0..1</cardinality>
+    !@   <description>ID of first satellite node.</description>
+    !@   <label>???</label>
+    !@   <outputType>nodeData</outputType>
+    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='satelliteNode'
     integerPropertyComments(integerProperty)='ID of first satellite node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
+    !@ <outputProperty>
+    !@   <name>nodeIsIsolated</name>
+    !@   <datatype>integer</datatype>
+    !@   <cardinality>0..1</cardinality>
+    !@   <description>Is the node isolated (0|1)?</description>
+    !@   <label>???</label>
+    !@   <outputType>nodeData</outputType>
+    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='nodeIsIsolated'
     integerPropertyComments(integerProperty)='Is the node isolated (0|1)?'
     integerPropertyUnitsSI (integerProperty)=0.0d0

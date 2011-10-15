@@ -91,6 +91,9 @@ contains
        !@   <description>
        !@     The density of baryons in the Universe in units of the critical density.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
        !@ </inputParameter>
        call Get_Input_Parameter('Omega_b',Omega_b_Value,defaultValue=0.0455d0)
        Omega_b_Is_Set=.true.
@@ -119,6 +122,9 @@ contains
        !@   <description>
        !@     The density of matter in the Universe in units of the critical density.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
        !@ </inputParameter>
        call Get_Input_Parameter('Omega_Matter',Omega_Matter_Value,defaultValue=0.2725d0)
        Omega_Matter_Is_Set=.true.
@@ -142,6 +148,9 @@ contains
        !@   <description>
        !@     The density of dark energy in the Universe in units of the critical density.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
        !@ </inputParameter>
        call Get_Input_Parameter('Omega_DE',Omega_DE_Value,defaultValue=0.7275d0)
        Omega_DE_Is_Set=.true.
@@ -165,6 +174,9 @@ contains
        !@   <description>
        !@     The present day temperature of the \CMB\ in units of Kelvin.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
        !@ </inputParameter>
        call Get_Input_Parameter('T_CMB',T_CMB_Value,defaultValue=2.72548d0)
        T_CMB_Is_Set=.true.
@@ -229,6 +241,9 @@ contains
        !@   <description>
        !@     The present day value of the Hubble parameter in units of km/s/Mpc.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
        !@ </inputParameter>
        call Get_Input_Parameter('H_0',H_0_Value,defaultValue=70.2d0)
        H_0_Is_Set=.true.

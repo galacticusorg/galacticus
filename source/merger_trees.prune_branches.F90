@@ -102,6 +102,8 @@ contains
        !@   <description>
        !@     Specifies whether or not to prune merger trees prior to evolution.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreePruneBranches',mergerTreePruneBranches,defaultValue=.false.)
        !@ <inputParameter>
@@ -111,6 +113,8 @@ contains
        !@   <description>
        !@     Threshold mass below which merger tree branches should be pruned.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreePruningMassThreshold',mergerTreePruningMassThreshold,defaultValue=0.0d0)
        ! Flag that module is initialized.

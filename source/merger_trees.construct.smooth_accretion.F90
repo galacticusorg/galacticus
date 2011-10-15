@@ -103,6 +103,8 @@ contains
        !@   <description>
        !@     The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeHaloMass'                ,mergerTreeHaloMass                ,defaultValue=1.0d12)
        !@ <inputParameter>
@@ -112,6 +114,8 @@ contains
        !@   <description>
        !@     The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeHaloMassResolution'      ,mergerTreeHaloMassResolution      ,defaultValue=1.0d9 )
        !@ <inputParameter>
@@ -121,6 +125,8 @@ contains
        !@   <description>
        !@     The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree, in units of $M_\odot$.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeHaloMassDeclineFactor'   ,mergerTreeHaloMassDeclineFactor   ,defaultValue=0.9d0 )
        !@ <inputParameter>
@@ -130,6 +136,8 @@ contains
        !@   <description>
        !@     The redshift at which to plant the base node when building the smoothly accreting merger tree.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBaseRedshift'            ,mergerTreeBaseRedshift            ,defaultValue=0.0d0 )
     end if

@@ -107,6 +107,9 @@ contains
        !@   <description>
        !@     The name of the method to be used for calculations of \SNe\ feedback in spheroids.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationFeedbackSpheroidsMethod',starFormationFeedbackSpheroidsMethod,defaultValue='powerLaw')
        ! Include file that makes calls to all available method initialization routines.

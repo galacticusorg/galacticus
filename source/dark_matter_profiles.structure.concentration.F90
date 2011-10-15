@@ -106,6 +106,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for calculations of dark matter halo density profile concentrations.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('darkMatterConcentrationMethod',darkMatterConcentrationMethod,defaultValue='Gao2008')
        ! Include file that makes calls to all available method initialization routines.

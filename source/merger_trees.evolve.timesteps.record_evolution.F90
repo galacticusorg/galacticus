@@ -121,6 +121,9 @@ contains
        !@   <description>
        !@     Specifies whether or not the evolution of the main branch galaxy should be recorded.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('timestepRecordEvolution',timestepRecordEvolution,defaultValue=.false.)
        if (timestepRecordEvolution) then
@@ -134,6 +137,9 @@ contains
           !@   <description>
           !@     The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
           !@ </inputParameter>
           call Get_Input_Parameter('timestepRecordEvolutionBegin',timestepRecordEvolutionBegin,defaultValue=0.05d0*time)
           !@ <inputParameter>
@@ -143,6 +149,9 @@ contains
           !@   <description>
           !@     The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
           !@ </inputParameter>
           call Get_Input_Parameter('timestepRecordEvolutionEnd'  ,timestepRecordEvolutionEnd  ,defaultValue=       time)
           !@ <inputParameter>
@@ -152,6 +161,9 @@ contains
           !@   <description>
           !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.
           !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
           !@ </inputParameter>
           call Get_Input_Parameter('timestepRecordEvolutionSteps',timestepRecordEvolutionSteps,defaultValue=100        )
           ! Allocate storage arrays.

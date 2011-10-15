@@ -105,6 +105,8 @@ contains
        !@   <description>
        !@    Selects which dark matter halo bias method to use.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('darkMatterHaloBiasMethod',darkMatterHaloBiasMethod,defaultValue='Tinker2010')
        ! Include file that makes calls to all available method initialization routines.

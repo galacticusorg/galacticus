@@ -116,6 +116,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for calculations of stellar population spectra.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy-White-Gunn2009')
        ! Include file that makes calls to all available method initialization routines.

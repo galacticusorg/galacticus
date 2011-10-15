@@ -127,6 +127,8 @@ contains
        !@   <description>
        !@     Specifies whether or not to regrid merger tree times.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeRegridTimes',mergerTreeRegridTimes,defaultValue=.false.)
        if (mergerTreeRegridTimes) then
@@ -137,6 +139,8 @@ contains
           !@   <description>
           !@     Specifies whether or not to dump merger trees as they are regridded.
           !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeRegridDumpTrees',mergerTreeRegridDumpTrees,defaultValue=.false.)
           !@ <inputParameter>
@@ -146,6 +150,8 @@ contains
           !@   <description>
           !@     Number of points in time to use when regridding merger trees.
           !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeRegridCount',mergerTreeRegridCount,defaultValue=100)
           !@ <inputParameter>
@@ -155,6 +161,8 @@ contains
           !@   <description>
           !@     Starting expansion factor to use when regridding merger trees.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           if (mergerTreeRegridCount < 2) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','mergerTreeRegridCount > 2 is required')
           call Get_Input_Parameter('mergerTreeRegridStartExpansionFactor',mergerTreeRegridStartExpansionFactor,defaultValue=0.1d0)
@@ -165,6 +173,8 @@ contains
           !@   <description>
           !@     Ending expansion factor to use when regridding merger trees.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeRegridEndExpansionFactor',mergerTreeRegridEndExpansionFactor,defaultValue=1.0d0)
           !@ <inputParameter>
@@ -174,6 +184,8 @@ contains
           !@   <description>
           !@     Type of spacing to use in merger tree regridding (linear or logarithmic).
           !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeRegridSpacing',mergerTreeRegridSpacingAsText,defaultValue='logarithmic')
           select case (char(mergerTreeRegridSpacingAsText))

@@ -111,6 +111,8 @@ contains
        !@   <description>
        !@     The median in a lognormal halo spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spinDistributionBett2007Lambda0',spinDistributionBett2007Lambda0,defaultValue=0.04326d0)
        !@ <inputParameter>
@@ -120,6 +122,8 @@ contains
        !@   <description>
        !@     The dispersion in a lognormal halo spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spinDistributionBett2007Alpha',spinDistributionBett2007Alpha,defaultValue=2.509d0)
 

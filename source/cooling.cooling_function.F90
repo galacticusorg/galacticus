@@ -101,6 +101,8 @@ contains
        !@   <description>
        !@     The names of the methods to be used for computing the cooling function.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1..*</cardinality>
        !@ </inputParameter>
        coolingFunctionsCount=max(1,Get_Input_Parameter_Array_Size('coolingFunctionMethods'))
        allocate(coolingFunctionMethods(coolingFunctionsCount))

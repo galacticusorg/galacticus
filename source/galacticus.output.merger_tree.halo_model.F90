@@ -102,6 +102,9 @@ contains
        !@   <description>
        !@     Specifies whether or not halo model data (bias, power spectra, etc.) should be included in the output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('outputHaloModelData',outputHaloModelData,defaultValue=.false.)
 
@@ -114,6 +117,8 @@ contains
           !@   <description>
           !@     The number of points per decade in wavenumber at which to tabulate power spectra for the halo model.
           !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('haloModelWavenumberPointsPerDecade',haloModelWavenumberPointsPerDecade,defaultValue=10)
           !@ <inputParameter>
@@ -123,6 +128,8 @@ contains
           !@   <description>
           !@     The minimum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('haloModelWavenumberMinimum',haloModelWavenumberMinimum,defaultValue=1.0d-3)
           !@ <inputParameter>
@@ -132,6 +139,8 @@ contains
           !@   <description>
           !@     The maximum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('haloModelWavenumberMaximum',haloModelWavenumberMaximum,defaultValue=1.0d4)
        end if
@@ -165,10 +174,26 @@ contains
     ! Return property names if we are outputting halo model data.
     if (outputHaloModelData) then
        doubleProperty =doubleProperty +1
+       !@ <outputProperty>
+       !@   <name>nodeBias</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The linear bias for this node.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames    (doubleProperty)='nodeBias'
        doublePropertyComments (doubleProperty)='The linear bias for this node.'
        doublePropertyUnitsSI  (doubleProperty)=0.0d0
        integerProperty=integerProperty+1
+       !@ <outputProperty>
+       !@   <name>isolatedHostIndex</name>
+       !@   <datatype>integer</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The index of the isolated node which hosts this node.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='isolatedHostIndex'
        integerPropertyComments(integerProperty)='The index of the isolated node which hosts this node.'
        integerPropertyUnitsSI (integerProperty)=0.0d0
@@ -253,6 +278,10 @@ contains
 
     ! Store power specturm if we are outputting halo model data.
     if (outputHaloModelData) then
+       !@ <outputType>
+       !@   <name>haloModel</name>
+       !@   <description>A collection of data (including biases and halo profiles) that can be used in halo model calculations of galaxy clustering.</description>
+       !@ </outputType>
 
        ! Create a group for halo model data..
        haloModelGroup=IO_HDF5_Open_Group(galacticusOutputFile,'haloModel','Halo model data.')
@@ -273,9 +302,25 @@ contains
        end do
 
        ! Store the power spectrum
+       !@ <outputProperty>
+       !@   <name>wavenumber</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Wavenumbers at which dark matter halo Fourier profiles are stored.</description>
+       !@   <label>???</label>
+       !@   <outputType>haloModel</outputType>
+       !@ </outputProperty>
        call haloModelGroup%writeDataset(wavenumber   ,'wavenumber','Wavenumber at which power spectrum is tabulated [Mpc⁻¹].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(1.0d0/megaParsec,'unitsInSI')
        call haloModelDataset%close()
+       !@ <outputProperty>
+       !@   <name>powerSpectrum</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Linear theory power spectrum.</description>
+       !@   <label>???</label>
+       !@   <outputType>haloModel</outputType>
+       !@ </outputProperty>
        call haloModelGroup%writeDataset(powerSpectrum,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
        call haloModelDataset%close()

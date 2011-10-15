@@ -128,6 +128,9 @@ contains
        !@   <description>
        !@     The recycled fraction for the MillerScalo \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfMillerScaloRecycledInstantaneous',imfMillerScaloRecycledInstantaneous,defaultValue=0.52d0)
        !@ <inputParameter>
@@ -137,6 +140,9 @@ contains
        !@   <description>
        !@     The yield for the MillerScalo \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfMillerScaloYieldInstantaneous'   ,imfMillerScaloYieldInstantaneous   ,defaultValue=0.026d0)
 

@@ -102,6 +102,8 @@ contains
        !@   <description>
        !@     A seed for the Gaussian random number generator.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('gaussianRandomSeed',gaussianRandomSeed,defaultValue=843)
        gaussianRandomSeedC=gaussianRandomSeed

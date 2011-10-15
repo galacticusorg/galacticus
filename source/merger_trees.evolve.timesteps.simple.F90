@@ -99,6 +99,9 @@ contains
        !@   <description>
        !@     The maximum allowed relative change in time for a single step in the evolution of a node.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('timestepSimpleRelative',timestepSimpleRelative,defaultValue=0.1d0)
        !@ <inputParameter>
@@ -108,6 +111,9 @@ contains
        !@   <description>
        !@     The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('timestepSimpleAbsolute',timestepSimpleAbsolute,defaultValue=1.0d0)
        timestepSimpleInitialized=.true.

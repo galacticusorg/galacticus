@@ -107,6 +107,8 @@ contains
        !@   <description>
        !@    The accretion rate (in Eddington units) below which a switched accretion disk becomes an ADAF.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("accretionRateThinDiskMinimum",accretionRateThin,defaultValue='0.01d0')
        if (trim(accretionRateThin) == "none") then
@@ -123,6 +125,8 @@ contains
        !@   <description>
        !@    The accretion rate (in Eddington units) above which a switched accretion disk becomes an ADAF.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("accretionRateThinDiskMaximum",accretionRateThin,defaultValue="0.30d0")
        if (trim(accretionRateThin) == "none") then
@@ -139,6 +143,8 @@ contains
        !@   <description>
        !@    The width (in $\ln[\dot{M}/\dot{M}_{\rm Eddington}]$) over which transitions between accretion disk states occur.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("accretionRateTransitionWidth",accretionRateTransitionWidth,defaultValue=0.1d0)
     end if

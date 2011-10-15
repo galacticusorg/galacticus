@@ -191,6 +191,9 @@ contains
        !@     \item [present] Output only those luminosities computed for the present output time.
        !@     \end{description}
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('luminosityOutputOption',luminosityOutputOptionText,defaultValue="present")
        select case (char(luminosityOutputOptionText))
@@ -228,6 +231,8 @@ contains
           !@   <description>
           !@     The redshift for which to compute each specified stellar luminosity.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..*</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('luminosityRedshift',luminosityRedshift)
           !@ <inputParameter>
@@ -236,6 +241,8 @@ contains
           !@   <description>
           !@     The filter name for each stellar luminosity to be computed.
           !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>0..*</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('luminosityFilter'  ,luminosityFilter  )
           !@ <inputParameter>
@@ -251,6 +258,8 @@ contains
           !@                      frequencies.}.
           !@     \end{description}
           !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>0..*</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('luminosityType'    ,luminosityType    )
           

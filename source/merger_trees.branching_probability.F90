@@ -174,6 +174,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for computing merger tree branching probabilities when building merger trees.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modifiedPress-Schechter')
        ! Include file that makes calls to all available method initialization routines.

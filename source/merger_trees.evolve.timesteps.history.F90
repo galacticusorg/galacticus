@@ -122,6 +122,9 @@ contains
        !@   <description>
        !@     The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('timestepHistoryBegin',timestepHistoryBegin,defaultValue=0.05d0*time)
        !@ <inputParameter>
@@ -131,6 +134,9 @@ contains
        !@   <description>
        !@     The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('timestepHistoryEnd'  ,timestepHistoryEnd  ,defaultValue=       time)
        !@ <inputParameter>
@@ -140,6 +146,9 @@ contains
        !@   <description>
        !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
        ! Allocate storage arrays.
@@ -274,47 +283,139 @@ contains
 
     ! Output the history data if and only if any has been collated.
     if (timestepHistoryInitialized) then
-       
+       !@ <outputType>
+       !@   <name>globalHistory</name>
+       !@   <description>A set of volume-averaged properites describing the mass content of the Universe.</description>
+       !@ </outputType>
+
        historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,'globalHistory','Global (volume averaged) history for this model.')
        
+       !@ <outputProperty>
+       !@   <name>historyTime</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The times at which global history data are stored.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyTime                     ,"historyTime"                     ,"Time [Gyr]"                                       ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historyExpansion</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The expansion factors at which global history data are stored.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyExpansion                ,"historyExpansion"                ,"Expansion factor []"                                                             )
        
+       !@ <outputProperty>
+       !@   <name>historyStarFormationRate</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean rate of star formation in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyStarFormationRate        ,"historyStarFormationRate"        ,"Star formation rate [M⊙/Gyr/Mpc³]"             ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historyDiskStarFormationRate</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean rate of star formation in disks in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyDiskStarFormationRate    ,"historyDiskStarFormationRate"    ,"Star formation rate in disks [M⊙/Gyr/Mpc³]"    ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historySpheroidStarFormationRate</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean rate of star formation in spheroids in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historySpheroidStarFormationRate,"historySpheroidStarFormationRate","Star formation rate in spheroids [M⊙/Gyr/Mpc³]",datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historyStellarDensity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean density of stars in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyStellarDensity           ,"historyStellarDensity"           ,"Stellar mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historyDiskStellarDensity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean density of stars in disks in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyDiskStellarDensity       ,"historyDiskStellarDensity"       ,"Stellar mass density in disks [M⊙/Mpc³]"       ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historySpheroidStellarDensity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean density of stars in spheroids in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historySpheroidStellarDensity   ,"historySpheroidStellarDensity"   ,"Stellar mass density in spheroids [M⊙/Mpc³]"   ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historyGasDensity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean density of ISM gas in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyGasDensity               ,"historyGasDensity"               ,"Gas mass density [M⊙/Mpc³]"                    ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historyHotGasDensity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean density of hot gas in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyHotGasDensity            ,"historyHotGasDensity"            ,"Hot gas mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
        
+       !@ <outputProperty>
+       !@   <name>historyNodeDensity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>The mean density of resolved nodes in the Universe.</description>
+       !@   <label>???</label>
+       !@   <outputType>globalHistory</outputType>
+       !@ </outputProperty>
        call historyGroup%writeDataset(historyNodeDensity              ,"historyNodeDensity"              ,"Node mass density [M⊙/Mpc³]"                   ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()

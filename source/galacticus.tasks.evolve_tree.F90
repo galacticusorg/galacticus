@@ -126,6 +126,8 @@ contains
        !@   <description>
        !@     The number of workers that will work on this calculation.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('treeEvolveWorkerCount',treeEvolveWorkerCount,defaultValue=1)
        !@ <inputParameter>
@@ -135,6 +137,8 @@ contains
        !@   <description>
        !@     The number of this worker.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
 

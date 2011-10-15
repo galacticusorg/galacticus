@@ -99,6 +99,8 @@ contains
        !@   <description>
        !@     The names of the methods to be used for computing chemical reaction rates.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1..*</cardinality>
        !@ </inputParameter>
        chemicalReactionRatesCount=max(1,Get_Input_Parameter_Array_Size('chemicalReactionRatesMethods'))
        allocate(chemicalReactionRateMethods(chemicalReactionRatesCount))

@@ -101,6 +101,8 @@ contains
        !@   <description>
        !@     A seed value for the random number generator.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('randomSeed',randomSeed,defaultValue=219)
        randomSeedC=randomSeed

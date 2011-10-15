@@ -232,6 +232,8 @@ contains
     !@   <description>
     !@     The name of the method to be used for computing the dark matter halo mass function.
     !@   </description>
+    !@   <type>string</type>
+    !@   <cardinality>1</cardinality>
     !@ </inputParameter>
     call Get_Input_Parameter('haloMassFunctionMethod',haloMassFunctionMethod,defaultValue='Tinker2008')
     ! Include file that makes calls to all available method initialization routines.

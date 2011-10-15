@@ -103,6 +103,8 @@ contains
        !@   <description>
        !@     The warm dark matter free streaming length (in Mpc).
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('transferFunctionWDMFreeStreamingLength',transferFunctionWDMFreeStreamingLength,defaultValue=0.0d0)
     end if

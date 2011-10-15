@@ -119,6 +119,9 @@ contains
        !@   <description>
        !@     The time step to use in tabulations of star formation histories [Gyr].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryTimeStep'          ,starFormationHistoryTimeStep          ,defaultValue=0.1d0 )
        !@ <inputParameter>
@@ -128,6 +131,9 @@ contains
        !@   <description>
        !@     The fine time step to use in tabulations of star formation histories [Gyr].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryFineTimeStep'      ,starFormationHistoryFineTimeStep      ,defaultValue=0.01d0)
        !@ <inputParameter>
@@ -137,6 +143,9 @@ contains
        !@   <description>
        !@     The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryFineTime'          ,starFormationHistoryFineTime          ,defaultValue=0.1d0 )
        !@ <inputParameter>
@@ -146,6 +155,9 @@ contains
        !@   <description>
        !@     The number of bins in metallicity to use when tabulating star formation histories.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryMetallicityCount'  ,starFormationHistoryMetallicityCount  ,defaultValue=10    )
        !@ <inputParameter>
@@ -155,6 +167,9 @@ contains
        !@   <description>
        !@     The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryMetallicityMinimum',starFormationHistoryMetallicityMinimum,defaultValue=1.0d-4)
        !@ <inputParameter>
@@ -164,6 +179,9 @@ contains
        !@   <description>
        !@     The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryMetallicityMaximum',starFormationHistoryMetallicityMaximum,defaultValue=1.0d+1)
 

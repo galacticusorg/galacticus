@@ -95,6 +95,8 @@ contains
        !@   <description>
        !@     The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('virialOrbitsFixedRadialVelocity'    ,virialOrbitsFixedRadialVelocity    ,defaultValue=-0.90d0)
        !@ <inputParameter>
@@ -104,6 +106,8 @@ contains
        !@   <description>
        !@     The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('virialOrbitsFixedTangentialVelocity',virialOrbitsFixedTangentialVelocity,defaultValue= 0.75d0)
     end if

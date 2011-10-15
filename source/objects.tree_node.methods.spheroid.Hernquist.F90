@@ -293,6 +293,8 @@ contains
        !@   <description>
        !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of a Hernquist spheroid .
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=0.2546479089d0)
        !@ <inputParameter>
@@ -302,6 +304,8 @@ contains
        !@   <description>
        !@    The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\rm spheroid}^2$.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidEnergeticOutflowMassRate',spheroidEnergeticOutflowMassRate,defaultValue=1.0d0)
        !@ <inputParameter>
@@ -311,6 +315,8 @@ contains
        !@   <description>
        !@    The mass tolerance used to judge whether the spheroid is physically plausible.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassToleranceAbsolute',spheroidMassToleranceAbsolute,defaultValue=1.0d-6)
        !@ <inputParameter>
@@ -320,6 +326,8 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)
        !@ <inputParameter>
@@ -329,6 +337,9 @@ contains
        !@   <description>
        !@    Determines whether or not the star formation rate in the spheroid of each galaxy will be output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutputStarFormationRate',spheroidOutputStarFormationRate,defaultValue=.false.)
 
@@ -1877,32 +1888,100 @@ contains
     integer                                       :: iAbundance,iLuminosity
 
     if (methodSelected) then
+       !@ <outputPropertyGroup>
+       !@   <name>spheroid</name>
+       !@   <description>Spheroid properites</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidGasMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of gas in the Hernquist spheroid.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidGasMass'
        doublePropertyComments(doubleProperty)='Mass of gas in the Hernquist spheroid.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidStellarMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of stars in the Hernquist spheroid at scale length.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidStellarMass'
        doublePropertyComments(doubleProperty)='Mass of stars in the Hernquist spheroid at scale length.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidAngularMomentum</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Angular momentum of the Hernquist spheroid.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of the Hernquist spheroid.'
        doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidScaleLength</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Radial scale length in the Hernquist spheroid.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidScaleLength'
        doublePropertyComments(doubleProperty)='Radial scale length in the Hernquist spheroid.'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidCircularVelocity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Circular velocity of the Hernquist spheroid at scale length.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidCircularVelocity'
        doublePropertyComments(doubleProperty)='Circular velocity of the Hernquist spheroid at scale length.'
        doublePropertyUnitsSI (doubleProperty)=kilo
        do iAbundance=1,abundancesCount
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>spheroidGas</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Spheroid gas phase abundance property.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>spheroid</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='spheroidGas'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Spheroid gas phase abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>spheroidStellar</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Spheroid stellar abundance property.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>spheroid</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='spheroidStellar'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Spheroid stellar abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
@@ -1910,6 +1989,15 @@ contains
        do iLuminosity=1,luminositiesCount
           if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
              doubleProperty=doubleProperty+1
+             !@ <outputProperty>
+             !@   <name>spheroidStellar</name>
+             !@   <datatype>real</datatype>
+             !@   <cardinality>0..1</cardinality>
+             !@   <description>Spheroid stellar luminosity property.</description>
+             !@   <label>???</label>
+             !@   <outputType>nodeData</outputType>
+             !@   <group>spheroid</group>
+             !@ </outputProperty>
              doublePropertyNames   (doubleProperty)='spheroidStellar'//Stellar_Population_Luminosities_Name(iLuminosity)
              doublePropertyComments(doubleProperty)='Spheroid stellar luminosity property.'
              doublePropertyUnitsSI (doubleProperty)=luminosityZeroPointAB
@@ -1917,6 +2005,15 @@ contains
        end do
        if (spheroidOutputStarFormationRate) then
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>spheroidStarFormationRate</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Spheroid star formation rate.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>spheroid</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='spheroidStarFormationRate'
           doublePropertyComments(doubleProperty)='Spheroid star formation rate.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear

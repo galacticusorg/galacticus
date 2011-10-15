@@ -121,6 +121,8 @@ contains
     !@   <description>
     !@     The minimum wavenumber at which to tabulate power spectra.
     !@   </description>
+    !@   <type>real</type>
+    !@   <cardinality>1</cardinality>
     !@ </inputParameter>
     call Get_Input_Parameter('powerSpectraWavenumberMinimum',powerSpectraWavenumberMinimum,defaultValue=1.0d-3)
     !@ <inputParameter>
@@ -130,6 +132,8 @@ contains
     !@   <description>
     !@     The maximum wavenumber at which to tabulate power spectra.
     !@   </description>
+    !@   <type>real</type>
+    !@   <cardinality>1</cardinality>
     !@ </inputParameter>
     call Get_Input_Parameter('powerSpectraWavenumberMaximum',powerSpectraWavenumberMaximum,defaultValue=1.0d+3)
     !@ <inputParameter>
@@ -139,6 +143,8 @@ contains
     !@   <description>
     !@     The number of points per decade of wavenumber at which to tabulate power spectra.
     !@   </description>
+    !@   <type>integer</type>
+    !@   <cardinality>1</cardinality>
     !@ </inputParameter>
     call Get_Input_Parameter('powerSpectraPointsPerDecade',powerSpectraPointsPerDecade,defaultValue=10)
 

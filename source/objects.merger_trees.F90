@@ -390,6 +390,9 @@ contains
        !@   <description>
        !@     The absolute tolerance used in solving differential equations for node evolution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=1.0d-30)
        !@ <inputParameter>
@@ -399,6 +402,9 @@ contains
        !@   <description>
        !@     The relative tolerance used in solving differential equations for node evolution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('odeToleranceRelative',odeToleranceRelative,defaultValue=1.0d-2)
 #ifdef PROFILE
@@ -409,6 +415,9 @@ contains
        !@   <description>
        !@     Specifies whether or not to profile the ODE evolver.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('profileOdeEvolver',profileOdeEvolver,defaultValue=.false.)
 #endif
@@ -970,6 +979,8 @@ contains
        !@   <description>
        !@     Selects the method to be used for handling node merger events.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('nodeMergersMethod',nodeMergersMethod,defaultValue='singleLevelHierarchy')
        ! Include file that makes calls to all available method initialization routines.

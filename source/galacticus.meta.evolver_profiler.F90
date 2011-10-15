@@ -102,6 +102,8 @@ contains
        !@   <description>
        !@     The smallest timestep to use in profiling ODE solver steps.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('metaProfileTimeStepMinimum',metaProfileTimeStepMinimum,defaultValue=1.0d-6)
        !@ <inputParameter>
@@ -111,6 +113,8 @@ contains
        !@   <description>
        !@     The largest timestep to use in profiling ODE solver steps.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('metaProfileTimeStepMaximum',metaProfileTimeStepMaximum,defaultValue=1.0d+1)
        !@ <inputParameter>
@@ -120,6 +124,8 @@ contains
        !@   <description>
        !@     The number of bins per decade of timestep to use when profiling ODE solver steps.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('metaProfileTimeStepPointsPerDecade',metaProfileTimeStepPointsPerDecade,defaultValue=3)
        ! Create an array of timesteps.

@@ -106,6 +106,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for bar instability calculations.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('barInstabilityMethod',barInstabilityMethod,defaultValue='ELN')
        ! Include file that makes calls to all available method initialization routines.

@@ -128,6 +128,9 @@ contains
        !@   <description>
        !@     The recycled fraction for the Kroupa \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfKroupaRecycledInstantaneous',imfKroupaRecycledInstantaneous,defaultValue=0.30d0)
        !@ <inputParameter>
@@ -137,6 +140,9 @@ contains
        !@   <description>
        !@     The yield for the Kroupa \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfKroupaYieldInstantaneous'   ,imfKroupaYieldInstantaneous   ,defaultValue=0.023d0)
 

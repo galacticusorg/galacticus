@@ -105,6 +105,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for computing atomic photo ionization rates.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('atomicPhotoIonizationMethod',atomicPhotoIonizationMethod,defaultValue='Verner')
 

@@ -95,6 +95,8 @@ contains
        !@   <description>
        !@     The orbital energy used in the ``Covington2008'' merger remnant sizes calculation in units of the characteristic orbital energy.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("mergerRemnantSizeOrbitalEnergy",mergerRemnantSizeOrbitalEnergy,defaultValue=1.0d0)
        !@ <inputParameter>
@@ -104,6 +106,8 @@ contains
        !@   <description>
        !@     The coefficient, $C_{\rm rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("mergerRemnantRadiativeEfficiency",mergerRemnantRadiativeEfficiency,defaultValue=2.75d0)
     end if

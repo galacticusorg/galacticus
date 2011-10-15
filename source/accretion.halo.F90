@@ -132,6 +132,8 @@ contains
        !@   <description>
        !@    Selects which method should be used for accretion onto halos.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('accretionHalosMethod',accretionHalosMethod,defaultValue='simple')
        ! Include file that makes calls to all available method initialization routines.

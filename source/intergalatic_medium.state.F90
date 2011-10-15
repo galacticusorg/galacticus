@@ -104,6 +104,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for computing the state of the intergalactic medium.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('intergalaticMediumStateMethod',intergalaticMediumStateMethod,defaultValue='RecFast')
        ! Include file that makes calls to all available method initialization routines.

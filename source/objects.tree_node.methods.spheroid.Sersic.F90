@@ -59,10 +59,10 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module of Sérsic-profile spheroid tree node methods.
+!% Contains a module of S\'ersic-profile spheroid tree node methods.
 
 module Tree_Node_Methods_Sersic_Spheroid
-  !% Implement Sérsic spheroid tree node methods.
+  !% Implement S\'ersic spheroid tree node methods.
   use Tree_Nodes
   use Histories
   use Components
@@ -193,7 +193,7 @@ contains
   !#  <optionName>treeNodeMethodSpheroid</optionName>
   !# </treeNodeCreateInitialize>
   subroutine Tree_Node_Methods_Sersic_Spheroid_Initialize(componentOption,componentTypeCount)
-    !% Initializes the tree node Sérsic spheroid methods module.
+    !% Initializes the tree node S\'ersic spheroid methods module.
     use ISO_Varying_String
     use Input_Parameters
     use String_Handling
@@ -310,8 +310,10 @@ contains
        !@   <defaultValue>4</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The index in the Sérsic profile describing the spheroid component.
+       !@    The index in the S\'ersic profile describing the spheroid component.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidSersicIndex',spheroidSersicIndex,defaultValue=4)
        !@ <inputParameter>
@@ -321,6 +323,8 @@ contains
        !@   <description>
        !@    The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\rm spheroid}^2$.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidEnergeticOutflowMassRate',spheroidEnergeticOutflowMassRate,defaultValue=1.0d0)
        !@ <inputParameter>
@@ -330,6 +334,8 @@ contains
        !@   <description>
        !@    The mass tolerance used to judge whether the spheroid is physically plausible.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassToleranceAbsolute',spheroidMassToleranceAbsolute,defaultValue=1.0d-6)
        !@ <inputParameter>
@@ -339,6 +345,8 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)
        !@ <inputParameter>
@@ -348,6 +356,9 @@ contains
        !@   <description>
        !@    Determines whether or not the star formation rate in the spheroid of each galaxy will be output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutputStarFormationRate',spheroidOutputStarFormationRate,defaultValue=.false.)
 
@@ -461,7 +472,7 @@ contains
   end subroutine Tree_Node_Spheroid_Post_Evolve_Sersic
 
   double precision function Tree_Node_Spheroid_Gas_Mass_Sersic(thisNode,instance)
-    !% Return the node Sérsic spheroid gas mass.
+    !% Return the node S\'ersic spheroid gas mass.
     implicit none
     type(treeNode), pointer,  intent(inout) :: thisNode
     integer,        optional, intent(in)    :: instance
@@ -477,7 +488,7 @@ contains
   end function Tree_Node_Spheroid_Gas_Mass_Sersic
 
   subroutine Tree_Node_Spheroid_Gas_Mass_Set_Sersic(thisNode,mass,instance)
-    !% Set the node Sérsic spheroid gas mass.
+    !% Set the node S\'ersic spheroid gas mass.
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
     double precision,           intent(in)    :: mass
@@ -490,7 +501,7 @@ contains
   end subroutine Tree_Node_Spheroid_Gas_Mass_Set_Sersic
 
   subroutine Tree_Node_Spheroid_Gas_Sink_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
-    !% Account for a sink of gaseous material in the Sérsic spheroid.
+    !% Account for a sink of gaseous material in the S\'ersic spheroid.
     use Galacticus_Error
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
@@ -591,7 +602,7 @@ contains
   end subroutine Tree_Node_Spheroid_Gas_Energy_Input_Rate_Adjust_Sersic
 
   subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
-    !% Return the node Sérsic spheroid gas mass rate of change.
+    !% Return the node S\'ersic spheroid gas mass rate of change.
     use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
@@ -617,7 +628,7 @@ contains
   end subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Sersic
 
   subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Compute_Sersic(thisNode,interrupt,interruptProcedure)
-    !% Compute the Sérsic spheroid node mass rate of change.
+    !% Compute the S\'ersic spheroid node mass rate of change.
     use Cosmological_Parameters
     use Cooling_Rates
     implicit none
@@ -630,7 +641,7 @@ contains
   end subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Compute_Sersic
 
   double precision function Tree_Node_Spheroid_Stellar_Mass_Sersic(thisNode,instance)
-    !% Return the node Sérsic spheroid stellar mass.
+    !% Return the node S\'ersic spheroid stellar mass.
     implicit none
     type(treeNode), pointer,  intent(inout) :: thisNode
     integer,        optional, intent(in)    :: instance
@@ -646,7 +657,7 @@ contains
   end function Tree_Node_Spheroid_Stellar_Mass_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Mass_Set_Sersic(thisNode,mass,instance)
-    !% Set the node Sérsic spheroid stellar mass.
+    !% Set the node S\'ersic spheroid stellar mass.
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
     double precision,           intent(in)    :: mass
@@ -659,7 +670,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Mass_Set_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
-    !% Return the node Sérsic spheroid stellar mass rate of change.
+    !% Return the node S\'ersic spheroid stellar mass rate of change.
     use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
@@ -685,7 +696,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Adjust_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Compute_Sersic(thisNode,interrupt,interruptProcedure)
-    !% Compute the Sérsic spheroid node mass rate of change.
+    !% Compute the S\'ersic spheroid node mass rate of change.
     use Cosmological_Parameters
     use Cooling_Rates
     use Star_Formation_Feedback_Spheroids
@@ -790,7 +801,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Compute_Sersic
 
   subroutine Tree_Node_Spheroid_Gas_Abundances_Sersic(thisNode,abundanceMasses)
-    !% Return the node Sérsic spheroid gas abundance masses.
+    !% Return the node S\'ersic spheroid gas abundance masses.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(out)   :: abundanceMasses(:)
@@ -807,7 +818,7 @@ contains
   end subroutine Tree_Node_Spheroid_Gas_Abundances_Sersic
 
   subroutine Tree_Node_Spheroid_Gas_Abundances_Set_Sersic(thisNode,abundanceMasses)
-    !% Set the node Sérsic spheroid gas abundance masses.
+    !% Set the node S\'ersic spheroid gas abundance masses.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: abundanceMasses(:)
@@ -819,7 +830,7 @@ contains
   end subroutine Tree_Node_Spheroid_Gas_Abundances_Set_Sersic
 
   subroutine Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustments)
-    !% Adjust the node Sérsic spheroid gas abundance masses rates of change.
+    !% Adjust the node S\'ersic spheroid gas abundance masses rates of change.
     use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -845,7 +856,7 @@ contains
   end subroutine Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Abundances_Sersic(thisNode,abundanceMasses)
-    !% Return the node Sérsic spheroid stellar abundance masses.
+    !% Return the node S\'ersic spheroid stellar abundance masses.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(out)   :: abundanceMasses(:)
@@ -862,7 +873,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Abundances_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Abundances_Set_Sersic(thisNode,abundanceMasses)
-    !% Set the node Sérsic spheroid stellar abundance masses.
+    !% Set the node S\'ersic spheroid stellar abundance masses.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: abundanceMasses(:)
@@ -874,7 +885,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Abundances_Set_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Abundances_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustments)
-    !% Adjust the node Sérsic spheroid stellar abundance masses rates of change.
+    !% Adjust the node S\'ersic spheroid stellar abundance masses rates of change.
     use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -900,7 +911,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Abundances_Rate_Adjust_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Luminosities_Sersic(thisNode,luminosities)
-    !% Return the node Sérsic spheroid stellar luminosities.
+    !% Return the node S\'ersic spheroid stellar luminosities.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(out)   :: luminosities(:)
@@ -917,7 +928,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Luminosities_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Luminosities_Set_Sersic(thisNode,luminosities)
-    !% Set the node Sérsic spheroid stellar luminosities.
+    !% Set the node S\'ersic spheroid stellar luminosities.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: luminosities(:)
@@ -929,7 +940,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Luminosities_Set_Sersic
 
   subroutine Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustments)
-    !% Adjust the node Sérsic spheroid stellar luminosity rates of change.
+    !% Adjust the node S\'ersic spheroid stellar luminosity rates of change.
     use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -955,7 +966,7 @@ contains
   end subroutine Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust_Sersic
 
   double precision function Tree_Node_Spheroid_Angular_Momentum_Sersic(thisNode,instance)
-    !% Return the node Sérsic spheroid gas mass.
+    !% Return the node S\'ersic spheroid gas mass.
     implicit none
     type(treeNode), pointer,  intent(inout) :: thisNode
     integer,        optional, intent(in)    :: instance
@@ -971,7 +982,7 @@ contains
   end function Tree_Node_Spheroid_Angular_Momentum_Sersic
 
   subroutine Tree_Node_Spheroid_Angular_Momentum_Set_Sersic(thisNode,angularMomentum,instance)
-    !% Set the node Sérsic spheroid gas mass.
+    !% Set the node S\'ersic spheroid gas mass.
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
     double precision,           intent(in)    :: angularMomentum
@@ -984,7 +995,7 @@ contains
   end subroutine Tree_Node_Spheroid_Angular_Momentum_Set_Sersic
 
   subroutine Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
-    !% Return the node Sérsic spheroid gas mass rate of change.
+    !% Return the node S\'ersic spheroid gas mass rate of change.
     use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
@@ -1010,7 +1021,7 @@ contains
   end subroutine Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Sersic
 
   subroutine Tree_Node_Spheroid_Angular_Momentum_Rate_Compute_Sersic(thisNode,interrupt,interruptProcedure)
-    !% Compute the Sérsic spheroid node mass rate of change.
+    !% Compute the S\'ersic spheroid node mass rate of change.
     use Cosmological_Parameters
     use Cooling_Rates
     implicit none
@@ -1225,7 +1236,7 @@ contains
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Sersic_Spheroid_Satellite_Merging(thisNode)
-    !% Transfer any Sérsic spheroid associated with {\tt thisNode} to its host halo.
+    !% Transfer any S\'ersic spheroid associated with {\tt thisNode} to its host halo.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     use Satellite_Merging_Remnant_Sizes_Properties
@@ -1501,7 +1512,7 @@ contains
   end subroutine Sersic_Profile_Tabulate_State_Retrieve
 
   subroutine Sersic_Profile_Tabulate(radius)
-    !% Tabulate the density and enclosed mass in a dimensionless Sérsic profile.
+    !% Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
     use, intrinsic :: ISO_C_Binding                             
     use Memory_Management
     use Numerical_Ranges
@@ -1645,7 +1656,7 @@ contains
   end subroutine Sersic_Profile_Tabulate
 
   function Sersic_Abel_Integrand(radius,parameterPointer) bind(c)
-    !% The integrand in the Abel integral used to invert the Sérsic profile to get the corresponding 3-D profile.
+    !% The integrand in the Abel integral used to invert the S\'ersic profile to get the corresponding 3-D profile.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
     implicit none
@@ -1669,7 +1680,7 @@ contains
   !#  <unitName>Sersic_Spheroid_Enclosed_Mass</unitName>
   !# </enclosedMassTask>
   subroutine Sersic_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex,componentMass)
-    !% Computes the mass within a given radius for an Sérsic spheroid.
+    !% Computes the mass within a given radius for an S\'ersic spheroid.
     use Galactic_Structure_Options
     use Numerical_Interpolation
     implicit none
@@ -1724,7 +1735,7 @@ contains
   !#  <unitName>Sersic_Spheroid_Potential</unitName>
   !# </potentialTask>
   subroutine Sersic_Spheroid_Potential(thisNode,radius,massType,componentType,componentPotential)
-    !% Computes the gravitational potential at a given radius for a Sérsic spheroid.
+    !% Computes the gravitational potential at a given radius for a S\'ersic spheroid.
     use Numerical_Constants_Physical
     use Galactic_Structure_Options
     use Numerical_Interpolation
@@ -1762,7 +1773,7 @@ contains
   !#  <unitName>Sersic_Spheroid_Rotation_Curve</unitName>
   !# </rotationCurveTask>
   subroutine Sersic_Spheroid_Rotation_Curve(thisNode,radius,massType,componentType,componentVelocity)
-    !% Computes the rotation curve at a given radius for an Sérsic spheroid.
+    !% Computes the rotation curve at a given radius for an S\'ersic spheroid.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
@@ -1789,7 +1800,7 @@ contains
   !#  <unitName>Sersic_Spheroid_Rotation_Curve_Gradient</unitName>
   !# </rotationCurveGradientTask>
   subroutine Sersic_Spheroid_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,componentRotationCurveGradient)
-    !% Computes the rotation curve gradient for the Sérsic spheroid.
+    !% Computes the rotation curve gradient for the S\'ersic spheroid.
     use Tree_Nodes
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
@@ -1827,7 +1838,7 @@ contains
   !#  <unitName>Sersic_Spheroid_Density</unitName>
   !# </densityTask>
   subroutine Sersic_Spheroid_Density(thisNode,positionSpherical,massType,componentType,componentDensity)
-    !% Computes the density at a given position for an Sérsic spheroid.
+    !% Computes the density at a given position for an S\'ersic spheroid.
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     use Numerical_Interpolation
@@ -1969,7 +1980,7 @@ contains
   end function Sersic_Spheroid_SFR
 
   double precision function Sersic_Spheroid_Radius(thisNode,instance)
-    !% Return the scale radius of the Sérsic spheroid.
+    !% Return the scale radius of the S\'ersic spheroid.
     implicit none
     type(treeNode), pointer,  intent(inout) :: thisNode
     integer,        optional, intent(in)    :: instance
@@ -1985,7 +1996,7 @@ contains
   end function Sersic_Spheroid_Radius
 
   double precision function Sersic_Spheroid_Half_Mass_Radius(thisNode,instance)
-    !% Return the half-mass radius of the Sérsic spheroid. This is just the same as the scale radius,
+    !% Return the half-mass radius of the S\'ersic spheroid. This is just the same as the scale radius,
     implicit none
     type(treeNode), pointer,  intent(inout) :: thisNode
     integer,        optional, intent(in)    :: instance
@@ -2009,7 +2020,7 @@ contains
   end subroutine Sersic_Spheroid_Radius_Set
 
   double precision function Sersic_Spheroid_Velocity(thisNode,instance)
-    !% Return the circular velocity of the Sérsic spheroid.
+    !% Return the circular velocity of the S\'ersic spheroid.
     implicit none
     type(treeNode), pointer,  intent(inout) :: thisNode
     integer,        optional, intent(in)    :: instance
@@ -2025,7 +2036,7 @@ contains
   end function Sersic_Spheroid_Velocity
 
   subroutine Sersic_Spheroid_Velocity_Set(thisNode,velocity)
-    !% Set the circular velocity of the Sérsic spheroid.
+    !% Set the circular velocity of the S\'ersic spheroid.
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision,          intent(in)    :: velocity
@@ -2039,7 +2050,7 @@ contains
   end subroutine Sersic_Spheroid_Velocity_Set
 
   integer function Tree_Node_Sersic_Spheroid_Index(thisNode)
-    !% Ensure the Sérsic spheroid component exists and return its position in the components array.
+    !% Ensure the S\'ersic spheroid component exists and return its position in the components array.
     use Galacticus_Output_Star_Formation_Histories
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
@@ -2063,7 +2074,7 @@ contains
   end function Tree_Node_Sersic_Spheroid_Index
 
   subroutine Sersic_Spheroid_Create(thisNode)
-    !% Creates an Sérsic spheroid component for {\tt thisNode}.
+    !% Creates an S\'ersic spheroid component for {\tt thisNode}.
     use ISO_Varying_String
     use Galacticus_Display
     use String_Handling
@@ -2102,7 +2113,7 @@ contains
   !# </mergerTreeOutputNames>
   subroutine Galacticus_Output_Tree_Spheroid_Sersic_Names(integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
-    !% Set names of Sérsic spheroid properties to be written to the \glc\ output file.
+    !% Set names of S\'ersic spheroid properties to be written to the \glc\ output file.
     use Abundances_Structure
     use ISO_Varying_String
     use Stellar_Population_Properties_Luminosities
@@ -2117,32 +2128,100 @@ contains
     integer                                       :: iAbundance,iLuminosity
 
     if (methodSelected) then
+       !@ <outputPropertyGroup>
+       !@   <name>spheroid</name>
+       !@   <description>Spheroid properites</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidGasMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of gas in the Sérsic spheroid.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidGasMass'
        doublePropertyComments(doubleProperty)='Mass of gas in the Sérsic spheroid.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidStellarMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of stars in the Sérsic spheroid at scale length.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidStellarMass'
        doublePropertyComments(doubleProperty)='Mass of stars in the Sérsic spheroid at scale length.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidAngularMomentum</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Angular momentum of the Sérsic spheroid.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of the Sérsic spheroid.'
        doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidScaleLength</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Radial scale length in the Sérsic spheroid.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidScaleLength'
        doublePropertyComments(doubleProperty)='Radial scale length in the Sérsic spheroid.'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>spheroidCircularVelocity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Circular velocity of the Sérsic spheroid at scale length.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>spheroid</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='spheroidCircularVelocity'
        doublePropertyComments(doubleProperty)='Circular velocity of the Sérsic spheroid at scale length.'
        doublePropertyUnitsSI (doubleProperty)=kilo
        do iAbundance=1,abundancesCount
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>spheroidGas</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Spheroid gas phase abundance property.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>spheroid</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='spheroidGas'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Spheroid gas phase abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>spheroidStellar</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Spheroid stellar abundance property.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>spheroid</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='spheroidStellar'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Spheroid stellar abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
@@ -2150,6 +2229,15 @@ contains
        do iLuminosity=1,luminositiesCount
           if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
              doubleProperty=doubleProperty+1
+             !@ <outputProperty>
+             !@   <name>spheroidStellar</name>
+             !@   <datatype>real</datatype>
+             !@   <cardinality>0..1</cardinality>
+             !@   <description>Spheroid stellar luminosity property.</description>
+             !@   <label>???</label>
+             !@   <outputType>nodeData</outputType>
+             !@   <group>spheroid</group>
+             !@ </outputProperty>
              doublePropertyNames   (doubleProperty)='spheroidStellar'//Stellar_Population_Luminosities_Name(iLuminosity)
              doublePropertyComments(doubleProperty)='Spheroid stellar luminosity property.'
              doublePropertyUnitsSI (doubleProperty)=luminosityZeroPointAB
@@ -2157,6 +2245,15 @@ contains
        end do
        if (spheroidOutputStarFormationRate) then
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>spheroidStarFormationRate</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Spheroid star formation rate.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>spheroid</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='spheroidStarFormationRate'
           doublePropertyComments(doubleProperty)='Spheroid star formation rate.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
@@ -2170,7 +2267,7 @@ contains
   !#  <sortName>Galacticus_Output_Tree_Spheroid_Sersic</sortName>
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Spheroid_Sersic_Property_Count(integerPropertyCount,doublePropertyCount,time)
-    !% Account for the number of Sérsic spheroid properties to be written to the the \glc\ output file.
+    !% Account for the number of S\'ersic spheroid properties to be written to the the \glc\ output file.
     use Stellar_Population_Properties_Luminosities
     implicit none
     double precision, intent(in)    :: time
@@ -2190,7 +2287,7 @@ contains
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Spheroid_Sersic(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
-    !% Store Sérsic spheroid properties in the \glc\ output file buffers.
+    !% Store S\'ersic spheroid properties in the \glc\ output file buffers.
     use Stellar_Population_Properties_Luminosities
     use Tree_Nodes
     use Kind_Numbers
@@ -2305,7 +2402,7 @@ contains
   !#  <unitName>Sersic_Spheroid_Property_Identifiers_Decode</unitName>
   !# </decodePropertyIdentifiersTask>
   subroutine Sersic_Spheroid_Property_Identifiers_Decode(propertyComponent,propertyObject,propertyIndex,matchedProperty,propertyName)
-    !% Decodes property identifiers to property names for the Sérsic spheroid module.
+    !% Decodes property identifiers to property names for the S\'ersic spheroid module.
     use ISO_Varying_String
     implicit none
     integer,              intent(in)    :: propertyComponent,propertyObject,propertyIndex

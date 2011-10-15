@@ -114,6 +114,9 @@ contains
        !@   <description>
        !@     The star formation frequency (in units of Gyr$^{-1}$) in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationFrequencyKMT09',starFormationFrequencyKMT09,defaultValue=0.385d0)
        !@ <inputParameter>
@@ -123,6 +126,9 @@ contains
        !@   <description>
        !@     The density enhancement (relative to mean disk density) for molecular complexes in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('molecularComplexClumpingFactorKMT09',molecularComplexClumpingFactorKMT09,defaultValue=5.0d0)
        !@ <inputParameter>
@@ -132,6 +138,9 @@ contains
        !@   <description>
        !@      Selects whether the fast (but less accurate) fitting formula for molecular hydrogen should be used in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('molecularFractionFastKMT09',molecularFractionFastKMT09,defaultValue=.false.)
 

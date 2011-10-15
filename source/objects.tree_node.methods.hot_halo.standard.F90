@@ -284,6 +284,8 @@ contains
        !@   <description>
        !@    Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('starveSatellites',starveSatellites,defaultValue=.true.)
 
@@ -295,6 +297,8 @@ contains
        !@   <description>
        !@    Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnOnFormation',hotHaloOutflowReturnOnFormation,defaultValue=.false.)
 
@@ -306,6 +310,8 @@ contains
        !@   <description>
        !@    Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloCoolingFromNode',hotHaloCoolingFromText,defaultValue='currentNode')
        select case (char(hotHaloCoolingFromText))
@@ -325,6 +331,8 @@ contains
        !@   <description>
        !@    Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical time.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=1.26027d0)
 
@@ -336,6 +344,8 @@ contains
        !@   <description>
        !@    Specifies the fraction of angular momentum that is lost from cooling/infalling gas.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloAngularMomentumLossFraction',hotHaloAngularMomentumLossFraction,defaultValue=0.0d0)
 
@@ -347,6 +357,8 @@ contains
        !@   <description>
        !@    Determines whether or not cooling rates and radii are output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutputCooling',hotHaloOutputCooling,defaultValue=.false.)
 
@@ -1668,42 +1680,128 @@ contains
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     if (methodSelected) then
+       !@ <outputPropertyGroup>
+       !@   <name>hotHalo</name>
+       !@   <description>Hot halo properities</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>hotHaloMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of gas in the hot halo.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>hotHalo</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='hotHaloMass'
        doublePropertyComments(doubleProperty)='Mass of gas in the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>hotHaloUnaccretedMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of gas that failed to accrete into the hot halo.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>hotHalo</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='hotHaloUnaccretedMass'
        doublePropertyComments(doubleProperty)='Mass of gas that failed to accrete into the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>hotHaloAngularMomentum</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Angular momentum of gas in the hot halo.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>hotHalo</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='hotHaloAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of gas in the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>outflowedMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of outflowed gas in the hot halo.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>hotHalo</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='outflowedMass'
        doublePropertyComments(doubleProperty)='Mass of outflowed gas in the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>outflowedAngularMomentum</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Angular momentum of outflowed gas in the hot halo.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>hotHalo</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='outflowedAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of outflowed gas in the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        do iAbundance=1,abundancesCount
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>hotHalo</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Hot halo abundance property.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>hotHalo</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='hotHalo'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Hot halo abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>outflowed</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Outflowed gas abundance property.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>hotHalo</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='outflowed'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Outflowed gas abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
        end do
        if (hotHaloOutputCooling) then
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>hotHaloCoolingRate</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Rate of mass cooling in the hot halo.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>hotHalo</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='hotHaloCoolingRate'
           doublePropertyComments(doubleProperty)='Rate of mass cooling in the hot halo.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>hotHaloCoolingRadius</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Cooling radius in the hot halo.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>hotHalo</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='hotHaloCoolingRadius'
           doublePropertyComments(doubleProperty)='Cooling radius in the hot halo.'
           doublePropertyUnitsSI (doubleProperty)=megaParsec

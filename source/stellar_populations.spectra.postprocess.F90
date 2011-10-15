@@ -105,6 +105,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for post-processing of stellar population spectra.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethod',stellarPopulationSpectraPostprocessMethod,defaultValue='Meiksin2006')
        ! Include file that makes calls to all available method initialization routines.

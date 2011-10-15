@@ -129,6 +129,9 @@ contains
           !@   <description>
           !@    The name of an XML file from which to read details of lightcone geometry.
           !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('filterLightconeGeometryFileName',filterLightconeGeometryFileName)
 
@@ -351,35 +354,115 @@ contains
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     if (lightconeFilterActive) then
+       !@ <outputPropertyGroup>
+       !@   <name>lightconePosition</name>
+       !@   <description>Lightcone X-Y-Z coordinates</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
+       !@ <outputPropertyGroup>
+       !@   <name>lightconeVelocity</name>
+       !@   <description>Lightcone X-Y-Z velocity components</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconePositionX</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Position of galaxy in lightcone (radial axis) [Mpc].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconePosition</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconePositionX'
        doublePropertyComments(doubleProperty)='Position of galaxy in lightcone (radial axis) [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconePositionY</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Position of galaxy in lightcone (1st angular axis) [Mpc].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconePosition</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconePositionY'
        doublePropertyComments(doubleProperty)='Position of galaxy in lightcone (1st angular axis) [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconePositionZ</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Position of galaxy in lightcone (2nd angular axis) [Mpc].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconePosition</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconePositionZ'
        doublePropertyComments(doubleProperty)='Position of galaxy in lightcone (2nd angular axis) [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconeVelocityX</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Velocity of galaxy in lightcone (radial axis) [km/s].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconeVelocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconeVelocityX'
        doublePropertyComments(doubleProperty)='Velocity of galaxy in lightcone (radial axis) [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconeVelocityY</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Velocity of galaxy in lightcone (1st angular axis) [km/s].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconeVelocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconeVelocityY'
        doublePropertyComments(doubleProperty)='Velocity of galaxy in lightcone (1st angular axis) [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconeVelocityZ</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Velocity of galaxy in lightcone (2nd angular axis) [km/s].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconeVelocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconeVelocityZ'
        doublePropertyComments(doubleProperty)='Velocity of galaxy in lightcone (2nd angular axis) [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconeRedshift</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Reshift of galaxy in lightcone.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconeRedshift'
        doublePropertyComments(doubleProperty)='Reshift of galaxy in lightcone.'
        doublePropertyUnitsSI (doubleProperty)=0.0d0
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>angularWeight</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Number of such galaxies per unit area [degrees^-2].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='angularWeight'
        doublePropertyComments(doubleProperty)='Number of such galaxies per unit area [degrees⁻²].'
        doublePropertyUnitsSI (doubleProperty)=(180.0d0/Pi)**2

@@ -327,6 +327,8 @@ contains
        !@   <description>
        !@    The mass tolerance used to judge whether the disk is physically plausible.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskMassToleranceAbsolute',diskMassToleranceAbsolute,defaultValue=1.0d-6)
        !@ <inputParameter>
@@ -336,6 +338,8 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the disk dynamical time) on which outflows may deplete gas in the disk.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutflowTimescaleMinimum',diskOutflowTimescaleMinimum,defaultValue=1.0d-3)
        !@ <inputParameter>
@@ -345,6 +349,9 @@ contains
        !@   <description>
        !@    Determines whether or not the star formation rate in the disk of each galaxy will be output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutputStarFormationRate',diskOutputStarFormationRate,defaultValue=.false.)
        !@ <inputParameter>
@@ -354,6 +361,8 @@ contains
        !@   <description>
        !@    The radius (in units of the exponential scale length) to use in solving for the size of the disk.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskStructureSolverRadius',diskStructureSolverRadius,defaultValue=1.0d0)
        !@ <inputParameter>
@@ -363,6 +372,8 @@ contains
        !@   <description>
        !@    
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskRadiusSolverCole2000Method',diskRadiusSolverCole2000Method,defaultValue=.false.)
        !@ <inputParameter>
@@ -372,6 +383,8 @@ contains
        !@   <description>
        !@     The ratio of scale height to scale radius for exponential disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('heightToRadialScaleDisk',heightToRadialScaleDisk,defaultValue=0.137d0)
 
@@ -1920,32 +1933,100 @@ contains
     integer                                       :: iAbundance,iLuminosity
 
     if (methodSelected) then
+       !@ <outputPropertyGroup>
+       !@   <name>disk</name>
+       !@   <description>Disk properites</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>diskGasMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of gas in the exponential disk.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>disk</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='diskGasMass'
        doublePropertyComments(doubleProperty)='Mass of gas in the exponential disk.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>diskStellarMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Mass of stars in the exponential disk at scale length.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>disk</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='diskStellarMass'
        doublePropertyComments(doubleProperty)='Mass of stars in the exponential disk at scale length.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>diskAngularMomentum</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Angular momentum of the exponential disk.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>disk</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='diskAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of the exponential disk.'
        doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>diskScaleLength</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Radial scale length in the exponential disk.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>disk</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='diskScaleLength'
        doublePropertyComments(doubleProperty)='Radial scale length in the exponential disk.'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>diskCircularVelocity</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Circular velocity of the exponential disk at scale length.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>disk</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='diskCircularVelocity'
        doublePropertyComments(doubleProperty)='Circular velocity of the exponential disk at scale length.'
        doublePropertyUnitsSI (doubleProperty)=kilo
        do iAbundance=1,abundancesCount
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>diskGas</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Disk gas phase abundance property.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>disk</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='diskGas'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Disk gas phase abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>diskStellar</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Disk stellar abundance property.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>disk</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='diskStellar'//Abundances_Names(iAbundance)
           doublePropertyComments(doubleProperty)='Disk stellar abundance property.'
           doublePropertyUnitsSI (doubleProperty)=massSolar
@@ -1953,6 +2034,15 @@ contains
        do iLuminosity=1,luminositiesCount
           if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
              doubleProperty=doubleProperty+1
+             !@ <outputProperty>
+             !@   <name>diskStellar</name>
+             !@   <datatype>real</datatype>
+             !@   <cardinality>0..1</cardinality>
+             !@   <description>Disk stellar luminosity property.</description>
+             !@   <label>???</label>
+             !@   <outputType>nodeData</outputType>
+             !@   <group>disk</group>
+             !@ </outputProperty>
              doublePropertyNames   (doubleProperty)='diskStellar'//Stellar_Population_Luminosities_Name(iLuminosity)
              doublePropertyComments(doubleProperty)='Disk stellar luminosity property.'
              doublePropertyUnitsSI (doubleProperty)=luminosityZeroPointAB
@@ -1960,6 +2050,15 @@ contains
        end do
        if (diskOutputStarFormationRate) then
           doubleProperty=doubleProperty+1
+          !@ <outputProperty>
+          !@   <name>diskStarFormationRate</name>
+          !@   <datatype>real</datatype>
+          !@   <cardinality>0..1</cardinality>
+          !@   <description>Disk star formation rate.</description>
+          !@   <label>???</label>
+          !@   <outputType>nodeData</outputType>
+          !@   <group>disk</group>
+          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='diskStarFormationRate'
           doublePropertyComments(doubleProperty)='Disk star formation rate.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear

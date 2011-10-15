@@ -177,6 +177,8 @@ contains
        !@     Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
        !@     again---possibly at random---each time they are requested).
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteOrbitStoreOrbitalParameters',satelliteOrbitStoreOrbitalParameters,defaultValue=.false.)
        ! Add two data properties if this information is to be stored.
@@ -190,6 +192,8 @@ contains
        !@   <description>
        !@     Specifies whether satellite virial orbital parameters should be reset on halo formation events.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteOrbitResetOnHaloFormation',satelliteOrbitResetOnHaloFormation,defaultValue=.false.)
 
@@ -201,6 +205,8 @@ contains
        !@   <description>
        !@     The name of the method to be used to compute satellite merging timescales.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
        ! Include file that makes calls to all available method initialization routines.
@@ -526,10 +532,26 @@ contains
     
     if (methodSelected) then
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>timeToMerge</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Time until satellite merges.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='timeToMerge'
        doublePropertyComments(doubleProperty)='Time until satellite merges.'
        doublePropertyUnitsSI (doubleProperty)=gigaYear
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeBoundMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Bound mass of the node.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeBoundMass'
        doublePropertyComments(doubleProperty)='Bound mass of the node.'
        doublePropertyUnitsSI (doubleProperty)=massSolar

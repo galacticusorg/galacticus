@@ -108,6 +108,8 @@ contains
        !@   <description>
        !@     Selects the method to be used constructing merger trees.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeConstructMethod',mergerTreeConstructMethod,defaultValue='build')
        ! Include file that makes calls to all available method initialization routines.

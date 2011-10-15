@@ -115,6 +115,8 @@ contains
        !@    is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see
        !@    \citealt{abel_modeling_1997}).
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hydrogenNetworkFast',hydrogenNetworkFast,defaultValue=.true.)
        !@ <inputParameter>
@@ -124,6 +126,8 @@ contains
        !@   <description>
        !@    Specifies whether or not to use the cosmic microwave background only when computed certain radiative rates.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hydrogenNetworkCMBOnly',hydrogenNetworkCMBOnly,defaultValue=.true.)
 

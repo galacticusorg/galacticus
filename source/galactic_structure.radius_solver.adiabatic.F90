@@ -110,6 +110,8 @@ contains
        !@   <description>
        !@     The parameter $A$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionGnedinA'    ,adiabaticContractionGnedinA    ,defaultValue=0.80d0)
        !@ <inputParameter>
@@ -119,6 +121,8 @@ contains
        !@   <description>
        !@     The parameter $\omega$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionGnedinOmega',adiabaticContractionGnedinOmega,defaultValue=0.77d0)
        !@ <inputParameter>
@@ -128,6 +132,8 @@ contains
        !@   <description>
        !@     Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in adiabatically contracted dark matter halos.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionIncludeBaryonGravity',adiabaticContractionIncludeBaryonGravity,defaultValue=.true.)
        !@ <inputParameter>
@@ -137,6 +143,8 @@ contains
        !@   <description>
        !@     Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionUseFormationHalo',adiabaticContractionUseFormationHalo,defaultValue=.false.)
       !@ <inputParameter>
@@ -146,6 +154,8 @@ contains
        !@   <description>
        !@     Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionSolutionTolerance',adiabaticContractionSolutionTolerance,defaultValue=1.0d-2)
        ! Store the exponent that we actually use in the equations.

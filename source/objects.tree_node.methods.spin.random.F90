@@ -140,6 +140,8 @@ contains
        !@   <description>
        !@     The factor by which a node must increase in mass before its spin parameter is reset.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('randomSpinResetMassFactor',randomSpinResetMassFactor,defaultValue=2.0d0)
     end if
@@ -260,6 +262,14 @@ contains
 
     if (methodSelected) then
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeSpin</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Spin parameter of the node.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeSpin'
        doublePropertyComments(doubleProperty)='Spin parameter of the node.'
        doublePropertyUnitsSI (doubleProperty)=0.0d0

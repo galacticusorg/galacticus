@@ -96,6 +96,8 @@ contains
        !@   <description>
        !@     Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the {\tt White-Frenk1991} method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingTimeAvailableAgeFactor',coolingTimeAvailableAgeFactor,defaultValue=0.0d0)
        if (coolingTimeAvailableAgeFactor < 0.0d0 .or. coolingTimeAvailableAgeFactor > 1.0d0) call Galacticus_Error_Report('Cooling_Time_Available_WF_Initialize','0 <= coolingTimeAvailableAgeFactor <= 1 is required')

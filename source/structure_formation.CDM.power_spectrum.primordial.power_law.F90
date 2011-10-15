@@ -98,6 +98,8 @@ contains
        !@   <description>
        !@     The index of the power-law primordial power spectrum.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('powerSpectrumIndex'              ,powerSpectrumIndex              ,defaultValue=0.961d0)
        !@ <inputParameter>
@@ -107,6 +109,8 @@ contains
        !@   <description>
        !@     The running, $\d n_{\rm s} / \d \ln k$, of the power spectrum index.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('powerSpectrumRunning'            ,powerSpectrumRunning            ,defaultValue=0.0d0  )
        !@ <inputParameter>
@@ -116,6 +120,8 @@ contains
        !@   <description>
        !@     When a running power spectrum index is used, this is the wavenumber at which the index is equal to {\tt [powerSpectrumIndex]}.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('powerSpectrumReferenceWavenumber',powerSpectrumReferenceWavenumber,defaultValue=1.0d0  )
     end if

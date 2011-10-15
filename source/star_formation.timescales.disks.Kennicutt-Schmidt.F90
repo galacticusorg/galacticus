@@ -109,6 +109,9 @@ contains
        !@   <description>
        !@     The normalization of the Kennicutt-Schmidt star formation law [$M_\odot$ Gyr$^{-1}$pc$^{-2}$].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationKennicuttSchmidtNormalization'    ,starFormationKennicuttSchmidtNormalization    ,defaultValue=0.147d0)
        !@ <inputParameter>
@@ -118,6 +121,9 @@ contains
        !@   <description>
        !@     The exponent in the Kennicutt-Schmidt star formation law.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationKennicuttSchmidtExponent'         ,starFormationKennicuttSchmidtExponent         ,defaultValue=1.400d0)
        !@ <inputParameter>
@@ -127,6 +133,9 @@ contains
        !@   <description>
        !@     Specifies whether or not to truncate star formation below a critical surface density in disks.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationKennicuttSchmidtTruncate'         ,starFormationKennicuttSchmidtTruncate         ,defaultValue=.true.)
        !@ <inputParameter>
@@ -136,6 +145,9 @@ contains
        !@   <description>
        !@     The exponent of the $\Sigma_{\rm gas}/\Sigma_{\rm crit}$ term used in truncating the Kennicutt-Schmidt star formation law.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationKennicuttSchmidtExponentTruncated',starFormationKennicuttSchmidtExponentTruncated,defaultValue= 6.0d0)
        !@ <inputParameter>
@@ -145,6 +157,9 @@ contains
        !@   <description>
        !@     The velocity dispersion of gas in disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('velocityDispersionDiskGas'                     ,velocityDispersionDiskGas                     ,defaultValue=10.0d0)
        !@ <inputParameter>
@@ -154,6 +169,9 @@ contains
        !@   <description>
        !@     The critical Toomre parameter for star formation in disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('toomreParameterCritical'                       ,toomreParameterCritical                       ,defaultValue= 0.4d0)
 

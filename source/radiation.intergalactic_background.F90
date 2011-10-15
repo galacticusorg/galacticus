@@ -118,6 +118,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for calculations of the intergalatic background radiation field.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('radiationIntergalacticBackgroundMethod',radiationIntergalacticBackgroundMethod,defaultValue='file')
        ! Include file that makes calls to all available method initialization routines.

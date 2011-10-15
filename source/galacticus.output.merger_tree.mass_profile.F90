@@ -97,6 +97,9 @@ contains
        !@   <description>
        !@     Specifies whether or not half-light radius data (i.e. radius and mass) should be included in the output.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('outputMassProfileData',outputMassProfileData,defaultValue=.false.)
 
@@ -110,6 +113,9 @@ contains
           !@   <description>
           !@     A list of radii at which to output the mass profile.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1..*</cardinality>
+          !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('outputMassProfileRadii',outputMassProfileRadii)
        end if

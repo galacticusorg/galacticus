@@ -104,6 +104,8 @@ contains
        !@   <description>
        !@     The method to use for computing properties of Population III supernovae.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('supernovaePopIIIMethod',supernovaePopIIIMethod,defaultValue='Heger-Woosley2002')
        ! Include file that makes calls to all available method initialization routines.

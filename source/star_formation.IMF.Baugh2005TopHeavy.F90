@@ -127,6 +127,9 @@ contains
        !@   <description>
        !@     The recycled fraction for the \cite{baugh_can_2005} top-heavy \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfBaugh2005TopHeavyRecycledInstantaneous',imfBaugh2005TopHeavyRecycledInstantaneous,defaultValue=0.57d0)
        !@ <inputParameter>
@@ -136,6 +139,9 @@ contains
        !@   <description>
        !@     The yield for the \cite{baugh_can_2005} top-heavy \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfBaugh2005TopHeavyYieldInstantaneous'   ,imfBaugh2005TopHeavyYieldInstantaneous   ,defaultValue=0.044d0)
 

@@ -406,10 +406,26 @@ contains
     
     if (methodSelected) then
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>timeToMerge</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Time until satellite merges.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='timeToMerge'
        doublePropertyComments(doubleProperty)='Time until satellite merges.'
        doublePropertyUnitsSI (doubleProperty)=gigaYear
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeBoundMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Bound mass of the node..</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeBoundMass'
        doublePropertyComments(doubleProperty)='Bound mass of the node..'
        doublePropertyUnitsSI (doubleProperty)=massSolar

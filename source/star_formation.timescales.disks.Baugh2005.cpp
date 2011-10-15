@@ -140,6 +140,9 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@   <description>
       //@     The timescale (in Gyr) for star formation in the \cite{baugh_can_2005} prescription.
       //@   </description>
+      //@   <type>real</type>
+      //@   <cardinality>1</cardinality>
+      //@   <group>starFormation</group>
       //@ </inputParameter>
       Get_Input_Parameter(strlen(timescaleParameter),timescaleParameter,&starFormationDiskTimescale       ,&starFormationDiskTimescaleDefault       );
       //@ <inputParameter>
@@ -149,6 +152,9 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@   <description>
       //@     The exponent for disk velocity in the \cite{baugh_can_2005} prescription for star formation in galactic disks.
       //@   </description>
+      //@   <type>real</type>
+      //@   <cardinality>1</cardinality>
+      //@   <group>starFormation</group>
       //@ </inputParameter>
       Get_Input_Parameter(strlen(velocityParameter ),velocityParameter ,&starFormationDiskVelocityExponent,&starFormationDiskVelocityExponentDefault);
       //@ <inputParameter>
@@ -158,6 +164,9 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@   <description>
       //@     The exponent for expansion factor in the \cite{baugh_can_2005} prescription for star formation in galactic disks.
       //@   </description>
+      //@   <type>real</type>
+      //@   <cardinality>1</cardinality>
+      //@   <group>starFormation</group>
       //@ </inputParameter>
       Get_Input_Parameter(strlen(expansionParameter),expansionParameter,&starFormationExpansionExponent   ,&starFormationExpansionExponentDefault   );
     }

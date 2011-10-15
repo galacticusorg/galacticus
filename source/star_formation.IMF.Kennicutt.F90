@@ -128,6 +128,9 @@ contains
        !@   <description>
        !@     The recycled fraction for the Kennicutt \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfKennicuttRecycledInstantaneous',imfKennicuttRecycledInstantaneous,defaultValue=0.57d0)
        !@ <inputParameter>
@@ -137,6 +140,9 @@ contains
        !@   <description>
        !@     The yield for the Kennicutt \IMF\ in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfKennicuttYieldInstantaneous'   ,imfKennicuttYieldInstantaneous   ,defaultValue=0.044d0)
 

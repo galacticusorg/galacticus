@@ -94,6 +94,9 @@ contains
        !@   <description>
        !@     The velocity scale at which the \SNe-driven outflow rate equals the star formation rate in disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutflowVelocity',diskOutflowVelocity,defaultValue=200.0d0)
        !@ <inputParameter>
@@ -103,6 +106,9 @@ contains
        !@   <description>
        !@     The velocity scaling of the \SNe-driven outflow rate in disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutflowExponent',diskOutflowExponent,defaultValue=  2.0d0)
     end if

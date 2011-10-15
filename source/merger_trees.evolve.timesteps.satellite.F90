@@ -107,6 +107,9 @@ contains
        !@   <description>
        !@     The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('mergeTargetTimeOffsetMaximumAbsolute',mergeTargetTimeOffsetMaximumAbsolute,defaultValue=0.010d0)
        !@ <inputParameter>
@@ -116,6 +119,9 @@ contains
        !@   <description>
        !@      The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('mergeTargetTimeOffsetMaximumRelative',mergeTargetTimeOffsetMaximumRelative,defaultValue=0.001d0)
        ! Flag that the module is initialized.

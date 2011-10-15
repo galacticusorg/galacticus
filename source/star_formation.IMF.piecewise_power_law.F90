@@ -144,6 +144,9 @@ contains
        !@   <description>
        !@     The recycled fraction for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfPiecewisePowerLawRecycledInstantaneous',imfPiecewisePowerLawRecycledInstantaneous,defaultValue=0.39d0)
        !@ <inputParameter>
@@ -153,6 +156,9 @@ contains
        !@   <description>
        !@     The yield for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfPiecewisePowerLawYieldInstantaneous'   ,imfPiecewisePowerLawYieldInstantaneous   ,defaultValue=0.02d0)
 
@@ -180,6 +186,9 @@ contains
           !@   <description>
           !@     The mass points used to define a piecewise power-law initial mass function.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1..*</cardinality>
+          !@   <group>initialMassFunction</group>
           !@ </inputParameter>
           call Get_Input_Parameter('imfPiecewisePowerLawMassPoints',massPoints )
           !@ <inputParameter>
@@ -189,6 +198,9 @@ contains
           !@   <description>
           !@     The exponents used to define a piecewise power-law initial mass function.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1..*</cardinality>
+          !@   <group>initialMassFunction</group>
           !@ </inputParameter>
           call Get_Input_Parameter('imfPiecewisePowerLawExponents' ,massExponent)
        else

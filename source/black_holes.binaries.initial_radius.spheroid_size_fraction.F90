@@ -94,6 +94,8 @@ contains
        !@   <description>
        !@     The fraction of the spheroid radius at which merging black holes will be initially placed.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('blackHoleInitialRadiusSpheroidRadiusRatio',blackHoleInitialRadiusSpheroidRadiusRatio,defaultValue=0.0d0)
     end if

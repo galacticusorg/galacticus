@@ -104,6 +104,8 @@ contains
        !@   <description>
        !@     The name of the method to be used for computing progenitor properties in merger remnant calculations.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteMergingRemnantProgenitorPropertiesMethod',satelliteMergingRemnantProgenitorPropertiesMethod,defaultValue='standard')
        ! Include file that makes calls to all available method initialization routines.

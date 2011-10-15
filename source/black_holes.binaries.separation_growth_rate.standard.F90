@@ -102,6 +102,8 @@ contains
        !@   <description>
        !@     The change in density due to the black hole's motion.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarDensityChangeBinaryMotion',stellarDensityChangeBinaryMotion,defaultValue=.true.)
        !@ <inputParameter>
@@ -113,6 +115,8 @@ contains
        !@     in black hole binary hardening calculations. If {\tt false}, then the velocity dispersions are assumed to equal
        !@     the characteristic velocity of dark matter and spheroid.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('blackHoleBinariesComputeVelocityDispersion',blackHoleBinariesComputeVelocityDispersion,defaultValue=.false.)
     end if

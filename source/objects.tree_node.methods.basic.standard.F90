@@ -457,10 +457,26 @@ contains
 
     if (methodSelected) then
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeMass</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Total mass of the node, assuming univeral baryon fraction.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeMass'
        doublePropertyComments(doubleProperty)='Total mass of the node, assuming univeral baryon fraction.'
        doublePropertyUnitsSI (doubleProperty)=massSolar
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>nodeTimeLastIsolated</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Time at which node was last an isolated halo.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeTimeLastIsolated'
        doublePropertyComments(doubleProperty)='Time at which node was last an isolated halo.'
        doublePropertyUnitsSI (doubleProperty)=gigaYear

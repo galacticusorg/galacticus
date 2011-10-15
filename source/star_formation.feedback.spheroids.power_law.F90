@@ -95,6 +95,9 @@ contains
        !@   <description>
        !@     The velocity scale at which the \SNe-driven outflow rate equals the star formation rate in spheroids.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutflowVelocity',spheroidOutflowVelocity,defaultValue=50.0d0)
        !@ <inputParameter>
@@ -104,6 +107,9 @@ contains
        !@   <description>
        !@     The velocity scaling of the \SNe-driven outflow rate in spheroids.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutflowExponent',spheroidOutflowExponent,defaultValue= 2.0d0)
     end if

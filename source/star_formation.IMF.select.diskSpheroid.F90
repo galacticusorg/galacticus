@@ -95,6 +95,9 @@ contains
        !@   <description>
        !@     The name of the initial mass function to use in the ``diskSpheroid initial mass function'' module for star formation in disks.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfSelectionDisk',imfSelectionDisk,defaultValue='Salpeter')
        imfSelectedDiskIndex=IMF_Index_Lookup(imfSelectionDisk,imfNames)
@@ -105,6 +108,9 @@ contains
        !@   <description>
        !@     The name of the initial mass function to use in the ``diskSpheroid initial mass function'' module for star formation in spheroids.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>initialMassFunction</group>
        !@ </inputParameter>
        call Get_Input_Parameter('imfSelectionSpheroid',imfSelectionSpheroid,defaultValue='Salpeter')
        imfSelectedSpheroidIndex=IMF_Index_Lookup(imfSelectionSpheroid,imfNames)

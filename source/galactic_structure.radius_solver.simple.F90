@@ -98,6 +98,8 @@ contains
        !@   <description>
        !@     Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.
        !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('simpleRadiusSolverUseFormationHalo',simpleRadiusSolverUseFormationHalo,defaultValue=.false.)
     end if

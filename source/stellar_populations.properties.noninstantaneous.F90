@@ -110,6 +110,8 @@ contains
        !@   <description>
        !@     The number of times at which a galaxy's stellar properties history is stored.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('noninstantHistoryTimesCount',noninstantHistoryTimesCount,defaultValue=10)
 

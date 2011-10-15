@@ -96,6 +96,8 @@ contains
        !@   <description>
        !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White-Frenk1991} cooling rate model.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
    end if

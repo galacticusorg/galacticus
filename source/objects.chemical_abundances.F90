@@ -179,6 +179,8 @@ contains
           !@   <description>
           !@     The names of the chemicals to be tracked.
           !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1..*</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('chemicalsToTrack',chemicalsToTrack)
           ! Validate the input names by looking them up in the list of chemical names.

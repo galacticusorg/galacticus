@@ -94,6 +94,9 @@ contains
        !@   <description>
        !@     The efficiency of star formation in spheroids for the dynamical time method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationSpheroidEfficiency'      ,starFormationSpheroidEfficiency      ,defaultValue=0.1d0)
        !@ <inputParameter>
@@ -103,6 +106,9 @@ contains
        !@   <description>
        !@     The velocity exponent for star formation in spheroids for the dynamical time method.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationSpheroidVelocityExponent',starFormationSpheroidVelocityExponent,defaultValue=0.0d0)
        !@ <inputParameter>
@@ -112,6 +118,9 @@ contains
        !@   <description>
        !@     The minimum timescale for star formation in disks.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
        !@ </inputParameter>
       call Get_Input_Parameter('starFormationSpheroidMinimumTimescale',starFormationSpheroidMinimumTimescale,defaultValue=1.0d-3)
     end if

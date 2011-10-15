@@ -194,6 +194,8 @@ contains
        !@   <description>
        !@     The root name of files to which the internal state is written (to permit restarts).
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stateFileRoot'        ,stateFileRoot        ,defaultValue="none")
    
@@ -205,6 +207,8 @@ contains
        !@   <description>
        !@     The root name of files to which the internal state is retrieved from (to restart).
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stateRetrieveFileRoot',stateRetrieveFileRoot,defaultValue="none")
        
