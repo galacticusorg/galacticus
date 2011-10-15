@@ -485,8 +485,8 @@ contains
                &                                50.0d0                                                               &
                &                               +50.0d0                                                               &
                &                               *dble(                                                                &
-               &                                      getLength(temperatureDatumList)*iDatum                         &
-               &                                     +                                iCoolingFunction               &
+               &                                      iDatum                                                         &
+               &                                     +iCoolingFunction*getLength(temperatureDatumList)               &
                &                                    )                                                                &
                &                               /dble(getLength(temperatureDatumList)*getLength(coolingFunctionList)) &
                &                              )                                                                      &
