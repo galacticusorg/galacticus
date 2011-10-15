@@ -56,16 +56,8 @@ unless ( -e $stellarPopulationFile ) {
 	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e "aux/FSPS_v2.3/src/autosps.exe" );
     }
 
-    # Read the wavelength array.
+    # Initialize the data hash.
     undef(%data);
-    open(lambdaFile,"aux/FSPS_v2.3/SPECTRA/BaSeL3.1/basel.lambda");
-    while ( $line = <lambdaFile> ) {
-	chomp($line);
-	$line =~ s/^\s*//;
-	$line =~ s/\s*$//;
-	push(@{$data{'wavelengths'}->{'wavelength'}},$line);
-    }
-    close(lambdaFile);
 
     # Run the code.
     $pwd = `pwd`;
@@ -113,8 +105,25 @@ unless ( -e $stellarPopulationFile ) {
 	    } else {
 		if ( $ageCount == 0 ) {
 		    # Have not yet got a count of the number of ages in the file - get it now.
-		    $ageCount = $line;
-		    print "     -> Found $ageCount ages in the file\n";
+		    if ( $line =~ m/^\s*(\d+)\s+(\d+)/ ) {
+			$ageCount        = $1;
+			$wavelengthCount = $2;
+			print "     -> Found $ageCount ages in the file\n";
+			print "     -> Found $wavelengthCount wavelengths in the file\n";
+			# Read the wavelength array.
+			$wavelengthReadCount = 0;
+			while ( $wavelengthReadCount < $wavelengthCount ) {
+			    $line = <specFile>;
+			    chomp($line);
+			    $line =~ s/^\s*//;
+			    $line =~ s/\s*$//;
+			    @columns = split(/\s+/,$line);
+			    push(@{$data{'wavelengths'}->{'wavelength'}},@columns) if ( $iMetallicity == 0 );
+			    $wavelengthReadCount += scalar(@columns);
+			}
+		    } else {
+			die("Conroy_SPS_Driver.pl: format of output file is not recognized");
+		    }
 		} elsif ( $gotAge == 0 ) {
 		    # Not currently processing an SPS age - get the age.
 		    ++$iAge;
@@ -145,7 +154,7 @@ unless ( -e $stellarPopulationFile ) {
     print configFile "PATH wavelengths\n";
     print configFile "INPUT-CLASS TEXTFP\n";
     print configFile "RANK 1\n";
-    print configFile "DIMENSION-SIZES ".$#{$data{'wavelengths'}->{'wavelength'}}."\n";
+    print configFile "DIMENSION-SIZES ".scalar(@{$data{'wavelengths'}->{'wavelength'}})."\n";
     print configFile "OUTPUT-CLASS FP\n";
     print configFile "OUTPUT-SIZE 64\n";
     print configFile "OUTPUT-ARCHITECTURE NATIVE\n";
@@ -188,7 +197,7 @@ unless ( -e $stellarPopulationFile ) {
 
     # Spectra.
     open(tmpFile,">".$tmpDataFile);
-    for($iWavelength=0;$iWavelength<$#{$data{'wavelengths'}->{'wavelength'}};++$iWavelength) {
+    for($iWavelength=0;$iWavelength<scalar(@{$data{'wavelengths'}->{'wavelength'}});++$iWavelength) {
 	for($iAge=0;$iAge<$ageCount;++$iAge) {
 	    for($iMetallicity=0;$iMetallicity<=21;++$iMetallicity) {
 		print tmpFile ${${$data{'metallicity'}}[$iMetallicity]->{'age'}[$iAge]->{'flux'}}[$iWavelength]." ";
@@ -201,7 +210,7 @@ unless ( -e $stellarPopulationFile ) {
     print configFile "PATH spectra\n";
     print configFile "INPUT-CLASS TEXTFP\n";
     print configFile "RANK 3\n";
-    print configFile "DIMENSION-SIZES ".$#{$data{'wavelengths'}->{'wavelength'}}." ".$ageCount." 22\n";
+    print configFile "DIMENSION-SIZES ".scalar(@{$data{'wavelengths'}->{'wavelength'}})." ".$ageCount." 22\n";
     print configFile "OUTPUT-CLASS FP\n";
     print configFile "OUTPUT-SIZE 64\n";
     print configFile "OUTPUT-ARCHITECTURE NATIVE\n";
