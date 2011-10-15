@@ -1130,6 +1130,7 @@ contains
                 mergerTreesQueued(iExtraTree)%baseNode    => nodeList(iIsolatedNode)%node
                 mergerTreesQueued(iExtraTree)%index       =  nodes(iNode)%nodeIndex
                 mergerTreesQueued(iExtraTree)%volumeWeight=  treeVolumeWeightCurrent
+                mergerTreesQueued(iExtraTree)%initialized =  .false.
              end if
           end if
           call Tree_Node_Mass_Set(nodeList(iIsolatedNode)%node,nodes(iNode)%nodeMass)
