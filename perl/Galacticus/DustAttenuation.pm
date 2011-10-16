@@ -4,8 +4,8 @@ package DustAttenuation;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Inclination;
+require Galacticus::HDF5;
+require Galacticus::Inclination;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
     "^(disk|spheroid)StellarLuminosity:.*:dustAtlas(\\[faceOn\\])?\$" => \&DustAttenuation::Get_Dust_Attenuated_Luminosity

@@ -2,6 +2,14 @@
 use XML::Simple;
 use Data::Dumper;
 use Fcntl qw (:flock);
+my $galacticusPath;
+if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl");
 
 # Driver script for Cloudy.
 # Andrew Benson (26-Jan-2010)
@@ -10,7 +18,7 @@ use Fcntl qw (:flock);
 if ( $#ARGV != 2 ) {die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <chemicalStateFile>"};
 $logMetallicityMaximum = $ARGV[0];
 $coolingFunctionFile   = $ARGV[1];
-$chemicalStateFile   = $ARGV[2];
+$chemicalStateFile     = $ARGV[2];
 
 # Determine if we need to compute cooling functions.
 if ( -e $coolingFunctionFile ) {
@@ -65,23 +73,23 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 
     # Download the code.
     unless ( -e "aux/".$cloudyVersion.".tar.gz" ) {
-	print "Cloudy_Driver.pl: downloading Cloudy code.\n";
-	system("wget \"http://data.nublado.org/cloudy_releases/".$cloudyVersion.".tar.gz\" -O aux/".$cloudyVersion.".tar.gz");
-	die("Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e "aux/".$cloudyVersion.".tar.gz" );
+	print "Atomic_CIE_Cloudy_Driver.pl: downloading Cloudy code.\n";
+	system("wget \"http://data.nublado.org/cloudy_releases/".$cloudyVersion.".tar.gz\" -O ".$galacticusPath."aux/".$cloudyVersion.".tar.gz");
+	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion.".tar.gz" );
     }
     
     # Unpack the code.
-    unless ( -e "aux/".$cloudyVersion ) {
-	print "Cloudy_Driver.pl: unpacking Cloudy code.\n";
-	system("tar -x -v -z -C aux -f aux/".$cloudyVersion.".tar.gz");
-	die("Cloudy_Driver.pl: FATAL - failed to unpack Cloudy code.") unless ( -e "aux/".$cloudyVersion );
+    unless ( -e $galacticusPath."aux/".$cloudyVersion ) {
+	print "Atomic_CIE_Cloudy_Driver.pl: unpacking Cloudy code.\n";
+	system("tar -x -v -z -C aux -f ".$galacticusPath."aux/".$cloudyVersion.".tar.gz");
+	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to unpack Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion );
     }
     
     # Build the code.
-    unless ( -e "aux/".$cloudyVersion."/source/cloudy.exe" ) {
-	print "Cloudy_Driver.pl: compiling Cloudy code.\n";
-	system("cd aux/".$cloudyVersion."/source; chmod u=wrx configure.sh capabilities.pl; make");
-	die("Cloudy_Driver.pl: FATAL - failed to build Cloudy code.") unless ( -e "aux/".$cloudyVersion."/source/cloudy.exe" );
+    unless ( -e $galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe" ) {
+	print "Atomic_CIE_Cloudy_Driver.pl: compiling Cloudy code.\n";
+	system("cd ".$galacticusPath."aux/".$cloudyVersion."/source; chmod u=wrx configure.sh capabilities.pl; make");
+	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to build Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe" );
     }
    
     # Temporary files for Cloudy data.
@@ -117,7 +125,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'metallicity'} = $logMetallicity;
 	
 	# Run Cloudy.
-	open(cloudyPipe,"|aux/".$cloudyVersion."/source/cloudy.exe 1> /dev/null");
+	open(cloudyPipe,"|".$galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe 1> /dev/null");
 	print cloudyPipe "print off\n";
 	print cloudyPipe "background, z=0\n";            # Use a very low level incident continuum.
 	print cloudyPipe "cosmic rays background\n";     # Include cosmic ray background ionization rate.

@@ -1,12 +1,19 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
 use Math::SigFigs;
-use Stats::Percentiles;
+require Stats::Percentiles;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Gas_Metallicity.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -69,7 +76,7 @@ print gnuPlot "set output \"tmp.ps\"\n";
 # Read the XML data file.
 undef(@tmpFiles);
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/SDSS_Gas_Phase_Metallicities.xml");
+$data = $xml->XMLin($galacticusPath."data/SDSS_Gas_Phase_Metallicities.xml");
 $iDataset = 0;
 foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
     ++$iDataset;

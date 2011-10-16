@@ -1,14 +1,21 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
 use Graphics::GnuplotIF;
-use GnuPlot::LaTeX;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
+require GnuPlot::LaTeX;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
 use Math::SigFigs;
-use Stats::Means;
+require Stats::Means;
 use Data::Dumper;
 
 # Get name of input and output files.
@@ -77,7 +84,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $y      = pdl [];
     $yError = pdl [];
     $xml = new XML::Simple;
-    $data = $xml->XMLin("data/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
+    $data = $xml->XMLin($galacticusPath."data/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
     foreach $parameter ( @{$data->{'cosmology'}->{'parameter'}} ) {
 	$cosmology{$parameter->{'name'}} = $parameter->{'value'};
     }

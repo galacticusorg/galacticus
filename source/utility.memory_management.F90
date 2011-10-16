@@ -248,6 +248,7 @@ contains
     use File_Utilities
     use ISO_Varying_String
     use Galacticus_Display
+    use Galacticus_Input_Paths
     implicit none
     character(len=*),    intent(in) :: codeSizeFile
     integer                         :: ioError,unitNumber
@@ -257,7 +258,7 @@ contains
 
     usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
     unitNumber=File_Units_Get()
-    codeSizeFileExtension='./work/build/'//trim(codeSizeFile)
+    codeSizeFileExtension=char(Galacticus_Input_Path())//'work/build/'//trim(codeSizeFile)
     open (unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
     read (unitNumber,'(a80)',iostat=ioError) line ! Read header line.
     if (ioError == 0) then

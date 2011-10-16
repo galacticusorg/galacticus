@@ -1,9 +1,16 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
-use Galacticus::HDF5;
-use Stats::Percentiles;
+require Galacticus::HDF5;
+require Stats::Percentiles;
 use Data::Dumper;
 
 # Plot the distribution of spheroid sizes in elliptical galaxies from any number of specified models.

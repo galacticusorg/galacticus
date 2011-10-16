@@ -1,12 +1,19 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
-use Galacticus::HaloModel;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
+require Galacticus::HaloModel;
 use Math::SigFigs;
 use Data::Dumper;
 
@@ -47,7 +54,7 @@ $dataSets         = $dataSet->{'dataSets'};
 
 # Read the file of observational data.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin("data/Correlation_Functions_2dFGRS_Norberg_2002.xml");
+$data    = $xml->XMLin($galacticusPath."data/Correlation_Functions_2dFGRS_Norberg_2002.xml");
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot");

@@ -90,6 +90,7 @@ contains
     use FoX_dom
     use Atomic_Data
     use Memory_Management
+    use Galacticus_Input_Paths
     implicit none
     type(varying_string),                 intent(in)    :: supernovaeIaMethod
     procedure(double precision), pointer, intent(inout) :: SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get
@@ -110,7 +111,7 @@ contains
        ! Read in Type Ia yields.
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing yields.
-       doc => parseFile('data/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
+       doc => parseFile(char(Galacticus_Input_Path())//'data/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize','Unable to parse yields file')
 
        ! Get a list of all isotopes.

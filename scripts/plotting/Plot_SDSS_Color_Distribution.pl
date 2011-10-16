@@ -1,10 +1,17 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
 use Math::SigFigs;
 use Data::Dumper;
 
@@ -38,7 +45,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/Galaxy_Colors_SDSS_Weinmann_2006.xml");
+$data = $xml->XMLin($galacticusPath."data/Galaxy_Colors_SDSS_Weinmann_2006.xml");
 $columns = $data->{'galaxyColors'}->{'columns'};
 $magnitude = pdl @{$columns->{'magnitude'}->{'data'}};
 $color = pdl @{$columns->{'color'}->{'data'}};

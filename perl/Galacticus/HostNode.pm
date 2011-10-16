@@ -2,7 +2,7 @@
 
 package HostNode;
 use PDL;
-use Galacticus::HDF5;
+require Galacticus::HDF5;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
     "hostNodeMass" => \&HostNode::Get_Host_Node_Mass

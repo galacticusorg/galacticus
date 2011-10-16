@@ -85,6 +85,7 @@ contains
     use ISO_Varying_String
     use FoX_dom
     use Galacticus_Error
+    use Galacticus_Input_Paths
     use Memory_Management
     implicit none
     type(varying_string),          intent(in)    :: haloMassFunctionMethod
@@ -99,7 +100,7 @@ contains
        
        ! Read the data file which gives fitting parameters as a function of halo overdensity.
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile("./data/Halo_Mass_Function_Parameters_Tinker_2008.xml",iostat=ioErr)
+       doc => parseFile(char(Galacticus_Input_Path())//"data/Halo_Mass_Function_Parameters_Tinker_2008.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Halo_Mass_Function_Tinker2008_Initialize','Unable to find data file')
        columnsElement    => item(getElementsByTagname(doc           ,"columns"      ),0)
        columnElement     => item(getElementsByTagname(columnsElement,"overdensity"  ),0)

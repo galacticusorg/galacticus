@@ -3,7 +3,7 @@ use XML::Simple;
 use Data::Dumper;
 use Switch;
 use lib './perl';
-use System::Redirect;
+require System::Redirect;
 
 # Scans source code for "!#" directives and generates a Makefile.
 

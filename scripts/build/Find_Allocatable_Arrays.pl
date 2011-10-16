@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use lib './perl';
-use System::Redirect;
+require System::Redirect;
 use XML::Simple;
 
 # Locate all allocatable arrays in the code base and determine their type and dimensionality.

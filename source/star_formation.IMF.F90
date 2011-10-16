@@ -391,6 +391,7 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     use Dates_and_Times
+    use Galacticus_Input_Paths
     implicit none
     double precision,          intent(in)                    :: starFormationRate,ageMinimum
     double precision,          intent(in),  optional         :: ageMaximum
@@ -472,7 +473,7 @@ contains
        recycledFractionIndex(imfSelected)=size(recycledFractionTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName='./data/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'.xml'
+       fileName=char(Galacticus_Input_Path())//'data/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'.xml'
        if (File_Exists(fileName)) then
           
           ! Open the XML file containing recycled fractions.
@@ -719,6 +720,7 @@ contains
      use ISO_Varying_String
      use Galacticus_Error
      use Dates_and_Times
+     use Galacticus_Input_Paths
      implicit none
      double precision,          intent(in)                      :: starFormationRate,ageMinimum
      double precision,          intent(in),  optional           :: ageMaximum
@@ -807,10 +809,10 @@ contains
           select case (iElement)
           case (1)
              ! Total metallicity.
-             fileName='./data/Stellar_Metal_Yield_'//imfNames(imfSelected)//'.xml'
+             fileName=char(Galacticus_Input_Path())//'data/Stellar_Metal_Yield_'//imfNames(imfSelected)//'.xml'
           case (2:)
              ! Individual element.
-             fileName='./data/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'.xml'
+             fileName=char(Galacticus_Input_Path())//'data/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'.xml'
           end select
           fileNameCheck : if (File_Exists(fileName)) then
              
@@ -1126,6 +1128,7 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     use Dates_and_Times
+    use Galacticus_Input_Paths
     implicit none
     double precision,          intent(in)                    :: starFormationRate,ageMinimum
     double precision,          intent(in),  optional         :: ageMaximum
@@ -1207,7 +1210,7 @@ contains
        energyInputIndex(imfSelected)=size(energyInputTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName='./data/Stellar_Energy_Input_'//imfNames(imfSelected)//'.xml'
+       fileName=char(Galacticus_Input_Path())//'data/Stellar_Energy_Input_'//imfNames(imfSelected)//'.xml'
        if (File_Exists(fileName)) then
           
           ! Open the XML file containing energy input.

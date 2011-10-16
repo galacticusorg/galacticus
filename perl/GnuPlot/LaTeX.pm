@@ -4,7 +4,7 @@ package LaTeX;
 use strict;
 use warnings;
 use File::Copy;
-use System::Redirect;
+require System::Redirect;
 
 my $status = 1;
 $status;

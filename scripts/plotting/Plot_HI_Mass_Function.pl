@@ -1,12 +1,19 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use XML::Simple;
 use Graphics::GnuplotIF;
-use Galacticus::HDF5;
+require Galacticus::HDF5;
 use Math::SigFigs;
 use Data::Dumper;
-use Stats::Histograms;
+require Stats::Histograms;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_HI_Gas_Mass_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -38,7 +45,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/HI_Mass_Function_Zwaan_2005.xml");
+$data = $xml->XMLin($galacticusPath."data/HI_Mass_Function_Zwaan_2005.xml");
 $columns = $data->{'massFunction'}->{'columns'};
 $xBins = pdl @{$columns->{'mass'}->{'data'}};
 $x = pdl @{$columns->{'mass'}->{'data'}};

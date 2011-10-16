@@ -2,8 +2,8 @@
 
 package Luminosities;
 use PDL;
-use Galacticus::HDF5;
-use Galacticus::DustAttenuation;
+require Galacticus::HDF5;
+require Galacticus::DustAttenuation;
 use Data::Dumper;
 use XML::Simple;
 

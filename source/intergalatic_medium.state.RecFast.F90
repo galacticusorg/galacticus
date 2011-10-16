@@ -99,8 +99,8 @@ contains
        ! Ensure that the RecFast data file has been generated.
        
        ! Generate the name of the data file and an XML input parameter file.
-       recfastFile='data/recFast'
-       parameterFile='data/recfast_parameters.xml'
+       recfastFile=char(Galacticus_Input_Path())//'data/recFast'
+       parameterFile=char(Galacticus_Input_Path())//'data/recfast_parameters.xml'
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
        write (parameterLabel,'(f5.3)') Omega_Matter()
@@ -125,7 +125,7 @@ contains
        call xml_Close(parameterDoc)
        
        ! Run the RecFast driver script to generate the data.
-       command='./scripts/aux/RecFast_Driver.pl '//parameterFile//' '//recfastFile
+       command=char(Galacticus_Input_Path())//'scripts/aux/RecFast_Driver.pl '//parameterFile//' '//recfastFile
        call System_Command_Do(command)
 
        ! Set the name of the data file to read in the ``file'' implementation.

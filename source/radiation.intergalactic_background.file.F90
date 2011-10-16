@@ -95,6 +95,7 @@ contains
     use Memory_Management
     use Cosmology_Functions
     use Array_Utilities
+    use Galacticus_Input_Paths
     implicit none
     type(varying_string),          intent(in)    :: radiationIntergalacticBackgroundMethod
     procedure(),          pointer, intent(inout) :: Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do
@@ -117,7 +118,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('radiationIGBFileName',radiationIGBFileName,defaultValue="data/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml")
+       call Get_Input_Parameter('radiationIGBFileName',radiationIGBFileName,defaultValue=char(Galacticus_Input_Path())//"data/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml")
 
        !$omp critical (FoX_DOM_Access)
        ! Parse the XML file.

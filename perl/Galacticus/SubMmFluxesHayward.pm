@@ -5,7 +5,7 @@ package SubMmFluxesHayward;
 use strict;
 use warnings;
 use PDL;
-use Galacticus::HDF5;
+require Galacticus::HDF5;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
 			       "flux850micronHayward"   => \&SubMmFluxesHayward::Get_850micron,

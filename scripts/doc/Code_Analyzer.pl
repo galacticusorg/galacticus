@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use lib './perl';
 use File::Find;
-use Fortran::Utils;
+require Fortran::Utils;
 use Data::Dumper;
 use Cwd;
 use Text::Balanced qw (extract_bracketed);
@@ -53,7 +53,7 @@ $typeBoundRegex = "^\\s*(procedure|generic)\\s*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z
     real      => { variables => 3, regEx => "^\\s*real\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     double    => { variables => 3, regEx => "^\\s*double\\s+precision\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     logical   => { variables => 3, regEx => "^\\s*logical\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    character => { variables => 5, regEx => "^\\s*character\\s*(\\((\\s*(len|kind)\\s*=\\s*[a-z0-9_,\\*\\(\\)]+\\s*)+\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    character => { variables => 5, regEx => "^\\s*character\\s*(\\((\\s*(len|kind)\\s*=\\s*[a-z0-9_,\\+\\-\\*\\(\\)]+\\s*)+\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     procedure => { variables => 3, regEx => "^\\s*procedure\\s*(\\(\\s*[a-z0-9_]*\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)]+)\\s*\$" }
     );
 
@@ -130,7 +130,7 @@ sub processFile {
 
 		# Specify that line has yet to be processed.
 		$lineProcessed = 0;
-		
+
 		# Grab the next Fortran line.
 		&Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
 		foreach $unitID ( @unitIdList ) {
@@ -173,7 +173,7 @@ sub processFile {
 		    }
 		}
 		if ( $lineProcessed == 1 ) {next LINE};
-		
+
 		# Detect unit closing.
 		foreach $unitType ( keys(%unitClosers) ) {
 		    
@@ -257,7 +257,6 @@ sub processFile {
 
 		# Detect intrinsic variable declarations.
 		foreach $intrinsicType ( keys(%intrinsicDeclarations) ) {
-		    
 		    # Check for a match to an intrinsic declaration regex.
 		    if ( $processedLine =~ m/$intrinsicDeclarations{$intrinsicType}->{"regEx"}/i ) {
 			$matchIndex = $intrinsicDeclarations{$intrinsicType}->{"variables"};
@@ -325,6 +324,7 @@ sub processFile {
 sub Extract_Variables {
     # Given the post-"::" section of a variable declaration line, return an array of all variable names.
     $variableList = shift;
+    die("Code_Analyzer.pl (Extract_Variables) variable list contains '::' - most likely regex matching failed") if ( $variableList =~ m/::/ );
     # Convert to lower case.
     $variableList = lc($variableList);
     # Remove whitespace.

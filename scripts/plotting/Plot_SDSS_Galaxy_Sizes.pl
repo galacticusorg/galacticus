@@ -1,14 +1,21 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
 use Math::SigFigs;
-use Stats::Histograms;
+require Stats::Histograms;
 use Data::Dumper;
 
 # Get name of input and output files.
@@ -36,7 +43,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 
 # Read tabulation of half-radii vs. disk/spheroid properties and extract to PDLs.
 my $xml                 = new XML::Simple;
-my $halfRadiiData       = $xml->XMLin("data/Half_Radii_Exponential_Hernquist.xml");
+my $halfRadiiData       = $xml->XMLin($galacticusPath."data/Half_Radii_Exponential_Hernquist.xml");
 my $spheroidRadii       = pdl @{$halfRadiiData->{'spheroidRadius'}->{'data'}};
 my $spheroidMasses      = pdl @{$halfRadiiData->{'spheroidMass'}->{'data'}};
 my $spheroidRadiiIndex  = pdl 0..nelem($spheroidRadii )-1;
@@ -84,7 +91,7 @@ print gnuPlot "set output \"tmp.ps\"\n";
 # Read the XML data file.
 my @tmpFiles;
 undef(@tmpFiles);
-my $data = $xml->XMLin("data/SDSS_Galaxy_Sizes_Shen_2003.xml");
+my $data = $xml->XMLin($galacticusPath."data/SDSS_Galaxy_Sizes_Shen_2003.xml");
 foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $columns = $dataSet->{'columns'};
     my $x = pdl @{$columns->{'radius'}->{'data'}};

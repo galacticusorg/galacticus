@@ -136,6 +136,7 @@ contains
     use Input_Parameters
     use Star_Formation_IMF
     use ISO_Varying_String
+    use Galacticus_Input_Paths
     implicit none
     integer, intent(in)   :: imfIndex
     logical               :: readFile
@@ -161,7 +162,7 @@ contains
        parameterName='stellarPopulationSpectraFor'//imfName//'IMF'
 
        ! Default file name for this IMF.
-       defaultFile='data/SSP_Spectra_imf'//imfName//'.hdf5'
+       defaultFile=char(Galacticus_Input_Path())//'data/SSP_Spectra_imf'//imfName//'.hdf5'
 
        ! Get the file name.
        call Get_Input_Parameter(char(parameterName),stellarPopulationSpectraFile,defaultValue=char(defaultFile))

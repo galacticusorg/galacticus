@@ -129,6 +129,8 @@ contains
     use Memory_Management
     use Galacticus_Error
     use FoX_dom
+    use Galacticus_Input_Paths
+    use ISO_Varying_String
     implicit none
     type(varying_string), intent(in)                :: filterName
     type(Node),           pointer                   :: doc,datum
@@ -157,7 +159,7 @@ contains
     filterResponses(filterIndex)%name=filterName
 
     ! Construct a file name for the filter.
-    filterFileName='data/filters/'//filterName//'.xml'
+    filterFileName=char(Galacticus_Input_Path())//'data/filters/'//filterName//'.xml'
 
     ! Parse the XML file.
     !$omp critical (FoX_DOM_Access)

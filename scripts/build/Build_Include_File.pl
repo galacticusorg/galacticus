@@ -4,7 +4,7 @@ use XML::Simple;
 use Data::Dumper;
 use Switch;
 use Sort::Topological qw(toposort);
-use Fortran::Utils;
+require Fortran::Utils;
 use UNIVERSAL 'isa';
 
 # Scans source code for "!#" directives and generates an include file.

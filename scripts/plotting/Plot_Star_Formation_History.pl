@@ -1,12 +1,19 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
 use PDL;
 use XML::Simple;
 use Graphics::GnuplotIF;
-use Galacticus::HDF5;
+require Galacticus::HDF5;
 use Astro::Cosmology;
 use Math::SigFigs;
-use Stats::Means;
+require Stats::Means;
 use Data::Dumper;
 
 # Get name of input and output files.
@@ -57,7 +64,7 @@ $redshiftBins   = pdl (0..$redshiftPoints-1)*$redshiftBin+$redshiftMin+0.5*$reds
 
 # Read the XML data file.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/Star_Formation_Rate_Data.xml");
+$data = $xml->XMLin($galacticusPath."data/Star_Formation_Rate_Data.xml");
 $iDataset = -1;
 $chiSquared = 0.0;
 $degreesOfFreedom = 0;

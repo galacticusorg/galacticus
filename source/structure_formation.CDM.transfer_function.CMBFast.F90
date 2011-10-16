@@ -101,6 +101,7 @@ contains
     use Input_Parameters
     use Cosmological_Parameters
     use Numerical_Constants_Astronomical
+    use Galacticus_Input_Paths
     implicit none
     double precision,                            intent(in)    :: logWavenumber
     double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
@@ -111,8 +112,8 @@ contains
     type(xmlf_t)                                               :: parameterDoc
 
     ! Generate the name of the data file and an XML input parameter file.
-    transferFunctionFile='data/transfer_function_CMBFast'
-    parameterFile='data/transfer_function_parameters.xml'
+    transferFunctionFile=char(Galacticus_Input_Path())//'data/transfer_function_CMBFast'
+    parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters.xml'
     call xml_OpenFile(char(parameterFile),parameterDoc)
     call xml_NewElement(parameterDoc,"parameters")
     write (parameterLabel,'(f5.3)') Omega_Matter()
@@ -150,7 +151,7 @@ contains
     if (makeFile) then
        ! Run CMBFast wrapper script.
        write (wavenumberLabel,'(e12.6)') dexp(max(logWavenumber+1.0d0,logWavenumberMaximumDefault))
-       command='./scripts/aux/CMBFast_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)
+       command=char(Galacticus_Input_Path())//'scripts/aux/CMBFast_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)
        call System_Command_Do(command)
 
        ! Flag that transfer function is now initialized.

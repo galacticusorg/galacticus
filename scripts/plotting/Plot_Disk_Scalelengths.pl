@@ -1,11 +1,18 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
 use Math::SigFigs;
-use Stats::Histograms;
+require Stats::Histograms;
 use Data::Dumper;
 
 # Get name of input and output files.
@@ -56,7 +63,7 @@ $degreesOfFreedom = 0;
 # Read the XML data file.
 undef(@tmpFiles);
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/Disk_Sizes_Dejong_2000.xml");
+$data = $xml->XMLin($galacticusPath."data/Disk_Sizes_Dejong_2000.xml");
 foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $columns = $dataSet->{'columns'};
     $x = pdl @{$columns->{'scaleLength'}->{'data'}};

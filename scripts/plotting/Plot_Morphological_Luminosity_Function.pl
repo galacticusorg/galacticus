@@ -1,13 +1,20 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
 use Math::SigFigs;
 use Data::Dumper;
-use Stats::Histograms;
+require Stats::Histograms;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Morphological_Luminosity_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -48,7 +55,7 @@ $dataSets  = $dataSet->{'dataSets'};
 
 # Read the XML data file.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin("data/Morphological_Luminosity_Functions_2MASS_Devereux_2009.xml");
+$data    = $xml->XMLin($galacticusPath."data/Morphological_Luminosity_Functions_2MASS_Devereux_2009.xml");
 
 # Estimate bulge-to-total ratio ranges for each morphological class.
 foreach $morphology ( @{$data->{'morphology'}} ) {

@@ -115,6 +115,7 @@ contains
     use Chemical_States_CIE_File
     use Abundances_Structure
     use System_Command
+    use Galacticus_Input_Paths
     implicit none
     type(abundancesStructure), intent(in) :: abundances
     logical                               :: makeFile
@@ -135,7 +136,7 @@ contains
        end if
        if (makeFile) then
           ! Remove the transfer function file so that a new one will be created.
-          command='rm -f '//trim(chemicalStateFile)
+          command='rm -f '//char(Galacticus_Input_Path())//trim(chemicalStateFile)
           call System_Command_Do(command)
        end if
     end if
@@ -151,12 +152,12 @@ contains
        write (metallicityLabel,'(e12.6)') dlog10(metallicityMaximum)
 
        ! Run Atomic_CIE_Cloudy wrapper script.
-       command='./scripts/aux/Atomic_CIE_Cloudy_Driver.pl '//metallicityLabel//' '//trim(coolingFunctionFile)//' '&
-            &//trim(chemicalStateFile)
+       command=char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl '//metallicityLabel//' '//char(Galacticus_Input_Path())//trim(coolingFunctionFile)//' '&
+            &//char(Galacticus_Input_Path())//trim(chemicalStateFile)
        call System_Command_Do(command)
 
        ! Call routine to read in the tabulated data.
-       chemicalStateFileVarString=trim(chemicalStateFile)
+       chemicalStateFileVarString=char(Galacticus_Input_Path())//trim(chemicalStateFile)
        call Chemical_State_CIE_File_Read(chemicalStateFileVarString,metallicityMaximumTabulated=metallicityMaximum)
 
        ! Flag that transfer function is now initialized.

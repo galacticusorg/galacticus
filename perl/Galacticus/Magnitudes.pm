@@ -2,9 +2,9 @@
 
 package Magnitudes;
 use PDL;
-use Galacticus::HDF5;
-use Galacticus::DustAttenuation;
-use Galacticus::Luminosities;
+require Galacticus::HDF5;
+require Galacticus::DustAttenuation;
+require Galacticus::Luminosities;
 use Data::Dumper;
 use XML::Simple;
 

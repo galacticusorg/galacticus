@@ -96,6 +96,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Atomic_Data
+    use Galacticus_Input_Paths
     implicit none
     type(varying_string),                 intent(in)    :: stellarAstrophysicsMethod
     procedure(double precision), pointer, intent(inout) :: Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get &
@@ -127,7 +128,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('stellarPropertiesFile',stellarPropertiesFile,defaultValue='data&
+       call Get_Input_Parameter('stellarPropertiesFile',stellarPropertiesFile,defaultValue=char(Galacticus_Input_Path())//'data&
             &/Stellar_Properties_Compilation.xml')
 
        ! Allocate array to store number of entries in file for yield of each element.

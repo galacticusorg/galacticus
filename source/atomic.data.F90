@@ -198,6 +198,8 @@ contains
     use Memory_Management
     use Galacticus_Error
     use String_Handling
+    use Galacticus_Input_Paths
+    use ISO_Varying_String
     implicit none
     type(Node),       pointer      :: doc,thisElement,abundanceTypeElement,thisAtom
     type(NodeList),   pointer      :: elementList
@@ -212,7 +214,7 @@ contains
 
        ! Read in the atomic data.
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile("./data/Atomic_Data.xml",iostat=ioErr)
+       doc => parseFile(char(Galacticus_Input_Path())//"data/Atomic_Data.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Atomic_Data_Initialize','Unable to parse data file')
 
        ! Get list of all element elements.
@@ -268,7 +270,7 @@ contains
        do iAbundancePattern=1,abundancePatternCount
 
           ! Parse the abundance pattern file.
-          doc => parseFile(abundancePatternFiles(iAbundancePattern),iostat=ioErr)
+          doc => parseFile(char(Galacticus_Input_Path())//abundancePatternFiles(iAbundancePattern),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('Atomic_Data_Initialize','Unable to parse data file')
 
           ! Get list of all element elements.

@@ -4,7 +4,7 @@ package Survey;
 use strict;
 use warnings;
 use PDL;
-use Galacticus::HDF5;
+require Galacticus::HDF5;
 use Astro::Cosmology;
 use Data::Dumper;
 

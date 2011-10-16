@@ -1,17 +1,24 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use Thread;
 use XML::Simple;
 use Data::Dumper;
 use Data::Compare;
 use File::Copy;
 use File::Slurp qw( slurp );
-use System::Redirect;
+require System::Redirect;
 use Sys::CPU;
 use MIME::Lite;
-use IO::Compress::Simple;
+require IO::Compress::Simple;
 use Switch;
 
 # Script to run sets of Galacticus models, looping through sets of parameters and performing analysis
@@ -330,7 +337,7 @@ sub Model_Finalize {
 	# Model finished successfully.
 	# Generate plots.
 	unless ( $modelsToRun->{'doAnalysis'} eq "no" ) {
-	    my $analysisScript = "data/Galacticus_Compute_Fit_Analyses.xml";
+	    my $analysisScript = $galacticusPath."data/Galacticus_Compute_Fit_Analyses.xml";
 	    $analysisScript = $modelsToRun->{'analysisScript'} if ( exists($modelsToRun->{'analysisScript'}) );
 	    system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory." ".$analysisScript);
 	}

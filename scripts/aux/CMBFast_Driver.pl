@@ -2,6 +2,14 @@
 use XML::Simple;
 use Data::Dumper;
 use File::Copy;
+my $galacticusPath;
+if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl");
 
 # Driver script for CMBFast.
 # Andrew Benson (27-Nov-2009)
@@ -13,33 +21,33 @@ $transferFunctionFile = $ARGV[1];
 $kMax                 = $ARGV[2];
 
 # Download the code.
-unless ( -e "aux/cmbfast.tar.gz" ) {
+unless ( -e $galacticusPath."aux/cmbfast.tar.gz" ) {
     print "CMBFast_Driver.pl: downloading CMBFast code.\n";
-    system("wget http://web.archive.org/web/20070205144812/http://cfa-www.harvard.edu/~mzaldarr/CMBFAST/cmbfast.tar.gz -O aux/cmbfast.tar.gz");
-    die("CMBFast_Driver.pl: FATAL - failed to download CMBFast code.") unless ( -e "aux/cmbfast.tar.gz" );
+    system("wget http://web.archive.org/web/20070205144812/http://cfa-www.harvard.edu/~mzaldarr/CMBFAST/cmbfast.tar.gz -O ".$galacticusPath."aux/cmbfast.tar.gz");
+    die("CMBFast_Driver.pl: FATAL - failed to download CMBFast code.") unless ( -e $galacticusPath."aux/cmbfast.tar.gz" );
 }
 
 # Unpack the code.
-unless ( -e "aux/cmbfast4.5.1" ) {
+unless ( -e $galacticusPath."aux/cmbfast4.5.1" ) {
     print "CMBFast_Driver.pl: unpacking CMBFast code.\n";
-    system("tar -x -v -z -C aux -f aux/cmbfast.tar.gz");
-    die("CMBFast_Driver.pl: FATAL - failed to unpack CMBFast code.") unless ( -e "aux/cmbfast4.5.1" );
+    system("tar -x -v -z -C ".$galacticusPath."aux -f ".$galacticusPath."aux/cmbfast.tar.gz");
+    die("CMBFast_Driver.pl: FATAL - failed to unpack CMBFast code.") unless ( -e $galacticusPath."aux/cmbfast4.5.1" );
 }
 
 # Patch the code.
-unless ( -e "aux/cmbfast4.5.1/configure.patch" ) {
+unless ( -e $galacticusPath."aux/cmbfast4.5.1/configure.patch" ) {
     foreach $file ( "cmbflat.F.patch", "configure.patch", "recfast.f.patch" ) {
-	copy("aux/cmbfast4.5.1_Galacticus_Modifications/".$file,"aux/cmbfast4.5.1/".$file);
-	if ( $file =~ m/\.patch$/ ) {system("cd aux/cmbfast4.5.1; patch < $file")};
+	copy($galacticusPath."aux/cmbfast4.5.1_Galacticus_Modifications/".$file,$galacticusPath."aux/cmbfast4.5.1/".$file);
+	if ( $file =~ m/\.patch$/ ) {system("cd ".$galacticusPath."aux/cmbfast4.5.1; patch < $file")};
 	print "$file\n";
     }
 }
 
 # Build the code.
-unless ( -e "aux/cmbfast4.5.1/cmb" ) {
+unless ( -e $galacticusPath."aux/cmbfast4.5.1/cmb" ) {
     print "CMBFast_Driver.pl: compiling CMBFast code.\n";
-    system("cd aux/cmbfast4.5.1/; configure --f77=gfortran --f77-flags=-ffixed-line-length-132 --f77-flags=-O4 --with-hispdhikmodes=yes; make");
-    die("CMBFast_Driver.pl: FATAL - failed to build CMBFast code.") unless ( -e "aux/cmbfast4.5.1/cmb" );
+    system("cd ".$galacticusPath."aux/cmbfast4.5.1/; configure --f77=gfortran --f77-flags=-ffixed-line-length-132 --f77-flags=-O4 --with-hispdhikmodes=yes; make");
+    die("CMBFast_Driver.pl: FATAL - failed to build CMBFast code.") unless ( -e $galacticusPath."aux/cmbfast4.5.1/cmb" );
 }
 
 # Specify default parameters.
@@ -66,11 +74,11 @@ $kMax = $kMax/($parameterHash->{'H_0'}->{'value'}/100.0);
 
 unless ( -e $transferFunctionFile ) {
    # Run CMBFast.
-   open(cmbPipe,"|aux/cmbfast4.5.1/cmb");
+   open(cmbPipe,"|".$galacticusPath."aux/cmbfast4.5.1/cmb");
    print cmbPipe "1\n";
    print cmbPipe "$kMax $NPerLogk\n";
    print cmbPipe "1 0\n";
-   print cmbPipe "data/transfer_function.tmp\n";
+   print cmbPipe $galacticusPath."data/transfer_function.tmp\n";
    print cmbPipe "1\n";
    print cmbPipe "-1\n";
    print cmbPipe $parameterHash->{'Omega_b'}->{'value'}." ";
@@ -87,7 +95,7 @@ unless ( -e $transferFunctionFile ) {
    close(cmbPipe);
    
    # Read in the tabulated data and output as an XML file.
-   open(inHndl,"data/transfer_function.tmp");
+   open(inHndl,$galacticusPath."data/transfer_function.tmp");
    while ( $line = <inHndl> ) {
        $line =~ s/^\s*//;
        @columns = split(/\s+/,$line);
@@ -95,7 +103,7 @@ unless ( -e $transferFunctionFile ) {
        $transferFunctionData[++$#transferFunctionData] = $k." ".$columns[1];
    }
    close(inHndl);
-   unlink("data/transfer_function.tmp","nu1.dat",$parameterFile);
+   unlink($galacticusPath."data/transfer_function.tmp","nu1.dat",$parameterFile);
    @{$transferFunction{'datum'}} = @transferFunctionData;
    @{$transferFunction{'column'}} = (
        "k [Mpc^{-1}] - wavenumber",

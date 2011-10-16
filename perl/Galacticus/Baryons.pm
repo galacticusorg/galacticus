@@ -2,7 +2,7 @@
 
 package Baryons;
 use PDL;
-use Galacticus::HDF5;
+require Galacticus::HDF5;
 use Data::Dumper;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,

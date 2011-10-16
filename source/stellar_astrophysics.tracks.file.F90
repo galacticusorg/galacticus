@@ -91,6 +91,7 @@ contains
     use HDF5
     use H5Lt
     use ISO_Varying_String
+    use Galacticus_Input_Paths
     use Input_Parameters
     use String_Handling
     implicit none
@@ -121,7 +122,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue='data/Stellar_Tracks_Padova.hdf5')
+       call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue=char(Galacticus_Input_Path())//'data/Stellar_Tracks_Padova.hdf5')
        
        ! Open the HDF5 file.
        !$omp critical(HDF5_Access)

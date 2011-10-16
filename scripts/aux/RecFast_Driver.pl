@@ -4,6 +4,14 @@ use warnings;
 use XML::Simple;
 use File::Copy;
 use Data::Dumper;
+my $galacticusPath;
+if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl");
 
 # Download, compile and run RecFast.
 # Andrew Benson (18-January-2011)
@@ -42,34 +50,34 @@ my $Yp     = $parameterHash->{'Y_He'         }->{'value'};
 my $OmegaDM = $OmegaM-$OmegaB;
 
 # Download the code.
-unless ( -e "aux/RecFast/recfast.for" ) {
+unless ( -e $galacticusPath."aux/RecFast/recfast.for" ) {
     print "RecFast_Driver.pl: downloading RecFast code.\n";
-    system("mkdir -p aux/RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O aux/RecFast/recfast.for");
-    die("RecFast_Driver.pl: FATAL - failed to download RecFast code.") unless ( -e "aux/RecFast/recfast.for" );
+    system("mkdir -p ".$galacticusPath."aux/RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O ".$galacticusPath."aux/RecFast/recfast.for");
+    die("RecFast_Driver.pl: FATAL - failed to download RecFast code.") unless ( -e $galacticusPath."aux/RecFast/recfast.for" );
 }
 
 # Patch the code.
-unless ( -e "aux/RecFast/patched" ) {
+unless ( -e $galacticusPath."aux/RecFast/patched" ) {
     print "RecFast_Driver.pl: patching RecFast code.\n";
     foreach my $file ( "recfast.for.patch" ) {
-	copy("aux/RecFast_Galacticus_Modifications/".$file,"aux/RecFast/".$file);
-	if ( $file =~ m/\.patch$/ ) {system("cd aux/RecFast; patch < $file")};
+	copy($galacticusPath."aux/RecFast_Galacticus_Modifications/".$file,$galacticusPath."aux/RecFast/".$file);
+	if ( $file =~ m/\.patch$/ ) {system("cd ".$galacticusPath."aux/RecFast; patch < $file")};
 	print "$file\n";
     }
-    system("touch aux/RecFast/patched");
+    system("touch ".$galacticusPath."aux/RecFast/patched");
 }
 
 # Build the code.
-unless ( -e "aux/RecFast/recfast.exe" ) {
+unless ( -e $galacticusPath."aux/RecFast/recfast.exe" ) {
     print "RecFast_Driver.pl: compiling RecFast code.\n";
-    system("cd aux/RecFast/; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none");
-    die("RecFast_Driver.pl: FATAL - failed to build RecFast code.") unless ( -e "aux/RecFast/recfast.exe" );
+    system("cd ".$galacticusPath."aux/RecFast/; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none");
+    die("RecFast_Driver.pl: FATAL - failed to build RecFast code.") unless ( -e $galacticusPath."aux/RecFast/recfast.exe" );
 }
 
 # Run the RecFast code.
 unless ( -e $outputFile ) {
     my $recfastOutput = "recFastOutput.data";
-    open(pHndl,"|aux/RecFast/recfast.exe");
+    open(pHndl,"|".$galacticusPath."aux/RecFast/recfast.exe");
     print pHndl $recfastOutput."\n";
     print pHndl $OmegaB." ".$OmegaDM." ".$OmegaL."\n";
     print pHndl $H0." ".$T0." ".$Yp."\n";

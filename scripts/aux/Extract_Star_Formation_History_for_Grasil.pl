@@ -1,13 +1,20 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::NiceSlice;
 use Text::Table;
 use Math::SigFigs;
-use GnuPlot::PrettyPlots;
-use GnuPlot::LaTeX;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 
 # Plot the star formation history of a galaxy split by metallicity and output the data in a form suitable for input to Grasil.
 # Andrew Benson (06-September-2010)

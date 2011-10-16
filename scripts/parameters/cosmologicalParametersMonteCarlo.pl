@@ -12,7 +12,7 @@ use Data::Dumper;
 
 # Read the parameters and their covariances.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/Cosmological_Parameters_WMAP-7.xml");
+$data = $xml->XMLin($galacticusPath."data/Cosmological_Parameters_WMAP-7.xml");
 $parameterCount = 0;
 foreach $parameter ( @{$data->{'parameter'}} ) {
     $parameterMap{$parameter->{'label'}} = $parameterCount;

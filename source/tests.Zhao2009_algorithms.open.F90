@@ -78,6 +78,7 @@ program Test_Zhao2009_Open
   use File_Utilities
   use Unit_Tests
   use String_Handling
+  use Galacticus_Input_Paths
   implicit none
   type(mergerTree),    pointer                 :: thisTree
   type(treeNode),      pointer                 :: thisNode
@@ -107,7 +108,7 @@ program Test_Zhao2009_Open
   do iMass=1,size(logarithmicHaloMasses)
 
      ! Count lines in the "mandc" comparison file.
-     fileName='testSuite/data/zhao2009MassAccretionHistories/mandcoutputOpenlgM'
+     fileName=char(Galacticus_Input_Path())//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputOpenlgM'
      fileName=fileName//logarithmicHaloMasses(iMass)//'.data'
      totalLinesInFile=Count_Lines_in_File(fileName    )
      dataLinesInFile =Count_Lines_in_File(fileName,'#')-1
