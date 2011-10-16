@@ -84,7 +84,8 @@ foreach $fullname ( @filesToScan ) {
 		$rawLine = $processedLine;	
 	    }
 	}
-		
+	$lineNumber = $.;
+	
 	# Check if we've entered or left a module.
 	if ( $processedLine =~ /^\s*module\s*([a-z0-9_]+)\s*$/i ) {$moduleName = $1};
 	if ( $processedLine =~ /^\s*end\s+module\s*([a-z0-9_]+)\s*$/i ) {$moduleName = ""};
@@ -110,7 +111,8 @@ foreach $fullname ( @filesToScan ) {
 	    }
 	    # Check if this dircetive matches that which we are currently processing.
 	    if ( $xmlTag eq $instructions->{'directive'} ) {
-		$data = $xml->XMLin($xmlCode);
+		$data = eval{$xml->XMLin($xmlCode)};
+		die("Build_Include_File.pl failed in ".$fullname." at line ".$lineNumber." with message:\n".$@) if ($@);
 		if ( $verbosity == 1 ) {
 		    print Dumper($data);
 		}

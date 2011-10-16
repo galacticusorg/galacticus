@@ -32,6 +32,7 @@ foreach $srcdir ( @sourcedirs ) {
 	    $fullname = $srcdir."/".$fname;
 	    open(infile,$fullname) or die "Can't open input file: #!";
 	    while ($line = <infile>) {
+		$lineNumber = $.;
 		if (
 		    $line =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
 		    || $line =~ m/^\s*\/\/\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
@@ -48,7 +49,11 @@ foreach $srcdir ( @sourcedirs ) {
 			    $xmlCode .= $nextLine;
 			}
 		    }
-		    $data = $xml->XMLin($xmlCode);
+		    $data = eval{$xml->XMLin($xmlCode)};
+		    die("Code_Directive_Parser.pl failed in ".$fullname." at line ".$lineNumber." with message:\n".$@) if ($@);
+		    if ( $verbosity == 1 ) {
+			print Dumper($data);
+		    }
 		    if ( $verbosity == 1 ) {
 			print "$fname : $xmlCode\n";
 			print Dumper($data);
