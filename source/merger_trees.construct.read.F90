@@ -153,6 +153,11 @@ module Merger_Tree_Read
   integer,                 parameter                 :: nodeIsUnreachable=-1
   integer,                 parameter                 :: nodeIsReachable  = 0
 
+  ! Labels for switches.
+  integer,                 parameter                 :: integerTrue   = 1
+  integer,                 parameter                 :: integerFalse  = 0
+  integer,                 parameter                 :: integerUnknown=-1
+
   ! Internal list of output times and the relative tolerance used to "snap" nodes to output times.
   integer                                            :: outputTimesCount
   double precision                                   :: mergerTreeReadOutputTimeSnapTolerance
@@ -195,7 +200,7 @@ contains
     type(varying_string),          intent(in)    :: mergerTreeConstructMethod
     procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
     integer                                      :: treesAreSelfContained,hubbleExponent,haloMassesIncludeSubhalosInteger&
-         &,simulationIsPeriodicInteger,velocitiesIncludeHubbleFlowInteger,iOutput
+         &,simulationIsPeriodicInteger,velocitiesIncludeHubbleFlowInteger,iOutput,treesHaveSubhalos
     double precision                             :: cosmologicalParameter
     character(len=14)                            :: valueString
     type(varying_string)                         :: message
@@ -351,6 +356,20 @@ contains
        call mergerTreeFile%openFile(char(mergerTreeReadFileName),readOnly=.true.)
        ! Open the merger trees group.
        haloTreesGroup=IO_HDF5_Open_Group(mergerTreeFile,"haloTrees")
+
+       ! Determine if trees have subhalos.
+       if (haloTreesGroup%hasAttribute("treesHaveSubhalos")) then
+          call haloTreesGroup%readAttribute("treesHaveSubhalos",treesHaveSubhalos,allowPseudoScalar=.true.)
+       else
+          treesHaveSubhalos=integerUnknown
+       end if
+       
+       ! Perform sanity checks if subhalos are not included.
+       if (treesHaveSubhalos == integerFalse) then
+          if (mergerTreeReadPresetMergerTimes  ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger times as no subhalos are present; try setting [mergerTreeReadPresetMergerTimes]=false')
+          if (mergerTreeReadPresetMergerNodes  ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger nodes as no subhalos are present; try setting [mergerTreeReadPresetMergerNodes]=false')
+          if (mergerTreeReadPresetSubhaloMasses) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset subhalo masses as no subhalos are present; try setting [mergerTreeReadPresetSubhaloMasses]=false')
+      end if
 
        ! Check that we can handle the type of tree in this file.
        if (haloTreesGroup%hasAttribute("haloMassesIncludeSubhalos")) then
