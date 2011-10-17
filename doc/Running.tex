@@ -210,7 +210,13 @@ While \glc\ is parallelized via OpenMP it is also possible to split a given mode
     <value>i</value>
   </parameter>
 \end{verbatim}
-where {\tt N} is the total number of workers to be used and {\tt i} is the number of this worker (ranging from 1 to {\tt N}). Once all workers have finished, their outputs can (if required) be combined into a single output file using the {\tt Merge\_Models.pl} script as follows:
+where {\tt N} is the total number of workers to be used and {\tt i} is the number of this worker (ranging from 1 to {\tt N}). You can generate these individual input parameter files from a single base parameter file using:
+\begin{verbatim}
+scripts/aux/Split_Models_For_Workers.pl <parameterFile> <workerCount>
+\end{verbatim}
+where {\tt <parameterFile>} is the name of the base parameter file and {\tt <workerCount>} is the number of workers required. The script will create an input file for each worker (input files will have the same name as the base parameter file but with a ``{\tt \_N}'', where {\tt N} is the worker number, inserted before the ``{\tt .xml}''). Output file name for each worker will be the same as specified in the base parameter file, but with a ``{\tt \_N}'', where {\tt N} is the worker number, inserted before the ``{\tt .hdf5}''.
+
+Once all workers have finished, their outputs can (if required) be combined into a single output file using the {\tt Merge\_Models.pl} script as follows:
 \begin{verbatim}
 ./scripts/aux/Merge_Models.pl <model1> <model2> .... <modelOutput>
 \end{verbatim}
