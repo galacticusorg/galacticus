@@ -1789,7 +1789,6 @@ contains
   
   subroutine Dump_Tree(nodes,highlightNodes)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\sc dot}.
-    use File_Utilities
     implicit none
     type(nodeData),          intent(in), dimension(:)           :: nodes
     integer(kind=kind_int8), intent(in), dimension(:), optional :: highlightNodes
@@ -1797,8 +1796,7 @@ contains
     character(len=20)                                           :: color,style
 
     ! Open an output file and write the GraphViz opening.
-    fileUnit=File_Units_Get()
-    open(fileUnit,file='mergerTreeConstructReadTree.gv',status='unknown',form='formatted')
+    open(newunit=fileUnit,file='mergerTreeConstructReadTree.gv',status='unknown',form='formatted')
     write (fileUnit,*) 'digraph Tree {'
 
     ! Loop over all nodes.

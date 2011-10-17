@@ -81,7 +81,6 @@ contains
     !% are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
     !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
     !% specified.
-    use File_Utilities
     use Tree_Nodes
     use Input_Parameters
     implicit none
@@ -185,8 +184,7 @@ contains
     write (treeIndexFormatted,'(i8)') treeIndex
     write (outputCountFormatted,'(i8)') outputCount
     write (fileName,'(a,a,a,a,a)') 'mergerTreeDump:',trim(adjustl(treeIndexFormatted)),':',trim(adjustl(outputCountFormatted)),'.gv'
-    fileUnit=File_Units_Get()
-    open(fileUnit,file=fileName,status='unknown',form='formatted')
+    open(newunit=fileUnit,file=fileName,status='unknown',form='formatted')
     write (fileUnit,'(a)'    ) 'digraph Tree {'
     write (fileUnit,'(a,a,a)') 'bgcolor=',trim(backgroundColor),';'
     write (fileUnit,'(a)'    ) 'size="8,11";'

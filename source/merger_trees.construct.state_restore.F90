@@ -115,7 +115,6 @@ contains
     use Components
     use Galacticus_State
     use Galacticus_Error
-    use File_Utilities
     implicit none
     type(mergerTree),        intent(in)                :: thisTree
     character(len=*),        intent(in)                :: storeFile
@@ -146,8 +145,7 @@ contains
     end do
 
     ! Open an output file.
-    fileUnit=File_Units_Get()
-    open(fileUnit,file=trim(storeFile),status='unknown',form='unformatted')
+    open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted')
     ! Write basic tree information.
     write (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,Node_Array_Position(thisTree%baseNode%index(),nodeIndices)
     ! Start at the base of the tree.
@@ -245,7 +243,6 @@ contains
     use Tree_Nodes
     use Components
     use Galacticus_State
-    use File_Utilities
     use Galacticus_Error
     implicit none
     type(mergerTree),   intent(inout)             :: thisTree
@@ -264,8 +261,7 @@ contains
     call Galacticus_State_Retrieve
 
     ! Open an output file.
-    fileUnit=File_Units_Get()
-    open(unit=fileUnit,file=char(mergerTreeStateStoreFile),status='old',form='unformatted')
+    open(newunit=fileUnit,file=char(mergerTreeStateStoreFile),status='old',form='unformatted')
     ! Read basic tree information.
     read (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,nodeArrayIndex
     ! Allocate a list of nodes.

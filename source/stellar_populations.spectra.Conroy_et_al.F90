@@ -97,7 +97,6 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Star_Formation_IMF
-    use File_Utilities
     use Memory_Management
     use System_Command
     use Stellar_Population_Spectra_File
@@ -136,8 +135,7 @@ contains
        if (allocated(imfMass)) call Dealloc_Array(imfMass)
        if (allocated(imfPhi )) call Dealloc_Array(imfPhi )
        call IMF_Tabulate(imfIndex,imfMass,imfPhi)
-       imfUnit=File_Units_Get()
-       open(unit=imfUnit,file="galacticus.imf",status="unknown",form="formatted")
+       open(newunit=imfUnit,file="galacticus.imf",status="unknown",form="formatted")
        do iIMF=1,size(imfMass)
           write (imfUnit,'(2(1x,e12.6))') imfMass(iIMF),imfPhi(iIMF)
        end do

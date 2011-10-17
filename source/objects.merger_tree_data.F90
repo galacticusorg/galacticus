@@ -513,11 +513,11 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator)
     !% Read in merger tree data from an ASCII file.
-    use File_Utilities
     use String_Handling
     use Memory_Management
     use Galacticus_Error
     use Galacticus_Display
+    use File_Utilities
     implicit none
     class(mergerTreeData), intent(inout)              :: mergerTrees
     character(len=*),      intent(in)                 :: inputFile
@@ -628,8 +628,7 @@ contains
     if (mergerTrees%hasHalfMassRadius          ) call Alloc_Array(mergerTrees%halfMassRadius          ,[  mergerTrees%nodeCount])
 
     ! Open the file and read lines.
-    fileUnit=File_Units_Get()
-    open(fileUnit,file=inputFile,status='old',form='formatted')
+    open(newunit=fileUnit,file=inputFile,status='old',form='formatted')
     lineNumber      =0
     iNode           =0
     gotFirstDataLine=.false.
@@ -770,11 +769,11 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator)
     !% Read in particle data from an ASCII file.
-    use File_Utilities
     use String_Handling
     use Memory_Management
     use Galacticus_Error
     use Galacticus_Display
+    use File_Utilities
     implicit none
     class(mergerTreeData), intent(inout)              :: mergerTrees
     character(len=*),      intent(in)                 :: inputFile
@@ -842,8 +841,7 @@ contains
     if (mergerTrees%hasParticleVelocityX) call Alloc_Array(mergerTrees%particleVelocity,[3,mergerTrees%particlesCount])
 
     ! Open the file and read lines.
-    fileUnit=File_Units_Get()
-    open(fileUnit,file=inputFile,status='old',form='formatted')
+    open(newunit=fileUnit,file=inputFile,status='old',form='formatted')
     lineNumber      =0
     iNode           =0
     gotFirstDataLine=.false.

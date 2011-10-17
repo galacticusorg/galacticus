@@ -75,10 +75,10 @@ program Test_Zhao2009_Flat
   use Cosmology_Functions
   use Merger_Trees
   use Tree_Nodes
-  use File_Utilities
   use Unit_Tests
   use String_Handling
   use Galacticus_Input_Paths
+  use File_Utilities
   implicit none
   type(mergerTree),    pointer                 :: thisTree
   type(treeNode),      pointer                 :: thisNode
@@ -114,8 +114,7 @@ program Test_Zhao2009_Flat
      dataLinesInFile =Count_Lines_in_File(fileName,'#')-1
 
      ! Discard file header.
-     fUnit=File_Units_Get()
-     open(fUnit,file=char(fileName),status='old',form='formatted')
+     open(newunit=fUnit,file=char(fileName),status='old',form='formatted')
      do iLine=1,(totalLinesInFile-dataLinesInFile)
         read (fUnit,*)
      end do

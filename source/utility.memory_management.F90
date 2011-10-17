@@ -245,7 +245,6 @@ contains
     !%
     !% The {\tt $\langle$executable$\rangle$.size} file is made by running the Perl script {\tt Find\_Executable\_Size.pl} (which is done
     !% automatically when the executable is built by {\tt make}).
-    use File_Utilities
     use ISO_Varying_String
     use Galacticus_Display
     use Galacticus_Input_Paths
@@ -257,9 +256,8 @@ contains
     type(varying_string)            :: codeSizeFileExtension
 
     usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
-    unitNumber=File_Units_Get()
     codeSizeFileExtension=char(Galacticus_Input_Path())//'work/build/'//trim(codeSizeFile)
-    open (unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
+    open (newunit=unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
     read (unitNumber,'(a80)',iostat=ioError) line ! Read header line.
     if (ioError == 0) then
        read (unitNumber,*) dummy,dummy,dummy,usedMemory%memoryType(memoryTypeCode)%usage

@@ -73,10 +73,10 @@ contains
     !% Read and process a CSV file of merger trees extracted from the Millennium Simulation database.
     use ISO_Varying_String
     use Merger_Tree_Data_Structure
-    use File_Utilities
     use Dates_and_Times
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
+    use File_Utilities
     implicit none
     character(len=*),     intent(in)    :: nodesFile,particlesFile
     type(mergerTreeData), intent(inout) :: mergerTrees
@@ -90,8 +90,7 @@ contains
     traceParticles=(trim(particlesFile) /= "none")
 
     ! Retrieve the SQL query used to generate this file.
-    fileUnit=File_Units_Get()
-    open(fileUnit,file=nodesFile,status='old',form='formatted')
+    open(newunit=fileUnit,file=nodesFile,status='old',form='formatted')
     read (fileUnit,'(a)') sqlQuery
     read (fileUnit,'(a)') sqlQuery
     close(fileUnit)

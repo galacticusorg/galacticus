@@ -67,7 +67,7 @@ module File_Utilities
   use iso_varying_string
   implicit none
   private
-  public :: File_Units_Get,Count_Lines_in_File,File_Exists
+  public :: Count_Lines_in_File,File_Exists
 
   interface Count_Lines_in_File
      !% Generic interface for {\tt Count\_Lines\_in\_File} function.
@@ -82,29 +82,6 @@ module File_Utilities
   end interface
 
 contains
-
-  integer function File_Units_Get()
-    !% Returns the number of an unused file unit. It tries unit numbers from 100 upwards and returns the first free unit.
-    !% It aborts if it runs out of valid unit numbers.
-    use Galacticus_Error
-    implicit none
-    integer :: iUnit
-    logical :: open, exists
-
-    iUnit=100
-    open  =.true.
-    exists=.true.
-    do while (open.and.exists)
-       iUnit=iUnit+1
-       inquire(unit=iUnit,opened=open,exist=exists)
-    end do
-
-    if (.not.exists) call Galacticus_Error_Report('File_Units_Get','ran out of valid unit numbers')
-
-    File_Units_Get=iUnit
-
-    return
-  end function File_Units_Get
 
   logical function File_Exists_VarStr(FileName)
     !% Checks for existance of file {\tt FileName} (version for varying string argument).
@@ -149,8 +126,7 @@ contains
     integer,   save                 :: io_status,i_unit
     !$omp threadprivate(io_status,i_unit)
 
-    i_unit=File_Units_Get()
-    open(i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
+    open(newunit=i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
     if (io_status /= 0) then
        write (0,*) 'Count_Lines_in_File(): FATAL - cannot open file ',trim(in_file)
        call Galacticus_Error_Report

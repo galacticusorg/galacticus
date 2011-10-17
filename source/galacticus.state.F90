@@ -99,7 +99,6 @@ contains
 
   subroutine Galacticus_State_Store
     !% Store the internal state.
-    use File_Utilities
     use FGSL
     !# <include directive="galacticusStateStoreTask" type="moduleUse">
     include 'galacticus.state.store.modules.inc'
@@ -115,8 +114,7 @@ contains
     if (stateFileRoot /= "none") then
        
        ! Open a file in which to store the state and an additional file for FGSL state.
-       stateUnit=File_Units_Get()
-       open(stateUnit,file=char(stateFileRoot)//'.state',form='unformatted',status='unknown')
+       open(newunit=stateUnit,file=char(stateFileRoot)//'.state',form='unformatted',status='unknown')
        fgslStateFile=FGSL_Open(char(stateFileRoot)//'.fgsl.state','w')
        
        !# <include directive="galacticusStateStoreTask" type="code" action="subroutine">
@@ -137,7 +135,6 @@ contains
   
   subroutine Galacticus_State_Retrieve
     !% Retrieve the interal state.
-    use File_Utilities
     use FGSL
     !# <include directive="galacticusStateRetrieveTask" type="moduleUse">
     include 'galacticus.state.retrieve.modules.inc'
@@ -156,8 +153,7 @@ contains
        if (stateRetrieveFileRoot /= "none") then
           
           ! Open a file in which to retrieve the state and an additional file for FGSL state.
-          stateUnit=File_Units_Get()
-          open(stateUnit,file=char(stateRetrieveFileRoot)//'.state',form='unformatted',status='old')
+          open(newunit=stateUnit,file=char(stateRetrieveFileRoot)//'.state',form='unformatted',status='old')
           fgslStateFile=FGSL_Open(char(stateRetrieveFileRoot)//'.fgsl.state','r')
           
           !# <include directive="galacticusStateRetrieveTask" type="code" action="subroutine">
