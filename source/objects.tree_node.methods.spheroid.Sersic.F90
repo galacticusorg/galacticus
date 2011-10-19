@@ -720,9 +720,9 @@ contains
     if (thisNode%componentExists(componentIndex)) then
 
        ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
-       if     (    Tree_Node_Spheroid_Angular_Momentum(thisNode) < 0.0d0 &
-            & .or. Tree_Node_Spheroid_Radius          (thisNode) < 0.0d0 &
-            & .or. Tree_Node_Spheroid_Gas_Mass        (thisNode) < 0.0d0 &
+       if     (    Tree_Node_Spheroid_Angular_Momentum(thisNode) <  0.0d0 &
+            & .or. Tree_Node_Spheroid_Radius          (thisNode) <= 0.0d0 &
+            & .or. Tree_Node_Spheroid_Gas_Mass        (thisNode) <  0.0d0 &
             & ) return
 
        ! Find the star formation timescale.

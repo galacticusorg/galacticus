@@ -701,9 +701,9 @@ contains
     if (thisNode%componentExists(componentIndex)) then
 
        ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
-       if     (    Tree_Node_Spheroid_Angular_Momentum(thisNode) < 0.0d0 &
-            & .or. Tree_Node_Spheroid_Radius          (thisNode) < 0.0d0 &
-            & .or. Tree_Node_Spheroid_Gas_Mass        (thisNode) < 0.0d0 &
+       if     (    Tree_Node_Spheroid_Angular_Momentum(thisNode) <  0.0d0 &
+            & .or. Tree_Node_Spheroid_Radius          (thisNode) <= 0.0d0 &
+            & .or. Tree_Node_Spheroid_Gas_Mass        (thisNode) <  0.0d0 &
             & ) return
 
        ! Find the star formation timescale.
@@ -737,7 +737,7 @@ contains
        ! Record the star formation history.
        call Star_Formation_History_Record(thisNode,thisNode%components(thisIndex)%instance(1)%histories(starFormationHistoryIndex)&
             &,fuelAbundances,starFormationRate)
-       
+
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
        massOutflowRateToHotHalo=Star_Formation_Feedback_Spheroid_Outflow_Rate          (thisNode,starFormationRate,energyInputRate)
        massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
@@ -752,6 +752,7 @@ contains
           
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
           spheroidDynamicalTime=Mpc_per_km_per_s_To_Gyr*Tree_Node_Spheroid_Radius(thisNode)/Tree_Node_Spheroid_Velocity(thisNode)
+
           ! Limit the mass outflow rate.
           massOutflowRate=min(massOutflowRate,gasMass/spheroidOutflowTimescaleMinimum/spheroidDynamicalTime)
           call Tree_Node_Hot_Halo_Outflow_Mass_To                       (thisNode,interrupt,interruptProcedure,&
@@ -1691,12 +1692,13 @@ contains
              specificAngularMomentumMean=0.0d0
           end if
           specificAngularMomentum=spheroidAngularMomentumAtScaleRadius*specificAngularMomentumMean
+
           ! Associate the pointers with the appropriate property routines.
           Radius_Get   => Hernquist_Spheroid_Radius
           Radius_Set   => Hernquist_Spheroid_Radius_Set
           Velocity_Get => Hernquist_Spheroid_Velocity
           Velocity_Set => Hernquist_Spheroid_Velocity_Set
-      else
+       else
           call Hernquist_Spheroid_Radius_Set  (thisNode,0.0d0)
           call Hernquist_Spheroid_Velocity_Set(thisNode,0.0d0)
           componentActive=.false.
