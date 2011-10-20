@@ -76,7 +76,7 @@ module Halo_Spin_Distributions_Lognormal
   ! Random number objects
   type(fgsl_rng) :: randomSequenceObject,clonedPseudoSequenceObject
   logical        :: resetRandomSequence=.true.,resetRandomSequenceSnapshot
-  !$omp threadprivate(resetRandomSequence,randomSequenceObject)
+  !$omp threadprivate(resetRandomSequence,randomSequenceObject,clonedPseudoSequenceObject,resetRandomSequenceSnapshot)
 
 contains
 

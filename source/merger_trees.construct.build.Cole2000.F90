@@ -77,7 +77,7 @@ module Merger_Tree_Build_Cole2000
   ! Random number sequence variables
   type(fgsl_rng)   :: pseudoSequenceObject,clonedPseudoSequenceObject
   logical          :: reset=.true.,resetSnapshot
-  !$omp threadprivate(pseudoSequenceObject,reset)
+  !$omp threadprivate(pseudoSequenceObject,reset,clonedPseudoSequenceObject,resetSnapshot)
 
 contains
 

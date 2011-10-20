@@ -76,7 +76,7 @@ module Dynamical_Friction_Lacey_Cole_Tormen
   ! Random number objects
   type(fgsl_rng) :: randomSequenceObject,clonedPseudoSequenceObject
   logical        :: resetRandomSequence=.true.,resetRandomSequenceSnapshot
-  !$omp threadprivate(resetRandomSequence,randomSequenceObject)
+  !$omp threadprivate(resetRandomSequence,randomSequenceObject,clonedPseudoSequenceObject,resetRandomSequenceSnapshot)
 
 contains
 

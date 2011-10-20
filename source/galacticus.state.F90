@@ -99,13 +99,16 @@ contains
 
   subroutine Galacticus_State_Store
     !% Store the internal state.
+    !$ use OMP_Lib
+    use String_Handling
     use FGSL
     !# <include directive="galacticusStateStoreTask" type="moduleUse">
     include 'galacticus.state.store.modules.inc'
     !# </include>
     implicit none
-    integer         :: stateUnit,iError
-    type(fgsl_file) :: fgslStateFile
+    integer              :: stateUnit,iError
+    type(fgsl_file)      :: fgslStateFile
+    type(varying_string) :: fileName,fileNameFGSL
 
     ! Ensure that module is initialized.
     call State_Initialize
@@ -114,8 +117,17 @@ contains
     if (stateFileRoot /= "none") then
        
        ! Open a file in which to store the state and an additional file for FGSL state.
-       open(newunit=stateUnit,file=char(stateFileRoot)//'.state',form='unformatted',status='unknown')
-       fgslStateFile=FGSL_Open(char(stateFileRoot)//'.fgsl.state','w')
+       !$ if (omp_in_parallel()) then
+       !$    fileName    =stateFileRoot//     '.state.'
+       !$    fileNameFGSL=stateFileRoot//'.fgsl.state.'
+       !$    fileName    =fileName    //omp_get_thread_num()
+       !$    fileNameFGSL=fileNameFGSL//omp_get_thread_num()
+       !$ else
+       fileName    =stateFileRoot//'.state'
+       fileNameFGSL=stateFileRoot//'.fgsl.state'
+       !$ end if
+       open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
+       fgslStateFile=FGSL_Open(char(fileNameFGSL),'w')
        
        !# <include directive="galacticusStateStoreTask" type="code" action="subroutine">
        !#  <subroutineArgs>stateUnit,fgslStateFile</subroutineArgs>
@@ -135,6 +147,8 @@ contains
   
   subroutine Galacticus_State_Retrieve
     !% Retrieve the interal state.
+    !$ use OMP_Lib
+    use String_Handling
     use FGSL
     !# <include directive="galacticusStateRetrieveTask" type="moduleUse">
     include 'galacticus.state.retrieve.modules.inc'
@@ -142,6 +156,7 @@ contains
     implicit none
     integer              :: stateUnit,iError
     type(fgsl_file)      :: fgslStateFile
+    type(varying_string) :: fileName,fileNameFGSL
 
     ! Check if we have already retrieved the internal state.
     if (.not.stateHasBeenRetrieved) then
@@ -153,8 +168,17 @@ contains
        if (stateRetrieveFileRoot /= "none") then
           
           ! Open a file in which to retrieve the state and an additional file for FGSL state.
-          open(newunit=stateUnit,file=char(stateRetrieveFileRoot)//'.state',form='unformatted',status='old')
-          fgslStateFile=FGSL_Open(char(stateRetrieveFileRoot)//'.fgsl.state','r')
+          !$ if (omp_in_parallel()) then
+          !$    fileName    =stateFileRoot//     '.state.'
+          !$    fileNameFGSL=stateFileRoot//'.fgsl.state.'
+          !$    fileName    =fileName    //omp_get_thread_num()
+          !$    fileNameFGSL=fileNameFGSL//omp_get_thread_num()
+          !$ else
+          fileName    =stateFileRoot//'.state'
+          fileNameFGSL=stateFileRoot//'.fgsl.state'
+          !$ end if
+          open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
+          fgslStateFile=FGSL_Open(char(fileNameFGSL),'r')
           
           !# <include directive="galacticusStateRetrieveTask" type="code" action="subroutine">
           !#  <subroutineArgs>stateUnit,fgslStateFile</subroutineArgs>

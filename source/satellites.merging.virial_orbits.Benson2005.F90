@@ -71,7 +71,7 @@ module Virial_Orbits_Benson2005
 
   type(fgsl_rng) :: pseudoSequenceObject,clonedPseudoSequenceObject
   logical        :: resetSequence=.true.,resetSequenceSnapshot
-  !$omp threadprivate(pseudoSequenceObject,resetSequence)
+  !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
   
 contains
 

@@ -61,7 +61,7 @@ where {\tt parameterFile} is the name of the file containing a list of parameter
 
 \subsection{Restarting A Crashed Run}\label{sec:Restarting}
 
-If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\tt build} method of merger tree construction, such that the internal state is stored prior to commencing the building of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.
+If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\tt build} and {\tt read} methods of merger tree construction, such that the internal state is stored prior to commencing the building or reading of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.
 
 To cause \glc\ to periodically store its internal state include the following input parameter:
 \begin{verbatim}
@@ -82,6 +82,10 @@ This will cause the internal state to be stored to files {\tt galacticusState.st
   </parameter>
 \end{verbatim}
 where {\tt N} is the number of the tree that crashed. This will cause calculations to begin with tree {\tt N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
+
+\subsubsection{OpenMP}\index{debugging!OpenMP}\index{OpenMP!debugging}
+
+When running a model in parallel using OpenMP, a separate state file will be written for each thread, with the thread number appended to the end of each state file name. For debugging purposes, it is suggested that a crashed OpenMP run be restarted using just a single thread. To do this, change the appended thread number on the state files corresponding to the thread which crashed to 0 such that they will be used by the single thread when the run is restarted.
 
 \subsection{Running Grids of Models}\label{sec:RunningGrids}
 

@@ -72,7 +72,7 @@ module Virial_Orbits_Wetzel2010
 
   type(fgsl_rng) :: pseudoSequenceObject,clonedPseudoSequenceObject
   logical        :: resetSequence=.true.,resetSequenceSnapshot
-  !$omp threadprivate(pseudoSequenceObject,resetSequence)
+  !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
 
   ! Table of the cumulative distribution for the pericentric radius.
   integer,          parameter                 :: pericentricRadiusPointsPerDecade=10
