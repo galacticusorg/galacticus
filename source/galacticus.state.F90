@@ -169,13 +169,13 @@ contains
           
           ! Open a file in which to retrieve the state and an additional file for FGSL state.
           !$ if (omp_in_parallel()) then
-          !$    fileName    =stateFileRoot//     '.state.'
-          !$    fileNameFGSL=stateFileRoot//'.fgsl.state.'
+          !$    fileName    =stateRetrieveFileRoot//     '.state.'
+          !$    fileNameFGSL=stateRetrieveFileRoot//'.fgsl.state.'
           !$    fileName    =fileName    //omp_get_thread_num()
           !$    fileNameFGSL=fileNameFGSL//omp_get_thread_num()
           !$ else
-          fileName    =stateFileRoot//'.state'
-          fileNameFGSL=stateFileRoot//'.fgsl.state'
+          fileName    =stateRetrieveFileRoot//'.state'
+          fileNameFGSL=stateRetrieveFileRoot//'.fgsl.state'
           !$ end if
           open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
           fgslStateFile=FGSL_Open(char(fileNameFGSL),'r')
