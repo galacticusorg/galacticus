@@ -138,6 +138,8 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Velocity_Dispersions
     use Dark_Matter_Halo_Scales
+    use Galacticus_Display
+    use Galacticus_Error
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, parameter              :: hardeningRateDimensionless    =15.0d0
@@ -147,7 +149,8 @@ contains
          & densitySpheroid, densityDarkMatter, dynamicalFrictionXSpheroid, dynamicalFrictionXDarkMatter, coulombLogarithmSpheroid&
          &, coulombLogarithmDarkMatter, rotationCurveTotal, densityStellar, stellarDensityFractionRemaining &
          &,rateScatteringDynamicalFriction, rateScatteringStars, velocityDispersionSpheroid, velocityDispersionDarkMatter,&
-         & radiusHardBinary
+         & radiusHardBinary,rotationCurveGradient
+    character(len=24)                        :: message
 
     ! Return a zero separation growth rate if the black hole has non-positive radial position or either black hole (active or
     ! central) has negative mass.
@@ -332,15 +335,28 @@ contains
             &                           )                                                                                           &
             &                         )
        ! Compute the radial inflow velocity due to dynamical friction.
-       rateScatteringDynamicalFriction= 2.0d0                                                                                                 &
-            &                          *dynamicalFrictionAcceleration                                                                         &
-            &                          *Tree_Node_Black_Hole_Radial_Position(thisNode)                                                        &
-            &                          /(                                                                                                     &
-            &                             Galactic_Structure_Rotation_Curve         (thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode)) &
-            &                            +Tree_Node_Black_Hole_Radial_Position      (thisNode                                               ) &
-            &                            *Galactic_Structure_Rotation_Curve_Gradient(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode)) &
-            &                           )
-       
+       rotationCurveGradient          =(                                                                                                     &
+            &                            Galactic_Structure_Rotation_Curve         (thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode)) &
+            &                           +Tree_Node_Black_Hole_Radial_Position      (thisNode                                               ) &
+            &                           *Galactic_Structure_Rotation_Curve_Gradient(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode)) &
+            &                          )
+       if (rotationCurveGradient == 0.0d0) then
+          call Galacticus_Display_Indent('dynamical friction calculation report')
+          write (message,'(a,e12.6)') '    V(r) = ',Galactic_Structure_Rotation_Curve         (thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
+          call Galacticus_Display_Message(trim(message))
+          write (message,'(a,e12.6)') '       r = ',Tree_Node_Black_Hole_Radial_Position      (thisNode                                               )
+          call Galacticus_Display_Message(trim(message))
+          write (message,'(a,e12.6)') 'dV(r)/dr = ',Galactic_Structure_Rotation_Curve_Gradient(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
+          call Galacticus_Display_Message(trim(message))
+          write (message,'(a,e12.6)') '  a_{df} = ',dynamicalFrictionAcceleration
+          call Galacticus_Display_Message(trim(message))
+          call Galacticus_Display_Unindent('done')
+          call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate_Standard','rotation curve gradient is zero')
+       end if
+       rateScatteringDynamicalFriction= 2.0d0                                                                                                &
+            &                          *dynamicalFrictionAcceleration                                                                        &
+            &                          *Tree_Node_Black_Hole_Radial_Position(thisNode)                                                       &
+            &                          /rotationCurveGradient
        ! Take the most negative rate from dynamical friction or scattering of stars.
        rateScattering=min(rateScatteringDynamicalFriction,rateScatteringStars)
     else
