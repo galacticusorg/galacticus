@@ -1112,7 +1112,7 @@ contains
     implicit none
     type(treeNode),            pointer, intent(inout) :: thisNode
     double precision,          parameter              :: massMinimum           =1.0d0
-    double precision,          parameter              :: angularMomentumMinimum=0.1d0
+    double precision,          parameter              :: angularMomentumMinimum=1.0d-2
     double precision,          parameter              :: luminosityMinimum     =1.0d0
     type(abundancesStructure), save                   :: stellarAbundances
     !$omp threadprivate(stellarAbundances)
