@@ -205,6 +205,19 @@ If information on the half-mass radii of nodes is available in the merger tree f
 
 The scale radius is set by using a root finding algorithm to ensure that half of the total halo mass is enclosed within the specified half-mass radius.
 
+\subsubsection{``Fly-by'' Halos}
+
+In some cases, a halo that is part of one tree can later become part of another tree. This can happen in so-called ``fly-by'' encounters where a halo may briefly become a subhalo in a halo in tree A then leave that halo and become a subhalo in tree B. \glc\ currently does not handle such cases and will complain that the host halo of a node cannot be found (since it exists in a different tree). This problem can be avoided by setting:
+
+\begin{verbatim}
+  <parameter>
+    <name>mergerTreeReadMissingHostsAreFatal</name>
+    <value>false</value>
+  </parameter>
+\end{verbatim}
+
+In this case, nodes with missing hosts are simply treated as being isolated halos. This will avoid an error condition, but is not a physically correct way to handle such cases, so use with caution. Future versions of \glc\ will allow nodes to move between trees and so will correctly handle fly-by encounters.
+
 \subsection{Analyzing the Output}
 
 \subsubsection{Positions and Velocities}

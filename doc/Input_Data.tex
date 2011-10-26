@@ -51,7 +51,7 @@ The HDF5 file should follow the general purpose format described in \S\ref{sec:M
 \end{verbatim}
 Here, each {\tt host} section describes rules for a given computer (with ``default'' being used if no specific match is found). The {\tt user} element gives the user name to use, while the {\tt passwordFrom} element specifies how the password should be obtained. Currently allowed mechanisms are ``input'', in which case the password is read from standard input, and ``kdewallet'', in which case the password is stored in and retrieved from the \href{http://utils.kde.org/projects/kwalletmanager/}{KDE wallet} utility.
 
-\subsection{Processing of Merger Tree Files}
+\subsection{Processing of Merger Tree Files}\label{sec:MergerTreeFileProcessing}
 
 The ``read'' merger tree construction method (see \S\ref{sec:MergerTreeConstruction}) reads these files and processes them into a form suitable for \glc\ to evolve. Merger trees are inherently complex structures, particularly when the possibility of subhalos are considered. \glc\ is currently designed to work with single descendent merger trees, i.e. ones in which the tree structure is entirely defined by specifying which node a given node is physically associated with at a later time. Additionally, \glc\ expects the merger tree file to contain information on the host node, i.e. the node within which a given node is physically located. In the following, these two properties are labelled {\tt descendentNode} and {\tt hostNode}. \glc\ assumes that nodes for which {\tt descendentNode}$=${\tt hostNode} are isolated halos (i.e. they are their own hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in Fig.~\ref{fig:MergerTreeSimple}. The particular structure would be represented by the following list of nodes and node properties (a $-1$ indicates that no descendent node exists):
 \begin{center}
@@ -107,7 +107,11 @@ Once the tree has been read, \glc\ processes it according to the following rules
 
 \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{The proposed host does not exists, which implies the end of a branch has been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it descended.}\\
 
-Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
+The following shoudl be noted when constructing merger tree files:
+\begin{itemize}
+\item Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
+\item \glc\ currently assumes that nodes never move between trees. Specifically, the host and descendent nodes of each node should always be present in the same tree as the node itself. This is not always the case (for example in trees derived from N-body simulations), depending on the algorithms and tree definitions used. Normally, cases where a node's host node cannot be found in the same tree will cause \glc\ to exit with an error. Setting {\tt [mergerTreeReadMissingHostsAreFatal]}$=${\tt false} will instead circumvent this issue by making any such nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically correct way to treat such cases---future versions of \glc\ will allow for nodes to move between trees and so will correctly handle such instances.
+\end{itemize}
 
 \subsubsection{Requirements for \glc\ Input Parameters}
 

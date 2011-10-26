@@ -145,6 +145,9 @@ module Merger_Tree_Read
   logical                                            :: mergerTreeReadPresetSpins
   logical                                            :: mergerTreeReadPresetOrbits,mergerTreeReadPresetOrbitsBoundOnly
 
+  ! Option controlling fatality of missing host node condition.
+  logical                                            :: mergerTreeReadMissingHostsAreFatal
+
   ! Buffer to hold additional merger trees.
   type(mergerTree),        allocatable, dimension(:) :: mergerTreesQueued
   integer                                            :: mergerTreeQueuePosition
@@ -332,6 +335,16 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadOutputTimeSnapTolerance',mergerTreeReadOutputTimeSnapTolerance,defaultValue=0.0d0)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadMissingHostsAreFatal</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether nodes with missing host nodes should be considered to be fatal---see \S\ref{sec:MergerTreeFileProcessing}.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadMissingHostsAreFatal',mergerTreeReadMissingHostsAreFatal,defaultValue=.true.)
 
        ! Validate input parameters.
        if (mergerTreeReadPresetMergerNodes.and..not.mergerTreeReadPresetMergerTimes) call Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting of merger target nodes requires that merger times also be preset")
@@ -947,6 +960,7 @@ contains
     !% Builds pointers from each node to its descendent node.
     use String_Handling
     use Galacticus_Error
+    use Galacticus_Display
     implicit none
     type(nodeData),      intent(inout), dimension(:), target :: nodes
     integer(kind=kind_int8)                                  :: iNode,jNode
@@ -958,7 +972,7 @@ contains
        do jNode=1,size(nodes)
           if (nodes(iNode)%descendentIndex >= 0 .and. nodes(jNode)%nodeIndex == nodes(iNode)%descendentIndex) &
                & nodes(iNode)%descendentNode => nodes(jNode)
-          if (                                       nodes(jNode)%nodeIndex == nodes(iNode)%hostIndex      ) &
+          if (                                        nodes(jNode)%nodeIndex == nodes(iNode)%hostIndex      ) &
                & nodes(iNode)%hostNode       => nodes(jNode)
        end do
        if (nodes(iNode)%descendentIndex >= 0 .and. .not.associated(nodes(iNode)%descendentNode)) then
@@ -969,7 +983,15 @@ contains
        if (                                       .not.associated(nodes(iNode)%hostNode      )) then
           message='failed to find host node: '
           message=message//nodes(iNode)%hostIndex//' of '//nodes(iNode)%nodeIndex
-          call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
+          if (mergerTreeReadMissingHostsAreFatal) then
+             call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
+          else
+             message=message//" - resetting this node to be an isolated node"
+             call Galacticus_Display_Message(message,verbosity=verbosityInfo)
+             nodes(iNode)%hostIndex =  nodes(iNode)%nodeIndex
+             nodes(iNode)%hostNode  => nodes(iNode)
+             nodes(iNode)%isSubhalo =  .false.
+          end if
        end if
     end do
     return
