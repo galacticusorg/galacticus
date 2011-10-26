@@ -1249,12 +1249,13 @@ contains
     type(treeNodeList),      intent(inout), dimension(:) :: nodeList
     type(fgsl_function),     save                        :: rootFunction
     type(fgsl_root_fsolver), save                        :: rootFunctionSolver
-    double precision,        parameter                   :: toleranceAbsolute=1.0d-9,toleranceRelative=1.0d-9
+    double precision,        parameter                   :: toleranceAbsolute=1.0d-9,toleranceRelative=1.0d-9,scaleRadiusMaximumAllowed=100.0d0
     logical,                 save                        :: excessiveScaleRadiiReported=.false.
     type(c_ptr)                                          :: parameterPointer
     integer                                              :: iNode,iIsolatedNode
     double precision                                     :: radiusMinimum,radiusMaximum,radiusScale
     logical                                              :: excessiveScaleRadii,excessiveHalfMassRadii
+    character(len=50)                                    :: message
 
     iIsolatedNode=0
     excessiveScaleRadii   =.false.
@@ -1275,7 +1276,15 @@ contains
              radiusMinimum=0.5d0*radiusMinimum
           end do
           do while (Half_Mass_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
-             if (radiusMaximum > Dark_Matter_Halo_Virial_Radius(activeNode)) call Galacticus_Error_Report('Assign_Scale_Radii','scale radius exceeds virial radius')
+             if (radiusMaximum > scaleRadiusMaximumAllowed*Dark_Matter_Halo_Virial_Radius(activeNode)) then
+                write (message,'(a,i10,a)') 'node ',activeNode%index(),' has unphysical scale-radius:'
+                call Galacticus_Display_Message(trim(message))
+                write (message,'(a,e12.6,a)') ' half mass radius = ',halfMassRadius                            ,' Mpc'
+                call Galacticus_Display_Message(trim(message))
+                write (message,'(a,e12.6,a)') '    virial radius = ',Dark_Matter_Halo_Virial_Radius(activeNode),' Mpc'
+                call Galacticus_Display_Message(trim(message))
+                call Galacticus_Error_Report('Assign_Scale_Radii','scale radius greatly exceeds virial radius - this seems unphysical')
+             end if
              radiusMaximum=2.0d0*radiusMaximum
           end do
           
