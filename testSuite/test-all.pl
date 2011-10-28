@@ -201,7 +201,8 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     },
     {
 	name     => "tests.tree_branch_destroy.exe",             # Tests of merger tree walking.
-	valgrind => 1
+	valgrind => 1,
+	valgrindOptions => "--undef-value-errors=no"
     }
     );
 
@@ -216,7 +217,7 @@ foreach $executable ( @executablesToRun ) {
     if ( $buildSuccess == 0 ) {
 	# Run the test and copy any output to our log file.
 	if ( $executable->{'valgrind'} == 1 ) {	    
-	    &SystemRedirect::tofile("valgrind --error-exitcode=1 ".$executable->{'name'},"allTests.tmp");
+	    &SystemRedirect::tofile("valgrind --error-exitcode=1 ".$executable->{'valgrindOptions'}." ".$executable->{'name'},"allTests.tmp");
 	} else {
 	    &SystemRedirect::tofile($executable->{'name'},"allTests.tmp");
 	}
