@@ -224,12 +224,24 @@ contains
     do while (associated(nextNode))
        ! Keep of a record of the current node, so that we can destroy it.
        destroyNode => nextNode
+
        ! Walk to the next node in the tree.
        call destroyNode%walkBranchWithSatellites(thisNode,nextNode)
+
+       ! If the node about to be destroyed is the primary progenitor of its parent we must move the child pointer of the parent to
+       ! point to the node's sibling. This is necessary as parent-child pointers are used to establish satellite status and so
+       ! will be utilized when walking the tree. Failure to do this can result in attempts to use dangling pointers.
+       if (associated(destroyNode%parentNode)) then
+          if (associated(destroyNode%parentNode%childNode,destroyNode)) destroyNode%parentNode%childNode => destroyNode%siblingNode
+       end if
+
        ! Destroy the current node.
        call destroyNode%destroy
     end do
     ! Destroy the base node of the branch.
+    if (associated(thisNode%parentNode)) then
+       if (associated(thisNode%parentNode%childNode,thisNode)) thisNode%parentNode%childNode => thisNode%siblingNode
+    end if
     call thisNode%destroy
     return
   end subroutine Merger_Tree_Destroy_Branch

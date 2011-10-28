@@ -67,58 +67,166 @@ print lHndl ":-> Running test suite:\n";
 print lHndl "    -> Host:\t".$ENV{'HOST'}."\n";
 print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 
-# Define a list of executables to run.
+# Define a list of executables to run. Each hash must give the name of the executable and should specify whether or not the
+# executable should be run inside of Valgrind (this is useful for detecting errors which lead to misuse of memory but which don't
+# necessary cause a crash).
 @executablesToRun = (
-    "tests.IO.HDF5.exe",                         # Tests of HDF5 IO routines.
-    "tests.ODE_solver.exe",                      # Tests of ODE solver routines.
-    "tests.arrays.exe",                          # Tests of array functions.
-    "tests.comparisons.exe",                     # Tests of comparison functions.
-    "tests.geometry.coordinate_systems.exe",     # Tests of coordinate system functions.
-    "tests.hashes.exe",                          # Tests of hashing utilities.
-    "tests.integration.exe",                     # Tests of integration functions.
-    "tests.interpolation.exe",                   # Tests of interpolation functions.
-    "tests.interpolation.2D.exe",                # Tests of 2D interpolation function.
-    "tests.make_ranges.exe",                     # Tests of numerical range building functions.
-    "tests.math_special_functions.exe",          # Tests of mathematical special functions.
-    "tests.root_finding.exe",                    # Tests of root finding functions.
-    "tests.search.exe",                          # Tests of searching functions.
-    "tests.sort.exe",                            # Tests of sorting functions.
-    "tests.string_utilities.exe",                # Tests of string handling utilities.
-    "tests.vectors.exe",                         # Tests of vector functions.
-    "tests.cosmic_age.dark_energy.exe",          # Tests of cosmic age calculations.
-    "tests.cosmic_age.EdS.exe",                  # .
-    "tests.cosmic_age.open.exe",                 # .
-    "tests.linear_growth.dark_energy.exe",       # Tests of linear growth factor.
-    "tests.linear_growth.EdS.exe",               # .
-    "tests.linear_growth.open.exe",              # .
-    "tests.comoving_distance.dark_energy.exe",   # Tests of comoving distance calculations.
-    "tests.comoving_distance.EdS.exe",           # .
-    "tests.comoving_distance.open.exe",          # .
-    "tests.Zhao2009_algorithms.dark_energy.exe", # Tests of Zhao et al. (2009) algorithms.
-    "tests.Zhao2009_algorithms.EdS.exe",         # .
-    "tests.Zhao2009_algorithms.open.exe",        # .
-    "tests.NFW96_concentration.dark_energy.exe", # Tests of Navarro, Frenk & White (1996) halo concentration algorithm.
-    "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
-    "tests.sigma.exe",                           # Sigma(M).
-    "tests.bug745815.exe",                       # Regresssions.
+    {
+	name     => "tests.IO.HDF5.exe",                         # Tests of HDF5 IO routines.
+	valgrind => 0
+    },
+    {
+	name     => "tests.ODE_solver.exe",                      # Tests of ODE solver routines.
+	valgrind => 0
+    },
+    {
+	name     => "tests.arrays.exe",                          # Tests of array functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.comparisons.exe",                     # Tests of comparison functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.geometry.coordinate_systems.exe",     # Tests of coordinate system functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.hashes.exe",                          # Tests of hashing utilities.
+	valgrind => 0
+    },
+    {
+	name     => "tests.integration.exe",                     # Tests of integration functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.interpolation.exe",                   # Tests of interpolation functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.interpolation.2D.exe",                # Tests of 2D interpolation function.
+	valgrind => 0
+    },
+    {
+	name     => "tests.make_ranges.exe",                     # Tests of numerical range building functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.math_special_functions.exe",          # Tests of mathematical special functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.root_finding.exe",                    # Tests of root finding functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.search.exe",                          # Tests of searching functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.sort.exe",                            # Tests of sorting functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.string_utilities.exe",                # Tests of string handling utilities.
+	valgrind => 0
+    },
+    {
+	name     => "tests.vectors.exe",                         # Tests of vector functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.cosmic_age.dark_energy.exe",          # Tests of cosmic age calculations.
+	valgrind => 0
+    },
+    {
+	name     => "tests.cosmic_age.EdS.exe",                  # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.cosmic_age.open.exe",                 # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.linear_growth.dark_energy.exe",       # Tests of linear growth factor.
+	valgrind => 0
+    },
+    {
+	name     => "tests.linear_growth.EdS.exe",               # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.linear_growth.open.exe",              # .
+ 	valgrind => 0
+    },
+    {
+	name     =>"tests.comoving_distance.dark_energy.exe",    # Tests of comoving distance calculations.
+ 	valgrind => 0
+    },
+    {
+	name     =>"tests.comoving_distance.EdS.exe",            # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.comoving_distance.open.exe",          # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.Zhao2009_algorithms.dark_energy.exe", # Tests of Zhao et al. (2009) algorithms.
+	valgrind => 0
+    },
+    {
+	name     => "tests.Zhao2009_algorithms.EdS.exe",         # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.Zhao2009_algorithms.open.exe",        # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.NFW96_concentration.dark_energy.exe", # Tests of Navarro, Frenk & White (1996) halo concentration algorithm.
+	valgrind => 0
+    },
+    {
+	name     => "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.sigma.exe",                           # Sigma(M).
+	valgrind => 0
+    },
+    {
+	name     => "tests.bug745815.exe",                       # Regresssions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.tree_branch_destroy.exe",             # Tests of merger tree walking.
+	valgrind => 1
+    }
     );
 
 # Run all executables.
 foreach $executable ( @executablesToRun ) {
     print lHndl "\n\n";
-    print lHndl ":-> Running test: ".$executable."\n";
-    &SystemRedirect::tofile("make ".$executable,"allTestsBuild.tmp");
+    print lHndl ":-> Running test: ".$executable->{'name'}."\n";
+    &SystemRedirect::tofile("make ".$executable->{'name'},"allTestsBuild.tmp");
     $buildSuccess = $?;
     print lHndl slurp("allTestsBuild.tmp");
     unlink("allTestsBuild.tmp");
     if ( $buildSuccess == 0 ) {
 	# Run the test and copy any output to our log file.
-	&SystemRedirect::tofile($executable,"allTests.tmp");
+	if ( $executable->{'valgrind'} == 1 ) {	    
+	    &SystemRedirect::tofile("valgrind --error-exitcode=1 ".$executable->{'name'},"allTests.tmp");
+	} else {
+	    &SystemRedirect::tofile($executable->{'name'},"allTests.tmp");
+	}
+	$runSuccess = $?;
+	print lHndl "FAILED: running ".$executable->{'name'}." failed\n" if ( $runSuccess != 0 );
 	print lHndl slurp("allTests.tmp");
-	unlink("allTests.tmp",$executable);
+	unlink("allTests.tmp",$executable->{'name'});
     } else {
 	# Build failed, report an error in the log file.
-	print lHndl "FAILED: building ".$executable." failed\n";
+	print lHndl "FAILED: building ".$executable->{'name'}." failed\n";
     }
 }
 
