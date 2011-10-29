@@ -142,6 +142,7 @@ module Merger_Tree_Read
   logical                                            :: mergerTreeReadPresetSubhaloMasses
   logical                                            :: mergerTreeReadPresetPositions
   logical                                            :: mergerTreeReadPresetScaleRadii
+  double precision                                   :: mergerTreeReadPresetScaleRadiiMinimumMass
   logical                                            :: mergerTreeReadPresetSpins
   logical                                            :: mergerTreeReadPresetOrbits,mergerTreeReadPresetOrbitsBoundOnly
 
@@ -238,6 +239,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetMergerTimes</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether merging times for subhalos should be preset when reading merger trees from a file.
        !@   </description>
@@ -248,6 +250,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetMergerNodes</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether the target nodes for mergers should be preset (i.e. determined from descendent nodes). If they are not, merging will be with each satellite's host node.
        !@   </description>
@@ -258,6 +261,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetSubhaloMasses</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether subhalo mass should be preset when reading merger trees from a file.
        !@   </description>
@@ -268,6 +272,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetPositions</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether node positions should be preset when reading merger trees from a file.
        !@   </description>
@@ -278,6 +283,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetScaleRadii</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether node scale radii should be preset when reading merger trees from a file.
        !@   </description>
@@ -286,8 +292,20 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetScaleRadii',mergerTreeReadPresetScaleRadii,defaultValue=.true.)
        !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetScaleRadiiMinimumMass</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>0</defaultValue>
+       !@   <description>
+       !@     The minimum halo mass for which scale radii should be preset (if {\tt [mergerTreeReadPresetScaleRadii]}$=${\tt true}).
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiMinimumMass',mergerTreeReadPresetScaleRadiiMinimumMass,defaultValue=0.0d0)
+       !@ <inputParameter>
        !@   <name>mergerTreeReadPresetSpins</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether node spins should be preset when reading merger trees from a file.
        !@   </description>
@@ -298,6 +316,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetOrbits</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether node orbits should be preset when reading merger trees from a file.
        !@   </description>
@@ -308,6 +327,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetOrbitsBoundOnly</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether only bound node orbits should be set.
        !@   </description>
@@ -318,6 +338,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadBeginAt</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>-1</defaultValue>
        !@   <description>
        !@     Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)
        !@   </description>
@@ -328,6 +349,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadOutputTimeSnapTolerance</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>0</defaultValue>
        !@   <description>
        !@     The relative tolerance required to ``snap'' a node time to the closest output time.
        !@   </description>
@@ -338,6 +360,7 @@ contains
        !@ <inputParameter>
        !@   <name>mergerTreeReadMissingHostsAreFatal</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
        !@   <description>
        !@     Specifies whether nodes with missing host nodes should be considered to be fatal---see \S\ref{sec:MergerTreeFileProcessing}.
        !@   </description>
@@ -1287,40 +1310,44 @@ contains
        if (nodes(iNode)%nodeIndex == nodes(iNode)%hostNode%nodeIndex) then
           iIsolatedNode=iIsolatedNode+1
           
-          ! Set the active node and target half mass radius.
-          activeNode => nodeList(iIsolatedNode)%node
-          halfMassRadius=nodes(iNode)%halfMassRadius
-          
-          ! Find minimum and maximum scale radii such that the target half-mass radius is bracketed.
-          radiusMinimum=halfMassRadius
-          radiusMaximum=halfMassRadius
-          do while (Half_Mass_Radius_Root(radiusMinimum,parameterPointer) <= 0.0d0)
-             radiusMinimum=0.5d0*radiusMinimum
-          end do
-          do while (Half_Mass_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
-             if (radiusMaximum > scaleRadiusMaximumAllowed*Dark_Matter_Halo_Virial_Radius(activeNode)) then
-                write (message,'(a,i10,a)') 'node ',activeNode%index(),' has unphysical scale-radius:'
-                call Galacticus_Display_Message(trim(message))
-                write (message,'(a,e12.6,a)') ' half mass radius = ',halfMassRadius                            ,' Mpc'
-                call Galacticus_Display_Message(trim(message))
-                write (message,'(a,e12.6,a)') '    virial radius = ',Dark_Matter_Halo_Virial_Radius(activeNode),' Mpc'
-                call Galacticus_Display_Message(trim(message))
-                call Galacticus_Error_Report('Assign_Scale_Radii','scale radius greatly exceeds virial radius - this seems unphysical')
-             end if
-             radiusMaximum=2.0d0*radiusMaximum
-          end do
-          
-          ! Solve for the scale radius.
-          radiusScale=Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root,parameterPointer &
-               &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
-          call Tree_Node_Dark_Matter_Profile_Scale_Set(nodeList(iIsolatedNode)%node,radiusScale)
-          
-          ! Check for scale radii exceeding the virial radius.
-          if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
-          
-          ! Check for half-mass radii exceeding the virial radius.
-          if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
-          
+          ! Check if the node is sufficiently massive.
+          if (Tree_Node_Mass(nodeList(iIsolatedNode)%node) >= mergerTreeReadPresetScaleRadiiMinimumMass) then
+
+             ! Set the active node and target half mass radius.
+             activeNode => nodeList(iIsolatedNode)%node
+             halfMassRadius=nodes(iNode)%halfMassRadius
+             
+             ! Find minimum and maximum scale radii such that the target half-mass radius is bracketed.
+             radiusMinimum=halfMassRadius
+             radiusMaximum=halfMassRadius
+             do while (Half_Mass_Radius_Root(radiusMinimum,parameterPointer) <= 0.0d0)
+                radiusMinimum=0.5d0*radiusMinimum
+             end do
+             do while (Half_Mass_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
+                if (radiusMaximum > scaleRadiusMaximumAllowed*Dark_Matter_Halo_Virial_Radius(activeNode)) then
+                   write (message,'(a,i10,a)') 'node ',activeNode%index(),' has unphysical scale-radius:'
+                   call Galacticus_Display_Message(trim(message))
+                   write (message,'(a,e12.6,a)') ' half mass radius = ',halfMassRadius                            ,' Mpc'
+                   call Galacticus_Display_Message(trim(message))
+                   write (message,'(a,e12.6,a)') '    virial radius = ',Dark_Matter_Halo_Virial_Radius(activeNode),' Mpc'
+                   call Galacticus_Display_Message(trim(message))
+                   call Galacticus_Error_Report('Assign_Scale_Radii','scale radius greatly exceeds virial radius - this seems unphysical')
+                end if
+                radiusMaximum=2.0d0*radiusMaximum
+             end do
+             
+             ! Solve for the scale radius.
+             radiusScale=Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root,parameterPointer &
+                  &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+             call Tree_Node_Dark_Matter_Profile_Scale_Set(nodeList(iIsolatedNode)%node,radiusScale)
+             
+             ! Check for scale radii exceeding the virial radius.
+             if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
+             
+             ! Check for half-mass radii exceeding the virial radius.
+             if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
+
+          end if
        end if
     end do
     
