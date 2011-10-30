@@ -89,7 +89,7 @@ contains
        ! Get parameters of for the timescale calculation.
        !@ <inputParameter>
        !@   <name>starFormationSpheroidEfficiency</name>
-       !@   <defaultValue>0.1</defaultValue>
+       !@   <defaultValue>0.015</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The efficiency of star formation in spheroids for the dynamical time method.
@@ -98,7 +98,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>starFormation</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('starFormationSpheroidEfficiency'      ,starFormationSpheroidEfficiency      ,defaultValue=0.1d0)
+       call Get_Input_Parameter('starFormationSpheroidEfficiency'      ,starFormationSpheroidEfficiency      ,defaultValue=0.015d0)
        !@ <inputParameter>
        !@   <name>starFormationSpheroidVelocityExponent</name>
        !@   <defaultValue>0</defaultValue>

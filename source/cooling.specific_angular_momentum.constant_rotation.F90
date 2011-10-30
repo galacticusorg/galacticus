@@ -125,7 +125,7 @@ contains
 
        !@ <inputParameter>
        !@   <name>coolingRotationVelocityFrom</name>
-       !@   <defaultValue>darkMatter</defaultValue>
+       !@   <defaultValue>hotGas</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the constant rotation speed should be computed for
@@ -134,7 +134,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingRotationVelocityFrom',inputOption,defaultValue='darkMatter')
+       call Get_Input_Parameter('coolingRotationVelocityFrom',inputOption,defaultValue='hotGas')
        select case (char(inputOption))
        case ("darkMatter")
           rotationNormalizationFrom=profileDarkMatter

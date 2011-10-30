@@ -90,7 +90,7 @@ contains
        ! Get IMF choice.
        !@ <inputParameter>
        !@   <name>imfSelectionFixed</name>
-       !@   <defaultValue>Salpeter</defaultValue>       
+       !@   <defaultValue>Chabrier</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the initial mass function to use in the ``fixed initial mass function'' module.
@@ -99,7 +99,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>initialMassFunction</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('imfSelectionFixed',imfSelectionFixed,defaultValue='Salpeter')
+       call Get_Input_Parameter('imfSelectionFixed',imfSelectionFixed,defaultValue='Chabrier')
        imfSelectedIndex=IMF_Index_Lookup(imfSelectionFixed,imfNames)
     end if
     return

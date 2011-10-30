@@ -91,7 +91,7 @@ contains
        ! Get cooling rate parameters.
        !@ <inputParameter>
        !@   <name>zeroCoolingRateAboveVelocity</name>
-       !@   <defaultValue>1000</defaultValue>
+       !@   <defaultValue>10000</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White-Frenk1991} cooling rate model.

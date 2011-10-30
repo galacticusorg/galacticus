@@ -288,7 +288,7 @@ contains
        ! Read parameters controlling the physical implementation.
        !@ <inputParameter>
        !@   <name>spheroidAngularMomentumAtScaleRadius</name>
-       !@   <defaultValue>0.2546479089 [value for a self-gravitating Hernquist spheroid]</defaultValue>
+       !@   <defaultValue>0.5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of a Hernquist spheroid .
@@ -296,7 +296,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=0.2546479089d0)
+       call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=0.5d0)
        !@ <inputParameter>
        !@   <name>spheroidEnergeticOutflowMassRate</name>
        !@   <defaultValue>1.0</defaultValue>

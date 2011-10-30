@@ -93,7 +93,7 @@ contains
        Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Simple
        !@ <inputParameter>
        !@   <name>majorMergerMassRatio</name>
-       !@   <defaultValue>0.3</defaultValue>
+       !@   <defaultValue>0.3983</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The mass ratio above which mergers are considered to be ``major'' in the simple merger mass movements method.

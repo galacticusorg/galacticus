@@ -326,7 +326,7 @@ contains
        ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
        !@ <inputParameter>
        !@   <name>hotHaloOutflowReturnRate</name>
-       !@   <defaultValue>1.26027</defaultValue>
+       !@   <defaultValue>5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical time.
@@ -334,12 +334,12 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=1.26027d0)
+       call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=5.0d0)
 
        ! Get fraction of angular momentum that is lost during cooling/infall.
        !@ <inputParameter>
        !@   <name>hotHaloAngularMomentumLossFraction</name>
-       !@   <defaultValue>0.0</defaultValue>
+       !@   <defaultValue>0.3</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies the fraction of angular momentum that is lost from cooling/infalling gas.
@@ -347,7 +347,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloAngularMomentumLossFraction',hotHaloAngularMomentumLossFraction,defaultValue=0.0d0)
+       call Get_Input_Parameter('hotHaloAngularMomentumLossFraction',hotHaloAngularMomentumLossFraction,defaultValue=0.3d0)
 
        ! Get options controlling output.
        !@ <inputParameter>

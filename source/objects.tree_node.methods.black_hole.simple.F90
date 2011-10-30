@@ -198,7 +198,7 @@ contains
        ! Get options controlling output.
        !@ <inputParameter>
        !@   <name>blackHoleWindEfficiency</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <defaultValue>$2.2157\times 10^{-3}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The efficiency of the black hole accretion-driven wind.
@@ -207,7 +207,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
-       call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=1.0d-3)
+       call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=2.2157d-3)
 
        ! Get options controlling output.
        !@ <inputParameter>

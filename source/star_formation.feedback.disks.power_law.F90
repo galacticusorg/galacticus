@@ -89,7 +89,7 @@ contains
        ! Get parameters of for the feedback calculation.
        !@ <inputParameter>
        !@   <name>diskOutflowVelocity</name>
-       !@   <defaultValue>200</defaultValue>
+       !@   <defaultValue>250</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The velocity scale at which the \SNe-driven outflow rate equals the star formation rate in disks.
@@ -98,10 +98,10 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>starFormation</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowVelocity',diskOutflowVelocity,defaultValue=200.0d0)
+       call Get_Input_Parameter('diskOutflowVelocity',diskOutflowVelocity,defaultValue=250.0d0)
        !@ <inputParameter>
        !@   <name>diskOutflowExponent</name>
-       !@   <defaultValue>2</defaultValue>
+       !@   <defaultValue>3</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The velocity scaling of the \SNe-driven outflow rate in disks.
@@ -110,7 +110,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>starFormation</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowExponent',diskOutflowExponent,defaultValue=  2.0d0)
+       call Get_Input_Parameter('diskOutflowExponent',diskOutflowExponent,defaultValue=  3.0d0)
     end if
     return
   end subroutine Star_Formation_Feedback_Disks_Power_Law_Initialize

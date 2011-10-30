@@ -195,7 +195,7 @@ contains
        ! Get accretion rate enhancement factors.
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionEnhancementSpheroid</name>
-       !@   <defaultValue>1</defaultValue>
+       !@   <defaultValue>3</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.
@@ -205,10 +205,10 @@ contains
        !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("bondiHoyleAccretionEnhancementSpheroid",bondiHoyleAccretionEnhancementSpheroid,defaultValue&
-            &=1.0d0)
+            &=3.0d0)
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionEnhancementHotHalo</name>
-       !@   <defaultValue>1</defaultValue>
+       !@   <defaultValue>11.4486</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.
@@ -217,7 +217,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
-       call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=1.0d0)
+       call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=11.4486d0)
 
        ! Get temperature of accreting gas.
        !@ <inputParameter>
@@ -237,7 +237,7 @@ contains
        ! Get temperature of accreting gas.
        !@ <inputParameter>
        !@   <name>blackHoleWindEfficiency</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <defaultValue>$2.2157\times 10^{-3}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The efficiency of the black hole-driven wind: $L_{\rm wind} = \epsilon_{\rm wind} \dot{M}_\bullet \clight^2$.
@@ -246,7 +246,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
-       call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=1.0d-3)
+       call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=2.2157d-3)
 
        ! Options controlling AGN feedback.
        !@ <inputParameter>

@@ -397,7 +397,7 @@ contains
        ! Get tolerance values for the ODE solver.
        !@ <inputParameter>
        !@   <name>odeToleranceAbsolute</name>
-       !@   <defaultValue>$10^{-30}$</defaultValue>
+       !@   <defaultValue>$0.01$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The absolute tolerance used in solving differential equations for node evolution.
@@ -406,7 +406,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>timeStepping</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=1.0d-30)
+       call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=0.01)
        !@ <inputParameter>
        !@   <name>odeToleranceRelative</name>
        !@   <defaultValue>0.01</defaultValue>

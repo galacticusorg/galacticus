@@ -127,7 +127,7 @@ contains
        ! Read parameters.
        !@ <inputParameter>
        !@   <name>reionizationSuppressionRedshift</name>
-       !@   <defaultValue>9.0</defaultValue>
+       !@   <defaultValue>10.5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The redshift below which baryonic accretion is suppressed.
@@ -135,11 +135,11 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue= 9.0d0)
+       call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue=10.5d0)
        reionizationSuppressionTime=Cosmology_Age(Expansion_Factor_from_Redshift(reionizationSuppressionRedshift))
        !@ <inputParameter>
        !@   <name>reionizationSuppressionVelocity</name>
-       !@   <defaultValue>30.0</defaultValue>
+       !@   <defaultValue>35.0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The velocity scale below which baryonic accretion is suppressed.
@@ -147,7 +147,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("reionizationSuppressionVelocity",reionizationSuppressionVelocity,defaultValue=30.0d0)
+       call Get_Input_Parameter("reionizationSuppressionVelocity",reionizationSuppressionVelocity,defaultValue=35.0d0)
 
        ! Define the radiation structure.
        call radiation%define([radiationTypeCMB])

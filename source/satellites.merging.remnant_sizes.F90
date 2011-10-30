@@ -99,7 +99,7 @@ contains
        ! Do the satellite merging remnant sizes method parameter.
        !@ <inputParameter>
        !@   <name>satelliteMergingRemnantSizeMethod</name>
-       !@   <defaultValue>Cole2000</defaultValue>
+       !@   <defaultValue>Covington2008</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for computing merger remnant sizes.
@@ -107,7 +107,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('satelliteMergingRemnantSizeMethod',satelliteMergingRemnantSizeMethod,defaultValue='Cole2000')
+       call Get_Input_Parameter('satelliteMergingRemnantSizeMethod',satelliteMergingRemnantSizeMethod,defaultValue='Covington2008')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="satelliteMergingRemnantSizeMethod" type="code" action="subroutine">
        !#  <subroutineArgs>satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do</subroutineArgs>

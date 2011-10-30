@@ -111,7 +111,7 @@ contains
        ! Get the cooling function method parameter.
        !@ <inputParameter>
        !@   <name>stellarPopulationSpectraMethod</name>
-       !@   <defaultValue>Conroy-White-Gunn2010</defaultValue>
+       !@   <defaultValue>Conroy-White-Gunn2009</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of stellar population spectra.
