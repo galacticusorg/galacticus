@@ -406,7 +406,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>timeStepping</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=0.01)
+       call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=0.01d0)
        !@ <inputParameter>
        !@   <name>odeToleranceRelative</name>
        !@   <defaultValue>0.01</defaultValue>
