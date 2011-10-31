@@ -118,6 +118,7 @@ vpath %.cpp source
 %.exe : ./work/build/%.o ./work/build/%.d `cat ./work/build/$*.d` $(MAKE_DEPS)
 	 $(CONDORLINKER) $(F03COMPILER) `cat $*.d` -o $*.exe $(F03FLAGS) $(LIBS)
 	 ./scripts/build/Find_Executable_Size.pl $*.exe $*.size
+	 ./scripts/build/Find_Parameter_Dependencies.pl $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: %.o %.d %.dd %.m %.make

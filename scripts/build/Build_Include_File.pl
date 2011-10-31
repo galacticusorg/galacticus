@@ -303,6 +303,12 @@ switch ( $instructions->{'type'} ) {
     # For option names, output code to read in the values from the parameter file.
     case ( "optionNames" ) {
 	# Read in parameter value.
+	my $componentParameters;
+	@{$componentParameters->{'parameter'}} = @SortedBlocks;
+	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+	open(oHndl,">./work/build/Galacticus.parameters.extra.xml");
+	print oHndl $xmlOutput->XMLout($componentParameters);
+	close(oHndl);
 	foreach $optionName ( @SortedBlocks ) {
 	    print includeFile "call Get_Input_Parameter('".$optionName."',".$optionName;
 	    unless ( $inserts{$insert} eq "none" ) {

@@ -62,7 +62,8 @@ foreach $srcdir ( @sourcedirs ) {
 			$eleaf = $root.".exe";
 			print outfile "$root.exe: .$workDir$base$ofile .$workDir$base$dfile \$(MAKE_DEPS)\n";
 			print outfile "\t\$(F03COMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(F03FLAGS) \$(LIBS)\n";
-			print outfile "\t./scripts/build/Find_Executable_Size.pl $root.exe .$workDir$root.size\n\n";
+			print outfile "\t./scripts/build/Find_Executable_Size.pl $root.exe .$workDir$root.size\n";
+			print outfile "\t./scripts/build/Find_Parameter_Dependencies.pl $root.exe\n\n";
 		    }
                 }
 	    }

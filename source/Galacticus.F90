@@ -89,7 +89,7 @@ program Galacticus
   parameterFile=parameterFileCharacter
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile,galacticusOutputFile)
+  call Input_Parameters_File_Open(parameterFile,galacticusOutputFile,allowedParametersFile='Galacticus.parameters.xml')
 
   ! Open the Galacticus output file.
   call Galacticus_Output_Open_File
