@@ -501,7 +501,7 @@ The following are standard attributes in the {\tt haloTrees} group (others may b
  \item [{\tt haloMassesIncludeSubhalos}] Indicates whether or not the masses of halos include the masses of any subhalos that they may contain. A value of 0 implies that halo masses do not include masses of subhalos, while a value of 1 indicates that they do;
  \item [{\tt treesAreSelfContained}] Indicates whether or not trees are self-contained, in the sense that nodes never transfer from one tree to another. A value of 0 implies that nodes \emph{can} move from one tree to another, while a value of 1 implies that they can not;
  \item [{\tt treesHaveSubhalos}] Indicates whether or not trees contain information on subhalos. A value of 0 implies that they do not, while a value of 1 implies that they do. This attribute is a convenience, as subhalo presence can be determined from the node data directly;
- \item [{\tt velocitiesIncludeHubbleFlow}] Indicates whether or not velocities include the Hubble flow. A value of 0 indicates that they do not, while a value of 1 indicates that they do.
+ \item [{\tt velocitiesIncludeHubbleFlow}] Indicates whether or not velocities include the Hubble flow. A value of 0 indicates that they do not, while a value of 1 indicates that they do. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc.
  \item [{\tt positionsArePeriodic}] Indicates whether or not positions are periodic (as in a cosmological cube simulation). A value of 0 indicates that they are not, while a value of 1 indicates that they are periodic, with a period of {\tt boxSize}.
 \end{description}
 
@@ -521,7 +521,7 @@ The following are standard datasets in the {\tt haloTrees} group.
  \item [{\tt redshift}] The redshift at which this node is identified (note that only one of the {\tt expansionFactor}, {\tt redshift} and {\tt time} datasets is required, since they are simply related, but multiple \emph{can} be present);
  \item [{\tt spin}] The spin parameter, $\lambda$, of the halo. This can be either the spin magnitude or a 3-D vector;
  \item [{\tt time}] The time at which this node is identified (note that only one of the {\tt expansionFactor}, {\tt redshift} and {\tt time} datasets is required, since they are simply related, but multiple \emph{can} be present);
- \item [{\tt velocity}] The three dimensional velocity of the node;
+ \item [{\tt velocity}] The three dimensional velocity of the node. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc;
  \item [{\tt particleIndex}] If the {\tt particles} group is included, this dataset should give the index of the first entry in the particle datasets that corresponds to the particle associated with this node;
  \item [{\tt particleCount}] If the {\tt particles} group is included, this dataset should give the number of entries in particle datasets that correspond to the particle associated with this node;
 \end{description}
@@ -629,7 +629,7 @@ Each particle should be stored contiguously (i.e. entries with the same {\tt par
  \item [{\tt time}] The time at which the particle is recorded (a single particle can appear in these datasets multiple times at different redshifts);
  \item [{\tt expansionFactor}] The expansion factor at which the particle is recorded (a single particle can appear in these datasets multiple times at different expansion factors);
  \item [{\tt position}] The spatial position of the particle;
- \item [{\tt velocity}] The velocity of the particle.
+ \item [{\tt velocity}] The velocity of the particle. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc.
 \end{description}
 
 Note that only one of the {\tt expansionFactor}, {\tt time} and {\tt redshift} datasets is required, as they are simply related, but multiple of them \emph{can} be present.
