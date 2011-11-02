@@ -126,7 +126,7 @@ contains
        !@   <defaultValue>0.24 (computed internally)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The recycled fraction for the Scalo \IMF\ in the instantaneous recycling approximation.
+       !@     The recycled fraction for the Scalo \gls{imf} in the instantaneous recycling approximation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -138,7 +138,7 @@ contains
        !@   <defaultValue>0.086 (internally computed)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The yield for the Scalo \IMF\ in the instantaneous recycling approximation.
+       !@     The yield for the Scalo \gls{imf} in the instantaneous recycling approximation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

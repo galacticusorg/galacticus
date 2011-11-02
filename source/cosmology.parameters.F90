@@ -172,7 +172,7 @@ contains
        !@   <defaultValue>2.72548 \citep{fixsen_temperature_2009}</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The present day temperature of the \CMB\ in units of Kelvin.
+       !@     The present day temperature of the \gls{cmb} in units of Kelvin.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

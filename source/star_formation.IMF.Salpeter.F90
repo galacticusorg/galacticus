@@ -125,7 +125,7 @@ contains
        !@   <defaultValue>0.39</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The recycled fraction for the Salpeter \IMF\ in the instantaneous recycling approximation.
+       !@     The recycled fraction for the Salpeter \gls{imf} in the instantaneous recycling approximation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -137,7 +137,7 @@ contains
        !@   <defaultValue>0.02</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The yield for the Salpeter \IMF\ in the instantaneous recycling approximation.
+       !@     The yield for the Salpeter \gls{imf} in the instantaneous recycling approximation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

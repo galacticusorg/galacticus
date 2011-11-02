@@ -105,7 +105,7 @@ contains
        !@   <defaultValue>powerLaw</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the method to be used for calculations of \SNe\ feedback in disks.
+       !@     The name of the method to be used for calculations of \gls{sne} feedback in disks.
        !@   </description>
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>

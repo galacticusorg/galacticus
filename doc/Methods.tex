@@ -462,7 +462,7 @@ The mass functions must have the form:
     return
  end function My_Accretion_Get
 \end{verbatim}
-In the case of the accretion rate functions, the function must return the accretion rate of baryons from the \IGM\ onto {\tt thisNode} in $M_\odot$ Gyr$^{-1}$. For total accreted mass functions, the total mass of baryons (in $M_\odot$) accreted onto {\tt thisNode} should be returned under the assumption that {\tt thisNode} formed instataneously with no progenitors. The ``failed'' accretion refers to mass which would have been accreted onto the halo if it simply traced the growth of overall mass. That is:
+In the case of the accretion rate functions, the function must return the accretion rate of baryons from the \gls{igm} onto {\tt thisNode} in $M_\odot$ Gyr$^{-1}$. For total accreted mass functions, the total mass of baryons (in $M_\odot$) accreted onto {\tt thisNode} should be returned under the assumption that {\tt thisNode} formed instataneously with no progenitors. The ``failed'' accretion refers to mass which would have been accreted onto the halo if it simply traced the growth of overall mass. That is:
 \begin{equation}
  \dot{M}_{\rm failed} = {\Omega_{\rm b} \over \Omega_{\rm M}} \dot{M} - \dot{M}_{\rm accreted},
 \end{equation}
@@ -492,7 +492,7 @@ respectively.
 
 Currently defined accretion disk methods are:
 \begin{description}
- \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \IGM\ (i.e. abundances are always zero) and chemicals are computed using the chemical state functions (see \S\ref{sec:ChemicalStateMethods}).
+ \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \gls{igm} (i.e. abundances are always zero) and chemicals are computed using the chemical state functions (see \S\ref{sec:ChemicalStateMethods}).
 \end{description}
 
 \subsubsection{Atomic Collisional Ionization Rates}
@@ -1067,7 +1067,7 @@ Currently defined cooling function methods are:
  \end{description}
  If the cooling function is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first cooling function is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.} and cooling function. Otherwise, interpolation is linear in these quantities. The cooling function is scaled assuming a quadratic dependence on hydrogen density.
  \item [{\tt atomic\_CIE\_Cloudy}] Uses the {\sc Cloudy} software to compute a cooling function for atomic gas in collisional ionization equilibrium. {\sc Cloudy} will be downloaded, compiled and run automatically if necessary\footnote{{\sc Cloudy} is used to generate a file which contains a tabulation of the cooling function suitable for reading by the {\tt CIE from file} method. Generation of the tabulation typically takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}. Figure~\ref{fig:atomicCIECloudyCoolingFunction} shows the cooling function from this method.
- \item [{\tt CMB\_Compton}] Computes the cooling function due to Compton scattering off of \CMB\ photons.
+ \item [{\tt CMB\_Compton}] Computes the cooling function due to Compton scattering off of \gls{cmb} photons.
  \item [{\tt molecularHydrogenGalliPalla}] Implements the molecular hydrogen cooling function from \cite{galli_chemistry_1998}.
 \end{description}
 
@@ -1577,7 +1577,7 @@ Should return the cosmic epoch at which matter and curvature have equal energy d
      return
    end function My_CMB_Temperature
 \end{verbatim}
-Should return the \CMB\ temperature (in K) at the given cosmic epoch. The cosmic epoch can be specified as a time since the Big Bang, or an expansion factor (in the expanding phase unless the collapsing phase is specifically requested). Specifying a time and an expansion factor is invalid input, and the routine should abort in such cases.
+Should return the \gls{cmb} temperature (in K) at the given cosmic epoch. The cosmic epoch can be specified as a time since the Big Bang, or an expansion factor (in the expanding phase unless the collapsing phase is specifically requested). Specifying a time and an expansion factor is invalid input, and the routine should abort in such cases.
 
 \begin{verbatim}
    double precision function My_Comoving_Distance(time)
@@ -2571,7 +2571,7 @@ Currently defined virial density contrast methods are:
 
 \subsubsection{Initial Mass Function Functions}\label{sec:IMF_functions}
 
-Each registered \IMF\ must provide multiple functions, specified by the following directives:
+Each registered \gls{imf} must provide multiple functions, specified by the following directives:
 \begin{verbatim}
  !# <imfRecycledInstantaneous>
  !#  <unitName>Star_Formation_IMF_Recycled_Instantaneous_My_IMF</unitName>
@@ -2687,14 +2687,14 @@ These functions/subroutines should have the following forms:
     return
   end subroutine Star_Formation_IMF_Phi_My_IMF
 \end{verbatim}
-In each case the procedure should check if the supplied {\tt imfSelected} index matches the index which this \IMF\ was given when it was registered. If it is, then {\tt imfMatched} should be set to true. The procedures should then perform as follows:
+In each case the procedure should check if the supplied {\tt imfSelected} index matches the index which this \gls{imf} was given when it was registered. If it is, then {\tt imfMatched} should be set to true. The procedures should then perform as follows:
 \begin{description}
- \item [{\tt Star\_Formation\_IMF\_Yield\_Instantaneous\_My\_IMF}] Return a suitable metal yield in {\tt yield} for this \IMF\ in the instantaneous recyclying approximation.
- \item [{\tt Star\_Formation\_IMF\_Recycled\_Instantaneous\_My\_IMF}] Return a suitable recycled fraction in {\tt recycledFraction} for this \IMF\ in the instantaneous recyclying approximation.
- \item [{\tt Star\_Formation\_IMF\_Tabulate\_My\_IMF}] Allocate the {\tt imfMass()} and {\tt imfPhi()} arrays and fill them with a tabulation of the \IMF. The routine can choose the size of the tabulation and should ensure that it is suffient to resolve any features in the \IMF.
- \item [{\tt Star\_Formation\_IMF\_Minimum\_Mass\_My\_IMF}] Return the lowest mass for which the \IMF\ is non-zero.
- \item [{\tt Star\_Formation\_IMF\_Maximum\_Mass\_My\_IMF}] Return the largest mass for which the \IMF\ is non-zero.
- \item [{\tt Star\_Formation\_IMF\_Phi\_My\_IMF}] Return the \IMF\ for the specified {\tt imfMass} initial stellar mass.
+ \item [{\tt Star\_Formation\_IMF\_Yield\_Instantaneous\_My\_IMF}] Return a suitable metal yield in {\tt yield} for this \gls{imf} in the instantaneous recyclying approximation.
+ \item [{\tt Star\_Formation\_IMF\_Recycled\_Instantaneous\_My\_IMF}] Return a suitable recycled fraction in {\tt recycledFraction} for this \gls{imf} in the instantaneous recyclying approximation.
+ \item [{\tt Star\_Formation\_IMF\_Tabulate\_My\_IMF}] Allocate the {\tt imfMass()} and {\tt imfPhi()} arrays and fill them with a tabulation of the \gls{imf}. The routine can choose the size of the tabulation and should ensure that it is suffient to resolve any features in the \gls{imf}.
+ \item [{\tt Star\_Formation\_IMF\_Minimum\_Mass\_My\_IMF}] Return the lowest mass for which the \gls{imf} is non-zero.
+ \item [{\tt Star\_Formation\_IMF\_Maximum\_Mass\_My\_IMF}] Return the largest mass for which the \gls{imf} is non-zero.
+ \item [{\tt Star\_Formation\_IMF\_Phi\_My\_IMF}] Return the \gls{imf} for the specified {\tt imfMass} initial stellar mass.
 \end{description}
 Currently defined IMFs are described in \S\ref{sec:physicsIMF}.
 
@@ -2722,7 +2722,7 @@ Here, {\tt IMF\_Select\_Fixed\_Initialize} is the name of a subroutine which wil
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt imfSelectionMethod} input parameter. The procedure pointer {\tt IMF\_Select} must be set to point to a function which returns the index of the selected \IMF\ as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.). The input array {\tt imfNames()} contains a list of all available \IMF\ names and can be used for \hyperlink{star_formation.IMF.utilities.F90:star_formation_imf_utilities:imf_index_lookup}{index determination}.
+where {\tt myMethod} is the name of this method as will be specified by the {\tt imfSelectionMethod} input parameter. The procedure pointer {\tt IMF\_Select} must be set to point to a function which returns the index of the selected \gls{imf} as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.). The input array {\tt imfNames()} contains a list of all available \gls{imf} names and can be used for \hyperlink{star_formation.IMF.utilities.F90:star_formation_imf_utilities:imf_index_lookup}{index determination}.
 
 The selection function must have the form:
 \begin{verbatim}
@@ -2736,12 +2736,12 @@ The selection function must have the form:
     return
  end function IMF_Select
 \end{verbatim}
-The function must return the index of the \IMF\ appropriate for the given {\tt starFormationRate} (in $M_\odot$ Gyr$^{-1}$), {\tt fuelAbundances} and {\tt component} (using the component labels provided by the \hyperlink{galactic_structure.options.F90:galactic_structure_options}{{\tt Galactic\_Structure\_Options}} module).
+The function must return the index of the \gls{imf} appropriate for the given {\tt starFormationRate} (in $M_\odot$ Gyr$^{-1}$), {\tt fuelAbundances} and {\tt component} (using the component labels provided by the \hyperlink{galactic_structure.options.F90:galactic_structure_options}{{\tt Galactic\_Structure\_Options}} module).
 
-Currently defined \IMF\ selection methods are:
+Currently defined \gls{imf} selection methods are:
 \begin{description}
- \item [{\tt fixed}] A fixed \IMF\ is used irrespective of physical conditions. The \IMF\ is specified by the input parameter {\tt imfSelectionFixed}.
- \item [{\tt diskSpheroid}] Uses different {\IMF}s for star formation in disks and in spheroids irrespective of other physical conditions. The {\IMF}s are specified by the input parameters {\tt imfSelectionDisk} and {\tt imfSelectionSpheroid}.
+ \item [{\tt fixed}] A fixed \gls{imf} is used irrespective of physical conditions. The \gls{imf} is specified by the input parameter {\tt imfSelectionFixed}.
+ \item [{\tt diskSpheroid}] Uses different {\gls{imf}}s for star formation in disks and in spheroids irrespective of other physical conditions. The {\gls{imf}}s are specified by the input parameters {\tt imfSelectionDisk} and {\tt imfSelectionSpheroid}.
 \end{description}
 
 \subsubsection{Intergalactic Medium State}\label{sec:IntergalacticMediumStateMethods}\index{intergalactic medium}
@@ -3926,12 +3926,12 @@ The tabulation subroutine must have the form:
     return
   end subroutine Stellar_Population_Spectrum_Tabulation
 \end{verbatim}
-and should return the number of ages and metallicities at which stellar population spectra should be tabualted for the specified \IMF, and should allocate the {\tt age} and {\tt metallicity} arrays appropriately and should fill them with the ages and metallicities at which to tabulate.
+and should return the number of ages and metallicities at which stellar population spectra should be tabualted for the specified \gls{imf}, and should allocate the {\tt age} and {\tt metallicity} arrays appropriately and should fill them with the ages and metallicities at which to tabulate.
 
 Currently defined stellar population properties methods are:
 \begin{description}
  \item [\hyperlink{stellar_populations.spectra.Conroy_et_al.F90:stellar_population_spectra_conroy}{{\tt Conroy-White-Gunn2009}}] Uses the {\tt FSPS} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\tt FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval.
- \item [\hyperlink{stellar_populations.spectra.file.F90:stellar_population_spectra_file}{{\tt file}}] Stellar spectra for a given \IMF\ are read from the file specified by the {\tt stellarPopulationSpectraForXXXXIMF} where {\tt XXXX} is the name of the \IMF. This should specify an HDF5 file with the following structure:
+ \item [\hyperlink{stellar_populations.spectra.file.F90:stellar_population_spectra_file}{{\tt file}}] Stellar spectra for a given \gls{imf} are read from the file specified by the {\tt stellarPopulationSpectraForXXXXIMF} where {\tt XXXX} is the name of the \gls{imf}. This should specify an HDF5 file with the following structure:
 \begin{verbatim}
  ages                     Dataset {ageCount}
  metallicities            Dataset {metallicityCount}
@@ -3991,8 +3991,8 @@ The function is given the rest-frame {\tt wavelength} (in \AA) and the {\tt reds
 
 Currently defined stellar population postprocessing methods are:
 \begin{description}
-\item [\hyperlink{stellar_populations.spectra.postprocess.Meiksin2006.F90:stellar_population_spectra_postprocess_meiksin2006}{{\tt Meiksin2006}}] Postprocesses spectra through absorption by the \IGM\ using the results of \cite{meiksin_colour_2006}.
-\item [\hyperlink{stellar_populations.spectra.postprocess.Madau1995.F90:stellar_population_spectra_postprocess_madau1995}{{\tt Madau1995}}] Postprocesses spectra through absorption by the \IGM\ using the results of \cite{madau_radiative_1995}.
+\item [\hyperlink{stellar_populations.spectra.postprocess.Meiksin2006.F90:stellar_population_spectra_postprocess_meiksin2006}{{\tt Meiksin2006}}] Postprocesses spectra through absorption by the \gls{igm} using the results of \cite{meiksin_colour_2006}.
+\item [\hyperlink{stellar_populations.spectra.postprocess.Madau1995.F90:stellar_population_spectra_postprocess_madau1995}{{\tt Madau1995}}] Postprocesses spectra through absorption by the \gls{igm} using the results of \cite{madau_radiative_1995}.
 \item [\hyperlink{stellar_populations.spectra.postprocess.null.F90:stellar_population_spectra_postprocess_null}{{\tt null}}] Performs no postprocessing.
 \end{description}
 
@@ -4168,7 +4168,7 @@ The cumulative number function must have the form:
     return
    end function SNeIa_Cumulative_Number 
 \end{verbatim}
-and must return the number of Type Ia supernovae resulting per $M_\odot$ of stars formed with given {\tt initialMass} and {\tt metallicity} after a time {\tt age}. (Since Type Ia's form in binary systems this function should specifically return the number such that when integrated over the \IMF\ it gives the correct total number of Type Ia supernovae formed from a single stellar population.)
+and must return the number of Type Ia supernovae resulting per $M_\odot$ of stars formed with given {\tt initialMass} and {\tt metallicity} after a time {\tt age}. (Since Type Ia's form in binary systems this function should specifically return the number such that when integrated over the \gls{imf} it gives the correct total number of Type Ia supernovae formed from a single stellar population.)
 
 The cumulative yield function must have the form:
 \begin{verbatim}
@@ -4609,7 +4609,7 @@ The contents of {\tt <unitName>} should give the name of the subroutine to be ca
 
 \subsubsection{Initial Mass Functions}\label{sec:imfTasks}
 
-New \IMF s can be added using the {\tt imfRegister} and {\tt imfRegisterName} task directives. For example, the {\tt Salpeter} \IMF\ is registered using the directives:
+New \gls{imf} s can be added using the {\tt imfRegister} and {\tt imfRegisterName} task directives. For example, the {\tt Salpeter} \gls{imf} is registered using the directives:
 \begin{verbatim}
  !# <imfRegister>
  !#  <unitName>Star_Formation_IMF_Register_Salpeter</unitName>
@@ -4621,7 +4621,7 @@ and
  !#  <unitName>Star_Formation_IMF_Register_Name_Salpeter</unitName>
  !# </imfRegisterName>
 \end{verbatim}
-The {\tt unitName} tags specify subroutines that are called to register the \IMF. These subroutines should have the following forms:
+The {\tt unitName} tags specify subroutines that are called to register the \gls{imf}. These subroutines should have the following forms:
 \begin{verbatim}
  subroutine Star_Formation_IMF_Register_My_IMF(imfAvailableCount)
    integer, intent(inout) :: imfAvailableCount
@@ -4639,9 +4639,9 @@ The {\tt unitName} tags specify subroutines that are called to register the \IMF
    return
  end subroutine Star_Formation_IMF_Register_Name_My_IMF
 \end{verbatim}
-The first routine should increment the {\tt imfAvailableCount} counter by 1 and keep a record of the resulting index---this will be the index by which the \IMF\ is referred to. The second routine should store the name and descriptor of the \IMF\ in the appropriate position in the supplied {\tt imfNames()} and {\tt imfDescriptors()} arrays. The ``name'' is the label used to identify the \IMF\ in input parameters for example. The ``descriptor'' should be a label sufficient to uniquely identify the \IMF, and is used, for example, in constructing file names when storing \IMF\ related data. Often, the name and descriptor are identical. However, if the \IMF\ has user-specififable parameters then those parameters should be encoded into the descriptor.
+The first routine should increment the {\tt imfAvailableCount} counter by 1 and keep a record of the resulting index---this will be the index by which the \gls{imf} is referred to. The second routine should store the name and descriptor of the \gls{imf} in the appropriate position in the supplied {\tt imfNames()} and {\tt imfDescriptors()} arrays. The ``name'' is the label used to identify the \gls{imf} in input parameters for example. The ``descriptor'' should be a label sufficient to uniquely identify the \gls{imf}, and is used, for example, in constructing file names when storing \gls{imf} related data. Often, the name and descriptor are identical. However, if the \gls{imf} has user-specififable parameters then those parameters should be encoded into the descriptor.
 
-Each registered \IMF\ should supply a set of functions as described in \S\ref{sec:IMF_functions}.
+Each registered \gls{imf} should supply a set of functions as described in \S\ref{sec:IMF_functions}.
 
 \subsubsection{Merger Tree Extra Output Tasks}
 

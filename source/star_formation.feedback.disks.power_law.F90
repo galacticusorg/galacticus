@@ -92,7 +92,7 @@ contains
        !@   <defaultValue>250</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The velocity scale at which the \SNe-driven outflow rate equals the star formation rate in disks.
+       !@     The velocity scale at which the \gls{sne}-driven outflow rate equals the star formation rate in disks.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -104,7 +104,7 @@ contains
        !@   <defaultValue>3</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The velocity scaling of the \SNe-driven outflow rate in disks.
+       !@     The velocity scaling of the \gls{sne}-driven outflow rate in disks.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

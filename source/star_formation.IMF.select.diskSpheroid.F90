@@ -59,10 +59,10 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements selection of stellar {\IMF}s with one \IMF\ for disks and another for spheroids.
+!% Contains a module which implements selection of stellar {\gls{imf}}s with one \gls{imf} for disks and another for spheroids.
 
 module Star_Formation_IMF_Select_Disk_Spheroid
-  !% Implements selection of stellar {\IMF}s with one \IMF\ for disks and another for spheroids.
+  !% Implements selection of stellar {\gls{imf}}s with one \gls{imf} for disks and another for spheroids.
   implicit none
   private
   public :: IMF_Select_Disk_Spheroid_Initialize

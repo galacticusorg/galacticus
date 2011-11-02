@@ -126,7 +126,7 @@ contains
        !@   <defaultValue>0.57 (internally computed)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The recycled fraction for the Kennicutt \IMF\ in the instantaneous recycling approximation.
+       !@     The recycled fraction for the Kennicutt \gls{imf} in the instantaneous recycling approximation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -138,7 +138,7 @@ contains
        !@   <defaultValue>0.044 (internally computed)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The yield for the Kennicutt \IMF\ in the instantaneous recycling approximation.
+       !@     The yield for the Kennicutt \gls{imf} in the instantaneous recycling approximation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

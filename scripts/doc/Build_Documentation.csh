@@ -52,9 +52,16 @@ while( $iPass <= 3 )
  endif
 
  # Run makeindex for code index.
- makeindex -s Galacticus.ist Galacticus.cdx -o Galacticus.cnd
+ makeindex -s Galacticus.isty Galacticus.cdx -o Galacticus.cnd
  if ( $? != 0 ) then
   echo makeindex failed for code index
+  exit 1
+ endif
+
+ # Run makeglossaries.
+ makeglossaries Galacticus
+ if ( $? != 0 ) then
+  echo make glossaries failed
   exit 1
  endif
 

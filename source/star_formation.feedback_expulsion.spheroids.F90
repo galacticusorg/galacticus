@@ -105,7 +105,7 @@ contains
        !@   <defaultValue>null</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the method to be used for calculations of expulsive \SNe\ feedback in spheroids.
+       !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in spheroids.
        !@   </description>
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>

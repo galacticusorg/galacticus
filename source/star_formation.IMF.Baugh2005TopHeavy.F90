@@ -125,7 +125,7 @@ contains
        !@   <defaultValue>0.91 \citep{baugh_can_2005}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The recycled fraction for the \cite{baugh_can_2005} top-heavy \IMF\ in the instantaneous recycling approximation.
+       !@     The recycled fraction for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -137,7 +137,7 @@ contains
        !@   <defaultValue>0.15 \citep{baugh_can_2005}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The yield for the \cite{baugh_can_2005} top-heavy \IMF\ in the instantaneous recycling approximation.
+       !@     The yield for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
