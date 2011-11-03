@@ -897,8 +897,15 @@ contains
        call Galacticus_Error_Report("Merger_Tree_Read_Do","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
     end if
     ! Half-mass radius.
-    if (mergerTreeReadPresetScaleRadii) call haloTreesGroup%readDatasetStatic("halfMassRadius",nodes%halfMassRadius&
-         &,firstNodeIndex,nodeCount)
+    if (mergerTreeReadPresetScaleRadii) then
+       call haloTreesGroup%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
+       nodes%halfMassRadius=nodes%halfMassRadius*unitConversionLength
+       if (scaleFactorExponentLength /= 0) then
+          do iNode=1,nodeCount(1)
+             nodes(iNode)%halfMassRadius=nodes(iNode)%halfMassRadius*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
+          end do
+       end if
+    end if
     ! Halo spin.
     if (mergerTreeReadPresetSpins     ) then
        call haloTreesGroup%readDataset("angularMomentum",angularMomentum,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
