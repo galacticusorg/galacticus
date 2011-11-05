@@ -71,6 +71,7 @@ module Arrays_Search
      !% Generic interface for array searching routines.
      module procedure Search_Array_Double
      module procedure Search_Array_VarString
+     module procedure Search_Array_Integer8
   end interface Search_Array
 
 contains
@@ -87,8 +88,55 @@ contains
     return
   end function Search_Array_Double
   
+  integer function Search_Array_Integer8(arrayToSearch,valueToFind)
+    !% Searches a long integer array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    use Kind_Numbers
+    implicit none
+    integer(kind=kind_int8), intent(in), dimension(:) :: arrayToSearch
+    integer(kind=kind_int8), intent(in)               :: valueToFind
+    integer                                           :: jLower,jMidpoint,jUpper
+    logical                                           :: isInside
+
+    isInside=.true.
+    ! Check whether valueToFind is outside range of arrayToSearch().
+    if (arrayToSearch(size(arrayToSearch)) >= arrayToSearch(1)) then ! arrayToSearch() is in ascending order.
+       if      (valueToFind < arrayToSearch(1                  )) then
+          isInside=.false.
+          Search_Array_Integer8=0
+       else if (valueToFind > arrayToSearch(size(arrayToSearch))) then
+          isInside=.false.
+          Search_Array_Integer8=size(arrayToSearch)+1
+       end if
+    else ! arrayToSearch() is in descending order.
+       if      (valueToFind > arrayToSearch(1                  )) then
+          isInside=.false.
+          Search_Array_Integer8=0
+       else if (valueToFind < arrayToSearch(size(arrayToSearch))) then
+          isInside=.false.
+          Search_Array_Integer8=size(arrayToSearch)+1
+       end if
+    end if
+    ! Binary search in array if valueToFind lies within array range.
+    if (isInside) then
+       jLower=0
+       jUpper=size(arrayToSearch)+1
+       do while (jUpper-jLower > 1)
+          jMidpoint=(jUpper+jLower)/2
+          if ((arrayToSearch(size(arrayToSearch)) >= arrayToSearch(1)) .eqv. (valueToFind >= arrayToSearch(jMidpoint))) then
+             jLower=jMidpoint
+          else
+             jUpper=jMidpoint
+          endif
+       end do
+       Search_Array_Integer8=jLower
+    end if
+    return
+  end function Search_Array_Integer8
+  
   integer function Search_Array_VarString(arrayToSearch,valueToFind)
-    !% Searches an array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) = v$.
+    !% Searches an array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i)
+    !% = v$. With this algorithm, if multiple elements of $x()$ have the same value, then the largest value of $i$ for which
+    !% $x(i)=v$ occurs will be returned.
     use ISO_Varying_String
     implicit none
     type(varying_string), intent(in), dimension(:) :: arrayToSearch
@@ -143,6 +191,12 @@ contains
     double precision, intent(in)               :: valueToFind
     double precision, intent(in), optional     :: tolerance
     
+    ! For a single element array, just return the only option.
+    if (size(arrayToSearch,dim=1) <= 1) then
+       Search_Array_For_Closest=lbound(arrayToSearch,dim=1)
+       return
+    end if
+
     ! Call the FGSL routine to do the search.
     if      (valueToFind < arrayToSearch(lbound(arrayToSearch,dim=1))) then
        Search_Array_For_Closest=lbound(arrayToSearch,dim=1)

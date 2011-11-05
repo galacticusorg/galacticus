@@ -80,6 +80,7 @@ module Array_Utilities
 
   interface Array_Is_Monotonic
      !% Interface to generic routines which check if an array is monotonic.
+     module procedure Array_Is_Monotonic_Integer8
      module procedure Array_Is_Monotonic_Double
   end interface
 
@@ -215,5 +216,91 @@ contains
     Array_Is_Monotonic_Double=.true.
     return
   end function Array_Is_Monotonic_Double
+
+  logical function Array_Is_Monotonic_Integer8(array,direction,allowEqual)
+    !% Checks if an integer array is monotonic.
+    use Kind_Numbers
+    implicit none
+    integer(kind=kind_int8), intent(in)           :: array(:)
+    integer,                 intent(in), optional :: direction
+    logical,                 intent(in), optional :: allowEqual
+    integer                                       :: i
+    logical                                       :: isIncreasing,allowEqualActual,arrayIsFlat
+
+    ! Single element arrays count as monotonic.
+    if (size(array) <= 1) then
+       Array_Is_Monotonic_Integer8=.true.
+       return
+    end if
+
+    ! Determine if equal points are allowed.
+    if (present(allowEqual)) then
+       allowEqualActual=allowEqual
+    else
+       allowEqualActual=.false.
+    end if
+
+    ! Determine if the array is increasing or decreasing at the start.
+    if (allowEqualActual) then
+       ! Equal entries are allowed, so scan the array to find the first element which is not equal to the first element.
+       i=2                ! Begin with the second element.
+       arrayIsFlat=.true. ! Assume that the array is flat (all elements the same) until we can prove otherwise.
+       do while (i <= size(array))
+          ! Check for a difference in the element compared to the first element.
+          if (array(i) /= array(1)) then
+             ! Element does differ: 1) determine in what sense it differs; 2) flag that the array is not flat; 3) exit the loop.
+             isIncreasing=array(i) > array(1)       
+             arrayIsFlat=.false.
+             exit
+          end if
+          i=i+1
+       end do
+       ! If no element differing from the first was found, then the array is flat and so is deemed to be monotonic in this case
+       ! (since equal entries are allowed).
+       if (arrayIsFlat) then
+          Array_Is_Monotonic_Integer8=.true.
+          return
+       end if
+    else
+       if (array(2) == array(1)) then
+          Array_Is_Monotonic_Integer8=.false.
+          return
+       end if
+       isIncreasing=array(2) > array(1)       
+    end if
+
+    ! Check direction is correct if this was specified.
+    if (present(direction)) then
+       if (   (direction == directionIncreasing .and. .not.isIncreasing) .or.        &
+            & (direction == directionDecreasing .and.      isIncreasing)      ) then
+          Array_Is_Monotonic_Integer8=.false.
+          return
+       end if
+    end if
+
+    ! Check elements are monotonic. We will exit immediately on finding any non-monotonicity, so set the result to false.
+    Array_Is_Monotonic_Integer8=.false.
+    do i=2,size(array)
+       select case (isIncreasing)
+       case (.true.)
+          select case (allowEqualActual)
+          case (.false.)
+             if (array(i) <= array(i-1)) return
+          case (.true.)
+             if (array(i) <  array(i-1)) return
+          end select
+       case (.false.)
+          select case (allowEqualActual)
+          case (.false.)
+             if (array(i) >= array(i-1)) return
+          case (.true.)
+             if (array(i) >  array(i-1)) return
+          end select
+     end select
+    end do
+    ! No elements failed the test, so the array must be monotonic.
+    Array_Is_Monotonic_Integer8=.true.
+    return
+  end function Array_Is_Monotonic_Integer8
 
 end module Array_Utilities

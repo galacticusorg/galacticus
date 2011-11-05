@@ -64,14 +64,18 @@
 program Test_Search
   !% Tests that array search functions work.
   use Unit_Tests
+  use Kind_Numbers
   use Arrays_Search
   use ISO_Varying_String
   implicit none
-  double precision,     dimension(10) :: myArray =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]
-  double precision,     dimension(10) :: mySearch=[3.4d0,9.0d0,4.2d0,-1.0d0,10.0d0,5.5d0,5.999999d0,6.000001d0,1.1d0,7.5d0]
-  integer,              dimension(10) :: myIndices
-  type(varying_string), dimension(26) :: stringArray
-  integer                         :: i 
+  double precision,        dimension(10) :: myArray    =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]
+  double precision,        dimension(10) :: mySearch   =[3.4d0,9.0d0,4.2d0,-1.0d0,10.0d0,5.5d0,5.999999d0,6.000001d0,1.1d0,7.5d0]
+  integer(kind=kind_int8), dimension(10) :: myIntArray =[0,1,2,3,4,4,5,6, 7, 8]
+  integer(kind=kind_int8), dimension(10) :: myIntSearch=[0,1,2,3,4,5,6,7, 8, 8]
+  integer,                 dimension(10) :: myIntExpect=[1,2,3,4,6,7,8,9,10,10]
+  integer,                 dimension(10) :: myIndices
+  type(varying_string),    dimension(26) :: stringArray
+  integer                                :: i 
 
   ! Define an array of varying strings.
   stringArray=[            &
@@ -103,7 +107,6 @@ program Test_Search
        &       'Zulu    '  &
        &      ]
 
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("array search")
 
@@ -116,6 +119,12 @@ program Test_Search
      myIndices(i)=Search_Array_For_Closest(myArray,mySearch(i))
   end do
   call Assert('search double array for closest match',myIndices,max(min(nint(mySearch)+1,10),1))
+
+  ! Test searching of long integer arrays.
+  do i=1,size(mySearch)
+     myIndices(i)=Search_Array(myIntArray,myIntSearch(i))
+  end do
+  call Assert('search long integer array',myIndices,myIntExpect)
 
   ! Test searching of varying string arrays.
   call Assert('search string array',[                                               &
