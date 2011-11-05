@@ -81,10 +81,20 @@ contains
   
   double precision function Hypergeometric_2F1(a,b,x)
     !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
+    use Galacticus_Error
     implicit none
     double precision, intent(in) :: a(2),b(1),x
 
-    Hypergeometric_2F1=FGSL_SF_Hyperg_2F1(a(1),a(2),b(1),x)
+    ! GSL only evaluates this function for |x|<1.
+    if (abs(x) <= 1.0d0) then
+       ! |x|<1 so simply call the GSL function to compute the function.
+       Hypergeometric_2F1=FGSL_SF_Hyperg_2F1(a(1),a(2),b(1),x)
+    else if (x < -1.0d0) then
+       ! x<-1 so use a Pfaff transformation to evaluate in terms of a hypergeometric function with |x|<1.
+       Hypergeometric_2F1=FGSL_SF_Hyperg_2F1(a(2),b(1)-a(1),b(1),x/(x-1.0d0))/(1.0d0-x)**a(2)
+    else
+       call Galacticus_Error_Report('Hypergeometric_2F1','function cannot be evaluated for x>1')
+    end if
     return
   end function Hypergeometric_2F1
   

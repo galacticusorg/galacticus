@@ -113,13 +113,12 @@ program Test_Math_Special_Functions
      gammaFunction                              (i)=Gamma_Function                                 (                             argument(i)       ) 
      logGammaFunction                           (i)=Gamma_Function_Logarithmic                     (                             argument(i)       )
      incompleteGammaFunction                    (i)=Gamma_Function_Incomplete                      (                             argument(i),2.0d0 )
-     incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                             argument(i),2.0d0 )
+     incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                             argument(i),2.0d0 ) 
      inverseGammaFunctionIncomplete             (i)=Inverse_Gamma_Function_Incomplete              (                             argument(i),P(i)  )
      inverseGammaFunctionIncompleteComplementary(i)=Inverse_Gamma_Function_Incomplete_Complementary(                             argument(i),Q(i)  )
      hypergeometric1F1                          (i)=Hypergeometric_1F1                             ([1.0d0      ],[2.0d0],       argument(i)       )
      hypergeometric2F1                          (i)=Hypergeometric_2F1                             ([1.5d0,0.5d0],[1.5d0],1.0d0/(argument(i)+1.0d0))
   end do
-
 
   ! Test Bessel function results.
   call Assert("Bessel K₀(x)",       &
@@ -386,6 +385,10 @@ program Test_Math_Special_Functions
        &       ],                                       &
        &       relTol=1.0d-6                            &
        &     )
+
+  ! Test hypergeometric 2F1 function transitions for |x|>1.
+  hypergeometric2F1(1)=Hypergeometric_2F1([1.0d0,1.0d0],[2.0d0],-2.0d0)
+  call Assert("hypergeometric, ₂F₁([1,1],[2],-2)",hypergeometric2F1(1),log(3.0d0)/2.0d0,relTol=1.0d-6 )
 
   ! End unit tests.
   call Unit_Tests_End_Group()
