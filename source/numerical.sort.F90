@@ -105,7 +105,7 @@ contains
     use Kind_Numbers
     implicit none
     integer(kind=kind_int8), intent(in), dimension(:)           :: array
-    integer,                             dimension(size(array)) :: Sort_Index_Do_Integer8
+    integer(c_size_t),                   dimension(size(array)) :: Sort_Index_Do_Integer8
  
     call Sort_Index_Do_Integer8_C(size(array),array,Sort_Index_Do_Integer8)
     Sort_Index_Do_Integer8=Sort_Index_Do_Integer8+1
@@ -144,12 +144,12 @@ contains
     !% Do a integer sort.
     use Kind_Numbers
     implicit none
-    integer,              intent(in)            :: arraySize
-    integer(c_long_long), intent(in),    target :: array(arraySize)
-    integer(c_int),       intent(inout)         :: idx(arraySize)
-    integer(c_size_t)                           :: arraySizeC
-    integer                                     :: status
-    type(c_ptr)                                 :: arrayPointer
+    integer,                 intent(in)            :: arraySize
+    integer(kind=kind_int8), intent(in),    target :: array(arraySize)
+    integer(c_size_t),       intent(inout)         :: idx(arraySize)
+    integer(c_size_t)                              :: arraySizeC
+    integer                                        :: status
+    type(c_ptr)                                    :: arrayPointer
     
     arrayPointer=c_loc(array)
     arraySizeC=arraySize
