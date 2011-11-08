@@ -86,11 +86,11 @@ contains
 
     ! Find number of lines in file, with and without comments.
     lineCountTotal=Count_Lines_in_File(nodesFile    )
-    lineCountData =Count_Lines_in_File(nodesFile,"#")-1
+    lineCountData =Count_Lines_in_File(nodesFile,"#")
 
     ! Find lines number ranges with data.
-    lineNumberStart=lineCountTotal-lineCountData
-    lineNumberStop =lineCountTotal-1
+    lineNumberStart=lineCountTotal-lineCountData+1
+    lineNumberStop =lineCountTotal
 
     ! Set columns to read.
     call mergerTrees%setProperty(propertyTypeTreeIndex      ,1)

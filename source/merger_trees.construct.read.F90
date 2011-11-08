@@ -69,6 +69,7 @@ module Merger_Tree_Read
   use IO_HDF5
   use HDF5
   use Kind_Numbers
+  use FGSL
   implicit none
   private
   public :: Merger_Tree_Read_Initialize
@@ -173,7 +174,7 @@ module Merger_Tree_Read
   !$omp threadprivate(activeNode,halfMassRadius)
 
   ! Sorted node index list.
-  integer,                 allocatable, dimension(:) :: nodeLocations    ,descendentLocations
+  integer(fgsl_size_t),    allocatable, dimension(:) :: nodeLocations    ,descendentLocations
   integer(kind=kind_int8), allocatable, dimension(:) :: nodeIndicesSorted,descendentIndicesSorted
 
   ! Type used to store raw data.
@@ -431,7 +432,7 @@ contains
        call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  ,allowPseudoScalar=.true.)
        call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           ,allowPseudoScalar=.true.)
        unitConversionMass    =unitConversionMass    *(localLittleH0**hubbleExponent)/massSolar
-       if ((mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits).and..not.(unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI"))) call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities are to be preset')
+       if ((mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits).and..not.(unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI"))) call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities or orbits are to be preset')
        if (unitsGroup%hasAttribute("lengthUnitsInSI")) then
           call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     ,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength,allowPseudoScalar=.true.)
@@ -819,6 +820,9 @@ contains
              ! Assign isolated node indices to subhalos.
              call Assign_Isolated_Node_Indices(nodes,thisNodeList)
 
+             ! Ensure that isolated nodes with progenitors that descend into subhalos have valid primary progenitors.
+             call Validate_Isolated_Halos(nodes)
+
              ! Scan subhalos to determine when and how they merge.
              call Scan_For_Mergers(nodes,thisNodeList,historyCountMaximum)
              
@@ -837,7 +841,7 @@ contains
              
              ! Build subhalo mass histories if required.
              call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyMass,position,velocity)
-             
+
              ! Deallocate history building arrays.
              if (allocated(historyTime)) call Dealloc_Array(historyTime)
              if (allocated(historyMass)) call Dealloc_Array(historyMass)
@@ -1107,7 +1111,8 @@ contains
     type(nodeData),                              pointer :: descendentNode
     integer(kind=kind_int8)                              :: iNode
     logical                                              :: failed,isolatedProgenitorExists,descendentsFound
-    integer                                              :: descendentIndex,descendentLocation
+    integer                                              :: descendentIndex
+    integer(fgsl_size_t)                                 :: descendentLocation
     type(varying_string)                                 :: message
 
     do iNode=1,size(nodes)
@@ -1393,7 +1398,6 @@ contains
   subroutine Assign_Scale_Radii(nodes,nodeList)
     !% Assign scale radii to nodes.
     use Root_Finder
-    use FGSL
     use Dark_Matter_Halo_Scales
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Display
@@ -1573,7 +1577,8 @@ contains
     double precision,                       dimension(3) :: satellitePosition,hostPosition,relativePosition
     double precision,                       dimension(3) :: satelliteVelocity,hostVelocity,relativeVelocity
     type(keplerOrbit)                                    :: thisOrbit
-    integer                                              :: iNode,iIsolatedNode,descendentIndex,descendentLocation
+    integer                                              :: iNode,iIsolatedNode,descendentIndex
+    integer(fgsl_size_t)                                 :: descendentLocation
     integer(kind=kind_int8)                              :: historyCount
     logical                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge,descendentsFound
     double precision                                     :: timeSubhaloMerges,radiusPericenter,radiusApocenter,radiusVirial
@@ -1753,7 +1758,7 @@ contains
     type(nodeData),     intent(inout), dimension(:) :: nodes
     type(treeNodeList), intent(inout), dimension(:) :: nodeList
     type(treeNode),     pointer                     :: rootNode,mergeRootNode
-    integer                                         :: iNode,jNode,kNode
+    integer                                         :: iNode,jNode
     type(varying_string)                            :: message
  
     if (mergerTreeReadPresetMergerNodes) then
@@ -1815,7 +1820,8 @@ contains
     type(nodeData),                                   pointer :: thisNode
     type(treeNode),                                   pointer :: firstProgenitor
     integer(kind=kind_int8)                                   :: iTime,historyCount
-    integer                                                   :: iIsolatedNode,iNode,iAxis,descendentIndex,descendentLocation
+    integer                                                   :: iIsolatedNode,iNode,iAxis,descendentIndex
+    integer(fgsl_size_t)                                      :: descendentLocation
     logical                                                   :: endOfBranch,descendentsFound
     double precision                                          :: expansionFactor
     type(varying_string)                                      :: message
@@ -1964,6 +1970,38 @@ contains
     return
   end subroutine Build_Subhalo_Mass_Histories
   
+  subroutine Validate_Isolated_Halos(nodes)
+    !% Ensure that nodes have valid primary progenitors.
+    implicit none
+    type(nodeData), intent(inout), dimension(:) :: nodes
+    type(treeNode), pointer                     :: newNode
+    integer                                     :: iNode,iIsolatedNode
+
+    ! Search for cases where a node has no progenitors which do not descend into subhalos.
+    do iNode=1,size(nodes)
+       iIsolatedNode=0
+       ! Select isolated nodes.
+       if (nodes(iNode)%nodeIndex == nodes(iNode)%hostNode%nodeIndex) then
+          iIsolatedNode=iIsolatedNode+1
+          ! Select nodes with parents.
+          if (associated(nodes(iNode)%node%parentNode)) then
+             ! Select nodes with subhalo descendents which are also the primary progenitor of their parent.
+             if (nodes(iNode)%descendentNode%isSubhalo.and.associated(nodes(iNode)%node%parentNode%childNode,nodes(iNode)%node)) then
+                ! Insert a copy of the parent node as its own primary progenitor. This avoids current node being promoted into its
+                ! parent even though it is intended to descend into a subhalo.
+                allocate(newNode)
+                call newNode%copy(nodes(iNode)%node%parentNode)
+                newNode%siblingNode                    => nodes(iNode)%node
+                newNode%parentNode                     => nodes(iNode)%node%parentNode
+                newNode%childNode                      => null()
+                nodes(iNode)%node%parentNode%childNode => newNode
+             end if
+          end if
+       end if
+    end do
+    return
+  end subroutine Validate_Isolated_Halos
+
   subroutine Dump_Tree(nodes,highlightNodes)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\sc dot}.
     implicit none

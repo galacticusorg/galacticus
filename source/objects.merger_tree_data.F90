@@ -196,7 +196,7 @@ module Merger_Tree_Data_Structure
           &,hasParticleCount,hasSpinX,hasSpinY,hasSpinZ,hasSpinMagnitude,hasAngularMomentumX,hasAngularMomentumY &
           &,hasAngularMomentumZ,hasAngularMomentumMagnitude,hasHalfMassRadius,hasParticleRedshift,hasParticlePositionX &
           &,hasParticlePositionY,hasParticlePositionZ,hasParticleVelocityX,hasParticleVelocityY,hasParticleVelocityZ&
-          &,hasParticleIndex,hasParticles,hasMostBoundParticleIndex
+          &,hasParticleIndex,hasParticles=.false.,hasMostBoundParticleIndex
      logical                                              :: areSelfContained=.true., includesHubbleFlow=.false.,&
           & includesSubhaloMasses=.false.,doMakeReferences=.true., isPeriodic=.false.
      type(unitsMetaData),     dimension(unitTypeCount)    :: units
