@@ -108,6 +108,23 @@ vpath %.cpp source
 ./work/build/%.d : ./source/%.cpp
 	@echo ./work/build/$*.o > ./work/build/$*.d
 
+# GraphViz files (*.gv) are created with just a node entry by default. Normally this rule is overruled by a specific set of rules in the
+# Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
+./work/build/%.F90.gv : ./source/%.F90
+	@echo \"$*.F90\" > ./work/build/$*.F90.gv
+./work/build/%.c.gv : ./source/%.c
+	@echo \"$*.c\" > ./work/build/$*.c.gv
+./work/build/%.cpp.gv : ./source/%.cpp
+	@echo \"$*.cpp\" > ./work/build/$*.cpp.gv
+
+# Create a PostScript files showing tree diagrams of source file dependencies.
+%.tps : ./work/build/%.gv
+	@echo digraph Tree \{ > $*.dot
+	@cat ./work/build/$*.gv >> $*.dot
+	@echo \} >> $*.dot
+	dot -Tps $*.dot -o $*.tps
+	@rm $*.dot
+
 # Module list files are created empty by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Module_Deps files, but this acts as a fallback rule.
 ./work/build/%.m : ./source/%.F90

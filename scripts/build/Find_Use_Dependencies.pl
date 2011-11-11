@@ -217,7 +217,7 @@ foreach $srcdir ( @sourcedirs ) {
 		    }
 		}
 		
-# Output the dependencies
+                # Output the dependencies
 		if ($#sortedinc >= 0 || $#extra_includes >= 0) {
 		    print outfile ".".$workDir.$base.$oname,": ";
 		    if ( $#sortedinc >= 0 ) {print outfile ".",join(".",@sortedinc)};
@@ -253,6 +253,33 @@ foreach $srcdir ( @sourcedirs ) {
 			print outfile "\t\@cat .$item >> .$workDir$base$dname\n";
 		    }
 		    print outfile "\t\@sort -u .$workDir$base$dname -o .$workDir$base$dname\n\n";
+
+		    # Create rules for making dependency trees with GraphViz.
+		    for ($i = 0; $i <= $#sortedinc; $i += 1) {
+			$sortedinc[$i] =~ s/\.d$/.gv /;
+		    }
+		    $gvname = $pname.".gv";
+		    $dname = $oname;
+		    $dname =~ s/.o$/.d/;
+		    print outfile ".".$workDir.$base.$gvname,": .".$workDir.$base.$dname." ";
+		    if ( $#sortedinc >= 0 ) {print outfile ".",join(".",@sortedinc)};
+		    print outfile "\n";
+		    print outfile "\t\@echo \\\"$pname\\\" > .$workDir$base$gvname\n";
+		    foreach $extra_include ( @extra_includes ) {
+			($dFile = $extra_include) =~ s/\.o$/.d/;
+			if ( $extra_include =~ m/\// ) {
+			    print outfile "\t\@awk '{print \"\\\"".$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' $dFile >> .$workDir$base$gvname\n";
+			} else {
+			    print outfile "\t\@awk '{print \"\\\"".$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' .$workDir$dFile >> .$workDir$base$gvname\n";
+			}
+		    }
+		    foreach $item (@sortedinc) {
+			$item =~ s/\s+$//;
+			$dditem = $item."d";
+			print outfile "\t\@awk '{print \"\\\"".$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' .$item >> .$workDir$base$gvname\n";
+			print outfile "\t\@cat `awk '{print \".".$workDir.$base."\"\$\$1\".gv\"}' .$item` >> .$workDir$base$gvname\n";
+		    }
+		    print outfile "\t\@sort -u .$workDir$base$gvname -o .$workDir$base$gvname\n\n";
 		}
 	    }
 	}

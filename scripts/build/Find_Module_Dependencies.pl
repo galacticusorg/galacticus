@@ -102,6 +102,15 @@ foreach $srcdir ( @sourcedirs ) {
 			    print outfile ".".$workDir,lc($incfile),".d: .",$workDir,$base,$dname,"\n";
 			    print outfile "\t\@echo .",$workDir.$base,$oname," > .",$workDir,lc($incfile),".d\n";
 			    print outfile "\t\@cat .",$workDir.$base,$dname," >> .",$workDir,lc($incfile),".d\n";
+			    
+			    # Create rule for making a *.mod.gv file which is used in building GraphViz descriptions of source
+			    # file dependencies.
+			    $gvname = $pname.".gv";
+			    $modname = $incfile;
+			    $modname =~ s/.mod$//;
+			    print outfile ".".$workDir,lc($incfile),".gv: .",$workDir,$base,$dname," .",$workDir,$base,$gvname."\n";
+			    print outfile "\t\@echo ",$base,$pname." > .",$workDir,lc($incfile).".gv\n";
+
 			}
 		    }
 		    if ( $line =~ m/include\s+\'(\w+)\'/i ) {$scanfiles[++$#scanfiles] = $sourcedir."/".$1;};
