@@ -5,10 +5,18 @@
 \newacronym{imf}{IMF}{initial mass function}
 \newacronym{isco}{ISCO}{innermost stable circular orbit}
 \newacronym{ism}{ISM}{interstellar medium}
+\newacronym{ode}{ODE}{ordinary differential equation}
 \newacronym{nfw}{NFW}{Navarro-Frenk-White (dark matter halo profile)}
 \newacronym{sed}{SED}{spectral energy distribution}
 \newacronym{sne}{SNe}{supernovae}
 
 % Glossary entries.
-\newglossaryentry{component}{name={component}, description={a individual physical system within a \gls{node}, such as a dark matter halo, a galactic disk or a supermassive black hole}}
-\newglossaryentry{node}{name={node}, description={a single point in a merger tree, consisting of a dark matter halo and associated baryons}}
+\newglossaryentry{component}{name={component}, description={An individual physical system within a \gls{node}, such as a dark matter halo, a galactic disk or a supermassive black hole}}
+
+\newglossaryentry{node}{name={node}, description={A single point in a merger tree, consisting of a dark matter halo and associated baryons}}
+
+\newglossaryentry{mergee}{name={mergee}, description={For a given node in a merger tree, the set of mergee nodes consists of all nodes which will undergo a galaxy merger with the node at some point in the future}}
+
+\newglossaryentry{primary progenitor}{name={primary progenitor}, description={The progenitor of a given \gls{node} which is regarding as the direct descendent of that \gls{node} (often, but not always, the most massive progenitor). Other progenitors are considered to merge into this primary progenitor}}
+
+\newglossaryentry{parent}{name={parent}, description={In a merger tree, the parent node of any given node that exists at time $t_0$ is that node to which it is directly connected in the tree at time $t_1>t_0$}}
