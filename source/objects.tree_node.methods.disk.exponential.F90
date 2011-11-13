@@ -190,6 +190,9 @@ module Tree_Node_Methods_Exponential_Disk
   ! The largest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk. 
   double precision, parameter                 :: angularMomentumMaximum=10.0d0
 
+  ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
+  ! rotation curves.
+  double precision, parameter                 :: fractionalRadiusMaximum=30.0d0
 
 contains
 
@@ -1355,7 +1358,6 @@ contains
     integer,          intent(in)             :: massType,componentType
     double precision, intent(in)             :: radius
     double precision, intent(out)            :: componentVelocity
-    double precision, parameter              :: fractionalRadiusMaximum=30.0d0
     double precision                         :: fractionalRadius,fractionalRadiusFactor,diskRadius,componentMass,halfRadius
 
     ! Set to zero by default.
@@ -1488,6 +1490,13 @@ contains
          &         /2.0d0                           &
          &         /Tree_Node_Disk_Radius(thisNode)
     
+    if (2.0d0*besselArgument > fractionalRadiusMaximum) then
+       ! Beyond some maximum radius, approximate the disk as a point mass to avoid evaluating Bessel functions for
+       ! very large arguments.
+       componentRotationCurveGradient=-gravitationalConstantGalacticus*componentMass/radius**2
+       return
+    end if
+
     ! Checks for low radius and approximations.
     besselFactor=Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors(besselArgument)
     componentRotationCurveGradient= gravitationalConstantGalacticus    &
