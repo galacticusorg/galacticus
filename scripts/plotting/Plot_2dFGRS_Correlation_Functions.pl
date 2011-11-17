@@ -45,11 +45,12 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 $dataSet->{'file'}  = $galacticusFile;
 $dataSet->{'store'} = 0;
 $dataSet->{'tree'}  = "all";
-&HDF5::Get_Parameters($dataSet    );
-&HDF5::Count_Trees   ($dataSet    );
-&HDF5::Get_Times     ($dataSet    );
-&HDF5::Select_Output ($dataSet,0.1);
-&HDF5::Get_Dataset   ($dataSet,['magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega','nodeBias']);
+&HDF5::Get_Parameters        ($dataSet    );
+&HDF5::Count_Trees           ($dataSet    );
+&HDF5::Get_Times             ($dataSet    );
+&HDF5::Select_Output         ($dataSet,0.1);
+&HDF5::Get_Datasets_Available($dataSet    );
+&HDF5::Get_Dataset   ($dataSet,['nodeBias','magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega']);
 $dataSets         = $dataSet->{'dataSets'};
 
 # Read the file of observational data.

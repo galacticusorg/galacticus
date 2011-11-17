@@ -48,11 +48,11 @@ $chiSquared      = 0.0;
 $degreesOfFreedom = 0;
 
 # Create data structure to read the results.
-$dataBlock->{'file'} = $galacticusFile;
+$dataBlock->{'file'}  = $galacticusFile;
 $dataBlock->{'store'} = 0;
-&HDF5::Get_Parameters($dataBlock);
-&HDF5::Count_Trees($dataBlock);
-&HDF5::Select_Output($dataBlock,0.1);
+&HDF5::Get_Parameters($dataBlock    );
+&HDF5::Count_Trees   ($dataBlock    );
+&HDF5::Select_Output ($dataBlock,0.1);
 $dataBlock->{'tree'} = "all";
 &HDF5::Get_Dataset($dataBlock,['volumeWeight'
 			      ,'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas[faceOn]:AB'
@@ -82,7 +82,7 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
     ++$iDataset;
     $columns = $dataSet->{'columns'};
     $x = pdl @{$columns->{'magnitude'}->{'data'}};
-    $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataBlock{'parameters'}->{'H_0'});
+    $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
 
     # Compute the distribution of Galacticus galaxies.
     $filter = $columns->{'magnitude'}->{'filter'};

@@ -11,6 +11,16 @@ use Data::Dumper;
 
 our %galacticusFunctions = ();
 
+# The following is a hash which contains knowledge on how to resolve issues relating to missing datasets. The hash keys are
+# regular expressions which match to data set names. The hash keys are functions which should return a hash describing the
+# parameters, and values to be set or appended, to those parameters.
+my %propertyKnowledgeBase = (
+    "^nodeBias\$" => sub {my ($d,$r)=@_;return {add => {outputHaloModelData => "true"}} if ($d =~ m/$r/)},
+    "^(disk|spheroid)StellarLuminosity:([^:]+):([^:]+):z([0-9\.]+)\$" => sub {my ($d,$r)=@_;return {append => {luminosityFilter => $2, luminosityType => $3, luminosityRedshift => $4}} if ($d =~ m/$r/)}
+    );
+our @missingDatasets;
+our %parameterList;
+
 my $status = 1;
 $status;
 
@@ -58,7 +68,7 @@ sub Select_Output {
 	}
     }
     if ( $foundMatch == 0 ) {
-	my $redshiftsAvailable = 1.0/${$outputs->{'expansionFactor'}}-1.0;
+	my $redshiftsAvailable = 1.0/$outputs->{'expansionFactor'}-1.0;
 	my $message  = "Select_Output(): Unable to find matching redshift.\n";
 	$message .= "                 Requested redshift was: ".$redshift."\n";
 	$message .= "                 Available redshifts are: ".$redshiftsAvailable."\n";
@@ -149,7 +159,7 @@ sub Get_Dataset {
     } else {
     	$storeDataSets = 0;
     }
-    
+
     foreach my $dataSetName ( @dataNames ) {
     	unless ( exists($dataBlock->{'dataSets'}->{$dataSetName}) ) {
      	    if ( exists($dataBlock->{'dataSetsAvailable'}->{$dataSetName}) || $dataSetName eq "volumeWeight" ) {
@@ -242,11 +252,41 @@ sub Get_Dataset {
 	    	    }
 	    	}		
 	    	# Exit if the dataset was not matched.
-	    	die("Dataset ".$dataSetName." was not found or matched to any derived property") unless ( $foundMatch == 1 );
-		
-	    }
+		unless ( $foundMatch == 1 ) {
+		    push(@missingDatasets,$dataSetName);
+		    foreach my $regEx ( keys(%propertyKnowledgeBase) ) {
+			if ( $dataSetName =~ m/$regEx/ ) {
+			    (my $result = $dataSetName) =~ s/$regEx/$propertyKnowledgeBase{$regEx}/;
+			    my $solutions = &{$propertyKnowledgeBase{$regEx}}($dataSetName,$regEx);
+			    if ( exists($solutions->{'add'}) ) {
+				foreach my $parameter ( keys(%{$solutions->{'add'}}) ) {
+				    $parameterList{$parameter} = $solutions->{'add'}->{$parameter};
+				}
+			    }
+			    if ( exists($solutions->{'append'}) ) {
+				foreach my $parameter ( keys(%{$solutions->{'append'}}) ) {
+				    $parameterList{$parameter} .= " " if ( exists($parameterList{$parameter}) );
+				    $parameterList{$parameter} .= $solutions->{'append'}->{$parameter};
+				}
+			    }
+			}
+		    }
+		}		
+	     }
 	}
-   }
+    }
+    if ( scalar(@missingDatasets) > 0 ) {
+	print "Some requested datasets were not found: ".join(" ",@missingDatasets)."\n";
+	print "To resolve this issue try adding the following to your input parameter file:\n";
+	foreach my $parameter ( keys(%parameterList) ) {
+	    print "<parameter>\n";
+	    print "  <name>".$parameter."</name>\n";
+	    print "  <value>".$parameterList{$parameter}."</value>\n";
+	    print "</parameter>\n";
+	}
+	print "\nThis may not be a complete list of additional parameters required to solve this issue - check carefully what outputs are required and ensure that you have requested these from Galacticus.\n";
+	die();
+    }
 }
 
 sub Reset_Structure {
