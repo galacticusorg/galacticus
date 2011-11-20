@@ -98,6 +98,7 @@ contains
        &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
+    use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Radii
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
