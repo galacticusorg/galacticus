@@ -784,7 +784,7 @@ contains
              call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
 
              ! Check that all required properties exist.
-             if (mergerTreeReadPresetPositions) then
+             if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
                 ! Position and velocity methods are required.
                 if (.not.(associated(Tree_Node_Position_Set).and.associated(Tree_Node_Velocity_Set))) call&
                      & Galacticus_Error_Report('Merger_Tree_Read_Do','presetting positions requires a component that supports&
