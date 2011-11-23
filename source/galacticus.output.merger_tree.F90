@@ -261,6 +261,7 @@ contains
     !$omp end critical(HDF5_Access)
 
     ! Increment the number of nodes written to this output group.
+    !$omp atomic
     outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
 
     ! Close down if this is the final output.
