@@ -134,7 +134,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     print gnuPlot "set terminal epslatex color lw 3 solid 7\n";
     print gnuPlot "set output '".$outputFileEPS."'\n";
     print gnuPlot "set xlabel '\$M_{\\star,\\rm bulge} [M_\\odot]\$'\n";
-    print gnuPlot "set ylabel '\$M_\\bullet [M_\\odot]\$' 3,0\n";
+    print gnuPlot "set ylabel '\$M_\\bullet [M_\\odot]\$'\n";
     print gnuPlot "set title 'Black hole mass vs. bulge mass'\n";
     print gnuPlot "set label '\$\\chi^2=".FormatSigFigs($chiSquared,4)."\$ [".$degreesOfFreedom."]' at screen 0.73, screen 0.2\n";
     print gnuPlot "set key left\n";
