@@ -91,8 +91,8 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
     if ( $dust eq "face-on" )   {$dustLabel = ":dustAtlas[faceOn]"};
 
     $property    = "magnitudeTotal:".$filter.":observed:z0.1000".$dustLabel.":AB";
-    $magnitude   = where(${$dataSets->{$property}}     ,$gasFraction > $gasFractionMinimum);
-    $weight      = where(${$dataSets->{'volumeWeight'}},$gasFraction > $gasFractionMinimum);
+    $magnitude   = where($dataSets->{$property}     ,$gasFraction > $gasFractionMinimum);
+    $weight      = where($dataSets->{'volumeWeight'},$gasFraction > $gasFractionMinimum);
     $percentiles = pdl [2.5,16.0,50.0,84.0,97.5];
     $results     = &Percentiles::BinnedPercentiles(
 	$x,
