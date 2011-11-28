@@ -102,15 +102,17 @@ contains
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_CIE_File_Initialize</unitName>
   !# </coolingFunctionMethods>
-  subroutine Cooling_Function_CIE_File_Initialize(coolingFunctionMethods)
+  subroutine Cooling_Function_CIE_File_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``CIE cooling function from file'' module.
     use Input_Parameters
     implicit none
-    type(varying_string), intent(in)    :: coolingFunctionMethods(:)
-    
+    type(varying_string), intent(in   ) :: coolingFunctionMethods(:)
+    integer,              intent(inout) :: coolingFunctionsMatched
+
     if (any(coolingFunctionMethods == 'cieFromFile')) then
        ! Flag that this cooling function has been selected.
        functionSelected=.true.
+       coolingFunctionsMatched=coolingFunctionsMatched+1
        !@ <inputParameter>
        !@   <name>coolingFunctionFile</name>
        !@   <attachedTo>module</attachedTo>

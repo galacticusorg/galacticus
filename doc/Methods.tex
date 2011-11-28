@@ -979,9 +979,10 @@ Additional methods for cooling functions can be added using the {\tt coolingFunc
 \end{verbatim}
 Here, {\tt Cooling\_Function\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(coolingFunctionMethods)
+  subroutine Method_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     implicit none
-    type(varying_string), intent(in) :: coolingFunctionMethods(:)
+    type(varying_string), intent(in   ) :: coolingFunctionMethods(:)
+    integer,              intent(inout) :: coolingFunctionsMatched
     
     if (any(coolingFunctionMethods == 'myMethod')) then
        .
@@ -991,7 +992,7 @@ Here, {\tt Cooling\_Function\_Atomic\_CIE\_Cloudy\_Initialize} is the name of a 
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt coolingFunctionMethods} input parameter. The initialization routine should record that whether this cooling function was selected, and perform any other initialization necessary.
+where {\tt myMethod} is the name of this method as will be specified by the {\tt coolingFunctionMethods} input parameter. The initialization routine should record that whether this cooling function was selected, and perform any other initialization necessary. For each cooling function matched by this method, the value of {\tt coolingFunctionsMatched} should be incremented by one---this permits a check that all cooling functions were matched.
 
 The other directives should specify subroutines with the following template:
 \begin{verbatim}

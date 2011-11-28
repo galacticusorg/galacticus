@@ -78,13 +78,17 @@ contains
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_CMB_Compton_Initialize</unitName>
   !# </coolingFunctionMethods>
-  subroutine Cooling_Function_CMB_Compton_Initialize(coolingFunctionMethods)
+  subroutine Cooling_Function_CMB_Compton_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``atomic CIE cooling function from {\sc Cloudy}'' module.
     implicit none
-    type(varying_string), intent(in) :: coolingFunctionMethods(:)
- 
+    type(varying_string), intent(in   ) :: coolingFunctionMethods(:)
+    integer,              intent(inout) :: coolingFunctionsMatched
+
     ! Check if this cooling function has been selected.
-    if (any(coolingFunctionMethods == 'CMBCompton')) functionSelected=.true.
+    if (any(coolingFunctionMethods == 'CMBCompton')) then
+       functionSelected=.true.
+       coolingFunctionsMatched=coolingFunctionsMatched+1
+    end if
 
     return
   end subroutine Cooling_Function_CMB_Compton_Initialize

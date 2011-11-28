@@ -110,17 +110,19 @@ contains
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_Molecular_Hydrogen_GP_Initialize</unitName>
   !# </coolingFunctionMethods>
-  subroutine Cooling_Function_Molecular_Hydrogen_GP_Initialize(coolingFunctionMethods)
+  subroutine Cooling_Function_Molecular_Hydrogen_GP_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``molecular hydrogen Galli \& Palla'' cooling function module.
     use Chemical_Abundances_Structure
     implicit none
-    type(varying_string), intent(in) :: coolingFunctionMethods(:)
- 
+    type(varying_string), intent(in   ) :: coolingFunctionMethods(:)
+    integer,              intent(inout) :: coolingFunctionsMatched
+
     ! Check if this cooling function has been selected.
     if (any(coolingFunctionMethods == 'molecularHydrogenGalliPalla')) then
        ! Flag that this cooling function has been selected.
        functionSelected=.true.
-
+       coolingFunctionsMatched=coolingFunctionsMatched+1
+       
        ! Get the indices of chemicals that will be used.
        electronChemicalIndex               =Chemicals_Index("Electron"               )
        atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
