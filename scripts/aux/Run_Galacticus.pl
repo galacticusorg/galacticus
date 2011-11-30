@@ -300,6 +300,7 @@ sub Launch_Models {
 			print oHndl "Allow_Startup_Script    = True\n" if ( $condorUniverse eq "standard" );
 			print oHndl "Environment             = ".$condorEnvironment."\n" unless ( $condorEnvironment eq "" );
 			print oHndl "Requirements            = (".join(") && (",@condorRequirements).")\n" if ( $#condorRequirements >= 0 );
+			print oHndl "+RequiresWholeMachine   = True\n" if ( $modelsToRun->{'condor'}->{'wholeMachine'} eq "true" );
 			print oHndl "Queue\n";
 			close(oHndl);
 

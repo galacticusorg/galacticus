@@ -108,6 +108,7 @@ The {\tt runFile} is an XML file with the following structure:
    <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
    <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
    <transferFile>{PWD}/myFile.data</transferFile>
+   <wholeMachine>true</wholeMachine>
  </condor>
  <parameters>
   <label>modelLabel</label>
@@ -157,6 +158,7 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt environment}] Any settings here are passed to {\sc Condor}'s {\tt environment} option in order to set appropriate environment variables on the machine where a job is executed;
 \item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
 \item[{\tt transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\tt \{PWD\}} will be automatically expanded to the present working directory. Multiple {\tt transferFile} entries can be given.
+\item [{\tt wholeFile}] Setting this option to {\tt true} will add {\tt +RequiresWholeMachine = True} to the Condor submit file. If Condor has been configured to allow jobs to take over a whole machine\footnote{As described \protect\href{https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml}{here} for example.}, this will cause jobs to do so. This is useful if you want to run OpenMP \glc\ on a Condor cluster.
 \end{description}
 \end{description}
 
