@@ -252,7 +252,7 @@ sub Launch_Models {
 		    }
 		    case ( "condor" ) {
 			# Extract Condor options.
-			my $condorGalacticusDirectory = "/home/condor/Galacticus/v0.9.0";
+			my $condorGalacticusDirectory = "/home/condor/Galacticus/v0.9.1";
 			$condorGalacticusDirectory    =   $modelsToRun->{'condor'}->{'galacticusDirectory'}  if ( exists($modelsToRun->{'condor'}->{'galacticusDirectory'}) );
 			my $condorUniverse            = "vanilla";
 			$condorUniverse               =   $modelsToRun->{'condor'}->{'universe'           }  if ( exists($modelsToRun->{'condor'}->{'universe'           }) );
