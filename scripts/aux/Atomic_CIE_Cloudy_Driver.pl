@@ -199,9 +199,9 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[1]}{'method'} = "power law";
     # Specify extrapolation methods in metallicity.
     ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'limit'}  = "low";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "power law";
+    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fixed";
     ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "power law";
+    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fixed";
     # Add some description.
     $coolingFunctions{'description'} = "CIE cooling functions computed by Cloudy ".$cloudyVersion;
     ${$coolingFunctions{'units'}}[0] = "Temperature: Kelvin";

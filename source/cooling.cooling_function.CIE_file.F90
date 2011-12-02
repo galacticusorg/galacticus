@@ -293,7 +293,6 @@ contains
 
     ! Handle out of range metallicities.
     metallicityUse=Abundances_Get_Metallicity(abundances)/metallicitySolar
-
     if (metallicityUse < metallicityMinimum) then
        select case (extrapolateMetallicityLow)
        case (extrapolateZero)
@@ -318,7 +317,7 @@ contains
 
        ! Get the interpolation.
        call Get_Interpolation(temperatureUse,metallicityUse,iTemperature,hTemperature,iMetallicity,hMetallicity)
-       
+
        ! Do the interpolation.
        coolingFunctionPrevious=Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity)
        
@@ -573,12 +572,19 @@ contains
        coolingFunctionTemperatures=dlog(coolingFunctionTemperatures)
        coolingFunctionTable=dlog(coolingFunctionTable)
     else
-       if (        extrapolateTemperatureLow  == extrapolatePowerLaw   &
-            & .or. extrapolateTemperatureHigh == extrapolatePowerLaw   &
-            & .or. extrapolateMetallicityLow  == extrapolatePowerLaw   &
-            & .or. extrapolateMetallicityHigh == extrapolatePowerLaw ) &
+       if     (                                                  &
+            &  extrapolateTemperatureLow  == extrapolatePowerLaw &
+            &  .or.                                              &
+            &  extrapolateTemperatureHigh == extrapolatePowerLaw &
+            & )                                                  &
             & call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','power law extrapolation allowed only in loggable tables')
     end if
+    if     (                                                  &
+         &  extrapolateMetallicityLow  == extrapolatePowerLaw &
+         &   .or.                                             &
+         &  extrapolateMetallicityHigh == extrapolatePowerLaw &
+         & )                                                  &
+         & call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','power law extrapolation not allowed in metallicity')
 
     ! Force interpolation accelerators to be reset.
     resetTemperature=.true.

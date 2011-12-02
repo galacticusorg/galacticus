@@ -1515,11 +1515,11 @@
   <extrapolation>
     <metallicity>
       <limit>low</limit>
-      <method>power law</method>
+      <method>fixed</method>
     </metallicity>
     <metallicity>
       <limit>high</limit>
-      <method>power law</method>
+      <method>fixed</method>
     </metallicity>
     <temperature>
       <limit>low</limit>
