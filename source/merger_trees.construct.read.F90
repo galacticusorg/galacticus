@@ -169,6 +169,7 @@ module Merger_Tree_Read
   double precision,        allocatable, dimension(:) :: outputTimes
 
   ! Node used in root finding.
+  logical                                            :: haveScaleRadii
   type(treeNode),          pointer                   :: activeNode
   double precision                                   :: halfMassRadius
   !$omp threadprivate(activeNode,halfMassRadius)
@@ -182,7 +183,7 @@ module Merger_Tree_Read
      !% Structure used to store raw data read from merger tree files.
      integer(kind=kind_int8)                         :: nodeIndex,hostIndex,descendentIndex,particleIndexStart,particleIndexCount&
           &,isolatedNodeIndex,mergesWithIndex
-     double precision                                :: nodeMass,nodeTime,halfMassRadius,angularMomentum
+     double precision                                :: nodeMass,nodeTime,halfMassRadius,scaleRadius,angularMomentum
      double precision,       dimension(3)            :: position,velocity
      logical                                         :: isSubhalo,childIsSubhalo
      type(nodeData),         pointer                 :: descendentNode,parentNode,hostNode
@@ -602,8 +603,16 @@ contains
 
        ! Check that half-mass radius information is present if required.
        if (mergerTreeReadPresetScaleRadii) then
-          if (.not.haloTreesGroup%hasDataset("halfMassRadius")) call&
-               & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting scale radii requires that halfMassRadius dataset be present in merger tree file")
+          if     (                                                                                                                                                           &
+               &  .not.(                                                                                                                                                     &
+               &        haloTreesGroup%hasDataset("halfMassRadius")                                                                                                          &
+               &         .or.                                                                                                                                                &
+               &        haloTreesGroup%hasDataset("scaleRadius"   )                                                                                                          &
+               &       )                                                                                                                                                     &
+               & ) call Galacticus_Error_Report(                                                                                                                             &
+               &                                "Merger_Tree_Read_Initialize",                                                                                               &
+               &                                "presetting scale radii requires that at least one of halfMassRadius or scaleRadius datasets be present in merger tree file" &
+               &                               )
        end if
 
        ! Check that angular momentum information is present if required.
@@ -910,14 +919,25 @@ contains
     else
        call Galacticus_Error_Report("Merger_Tree_Read_Do","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
     end if
-    ! Half-mass radius.
+    ! Scale or half-mass radius.
     if (mergerTreeReadPresetScaleRadii) then
-       call haloTreesGroup%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
-       nodes%halfMassRadius=nodes%halfMassRadius*unitConversionLength
-       if (scaleFactorExponentLength /= 0) then
-          do iNode=1,nodeCount(1)
-             nodes(iNode)%halfMassRadius=nodes(iNode)%halfMassRadius*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
-          end do
+       haveScaleRadii=haloTreesGroup%hasDataset("scaleRadius")
+       if (haveScaleRadii) then
+          call haloTreesGroup%readDatasetStatic("scaleRadius",nodes%scaleRadius,firstNodeIndex,nodeCount)
+          nodes%scaleRadius=nodes%scaleRadius*unitConversionLength
+          if (scaleFactorExponentLength /= 0) then
+             do iNode=1,nodeCount(1)
+                nodes(iNode)%scaleRadius=nodes(iNode)%scaleRadius*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
+             end do
+          end if 
+       else
+          call haloTreesGroup%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
+          nodes%halfMassRadius=nodes%halfMassRadius*unitConversionLength
+          if (scaleFactorExponentLength /= 0) then
+             do iNode=1,nodeCount(1)
+                nodes(iNode)%halfMassRadius=nodes(iNode)%halfMassRadius*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
+             end do
+          end if
        end if
     end if
     ! Halo spin.
@@ -1426,40 +1446,49 @@ contains
           ! Check if the node is sufficiently massive.
           if (Tree_Node_Mass(nodeList(iIsolatedNode)%node) >= mergerTreeReadPresetScaleRadiiMinimumMass) then
 
-             ! Set the active node and target half mass radius.
-             activeNode => nodeList(iIsolatedNode)%node
-             halfMassRadius=nodes(iNode)%halfMassRadius
-             
-             ! Find minimum and maximum scale radii such that the target half-mass radius is bracketed.
-             radiusMinimum=halfMassRadius
-             radiusMaximum=halfMassRadius
-             do while (Half_Mass_Radius_Root(radiusMinimum,parameterPointer) <= 0.0d0)
-                radiusMinimum=0.5d0*radiusMinimum
-             end do
-             do while (Half_Mass_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
-                if (radiusMaximum > scaleRadiusMaximumAllowed*Dark_Matter_Halo_Virial_Radius(activeNode)) then
-                   write (message,'(a,i10,a)') 'node ',activeNode%index(),' has unphysical scale-radius:'
-                   call Galacticus_Display_Message(trim(message))
-                   write (message,'(a,e12.6,a)') ' half mass radius = ',halfMassRadius                            ,' Mpc'
-                   call Galacticus_Display_Message(trim(message))
-                   write (message,'(a,e12.6,a)') '    virial radius = ',Dark_Matter_Halo_Virial_Radius(activeNode),' Mpc'
-                   call Galacticus_Display_Message(trim(message))
-                   call Galacticus_Error_Report('Assign_Scale_Radii','scale radius greatly exceeds virial radius - this seems unphysical')
-                end if
-                radiusMaximum=2.0d0*radiusMaximum
-             end do
-             
-             ! Solve for the scale radius.
-             radiusScale=Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root,parameterPointer &
-                  &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
-             call Tree_Node_Dark_Matter_Profile_Scale_Set(nodeList(iIsolatedNode)%node,radiusScale)
-             
-             ! Check for scale radii exceeding the virial radius.
-             if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
-             
-             ! Check for half-mass radii exceeding the virial radius.
-             if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
+             ! Check if we have scale radii read directly from file.
+             if (haveScaleRadii) then
+                ! We do, so simply use them to set the scale radii in tree nodes.
+                call Tree_Node_Dark_Matter_Profile_Scale_Set(nodeList(iIsolatedNode)%node,nodes(iNode)%scaleRadius)
+ 
+             else
+                ! We do not have scale radii read directly. Instead, compute them from half-mass radii.
+                
+                ! Set the active node and target half mass radius.
+                activeNode => nodeList(iIsolatedNode)%node
+                halfMassRadius=nodes(iNode)%halfMassRadius
+                
+                ! Find minimum and maximum scale radii such that the target half-mass radius is bracketed.
+                radiusMinimum=halfMassRadius
+                radiusMaximum=halfMassRadius
+                do while (Half_Mass_Radius_Root(radiusMinimum,parameterPointer) <= 0.0d0)
+                   radiusMinimum=0.5d0*radiusMinimum
+                end do
+                do while (Half_Mass_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
+                   if (radiusMaximum > scaleRadiusMaximumAllowed*Dark_Matter_Halo_Virial_Radius(activeNode)) then
+                      write (message,'(a,i10,a)') 'node ',activeNode%index(),' has unphysical scale-radius:'
+                      call Galacticus_Display_Message(trim(message))
+                      write (message,'(a,e12.6,a)') ' half mass radius = ',halfMassRadius                            ,' Mpc'
+                      call Galacticus_Display_Message(trim(message))
+                      write (message,'(a,e12.6,a)') '    virial radius = ',Dark_Matter_Halo_Virial_Radius(activeNode),' Mpc'
+                      call Galacticus_Display_Message(trim(message))
+                      call Galacticus_Error_Report('Assign_Scale_Radii','scale radius greatly exceeds virial radius - this seems unphysical')
+                   end if
+                   radiusMaximum=2.0d0*radiusMaximum
+                end do
+                
+                ! Solve for the scale radius.
+                radiusScale=Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root,parameterPointer &
+                     &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+                call Tree_Node_Dark_Matter_Profile_Scale_Set(nodeList(iIsolatedNode)%node,radiusScale)
 
+                ! Check for scale radii exceeding the virial radius.
+                if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
+                
+                ! Check for half-mass radii exceeding the virial radius.
+                if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
+             end if
+             
           end if
        end if
     end do

@@ -470,6 +470,11 @@ GROUP "haloTrees" {
       DATATYPE  H5T_IEEE_F64LE
       DATASPACE  SIMPLE { ( <nodeCount>, 3 ) / ( <nodeCount>, 3 ) }
    }
+   DATASET "scaleRadius" {
+   COMMENT "The scale radius of each node."
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SIMPLE { ( <nodeCount> ) / ( <nodeCount> ) }
+   }
    DATASET "redshift" {
    COMMENT "The redshift of each node."
       DATATYPE  H5T_IEEE_F64LE
@@ -519,6 +524,7 @@ The following are standard datasets in the {\tt haloTrees} group.
  \item [{\tt nodeMass}] The mass of the node;
  \item [{\tt position}] The three dimensional position of this node;
  \item [{\tt redshift}] The redshift at which this node is identified (note that only one of the {\tt expansionFactor}, {\tt redshift} and {\tt time} datasets is required, since they are simply related, but multiple \emph{can} be present);
+ \item [{\tt scaleRadius}] The characteristic scale radius in the node (typically, but not necessarily, the NFW scale radius);
  \item [{\tt spin}] The spin parameter, $\lambda$, of the halo. This can be either the spin magnitude or a 3-D vector;
  \item [{\tt time}] The time at which this node is identified (note that only one of the {\tt expansionFactor}, {\tt redshift} and {\tt time} datasets is required, since they are simply related, but multiple \emph{can} be present);
  \item [{\tt velocity}] The three dimensional velocity of the node. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc;
