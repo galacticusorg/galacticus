@@ -194,7 +194,7 @@ where $|{\bf J}|$ is the magnitude of the node's angular momentum, $M$ is the no
 
 \subsubsection{Node Scale Radii}
 
-If information on the half-mass radii of nodes is available in the merger tree file, it can be used to preset the value of the dark matter halo scale radius in each node by setting:
+If information on the half-mass or scale radii of nodes is available in the merger tree file, it can be used to preset the value of the dark matter halo scale radius in each node by setting:
 
 \begin{verbatim}
   <parameter>
@@ -203,9 +203,9 @@ If information on the half-mass radii of nodes is available in the merger tree f
   </parameter>
 \end{verbatim}
 
-Before doing this, it is important to be sure that the half-mass radii of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured half-mass radius. In such cases, use the {\tt [mergerTreeReadPresetScaleRadiiMinimumMass]} parameter to specify the lowest mass halos for which the scale radii should be preset---lower mass halos will be assigned a scale radius using whatever method is selected by the {\tt [darkMatterConcentrationMethod]} parameter (see \S\ref{sec:DarkMatterProfileConcentration}).
+Before doing this, it is important to be sure that the half-mass or scale radii of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured half-mass or scale radius. In such cases, use the {\tt [mergerTreeReadPresetScaleRadiiMinimumMass]} parameter to specify the lowest mass halos for which the scale radii should be preset---lower mass halos will be assigned a scale radius using whatever method is selected by the {\tt [darkMatterConcentrationMethod]} parameter (see \S\ref{sec:DarkMatterProfileConcentration}).
 
-The scale radius is set by using a root finding algorithm to ensure that half of the total halo mass is enclosed within the specified half-mass radius.
+If only half-mass radii are available, the scale radius is set by using a root finding algorithm to ensure that half of the total halo mass is enclosed within the specified half-mass radius.
 
 \subsubsection{``Fly-by'' Halos}
 
