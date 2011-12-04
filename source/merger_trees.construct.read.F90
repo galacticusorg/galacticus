@@ -974,24 +974,36 @@ contains
   
   subroutine Create_Node_Indices(nodes,nodeCount)
     !% Create a sorted list of node indices with an index into the original array.
+    use Galacticus_Display
+    use String_Handling
     use Memory_Management
     use Sort
     implicit none
     type(nodeData),          intent(inout), dimension(:)   :: nodes
     integer(kind=HSIZE_T),   intent(in),    dimension(1)   :: nodeCount
     integer(kind=kind_int8)                                :: iNode
+    type(varying_string)                                   :: message
 
     ! Build a sorted list of node indices with an index into the original arrays.
     call Alloc_Array(nodeLocations          ,int(nodeCount))
     call Alloc_Array(nodeIndicesSorted      ,int(nodeCount))
     call Alloc_Array(descendentLocations    ,int(nodeCount))
     call Alloc_Array(descendentIndicesSorted,int(nodeCount))
-    nodeLocations      =Sort_Index_Do(nodes%nodeIndex     )
+    nodeLocations      =Sort_Index_Do(nodes%nodeIndex      )
     descendentLocations=Sort_Index_Do(nodes%descendentIndex)
     forall (iNode=1:nodeCount(1))
        nodeIndicesSorted      (iNode)=nodes(nodeLocations      (iNode))%nodeIndex
        descendentIndicesSorted(iNode)=nodes(descendentLocations(iNode))%descendentIndex
     end forall
+    if (Galacticus_Verbosity_Level() >= verbosityWarn) then
+       do iNode=2,nodeCount(1)
+          if (nodeIndicesSorted(iNode) == nodeIndicesSorted(iNode-1)) then
+             message="duplicate node index found ["
+             message=message//nodeIndicesSorted(iNode)//']'
+             call Galacticus_Display_Message(message,verbosityWarn)
+          end if
+       end do
+    end if
     return
   end subroutine Create_Node_Indices
 
@@ -1596,6 +1608,8 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Error
     implicit none
     type(nodeData),          intent(inout), dimension(:) :: nodes
     type(treeNodeList),      intent(inout), dimension(:) :: nodeList
@@ -1611,6 +1625,7 @@ contains
     integer(kind=kind_int8)                              :: historyCount
     logical                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge,descendentsFound
     double precision                                     :: timeSubhaloMerges,radiusPericenter,radiusApocenter,radiusVirial
+    type(varying_string)                                 :: message
 
     iIsolatedNode        = 0
     historyCountMaximum  = 0
@@ -1739,6 +1754,12 @@ contains
                 ! Find relative position and velocity.
                 relativePosition=satellitePosition-hostPosition
                 relativeVelocity=satelliteVelocity-hostVelocity
+                ! Catch zero separation halos.
+                if (Vector_Magnitude(relativePosition) == 0.0d0) then
+                   message='merging halos ['
+                   message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
+                   call Galacticus_Error_Report('Scan_For_Mergers',message)
+                end if
                 ! Account for periodicity.
                 if (simulationIsPeriodic) then
                    relativePosition=mod(relativePosition+0.5d0*lengthSimulationBox,lengthSimulationBox)-0.5d0*lengthSimulationBox
