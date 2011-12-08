@@ -93,6 +93,7 @@ contains
     
     if (present(unitName)) write (0,'(a,a,a)') 'Fatal error in ',trim(unitName),'():'
     if (present(message )) write (0,'(a)'    ) trim(message)
+    call Flush(0)
     call Abort()
     return
   end subroutine Galacticus_Error_Report_Char
