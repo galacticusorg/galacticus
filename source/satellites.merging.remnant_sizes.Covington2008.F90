@@ -216,35 +216,42 @@ contains
        end if
        if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008','error condition detected')
        ! Apply the Covington et al. (2008) algorithm to compute the size of the new remnant.
-       ! First calculate the energy of the progenitors.
-       progenitorsEnergy=0.0d0
-       if (hostRadius                 > 0.0d0)                                                                           &
-            & progenitorsEnergy=progenitorsEnergy+                      hostSpheroidMass**2/                 hostRadius
-       if (           satelliteRadius > 0.0d0)                                                                           & 
-            & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMass                 **2/ satelliteRadius
-       if (hostRadius+satelliteRadius > 0.0d0)                                                                           &
-            & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMass*hostSpheroidMass   /(satelliteRadius+hostRadius) &
-            &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
-       ! Compute the gas fraction in the remnant.
-       gasFractionInitial=remnantSpheroidGasMass/remnantSpheroidMass
-       ! Compute the energy lost through radiation.
-       radiatedEnergy=mergerRemnantRadiativeEfficiency*gasFractionInitial*progenitorsEnergy
-       
-       ! Compute the final energy.
-       finalEnergy=progenitorsEnergy+radiatedEnergy
-       if (finalEnergy <= 0.0d0) then
-          write (dataString,'(e12.6,":",e12.6)') progenitorsEnergy,radiatedEnergy
-          message='remnant becomes unbound (progenitorsEnergy:radiatedEnergy='//trim(dataString)//')'
-          call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008',message)
+       ! Check that remnant has finite mass.
+       if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
+          ! First calculate the energy of the progenitors.       
+          progenitorsEnergy=0.0d0
+          if (hostRadius                 > 0.0d0)                                                                           &
+               & progenitorsEnergy=progenitorsEnergy+                      hostSpheroidMass**2/                 hostRadius
+          if (           satelliteRadius > 0.0d0)                                                                           & 
+               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMass                 **2/ satelliteRadius
+          if (hostRadius+satelliteRadius > 0.0d0)                                                                           &
+               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMass*hostSpheroidMass   /(satelliteRadius+hostRadius) &
+               &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
+          ! Compute the gas fraction in the remnant.
+          gasFractionInitial=remnantSpheroidGasMass/remnantSpheroidMass
+          ! Compute the energy lost through radiation.
+          radiatedEnergy=mergerRemnantRadiativeEfficiency*gasFractionInitial*progenitorsEnergy
+          
+          ! Compute the final energy.
+          finalEnergy=progenitorsEnergy+radiatedEnergy
+          if (finalEnergy <= 0.0d0) then
+             write (dataString,'(e12.6,":",e12.6)') progenitorsEnergy,radiatedEnergy
+             message='remnant becomes unbound (progenitorsEnergy:radiatedEnergy='//trim(dataString)//')'
+             call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008',message)
+          end if
+          
+          ! Compute the remnant radius.
+          remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/(progenitorsEnergy+radiatedEnergy)
+          
+          ! Also compute the specific angular momentum at the half-mass radius.
+          remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
+          remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
+       else
+          ! Remnant has zero mass - don't do anything.
+          remnantRadius                 =remnantNoChangeValue
+          remnantCircularVelocity       =remnantNoChangeValue
+          remnantSpecificAngularMomentum=remnantNoChangeValue
        end if
-       
-       ! Compute the remnant radius.
-       remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/(progenitorsEnergy+radiatedEnergy)
-
-       ! Also compute the specific angular momentum at the half-mass radius.
-       remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
-       remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
-
     end if
     return
   end subroutine Satellite_Merging_Remnant_Size_Covington2008

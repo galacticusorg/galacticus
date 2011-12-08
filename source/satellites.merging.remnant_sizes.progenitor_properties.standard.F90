@@ -114,35 +114,39 @@ contains
     ! Compute dark matter factors. These are the specific angular momenta of components divided by sqrt(G M r) where M is the
     ! component mass and r its half-mass radius. We use a weighted average of these factors to infer the specific angular momentum
     ! of the remnant from its mass and radius.
-    componentMass=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
-    hostSpheroidHalfMassRadius=Tree_Node_Spheroid_Half_Mass_Radius(hostNode)
+    componentMass                 =Tree_Node_Spheroid_Stellar_Mass     (hostNode     )+Tree_Node_Spheroid_Gas_Mass(hostNode     )
+    hostSpheroidHalfMassRadius    =Tree_Node_Spheroid_Half_Mass_Radius (hostNode     )
     if (hostSpheroidHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
-       hostSpheroidDarkMatterFactor=Tree_Node_Spheroid_Angular_Momentum(hostNode)/(componentMass**1.5d0) &
-            &/dsqrt(gravitationalConstantGalacticus*hostSpheroidHalfMassRadius)
+       hostSpheroidDarkMatterFactor     = Tree_Node_Spheroid_Angular_Momentum(hostNode     )                     &
+            &                            /(componentMass**1.5d0)                                                 &
+            &                            /dsqrt(gravitationalConstantGalacticus*hostSpheroidHalfMassRadius     )
     else
        hostSpheroidDarkMatterFactor=0.0d0
     end if
-    componentMass=Tree_Node_Disk_Stellar_Mass(hostNode) +Tree_Node_Disk_Gas_Mass(hostNode)
-    hostDiskHalfMassRadius=Tree_Node_Disk_Half_Mass_Radius(hostNode)
+    componentMass                  =Tree_Node_Disk_Stellar_Mass        (hostNode     )+Tree_Node_Disk_Gas_Mass    (hostNode     )
+    hostDiskHalfMassRadius         =Tree_Node_Disk_Half_Mass_Radius    (hostNode     )
     if (hostDiskHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
-       hostDiskDarkMatterFactor=Tree_Node_Disk_Angular_Momentum(hostNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus*hostDiskHalfMassRadius)
+       hostDiskDarkMatterFactor         = Tree_Node_Disk_Angular_Momentum    (hostNode     )                     &
+            &                            /(componentMass**1.5d0)                                                 &
+            &                            /dsqrt(gravitationalConstantGalacticus*hostDiskHalfMassRadius         )
     else
        hostDiskDarkMatterFactor=0.0d0
     end if
-    componentMass=Tree_Node_Spheroid_Stellar_Mass(satelliteNode) +Tree_Node_Spheroid_Gas_Mass(satelliteNode)
+    componentMass                  =Tree_Node_Spheroid_Stellar_Mass    (satelliteNode)+Tree_Node_Spheroid_Gas_Mass(satelliteNode)
     satelliteSpheroidHalfMassRadius=Tree_Node_Spheroid_Half_Mass_Radius(satelliteNode)
     if (satelliteSpheroidHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
-       satelliteSpheroidDarkMatterFactor=Tree_Node_Spheroid_Angular_Momentum(satelliteNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus*satelliteSpheroidHalfMassRadius)
+       satelliteSpheroidDarkMatterFactor= Tree_Node_Spheroid_Angular_Momentum(satelliteNode)                     &
+            &                            /(componentMass**1.5d0)                                                 &
+            &                            /dsqrt(gravitationalConstantGalacticus*satelliteSpheroidHalfMassRadius)
     else
        satelliteSpheroidDarkMatterFactor=0.0d0
     end if
-    componentMass=Tree_Node_Disk_Stellar_Mass(satelliteNode) +Tree_Node_Disk_Gas_Mass(satelliteNode)
-    satelliteDiskHalfMassRadius=Tree_Node_Disk_Half_Mass_Radius(satelliteNode)
+    componentMass                  =Tree_Node_Disk_Stellar_Mass        (satelliteNode)+Tree_Node_Disk_Gas_Mass    (satelliteNode)
+    satelliteDiskHalfMassRadius    =Tree_Node_Disk_Half_Mass_Radius    (satelliteNode)
     if (satelliteDiskHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
-       satelliteDiskDarkMatterFactor=Tree_Node_Disk_Angular_Momentum(satelliteNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus*satelliteDiskHalfMassRadius)
+       satelliteDiskDarkMatterFactor    = Tree_Node_Disk_Angular_Momentum    (satelliteNode)                     &
+            &                            /(componentMass**1.5d0)                                                 &
+            &                            /dsqrt(gravitationalConstantGalacticus*satelliteDiskHalfMassRadius    )
     else
        satelliteDiskDarkMatterFactor=0.0d0
     end if
@@ -152,13 +156,13 @@ contains
     case (movesToSpheroid)
        hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
        hostRadius            =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidHalfMassRadius  +Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskHalfMassRadius
-       angularMomentumFactor      =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskDarkMatterFactor
+       angularMomentumFactor =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskDarkMatterFactor
        remnantSpheroidGasMass=Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
        remnantSpheroidMass   =Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
     case (movesToDisk)
        hostSpheroidMass      =0.0d0
        hostRadius            =0.0d0
-       angularMomentumFactor      =0.0d0
+       angularMomentumFactor =0.0d0
        remnantSpheroidGasMass=0.0d0
        remnantSpheroidMass   =0.0d0
     case (doesNotMove)
@@ -172,14 +176,14 @@ contains
     end select
     select case (thisHostStarsMoveTo)
     case (movesToSpheroid)
-       hostSpheroidMass   =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
-       hostRadius         =hostRadius         +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidHalfMassRadius  +Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskHalfMassRadius
-       angularMomentumFactor   =angularMomentumFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskDarkMatterFactor
-       remnantSpheroidMass=remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
+       hostSpheroidMass     =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
+       hostRadius           =hostRadius         +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidHalfMassRadius  +Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskHalfMassRadius
+       angularMomentumFactor=angularMomentumFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskDarkMatterFactor
+       remnantSpheroidMass  =remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
     case (movesToDisk)
-       hostSpheroidMass   =hostSpheroidMass
-       hostRadius         =hostRadius
-       angularMomentumFactor   =angularMomentumFactor
+       hostSpheroidMass     =hostSpheroidMass
+       hostRadius           =hostRadius
+       angularMomentumFactor=angularMomentumFactor
     case (doesNotMove)
        hostSpheroidMass   =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)
        hostRadius         =hostRadius         +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidHalfMassRadius
@@ -226,11 +230,19 @@ contains
     case default
        call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
+
+    ! Compute the angular momentum factor.
     if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
        angularMomentumFactor=angularMomentumFactor/(satelliteSpheroidMass+hostSpheroidMass)
     else
        angularMomentumFactor=1.0d0
     end if
+
+    ! Trap cases where radius is zero, but mass is finite (due to numerical inaccuracies).
+    if (hostRadius      <= 0.0d0) hostSpheroidMass     =0.0d0
+    if (satelliteRadius <= 0.0d0) satelliteSpheroidMass=0.0d0
+    
+    ! Compute the radii of the spheroid components.
     if (hostSpheroidMass      > 0.0d0) hostRadius     =hostRadius     /hostSpheroidMass
     if (satelliteSpheroidMass > 0.0d0) satelliteRadius=satelliteRadius/satelliteSpheroidMass
 
