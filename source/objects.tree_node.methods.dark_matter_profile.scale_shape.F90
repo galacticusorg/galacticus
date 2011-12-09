@@ -67,7 +67,7 @@ module Tree_Node_Methods_Dark_Matter_Profile_Scale_Shapes
   use Components
   implicit none
   private
-  public :: Tree_Node_Methods_Profile_ScaleShape_Initialize, Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale,&
+  public :: Tree_Node_Methods_Profile_ScaleShape_Initialize, Tree_Node_Methods_Profile_ScaleShape_Initialize_Rates,&
        & Galacticus_Output_Tree_Profile_ScaleShape, Galacticus_Output_Tree_Profile_ScaleShape_Property_Count,&
        & Galacticus_Output_Tree_Profile_ScaleShape_Names, Tree_Node_Methods_Profile_ScaleShape_Dump,&
        & Tree_Node_Dark_Matter_Profile_ScaleShape_Promote, Tree_Node_Methods_Profile_ScaleShape_Merger_Tree_Output,&
@@ -186,12 +186,12 @@ contains
   double precision function Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode,instance)
     !% Return the node dark matter profile scale length.
     implicit none
-    integer, intent(in), optional :: instance
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
+    integer,        optional, intent(in   ) :: instance
+    type(treeNode), pointer,  intent(inout) :: thisNode
+    integer                                 :: thisIndex
     
     ! Ensure the spin has been initialized.
-    call Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale(thisNode)
+    call Tree_Node_Methods_Profile_ScaleShape_Initialize_ScaleShape(thisNode)
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
     Tree_Node_Dark_Matter_Profile_Scale_ScaleShape=thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyValue)
     return
@@ -251,7 +251,7 @@ contains
     integer                                :: thisIndex
     
     ! Ensure the spin has been initialized.
-    call Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale(thisNode)
+    call Tree_Node_Methods_Profile_ScaleShape_Initialize_ScaleShape(thisNode)
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
     Tree_Node_Dark_Matter_Profile_Shape_ScaleShape=thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyValue)
     return
@@ -292,9 +292,9 @@ contains
   double precision function Tree_Node_Dark_Matter_Profile_Shape_Growth_Rate_ScaleShape(thisNode,instance)
     !% Return the node dark matter profile shape parameter rate of growth.
     implicit none
-    integer, intent(in), optional :: instance
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    integer                                  :: thisIndex
+    integer,          optional, intent(in   ) :: instance
+    type(treeNode),   pointer,  intent(inout) :: thisNode
+    integer                                   :: thisIndex
 
     ! Get component index for this node.
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
@@ -303,14 +303,11 @@ contains
     return
   end function Tree_Node_Dark_Matter_Profile_Shape_Growth_Rate_ScaleShape
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale</unitName>
-  !# </mergerTreeInitializeTask>
-  subroutine Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale(thisNode)
-    !% Initialize the scale radius of {\tt thisNode}.
+  subroutine Tree_Node_Methods_Profile_ScaleShape_Initialize_ScaleShape(thisNode)
+    !% Initialize the scale radius and shape parameter of {\tt thisNode}.
     use Dark_Matter_Profiles_Concentrations
-    use Dark_Matter_Profiles_Shapes
     use Dark_Matter_Halo_Scales
+     use Dark_Matter_Profiles_Shapes
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
     integer                                 :: thisIndex
@@ -319,37 +316,57 @@ contains
     if (methodSelected) then
        if (.not.thisNode%componentExists(componentIndex)) then
           thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
-          ! Set the scale radius of the halo.
+          ! Set the scale radius parameter of the halo.
           concentration=max(Dark_Matter_Profile_Concentration(thisNode),darkMatterProfileMinimumConcentration)
           thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyValue)=Dark_Matter_Halo_Virial_Radius(thisNode)/concentration
-          ! Set the scale radius of the halo.
-          thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyValue)=Dark_Matter_Profile_Shape(thisNode)
-          ! Check if this node is the primary progenitor.
-          if (thisNode%isPrimaryProgenitor()) then
-             ! It is, so compute the scale radius growth rate.
-             ! First ensure that parent node has scale radius and shape set.
-             call Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale(thisNode%parentNode)
-             ! Now compute the growth rate.
-             deltaTime=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
-             if (deltaTime > 0.0d0) then
-                thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=(Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode%parentNode)&
-                     &-Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode))/deltaTime
-                thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=(Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode%parentNode)&
-                     &-Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode))/deltaTime
-             else
-                thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=0.0d0
-                thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=0.0d0
-             end if
-          else
-             ! It is not, so set scale radius and shape parameter growth rates to zero.
-             thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=0.0d0
-             thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=0.0d0
-          end if
+          ! Set the shape parameter of the halo.
+          thisNode%components(thisIndex)%instance(1)%properties(shapeIndex,propertyValue)=Dark_Matter_Profile_Shape     (thisNode)
        end if
     end if
     return
-  end subroutine Tree_Node_Methods_Profile_ScaleShape_Initialize_Scale
-   
+  end subroutine Tree_Node_Methods_Profile_ScaleShape_Initialize_ScaleShape
+  
+  !# <mergerTreeInitializeTask>
+  !#  <unitName>Tree_Node_Methods_Profile_ScaleShape_Initialize_Rates</unitName>
+  !# </mergerTreeInitializeTask>
+  subroutine Tree_Node_Methods_Profile_ScaleShape_Initialize_Rates(thisNode)
+    !% Initialize the scale radius and shape parameter of {\tt thisNode}.
+    use Dark_Matter_Profiles_Concentrations
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),  pointer, intent(inout) :: thisNode
+    integer                                 :: thisIndex
+    double precision                        :: deltaTime
+
+    if (methodSelected) then
+       ! Ensure that current node has its scale set.
+       call Tree_Node_Methods_Profile_ScaleShape_Initialize_ScaleShape(thisNode)
+       thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
+       ! Check if this node is the primary progenitor.
+       if (thisNode%isPrimaryProgenitor()) then
+          ! It is, so compute the scale radius and shape parameter growth rates.
+          ! First ensure that parent node has scale radius and shape parameter set.
+          call Tree_Node_Methods_Profile_ScaleShape_Initialize_ScaleShape(thisNode%parentNode)
+          ! Now compute the growth rate.
+          deltaTime=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
+          if (deltaTime > 0.0d0) then
+             thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=(Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode%parentNode)&
+                  &-Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode))/deltaTime
+             thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=(Tree_Node_Dark_Matter_Profile_Shape_ScaleShape(thisNode%parentNode)&
+                  &-Tree_Node_Dark_Matter_Profile_Shape_ScaleShape(thisNode))/deltaTime
+          else
+             thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=0.0d0
+             thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=0.0d0
+          end if
+       else
+          ! It is not, so set scale radius and shape parameter growth rates to zero.
+          thisNode%components(thisIndex)%instance(1)%data(scaleRateIndex)=0.0d0
+          thisNode%components(thisIndex)%instance(1)%data(shapeRateIndex)=0.0d0
+       end if
+    end if
+    return
+  end subroutine Tree_Node_Methods_Profile_ScaleShape_Initialize_Rates
+     
   !# <nodePromotionTask>
   !#  <unitName>Tree_Node_Dark_Matter_Profile_ScaleShape_Promote</unitName>
   !# </nodePromotionTask>
