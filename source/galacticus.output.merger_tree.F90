@@ -220,12 +220,12 @@ contains
     if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (iOutput)
 
     ! Compute the start and length of regions to reference.
+    !$omp critical(HDF5_Access)
     referenceLength(1)=max(integerPropertiesWritten,doublePropertiesWritten)
     referenceStart (1)=outputGroups(iOutput)%length
 
     ! Create references to the datasets if requested.
     if (mergerTreeOutputReferences) then
-       !$omp critical(HDF5_Access)
        
        ! Ensure that a group has been made for this merger tree.
        call Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
@@ -248,12 +248,10 @@ contains
        
        ! Close the tree group.
        call thisTree%hdf5Group%close()
-       !$omp end critical(HDF5_Access)
 
     end if
     
     ! Store the start position and length of the node data for this tree, along with its volume weight.
-    !$omp critical(HDF5_Access)
     call outputGroups(iOutput)%hdf5Group%writeDataset([thisTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
     call outputGroups(iOutput)%hdf5Group%writeDataset(referenceStart         ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
     call outputGroups(iOutput)%hdf5Group%writeDataset(referenceLength        ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
