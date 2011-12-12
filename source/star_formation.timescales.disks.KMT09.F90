@@ -272,15 +272,19 @@ contains
     !% Slow (but more accurate at low molecular fraction) fitting function from \cite{krumholz_star_2009} for the molecular hydrogen fraction.
     implicit none
     double precision, intent(in) :: s
+    double precision, parameter  :: sMinimum=1.0d-6
     double precision, parameter  :: sMaximum=8.0d0
     double precision             :: delta
     
-    ! Check if s is below maximum. If not, simply truncate to the minimum fraction that we allow.
-    if (s < sMaximum) then
+    ! Check if s is below maximum. If not, simply truncate to the minimum fraction that we allow. Also use a simple series
+    ! expansion for cases of very small s.
+    if      (s <  sMinimum) then
+       KMT09_Molecular_Fraction_Slow=1.0d0-0.75d0*s
+    else if (s >= sMaximum) then
+       KMT09_Molecular_Fraction_Slow=                                                               molecularFractionMinimum
+    else
        delta                        =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
        KMT09_Molecular_Fraction_Slow=max(1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5))**0.2d0),molecularFractionMinimum)
-    else
-       KMT09_Molecular_Fraction_Slow=                                                               molecularFractionMinimum
     end if
     return
   end function KMT09_Molecular_Fraction_Slow
