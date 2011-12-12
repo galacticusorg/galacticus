@@ -1,7 +1,13 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 use XML::Simple;
 use Data::Dumper;
+use DateTime;
 use File::Copy;
+use PDL;
+use PDL::NiceSlice;
+use PDL::IO::HDF5;
 my $galacticusPath;
 if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
     $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
@@ -15,218 +21,236 @@ unshift(@INC,$galacticusPath."perl");
 # Andrew Benson (15-Apr-2011)
 
 # Get arguments.
-if ( $#ARGV != 1 ) {die "Usage: Conroy_SPS_Driver.pl <imfName> <stellarPopulationFile>"};
-$imfName               = $ARGV[0];
-$stellarPopulationFile = $ARGV[1];
+die "Usage: Conroy_SPS_Driver.pl <imfName> <stellarPopulationFile>" unless ( scalar(@ARGV) == 2 );
+my $imfName               = $ARGV[0];
+my $stellarPopulationFile = $ARGV[1];
 
 # Check if the file exists.
 unless ( -e $stellarPopulationFile ) {
     
     # Check out the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.3" ) {
-	print "Conroy_SPS_Driver.pl: downloading source code.\n";
-	system("svn checkout http://fsps.googlecode.com/svn/trunk/ ".$galacticusPath."aux/FSPS_v2.3");
-	die("Conroy_SPS_Driver.pl: FATAL - failed to check out svn repository.") unless ( -e $galacticusPath."aux/FSPS_v2.3" );
+ 	print "Conroy_SPS_Driver.pl: downloading source code.\n";
+ 	system("svn checkout http://fsps.googlecode.com/svn/trunk/ ".$galacticusPath."aux/FSPS_v2.3");
+ 	die("Conroy_SPS_Driver.pl: FATAL - failed to check out svn repository.") unless ( -e $galacticusPath."aux/FSPS_v2.3" );
     }
-
+    
     # Check for updates to the code.
+    my $availableRevision;
+    my $currentRevision;
     open(pHndl,"svn info -r HEAD ".$galacticusPath."aux/FSPS_v2.3 |");
-    while ( $line = <pHndl> ) {
-	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$availableRevision = $1};
+    while ( my $line = <pHndl> ) {
+ 	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$availableRevision = $1};
     }
     close(pHndl);
     open(pHndl,"svn info ".$galacticusPath."aux/FSPS_v2.3 |");
-    while ( $line = <pHndl> ) {
-	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$currentRevision = $1};
+    while ( my $line = <pHndl> ) {
+ 	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$currentRevision = $1};
     }
     close(pHndl);
     if ( $currentRevision < $availableRevision ) {
-	print "Conroy_SPS_Driver.pl: updating source code.\n";
-	system("svn revert -R ".$galacticusPath."aux/FSPS_v2.3"); # Revert the code.
-	system("svn update ".$galacticusPath."aux/FSPS_v2.3"); # Grab updates
-	unlink($galacticusPath."aux/FSPS_v2.3/src/galacticus_IMF.f90") # Remove this file to trigger re-patching of the code.
+ 	print "Conroy_SPS_Driver.pl: updating source code.\n";
+ 	system("svn revert -R ".$galacticusPath."aux/FSPS_v2.3"); # Revert the code.
+ 	system("svn update ".$galacticusPath."aux/FSPS_v2.3"); # Grab updates
+ 	unlink($galacticusPath."aux/FSPS_v2.3/src/galacticus_IMF.f90") # Remove this file to trigger re-patching of the code.
     }
-
+    
     # Patch the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.3/src/galacticus_IMF.f90" ) {
-	foreach $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch" ) {
-	    copy($galacticusPath."aux/FSPS_v2.3_Galacticus_Modifications/".$file,$galacticusPath."aux/FSPS_v2.3/src/".$file);
-	    if ( $file =~ m/\.patch$/ ) {system("cd ".$galacticusPath."aux/FSPS_v2.3/src; patch < $file")};
-	    print "$file\n";
-	}
-	unlink($galacticusPath."aux/FSPS_v2.3/src/autosps.exe");
+ 	foreach my $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch" ) {
+ 	    copy($galacticusPath."aux/FSPS_v2.3_Galacticus_Modifications/".$file,$galacticusPath."aux/FSPS_v2.3/src/".$file);
+ 	    if ( $file =~ m/\.patch$/ ) {system("cd ".$galacticusPath."aux/FSPS_v2.3/src; patch < $file")};
+ 	    print "$file\n";
+ 	}
+ 	unlink($galacticusPath."aux/FSPS_v2.3/src/autosps.exe");
     }
-
+    
     # Build the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.3/src/autosps.exe" ) {
-	print "Conroy_SPS_Driver.pl: compiling autosps.exe code.\n";
-	system("cd ".$galacticusPath."aux/FSPS_v2.3/src; export SPS_HOME=`pwd`; make clean; make -j 1");
-	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e $galacticusPath."aux/FSPS_v2.3/src/autosps.exe" );
+ 	print "Conroy_SPS_Driver.pl: compiling autosps.exe code.\n";
+ 	system("cd ".$galacticusPath."aux/FSPS_v2.3/src; export SPS_HOME=`pwd`; make clean; make -j 1");
+ 	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e $galacticusPath."aux/FSPS_v2.3/src/autosps.exe" );
     }
-
-    # Initialize the data hash.
-    undef(%data);
+    
+    # Initialize the data structure.
+    my $spectra;
+    my $wavelengths;
+    my $ages          = pdl [];
+    my $metallicities = pdl [];
+    
+    # Open the output file.
+    my $hdfFile = new PDL::IO::HDF5(">".$stellarPopulationFile);
 
     # Run the code.
-    $pwd = `pwd`;
+    my $pwd = `pwd`;
     chomp($pwd);
     $ENV{'SPS_HOME'} = $galacticusPath."aux/FSPS_v2.3";
-    $iMetallicity = -1;
+    my $iMetallicity = -1;
 
-    # Add a description of the file.
-    $data{'description'} = "Simple stellar population spectra from Conroy, White & Gunn for an ".$imfName." initial mass function";
+    # Add a description and other metadata to the file.
+    my $dt = DateTime->now->set_time_zone('local');
+    (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
+    my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
+    $hdfFile->attrSet(
+	description   => "Simple stellar population spectra from Conroy, White & Gunn for a ".$imfName." initial mass function",
+	timestamp     => $now,
+	fspsVersion   => "2.3_r".$availableRevision,
+	createdBy     => "Galacticus",
+	fileSignature => 1
+	);
 
-    # Add a description of the units used to the file.
-    $data{'units'}->{'value'} = 3.827e33; # Values are in Solar luminosities per Hz - this is the Solar luminosity (in erg/s) used.
-    $data{'units'}->{'system'} = "ergs/s/Hz";
+    # Read the IMF file and store it to our output file.
+    if ( -e "galacticus.imf" ) {
+	my $imfMass = pdl [];
+	my $imfPhi  = pdl [];
+	open(imfHndl,"galacticus.imf");
+	while ( my $line = <imfHndl> ) {
+	    $line =~ s/^\s*//;
+	    $line =~ s/\s*$//;
+	    my @columns = split(/\s+/,$line);
+	    $imfMass = $imfMass->append($columns[0]);
+	    $imfPhi  = $imfPhi ->append($columns[1]);
+	}
+	close(imfHndl);
+	my $imfGroup = new PDL::IO::HDF5::Group(
+	    name    => "initialMassFunction",
+	    parent  => $hdfFile,
+	    fileObj => $hdfFile
+	    );
+	my $massDataSet = new PDL::IO::HDF5::Dataset(
+	    name    => "mass",
+	    parent  => $imfGroup,
+	    fileObj => $hdfFile
+	    );
+	$massDataSet->set($imfMass);
+	$massDataSet->attrSet(
+	    units     => "Msolar",
+	    unitsInSI => 1.98892e30
+	    );
+ 	my $imfDataSet = new PDL::IO::HDF5::Dataset(
+	    name    => "initialMassFunction",
+	    parent  => $imfGroup,
+	    fileObj => $hdfFile
+	    );
+	$imfDataSet->set($imfPhi);
+	$imfDataSet->attrSet(
+	    units     => "Msolar^-1",
+	    unitsInSI => 0.50278543e-30
+	    );
+    } else {
+	die("Conroy_SPS_Driver.pl: 'galacticus.imf' file is missing");
+    }
 
     # Loop over metallicities.
-    for($iZ=1;$iZ<=22;++$iZ) {
-	$outFile = "imf".$imfName.".iZ".$iZ;
+    for(my $iZ=1;$iZ<=22;++$iZ) {
+	my $outFile = "imf".$imfName.".iZ".$iZ;
 	unless ( -e $galacticusPath."aux/FSPS_v2.3/OUTPUTS/".$outFile.".spec" ) {
 	    open(spsPipe,"|aux/FSPS_v2.3/src/autosps.exe");
-	    print spsPipe "6\n";        # IMF.
-	    print spsPipe "0\n";        # Generate SSP.
-	    print spsPipe "$iZ\n";      # Specify metallicity.
-	    print spsPipe "no\n";       # Do not include dust.
-	    print spsPipe "$outFile\n"; # Specify filename.
+	    print spsPipe "6\n";         # IMF.
+	    print spsPipe "0\n";         # Generate SSP.
+	    print spsPipe $iZ."\n";      # Specify metallicity.
+	    print spsPipe "no\n";        # Do not include dust.
+	    print spsPipe $outFile."\n"; # Specify filename.
 	    close(spsPipe);
 	}
-
-	# Read the file and convert it to XML format.
-	$ageCount = 0;
-	$iAge     = -1;
-	$gotAge   = 0;
+	
+	# Read the file.
+	my $ageCount =  0;
+	my $iAge     = -1;
+	my $gotAge   =  0;
 	open(specFile,$galacticusPath."aux/FSPS_v2.3/OUTPUTS/".$outFile.".spec");
-	while ( $line = <specFile> ) {
+	while ( my $line = <specFile> ) {
 	    chomp($line);
 	    $line =~ s/^\s*//;
 	    $line =~ s/\s*$//;
 	    if ( $line =~ m/^\#/ ) {
 		# Comment line.
 		if ( $line =~ m/Log\(Z\/Zsol\):\s*([\+\-\.0-9]+)/ ) {
-		    $metallicity = $1;
-		    print "  -> Reading data for metallicity log10(Z/Z_Solar) = $metallicity\n";
+		    my $metallicity = $1;
+		    print "  -> Reading data for metallicity log10(Z/Z_Solar) = ".$metallicity."\n";
 		    ++$iMetallicity;
-		    ${$data{'metallicity'}}[$iMetallicity]->{'value'} = $metallicity;
+		    $metallicities = $metallicities->append($metallicity);
 		}
 	    } else {
 		if ( $ageCount == 0 ) {
 		    # Have not yet got a count of the number of ages in the file - get it now.
 		    if ( $line =~ m/^\s*(\d+)\s+(\d+)/ ) {
-			$ageCount        = $1;
-			$wavelengthCount = $2;
-			print "     -> Found $ageCount ages in the file\n";
-			print "     -> Found $wavelengthCount wavelengths in the file\n";
+			$ageCount           = $1;
+			my $wavelengthCount = $2;
+			$spectra            = pdl zeroes($wavelengthCount,$ageCount,22) unless ( defined($spectra) );
+			print "     -> Found ".$ageCount." ages in the file\n";
+			print "     -> Found ".$wavelengthCount." wavelengths in the file\n";
 			# Read the wavelength array.
-			$wavelengthReadCount = 0;
-			while ( $wavelengthReadCount < $wavelengthCount ) {
-			    $line = <specFile>;
-			    chomp($line);
-			    $line =~ s/^\s*//;
-			    $line =~ s/\s*$//;
-			    @columns = split(/\s+/,$line);
-			    push(@{$data{'wavelengths'}->{'wavelength'}},@columns) if ( $iMetallicity == 0 );
-			    $wavelengthReadCount += scalar(@columns);
-			}
+			$line        = <specFile>;
+			chomp($line);
+			$line        =~ s/^\s*//;
+			$line        =~ s/\s*$//;
+			my @columns  = split(/\s+/,$line);
+			$wavelengths = pdl @columns unless ( defined($wavelengths) );
 		    } else {
 			die("Conroy_SPS_Driver.pl: format of output file is not recognized");
 		    }
 		} elsif ( $gotAge == 0 ) {
 		    # Not currently processing an SPS age - get the age.
 		    ++$iAge;
-		    @columns = split(/\s+/,$line);
-		    ${$data{'metallicity'}}[$iMetallicity]->{'age'}[$iAge]->{'value'} = 10.0**($columns[0]-9.0);
-		    $gotAge = 1;
+		    my @columns = split(/\s+/,$line);
+		    $ages       = $ages->append(10.0**($columns[0]-9.0));
+		    $gotAge     = 1;
 		} else {
 		    # Are processing an SPS age - grab the wavelengths and append to the array.
-		    @columns = split(/\s+/,$line);
-		    push(@{${$data{'metallicity'}}[$iMetallicity]->{'age'}[$iAge]->{'flux'}},@columns);
-		    # Check if we've read enough entries (to match the wavelength grid).
-		    if ( $#{${$data{'metallicity'}}[$iMetallicity]->{'age'}[$iAge]->{'flux'}} == $#{$data{'wavelengths'}->{'wavelength'}} ) {$gotAge = 0};
+		    my @columns = split(/\s+/,$line);
+		    $spectra(:,($iAge),($iMetallicity)) .= pdl @columns;
+		    $gotAge                              = 0;
 		}
 	    }
 	}
 	close(specFile);
     }
-
-    # Construct an HDF5 file of the output.
-    $tmpDataFile = "data.tmp";
-    $tmpConfigFile = "config.tmp";
-
+    
     # Wavelengths.
-    open(tmpFile,">".$tmpDataFile);
-    print tmpFile join(" ",@{$data{'wavelengths'}->{'wavelength'}});
-    close(tmpFile);
-    open(configFile,">".$tmpConfigFile);
-    print configFile "PATH wavelengths\n";
-    print configFile "INPUT-CLASS TEXTFP\n";
-    print configFile "RANK 1\n";
-    print configFile "DIMENSION-SIZES ".scalar(@{$data{'wavelengths'}->{'wavelength'}})."\n";
-    print configFile "OUTPUT-CLASS FP\n";
-    print configFile "OUTPUT-SIZE 64\n";
-    print configFile "OUTPUT-ARCHITECTURE NATIVE\n";
-    close(configFile);
-    system("h5import $tmpDataFile -c $tmpConfigFile -o $stellarPopulationFile");
+    my $wavelengthsDataSet = new PDL::IO::HDF5::Dataset(
+	name    => "wavelengths",
+	parent  => $hdfFile,
+	fileObj => $hdfFile
+	);
+    $wavelengthsDataSet->set($wavelengths);
+    $wavelengthsDataSet->attrSet(
+	units     => "Angstroms",
+	unitsInSI => 1.0e-10
+	);
 
     # Ages
-    open(tmpFile,">".$tmpDataFile);
-    for($iAge=0;$iAge<$ageCount;++$iAge) {
-	print tmpFile ${$data{'metallicity'}}[0]->{'age'}[$iAge]->{'value'}."\n";
-    }
-    close(tmpFile);
-    open(configFile,">".$tmpConfigFile);
-    print configFile "PATH ages\n";
-    print configFile "INPUT-CLASS TEXTFP\n";
-    print configFile "RANK 1\n";
-    print configFile "DIMENSION-SIZES ".$ageCount."\n";
-    print configFile "OUTPUT-CLASS FP\n";
-    print configFile "OUTPUT-SIZE 64\n";
-    print configFile "OUTPUT-ARCHITECTURE NATIVE\n";
-    close(configFile);
-    system("h5import $tmpDataFile -c $tmpConfigFile -o $stellarPopulationFile");
+    my $agesDataSet = new PDL::IO::HDF5::Dataset(
+	name    => "ages",
+	parent  => $hdfFile,
+	fileObj => $hdfFile
+	);
+    $agesDataSet->set($ages);
+    $agesDataSet->attrSet(
+	units     => "Gigayears",
+	unitsInSI => 3.15576e16
+	);
 
     # Metallicities.
-    open(tmpFile,">".$tmpDataFile);
-    for($iMetallicity=0;$iMetallicity<=21;++$iMetallicity) {
-	print tmpFile ${$data{'metallicity'}}[$iMetallicity]->{'value'}."\n";
-    }
-    close(tmpFile);
-    open(configFile,">".$tmpConfigFile);
-    print configFile "PATH metallicities\n";
-    print configFile "INPUT-CLASS TEXTFP\n";
-    print configFile "RANK 1\n";
-    print configFile "DIMENSION-SIZES 22\n";
-    print configFile "OUTPUT-CLASS FP\n";
-    print configFile "OUTPUT-SIZE 64\n";
-    print configFile "OUTPUT-ARCHITECTURE NATIVE\n";
-    close(configFile);
-    system("h5import $tmpDataFile -c $tmpConfigFile -o $stellarPopulationFile");
-
+    my $metallicitiesDataSet = new PDL::IO::HDF5::Dataset(
+	name    => "metallicities",
+	parent  => $hdfFile,
+	fileObj => $hdfFile
+	);
+    $metallicitiesDataSet->set($metallicities);
+    
     # Spectra.
-    open(tmpFile,">".$tmpDataFile);
-    for($iWavelength=0;$iWavelength<scalar(@{$data{'wavelengths'}->{'wavelength'}});++$iWavelength) {
-	for($iAge=0;$iAge<$ageCount;++$iAge) {
-	    for($iMetallicity=0;$iMetallicity<=21;++$iMetallicity) {
-		print tmpFile ${${$data{'metallicity'}}[$iMetallicity]->{'age'}[$iAge]->{'flux'}}[$iWavelength]." ";
-	    }
-	    print tmpFile "\n";
-	}
-    }
-    close(tmpFile);
-    open(configFile,">".$tmpConfigFile);
-    print configFile "PATH spectra\n";
-    print configFile "INPUT-CLASS TEXTFP\n";
-    print configFile "RANK 3\n";
-    print configFile "DIMENSION-SIZES ".scalar(@{$data{'wavelengths'}->{'wavelength'}})." ".$ageCount." 22\n";
-    print configFile "OUTPUT-CLASS FP\n";
-    print configFile "OUTPUT-SIZE 64\n";
-    print configFile "OUTPUT-ARCHITECTURE NATIVE\n";
-    close(configFile);
-    system("h5import $tmpDataFile -c $tmpConfigFile -o $stellarPopulationFile");
+    my $spectraDataSet = new PDL::IO::HDF5::Dataset(
+	name    => "spectra",
+	parent  => $hdfFile,
+	fileObj => $hdfFile
+	);
+    $spectraDataSet->set($spectra);
+    $spectraDataSet->attrSet(
+	units     => "ergs/s/Hz",
+	unitsInSI => 3.827e33
+	);
 
-    unlink($tmpDataFile);
-    unlink($tmpConfigFile);
 }
 
 unlink("galacticus.imf");
