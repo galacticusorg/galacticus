@@ -136,7 +136,7 @@ contains
     type(hdf5Object)                              :: toDataset
 
     ! Initialize if necessary.
-    !$omp critical(Merger_Tree_Output_Initialize)
+    !$omp critical(Merger_Tree_Output)
     if (.not.mergerTreeOutputInitialized) then
        
        ! Ensure file is open.
@@ -160,7 +160,6 @@ contains
        mergerTreeOutputInitialized=.true.
 
     end if
-    !$omp end critical(Merger_Tree_Output_Initialize)
     
     ! Create an output group.
     call Make_Output_Group(iOutput,time)
@@ -265,6 +264,7 @@ contains
     if (present(isLastOutput)) then
        if (isLastOutput) call Galacticus_Output_Close_File
     end if
+    !$omp end critical(Merger_Tree_Output)
     return
   end subroutine Galacticus_Merger_Tree_Output
 
