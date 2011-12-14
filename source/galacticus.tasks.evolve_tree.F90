@@ -94,6 +94,7 @@ contains
     use Input_Parameters
     use Galacticus_Output_Times
     use Merger_Tree_Active
+    use Memory_Management
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
@@ -210,7 +211,12 @@ contains
           end if
 
           ! Destroy the tree.
-          call thisTree%destroy()
+          if (associated(thisTree)) then
+             call thisTree%destroy()
+             ! Deallocate the tree.
+             call Memory_Usage_Record(sizeof(thisTree),addRemove=-1,memoryType=memoryTypeNodes)
+             deallocate(thisTree)
+          end if
 
           ! Perform any post-evolution tasks on the tree.
           !# <include directive="mergerTreePostEvolveTask" type="code" action="subroutine">

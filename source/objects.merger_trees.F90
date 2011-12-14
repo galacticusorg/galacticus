@@ -191,21 +191,15 @@ contains
 
   subroutine Merger_Tree_Destroy(thisTree)
     !% Destroys the entire merger tree.
-    use Memory_Management
     implicit none
-    class(mergerTree),          intent(inout) :: thisTree
+    class(mergerTree), intent(inout) :: thisTree
 
     select type (thisTree)
     type is (mergerTree)
-    if (associated(thisTree)) then
        ! Destroy all nodes.
        if (associated(thisTree%baseNode)) call thisTree%destroyBranch(thisTree%baseNode)
        ! Destroy the HDF5 group associated with this tree.
        call thisTree%hdf5Group%destroy()
-       ! Deallocate the tree.
-       call Memory_Usage_Record(sizeof(thisTree),addRemove=-1,memoryType=memoryTypeNodes)
-       deallocate(thisTree)
-    end if
     end select
     return
   end subroutine Merger_Tree_Destroy
