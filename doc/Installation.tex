@@ -106,7 +106,16 @@ perl -MCPAN -e 'install List::MoreUtils'
 perl -MCPAN -e 'install Sort::Topological'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~smueller/Data-Dumper-2.131/Dumper.pm}{{\tt Data::Dumper }}] This module provides formatted output of arbitrary data structures. It can be installed using
+\item [\href{http://search.cpan.org/~drolsky/DateTime-0.70/lib/DateTime.pm}{{\tt Date::Time }}] This module implements handling of dates and times and is used by various scripts to timestamp files that they create. It can be installed using
+\begin{verbatim}
+perl -MCPAN -e 'install Date::Time'
+\end{verbatim}
+
+\item [\href{http://search.cpan.org/~smueller/Data-Dumper-2.131/Dumper.pm}{{\tt Data::Dumper }}] This module provides formatted output of arbitrary data structures. On Fedora the following (as root) will install {\tt Date::Time}:
+\begin{verbatim}
+yum install perl-DateTime
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Data::Dumper'
 \end{verbatim}
