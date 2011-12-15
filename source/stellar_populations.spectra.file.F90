@@ -185,9 +185,10 @@ contains
     type(abundancesStructure), intent(in)     :: abundances
     double precision,          intent(in)     :: age,wavelength
     integer,                   intent(in)     :: imfIndex
+    double precision,          dimension(0:1) :: hAge,hMetallicity,hWavelength
+    double precision,          parameter      :: metallicityTolerance=0.01d0
     integer                                   :: imfLookupIndex,iAge,iWavelength,iMetallicity,jAge,jWavelength,jMetallicity
     double precision                          :: metallicity
-    double precision,          dimension(0:1) :: hAge,hMetallicity,hWavelength
     type(varying_string)                      :: message
     character(len=12)                         :: metallicityLabel
  
@@ -201,7 +202,7 @@ contains
          & wavelength > spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints))&
          & call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate','wavelength is out of range')
     metallicity=Abundances_Get_Metallicity(abundances,metallicityType=logarithmicByMassSolar)
-    if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)) then
+    if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)+metallicityTolerance) then
        write (metallicityLabel,'(f12.6)') metallicity
        message='metallicity ['//trim(adjustl(metallicityLabel))//'] exceeds the maximum tabulated ['
        write (metallicityLabel,'(f12.6)') spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)
@@ -224,6 +225,9 @@ contains
     if (metallicity == logMetallicityZero .or. metallicity < spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(1)) then
        iMetallicity=1
        hMetallicity=[1.0d0,0.0d0]
+    else if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)) then
+       iMetallicity=spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints-1
+       hMetallicity=[0.0d0,1.0d0]
     else
        iMetallicity=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints &
             &,spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities &
