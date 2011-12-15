@@ -180,6 +180,7 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Interpolation
     use Galacticus_Error
+    use ISO_Varying_String
     implicit none
     type(abundancesStructure), intent(in)     :: abundances
     double precision,          intent(in)     :: age,wavelength
@@ -187,6 +188,8 @@ contains
     integer                                   :: imfLookupIndex,iAge,iWavelength,iMetallicity,jAge,jWavelength,jMetallicity
     double precision                          :: metallicity
     double precision,          dimension(0:1) :: hAge,hMetallicity,hWavelength
+    type(varying_string)                      :: message
+    character(len=12)                         :: metallicityLabel
  
     ! Find the internal lookup index for this IMF.
     imfLookupIndex=imfLookup(imfIndex)
@@ -198,9 +201,14 @@ contains
          & wavelength > spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints))&
          & call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate','wavelength is out of range')
     metallicity=Abundances_Get_Metallicity(abundances,metallicityType=logarithmicByMassSolar)
-    if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints))&
-         & call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate','metallicity exceeds the maximum tabulated')
-
+    if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)) then
+       write (metallicityLabel,'(f12.6)') metallicity
+       message='metallicity ['//trim(adjustl(metallicityLabel))//'] exceeds the maximum tabulated ['
+       write (metallicityLabel,'(f12.6)') spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)
+       message=message//trim(adjustl(metallicityLabel))//']'
+       call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate',message)
+    end if
+    
     ! Get the interpolations.
     iAge=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints&
          &,spectra(imfLookupIndex)%stellarPopulationSpectraAges,spectra(imfLookupIndex)%interpolationAcceleratorAge,age&
