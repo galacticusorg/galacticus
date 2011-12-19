@@ -17,7 +17,7 @@ contains
     real(SP), intent(in), dimension(:) :: mass
     real(SP), intent(out), dimension(:) :: imf
     integer :: i,ierr,iunit
-    real(SP) :: dy,lowLim,upLim
+    real(SP) :: dy
 
     if (.not.moduleInitialized) then
        ! Read the file here.
@@ -39,9 +39,7 @@ contains
        close(iunit)
        massLow=massTable(1)
        massHigh=massTable(nTable)
-       lowLim=2.0e30
-       upLim=2.0e30
-       call spline(massTable,imfTable,lowLim,upLim,y2)
+       call gspline(massTable,imfTable,y2)
        moduleInitialized=.true.
     end if
 
@@ -50,11 +48,64 @@ contains
        if (mass(i).lt.massLow.or.mass(i).gt.massHigh) then
           imf(i)=0.0
        else
-          imf(i)=splint(massTable,imfTable,y2,mass(i))
+          imf(i)=gsplint(massTable,imfTable,y2,mass(i))
        end if
     end do
 
     return
   end subroutine Get_Galacticus_IMF
+
+  subroutine gspline(x,y,z)
+    implicit none
+    real(SP), intent(in   ), dimension(0:       ) :: x,y
+    real(SP), intent(inout), dimension(0:size(x)) :: z
+    real(SP),                dimension(0:size(x)) :: h,b,u,v
+    integer                                   :: i,n
+
+    ! Compute number of points.
+    n=size(x)
+    ! Compute h and b.
+    do i=0,n-1
+       h(i)= x(i+1)-x(i)
+       b(i)=(y(i+1)-y(i))/h(i)
+    end do
+    ! Gaussian elimination.
+    u(1)=2.0*(h(0)+h(1))
+    v(1)=6.0*(b(1)-b(0))
+    do i=2,n-1
+       u(i)=2.0*(h(i-1)+h(i))-h(i-1)**2/u(i-1)
+       v(i)=6.0*(b(i)-b(i-1))-h(i-1)*v(i-1)/u(i-1)
+    end do
+    ! Back-substitution.
+    z(n)=0.0
+    do i=n-1,1,-1
+       z(i)=(v(i)-h(i)*z(i+1))/u(i)
+    end do
+    z(0)=0.0
+    return
+  end subroutine gspline
+  
+  function gsplint(x,y,z,xx)
+    implicit none
+    real(SP)                            :: gsplint
+    real(SP), intent(in), dimension(0:) :: x,y,z
+    real(SP), intent(in)                :: xx
+    real(SP)                            :: a,b,c,d,h
+    integer                             :: i,n
+
+    n=size(x)
+    do i=0,n-1
+       if (xx <= x(i+1)) then
+          exit
+       end if
+    end do
+    h=x(i+1)-x(i)
+    a=y(i)
+    b=-h*z(i+1)/6.0-h*z(i)/3.0+(y(i+1)-y(i))/h
+    c=z(i)/2.0
+    d=(z(i+1)-z(i))/6.0/h
+    gsplint=a+(xx-x(i))*(b+(xx-x(i))*(c+(xx-x(i))*d))
+    return
+  end function gsplint
 
 end module Galacticus_IMF_Module
