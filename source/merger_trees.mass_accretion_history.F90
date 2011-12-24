@@ -120,8 +120,10 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('massAccretionHistoryOutput',massAccretionHistoryOutput,defaultValue=.false.)
        ! Create an output group if necessary.
+       !$omp critical (HDF5_Access)
        if (massAccretionHistoryOutput) accretionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'massAccretionHistories','Mass&
             & accretion histories of main branches in merger trees.')
+       !$omp end critical (HDF5_Access)
        ! Flag that module is initialized.
        accretionHistoryModuleInitialized=.true.
     end if
@@ -153,6 +155,7 @@ contains
        ! Output to HDF5 file.
        groupName   ='mergerTree'
        groupName   =groupName//thisTree%index
+       !$omp critical (HDF5_Access)
        treeGroup=IO_HDF5_Open_Group(accretionGroup,char(groupName),'Mass accretion history for main branch of merger tree.')
        call treeGroup%writeDataset(accretionHistoryNodeIndex,'nodeIndex','Index of the node.'         )
        call treeGroup%writeDataset(accretionHistoryNodeTime ,'nodeTime' ,'Time at node [Gyr].'        ,datasetReturned=accretionDataset)
@@ -162,6 +165,7 @@ contains
        call accretionDataset%writeAttribute(massSolar,"unitsInSI")
        call accretionDataset%close()
        call treeGroup       %close()
+       !$omp end critical (HDF5_Access)
        ! Deallocate storage space.
        call Dealloc_Array(accretionHistoryNodeIndex)
        call Dealloc_Array(accretionHistoryNodeTime )

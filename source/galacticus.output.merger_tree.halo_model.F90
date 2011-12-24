@@ -278,6 +278,7 @@ contains
 
     ! Store power specturm if we are outputting halo model data.
     if (outputHaloModelData) then
+       !$omp critical (HDF5_Access)
        !@ <outputType>
        !@   <name>haloModel</name>
        !@   <description>A collection of data (including biases and halo profiles) that can be used in halo model calculations of galaxy clustering.</description>
@@ -331,6 +332,7 @@ contains
        ! Close the halo model group.
        call haloModelGroup%close()
 
+       !$omp end critical (HDF5_Access)
     end if
     return
   end subroutine Galacticus_Linear_Power_Spectrum_Output
@@ -350,8 +352,10 @@ contains
 
     ! Store growth factor if we are outputting halo model data.
     if (outputHaloModelData) then
+       !$omp critical (HDF5_Access)
        call outputGroup%writeAttribute(Linear_Growth_Factor                       (time),'linearGrowthFactor'             )
        call outputGroup%writeAttribute(Linear_Growth_Factor_Logarithmic_Derivative(time),'linearGrowthFactorLogDerivative')
+       !$omp end critical (HDF5_Access)
     end if
     
     return
