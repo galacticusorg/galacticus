@@ -278,14 +278,15 @@ contains
 
     ! Store power specturm if we are outputting halo model data.
     if (outputHaloModelData) then
-       !$omp critical (HDF5_Access)
        !@ <outputType>
        !@   <name>haloModel</name>
        !@   <description>A collection of data (including biases and halo profiles) that can be used in halo model calculations of galaxy clustering.</description>
        !@ </outputType>
 
        ! Create a group for halo model data..
+       !$omp critical (HDF5_Access)
        haloModelGroup=IO_HDF5_Open_Group(galacticusOutputFile,'haloModel','Halo model data.')
+       !$omp end critical (HDF5_Access)
 
        ! Determine how many wavenumbers to tabulate at.
        wavenumberCount=int(dlog10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
@@ -303,6 +304,7 @@ contains
        end do
 
        ! Store the power spectrum
+       !$omp critical (HDF5_Access)
        !@ <outputProperty>
        !@   <name>wavenumber</name>
        !@   <datatype>real</datatype>
@@ -325,14 +327,16 @@ contains
        call haloModelGroup%writeDataset(powerSpectrum,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
        call haloModelDataset%close()
+       !$omp end critical (HDF5_Access)
        
        ! Deallocate arrays.
        call Dealloc_Array(powerSpectrum)
 
        ! Close the halo model group.
+       !$omp critical (HDF5_Access)
        call haloModelGroup%close()
-
        !$omp end critical (HDF5_Access)
+
     end if
     return
   end subroutine Galacticus_Linear_Power_Spectrum_Output
@@ -352,10 +356,8 @@ contains
 
     ! Store growth factor if we are outputting halo model data.
     if (outputHaloModelData) then
-       !$omp critical (HDF5_Access)
        call outputGroup%writeAttribute(Linear_Growth_Factor                       (time),'linearGrowthFactor'             )
        call outputGroup%writeAttribute(Linear_Growth_Factor_Logarithmic_Derivative(time),'linearGrowthFactorLogDerivative')
-       !$omp end critical (HDF5_Access)
     end if
     
     return
@@ -388,8 +390,8 @@ contains
  
     ! If halo model output was requested, output the Fourier-space halo profiles.
     if (nodePassesFilter.and.outputHaloModelData.and..not.thisNode%isSatellite()) then
-       !$omp critical (HDF5_Access)
        ! Create a group for the profile datasets.
+       !$omp critical (HDF5_Access)
        profilesGroup=IO_HDF5_Open_Group(galacticusOutputFile,"haloModel","Halo model data.")
        groupName="Output"
        groupName=groupName//iOutput
@@ -397,6 +399,7 @@ contains
        groupName="mergerTree"
        groupName=groupName//treeIndex
        treeGroup=IO_HDF5_Open_Group(outputGroup,char(groupName),"Fourier space density profiles of halos for each tree.")
+       !$omp end critical (HDF5_Access)
        ! Allocate array to store profile.
        call Alloc_Array(fourierProfile,[wavenumberCount])
        ! Get the expansion factor.
@@ -409,10 +412,13 @@ contains
        ! Write dataset to the group.
        groupName="fourierProfile"
        groupname=groupName//thisNode%index()
+       !$omp critical (HDF5_Access)
        call treeGroup%writeDataset(fourierProfile,char(groupName),"The Fourier-space density profile.")
+       !$omp end critical (HDF5_Access)
        ! Deallocate profile array.
        call Dealloc_Array(fourierProfile)
        ! Close the profile group.
+       !$omp critical (HDF5_Access)
        call treeGroup    %close()
        call outputGroup  %close()
        call profilesGroup%close()
