@@ -845,6 +845,7 @@ contains
        radiusEnd  =0.0d0
        Freefall_Time_Scale_Free=Integrate(radiusEnd,radiusStart,Freefall_Time_Scale_Free_Integrand,parameterPointer&
             &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+       call Integrate_Done(integrandFunction,integrationWorkspace)
     else
        ! Use an approximation here, found by taking series expansions of the logarithms in the integrand and keeping only the
        ! first order terms.

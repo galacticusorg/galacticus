@@ -348,6 +348,10 @@ contains
     
     ! Copy any formation node data to the parent, and update the formation node's parentNode pointer to point to the new parent.
     if (associated(thisNode%formationNode)) then
+       if (associated(parentNode%formationNode)) then
+          call parentNode%formationNode%destroy()
+          deallocate(parentNode%formationNode)
+       end if
        allocate(parentNode%formationNode)
        call parentNode%formationNode%copy(thisNode%formationNode)
        parentNode%formationNode%parentNode => parentNode
