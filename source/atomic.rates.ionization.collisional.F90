@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
 !!
 !! This file is part of Galacticus.
 !!
