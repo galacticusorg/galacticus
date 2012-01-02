@@ -95,8 +95,16 @@ contains
     !% Computes the density profile normalization factor for a given core radius and virial radius.
     implicit none
     double precision, intent(in) :: coreRadius,virialRadius
-    
-    Density_Normalization_Factor=1.0d0/(virialRadius/coreRadius-datan(virialRadius/coreRadius))
+    double precision             :: virialRadiusOverCoreRadius    
+    double precision, save       :: virialRadiusOverCoreRadiusPrevious=-1.0d0,densityNormalizationPrevious
+    !$omp threadprivate(virialRadiusOverCoreRadiusPrevious,densityNormalizationPrevious)
+
+    virialRadiusOverCoreRadius=virialRadius/coreRadius
+    if (virialRadiusOverCoreRadius /= virialRadiusOverCoreRadiusPrevious) then
+       virialRadiusOverCoreRadiusPrevious=virialRadiusOverCoreRadius
+       densityNormalizationPrevious=1.0d0/(virialRadiusOverCoreRadius-datan(virialRadiusOverCoreRadius))
+    end if
+    Density_Normalization_Factor=densityNormalizationPrevious
     return
   end function Density_Normalization_Factor
 

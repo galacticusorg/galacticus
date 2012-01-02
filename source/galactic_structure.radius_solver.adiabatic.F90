@@ -147,7 +147,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionUseFormationHalo',adiabaticContractionUseFormationHalo,defaultValue=.false.)
-      !@ <inputParameter>
+       !@ <inputParameter>
        !@   <name>adiabaticContractionSolutionTolerance</name>
        !@   <defaultValue></defaultValue>
        !@   <attachedTo>module</attachedTo>
@@ -306,8 +306,11 @@ contains
        velocity=dsqrt(darkMatterVelocitySquared+baryonicVelocitySquared)
 
        ! Compute new estimate of radius.
-       radiusNew=specificAngularMomentum/velocity
-
+       if (radius > 0.0d0) then
+          radiusNew=sqrt(specificAngularMomentum/velocity*radius)
+       else
+          radiusNew=specificAngularMomentum/velocity
+       endif
        ! Compute a fit measure.
        if (radius > 0.0d0 .and. radiusNew > 0.0d0) fitMeasure=fitMeasure+dabs(dlog(radiusNew/radius))
 

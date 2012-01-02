@@ -69,6 +69,8 @@ module Cooling_Radii_Simple
   use Tree_Nodes
   use Kind_Numbers
   use Radiation_Structure
+  use Abundances_Structure
+  use Chemical_Abundances_Structure
   implicit none
   private
   public :: Cooling_Radius_Simple_Initialize, Cooling_Radius_Simple_Reset
@@ -96,8 +98,14 @@ module Cooling_Radii_Simple
   double precision :: coolingRadiusStored,coolingRadiusGrowthRateStored
   !$omp threadprivate(coolingRadiusStored,coolingRadiusGrowthRateStored)
 
+  ! Abundances and chemical objects used in cooling calculations.
+  type(abundancesStructure)          :: abundances
+  !$omp threadprivate(abundances)
+  type(chemicalAbundancesStructure)  :: chemicalMasses,chemicalDensities
+  !$omp threadprivate(chemicalMasses,chemicalDensities)
+
   ! Radiation structure used in cooling calculations.
-  type(radiationStructure) :: radiation
+  type(radiationStructure)           :: radiation
   !$omp threadprivate(radiation)
 
 contains
@@ -108,8 +116,6 @@ contains
   subroutine Cooling_Radius_Simple_Initialize(coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get)
     !% Initializes the ``simple'' cooling radius module.
     use ISO_Varying_String
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
     implicit none
     type(varying_string),          intent(in)    :: coolingRadiusMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
@@ -149,24 +155,11 @@ contains
     use Hot_Halo_Temperature_Profile
     use Hot_Halo_Density_Profile
     use Cooling_Times
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Chemical_Reaction_Rates_Utilities
     use Cooling_Times_Available
-    use Numerical_Constants_Math
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),                     intent(inout), pointer     :: thisNode
-    double precision,                   dimension(abundancesCount) :: abundancesMassFraction
-    double precision,                   dimension(chemicalsCount ) :: chemicalsMasses
-    double precision                                               :: virialRadius,coolingRadius,coolingTimeAvailable &
-         &,coolingTimeAvailableIncreaseRate,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope &
-         &,coolingTimeTemperatureLogSlope,massToDensityConversion
-    type(abundancesStructure),          save                       :: abundances
-    !$omp threadprivate(abundances)
-    type(chemicalAbundancesStructure), save                       :: chemicalMasses,chemicalDensities
-    !$omp threadprivate(chemicalMasses,chemicalDensities)
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision                         :: virialRadius,coolingRadius,coolingTimeAvailable ,coolingTimeAvailableIncreaseRate&
+         &,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope ,coolingTimeTemperatureLogSlope
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -201,26 +194,6 @@ contains
           ! Get cooling density, temperature and metallicity.
           density=Hot_Halo_Density(activeNode,coolingRadius)
           temperature=Hot_Halo_Temperature(activeNode,coolingRadius)
-          
-          ! Set the radiation field.
-          call radiation%set(thisNode)
-
-          ! Get the abundances for this node.
-          call Tree_Node_Hot_Halo_Abundances(thisNode,abundancesMassFraction)
-          call abundances%pack(abundancesMassFraction)
-          call abundances%massToMassFraction(Tree_Node_Hot_Halo_Mass(thisNode))
-          
-          ! Get the chemicals for this node.
-          if (chemicalsCount > 0) then
-             call Tree_Node_Hot_Halo_Chemicals(thisNode,chemicalsMasses)
-             call chemicalMasses%pack(chemicalsMasses)
-             ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-             call chemicalMasses%massToNumber(chemicalDensities)
-             ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-             massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
-             ! Convert to number density.
-             call chemicalDensities%multiply(massToDensityConversion)
-          end if
 
           ! Logarithmic slope of the cooling time-density relation.
           coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,abundances,chemicalDensities,radiation)
@@ -272,6 +245,9 @@ contains
        
        ! Make the node available to the root finding routine.
        activeNode => thisNode
+
+       ! Initialize quantities needed by the solver.
+       call Cooling_Radius_Solver_Initialize(thisNode)
        
        ! Check if cooling time at halo center is reached.
        if (Cooling_Radius_Root(zeroRadius,parameterPointer) > 0.0d0) then
@@ -300,53 +276,53 @@ contains
     return
   end function Cooling_Radius_Simple
   
-  function Cooling_Radius_Root(radius,parameterPointer) bind(c)
-    !% Root function which evaluates the difference between the cooling time at {\tt radius} and the time available for cooling.
-    use Cooling_Times
-    use Abundances_Structure
-    use Hot_Halo_Density_Profile
-    use Hot_Halo_Temperature_Profile
-    use Chemical_Abundances_Structure
+  subroutine Cooling_Radius_Solver_Initialize(thisNode)
+    !% Initialize the abundances, chemical properties and radiation field for {\tt thisNode} for use in cooling radius
+    !% calculations.
     use Chemical_Reaction_Rates_Utilities
-    use Numerical_Constants_Math
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
     use Dark_Matter_Halo_Scales
     implicit none
-    real(c_double)                                                :: Cooling_Radius_Root
-    real(c_double),                    value                      :: radius
-    type(c_ptr),                       value                      :: parameterPointer
-    double precision,                  dimension(abundancesCount) :: abundancesMassFraction
-    double precision,                  dimension(chemicalsCount ) :: chemicalsMasses
-    double precision                                              :: coolingTime,density,temperature,massToDensityConversion
-    type(abundancesStructure),         save                       :: abundances
-    !$omp threadprivate(abundances)
-    type(chemicalAbundancesStructure), save                       :: chemicalMasses,chemicalDensities
-    !$omp threadprivate(chemicalMasses,chemicalDensities)
-
-    ! Compute density, temperature and abundances.
-    density    =Hot_Halo_Density    (activeNode,radius)
-    temperature=Hot_Halo_Temperature(activeNode,radius)
+    type(treeNode),   intent(inout), pointer     :: thisNode
+    double precision, dimension(abundancesCount) :: abundancesMassFraction
+    double precision, dimension(chemicalsCount ) :: chemicalsMasses
+    double precision                             :: massToDensityConversion    
  
     ! Get the abundances for this node.
-    call Tree_Node_Hot_Halo_Abundances(activeNode,abundancesMassFraction)
+    call Tree_Node_Hot_Halo_Abundances(thisNode,abundancesMassFraction)
     call abundances%pack(abundancesMassFraction)
-    call abundances%massToMassFraction(Tree_Node_Hot_Halo_Mass(activeNode))
-    
+    call abundances%massToMassFraction(Tree_Node_Hot_Halo_Mass(thisNode))
+
     ! Get the chemicals for this node.
     if (chemicalsCount > 0) then
-       call Tree_Node_Hot_Halo_Chemicals(activeNode,chemicalsMasses)
+       call Tree_Node_Hot_Halo_Chemicals(thisNode,chemicalsMasses)
        call chemicalMasses%pack(chemicalsMasses)
        ! Scale all chemical masses by their mass in atomic mass units to get a number density.
        call chemicalMasses%massToNumber(chemicalDensities)
        ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-       massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(activeNode))
+       massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
        ! Convert to number density.
        call chemicalDensities%multiply(massToDensityConversion)
     end if
 
     ! Set the radiation field.
-    call radiation%set(activeNode)
+    call radiation%set(thisNode)
+    return
+  end subroutine Cooling_Radius_Solver_Initialize
+  
+  function Cooling_Radius_Root(radius,parameterPointer) bind(c)
+    !% Root function which evaluates the difference between the cooling time at {\tt radius} and the time available for cooling.
+    use Cooling_Times
+    use Hot_Halo_Density_Profile
+    use Hot_Halo_Temperature_Profile
+    implicit none
+    real(c_double)          :: Cooling_Radius_Root
+    real(c_double),   value :: radius
+    type(c_ptr),      value :: parameterPointer
+    double precision        :: coolingTime,density,temperature
+
+    ! Compute density, temperature and abundances.
+    density    =Hot_Halo_Density    (activeNode,radius)
+    temperature=Hot_Halo_Temperature(activeNode,radius)
 
     ! Compute the cooling time at the specified radius.
     coolingTime=Cooling_Time(temperature,density,abundances,chemicalDensities,radiation)
