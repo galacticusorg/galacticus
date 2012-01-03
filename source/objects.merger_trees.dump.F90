@@ -186,7 +186,7 @@ contains
     write (fileName,'(a,a,a,a,a)') 'mergerTreeDump:',trim(adjustl(treeIndexFormatted)),':',trim(adjustl(outputCountFormatted)),'.gv'
     open(newunit=fileUnit,file=fileName,status='unknown',form='formatted')
     write (fileUnit,'(a)'    ) 'digraph Tree {'
-    write (fileUnit,'(a,a,a)') 'bgcolor=',trim(backgroundColor),';'
+    write (fileUnit,'(a,a,a)') 'bgcolor=',trim(backgroundColorActual),';'
     write (fileUnit,'(a)'    ) 'size="8,11";'
 
     ! Loop over all nodes.

@@ -188,6 +188,7 @@ sub Get_Dust_Attenuated_Luminosity {
     }
 
     # Interpolate in the attenuation table.
+    $PDL::BIGPDL = 1;
     if ( $component eq "disk" ) {
 	$indices = zeroes(3,nelem($inclinationIndex));
 	$indices->((0),0:nelem($inclinationIndex)-1) .= $inclinationIndex;
@@ -204,10 +205,10 @@ sub Get_Dust_Attenuated_Luminosity {
     } else{
  	die("Get_Dust_Attenuated_Luminosity(): unknown component");
     }
+    $PDL::BIGPDL = 0;
     
     # Multiply luminosities by attenuations.
     $dataSets->{$dataSetName} = $dataSets->{$luminosityDataSet}*$attenuations;
-
 }
 
 sub Load_Dust_Atlas {

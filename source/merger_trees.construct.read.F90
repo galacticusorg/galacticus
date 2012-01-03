@@ -2038,13 +2038,16 @@ contains
              ! Select nodes with subhalo descendents which are also the primary progenitor of their parent.
              if (nodes(iNode)%descendentNode%isSubhalo.and.associated(nodes(iNode)%node%parentNode%childNode,nodes(iNode)%node)) then
                 ! Insert a copy of the parent node as its own primary progenitor. This avoids current node being promoted into its
-                ! parent even though it is intended to descend into a subhalo.
+                ! parent even though it is intended to descend into a subhalo. The copy is shifted to a very slightly earlier
+                ! time to avoid having two identical halos existing simultaneously (which can be problematic if outputting
+                ! quantities which use the node index as a label in dataset names for example).
                 allocate(newNode)
                 call newNode%copy(nodes(iNode)%node%parentNode)
                 newNode%siblingNode                    => nodes(iNode)%node
                 newNode%parentNode                     => nodes(iNode)%node%parentNode
                 newNode%childNode                      => null()
                 nodes(iNode)%node%parentNode%childNode => newNode
+                call Tree_Node_Time_Set(newNode,Tree_Node_Time(newNode)*(1.0d0-1.0d-6))
              end if
           end if
        end if
@@ -2067,7 +2070,7 @@ contains
     ! Loop over all nodes.
     do iNode=1,size(nodes)
        ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
-       ! index plus the redshift, separated by a colon.
+       ! index plus the time, separated by a colon.
        ! Determine node color.
        if (present(highlightNodes)) then
           if (any(highlightNodes == nodes(iNode)%nodeIndex)) then
@@ -2082,11 +2085,11 @@ contains
           style='solid'
        end if
        if (nodes(iNode)%isSubhalo) then
-          write (fileUnit,'(a,i16.16,a,i16.16,a,f4.2,a,a,a,a,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),'];'
+          write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),'];'
           ! If a host node is given, add a link to it as a red line.
           if (associated(nodes(iNode)%hostNode)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%hostNode%nodeIndex,'" [color=red];'
        else
-          write (fileUnit,'(a,i16.16,a,i16.16,a,f4.2,a,a,a,a,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),'];'
+          write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),'];'
        endif
        ! Make a link to the descendent node using a black line.
        if (associated(nodes(iNode)%descendentNode)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendentNode%nodeIndex,'" ;'

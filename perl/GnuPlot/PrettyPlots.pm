@@ -322,6 +322,32 @@ sub Prepare_Dataset {
 		    }
 		}
 	    }
+	    case ("filledCurve") {
+		# Draw a filled curve - using the "y2" option as the second set of y points.
+		die ("GnuPlot::PrettyPlots - filledCurve requires a 'y2' vector") unless (exists($options{'y2'}));
+		if ( exists($phaseRules{$phase}->{'level'}) ) {
+		    # Plot just a single level, no real data.
+		    my $level = "upper";
+		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with filledcurve".$title
+			.$lineType  {$level}
+		        .$lineColor {$level}
+		        .$lineWeight{$level}
+		        ." fill noborder";
+		    ${$plot}->{$phase}->{'data'   } .= $dummyPoint;
+		    ${$plot}->{$phase}->{'data'   } .= $endPoint;
+		    ${$plot}->{$phase}->{'prefix'} = ",";
+		} else {
+		    my $level = "upper";
+		    ${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0 noborder\n";
+		    ${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
+		    ${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n";
+		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
+			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)." ".$options{'y2'}->index($iPoint)."\n";
+		    }
+		    ${$plot}->{$phase}->{'data'} .= $x->index(nelem($x)-1)." ".$y->index(nelem($x)-1)." ".$y->index(nelem($x)-1)."\n";
+		    ${$plot}->{$phase}->{'data'} .= $endPoint;
+		}
+	    }
 	    case ("boxes") {
 		# Check if we are asked to plot just a single level.
 		if ( exists($phaseRules{$phase}->{'level'}) ) {
