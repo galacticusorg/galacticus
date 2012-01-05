@@ -93,6 +93,7 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use Input_Parameters
+    use ISO_Varying_String
     !# <include directive="mergerTreeEvolveThreadInitialize" type="moduleUse">
     include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
     !# </include>
@@ -109,6 +110,7 @@ contains
     double precision                                        :: endTimeThisNode,earliestTimeInTree
     logical                                                 :: interrupted,didEvolve,treeIsDeadlocked
     character(len=35)                                       :: message
+    type(varying_string)                                    :: vMessage
 
     ! Check if this routine is initialized.
     !$omp critical(Merger_Tree_Evolve_To_Initialize)
@@ -158,7 +160,15 @@ contains
           ! Exceeded by a significant factor - report an error. Check if such behavior is expected.
           if (allTreesExistAtFinalTime) then
              ! It is not, write an error and exit.
-             call Galacticus_Error_Report('Merger_Tree_Evolve_To','requested time exceeds the final time in the tree')
+             vMessage='requested time exceeds the final time in the tree'//char(10)
+             vMessage=vMessage//' HELP: If you expect that not all trees will exist at the latest requested'//char(10)
+             vMessage=vMessage//'       output time (this can happen when using trees extracted from N-body'//char(10)
+             vMessage=vMessage//'       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
+             vMessage=vMessage//'         <parameter>'//char(10)
+             vMessage=vMessage//'          <name>allTreesExistAtFinalTime</name>'//char(10)
+             vMessage=vMessage//'          <value>false</value>'//char(10)
+             vMessage=vMessage//'         </parameter>'//char(10)
+             call Galacticus_Error_Report('Merger_Tree_Evolve_To',vMessage)
           else
              ! It is, so simply ignore this tree.
              return
