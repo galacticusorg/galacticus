@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -314,8 +314,9 @@ contains
 
     ! Compute the jet power.
     !$omp critical(ADAF_Jet_Power_Interpolate)
-    Accretion_Disk_Jet_Power_ADAF=massAccretionRate*Interpolate(jetPowerTableCount,jetPowerSpinParameterTable,jetPowerTable&
-         &,jetPowerInterpolationObject,jetPowerInterpolationAccelerator,blackHoleSpinParameter,reset=jetPowerInterpolationReset)
+    Accretion_Disk_Jet_Power_ADAF=massAccretionRate*Interpolate(jetPowerTableCount,jetPowerSpinParameterTable,jetPowerTable &
+         &,jetPowerInterpolationObject,jetPowerInterpolationAccelerator,blackHoleSpinParameter,reset=jetPowerInterpolationReset&
+         &,extrapolationType=extrapolationTypeFixed)
     !$omp end critical(ADAF_Jet_Power_Interpolate)
 
     return
