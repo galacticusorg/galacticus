@@ -284,7 +284,8 @@ contains
     end if
     
     ! Do the interpolation.
-    Stellar_Population_Luminosity(:)=0.0d0
+    Stellar_Population_Luminosity(:)= 0.0d0
+    ageLast                         =-1.0d0
     do iLuminosity=1,size(luminosityIndex)
        ! Only compute luminosities for entries with positive age (negative age implies that the luminosity required is for a
        ! population observed prior to the formation of this population).
