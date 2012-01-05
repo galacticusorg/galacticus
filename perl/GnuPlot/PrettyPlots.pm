@@ -191,6 +191,9 @@ our %colorPairSequences = (
 	 "peachPuff"  ,"slateGray"     ,"cornflowerBlue","lightSkyBlue","mediumSeaGreen"
 	,"yellowGreen","lightGoldenrod","indianRed"     ,"orange"      ,"plum"
         ,"thistle"
+    ],
+    slideSequence => [
+	 "yellowGreen", "thistle", "orange"
     ]
     );
 

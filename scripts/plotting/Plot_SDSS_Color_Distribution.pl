@@ -10,10 +10,12 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
 use Math::SigFigs;
 use Data::Dumper;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Colors_Distribution.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -153,30 +155,29 @@ print pHndl "unset table\n" if ( $gnuPlotNew == 1);
 close(pHndl);
 system("awk \"NF<2{printf\\\"\\n\\\"}{print}\" <contour.dat >contour1.dat");
 
-open(pHndl,"|gnuplot");
-print pHndl "set terminal postscript enhanced color lw 3 solid\n";
-print pHndl "set output 'tmp.ps'\n";
-print pHndl "set title 'SDSS Galaxy Color Distribution'\n";
-print pHndl "set xlabel '^{0.1}r'\n";
-print pHndl "set ylabel '^{0.1}g-^{0.1}r'\n";
-print pHndl "set xrange [".$magnitudeMin.":".$magnitudeMax."]\n";
-print pHndl "set yrange [".$colorMin.":".$colorMax."]\n";
-print pHndl "set pm3d map\n";
-print pHndl "set pm3d explicit\n";
-print pHndl "set logscale z\n";
-print pHndl "set palette rgbformulae 33,13,10\n";
-print pHndl "set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.6, screen 0.3 front\n";
-print pHndl "splot '-' with pm3d title \"".$data->{'galaxyColors'}->{'label'}."\", 'contour1.dat' with line lt -1 title \"Galacticus\"\n";
+open($gnuPlot,"|gnuplot");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output 'tmp.eps'\n";
+print $gnuPlot "set title 'SDSS Galaxy Color Distribution'\n";
+print $gnuPlot "set xlabel '\$^{0.1}\$r'\n";
+print $gnuPlot "set ylabel '\$^{0.1}\$g\$-^{0.1}\$r'\n";
+print $gnuPlot "set xrange [".$magnitudeMin.":".$magnitudeMax."]\n";
+print $gnuPlot "set yrange [".$colorMin.":".$colorMax."]\n";
+print $gnuPlot "set pm3d map\n";
+print $gnuPlot "set pm3d explicit\n";
+print $gnuPlot "set logscale z\n";
+print $gnuPlot "set palette rgbformulae 34,35,36\n";
+print $gnuPlot "splot '-' with pm3d title \"".$data->{'galaxyColors'}->{'label'}."\", 'contour1.dat' with line lt -1 lc rgbcolor \"#FFFF00\" title \"Galacticus\"\n";
 for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     for($iColor=0;$iColor<$colorPoints;++$iColor) {
-	print pHndl $magnitudeBins->index($iMagnitude)." ".$colorBins->index($iColor)." ".$countSDSS(($iMagnitude),($iColor))."\n";
+	print $gnuPlot $magnitudeBins->index($iMagnitude)." ".$colorBins->index($iColor)." ".$countSDSS(($iMagnitude),($iColor))."\n";
     }
-    print pHndl "\n" unless ( $iMagnitude == $magnitudePoints-1 );
+    print $gnuPlot "\n" unless ( $iMagnitude == $magnitudePoints-1 );
 }
-print pHndl "e\n";
-close(pHndl);
-system("ps2pdf tmp.ps ".$outputFile);
-unlink("tmp.ps");
+print $gnuPlot "e\n";
+close($gnuPlot);
+&LaTeX::GnuPlot2ODG("tmp.eps");
+unlink("tmp.eps");
 unlink("contour.dat");
 unlink("contour1.dat");
 

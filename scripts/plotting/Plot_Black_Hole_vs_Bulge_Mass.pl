@@ -10,13 +10,13 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Graphics::GnuplotIF;
+use Math::SigFigs;
+use Data::Dumper;
+require Stats::Means;
+require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
-use Math::SigFigs;
-require Stats::Means;
-use Data::Dumper;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Black_Hole_vs_Bulge_Mass.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -40,9 +40,9 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Define mass bins.
-$logSpheroidMassPoints = pdl 5;
-$logSpheroidMassMin    = pdl 9.8;
-$logSpheroidMassMax    = pdl 11.5;
+$logSpheroidMassPoints = pdl 20;
+$logSpheroidMassMin    = pdl 9.0;
+$logSpheroidMassMax    = pdl 12.0;
 $logSpheroidMassBin    = pdl ($logSpheroidMassMax-$logSpheroidMassMin)/$logSpheroidMassPoints;
 $logSpheroidMassBins   = pdl (0..$logSpheroidMassPoints-1)*$logSpheroidMassBin+$logSpheroidMassMin+0.5*$logSpheroidMassBin;
 
@@ -128,37 +128,64 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	print $xmlOutput->XMLout(\%fitData);
     }
     
-    # Make the plot.
-    ($outputFileEPS = $outputFile) =~ s/\.pdf$/.eps/;
-    open(gnuPlot,"|gnuplot");
-    print gnuPlot "set terminal epslatex color lw 3 solid 7\n";
-    print gnuPlot "set output '".$outputFileEPS."'\n";
-    print gnuPlot "set xlabel '\$M_{\\star,\\rm bulge} [M_\\odot]\$'\n";
-    print gnuPlot "set ylabel '\$M_\\bullet [M_\\odot]\$'\n";
-    print gnuPlot "set title 'Black hole mass vs. bulge mass'\n";
-    print gnuPlot "set label '\$\\chi^2=".FormatSigFigs($chiSquared,4)."\$ [".$degreesOfFreedom."]' at screen 0.73, screen 0.2\n";
-    print gnuPlot "set key left\n";
-    print gnuPlot "set logscale xy\n";
-    print gnuPlot "set mxtics 10\n";
-    print gnuPlot "set mytics 10\n";
-    print gnuPlot "set format x '\$10^{\%L}\$'\n";
-    print gnuPlot "set format y '\$10^{\%L}\$'\n";
-    print gnuPlot "set pointsize 1.0\n";
-    $plotCommand = "plot '-' with xyerrorbars pt 6 title \"".$data->{'label'}."\"";
-    if ( nelem($logSpheroidMass) > 0 ) {$plotCommand .= ", '-' pt 4 title \"Galacticus\""};
-    print gnuPlot $plotCommand."\n";
-    for ($i=0;$i<nelem($x);++$i) {
-	print gnuPlot $x->index($i)." ".$y->index($i)." ".$xError->index($i)." ".$yError->index($i)."\n";
-    }
-    print gnuPlot "e\n";
-    if ( nelem($logSpheroidMass) > 0 ) {
-	for ($i=0;$i<nelem($spheroidMass);++$i) {
-	    print gnuPlot $spheroidMass->index($i)." ".$blackHoleMass->index($i)."\n";
-	}
-	print gnuPlot "e\n";
-    }
+    # Make plot of stellar mass function.
+    my $plot;
+    my $gnuPlot;
+    my $plotFile = $outputFile;
+    (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+    open($gnuPlot,"|gnuplot");
+    print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+    print $gnuPlot "set output '".$plotFileEPS."'\n";
+    print $gnuPlot "set title 'Black Hole Mass vs. Bulge Stellar Mass \$z=0\$'\n";
+    print $gnuPlot "set xlabel 'Bulge stellar mass; \$M_{\\rm bulge} [M_\\odot]\$'\n";
+    print $gnuPlot "set ylabel 'Black hole mass; \$M_\\bullet [M_\\odot]\$'\n";
+    print $gnuPlot "set lmargin screen 0.15\n";
+    print $gnuPlot "set rmargin screen 0.95\n";
+    print $gnuPlot "set bmargin screen 0.15\n";
+    print $gnuPlot "set tmargin screen 0.95\n";
+    print $gnuPlot "set key spacing 1.2\n";
+    print $gnuPlot "set key at screen 0.275,0.16\n";
+    print $gnuPlot "set key left\n";
+    print $gnuPlot "set key bottom\n";
+    print $gnuPlot "set logscale xy\n";
+    print $gnuPlot "set mxtics 10\n";
+    print $gnuPlot "set mytics 10\n";
+    print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+    print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+    print $gnuPlot "set xrange [3.0e8:3.0e12]\n";
+    print $gnuPlot "set yrange [1.0e5:1.0e10]\n";
+    print $gnuPlot "set pointsize 2.0\n";
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x,$y,
+	errorLeft  => $xError,
+	errorRight => $xError,
+	errorUp    => $yError,
+	errorDown  => $yError,
+	style      => "point",
+	symbol     => [6,7],
+	weight     => [5,3],
+	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+	title      => $data->{'label'}.' [observed]'
+	);
+    $spheroidMassBins   =  10.0** $logSpheroidMassBins;
+    $blackHoleMassMean  =  10.0** $logBlackHoleMassMeanGalacticus;
+    $blackHoleMassUpper = +10.0**($logBlackHoleMassMeanGalacticus+$logBlackHoleMassSigmaGalacticus)-$blackHoleMassMean;
+    $blackHoleMassLower = -10.0**($logBlackHoleMassMeanGalacticus-$logBlackHoleMassSigmaGalacticus)+$blackHoleMassMean;
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$spheroidMassBins,$blackHoleMassMean,
+	errorDown  => $blackHoleMassLower,
+	errorUp    => $blackHoleMassUpper,
+	style      => "point",
+	symbol     => [6,7],
+	weight     => [5,3],
+	color      => $PrettyPlots::colorPairs{'redYellow'},
+	title      => 'Galacticus'
+	);
+    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    close($gnuPlot);
+    &LaTeX::GnuPlot2PDF($plotFileEPS);
 }
-close(gnuPlot);
-&LaTeX::GnuPlot2PDF($outputFileEPS);
 
 exit;

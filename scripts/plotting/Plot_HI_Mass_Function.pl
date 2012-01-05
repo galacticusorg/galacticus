@@ -9,11 +9,12 @@ if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use XML::Simple;
-use Graphics::GnuplotIF;
-require Galacticus::HDF5;
 use Math::SigFigs;
 use Data::Dumper;
+require Galacticus::HDF5;
 require Stats::Histograms;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_HI_Gas_Mass_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -52,8 +53,8 @@ $x = pdl @{$columns->{'mass'}->{'data'}};
 $y = pdl @{$columns->{'massFunction'}->{'data'}};
 $errorUp = pdl @{$columns->{'upperError'}->{'data'}};
 $errorDown = pdl @{$columns->{'lowerError'}->{'data'}};
-$errorUp   = (10.0**($y+$errorUp)  )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
-$errorDown = (10.0**($y-$errorDown))*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
+$errorUp   = (+10.0**($y+$errorUp)  -10.0**$y)*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
+$errorDown = (-10.0**($y-$errorDown)+10.0**$y)*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
 $x         = (10.0**$x             )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2;
 $y         = (10.0**$y             )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
 $xBins     = $xBins+log10(           ($dataSet->{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2);
@@ -86,29 +87,57 @@ if ( $showFit == 1 ) {
     print $xmlOutput->XMLout(\%fitData);
 }
 
-# Make the plot.
-$plot1  = Graphics::GnuplotIF->new();
-$plot1->gnuplot_hardcopy( '| ps2pdf - '.$outputFile, 
-			  'postscript enhanced', 
-			  'color lw 3 solid' );
-$plot1->gnuplot_set_xlabel("M_{HI} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]");
-$plot1->gnuplot_set_ylabel("dn/dlog_{10}M_{HI} [Mpc^{-3}]");
-$plot1->gnuplot_set_title("HI Gas Mass Function");
-$plot1->gnuplot_cmd("set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.2, screen 0.2");
-$plot1->gnuplot_cmd("set logscale xy");
-$plot1->gnuplot_cmd("set mxtics 10");
-$plot1->gnuplot_cmd("set mytics 10");
-$plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set format x \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set pointsize 1.0");
-$plot1->gnuplot_cmd("plot '-' with errorbars lt 1 pt 6 title \"".$data->{'massFunction'}->{'label'}."\", '-' with errorbars lt 2 pt 4 title \"Galacticus\"");
-for ($i=0;$i<nelem($x);++$i) {
-   $plot1->gnuplot_cmd($x->index($i)." ".$y->index($i)." ".$errorDown->index($i)." ".$errorUp->index($i));
-}
-$plot1->gnuplot_cmd("e");
-for ($i=0;$i<nelem($x);++$i) {
-   $plot1->gnuplot_cmd($x->index($i)." ".$yGalacticus->index($i)." ".$errorGalacticus->index($i));
-}
-$plot1->gnuplot_cmd("e");
+# Make plot of stellar mass function.
+my $plot;
+my $gnuPlot;
+my $plotFile = $outputFile;
+(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+open($gnuPlot,"|gnuplot");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output '".$plotFileEPS."'\n";
+print $gnuPlot "set title 'HI Gas Mass Function at \$z=0\$'\n";
+print $gnuPlot "set xlabel 'Galaxy HI mass; \$M_{\\rm HI} [M_\\odot]\$'\n";
+print $gnuPlot "set ylabel 'Comoving number density; \${\\rm d}n/{\\rm d}\\ln M_{\\rm HI}(M_{\\rm HI}) [\\hbox{Mpc}^{-3}]\$'\n";
+print $gnuPlot "set lmargin screen 0.15\n";
+print $gnuPlot "set rmargin screen 0.95\n";
+print $gnuPlot "set bmargin screen 0.15\n";
+print $gnuPlot "set tmargin screen 0.95\n";
+print $gnuPlot "set key spacing 1.2\n";
+print $gnuPlot "set key at screen 0.275,0.16\n";
+print $gnuPlot "set key left\n";
+print $gnuPlot "set key bottom\n";
+print $gnuPlot "set logscale xy\n";
+print $gnuPlot "set mxtics 10\n";
+print $gnuPlot "set mytics 10\n";
+print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+print $gnuPlot "set xrange [1.0e7:1.0e11]\n";
+print $gnuPlot "set yrange [1.0e-6:1.0e0]\n";
+print $gnuPlot "set pointsize 2.0\n";
+    &PrettyPlots::Prepare_Dataset(
+	 \$plot,
+	 $x,$y,
+	 errorUp    => $errorUp,
+	 errorDown  => $errorDown,
+	 style      => "point",
+	 symbol     => [6,7],
+	 weight     => [5,3],
+	 color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+	 title      => $data->{'massFunction'}->{'label'}.' [observed]'
+	);
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $x,$yGalacticus,
+    errorUp    => $errorGalacticus,
+    errorDown  => $errorGalacticus,
+    style      => "point",
+    symbol     => [6,7],
+    weight     => [5,3],
+    color      => $PrettyPlots::colorPairs{'redYellow'},
+    title      => 'Galacticus'
+    );
+&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+close($gnuPlot);
+&LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

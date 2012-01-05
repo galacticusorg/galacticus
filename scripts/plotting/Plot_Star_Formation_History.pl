@@ -9,12 +9,13 @@ if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
 unshift(@INC, $galacticusPath."perl"); 
 use PDL;
 use XML::Simple;
-use Graphics::GnuplotIF;
-require Galacticus::HDF5;
 use Astro::Cosmology;
 use Math::SigFigs;
-require Stats::Means;
 use Data::Dumper;
+require Stats::Means;
+require Galacticus::HDF5;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Star_Formation_History.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -112,12 +113,12 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
 
     # Store the dataset.
     ++$iDataset;
-    $dataSets[$iDataset]->{'x'}           = $x          ;
-    $dataSets[$iDataset]->{'xLowerError'} = $xLowerError;
-    $dataSets[$iDataset]->{'xUpperError'} = $xUpperError;
-    $dataSets[$iDataset]->{'y'}           = $y          ;
-    $dataSets[$iDataset]->{'yLowerError'} = $yLowerError;
-    $dataSets[$iDataset]->{'yUpperError'} = $yUpperError;
+    $dataSets[$iDataset]->{'x'}           =               $x;
+    $dataSets[$iDataset]->{'xLowerError'} = -$xLowerError+$x;
+    $dataSets[$iDataset]->{'xUpperError'} = +$xUpperError-$x;
+    $dataSets[$iDataset]->{'y'}           =               $y;
+    $dataSets[$iDataset]->{'yLowerError'} = -$yLowerError+$y;
+    $dataSets[$iDataset]->{'yUpperError'} = +$yUpperError-$y;
     $dataSets[$iDataset]->{'label'}       = $dataSet->{'label'};
 
     # Compute a binned mean star formation rate.
@@ -144,39 +145,57 @@ if ( $showFit == 1 ) {
     print $xmlOutput->XMLout(\%fitData);
 }
 
-# Make the plot.
-$plot1  = Graphics::GnuplotIF->new();
-$plot1->gnuplot_hardcopy( '| ps2pdf - '.$outputFile, 
-			  'postscript enhanced', 
-			  'color lw 3 solid' );
-$plot1->gnuplot_set_xlabel("z");
-$plot1->gnuplot_set_ylabel("~{/Symbol r}{0.5 .} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}/yr/Mpc^{-3}]");
-$plot1->gnuplot_set_title("Star Formation Rate History");
-$plot1->gnuplot_cmd("set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.6, screen 0.2");
-$plot1->gnuplot_cmd("set logscale y");
-$plot1->gnuplot_cmd("set xrange [-0.25:9.0]");
-$plot1->gnuplot_cmd("set yrange [0.005:1.0]");
-$plot1->gnuplot_cmd("set mxtics 2");
-$plot1->gnuplot_cmd("set mytics 10");
-$plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set pointsize 1.0");
-$gnuplotCommand = "plot";
-$join = "";
+# Make plot of redshift evolution.
+my $plot;
+my $gnuPlot;
+my $plotFile = $outputFile;
+(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+open($gnuPlot,"|gnuplot");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output '".$plotFileEPS."'\n";
+print $gnuPlot "set title 'Star Formation Rate History'\n";
+print $gnuPlot "set xlabel 'Redshift; \$z\$'\n";
+print $gnuPlot "set ylabel 'Comoving star formation rate density; \$\\dot{\\rho}(z) [M_\\odot/\\hbox{yr}/\\hbox{Mpc}^{-3}]\$'\n";
+print $gnuPlot "set lmargin screen 0.15\n";
+print $gnuPlot "set rmargin screen 0.95\n";
+print $gnuPlot "set bmargin screen 0.15\n";
+print $gnuPlot "set tmargin screen 0.95\n";
+print $gnuPlot "set key spacing 1.2\n";
+print $gnuPlot "set key at screen 0.275,0.16\n";
+print $gnuPlot "set key left\n";
+print $gnuPlot "set key bottom\n";
+print $gnuPlot "set logscale y\n";
+print $gnuPlot "set mytics 10\n";
+print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+print $gnuPlot "set xrange [-0.25:9.0]\n";
+print $gnuPlot "set yrange [0.005:1.0]\n";
+print $gnuPlot "set pointsize 2.0\n";
 for($iDataset=0;$iDataset<=$#dataSets;++$iDataset) {
-   $gnuplotCommand .= $join." '-' with xyerrorbars pt 6 title \"".$dataSets[$iDataset]->{'label'}."\"";
-   $join = ",";
+    &PrettyPlots::Prepare_Dataset(
+	 \$plot,
+	 $dataSets[$iDataset]->{'x'},$dataSets[$iDataset]->{'y'},
+	 errorRight => $dataSets[$iDataset]->{'xUpperError'},
+	 errorLeft  => $dataSets[$iDataset]->{'xLowerError'},
+	 errorUp    => $dataSets[$iDataset]->{'yUpperError'},
+	 errorDown  => $dataSets[$iDataset]->{'yLowerError'},
+	 style      => "point",
+	 symbol     => [6,7],
+	 weight     => [5,3],
+	 color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[$iDataset]},
+	 title      => $dataSets[$iDataset]->{'label'}.' [observed]'
+	);
 }
-$gnuplotCommand .= ", '-' with lines title \"Galacticus\"";
-$plot1->gnuplot_cmd($gnuplotCommand);
-for($iDataset=0;$iDataset<=$#dataSets;++$iDataset) {
-   for ($i=0;$i<nelem($dataSets[$iDataset]->{'x'});++$i) {
-      $plot1->gnuplot_cmd($dataSets[$iDataset]->{'x'}->index($i)." ".$dataSets[$iDataset]->{'y'}->index($i)." ".$dataSets[$iDataset]->{'xLowerError'}->index($i)." ".$dataSets[$iDataset]->{'xUpperError'}->index($i)." ".$dataSets[$iDataset]->{'yLowerError'}->index($i)." ".$dataSets[$iDataset]->{'yUpperError'}->index($i));
-   }
-   $plot1->gnuplot_cmd("e");
-}
-for ($i=0;$i<nelem($redshift);++$i) {
-   $plot1->gnuplot_cmd($redshift->index($i)." ".$SFR->index($i));
-}
-$plot1->gnuplot_cmd("e");
+my $nonZeroPoints = which($SFR > 0.0);
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $redshift->index($nonZeroPoints),$SFR->index($nonZeroPoints),
+    style      => "line",
+    weight     => [5,3],
+    color      => $PrettyPlots::colorPairs{'redYellow'},
+    title      => 'Galacticus'
+    );
+&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+close($gnuPlot);
+&LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;

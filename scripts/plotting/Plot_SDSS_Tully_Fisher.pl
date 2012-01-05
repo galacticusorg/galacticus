@@ -10,14 +10,15 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Graphics::GnuplotIF;
+use Math::SigFigs;
+use Data::Dumper;
+use Carp 'verbose';
+require Stats::Means;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require Galacticus::Luminosities;
-use Math::SigFigs;
-require Stats::Means;
-use Data::Dumper;
-use Carp 'verbose';
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Get name of input and output files.
@@ -101,30 +102,57 @@ if ( $showFit == 1 ) {
     print $xmlOutput->XMLout(\%fitData);
 }
 
-# Make the plot.
-$plot1  = Graphics::GnuplotIF->new();
-$plot1->gnuplot_hardcopy( '| ps2pdf - '.$outputFile, 
-			  'postscript enhanced', 
-			  'color lw 3 solid' );
-$plot1->gnuplot_set_xlabel("^{0.1}i");
-$plot1->gnuplot_set_ylabel("V_{disk, 2.2 scale lengths} [km/s]");
-$plot1->gnuplot_set_title("SDSS Tully-Fisher Relation");
-$plot1->gnuplot_cmd("set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.6, screen 0.2");
-$plot1->gnuplot_cmd("set xrange [-24:-18]");
-$plot1->gnuplot_cmd("set yrange [30:400]");
-$plot1->gnuplot_cmd("set logscale y");
-$plot1->gnuplot_cmd("set mxtics 2");
-$plot1->gnuplot_cmd("set mytics 10");
-$plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set pointsize 1.0");
-$plot1->gnuplot_cmd("plot '-' with xyerrorbars pt 6 title \"".$data->{'tullyFisher'}->{'label'}."\", '-' with errorbars pt 4 title \"Galacticus (mean+dispersion)\"");
-for ($i=0;$i<nelem($x);++$i) {
-   $plot1->gnuplot_cmd($x->index($i)." ".$y->index($i)." ".$xError->index($i)." ".$yError->index($i));
-}
-$plot1->gnuplot_cmd("e");
-for ($i=0;$i<nelem($magnitudeBins);++$i) {
-   $plot1->gnuplot_cmd($magnitudeBins->index($i)." ".$velocityMeanGalacticus->index($i)." ".$velocitySigmaGalacticus->index($i));
-}
-$plot1->gnuplot_cmd("e");
+# Make plot of stellar mass function.
+my $plot;
+my $gnuPlot;
+my $plotFile = $outputFile;
+(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+open($gnuPlot,"|gnuplot");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output '".$plotFileEPS."'\n";
+print $gnuPlot "set title 'SDSS Tully-Fisher Relation'\n";
+print $gnuPlot "set xlabel 'SDSS i-band absolute magnitude; \$^{0.1}M_{\\rm i}\$'\n";
+print $gnuPlot "set ylabel 'Disk rotation speed; \$V_{\\rm disk}\$ [km/s]'\n";
+print $gnuPlot "set lmargin screen 0.15\n";
+print $gnuPlot "set rmargin screen 0.95\n";
+print $gnuPlot "set bmargin screen 0.15\n";
+print $gnuPlot "set tmargin screen 0.95\n";
+print $gnuPlot "set key spacing 1.2\n";
+print $gnuPlot "set key at screen 0.275,0.16\n";
+print $gnuPlot "set key left\n";
+print $gnuPlot "set key bottom\n";
+print $gnuPlot "set logscale y\n";
+print $gnuPlot "set mytics 10\n";
+print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+print $gnuPlot "set xrange [-24:-18]\n";
+print $gnuPlot "set yrange [30:400]\n";
+print $gnuPlot "set pointsize 2.0\n";
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $x,$y,
+    errorLeft  => $xError,
+    errorRight => $xError,
+    errorUp    => $yError,
+    errorDown  => $yError,
+    style      => "point",
+    symbol     => [6,7],
+    weight     => [5,3],
+    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+    title      => $data->{'tullyFisher'}->{'label'}.' [observed]'
+    );
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $magnitudeBins,$velocityMeanGalacticus,
+    errorUp    => $velocitySigmaGalacticus,
+    errorDown  => $velocitySigmaGalacticus,
+    style      => "point",
+    symbol     => [6,7],
+    weight     => [5,3],
+    color      => $PrettyPlots::colorPairs{'redYellow'},
+    title      => 'Galacticus (mean+dispersion)'
+    );
+&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+close($gnuPlot);
+&LaTeX::GnuPlot2PDF($plotFileEPS);
 
 exit;
