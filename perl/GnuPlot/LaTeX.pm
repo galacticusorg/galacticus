@@ -147,6 +147,14 @@ sub GnuPlot2PDF {
     # Get the root name.
     (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
 
+    # Get any folder name.
+    my $folderName = "./";
+    my $gnuplotBase = $gnuplotRoot;
+    if ( $gnuplotRoot =~ m/^(.*\/)(.*)$/ ) {
+	$folderName = $1;
+	$gnuplotBase = $2;
+    }
+
     # Construct the name of the corresponding LaTeX files.
     my $gnuplotLatexFile = $gnuplotRoot.".tex";
     my $gnuplotAuxFile   = $gnuplotRoot.".aux";
@@ -166,6 +174,7 @@ sub GnuPlot2PDF {
 		$line = "";
 	    }
 	}
+	$line =~ s/includegraphics\{$folderName/includegraphics\{/;
 	print oHndl $line;
     }
     close(oHndl);
@@ -175,16 +184,16 @@ sub GnuPlot2PDF {
 
     # Create a wrapper file for the LaTeX.
     my $wrapper = "gnuplotWrapper".$$;
-    open(wHndl,">".$wrapper.".tex");
-    print wHndl "\\documentclass[10pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotRoot."}\n\\end{document}\n";
+    open(wHndl,">".$folderName.$wrapper.".tex");
+    print wHndl "\\documentclass[10pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
     close(wHndl);
-    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf","/dev/null");
-    move("".$wrapper."-crop.pdf",$gnuplotPdfFile);
+    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile."; cd ".$folderName."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf","/dev/null");
+    move($folderName.$wrapper."-crop.pdf",$gnuplotPdfFile);
     unlink(
-	   $wrapper.".pdf",
-	   $wrapper.".tex",
-	   $wrapper.".log",
-	   $wrapper.".aux",
+	   $folderName.$wrapper.".pdf",
+	   $folderName.$wrapper.".tex",
+	   $folderName.$wrapper.".log",
+	   $folderName.$wrapper.".aux",
 	   $gnuplotEpsFile,
 	   $gnuplotLatexFile,
 	   $gnuplotAuxFile
