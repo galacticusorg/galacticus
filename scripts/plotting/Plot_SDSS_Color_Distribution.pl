@@ -176,7 +176,7 @@ for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
 }
 print $gnuPlot "e\n";
 close($gnuPlot);
-&LaTeX::GnuPlot2ODG("tmp.eps");
+&LaTeX::GnuPlot2PDF("tmp.eps");
 unlink("tmp.eps");
 unlink("contour.dat");
 unlink("contour1.dat");

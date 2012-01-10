@@ -17,6 +17,7 @@ require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require System::Redirect;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Disk_Scalelengths.pl <galacticusFile> <outputDir/File> [<showFit>]")};
@@ -164,6 +165,7 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     &LaTeX::GnuPlot2PDF($plotFileEPS);
     push(@plotFiles,$plotFile);
 }
+#&SystemRedirect::tofile("rm -f ".$outputFile."; pdfmerge ".join(" ",@plotFiles)." ".$outputFile,"/dev/null");
 system("rm -f ".$outputFile."; pdfmerge ".join(" ",@plotFiles)." ".$outputFile);
 unlink(@plotFiles);
 
