@@ -32,11 +32,14 @@ if ( $#ARGV == 2 ) {
 }
 
 # Check if output location is file or directory.
+my $outputDir;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
+    $outputDir = "";
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/Disk_Scalelengths.pdf";
+    $outputDir = $outputTo;
 }
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
@@ -64,6 +67,7 @@ undef(@tmpFiles);
 $xml = new XML::Simple;
 $data = $xml->XMLin($galacticusPath."data/Disk_Sizes_Dejong_2000.xml");
 my $i = -1;
+my @leafFiles;
 my @plotFiles;
 foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $columns = $dataSet->{'columns'};
@@ -163,10 +167,11 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
     &LaTeX::GnuPlot2PDF($plotFileEPS);
+    (my $leafName = $plotFile) =~ s/^.*\/([^\/]+)$/$1/;
+    push(@leafFiles,$leafName);
     push(@plotFiles,$plotFile);
 }
-#&SystemRedirect::tofile("rm -f ".$outputFile."; pdfmerge ".join(" ",@plotFiles)." ".$outputFile,"/dev/null");
-system("rm -f ".$outputFile."; pdfmerge ".join(" ",@plotFiles)." ".$outputFile);
+&SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
 unlink(@plotFiles);
 
 # Display chi^2 information
