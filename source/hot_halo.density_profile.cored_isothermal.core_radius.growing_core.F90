@@ -198,16 +198,16 @@ contains
        targetValue=Growing_Core_Virial_Density_Function(isothermalCoreRadiusOverVirialRadiusInitial)*hotGasFraction
        
        ! Interpolate to get the required core radius.
+       !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
        if      (hotGasFraction >= 1.0d0                                             ) then
           isothermalCoreRadiusOverVirialRadius=isothermalCoreRadiusOverVirialRadiusInitial
        else if (targetValue    <= coreRadiusTableDensityFactor(1)) then
           isothermalCoreRadiusOverVirialRadius=coreRadiusTableCoreRadius(1)
        else
-          !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
           isothermalCoreRadiusOverVirialRadius=Interpolate(coreRadiusTableCount,coreRadiusTableDensityFactor,coreRadiusTableCoreRadius&
                &,interpolationObject,interpolationAccelerator,targetValue,reset=interpolationReset)
-          !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
        end if
+       !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
        isothermalCoreRadiusOverVirialRadiusInitialSaved=isothermalCoreRadiusOverVirialRadiusInitial
        hotGasFractionSaved                             =hotGasFraction
        isothermalCoreRadiusOverVirialRadiusSaved       =isothermalCoreRadiusOverVirialRadius
