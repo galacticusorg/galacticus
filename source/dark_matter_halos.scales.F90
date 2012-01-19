@@ -259,7 +259,7 @@ contains
           ! Get the expansion factor at this time.
           aExpansion=Expansion_Factor(time)
           ! Compute growth rate of its mean density based on mean cosmological density and overdensity of a collapsing halo.
-          Dark_Matter_Halo_Mean_Density_Growth_Rate=Dark_Matter_Halo_Mean_Density(thisNode)&
+          densityGrowthRatePrevious=Dark_Matter_Halo_Mean_Density(thisNode)&
                &*(Halo_Virial_Density_Contrast_Rate_of_Change(time)/Halo_Virial_Density_Contrast(time)-3.0d0&
                &*Expansion_Rate(aExpansion))
        end if
