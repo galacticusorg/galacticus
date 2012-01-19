@@ -73,7 +73,7 @@ module Virial_Densities_Fixed
   integer,          parameter :: densityTypeMean    =1
 
   ! The fixed overdensity to use.
-  double precision            :: virialDensityConstrastFixed
+  double precision            :: virialDensityContrastFixed
 
   ! Variables to hold the tabulated critical overdensity data.
   double precision            :: deltaTableTimeMinimum=1.0d0, deltaTableTimeMaximum=20.0d0
@@ -92,14 +92,14 @@ contains
     implicit none
     type(varying_string),          intent(in)    :: virialDensityContrastMethod
     procedure(),          pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
-    type(varying_string)                         :: virialDensityConstrastFixedType
+    type(varying_string)                         :: virialDensityContrastFixedType
 
     if (virialDensityContrastMethod == 'fixed') then
        ! Return a pointer to our tabulation function.
        Virial_Density_Contrast_Tabulate => Virial_Density_Fixed
        ! Get the fixed value to use.
        !@ <inputParameter>
-       !@   <name>virialDensityConstrastFixed</name>
+       !@   <name>virialDensityContrastFixed</name>
        !@   <defaultValue>200</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -108,9 +108,9 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("virialDensityConstrastFixed"    ,virialDensityConstrastFixed    ,defaultValue=200.0d0           )
+       call Get_Input_Parameter("virialDensityContrastFixed"    ,virialDensityContrastFixed    ,defaultValue=200.0d0           )
        !@ <inputParameter>
-       !@   <name>virialDensityConstrastFixedType</name>
+       !@   <name>virialDensityContrastFixedType</name>
        !@   <defaultValue>criticalDensity</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -119,14 +119,14 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("virialDensityConstrastFixedType",virialDensityConstrastFixedType,defaultValue='criticalDensity')
-       select case (char(virialDensityConstrastFixedType))
+       call Get_Input_Parameter("virialDensityContrastFixedType",virialDensityContrastFixedType,defaultValue='criticalDensity')
+       select case (char(virialDensityContrastFixedType))
        case ("criticalDensity")
           densityType=densityTypeCritical
        case ("meanDensity"    )
           densityType=densityTypeMean
        case default
-          call Galacticus_Error_Report('Virial_Density_Fixed_Initialize','[virialDensityConstrastFixedType] must be either "critical density" or "mean density"')
+          call Galacticus_Error_Report('Virial_Density_Fixed_Initialize','[virialDensityContrastFixedType] must be either "critical density" or "mean density"')
        end select
     end if
     return
@@ -163,7 +163,7 @@ contains
     deltaTableTime  =Make_Range(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints,rangeTypeLogarithmic)
 
     ! Set the fixed virial density contrast.
-    deltaTableDelta=virialDensityConstrastFixed
+    deltaTableDelta=virialDensityContrastFixed
 
     ! If the fixed value is defined with respect to the critical density, then translate it to be with respect to mean density.
     if (densityType == densityTypeCritical) then
