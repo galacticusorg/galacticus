@@ -107,8 +107,8 @@ sub Write {
     };
 
     # Package any Bazaar changes.
-    system("bzr send lp:galacticus/v0.9.1 -o bzrSend.meta");
-    my $bzrDiff = `bzr diff -r lp:galacticus/v0.9.1`;
+    system("bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o bzrSend.meta");
+    my $bzrDiff = `bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/`;
     my $bzrMerge = read_file("bzrSend.meta");
     $metaData{'Source'} = {
 	bzrDiff  => $bzrDiff,

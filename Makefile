@@ -185,9 +185,9 @@ vpath %.cpp source
 # Rules for changeset creation.
 Galacticus.exe: ./work/build/galacticus.bzr.patch ./work/build/galacticus.bzr.merge
 ./work/build/galacticus.bzr.patch:
-	bzr diff -r lp:galacticus/v0.9.1 > ./work/build/galacticus.bzr.patch | true
+	bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ > ./work/build/galacticus.bzr.patch | true
 ./work/build/galacticus.bzr.merge:
-	bzr send lp:galacticus/v0.9.1 -o ./work/build/galacticus.bzr.merge
+	bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o ./work/build/galacticus.bzr.merge
 
 # Rules for cleaning up.
 clean: tidy
