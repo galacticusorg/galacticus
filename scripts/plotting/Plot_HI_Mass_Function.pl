@@ -15,9 +15,11 @@ require Galacticus::HDF5;
 require Stats::Histograms;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_HI_Gas_Mass_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -114,17 +116,17 @@ print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [1.0e7:1.0e11]\n";
 print $gnuPlot "set yrange [1.0e-6:1.0e0]\n";
 print $gnuPlot "set pointsize 2.0\n";
-    &PrettyPlots::Prepare_Dataset(
-	 \$plot,
-	 $x,$y,
-	 errorUp    => $errorUp,
-	 errorDown  => $errorDown,
-	 style      => "point",
-	 symbol     => [6,7],
-	 weight     => [5,3],
-	 color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
-	 title      => $data->{'massFunction'}->{'label'}.' [observed]'
-	);
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $x,$y,
+    errorUp    => $errorUp,
+    errorDown  => $errorDown,
+    style      => "point",
+    symbol     => [6,7],
+    weight     => [5,3],
+    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+    title      => $data->{'massFunction'}->{'label'}.' [observed]'
+    );
 &PrettyPlots::Prepare_Dataset(
     \$plot,
     $x,$yGalacticus,
@@ -139,5 +141,6 @@ print $gnuPlot "set pointsize 2.0\n";
 &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
 &LaTeX::GnuPlot2PDF($plotFileEPS);
+&MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

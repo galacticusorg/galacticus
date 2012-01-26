@@ -12,14 +12,16 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
+use Math::SigFigs;
+use Data::Dumper;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
-use Math::SigFigs;
 require Stats::Histograms;
-use Data::Dumper;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Galaxy_Sizes.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+my $self           = $0;
 my $galacticusFile = $ARGV[0];
 my $outputTo       = $ARGV[1];
 my $showFit;
@@ -179,6 +181,7 @@ close(gnuPlot);
 
 # Convert to PDF.
 system("ps2pdf tmp.ps ".$outputFile);
+&MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Clean up files.
 unlink("tmp.ps",@tmpFiles);

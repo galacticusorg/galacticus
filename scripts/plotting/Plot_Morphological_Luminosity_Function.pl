@@ -10,14 +10,18 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
 use Math::SigFigs;
 use Data::Dumper;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
 require Stats::Histograms;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Morphological_Luminosity_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -29,11 +33,14 @@ if ( $#ARGV == 2 ) {
 }
 
 # Check if output location is file or directory.
+my $outputDir;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
+    $outputDir = ".";
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/Morphological_Luminosity_Function.pdf";
+    $outputDir = $outputTo;
 }
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
@@ -112,11 +119,14 @@ foreach $class ( @classes ) {
 }
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot");
-print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
-print gnuPlot "set output \"tmp.ps\"\n";
+my $plot;
+my $gnuPlot;
+my $plotFile = $outputFile;
 
 # Loop over all morphologies and make plots.
+my $iPlot = 0;
+my @leafFiles;
+my @plotFiles;
 foreach $morphology ( @{$data->{'morphology'}} ) {
 
     if ( exists($bulgeToTotal->{$morphology->{'class'}}) ) {
@@ -149,38 +159,64 @@ foreach $morphology ( @{$data->{'morphology'}} ) {
 	$degreesOfFreedom     += $thisDegreesOfFreedom;
 
 	# Make the plot.
-	print gnuPlot "set xlabel \"M_{K,vega}\"\n";
-	print gnuPlot "set ylabel \"dn/dlogM_{K,vega} [Mpc^{-3}]\"\n";
-	print gnuPlot "set title '".$morphology->{'class'}." K Luminosity Function'\n";
-	print gnuPlot "unset label\n";
-	print gnuPlot "set label \"{/Symbol c}^2=".FormatSigFigs($thisChiSquared,4)." [".$thisDegreesOfFreedom."]\" at screen 0.6, screen 0.2\n";
-	print gnuPlot "set key left\n";
-	print gnuPlot "set logscale y\n";
-	print gnuPlot "set mxtics 2\n";
-	print gnuPlot "set mytics 10\n";
-	print gnuPlot "set format y '10^{\%L}'\n";
-	print gnuPlot "set pointsize 1.0\n";
-	print gnuPlot "plot '-' with errorbars lt 1 pt 6 title '".$data->{'label'}."', '-' with errorbars lt 2 pt 4 title \"Galacticus\"\n";
-	for ($i=0;$i<nelem($x);++$i) {
-	    print gnuPlot $x->index($i)." ".$y->index($i)." ".$error->index($i)."\n";
-	}
-	print gnuPlot "e\n";
-	for ($i=0;$i<nelem($x);++$i) {
-	    print gnuPlot $x->index($i)." ".$yGalacticus->index($i)." ".$errorGalacticus->index($i)."\n";
-	}
-	print gnuPlot "e\n";
-	
+	++$iPlot;
+	(my $thisPlot = $plotFile) =~ s/\.pdf/$iPlot.pdf/;
+	(my $thisPlotEPS = $thisPlot) =~ s/\.pdf$/.eps/;
+	open($gnuPlot,"|gnuplot");
+	print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+	print $gnuPlot "set output '".$thisPlotEPS."'\n";
+	print $gnuPlot "set xlabel '\$M_{\\rm K,vega}\$'\n";
+	print $gnuPlot "set ylabel '\${\\rm d}n/{\\rm d}\log M_{\\rm K,vega} [\\hbox{Mpc}^{-3}]\$'\n";
+	print $gnuPlot "set title '".$morphology->{'class'}." K Luminosity Function'\n";
+	print $gnuPlot "set lmargin screen 0.15\n";
+	print $gnuPlot "set rmargin screen 0.95\n";
+	print $gnuPlot "set bmargin screen 0.15\n";
+	print $gnuPlot "set tmargin screen 0.95\n";
+	print $gnuPlot "set key spacing 1.2\n";
+	print $gnuPlot "set key at screen 0.275,0.16\n";
+	print $gnuPlot "set key left\n";
+	print $gnuPlot "set key bottom\n";
+	print $gnuPlot "set logscale y\n";
+	print $gnuPlot "set mytics 10\n";
+	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+	print $gnuPlot "set xrange [-26.0:-19.0]\n";
+	print $gnuPlot "set yrange [3.0e-6:3.0e-2]\n";
+	print $gnuPlot "set pointsize 2.0\n";
+	&PrettyPlots::Prepare_Dataset(
+	    \$plot,
+	    $x,$y,
+	    errorUp    => $error,
+	    errorDown  => $error,
+	    style      => "point",
+	    symbol     => [6,7],
+	    weight     => [5,3],
+	    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+	    title      => $data->{'label'}.' [observed]'
+	    );
+	&PrettyPlots::Prepare_Dataset(
+	    \$plot,
+	    $x,$yGalacticus,
+	    errorUp    => $errorGalacticus,
+	    errorDown  => $errorGalacticus,
+	    style      => "point",
+	    symbol     => [6,7],
+	    weight     => [5,3],
+	    color      => $PrettyPlots::colorPairs{'redYellow'},
+	    title      => 'Galacticus'
+	    );
+	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+
+        # Close the pipe to GnuPlot.
+	close($gnuPlot);
+	&LaTeX::GnuPlot2PDF($thisPlotEPS);
+	(my $leafName = $thisPlot) =~ s/^.*\/([^\/]+)$/$1/;
+	push(@leafFiles,$leafName);
+	push(@plotFiles,$thisPlot);
     }
 }
-
-# Close the pipe to GnuPlot.
-close(gnuPlot);
-
-# Convert to PDF.
-system("ps2pdf tmp.ps ".$outputFile);
-
-# Clean up files.
-unlink("tmp.ps",@tmpFiles);
+&SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
+&MetaData::Write($outputFile,$galacticusFile,$self);
+unlink(@plotFiles);
 
 # Output fit data.
 if ( $showFit == 1 ) {

@@ -18,9 +18,11 @@ require Galacticus::Magnitudes;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
 require System::Redirect;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Disk_Scalelengths.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -35,7 +37,7 @@ if ( $#ARGV == 2 ) {
 my $outputDir;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
-    $outputDir = "";
+    $outputDir = ".";
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/Disk_Scalelengths.pdf";
@@ -173,6 +175,7 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
 }
 &SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
 unlink(@plotFiles);
+&MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Display chi^2 information
 if ( $showFit == 1 ) {

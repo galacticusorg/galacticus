@@ -87,6 +87,7 @@ contains
   subroutine Galacticus_Build_Output
     !% Output build information to the main output file.
     use Galacticus_HDF5
+    use Galacticus_Input_Paths
     use IO_HDF5
     use FoX_Common
     use HDF5
@@ -94,14 +95,15 @@ contains
     use String_Handling
     use Galacticus_Error
     use FGSL
+    use File_Utilities
     implicit none
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
+    type(varying_string),         dimension(1)          :: changeSet
     integer,                      parameter             :: versionStringlengthMaximum=10
     type(hdf5Object)                                    :: buildGroup
     integer                                             :: hdfVersionMajor,hdfVersionMinor,hdfVersionRelease,hdfError,iChr
-    type(varying_string)                                :: versionString
     type(c_ptr)                                         :: charVersionPointer
-    type(varying_string)                                :: PREPROCESSOR,F03COMPILER,CCOMPILER,CPPCOMPILER,MODULETYPE,F03FLAGS &
+    type(varying_string)                                :: versionString,PREPROCESSOR,F03COMPILER,CCOMPILER,CPPCOMPILER,MODULETYPE,F03FLAGS &
       &  ,F03FLAGS_NOOPT,CFLAGS,CPPFLAGS,LIBS,F03COMPILER_VERSION,CCOMPILER_VERSION,CPPCOMPILER_VERSION
 
     ! Include build environment definitions.
@@ -151,7 +153,19 @@ contains
     call buildGroup%writeAttribute(CCOMPILER_VERSION  ,'make_CCOMPILER_VERSION  ')
     call buildGroup%writeAttribute(CPPCOMPILER_VERSION,'make_CPPCOMPILER_VERSION')
 
-    ! Close the version group.
+    ! Add Bazaar changeset information.
+    if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.bzr.patch")) then
+       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.bzr.patch'))
+       call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "bzr diff" - gives the uncommitted source changeset')
+       call changeSet(1)%destroy()
+    end if
+    if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.bzr.merge")) then
+       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.bzr.merge'))
+       call buildGroup%writeDataset(changeSet,'sourceChangeSetMerge','Output of "bzr send" - gives the committed source changeset')
+       call changeSet(1)%destroy()
+    end if
+
+    ! Close the build group.
     call buildGroup%close()
     return
   end subroutine Galacticus_Build_Output

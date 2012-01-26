@@ -39,6 +39,8 @@ outputFile.hdf5
  |    +-> make_F03FLAGS_NOOPT                 Attribute {1}
  |    +-> make_MODULETYPE                     Attribute {1}
  |    +-> make_PREPROCESSOR                   Attribute {1}
+ |    +-> sourceChangeSetDiff                 Dataset   {1}
+ |    +-> sourceChangeSetMerge                Dataset   {1}
  |
  +-> Outputs                                  Group
  |    |
@@ -132,6 +134,8 @@ The UUID (\href{https://secure.wikimedia.org/wikipedia/en/wiki/Universally_uniqu
 \item[{\tt make\_MODULETYPE}] The Fortran module type identifier string;
 \item[{\tt make\_PREPROCESSOR}] The preprocessor command used.
 \end{description}
+
+Additionally, two datasets are included which store details of the \glc\ source changeset. {\tt sourceChangeSetMerge} contains the output of ``{\tt bzr send}'', that is, it contains a Bazaar merge directive that incorporates any changes made to the current branch relative to the main \glc\ branch. {\tt sourceChangeSetDiff} contains the output of ``{\tt bzr diff}'', that is, all differences between the source code in the working directory and that which has been committed to Bazaar. Used together, these two datasets allow the precise source code used to run the model to be recovered from the main branch \glc\ source.
 
 \subsection{Parameters}
 
@@ -455,3 +459,17 @@ The \hyperlink{galacticus.meta.evolver_profiler.F90:galacticus_meta_evolver_prof
 When active, setting {\tt [profileOdeEvolver]}$=${\tt true} will activate profiling. Each step taken by the ODE evolver is then analyzed. First, a record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to determine step size) is determined and a record of this is kept.
 
 At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\tt metaData/evolverProfiler}. A histogram of time step sizes is written to {\tt metaProfileTimeStepCount} with bins specified in {\tt metaProfileTimeStep}---these bins can be adjusted using {\tt [metaProfileTimeStepMinimum]}, {\tt [metaProfileTimeStepMaximum]} and {\tt [metaProfileTimeStepPointsPerDecade]}. A histogram of which properties limited step size is written to {\tt metaProfilePropertyHitCount} with the associated property names written to {\tt [metaProfilePropertyNames]}. Property names can only be determined if the component to which they belong supports the {\tt decodePropertyIdentifiersTask} directive (see \S\ref{sec:DecodePropertyIndentifierTask}). Properties which could not be decoded in this way are listed as {\tt unknown}.
+
+\section{Meta-Data in Plots}\index{metadata}
+
+\glc\ writes extensive metadata to the \href{http://en.wikipedia.org/wiki/Extensible_Metadata_Platform}{XMP} section of plots resulting from analysis of \glc\ outputs. Metadata written includes all \glc\ parameter values, \glc\ version and build information, the source code changeset and the model \gls{UUID}. The intention is to include sufficient metadata that the original model and analysis can be repeated in complete detail. The {\tt scripts/aux/extractMetaData.pl} script can be used to extract this metadata from a plot file. For example:
+\begin{verbatim}
+scripts/aux/extractMetaData.pl myPlot.pdf myMetaData
+\end{verbatim}
+will extract the metadata from file {\tt myPlot.pdf}, writing a report to screen on \glc\ version and build information. It will also output the following files:
+\begin{description}
+\item[{\tt myMetaDataParameters.xml}] A \glc\ input parameter file containing all parameters used to run the \glc\ model from which {\tt myPlot.pdf} was made;
+\item[{\tt myMetaDataScript.pl}] The script used to create {\tt myPlot.pdf};
+\item[{\tt myMetaData.merge}] A bundled merge directive for Bazaar containing the committed source changeset used to build \glc\. This can be applied to a \glc\ checkout using the {\tt bzr merge} command;
+\item[{\tt myMetaData.patch}] A bundled {\tt diff} of the \glc\ source against the committed source. This can be applied to a \glc\ checkout (after applying {\tt myMetaData.merge}) using the {\tt bzr patch} command.
+\end{description}

@@ -11,17 +11,19 @@ use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use XML::Simple;
+use Math::SigFigs;
+use Data::Dumper;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require Galacticus::HaloModel;
-use Math::SigFigs;
-use Data::Dumper;
+require XMP::MetaData;
 
 # Compute and plot a 2-point correlation functions and compare to 2dFGRS observations.
 # Andrew Benson (30-Aug-2010)
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_2dFGRS_Correlation_Functions.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -141,6 +143,7 @@ close(gnuPlot);
 
 # Convert to PDF.
 system("ps2pdf tmp.ps ".$outputFile);
+&MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Clean up files.
 unlink("tmp.ps",@tmpFiles);

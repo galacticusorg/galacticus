@@ -16,9 +16,11 @@ require Stats::Means;
 require Galacticus::HDF5;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Star_Formation_History.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -197,5 +199,6 @@ my $nonZeroPoints = which($SFR > 0.0);
 &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
 &LaTeX::GnuPlot2PDF($plotFileEPS);
+&MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

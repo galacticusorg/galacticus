@@ -86,7 +86,7 @@ contains
     include 'galacticus.output.version.revision.inc'
     type(Node),           pointer      :: doc,thisNode,nameNode,emailNode
     type(NodeList),       pointer      :: nodesList
-    integer                            :: ioErr
+    integer                            :: ioErr,iUnit
     character(len=128)                 :: textBufferFixed
     type(hdf5Object)                   :: versionGroup
     type(varying_string)               :: runTime

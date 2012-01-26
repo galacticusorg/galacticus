@@ -182,6 +182,13 @@ vpath %.cpp source
 	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
 
+# Rules for changeset creation.
+Galacticus.exe: ./work/build/galacticus.bzr.patch ./work/build/galacticus.bzr.merge
+./work/build/galacticus.bzr.patch:
+	bzr diff -r lp:galacticus/v0.9.1 > ./work/build/galacticus.bzr.patch | true
+./work/build/galacticus.bzr.merge:
+	bzr send lp:galacticus/v0.9.1 -o ./work/build/galacticus.bzr.merge
+
 # Rules for cleaning up.
 clean: tidy
 	rm -f *.exe

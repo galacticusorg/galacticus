@@ -16,9 +16,11 @@ require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Colors_Distribution.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -180,5 +182,7 @@ close($gnuPlot);
 unlink("tmp.eps");
 unlink("contour.dat");
 unlink("contour1.dat");
+system("mv -f tmp.pdf ".$outputFile)
+&MetaData::Write($outputFile,$galacticusFile,$self);
 
 exit;

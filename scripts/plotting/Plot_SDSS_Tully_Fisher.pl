@@ -19,10 +19,12 @@ require Galacticus::Magnitudes;
 require Galacticus::Luminosities;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require XMP::MetaData;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Tully_Fisher.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -154,5 +156,6 @@ print $gnuPlot "set pointsize 2.0\n";
 &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
 &LaTeX::GnuPlot2PDF($plotFileEPS);
+&MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

@@ -17,9 +17,11 @@ require Galacticus::Magnitudes;
 require Stats::Histograms;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_K_Luminosity_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -136,5 +138,6 @@ print $gnuPlot "set pointsize 2.0\n";
 &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 close($gnuPlot);
 &LaTeX::GnuPlot2PDF($plotFileEPS);
+&MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;
