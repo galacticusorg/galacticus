@@ -187,7 +187,7 @@ Galacticus.exe: ./work/build/galacticus.bzr.patch ./work/build/galacticus.bzr.me
 ./work/build/galacticus.bzr.patch:
 	bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ > ./work/build/galacticus.bzr.patch | true
 ./work/build/galacticus.bzr.merge:
-	bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o ./work/build/galacticus.bzr.merge
+	bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o ./work/build/galacticus.bzr.merge | true
 
 # Rules for cleaning up.
 clean: tidy

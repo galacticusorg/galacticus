@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Image::ExifTool qw(:Public);
 use File::Slurp;
+use File::Which;
 use PDL;
 use PDL::IO::HDF5;
 use Text::Wrap;
@@ -82,6 +83,15 @@ sub Write {
     my $galacticusFile = shift;
     my $scriptFile     = shift;
 
+    # Get the Galacticus input path.
+    my $galacticusPath;
+    if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+	$galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+	$galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+    } else {
+	$galacticusPath = "./";
+    }
+
     # Access the metadata of the plot file.
     my $exifTool = new Image::ExifTool;
     $exifTool->Options(Struct => 1,List => 1);
@@ -107,14 +117,26 @@ sub Write {
     };
 
     # Package any Bazaar changes.
-    system("bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o bzrSend.meta");
-    my $bzrDiff = `bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/`;
-    my $bzrMerge = read_file("bzrSend.meta");
     $metaData{'Source'} = {
-	bzrDiff  => $bzrDiff,
-	bzrMerge => $bzrMerge
+	bzrDiff  => "",
+	bzrMerge => ""
     };
-    unlink("bzrSend.meta");
+    my $bzr = which("bzr");
+    unless ( $bzr eq "" ) {
+	system("bzr info ".$galacticusPath." > /dev/null 2>&1");
+	my $isBazaarBranch = $?;
+	if ( $isBazaarBranch == 0 ) {
+	    my $cwd = `pwd`;
+	    system("cd ".$galacticusPath."; bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o ".$cwd."/bzrSend.meta");
+	    my $bzrDiff = `bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ $galacticusPath`;
+	    my $bzrMerge = read_file("bzrSend.meta");
+	    $metaData{'Source'} = {
+		bzrDiff  => $bzrDiff,
+		bzrMerge => $bzrMerge
+	    };
+	    unlink("bzrSend.meta");
+	}
+    }
 
     # Add build information.
     my @buildParameters = ( 
