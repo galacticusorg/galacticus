@@ -63,15 +63,23 @@
 
 module Galacticus_Error
   !% Implements error reporting for the {\sc Galacticus} package.
+  use HDF5
   implicit none
   private
-  public :: Galacticus_Error_Report
+  public :: Galacticus_Error_Report, Galacticus_Error_Handler_Register
   
   interface Galacticus_Error_Report
      module procedure Galacticus_Error_Report_Char
      module procedure Galacticus_Error_Report_VarStr
   end interface
 
+  ! Specify an explicit dependence on the hdf5_cFuncs.o object file.
+  !: ./work/build/hdf5_cFuncs.o
+  interface
+     subroutine H5Close_C() bind(c,name='H5Close_C')
+     end subroutine H5Close_C
+  end interface
+ 
 contains
 
   subroutine Galacticus_Error_Report_VarStr(unitName,message)
@@ -90,12 +98,65 @@ contains
     !% Display an error message (optionally reporting the unit name in which the error originated) and stop.
     implicit none
     character(len=*), intent(in), optional :: unitName,message
-    
+    integer                                :: error
+
     if (present(unitName)) write (0,'(a,a,a)') 'Fatal error in ',trim(unitName),'():'
     if (present(message )) write (0,'(a)'    ) trim(message)
     call Flush(0)
+    call H5Close_F(error)
+    call H5Close_C()
     call Abort()
     return
   end subroutine Galacticus_Error_Report_Char
+
+  subroutine Galacticus_Error_Handler_Register()
+    !% Register signal handlers.
+    implicit none
+    
+    call Signal( 2,Galacticus_Signal_Handler_SIGINT )
+    call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
+    call Signal(11,Galacticus_Signal_Handler_SIGSEGV)
+    call Signal(15,Galacticus_Signal_Handler_SIGINT )
+    return
+  end subroutine Galacticus_Error_Handler_Register
+  
+  subroutine Galacticus_Signal_Handler_SIGINT()
+    !% Handle {\tt SIGINT} signals, by flushing all data and then aborting.
+    implicit none
+    integer :: error
+
+    write (0,*) 'Galacticus was interrupted - will try to flush data before exiting.'
+    call Flush(0)
+    call H5Close_F(error)
+    call H5Close_C()
+    call Abort()
+    return
+  end subroutine Galacticus_Signal_Handler_SIGINT
+
+  subroutine Galacticus_Signal_Handler_SIGSEGV()
+    !% Handle {\tt SIGSEGV} signals, by flushing all data and then aborting.
+    implicit none
+    integer :: error
+
+    write (0,*) 'Galacticus experienced a segfault - will try to flush data before exiting.'
+    call Flush(0)
+    call H5Close_F(error)
+    call H5Close_C()
+    call Abort()
+    return
+  end subroutine Galacticus_Signal_Handler_SIGSEGV
+
+  subroutine Galacticus_Signal_Handler_SIGFPE()
+    !% Handle {\tt SIGFPE} signals, by flushing all data and then aborting.
+    implicit none
+    integer :: error
+
+    write (0,*) 'Galacticus experienced a floating point exception - will try to flush data before exiting.'
+    call Flush(0)
+    call H5Close_F(error)
+    call H5Close_C()
+    call Abort()
+    return
+  end subroutine Galacticus_Signal_Handler_SIGFPE
 
 end module Galacticus_Error

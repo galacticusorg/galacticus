@@ -156,12 +156,12 @@ contains
     ! Add Bazaar changeset information.
     if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.bzr.patch")) then
        call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.bzr.patch'))
-       call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "bzr diff" - gives the uncommitted source changeset')
+       if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "bzr diff" - gives the uncommitted source changeset')
        call changeSet(1)%destroy()
     end if
     if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.bzr.merge")) then
        call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.bzr.merge'))
-       call buildGroup%writeDataset(changeSet,'sourceChangeSetMerge','Output of "bzr send" - gives the committed source changeset')
+       if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetMerge','Output of "bzr send" - gives the committed source changeset')
        call changeSet(1)%destroy()
     end if
 

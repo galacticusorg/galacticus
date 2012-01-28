@@ -80,6 +80,9 @@ program Galacticus
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show
 
+  ! Register error handlers.
+  call Galacticus_Error_Handler_Register
+
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Galacticus.size')
 
