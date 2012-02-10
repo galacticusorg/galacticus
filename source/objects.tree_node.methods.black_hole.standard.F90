@@ -104,6 +104,8 @@ module Tree_Node_Methods_Black_Hole
   double precision :: bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementHotHalo
   ! Temperature of accreting gas.
   double precision :: bondiHoyleAccretionTemperatureSpheroid
+  ! Control for hot mode only accretion.
+  logical          :: bondiHoyleAccretionHotModeOnly
 
   ! Feedback parameters.
   double precision :: blackHoleWindEfficiency
@@ -218,6 +220,18 @@ contains
        !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=11.4486d0)
+       !@ <inputParameter>
+       !@   <name>bondiHoyleAccretionHotModeOnly</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter("bondiHoyleAccretionHotModeOnly",bondiHoyleAccretionHotModeOnly,defaultValue=.false.)
 
        ! Get temperature of accreting gas.
        !@ <inputParameter>
@@ -385,12 +399,11 @@ contains
   subroutine Tree_Node_Black_Hole_Mass_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
     !% Compute the black hole node mass rate of change.
     use Accretion_Disks
-    use Cooling_Radii
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
+    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -400,12 +413,10 @@ contains
     double precision, parameter              :: ismTemperature=1.0d4 ! Temperature of the ISM.
     double precision, parameter              :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0d0&
          &/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
-    double precision, parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
-    double precision, parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
     integer                                  :: iInstance,instanceCount,thisIndex
     double precision                         :: restMassAccretionRate,massAccretionRate,radiativeEfficiency,energyInputRate &
          &,spheroidDensity,spheroidGasMass,spheroidRadius,criticalDensity,windFraction,spheroidDensityOverCriticalDensity&
-         &,heatingRate,couplingEfficiency,coolingRadiusFractional,x
+         &,heatingRate,couplingEfficiency
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedurePassed => interruptProcedure
@@ -451,21 +462,13 @@ contains
        ! Add heating to the hot halo component.
        if (blackHoleHeatsHotHalo) then
 
-          ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
-          coolingRadiusFractional=Cooling_Radius(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)
-          if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
-             couplingEfficiency=1.0d0
-          else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
-             couplingEfficiency=0.0d0
-          else
-             x=      (coolingRadiusFractional                 -coolingRadiusFractionalTransitionMinimum) &
-               & /(coolingRadiusFractionalTransitionMaximum-coolingRadiusFractionalTransitionMinimum)
-             couplingEfficiency=x**2*(2.0d0*x-3.0d0)+1.0d0
-          end if
-       
+          ! Compute jet coupling efficiency based on whether halo is cooling quasistatically. Reduce this efficiency as the gas
+          ! content in the halo drops below the cosmological mean.
+          couplingEfficiency=Hot_Mode_Fraction(thisNode)*((Omega_Matter()/Omega_b())*Tree_Node_Hot_Halo_Mass(thisNode)/Tree_Node_Mass(thisNode))**2
+
           ! Get jet power.
           heatingRate=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)*couplingEfficiency
-          
+
           ! Pipe this power to the hot halo.
           call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
          
@@ -1141,7 +1144,7 @@ contains
     double precision, parameter              :: gasDensityMinimum=1.0d0 ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
     integer                                  :: iInstance
     double precision                         :: blackHoleMass,gasDensity,relativeVelocity,accretionRadius,jeansLength&
-         &,radiativeEfficiency,position(3),hotHaloTemperature
+         &,radiativeEfficiency,position(3),hotHaloTemperature,hotModeFraction
     
     ! Get the active instance.
     iInstance=Tree_Node_Black_Hole_Get_Instance(thisNode)
@@ -1234,13 +1237,21 @@ contains
           ! Set the position.
           position=[accretionRadius,0.0d0,0.0d0]
 
-          ! Get density of gas at the galactic center.
-          gasDensity=Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemSpherical,massType&
+          ! Find the fraction of gas in the halo which is in the hot mode. Set this to unity if hot/cold mode is not to be considered.
+          select case (bondiHoyleAccretionHotModeOnly)
+          case (.true.)
+             hotModeFraction=Hot_Mode_Fraction(thisNode)
+          case (.false.)
+             hotModeFraction=1.0d0
+          end select
+             
+          ! Get density of gas at the galactic center - scaled by the fraction in the hot accretion mode.
+          gasDensity=hotModeFraction*Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemSpherical,massType&
                &=massTypeGaseous,componentType=componentTypeHotHalo)
 
           ! Check if we have a non-zero gas density.
           if (gasDensity > gasDensityMinimum) then
-             
+
              ! Compute the accretion rate.
              accretionRateHotHalo(iInstance)=bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass,gasDensity&
                   &,relativeVelocity,hotHaloTemperature)
@@ -1667,5 +1678,28 @@ contains
 
     return
   end subroutine Black_Hole_Standard_Property_Identifiers_Decode
+
+  double precision function Hot_Mode_Fraction(thisNode)
+    !% A simple interpolating function which is used as a measure of the fraction of a halo which is in the hot accretion mode.
+    use Cooling_Radii
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision, parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
+    double precision, parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
+    double precision                         :: x,coolingRadiusFractional
+
+    coolingRadiusFractional=Cooling_Radius(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)
+    if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
+       Hot_Mode_Fraction=1.0d0
+    else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
+       Hot_Mode_Fraction=0.0d0
+    else
+       x=      (coolingRadiusFractional                 -coolingRadiusFractionalTransitionMinimum) &
+            & /(coolingRadiusFractionalTransitionMaximum-coolingRadiusFractionalTransitionMinimum)
+       Hot_Mode_Fraction=x**2*(2.0d0*x-3.0d0)+1.0d0
+    end if
+    return
+  end function Hot_Mode_Fraction
   
 end module Tree_Node_Methods_Black_Hole

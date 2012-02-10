@@ -152,10 +152,10 @@ module Tree_Node_Methods_Hot_Halo
   !# </treeNodePipePointer>
 
   ! Configuration variables.
-  logical                     :: starveSatellites,hotHaloOutflowReturnOnFormation
+  logical                     :: starveSatellites,hotHaloOutflowReturnOnFormation,hotHaloExcessHeatDrivesOutflow
   integer                     :: hotHaloCoolingFromNode
   integer,          parameter :: currentNode=0,formationNode=1
-  double precision            :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction
+  double precision            :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction,hotHaloExpulsionRateMaximum
 
   ! Quantities stored to avoid repeated computation.
   logical          :: gotCoolingRate=.false.,gotAngularMomentumCoolingRate=.false.
@@ -302,7 +302,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnOnFormation',hotHaloOutflowReturnOnFormation,defaultValue=.false.)
 
-       ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
+       ! Determine whether the angular momentum of cooling gas should be computed from the "current node" or the "formation node".
        !@ <inputParameter>
        !@   <name>hotHaloCoolingFromNode</name>
        !@   <defaultValue>currentNode</defaultValue>
@@ -323,6 +323,19 @@ contains
           call Galacticus_Error_Report('Tree_Node_Methods_Hot_Halo_Initialize','hotHaloCoolingFromNode must be one of "current node" or "formation node"')
        end select
 
+       ! Determine whether excess heating of the halo will drive an outflow.
+       !@ <inputParameter>
+       !@   <name>hotHaloExcessHeatDrivesOutflow</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.
+       !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloExcessHeatDrivesOutflow',hotHaloExcessHeatDrivesOutflow,defaultValue=.false.)
+
        ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
        !@ <inputParameter>
        !@   <name>hotHaloOutflowReturnRate</name>
@@ -335,6 +348,20 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=5.0d0)
+
+
+       ! Get the maximum rate (in units of halo inverse dynamical time) at which gas can be expelled from the halo.
+       !@ <inputParameter>
+       !@   <name>hotHaloExpulsionRateMaximum</name>
+       !@   <defaultValue>1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloExpulsionRateMaximum',hotHaloExpulsionRateMaximum,defaultValue=1.0d0)
 
        ! Get fraction of angular momentum that is lost during cooling/infall.
        !@ <inputParameter>
@@ -553,7 +580,7 @@ contains
     double precision,          intent(in)    :: rateAdjustment
     integer,          intent(in), optional   :: instance
     integer                                  :: thisIndex
-    double precision                         :: massHeatingRate
+    double precision                         :: massHeatingRate,inputMassHeatingRate,excessMassHeatingRate
     
     ! Trap cases where an attempt is made to remove energy via this input function.
     if (rateAdjustment < 0.0d0) call Galacticus_Error_Report('Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard','attempt to remove energy via heat input pipe in hot halo')
@@ -567,8 +594,11 @@ contains
     ! Ensure that the cooling rate has been computed.
     call Get_Cooling_Rate(thisNode)
 
-    ! Compute mass heating rate from energy heating rate, but don't allow it to exceed the remaining budget.
-    massHeatingRate=min(rateAdjustment/Dark_Matter_Halo_Virial_Velocity(thisNode)**2,massHeatingRateRemaining)
+    ! Compute the input mass heating rate from the input energy heating rate.
+    inputMassHeatingRate=rateAdjustment/Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+
+    ! Limit the mass heating rate such that it never exceeds the remaining budget.
+    massHeatingRate=min(inputMassHeatingRate,massHeatingRateRemaining)
     
     ! Update the remaining budget of allowed mass heating rate.
     if (massHeatingRateRemaining-massHeatingRate <= 0.0d0) massHeatingRate=massHeatingRateRemaining
@@ -576,6 +606,17 @@ contains
 
     ! Call routine to apply this mass heating rate to all hot halo cooling pipes.
     call Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,interrupt,interruptProcedurePassed,-massHeatingRate)
+
+    ! If requested, compute the rate at which an outflow is driven from the halo by excess heating.
+    if (hotHaloExcessHeatDrivesOutflow) then
+       
+       ! Compute the excess mass heating rate (i.e. that beyond which is being used to offset the cooling rate).
+       excessMassHeatingRate=inputMassHeatingRate-massHeatingRate
+       
+       ! Remove any excess mass heating rate from the halo.
+       call Hot_Halo_Standard_Push_To_Null(thisNode,interrupt,interruptProcedurePassed,excessMassHeatingRate)
+
+    end if
 
     ! Return our local copy of the interrupt procedure.
     interruptProcedure => interruptProcedurePassed
@@ -599,7 +640,7 @@ contains
     double precision                         :: angularMomentumCoolingRate
 
     ! Ignore zero rates.
-    if (massRate /= 0.0d0) then
+    if (massRate /= 0.0d0 .and. Tree_Node_Hot_Halo_Mass(thisNode) > 0.0d0) then
        
        ! Get a local copy of the interrupt procedure.
        interruptProcedurePassed => interruptProcedure
@@ -633,6 +674,7 @@ contains
        end if
        call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, &
             &-angularMomentumCoolingRate)
+
        ! Pipe the cooling rate to which ever component claimed it.
        if (associated(Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To)) call&
             & Tree_Node_Hot_Halo_Cooling_Angular_Momentum_To(thisNode,interrupt,interruptProcedurePassed&
@@ -652,6 +694,46 @@ contains
     end if
     return
   end subroutine Hot_Halo_Standard_Push_To_Cooling_Pipes
+
+  subroutine Hot_Halo_Standard_Push_To_Null(thisNode,interrupt,interruptProcedure,massRate)
+    !% Push mass from the hot halo into an infinite sink (along with appropriate amounts of metals and angular momentum) at the given rate.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    double precision,          intent(in)    :: massRate
+    procedure(),      pointer                :: interruptProcedurePassed
+    double precision                         :: massRateLimited,angularMomentumRate
+
+    ! Ignore zero rates.
+    if (massRate /= 0.0d0 .and. Tree_Node_Hot_Halo_Mass(thisNode) > 0.0d0) then
+       
+       ! Get a local copy of the interrupt procedure.
+       interruptProcedurePassed => interruptProcedure
+
+       ! Limit the mass expulsion rate to a fraction of the halo dynamical timescale.
+       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*Tree_Node_Hot_Halo_Mass(thisNode)/Dark_Matter_Halo_Dynamical_Timescale(thisNode))
+
+       ! Remove mass from the hot component.
+       call Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,-massRateLimited)
+
+       ! Find the node to use for cooling calculations.
+       angularMomentumRate=massRateLimited*Tree_Node_Hot_Halo_Angular_Momentum(thisNode)/Tree_Node_Hot_Halo_Mass(thisNode)   
+       call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed, &
+            &-angularMomentumRate)
+
+       ! Get the rate of change of abundances.
+       call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundancesWork)
+       abundancesWork=massRate*abundancesWork/Tree_Node_Hot_Halo_Mass(thisNode)
+       call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,-abundancesWork)
+
+       ! Return our local copy of the interrupt procedure.
+       interruptProcedure => interruptProcedurePassed
+
+    end if
+    return
+  end subroutine Hot_Halo_Standard_Push_To_Null
 
   subroutine Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo mass rate of change.
@@ -823,7 +905,6 @@ contains
        end if
        return
     end if
-
     if (massAccretionRate > 0.0d0) then
        angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)*(massAccretionRate &
             &/Tree_Node_Mass_Accretion_Rate(thisNode))

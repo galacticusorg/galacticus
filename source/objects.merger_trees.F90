@@ -1015,9 +1015,9 @@ contains
     !% Return a pointer to a node in {\tt thisTree} given the index of the node.
     use Tree_Nodes
     implicit none
-    class(mergerTree),       intent(inout) :: thisTree
-    integer(kind=kind_int8), intent(in)    :: nodeIndex
-    type(treeNode),          pointer       :: Tree_Node_Get,thisNode
+    class(mergerTree),       intent(in) :: thisTree
+    integer(kind=kind_int8), intent(in) :: nodeIndex
+    type(treeNode),          pointer    :: Tree_Node_Get,thisNode
 
     Tree_Node_Get => null()
     thisNode => thisTree%baseNode

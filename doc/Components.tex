@@ -28,9 +28,15 @@ In the standard black implementation the mass and spin evolve as:
 \dot{M}_\bullet &=& (1-\epsilon_{\rm radiation}) \dot{M}_0 \\
 \dot{j}_\bullet &=& \dot{j}(M_\bullet,j_\bullet,\dot{M}_0),
 \end{eqnarray}
-where $\dot{M}_0$ is the rest mass accretion rate, $\epsilon_{\rm radiation}$ is the radiative efficiency of the accretion flow feeding the black hole and $\dot{j}(M_\bullet,j_\bullet,\dot{M}_0)$ is the spin-up function of that accretion flow (see \S\ref{sec:AccretionDisks}). The rest mass accretion rate is computed assuming Bondi-Hoyle-Lyttleton accretion from the spheroid gas reservoir (with an assumed temperature of {\tt [bondiHoyleAccretionTemperatureSpheroid]}) enhanced by a factor of {\tt [bondiHoyleAccretionEnhancementSpheroid]} and from the host halo (with whatever temperature that hot halo temperature profile specifies; see \S\ref{sec:HotHaloTemperature}) enhanced by a factor of {\tt [bondiHoyleAccretionEnhancementHotHalo]}. The rest mass accretion rate is removed (as a mass sink) from the spheroid component. The black hole is assumed to cause feedback in two ways:
+where $\dot{M}_0$ is the rest mass accretion rate, $\epsilon_{\rm radiation}$ is the radiative efficiency of the accretion flow feeding the black hole and $\dot{j}(M_\bullet,j_\bullet,\dot{M}_0)$ is the spin-up function of that accretion flow (see \S\ref{sec:AccretionDisks}). The rest mass accretion rate is computed assuming Bondi-Hoyle-Lyttleton accretion from the spheroid gas reservoir (with an assumed temperature of {\tt [bondiHoyleAccretionTemperatureSpheroid]}) enhanced by a factor of {\tt [bondiHoyleAccretionEnhancementSpheroid]} and from the host halo (with whatever temperature that hot halo temperature profile specifies; see \S\ref{sec:HotHaloTemperature}) enhanced by a factor of {\tt [bondiHoyleAccretionEnhancementHotHalo]}. If {\tt [bondiHoyleAccretionHotModeOnly]}$=${\tt true} then the accretion occurs only from that fraction of the hot halo gas which was accreted in the ``hot mode'', otherwise accretion occurs from the entirety of the hot halo reservoir. In the first case a simple estimate of the hot mode fraction is made:
+\begin{equation}
+f_{\rm hot} = \left\{ \begin{array}{ll} 1 & \hbox{ if } x < 0.9 \\ y(x)^2[2 y(x) - 3]+1  & \hbox{ if } 0.9 \le x \le 1.0 \\ 0 & \hbox{ if } x > 1.0, \end{array} \right.
+\end{equation}
+where $x = r_{\rm cool}/r_{\rm virial}$ and $y(x)=[x-0.9]/[1.0-0.9]$.
+
+The rest mass accretion rate is removed (as a mass sink) from the spheroid and hot halo components appropriately. The black hole is assumed to cause feedback in two ways:
 \begin{description}
- \item [Radio-mode] If {\tt [blackHoleHeatsHotHalo]}$=${\tt true} then any jet power from the black hole-accretion disk system (see \S\ref{sec:CircumnuclearDisks}) is included in the hot halo heating rate providing that the halo is in the slow cooling regime\index{feedback!AGN}\index{active galactic nuclei (AGN)!feedback} (i.e. if the cooling radius is smaller than the virial radius; see, for example, \citealt{benson_cold_2010});
+ \item [Radio-mode] If {\tt [blackHoleHeatsHotHalo]}$=${\tt true} then any jet power from the black hole-accretion disk system (see \S\ref{sec:CircumnuclearDisks}) is included in the hot halo heating rate providing that the halo is in the slow cooling regime\footnote{Specifically, the jet power multiplied by $f_{\rm hot} [(M_{\rm hot}/M_{\rm total}) (\Omega_{\rm M}/\Omega_{\rm b})]^2$ is added to the hot halo heating rate. The dependence on the gas fraction in the hot halo ensures that the heating rate goes smoothly to zero as the hot halo becomes depleted of gas.}\index{feedback!AGN}\index{active galactic nuclei (AGN)!feedback} (i.e. if the cooling radius is smaller than the virial radius; see, for example, \citealt{benson_cold_2010});
  \item [Quasar-mode] A mechanical wind luminosity of \citep{ostriker_momentum_2010}
 \begin{equation}
  L_{\rm wind} = \epsilon_{\bullet, wind} \dot{M}_0 \clight^2,
@@ -231,17 +237,24 @@ At initialization, any nodes with no children are assigned a hot halo mass, and 
 In the standard hot halo implementation the hot gas mass and heavy element mass(es) evolves as:
 \begin{eqnarray}
  \dot{M}_{\rm failed} &=& \dot{M}_{\rm failed~accretion} \\
- \dot{M}_{\rm hot} &=& \dot{M}_{\rm accretion} - \dot{M}_{\rm cooling} + \dot{M}_{\rm outflow,return}, \\
- \dot{M}_{Z, {\rm hot}} &=& - \dot{M}_{\rm cooling} {M_{Z, {\rm hot}}\over M_{\rm hot}} + \dot{M}_{Z, {\rm outflow,return}}, \\
- \dot{M}_{\rm chemical} &=& - \dot{M}_{\rm cooling} {M_{\rm chemical}\over M_{\rm hot}} + f_{\rm chemical,outflow} \dot{M}_{\rm outflow,return} + \dot{M}_{\rm chemical,reactions} , \\
+ \dot{M}_{\rm hot} &=& \dot{M}_{\rm accretion} - \dot{M}_{\rm cooling} + \dot{M}_{\rm outflow,return} - \dot{M}_{\rm expelled}, \\
+ \dot{M}_{Z, {\rm hot}} &=& - \dot{M}_{\rm cooling} {M_{Z, {\rm hot}}\over M_{\rm hot}} + \dot{M}_{Z, {\rm outflow,return}} - \dot{M}_{Z,{\rm expelled}}, \\
+ \dot{M}_{\rm chemical} &=& - [\dot{M}_{\rm cooling} + \dot{M}_{\rm expelled}] {M_{\rm chemical}\over M_{\rm hot}} + f_{\rm chemical,outflow} \dot{M}_{\rm outflow,return} \nonumber \\ 
+& & + \dot{M}_{\rm chemical,reactions},
 \end{eqnarray}
 where $\dot{M}_{\rm accretion}$ is the rate of growth of the hot \gls{component} due to accretion from the \gls{igm} and $\dot{M}_{\rm failed~accretion}$ is the rate of failed accretion from the \gls{igm} (these may include a \gls{component} due to transfer of mass from the failed to accreted reservoirs) and $\dot{M}_{\rm cooling}$ is the rate of mass loss from the hot halo due to cooling (see \S\ref{sec:CoolingRate}---cooling rates are computed using the current \gls{node} if {\tt [hotHaloCoolingFromNode]}$=${\tt current node} or from the formation \gls{node} if that parameter is set to {\tt formation node}) minus any heating rate defined as
 \begin{equation}
  \dot{M}_{\rm heating} = \dot{E}_{\rm input} / V_{\rm virial}^2,
 \end{equation}
-where $\dot{E}_{\rm input}$ is the rate at which energy is being sent through the ``energy input'' pipe and $V_{\rm virial}$ is the virial velocity of the halo.\footnote{The net cooling rate is never allowed to drop below zero. If the mass heating rate exceeds the mass cooling rate then the excess energy is not used.} In the above, $f_{\rm chemical,return}$ if the mass fraction of each molcular species in the outflowed gas and is assumed to be equal to that given by the atomic ionization state functions (see \S\ref{sec:ChemicalStateMethod}) at the virial temperature and mean density of the halo. Finally, $\dot{M}_{\rm chemical,reactions}$ represents the rate of change of masses of chemical species due to chemical and atomic processes and is computed using the chemical rates functions (see \S\ref{sec:ChemicalReactionRates}). The angular momentum of the hot gas evolves as:
+where $\dot{E}_{\rm input}$ is the rate at which energy is being sent through the ``energy input'' pipe and $V_{\rm virial}$ is the virial velocity of the halo. The net cooling rate is never allowed to drop below zero. If the mass heating rate exceeds the mass cooling rate and {\tt [hotHaloExcessHeatDrivesOutflow]}$=${\tt false} then the excess energy is not used and $\dot{M}_{\rm expelled}=0$. Alternatively, if {\tt [hotHaloExcessHeatDrivesOutflow]}$=${\tt true} then
 \begin{equation}
- \dot{J}_{\rm hot} = \dot{M}_{\rm accretion} {\dot{J}_{\rm node} \over \dot{M}_{\rm node}} - \dot{M}_{\rm cooling} r_{\rm cool} V_{\rm rotate} + \dot{J}_{\rm outflow,return},
+ \dot{M}_{\rm expelled} = \left\{ \begin{array}{ll} \alpha_{\rm expel} M_{\rm hot}/\tau_{\rm dynamical} & \hbox{ if } \dot{M}_{\rm heating} - \dot{M}_{\rm cool} > \alpha_{\rm expel} M_{\rm hot}/\tau_{\rm dynamical} \\ \dot{M}_{\rm heating} - \dot{M}_{\rm cool}, & \hbox{ otherwise,} \end{array} \right.
+\end{equation}
+where $\dot{M}_{\rm cool}$ is the intrinsic cooling rate in the halo (i.e. the cooling rate in the absence of any heating) and $\alpha_{\rm expel}=${\tt [hotHaloExpulsionRateMaximum]} limits the maximum rate at which mass can be expelled from the halo.
+
+In the above, $f_{\rm chemical,return}$ if the mass fraction of each chemical species in the outflowed gas and is assumed to be equal to that given by the atomic ionization state functions (see \S\ref{sec:ChemicalStateMethod}) at the virial temperature and mean density of the halo. Finally, $\dot{M}_{\rm chemical,reactions}$ represents the rate of change of masses of chemical species due to chemical and atomic processes and is computed using the chemical rates functions (see \S\ref{sec:ChemicalReactionRates}). The angular momentum of the hot gas evolves as:
+\begin{equation}
+ \dot{J}_{\rm hot} = \dot{M}_{\rm accretion} {\dot{J}_{\rm node} \over \dot{M}_{\rm node}} - \dot{M}_{\rm cooling} r_{\rm cool} V_{\rm rotate} + \dot{J}_{\rm outflow,return} - \dot{M}_{\rm expelled} {J_{\rm hot} \over M_{\rm hot}},
 \end{equation}
 where $\dot{M}_{\rm node}$ and $\dot{J}_{\rm node}$ are defined in \S\ref{sec:ComponentBasicProperties}. For the outflowed components:
 \begin{eqnarray}
