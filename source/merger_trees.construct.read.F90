@@ -571,7 +571,7 @@ contains
        if (cosmologicalParametersGroup%hasAttribute("sigma_8")) then
           call cosmologicalParametersGroup%readAttribute("sigma_8",cosmologicalParameter,allowPseudoScalar=.true.)
           if (Values_Differ(cosmologicalParameter,localSigma8,absTol=0.00001d0)) then
-             message='sigma_0 in merger tree file ['
+             message='sigma_8 in merger tree file ['
              write (valueString,'(e14.8)') cosmologicalParameter
              message=message//trim(valueString)//'] differs from the internal value ['
              write (valueString,'(e14.8)') localSigma8
