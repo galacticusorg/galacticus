@@ -152,7 +152,7 @@ module Tree_Node_Methods_Hot_Halo
   !# </treeNodePipePointer>
 
   ! Configuration variables.
-  logical                     :: starveSatellites,hotHaloOutflowReturnOnFormation,hotHaloExcessHeatDrivesOutflow
+  logical                     :: starveSatellites,hotHaloOutflowReturnOnFormation,hotHaloExcessHeatDrivesOutflow,hotHaloOutflowAngularMomentumAlwaysGrows
   integer                     :: hotHaloCoolingFromNode
   integer,          parameter :: currentNode=0,formationNode=1
   double precision            :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction,hotHaloExpulsionRateMaximum
@@ -301,6 +301,21 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnOnFormation',hotHaloOutflowReturnOnFormation,defaultValue=.false.)
+
+       ! Determine whether negative angular momentum accretion rates onto the halo should be treated as positive for the purposes
+       ! of computing the hot halo angular momentum.
+       !@ <inputParameter>
+       !@   <name>hotHaloOutflowAngularMomentumAlwaysGrows</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive
+       !@     for the purposes of computing the hot halo angular momentum.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloOutflowAngularMomentumAlwaysGrows',hotHaloOutflowAngularMomentumAlwaysGrows,defaultValue=.false.)
 
        ! Determine whether the angular momentum of cooling gas should be computed from the "current node" or the "formation node".
        !@ <inputParameter>
@@ -908,6 +923,7 @@ contains
     if (massAccretionRate > 0.0d0) then
        angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)*(massAccretionRate &
             &/Tree_Node_Mass_Accretion_Rate(thisNode))
+       if (hotHaloOutflowAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
        call Tree_Node_Hot_Halo_Angular_Momentum_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure &
             &,angularMomentumAccretionRate)
     end if
