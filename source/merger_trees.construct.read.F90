@@ -1007,10 +1007,11 @@ contains
     return
   end subroutine Create_Node_Indices
 
-  integer function Node_Location(nodeIndex)
+  function Node_Location(nodeIndex)
     !% Return the location in the original array of the given {\tt nodeIndex}.
     use Arrays_Search
     implicit none
+    integer(fgsl_size_t)                :: Node_Location
     integer(kind=kind_int8), intent(in) :: nodeIndex
     
     Node_Location=nodeLocations(Search_Array(nodeIndicesSorted,nodeIndex))
@@ -1096,7 +1097,7 @@ contains
     type(nodeData),          intent(inout), dimension(:), target :: nodes
     integer(kind=kind_int8)                                      :: iNode
     type(varying_string)                                         :: message
-    integer                                                      :: nodeLocation
+    integer(fgsl_size_t)                                         :: nodeLocation
     
     do iNode=1,size(nodes)
        if (nodes(iNode)%descendentIndex >= 0) then
@@ -1808,7 +1809,8 @@ contains
     type(nodeData),     intent(inout), dimension(:) :: nodes
     type(treeNodeList), intent(inout), dimension(:) :: nodeList
     type(treeNode),     pointer                     :: rootNode,mergeRootNode
-    integer                                         :: iNode,jNode
+    integer                                         :: iNode
+    integer(fgsl_size_t)                            :: jNode
     type(varying_string)                            :: message
  
     if (mergerTreeReadPresetMergerNodes) then
