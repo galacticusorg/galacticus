@@ -175,7 +175,7 @@ module Merger_Tree_Read
   !$omp threadprivate(activeNode,halfMassRadius)
 
   ! Sorted node index list.
-  integer(fgsl_size_t),    allocatable, dimension(:) :: nodeLocations    ,descendentLocations
+  integer(kind=kind_int8), allocatable, dimension(:) :: nodeLocations    ,descendentLocations
   integer(kind=kind_int8), allocatable, dimension(:) :: nodeIndicesSorted,descendentIndicesSorted
 
   ! Type used to store raw data.
@@ -692,6 +692,7 @@ contains
           ! If the end of the list has been reached, exit.
           if (nextTreeToRead > size(mergerTreeFirstNodeIndex)) exit
        end do
+
        ! Flag that we've now found the first merger tree to process.
        mergerTreeReadBeginAt=-1
        if (nextTreeToRead > size(mergerTreeFirstNodeIndex))  then
@@ -738,7 +739,7 @@ contains
              ! Get the start index and extent of the datasets for this tree.
              firstNodeIndex(1)=mergertreeFirstNodeIndex(nextTreeToRead)
              nodeCount     (1)=mergerTreeNodeCount     (nextTreeToRead)
-             
+
              ! Allocate temporary arrays to hold the merger tree data.
              allocate(nodes(nodeCount(1)))
              call Memory_Usage_Record(sizeof(nodes))
@@ -981,7 +982,7 @@ contains
     implicit none
     type(nodeData),          intent(inout), dimension(:)   :: nodes
     integer(kind=HSIZE_T),   intent(in),    dimension(1)   :: nodeCount
-    integer(kind=kind_int8)                                :: iNode
+    integer                                                :: iNode
     type(varying_string)                                   :: message
 
     ! Build a sorted list of node indices with an index into the original arrays.
@@ -991,12 +992,12 @@ contains
     call Alloc_Array(descendentIndicesSorted,int(nodeCount))
     nodeLocations      =Sort_Index_Do(nodes%nodeIndex      )
     descendentLocations=Sort_Index_Do(nodes%descendentIndex)
-    forall (iNode=1:nodeCount(1))
+    forall (iNode=1:int(nodeCount(1)))
        nodeIndicesSorted      (iNode)=nodes(nodeLocations      (iNode))%nodeIndex
        descendentIndicesSorted(iNode)=nodes(descendentLocations(iNode))%descendentIndex
     end forall
     if (Galacticus_Verbosity_Level() >= verbosityWarn) then
-       do iNode=2,nodeCount(1)
+       do iNode=2,int(nodeCount(1))
           if (nodeIndicesSorted(iNode) == nodeIndicesSorted(iNode-1)) then
              message="duplicate node index found ["
              message=message//nodeIndicesSorted(iNode)//']'
@@ -1011,10 +1012,16 @@ contains
     !% Return the location in the original array of the given {\tt nodeIndex}.
     use Arrays_Search
     implicit none
-    integer(fgsl_size_t)                :: Node_Location
+    integer(kind=kind_int8)             :: Node_Location
     integer(kind=kind_int8), intent(in) :: nodeIndex
-    
-    Node_Location=nodeLocations(Search_Array(nodeIndicesSorted,nodeIndex))
+    integer(kind=kind_int8)             :: iNode
+
+    iNode=Search_Array(nodeIndicesSorted,nodeIndex)
+    if (iNode < 1 .or. iNode > size(nodeIndicesSorted)) then
+       Node_Location=1
+    else
+       Node_Location=nodeLocations(iNode)
+    end if
     return
   end function Node_Location
 
@@ -1095,9 +1102,8 @@ contains
     use Galacticus_Display
     implicit none
     type(nodeData),          intent(inout), dimension(:), target :: nodes
-    integer(kind=kind_int8)                                      :: iNode
+    integer(kind=kind_int8)                                      :: iNode,nodeLocation
     type(varying_string)                                         :: message
-    integer(fgsl_size_t)                                         :: nodeLocation
     
     do iNode=1,size(nodes)
        if (nodes(iNode)%descendentIndex >= 0) then
@@ -1142,10 +1148,9 @@ contains
     implicit none
     type(nodeData), intent(inout), dimension(:), target  :: nodes
     type(nodeData),                              pointer :: descendentNode
-    integer(kind=kind_int8)                              :: iNode
+    integer(kind=kind_int8)                              :: iNode,descendentLocation
     logical                                              :: failed,isolatedProgenitorExists,descendentsFound
     integer                                              :: descendentIndex
-    integer(fgsl_size_t)                                 :: descendentLocation
     type(varying_string)                                 :: message
 
     do iNode=1,size(nodes)
@@ -1622,8 +1627,7 @@ contains
     double precision,                       dimension(3) :: satelliteVelocity,hostVelocity,relativeVelocity
     type(keplerOrbit)                                    :: thisOrbit
     integer                                              :: iNode,iIsolatedNode,descendentIndex
-    integer(fgsl_size_t)                                 :: descendentLocation
-    integer(kind=kind_int8)                              :: historyCount
+    integer(kind=kind_int8)                              :: historyCount,descendentLocation
     logical                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge,descendentsFound
     double precision                                     :: timeSubhaloMerges,radiusPericenter,radiusApocenter,radiusVirial
     type(varying_string)                                 :: message
@@ -1810,7 +1814,7 @@ contains
     type(treeNodeList), intent(inout), dimension(:) :: nodeList
     type(treeNode),     pointer                     :: rootNode,mergeRootNode
     integer                                         :: iNode
-    integer(fgsl_size_t)                            :: jNode
+    integer(kind=kind_int8)                         :: jNode
     type(varying_string)                            :: message
  
     if (mergerTreeReadPresetMergerNodes) then
@@ -1871,9 +1875,8 @@ contains
     double precision,   intent(inout), dimension(:,:)         :: position,velocity
     type(nodeData),                                   pointer :: thisNode
     type(treeNode),                                   pointer :: firstProgenitor
-    integer(kind=kind_int8)                                   :: iTime,historyCount
+    integer(kind=kind_int8)                                   :: iTime,historyCount,descendentLocation
     integer                                                   :: iIsolatedNode,iNode,iAxis,descendentIndex
-    integer(fgsl_size_t)                                      :: descendentLocation
     logical                                                   :: endOfBranch,descendentsFound
     double precision                                          :: expansionFactor
     type(varying_string)                                      :: message
