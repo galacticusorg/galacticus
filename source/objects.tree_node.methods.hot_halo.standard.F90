@@ -1619,7 +1619,7 @@ contains
 
     if (.not.gotCoolingRate) then
        if (Tree_Node_Hot_Halo_Mass_Standard(thisNode) > 0.0d0) then
-          ! Get the cooling time.
+          ! Get the cooling rate.
           coolingRate=Cooling_Rate(thisNode)
        else
           coolingRate=0.0d0
@@ -1942,6 +1942,7 @@ contains
     integer(kind=kind_int8), intent(inout)              :: integerBuffer(:,:)
     double precision,        intent(inout)              :: doubleBuffer(:,:)
     double precision,        dimension(abundancesCount) :: hotAbundanceMasses,outflowedAbundanceMasses
+    type(treeNode),                         pointer     :: coolingFromNode
     integer                                             :: iAbundance
 
     if (methodSelected) then
@@ -1967,11 +1968,18 @@ contains
           ! Ensure that we reset so that cooling rate will be re-computed.
           call Tree_Node_Hot_Halo_Reset_Standard(thisNode)
           ! Get and store the cooling rate.
-          call Get_Cooling_Rate(thisNode)
+          call Get_Cooling_Rate                 (thisNode)
+          ! Find the node to use for cooling calculations.
+          select case (hotHaloCoolingFromNode)
+          case (currentNode  )
+             coolingFromNode => thisNode
+          case (formationNode)
+             coolingFromNode => thisNode%formationNode
+          end select
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=coolingRate
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(thisNode)
+          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(coolingFromNode)
        end if
     end if
     return
