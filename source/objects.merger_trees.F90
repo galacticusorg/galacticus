@@ -420,7 +420,7 @@ contains
 #ifdef PROFILE
        !@ <inputParameter>
        !@   <name>profileOdeEvolver</name>
-       !@   <defaultValue>0.01</defaultValue>
+       !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Specifies whether or not to profile the ODE evolver.
