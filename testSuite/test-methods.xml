@@ -381,6 +381,10 @@
 	<value>Cole2000</value>
       </parameter>
       <parameter>
+	<name>hotHaloCoolingFromNode</name>
+	<value>formationNode</value>
+      </parameter>
+      <parameter>
 	<name>hotHaloOutputCooling</name>
 	<value>false</value>
 	<value>true</value>
