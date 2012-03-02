@@ -1590,6 +1590,8 @@ contains
           call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(thisNode,angularMomentum)
           hotHaloMass=Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(parentNode)
           call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,hotHaloMass)
+          hotHaloMass=Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(thisNode)+Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(parentNode)
+          call Tree_Node_Hot_Halo_Unaccreted_Mass_Set_Standard(thisNode,hotHaloMass)
           angularMomentum=Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode)&
                &+Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode)
           call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,angularMomentum)
