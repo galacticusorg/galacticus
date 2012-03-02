@@ -1658,16 +1658,16 @@ contains
                    ! Test the branch.
                    if (.not.associated(thisNode%descendentNode)) then
                       ! No descendent, indicating tip of branch has been reached
-                      branchTipReached        =.true.
-                      endOfBranch             =.true.
-                      historyCount            =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
+                      branchTipReached            =.true.
+                      endOfBranch                 =.true.
+                      historyCount                =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
                    else if (.not.thisNode%descendentNode%isSubhalo) then
                       ! Descendent is not a subhalo, treat as a merging event.  
-                      branchMerges            =.true.
-                      endOfBranch             =.true.
-                      thisNode%mergesWithIndex=thisNode%descendentNode%nodeIndex
-                      historyCount            =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
-                      thisNode                => thisNode%descendentNode
+                      branchMerges                =.true.
+                      endOfBranch                 =.true.
+                      nodes(iNode)%mergesWithIndex=thisNode%descendentNode%nodeIndex
+                      historyCount                =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
+                      thisNode                    => thisNode%descendentNode
                    else
                       ! Merges with another subhalo.
                       descendentIndex=Descendent_Node_Sort_Index(thisNode%descendentNode%nodeIndex)
@@ -1687,11 +1687,11 @@ contains
                                  & ) then
                                ! Another node mergers into current node's descendent subhalo and is more massive than current
                                ! node. Therefore, class this as a subhalo-subhalo merger.
-                               branchMerges            =.true.                                  
-                               endOfBranch             =.true.
-                               thisNode%mergesWithIndex=nodes(descendentLocation)%descendentNode%nodeIndex
-                               historyCount            =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
-                               thisNode                => thisNode%descendentNode
+                               branchMerges                =.true.                                  
+                               endOfBranch                 =.true.
+                               nodes(iNode)%mergesWithIndex=nodes(descendentLocation)%descendentNode%nodeIndex
+                               historyCount                =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
+                               thisNode                    => thisNode%descendentNode
                                exit
                             end if
                             descendentIndex   =descendentIndex-1
