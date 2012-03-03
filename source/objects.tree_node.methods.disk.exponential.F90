@@ -1513,15 +1513,19 @@ contains
     implicit none
     double precision,        intent(in) :: halfRadius
     double precision,        parameter  :: halfRadiusSmall=1.0d-3
+    double precision,        parameter  :: halfRadiusLarge=1.0d+2
     integer                             :: iPoint
     
-    ! For small half-radii, use a series expansion for a more accurate result.
+    ! For small and large half-radii, use a series expansion for a more accurate result.
     if (halfRadius == 0.0d0) then
        Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors=0.0d0
        return
     else if (halfRadius < halfRadiusSmall) then
        Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors=(ln2-log(halfRadius)-eulersConstant-1.0d0)*halfRadius &
             & +(1.5d0*ln2-1.5d0*log(halfRadius)+0.25d0-1.5d0*eulersConstant)*halfRadius**3
+       return
+    else if (halfRadius > halfRadiusLarge) then
+       Exponential_Disk_Rotation_Curve_Gradient_Bessel_Factors=-0.125d0-27.0d0/64.0d0/halfRadius**2
        return
     end if
 
