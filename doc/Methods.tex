@@ -961,7 +961,7 @@ Currently defined cooling rate methods are:
  \begin{equation}
   \dot{M}_{\rm cool} = 4 \pi \rho(r_{\rm infal}) r_{\rm infall}^2 \dot{r}_{\rm infall}
  \end{equation}
- if the infall radius is within the virial radius and
+ if the infall radius is within the outer radius of the hot halo and
  \begin{equation}
   \dot{M}_{\rm cool} = {M_{\rm hot} \over \tau_{\rm dynamical,halo}}
  \end{equation}
@@ -1655,16 +1655,6 @@ Currently defined critical overdensity methods are:
  \item [{\tt sphericalTopHat}] The critical overdensity is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
 \end{description}
 
-
-
-
-
-
-
-
-
-
-
 \subsubsection{Critical Overdensity for Halo Collapse: Mass Scaling}
 
 Additional methods for the mass scaling of the critical linear theory overdensity for halo collapse can be added using the {\tt criticalOverdensityMassScalingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt warm dark matter} method is described by a directive:
@@ -1709,13 +1699,6 @@ Currently defined critical overdensity mass scaling methods are:
  \item [{\tt null}] The critical overdensity is assumed to have no scaling with mass;
  \item [{\tt warm dark matter}] The mass scaling is computed for warm dark matter using a fitting function to the results of \cite{barkana_constraints_2001}.
 \end{description}
-
-
-
-
-
-
-
 
 \subsubsection{Dark Matter Density Profile}
 
@@ -2209,7 +2192,7 @@ Currently defined hot halo density profile methods are:
  \begin{equation}
   \rho(r) = {\rho_0 \over 1 + (r/r_{\rm core})^2}
  \end{equation}
- where the normalization is chosen to ensure the correct hot halo mass within the virial radius, and $r_{\rm core}$ is set using the selected cored isothermal core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}).
+ where the normalization is chosen to ensure the correct hot halo mass within the outer radius of the hot halo, and $r_{\rm core}$ is set using the selected cored isothermal core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}).
  \item [\hyperlink{hot_halo.density_profile.null.F90:hot_halo_density_profile_null:hot_halo_density_null_get}{{\tt null}}] A null implementation that assumes zero density always.
 \end{description}
 
@@ -2251,6 +2234,46 @@ Currently defined hot halo cored isothermal density profile core radii methods a
 \begin{description}
  \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.virial_radius_fraction.F90:hot_halo_density_cored_isothermal_core_radii_virial_fraction:hot_halo_density_cored_isothermal_core_radius_virial_fraction}{{\tt virialRadiusFraction}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
  \item [\hyperlink{hot_halo.density_profile.cored_isothermal.core_radius.growing_core.F90:hot_halo_density_cored_isothermal_core_radii_growing_core:hot_halo_density_cored_isothermal_core_radius_growing_core}{{\tt growingCore}}] Implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+\end{description}
+
+\subsubsection{Hot Halo Ram Pressure Stripping Radius}
+
+Additional methods for the ram pressure stripping radius in hot halos can be added using the {\tt hotHaloRamPressureStrippingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt virialRadius} method is described by a directive:
+\begin{verbatim}
+ !# <hotHaloRamPressureStrippingMethod>
+ !#  <unitName>Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize</unitName>
+ !# </hotHaloRamPressureStrippingMethod>
+\end{verbatim}
+Here, {\tt Hot\_Halo\_Ram\_Pressure\_Stripping\_Virial\_Radii\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: hotHaloRamPressureStrippingMethod
+    procedure(),          pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Stripping_Get
+    
+    if (hotHaloRamPressureStrippingMethod == 'myMethod') Hot_Halo_Ram_Pressure_Stripping_Get => My_Hot_Halo_Ram_Pressure_Stripping_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt hotHaloRamPressureStrippingMethod} input parameter. The procedure pointer {\tt Hot\_Halo\_Ram\_Pressure\_Stripping\_Get} must be set to point to a function which returns the radius to which the hot halo is stripped by ram pressure forces. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The ram pressure stripping radius function must have the form:
+\begin{verbatim}
+ double precision function Hot_Halo_Ram_Pressure_Stripping_Get(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+ end function Hot_Halo_Ram_Pressure_Stripping_Get
+\end{verbatim}
+The function must return the radius (in units of Mpc) to which the hot halo of {\tt thisNode} is stripped by ram pressure forces.
+
+Currently defined hot halo ram pressure stripping radii methods are:
+\begin{description}
+ \item [\hyperlink{hot_halo.ram_pressure_stripping.virial_radius.F90:hot_halo_ram_pressure_stripping_virial_radii:hot_halo_ram_pressure_stripping_virial_radius}{{\tt virialRadius}}] Sets the ram pressure stripping radius equal to the virial radius always---effectively resulting in no ram pressure stripping.
+ \item [\hyperlink{hot_halo.ram_pressure_stripping.Font2008.F90:hot_halo_ram_pressure_stripping_font2008:hot_halo_ram_pressure_stripping_font2008_get}{{\tt Font2008}}] Computes the ram pressure stripping radius using the algorithm of \cite{font_colours_2008}.
 \end{description}
 
 \subsubsection{Hot Halo Temperature Profile}

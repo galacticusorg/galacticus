@@ -84,13 +84,16 @@ module Tree_Node_Methods_Hot_Halo
   !$omp threadprivate(chemicalsValue,chemicalsWork,chemicalsCoolingRate,chemicalsAccretionRate,chemicalsChemicalRates)
 
   ! Property indices.
-  integer, parameter :: propertyCountBase=5, dataCount=0, historyCount=0
+  integer, parameter :: propertyCountBase=6, dataCount=0, historyCount=0
   integer            :: propertyCount
   integer, parameter :: massIndex                    =1
   integer, parameter :: angularMomentumIndex         =2
   integer, parameter :: outflowedMassIndex           =3
   integer, parameter :: outflowedAngularMomentumIndex=4
   integer, parameter :: unaccretedMassIndex          =5
+  integer, parameter :: outerRadiusIndex             =6
+  integer            :: strippedMassIndex
+  integer            :: strippedAbundancesIndex ,strippedAbundancesIndexEnd
   integer            :: hotAbundancesIndex      ,hotAbundancesIndexEnd
   integer            :: outflowedAbundancesIndex,outflowedAbundancesIndexEnd
   integer            :: hotChemicalsIndex       ,hotChemicalsIndexEnd
@@ -119,6 +122,15 @@ module Tree_Node_Methods_Hot_Halo
   !# </treeNodeMethodsPointer>
   !# <treeNodeMethodsPointer type="array">
   !#  <methodName>Tree_Node_Hot_Halo_Outflowed_Abundances</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer>
+  !#  <methodName>Tree_Node_Hot_Halo_Outer_Radius</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer>
+  !#  <methodName>Tree_Node_Hot_Halo_Stripped_Mass</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer type="array">
+  !#  <methodName>Tree_Node_Hot_Halo_Stripped_Abundances</methodName>
   !# </treeNodeMethodsPointer>
 
   ! Define pipes.
@@ -155,19 +167,23 @@ module Tree_Node_Methods_Hot_Halo
   logical                     :: starveSatellites,hotHaloOutflowReturnOnFormation,hotHaloExcessHeatDrivesOutflow,hotHaloOutflowAngularMomentumAlwaysGrows
   integer                     :: hotHaloCoolingFromNode
   integer,          parameter :: currentNode=0,formationNode=1
-  double precision            :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction,hotHaloExpulsionRateMaximum
+  double precision            :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction,hotHaloExpulsionRateMaximum&
+       &,hotHaloOutflowStrippingEfficiency
 
   ! Quantities stored to avoid repeated computation.
-  logical          :: gotCoolingRate=.false.,gotAngularMomentumCoolingRate=.false.
-  double precision :: coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining
+  logical                     :: gotCoolingRate=.false.,gotAngularMomentumCoolingRate=.false.
+  double precision            :: coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
 
   ! Output controls.
-  logical          :: hotHaloOutputCooling
+  logical                     :: hotHaloOutputCooling
 
   ! Radiation structure.
-  type(radiationStructure) :: radiation
+  type(radiationStructure)    :: radiation
   !$omp threadprivate(radiation)
+
+  ! Tracked properties control.
+  logical                     :: hotHaloTrackStrippedGas
 
 contains
 
@@ -215,15 +231,6 @@ contains
        call Alloc_Array(chemicalsAccretionRate,[chemicalsCount])
        call Alloc_Array(chemicalsChemicalRates,[chemicalsCount])
 
-       ! Assign indices to properties.
-       hotAbundancesIndex         =propertyCountBase                          +1
-       hotAbundancesIndexEnd      =hotAbundancesIndex         +abundancesCount-1
-       outflowedAbundancesIndex   =hotAbundancesIndexEnd                      +1
-       outflowedAbundancesIndexEnd=outflowedAbundancesIndex   +abundancesCount-1
-       hotChemicalsIndex          =outflowedAbundancesIndexEnd                +1
-       hotChemicalsIndexEnd       =hotChemicalsIndex          +chemicalsCount -1
-       propertyCount              =hotChemicalsIndexEnd
-
        ! Set up procedure pointers.
        ! Unaccreted mass reservoir:
        Tree_Node_Hot_Halo_Unaccreted_Mass                   => Tree_Node_Hot_Halo_Unaccreted_Mass_Standard
@@ -247,7 +254,11 @@ contains
        Tree_Node_Hot_Halo_Chemicals_Set                     => Tree_Node_Hot_Halo_Chemicals_Set_Standard
        Tree_Node_Hot_Halo_Chemicals_Rate_Adjust             => Tree_Node_Hot_Halo_Chemicals_Rate_Adjust_Standard
        Tree_Node_Hot_Halo_Chemicals_Rate_Compute            => Tree_Node_Hot_Halo_Chemicals_Rate_Compute_Standard
-       ! Outflowed gas reservoier:
+       Tree_Node_Hot_Halo_Outer_Radius                      => Tree_Node_Hot_Halo_Outer_Radius_Standard
+       Tree_Node_Hot_Halo_Outer_Radius_Set                  => Tree_Node_Hot_Halo_Outer_Radius_Set_Standard
+       Tree_Node_Hot_Halo_Outer_Radius_Rate_Adjust          => Tree_Node_Hot_Halo_Outer_Radius_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Outer_Radius_Rate_Compute         => Tree_Node_Hot_Halo_Outer_Radius_Rate_Compute_Standard
+       ! Outflowed gas reservoir:
        Tree_Node_Hot_Halo_Outflowed_Mass                    => Tree_Node_Hot_Halo_Outflowed_Mass_Standard
        Tree_Node_Hot_Halo_Outflowed_Mass_Set                => Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard
        Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust        => Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard
@@ -260,7 +271,16 @@ contains
        Tree_Node_Hot_Halo_Outflowed_Abundances_Set          => Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard
        Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Adjust  => Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Adjust_Standard
        Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Compute => Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Compute_Standard
-       
+       ! Stripped gas reservoir:
+       Tree_Node_Hot_Halo_Stripped_Mass                     => Tree_Node_Hot_Halo_Stripped_Mass_Standard
+       Tree_Node_Hot_Halo_Stripped_Mass_Set                 => Tree_Node_Hot_Halo_Stripped_Mass_Set_Standard
+       Tree_Node_Hot_Halo_Stripped_Mass_Rate_Adjust         => Tree_Node_Rate_Adjust_Dummy
+       Tree_Node_Hot_Halo_Stripped_Mass_Rate_Compute        => Tree_Node_Rate_Rate_Compute_Dummy
+       Tree_Node_Hot_Halo_Stripped_Abundances               => Tree_Node_Hot_Halo_Stripped_Abundances_Standard
+       Tree_Node_Hot_Halo_Stripped_Abundances_Set           => Tree_Node_Hot_Halo_Stripped_Abundances_Set_Standard
+       Tree_Node_Hot_Halo_Stripped_Abundances_Rate_Adjust   => Tree_Node_Rate_Adjust_Array_Dummy
+       Tree_Node_Hot_Halo_Stripped_Abundances_Rate_Compute  => Tree_Node_Rate_Rate_Compute_Dummy
+
        ! Set externally connected pipes to dummy procedures if not already connected elsewhere.
        if (.not.associated(Tree_Node_Hot_Halo_Cooling_Mass_To            )) &
             & Tree_Node_Hot_Halo_Cooling_Mass_To             => Tree_Node_Rate_Adjust_Dummy
@@ -270,9 +290,9 @@ contains
             & Tree_Node_Hot_Halo_Cooling_Abundances_To       => Tree_Node_Rate_Adjust_Array_Dummy
 
        ! Set internally connected pipes to our procedures.
-       Tree_Node_Hot_Halo_Outflow_Mass_To             => Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard
-       Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To => Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Rate_Adjust_Standard
-       Tree_Node_Hot_Halo_Outflow_Abundances_To       => Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Adjust_Standard
+       Tree_Node_Hot_Halo_Outflow_Mass_To             => Tree_Node_Hot_Halo_Outflow_Mass_To_Standard
+       Tree_Node_Hot_Halo_Outflow_Angular_Momentum_To => Tree_Node_Hot_Halo_Outflowed_Ang_Mom_To_Standard
+       Tree_Node_Hot_Halo_Outflow_Abundances_To       => Tree_Node_Hot_Halo_Outflowed_Abundances_To_Standard
        Tree_Node_Hot_Halo_Hot_Gas_Sink                => Tree_Node_Hot_Halo_Hot_Gas_Sink_Rate_Adjust_Standard
        Tree_Node_Hot_Halo_Heat_Input                  => Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard
 
@@ -288,6 +308,19 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('starveSatellites',starveSatellites,defaultValue=.true.)
+
+       ! Determine whether stripped material should be tracked.
+       !@ <inputParameter>
+       !@   <name>hotHaloTrackStrippedGas</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not gas stripped from the hot halo should be tracked.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloTrackStrippedGas',hotHaloTrackStrippedGas,defaultValue=.false.)
 
        ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
        !@ <inputParameter>
@@ -364,6 +397,18 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=5.0d0)
 
+       ! Get efficiency with which outflowing gas is stripped from the hot halo.
+       !@ <inputParameter>
+       !@   <name>hotHaloOutflowStrippingEfficiency</name>
+       !@   <defaultValue>0.1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_{\rm strip}$ in their eqn.~6).
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloOutflowStrippingEfficiency',hotHaloOutflowStrippingEfficiency,defaultValue=0.1d0)
 
        ! Get the maximum rate (in units of halo inverse dynamical time) at which gas can be expelled from the halo.
        !@ <inputParameter>
@@ -403,6 +448,22 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloOutputCooling',hotHaloOutputCooling,defaultValue=.false.)
+
+       ! Assign indices to properties.
+       propertyCount=propertyCountBase
+       hotAbundancesIndex             =propertyCount                              +1
+       hotAbundancesIndexEnd          =hotAbundancesIndex         +abundancesCount-1
+       outflowedAbundancesIndex       =hotAbundancesIndexEnd                      +1
+       outflowedAbundancesIndexEnd    =outflowedAbundancesIndex   +abundancesCount-1
+       hotChemicalsIndex              =outflowedAbundancesIndexEnd                +1
+       hotChemicalsIndexEnd           =hotChemicalsIndex          +chemicalsCount -1
+       propertyCount                  =hotChemicalsIndexEnd
+       if (hotHaloTrackStrippedGas) then
+          strippedMassIndex           =propertyCount                              +1
+          strippedAbundancesIndex     =propertyCount                              +2
+          strippedAbundancesIndexEnd  =strippedAbundancesIndex    +abundancesCount-1
+          propertyCount=strippedAbundancesIndexEnd
+       end if
 
     end if
     return
@@ -463,24 +524,58 @@ contains
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: parentNode
 
-    if (thisNode%isSatellite().and.starveSatellites) then
-       ! Transfer any outflowed gas to the hot halo of the parent node.
-       parentNode => thisNode%parentNode
-       do while (parentNode%isSatellite())
-          parentNode => parentNode%parentNode
-       end do
-       call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(parentNode&
-            &,Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode)+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)&
-            &*Tree_Node_Spin(parentNode)*Dark_Matter_Halo_Virial_Radius(parentNode)*Dark_Matter_Halo_Virial_Velocity(parentNode))
-       call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,0.0d0)
-       call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(parentNode,Tree_Node_Hot_Halo_Outflowed_Mass_Standard(parentNode) &
-            &+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode))
-       call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,0.0d0)
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(parentNode,abundancesParent)
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode  ,abundancesWork  )
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(parentNode,abundancesWork+abundancesParent)
-       abundancesWork(:)=0.0d0
-       call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode,abundancesWork)
+    if (thisNode%isSatellite()) then
+       ! Test whether satellites are being starved.
+       if (starveSatellites) then
+          ! They are, so transfer any outflowed gas to the hot halo of the parent node.
+          parentNode => thisNode%parentNode
+          do while (parentNode%isSatellite())
+             parentNode => parentNode%parentNode
+          end do
+          call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard   (parentNode,&
+               &                                                                Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode) &
+               &                                                               +Tree_Node_Hot_Halo_Outflowed_Mass_Standard   (thisNode  ) &
+               &                                                               *Tree_Node_Spin                               (parentNode) &
+               &                                                               *Dark_Matter_Halo_Virial_Radius               (parentNode) &
+               &                                                               *Dark_Matter_Halo_Virial_Velocity             (parentNode) &
+               &                                                   )
+          call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard   (thisNode  ,                          0.0d0)
+          call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard      (parentNode,&
+               &                                                                Tree_Node_Hot_Halo_Outflowed_Mass_Standard   (parentNode) &
+               &                                                               +Tree_Node_Hot_Halo_Outflowed_Mass_Standard   (thisNode  ) &
+               &                                                   )
+          call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard      (thisNode  ,                          0.0d0)
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard    (parentNode,               abundancesParent)
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard    (thisNode  ,abundancesWork                 )
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(parentNode,abundancesWork+abundancesParent)
+          abundancesWork(:)=0.0d0
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(thisNode  ,abundancesWork                 )
+       end if
+       ! Check if stripped mass is being tracked.
+       if (hotHaloTrackStrippedGas) then
+          ! Transfer any stripped gas to the host halo.
+          parentNode => thisNode%parentNode
+          do while (parentNode%isSatellite())
+             parentNode => parentNode%parentNode
+          end do
+          call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard   (parentNode,&
+               &                                                                Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode) &
+               &                                                               +Tree_Node_Hot_Halo_Stripped_Mass_Standard    (thisNode  ) &
+               &                                                               *Tree_Node_Spin                               (parentNode) &
+               &                                                               *Dark_Matter_Halo_Virial_Radius               (parentNode) &
+               &                                                               *Dark_Matter_Halo_Virial_Velocity             (parentNode) &
+               &                                                   )
+          call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard      (parentNode,&
+               &                                                                Tree_Node_Hot_Halo_Outflowed_Mass_Standard   (parentNode) &
+               &                                                               +Tree_Node_Hot_Halo_Stripped_Mass_Standard    (thisNode  ) &
+               &                                                   )
+          call Tree_Node_Hot_Halo_Stripped_Mass_Set_Standard       (thisNode  ,                          0.0d0)
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard    (parentNode,               abundancesParent)
+          call Tree_Node_Hot_Halo_Stripped_Abundances_Standard     (thisNode  ,abundancesWork                 )
+          call Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard(parentNode,abundancesWork+abundancesParent)
+          abundancesWork(:)=0.0d0
+          call Tree_Node_Hot_Halo_Stripped_Abundances_Set_Standard (thisNode  ,abundancesWork                 )
+       end if
     end if
     return
   end subroutine Tree_Node_Hot_Halo_Post_Evolve_Standard
@@ -488,9 +583,9 @@ contains
   double precision function Tree_Node_Hot_Halo_Mass_Standard(thisNode,instance)
     !% Return the node hot halo mass.
     implicit none
-    integer, intent(in), optional :: instance
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
+    integer,        intent(in   ), optional :: instance
+    type(treeNode), intent(inout), pointer  :: thisNode
+    integer                                 :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
@@ -583,19 +678,53 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Hot_Gas_All_Rate_Adjust_Standard
 
+  subroutine Tree_Node_Hot_Halo_Stripped_Gas_All_Rate_Adjust_Standard(thisNode,gasMassRate)
+    !% Adjusts the rates of all components of the stripped gas reservoir under the assumption of uniformly distributed properties
+    !% (e.g. fully-mixed metals).
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: gasMassRate
+    integer                                  :: thisIndex
+    double precision                         :: gasMass
+
+    ! Exit immediately for zero rate.
+    if (gasMassRate == 0.0d0) return
+
+    ! Get the index of the component.
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)    
+
+    ! Get the gas mass present.
+    gasMass=thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue)
+
+    ! If gas is present, adjust the rates.
+    if (gasMass > 0.0d0) then
+       ! Mass.
+       thisNode         %components(thisIndex)%instance(1)%properties(strippedMassIndex                                      ,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties(strippedMassIndex                                      ,propertyDerivative) &
+            &  +gasMassRate
+       ! Metal abundances.
+       thisNode         %components(thisIndex)%instance(1)%properties(strippedAbundancesIndex     :strippedAbundancesIndexEnd,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties(strippedAbundancesIndex     :strippedAbundancesIndexEnd,propertyDerivative) & 
+            &  +thisNode%components(thisIndex)%instance(1)%properties(strippedAbundancesIndex     :strippedAbundancesIndexEnd,propertyValue     ) &
+            &  *(gasMassRate/gasMass)
+    end if
+  
+    return
+  end subroutine Tree_Node_Hot_Halo_Stripped_Gas_All_Rate_Adjust_Standard
+
   subroutine Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% An incoming pipe that for sources of heating to the hot halo.
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    logical,                   intent(inout) :: interrupt
-    procedure(),      pointer, intent(inout) :: interruptProcedure
-    procedure(),      pointer                :: interruptProcedurePassed
-    double precision,          intent(in)    :: rateAdjustment
-    integer,          intent(in), optional   :: instance
-    integer                                  :: thisIndex
-    double precision                         :: massHeatingRate,inputMassHeatingRate,excessMassHeatingRate
+    type(treeNode),   pointer,  intent(inout) :: thisNode
+    logical,                    intent(inout) :: interrupt
+    procedure(),      pointer,  intent(inout) :: interruptProcedure
+    procedure(),      pointer                 :: interruptProcedurePassed
+    double precision,           intent(in)    :: rateAdjustment
+    integer,          optional, intent(in)    :: instance
+    integer                                   :: thisIndex
+    double precision                          :: massHeatingRate,inputMassHeatingRate,excessMassHeatingRate
     
     ! Trap cases where an attempt is made to remove energy via this input function.
     if (rateAdjustment < 0.0d0) call Galacticus_Error_Report('Tree_Node_Hot_Halo_Heat_Input_Rate_Adjust_Standard','attempt to remove energy via heat input pipe in hot halo')
@@ -767,6 +896,102 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard
 
+  double precision function Tree_Node_Hot_Halo_Outer_Radius_Standard(thisNode,instance)
+    !% Return the node hot halo mass.
+    implicit none
+    integer,        optional, intent(in   ) :: instance
+    type(treeNode), pointer,  intent(inout) :: thisNode
+    integer                                 :: thisIndex
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+       Tree_Node_Hot_Halo_Outer_Radius_Standard=thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyValue)
+    else
+       Tree_Node_Hot_Halo_Outer_Radius_Standard=0.0d0
+    end if
+    return
+  end function Tree_Node_Hot_Halo_Outer_Radius_Standard
+
+  subroutine Tree_Node_Hot_Halo_Outer_Radius_Set_Standard(thisNode,radius,instance)
+    !% Set the node hot halo mass.
+    implicit none
+    integer,          optional, intent(in   ) :: instance
+    type(treeNode),   pointer,  intent(inout) :: thisNode
+    double precision,           intent(in   ) :: radius
+    integer                                   :: thisIndex
+
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyValue)=radius
+    return
+  end subroutine Tree_Node_Hot_Halo_Outer_Radius_Set_Standard
+
+  subroutine Tree_Node_Hot_Halo_Outer_Radius_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
+    !% Return the node hot halo mass rate of change.
+    use Cosmological_Parameters
+    implicit none
+    type(treeNode),   pointer,  intent(inout) :: thisNode
+    logical,                    intent(inout) :: interrupt
+    procedure(),      pointer,  intent(inout) :: interruptProcedure
+    double precision,           intent(in)    :: rateAdjustment
+    integer,          optional, intent(in)    :: instance
+    integer                                   :: thisIndex
+    
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyDerivative)&
+         &=thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyDerivative)+rateAdjustment
+    return
+  end subroutine Tree_Node_Hot_Halo_Outer_Radius_Rate_Adjust_Standard
+
+  subroutine Tree_Node_Hot_Halo_Outer_Radius_Rate_Compute_Standard(thisNode,interrupt,interruptProcedure)
+    !% Compute the hot halo node mass rate of change.
+    use Accretion_Halos
+    use Hot_Halo_Density_Profile
+    use Hot_Halo_Ram_Pressure_Stripping
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    logical,                 intent(inout) :: interrupt
+    procedure(),    pointer, intent(inout) :: interruptProcedure
+    double precision                       :: ramPressureRadius,outerRadius,angularMomentumLossRate,densityAtOuterRadius&
+         &,outerRadiusGrowthRate,massLossRate
+    integer                                :: thisIndex
+
+    ! Return immediately if no hot halo exists.
+    if (.not.thisNode%componentExists(componentIndex)) return
+
+    ! The the index of this component.
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+
+    ! Test whether this halo is a satellire or not.
+    if (thisNode%isSatellite()) then
+       ! For satellites, get the current ram pressure stripping radius for this hot halo.
+       ramPressureRadius=Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
+       outerRadius      =thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyValue)
+       ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
+       if (ramPressureRadius < outerRadius) then
+          ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
+          ! stripping radius on the halo dynamical timescale.
+          densityAtOuterRadius =Hot_Halo_Density(thisNode,outerRadius)
+          outerRadiusGrowthRate=(ramPressureRadius-outerRadius)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+          if (outerRadius <= Dark_Matter_Halo_Virial_Radius(thisNode)) then
+             massLossRate         =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
+             call Tree_Node_Hot_Halo_Hot_Gas_All_Rate_Adjust_Standard     (thisNode,+massLossRate)
+             call Tree_Node_Hot_Halo_Stripped_Gas_All_Rate_Adjust_Standard(thisNode,-massLossRate)
+          end if
+       else
+          ! The ram pressure stripping radius is larger than the current outer radius of the hot halo. Therefore, the outer radius
+          ! does not change.
+          thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyDerivative)=0.0d0
+       end if
+    else
+       ! For isolated halos, the outer radius should grow with the virial radius.
+       thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyDerivative)&
+            &=Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)
+    end if
+    return
+  end subroutine Tree_Node_Hot_Halo_Outer_Radius_Rate_Compute_Standard
+
   double precision function Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(thisNode,instance)
     !% Return the node unaccreted hot halo mass.
     implicit none
@@ -819,7 +1044,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
-    procedure(), pointer, intent(inout) :: interruptProcedure
+    procedure(),    pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
     double precision                       :: massAccretionRate,failedMassAccretionRate
 
@@ -853,9 +1078,9 @@ contains
   double precision function Tree_Node_Hot_Halo_Angular_Momentum_Standard(thisNode,instance)
     !% Return the node hot halo angular momentum.
     implicit none
-    integer, intent(in), optional :: instance
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
+    integer,        intent(in   ), optional :: instance
+    type(treeNode), intent(inout), pointer  :: thisNode
+    integer                                 :: thisIndex
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
@@ -1149,19 +1374,68 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard
 
+  double precision function Hot_Halo_Outflow_Stripped_Fraction(thisNode)
+    !% Compute the fraction of material outflowing into the hot halo of {\tt thisNode} which is susceptible to being stripped
+    !% away.
+    use Hot_Halo_Density_Profile
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision                         :: radiusOuter,radiusVirial,massOuter,massVirial
+
+    radiusOuter =Tree_Node_Hot_Halo_Outer_Radius(thisNode             )
+    radiusVirial=Dark_Matter_Halo_Virial_Radius (thisNode             )
+    massOuter   =Hot_Halo_Enclosed_Mass         (thisNode,radiusOuter )
+    massVirial  =Hot_Halo_Enclosed_Mass         (thisNode,radiusVirial)
+    if (massVirial > 0.0d0) then
+       Hot_Halo_Outflow_Stripped_Fraction=hotHaloOutflowStrippingEfficiency*massOuter/massVirial
+    else
+       Hot_Halo_Outflow_Stripped_Fraction=hotHaloOutflowStrippingEfficiency
+    end if
+    return
+  end function Hot_Halo_Outflow_Stripped_Fraction
+
+  subroutine Tree_Node_Hot_Halo_Outflow_Mass_To_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
+    !% Accept outflowing gas from a galaxy and deposit it into the outflowed and stripped reservoirs.
+    implicit none
+    integer,          intent(in   ), optional :: instance
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    logical,          intent(inout)           :: interrupt
+    procedure(),      intent(inout), pointer  :: interruptProcedure
+    double precision, intent(in  )            :: rateAdjustment
+    integer                                   :: thisIndex
+    double precision                          :: strippedOutflowFraction
+    
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    if (thisNode%isSatellite().and.hotHaloTrackStrippedGas) then
+       strippedOutflowFraction=Hot_Halo_Outflow_Stripped_Fraction(thisNode)
+       thisNode         %components(thisIndex)%instance(1)%properties( strippedMassIndex,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties( strippedMassIndex,propertyDerivative) &
+            &  +rateAdjustment*       strippedOutflowFraction
+    else
+       strippedOutflowFraction=0.0d0
+    end if
+    ! Funnel the outflow gas into the outflowed and stripped reservoirs in the computed proportions.
+    thisNode            %components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyDerivative) &
+         &    = thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyDerivative) &
+         &     +rateAdjustment*(1.0d0-strippedOutflowFraction)
+    return
+  end subroutine Tree_Node_Hot_Halo_Outflow_Mass_To_Standard
+
   subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo mass rate of change.
     implicit none
-    integer, intent(in), optional :: instance
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    logical,                   intent(inout) :: interrupt
-    procedure(), pointer, intent(inout) :: interruptProcedure
-    double precision,          intent(in)    :: rateAdjustment
-    integer                                  :: thisIndex
+    integer,          intent(in   ), optional :: instance
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    logical,          intent(inout)           :: interrupt
+    procedure(),      intent(inout), pointer  :: interruptProcedure
+    double precision, intent(in  )            :: rateAdjustment
+    integer                                   :: thisIndex
     
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-    thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyDerivative)+rateAdjustment
+    thisNode         %components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyDerivative) &
+         & = thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex,propertyDerivative) &
+         &  +rateAdjustment
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Mass_Rate_Adjust_Standard
 
@@ -1264,6 +1538,29 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard
 
+  subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_To_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
+    !% Return the node hot halo mass rate of change.
+    implicit none
+    integer,          intent(in   ), optional :: instance
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    logical,          intent(inout)           :: interrupt
+    procedure(),      intent(inout), pointer  :: interruptProcedure
+    double precision, intent(in   )           :: rateAdjustment
+    integer                                   :: thisIndex
+    double precision                          :: strippedOutflowFraction
+
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    if (thisNode%isSatellite().and.hotHaloTrackStrippedGas) then
+       strippedOutflowFraction=Hot_Halo_Outflow_Stripped_Fraction(thisNode)
+    else
+       strippedOutflowFraction=0.0d0
+    end if
+    thisNode         %components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex,propertyDerivative) &
+         & = thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex,propertyDerivative) &
+         &  +rateAdjustment*(1.0d0-strippedOutflowFraction)
+    return
+  end subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_To_Standard
+
   subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo mass rate of change.
     implicit none
@@ -1330,6 +1627,31 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_Set_Standard
 
+  subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_To_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+    !% Return the node hot halo mass rate of change.
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    logical,          intent(inout)          :: interrupt
+    procedure(),      intent(inout), pointer :: interruptProcedure
+    double precision, intent(in   )          :: rateAdjustment(:)
+    integer                                  :: thisIndex
+    double precision                         :: strippedOutflowFraction
+
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    if (thisNode%isSatellite().and.hotHaloTrackStrippedGas) then
+       strippedOutflowFraction=Hot_Halo_Outflow_Stripped_Fraction(thisNode)
+       thisNode         %components(thisIndex)%instance(1)%properties(strippedAbundancesIndex :strippedAbundancesIndexEnd ,propertyDerivative) &
+            & = thisNode%components(thisIndex)%instance(1)%properties(strippedAbundancesIndex :strippedAbundancesIndexEnd ,propertyDerivative) &
+            &  +rateAdjustment*       strippedOutflowFraction
+    else
+       strippedOutflowFraction=0.0d0
+    end if
+    thisNode            %components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyDerivative) &
+         &    = thisNode%components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyDerivative) &
+         &     +rateAdjustment*(1.0d0-strippedOutflowFraction)
+    return
+  end subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_To_Standard
+
   subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
     !% Return the node hot halo mass rate of change.
     implicit none
@@ -1366,6 +1688,79 @@ contains
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Abundances_Rate_Compute_Standard
 
+  double precision function Tree_Node_Hot_Halo_Stripped_Mass_Standard(thisNode,instance)
+    !% Return the node hot halo mass.
+    implicit none
+    integer, intent(in), optional :: instance
+    type(treeNode), pointer, intent(inout) :: thisNode
+    integer                                :: thisIndex
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+       Tree_Node_Hot_Halo_Stripped_Mass_Standard=thisNode%components(thisIndex)%instance(1)%properties(strippedMassIndex,propertyValue)
+    else
+       Tree_Node_Hot_Halo_Stripped_Mass_Standard=0.0d0
+    end if
+    return
+  end function Tree_Node_Hot_Halo_Stripped_Mass_Standard
+
+  subroutine Tree_Node_Hot_Halo_Stripped_Mass_Set_Standard(thisNode,mass,instance)
+    !% Set the node hot halo mass.
+    implicit none
+    integer, intent(in), optional :: instance
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: mass
+    integer                                  :: thisIndex
+
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    thisNode%components(thisIndex)%instance(1)%properties(strippedMassIndex,propertyValue)=mass
+    return
+  end subroutine Tree_Node_Hot_Halo_Stripped_Mass_Set_Standard
+
+  subroutine Tree_Node_Hot_Halo_Stripped_Abundances_Standard(thisNode,abundances)
+    !% Return the node hot halo angular momentum.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(out)   :: abundances(:)
+    integer                                  :: thisIndex
+
+    if (thisNode%componentExists(componentIndex)) then
+       thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+       abundances(:)=thisNode%components(thisIndex)%instance(1)%properties(strippedAbundancesIndex:strippedAbundancesIndexEnd,propertyValue)
+    else
+       abundances(:)=0.0d0
+    end if
+    return
+  end subroutine Tree_Node_Hot_Halo_Stripped_Abundances_Standard
+
+  subroutine Tree_Node_Hot_Halo_Stripped_Abundances_Set_Standard(thisNode,abundances)
+    !% Set the node hot halo angular momentum.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    double precision,          intent(in)    :: abundances(:)
+    integer                                  :: thisIndex
+
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    thisNode%components(thisIndex)%instance(1)%properties(strippedAbundancesIndex:strippedAbundancesIndexEnd,propertyValue)=abundances
+    return
+  end subroutine Tree_Node_Hot_Halo_Stripped_Abundances_Set_Standard
+
+  subroutine Tree_Node_Hot_Halo_Stripped_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment)
+    !% Return the node hot halo mass rate of change.
+    implicit none
+    type(treeNode),   pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(), pointer, intent(inout) :: interruptProcedure
+    double precision,          intent(in)    :: rateAdjustment(:)
+    integer                                  :: thisIndex
+    
+    thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    thisNode%components(thisIndex)%instance(1)%properties(strippedAbundancesIndex:strippedAbundancesIndexEnd,propertyDerivative) &
+         &=thisNode%components(thisIndex)%instance(1)%properties(strippedAbundancesIndex:strippedAbundancesIndexEnd,propertyDerivative)&
+         &+rateAdjustment
+    return
+  end subroutine Tree_Node_Hot_Halo_Stripped_Abundances_Rate_Adjust_Standard
+
   !# <scaleSetTask>
   !#  <unitName>Hot_Halo_Scale_Set</unitName>
   !# </scaleSetTask>
@@ -1374,7 +1769,8 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision, parameter              :: scaleMassRelative=1.0d-3
+    double precision, parameter              :: scaleMassRelative  =1.0d-3
+    double precision, parameter              :: scaleRadiusRelative=1.0d-3
     integer                                  :: thisIndex
     double precision                         :: massVirial,radiusVirial,velocityVirial
 
@@ -1384,14 +1780,19 @@ contains
        massVirial    =Tree_Node_Mass                  (thisNode)
        radiusVirial  =Dark_Matter_Halo_Virial_Radius  (thisNode)
        velocityVirial=Dark_Matter_Halo_Virial_Velocity(thisNode)
-       thisNode%components(thisIndex)%instance(1)%properties(massIndex                                           ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%instance(1)%properties(outflowedMassIndex                                  ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%instance(1)%properties(unaccretedMassIndex                                 ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%instance(1)%properties(hotAbundancesIndex      :hotAbundancesIndexEnd      ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex       :hotChemicalsIndexEnd       ,propertyScale)=massVirial                            *scaleMassRelative
-       thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex                                ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
-       thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex                       ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(massIndex                                           ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(outflowedMassIndex                                  ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(unaccretedMassIndex                                 ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(hotAbundancesIndex      :hotAbundancesIndexEnd      ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(outflowedAbundancesIndex:outflowedAbundancesIndexEnd,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(hotChemicalsIndex       :hotChemicalsIndexEnd       ,propertyScale)=massVirial                            *scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(angularMomentumIndex                                ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex                       ,propertyScale)=massVirial*radiusVirial*velocityVirial*scaleMassRelative
+       thisNode   %components(thisIndex)%instance(1)%properties(outerRadiusIndex                                    ,propertyScale)=           radiusVirial               *scaleRadiusRelative
+       if (hotHaloTrackStrippedGas) then
+          thisNode%components(thisIndex)%instance(1)%properties(strippedMassIndex                                   ,propertyScale)=massVirial                            *scaleMassRelative
+          thisNode%components(thisIndex)%instance(1)%properties(strippedAbundancesIndex :outflowedAbundancesIndexEnd,propertyScale)=massVirial                            *scaleMassRelative
+       end if
     end if
     return
   end subroutine Hot_Halo_Scale_Set
@@ -1590,8 +1991,6 @@ contains
           call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(thisNode,angularMomentum)
           hotHaloMass=Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(parentNode)
           call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,hotHaloMass)
-          hotHaloMass=Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(thisNode)+Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(parentNode)
-          call Tree_Node_Hot_Halo_Unaccreted_Mass_Set_Standard(thisNode,hotHaloMass)
           angularMomentum=Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode)&
                &+Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode)
           call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,angularMomentum)
@@ -1621,7 +2020,7 @@ contains
 
     if (.not.gotCoolingRate) then
        if (Tree_Node_Hot_Halo_Mass_Standard(thisNode) > 0.0d0) then
-          ! Get the cooling rate.
+          ! Get the cooling time.
           coolingRate=Cooling_Rate(thisNode)
        else
           coolingRate=0.0d0
@@ -1652,6 +2051,7 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     use String_Handling
+    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),      pointer, intent(inout) :: thisNode
     type(varying_string)                        :: message
@@ -1662,6 +2062,8 @@ contains
     call Galacticus_Display_Message(message,verbosityInfo)
     ! Create the component.
     call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
+    ! Initialize the outer boundary to the virial radius.
+    call Tree_Node_Hot_Halo_Outer_Radius_Set(thisNode,Dark_Matter_Halo_Virial_Radius(thisNode))
     return
   end subroutine Hot_Halo_Create
 
@@ -1849,6 +2251,19 @@ contains
        doublePropertyNames   (doubleProperty)='outflowedAngularMomentum'
        doublePropertyComments(doubleProperty)='Angular momentum of outflowed gas in the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=massSolar*megaParsec*kilo
+       doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>hotHaloOuterRadius</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Outer radius of the hot halo.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>hotHalo</group>
+       !@ </outputProperty>
+       doublePropertyNames   (doubleProperty)='hotHaloOuterRadius'
+       doublePropertyComments(doubleProperty)='Outer radius of the hot halo.'
+       doublePropertyUnitsSI (doubleProperty)=megaParsec
        do iAbundance=1,abundancesCount
           doubleProperty=doubleProperty+1
           !@ <outputProperty>
@@ -1944,7 +2359,6 @@ contains
     integer(kind=kind_int8), intent(inout)              :: integerBuffer(:,:)
     double precision,        intent(inout)              :: doubleBuffer(:,:)
     double precision,        dimension(abundancesCount) :: hotAbundanceMasses,outflowedAbundanceMasses
-    type(treeNode),                         pointer     :: coolingFromNode
     integer                                             :: iAbundance
 
     if (methodSelected) then
@@ -1958,6 +2372,8 @@ contains
        doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Hot_Halo_Outflowed_Mass   (thisNode)
        doubleProperty=doubleProperty+1
        doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Hot_Halo_Outflowed_Ang_Mom(thisNode)
+       doubleProperty=doubleProperty+1
+       doubleBuffer(doubleBufferCount,doubleProperty)=Tree_Node_Hot_Halo_Outer_Radius     (thisNode)
        call Tree_Node_Hot_Halo_Abundances_Standard          (thisNode,hotAbundanceMasses      )
        call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode,outflowedAbundanceMasses)
        do iAbundance=1,abundancesCount
@@ -1970,18 +2386,11 @@ contains
           ! Ensure that we reset so that cooling rate will be re-computed.
           call Tree_Node_Hot_Halo_Reset_Standard(thisNode)
           ! Get and store the cooling rate.
-          call Get_Cooling_Rate                 (thisNode)
-          ! Find the node to use for cooling calculations.
-          select case (hotHaloCoolingFromNode)
-          case (currentNode  )
-             coolingFromNode => thisNode
-          case (formationNode)
-             coolingFromNode => thisNode%formationNode
-          end select
+          call Get_Cooling_Rate(thisNode)
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=coolingRate
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(coolingFromNode)
+          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(thisNode)
        end if
     end if
     return
@@ -2007,6 +2416,7 @@ contains
           write (0,'(2x,a50,1x,e12.6)') 'hot halo outflowed mass:'            ,Tree_Node_Hot_Halo_Outflowed_Mass_Standard   (thisNode)
           write (0,'(2x,a50,1x,e12.6)') 'hot halo angular momentum:'          ,Tree_Node_Hot_Halo_Angular_Momentum_Standard (thisNode)
           write (0,'(2x,a50,1x,e12.6)') 'hot halo outflowed angular momentum:',Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode)
+          write (0,'(2x,a50,1x,e12.6)') 'hot halo outer radius:              ',Tree_Node_Hot_Halo_Outer_Radius_Standard     (thisNode)
           call Tree_Node_Hot_Halo_Abundances_Standard          (thisNode,hotAbundanceMasses      )
           call Tree_Node_Hot_Halo_Outflowed_Abundances_Standard(thisNode,outflowedAbundanceMasses)
           do iAbundance=1,abundancesCount
@@ -2047,6 +2457,8 @@ contains
                 propertyName=propertyName//":outflowedAngularMomentum"
              else if (propertyIndex == unaccretedMassIndex                                                         ) then
                 propertyName=propertyName//":unaccretedMass"
+             else if (propertyIndex == outerRadiusIndex                                                            ) then
+                propertyName=propertyName//":outerRadius"
              else if (propertyIndex >= hotAbundancesIndex       .and. propertyIndex <= hotAbundancesIndexEnd       ) then
                 propertyName=propertyName//":hotGasAbundances"
              else if (propertyIndex >= outflowedAbundancesIndex .and. propertyIndex <= outflowedAbundancesIndexEnd ) then

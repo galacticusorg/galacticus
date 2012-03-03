@@ -234,7 +234,7 @@ The algorithm used to compute the rate at which gas drops out of the hot halo du
 
 Selected with {\tt coolingRateMethod}$=${\tt Cole2000}, this method computes the cooling rate using the algorithm of \cite{cole_hierarchical_2000}. The cooling rate is given by
 \begin{equation}
-\dot{M}_{\rm cool} = \left\{ \begin{array}{ll} 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall} & \hbox{ if } r_{\rm infall} < r_{\rm virial} \\ 0 & \hbox{ if } r_{\rm infall} \ge r_{\rm virial}, \end{array} \right.
+\dot{M}_{\rm cool} = \left\{ \begin{array}{ll} 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall} & \hbox{ if } r_{\rm infall} < r_{\rm hot, outer} \\ 0 & \hbox{ if } r_{\rm infall} \ge r_{\rm hot, outer}, \end{array} \right.
 \end{equation}
 where $\rho(r)$ is the density profile of the hot halo, and $r_{\rm infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}). The cooling rate is also set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}.
 
@@ -242,7 +242,7 @@ where $\rho(r)$ is the density profile of the hot halo, and $r_{\rm infall}$ is 
 
 Selected with {\tt coolingRateMethod}$=${\tt White-Frenk1991}, this method computes the cooling rate using the expression given by \cite{white_galaxy_1991}, namely
 \begin{equation}
-\dot{M}_{\rm cool} = 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall},
+\dot{M}_{\rm cool} = \left\{ \begin{array}{ll} 4 \pi r_{\rm infall}^2 \rho(r_{\rm infall}) \dot{r}_{\rm infall}& \hbox{ if } r_{\rm infall} < r_{\rm hot, outer} \\ M_{\rm hot}/\tau_{\rm halo, dynamical} & \hbox{ if } r_{\rm infall} \ge r_{\rm hot, outer}, \end{array} \right. ,
 \end{equation}
 where $r_{\rm infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}) in the hot halo and $\rho(r)$ is the density profile of the hot halo.
 
@@ -659,11 +659,11 @@ Selected with {\tt hotHaloDensityMethod}$=${\tt coredIsothermal} this method ado
 \begin{equation}
  \rho_{\rm hot halo}(r) \propto \left[ r^2 + r_{\rm core}^2 \right]^2,
 \end{equation}
-where the core radius, $r_{\rm core}$, is set using the selected cored isothermal core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the hot gas profile is contained within the virial radius. The rotation normalization, i.e. the constant $A$ in the relation $A = V_{\rm rotation}/\langle j \rangle$ where $V_{\rm rotation}$ is an assumed constant with radius rotation speed and $\langle j \rangle$ is the mean specific angular momentum of the gas, is given by
+where the core radius, $r_{\rm core}$, is set using the selected cored isothermal core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\rm hot, outer}$. The rotation normalization, i.e. the constant $A$ in the relation $A = V_{\rm rotation}/\langle j \rangle$ where $V_{\rm rotation}$ is an assumed constant with radius rotation speed and $\langle j \rangle$ is the mean specific angular momentum of the gas, is given by
 \begin{equation}
-A = r_{\rm virial}^{-1} {(1-x_{\rm core}\arctan(x_{\rm core}^{-1}) \over 1/2 + x_{\rm core}^2 \ln(x_{\rm core}/[1+x_{\rm core}^2]^{1/2})},
+A = r_{\rm hot, outer}^{-1} {(1-x_{\rm core}\arctan(x_{\rm core}^{-1}) \over 1/2 + x_{\rm core}^2 \ln(x_{\rm core}/[1+x_{\rm core}^2]^{1/2})},
 \end{equation}
-where $x_{\rm core}=r_{\rm core}/r_{\rm virial}$.
+where $x_{\rm core}=r_{\rm core}/r_{\rm hot, outer}$.
 
 \subsection{Null}
 
@@ -680,6 +680,23 @@ Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt growingCore}, t
 \subsection{Virial Radius Fraction}
 
 Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt virialRadiusFraction}, this method implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
+
+\section{Hot Halo Ram Pressure Stripping Radius}\label{sec:HotHaloRamPressureStrip}\index{hot halo!ram pressure stripping}\index{ram pressure stripping!hot halo}
+
+The algorithm to be used when determining the radius to which the hot halo is stripped by ram pressure forces is selected via the {\tt hotHaloRamPressureStrippingMethod} parameter.
+
+\subsection{Virial Radius}
+
+Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt virialRadius} this method sets the ram pressure stripping radius equal to the virial radius of the halo. The effectively results in no ram pressure stripping.
+
+
+\subsection{Font et al. (2008)}
+
+Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt Font2008} this method computes the ram pressure stripping radius using the algorithm of \cite{font_colours_2008}. Specifically, the radius, $r_{\rm rp}$, is computed as the solution of
+\begin{equation}
+\alpha_{\rm rp} {{\rm G} M_{\rm satellite}(r_{\rm rp}) \rho_{\rm hot, satellite}(r_{\rm rp}) \over r_{\rm rp} } = \rho_{\rm hot, host}(r_{\rm apo}) V_{\rm apo}^2,
+\end{equation}
+where $M_{\rm satellite}(r)$ is the total mass of the satellite within radius $r$, $\rho_{\rm hot}(r)$ is the hot halo density profile of the specified component at radius $r$, $r_{\rm apo}$ is the apocentric radius of the satellite's orbit in its host halo, with $V_{\rm apo}$ being the orbital velocity at that location. The parameter $\alpha_{\rm rp}=${\tt [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
 
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 
