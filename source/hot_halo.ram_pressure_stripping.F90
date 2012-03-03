@@ -59,90 +59,67 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements a \cite{white_galaxy_1991} cooling rate calculation.
+!% Contains a module that implements calculations of ram pressure stripping of hot halos.
 
-module Cooling_Rates_White_Frenk
-  !% Implements a \cite{white_galaxy_1991} cooling rate calculation.
-  use, intrinsic :: ISO_C_Binding
+module Hot_Halo_Ram_Pressure_Stripping
+  !% Implements calculations of ram pressure stripping of hot halos.
+  use ISO_Varying_String
   use Tree_Nodes
   implicit none
   private
-  public :: Cooling_Rate_White_Frenk_Initialize
+  public :: Hot_Halo_Ram_Pressure_Stripping_Radius
 
-  ! Velocity (in km/s) above which cooling rates in gas are forced to zero.
-  double precision :: zeroCoolingRateAboveVelocity
+  ! Flag to indicate if this module has been initialized.  
+  logical              :: hotHaloRamPressureStrippingInitialized=.false.
+
+  ! Name of cooling rate available method used.
+  type(varying_string) :: hotHaloRamPressureStrippingMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Hot_Halo_Ram_Pressure_Stripping_Radius), pointer :: Hot_Halo_Ram_Pressure_Stripping_Radius_Get => null()
 
 contains
 
-  !# <coolingRateMethod>
-  !#  <unitName>Cooling_Rate_White_Frenk_Initialize</unitName>
-  !# </coolingRateMethod>
-  subroutine Cooling_Rate_White_Frenk_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    !% Initializes the ``White-Frenk1991'' cooling rate module.
-    use ISO_Varying_String
+  double precision function Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
+    !% Return the ram pressure stripping radius for the hot halo of {\tt thisNode} (in units of Mpc).
+    use Galacticus_Error
     use Input_Parameters
+    !# <include directive="hotHaloRamPressureStrippingMethod" type="moduleUse">
+    include 'hot_halo.ram_pressure_stripping.modules.inc'
+    !# </include>
     implicit none
-    type(varying_string),                 intent(in   ) :: coolingRateMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Rate_Get
-    
-    if (coolingRateMethod == 'White-Frenk1991') then
-       Cooling_Rate_Get => Cooling_Rate_White_Frenk
+    type(treeNode), intent(inout), pointer :: thisNode
 
-       ! Get cooling rate parameters.
+    !$omp critical(Hot_Halo_Ram_Pressure_Stripping_Initialization) 
+    ! Initialize if necessary.
+    if (.not.hotHaloRamPressureStrippingInitialized) then
+       ! Get the cooling rate method parameter.
        !@ <inputParameter>
-       !@   <name>zeroCoolingRateAboveVelocity</name>
-       !@   <defaultValue>10000</defaultValue>
+       !@   <name>hotHaloRamPressureStrippingMethod</name>
+       !@   <defaultValue>virialRadius</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White-Frenk1991} cooling rate model.
+       !@     The name of the method to be used when computing ram pressure stripping of hot halos.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
-   end if
-    return
-  end subroutine Cooling_Rate_White_Frenk_Initialize
-
-  double precision function Cooling_Rate_White_Frenk(thisNode)
-    !% Computes the mass cooling rate in a hot gas halo utilizing the \cite{white_galaxy_1991} method.
-    use Tree_Nodes
-    use Dark_Matter_Halo_Scales
-    use Cooling_Times_Available
-    use Cooling_Infall_Radii
-    use Numerical_Constants_Math
-    use Hot_Halo_Density_Profile
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: infallRadius,coolingDensity,outerRadius,infallRadiusGrowthRate,virialVelocity
-
-    ! Get the virial velocity.
-    virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
-    
-    ! Return zero cooling rate if virial velocity exceeds critical value.
-    if (virialVelocity > zeroCoolingRateAboveVelocity) then
-       Cooling_Rate_White_Frenk=0.0d0
-       return
+       call Get_Input_Parameter('hotHaloRamPressureStrippingMethod',hotHaloRamPressureStrippingMethod,defaultValue='virialRadius')
+       ! Include file that makes calls to all available method initialization routines.
+       !# <include directive="hotHaloRamPressureStrippingMethod" type="code" action="subroutine">
+       !#  <subroutineArgs>hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Radius_Get</subroutineArgs>
+       include 'hot_halo.ram_pressure_stripping.inc'
+       !# </include>
+       if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Radius_Get)) call Galacticus_Error_Report('Hot_Halo_Ram_Pressure_Stripping_Radius','method ' &
+            &//char(hotHaloRamPressureStrippingMethod)//' is unrecognized')
+       hotHaloRamPressureStrippingInitialized=.true.
     end if
-    
-    ! Get the outer radius of the hot halo.
-    outerRadius=Tree_Node_Hot_Halo_Outer_Radius(thisNode)
+    !$omp end critical(Hot_Halo_Ram_Pressure_Stripping_Initialization) 
 
-    ! Get the cooling radius.
-    infallRadius=Infall_Radius(thisNode)
+    ! Get the cooling rate using the selected method.
+    Hot_Halo_Ram_Pressure_Stripping_Radius=Hot_Halo_Ram_Pressure_Stripping_Radius_Get(thisNode)
 
-    if (infallRadius >= outerRadius) then
-       ! Cooling radius exceeds the outer radius. Limit infall to the dynamical timescale.
-       Cooling_Rate_White_Frenk=Tree_Node_Hot_Halo_Mass(thisNode)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
-    else
-       ! Find the density at the cooling radius.
-       coolingDensity=Hot_Halo_Density(thisNode,infallRadius)
-       ! Find cooling radius growth rate.
-       infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode)
-       ! Compute the cooling rate.
-       Cooling_Rate_White_Frenk=4.0d0*Pi*(infallRadius**2)*coolingDensity*infallRadiusGrowthRate
-    end if
     return
-  end function Cooling_Rate_White_Frenk
+  end function Hot_Halo_Ram_Pressure_Stripping_Radius
 
-end module Cooling_Rates_White_Frenk
+end module Hot_Halo_Ram_Pressure_Stripping

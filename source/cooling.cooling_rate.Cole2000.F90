@@ -126,7 +126,7 @@ contains
     use Hot_Halo_Density_Profile
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: infallRadius,infallDensity,virialRadius,infallRadiusGrowthRate
+    double precision                         :: infallRadius,infallDensity,outerRadius,infallRadiusGrowthRate
     
     ! Check for empty halos.
     if     (                                                                                         &
@@ -141,20 +141,20 @@ contains
        return
     end if
 
-    ! Get the virial radius.
-    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode%formationNode)
+    ! Get the outer radius of the hot halo.
+    outerRadius=Tree_Node_Hot_Halo_Outer_Radius(thisNode%formationNode)
 
     ! Get the infall radius.
     infallRadius=Infall_Radius                 (thisNode%formationNode)
 
-    if (infallRadius >= virialRadius) then
-       ! Cooling radius exceeds the virial radius - zero infall rate.
+    if (infallRadius >= outerRadius) then
+       ! Cooling radius exceeds the outer radius - zero infall rate.
        Cooling_Rate_Cole2000=0.0d0
     else
        ! Find the density at the infall radius.
-       infallDensity=Hot_Halo_Density(thisNode%formationNode,infallRadius)
+       infallDensity=Hot_Halo_Density                  (thisNode%formationNode,infallRadius)
        ! Find infall radius growth rate.
-       infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode%formationNode)
+       infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode%formationNode             )
        ! Compute the infall rate.
        Cooling_Rate_Cole2000=4.0d0*Pi*(infallRadius**2)*infallDensity*infallRadiusGrowthRate
     end if

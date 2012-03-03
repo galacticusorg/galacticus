@@ -219,6 +219,9 @@ The standard hot halo implementation defines the following properties:
  \item [{\tt Hot\_Halo\_Outflowed\_Ang\_Mom}] The angular momentum of the outflowed gas in the hot halo, $J_{\rm outflowed}$ {\tt [outflowedAngularMomentum]}.
  \item [{\tt Hot\_Halo\_Outflowed\_Abundances}] The mass(es) of heavy elements in outflowed gas, $M_{Z, {\rm outflowed}}$ {\tt [outflowed\{abundanceName\}]}.
  \item [{\tt Hot\_Halo\_Chemicals}] The mass(es) of molceules in the hot gas, $M_{\rm chemical}$ {\tt [hotHalo\{chemicalName\}]}.
+ \item [{\tt Hot\_Halo\_Outer\_Radius}] The outer boundary radius fo the hot halo: $r_{\rm hot, outer}$ {\tt [hotHaloOuterRadius]}.
+ \item [{\tt Hot\_Halo\_Stripped\_Mass}] The mass of gas which has been stripped from the hot halo (by ram pressure or tidal forces for example): $M_{\rm hot, stripped}$. This property is computed only if {\tt [hotHaloTrackStrippedGas]}$=${\tt true}.
+ \item [{\tt Hot\_Halo\_Stripped\_Abundances}] The mass(es) of heavy elements in gas that has been stripped from the hot halo (by ram pressure or tidal forces for example), $M_{Z, {\rm hot, stripped}}$. These properties are computed only if {\tt [hotHaloTrackStrippedGas]}$=${\tt true}.
 \end{description}
 and the following pipes:
 \begin{description}
@@ -237,12 +240,16 @@ At initialization, any nodes with no children are assigned a hot halo mass, and 
 In the standard hot halo implementation the hot gas mass and heavy element mass(es) evolves as:
 \begin{eqnarray}
  \dot{M}_{\rm failed} &=& \dot{M}_{\rm failed~accretion} \\
- \dot{M}_{\rm hot} &=& \dot{M}_{\rm accretion} - \dot{M}_{\rm cooling} + \dot{M}_{\rm outflow,return} - \dot{M}_{\rm expelled}, \\
- \dot{M}_{Z, {\rm hot}} &=& - \dot{M}_{\rm cooling} {M_{Z, {\rm hot}}\over M_{\rm hot}} + \dot{M}_{Z, {\rm outflow,return}} - \dot{M}_{Z,{\rm expelled}}, \\
- \dot{M}_{\rm chemical} &=& - [\dot{M}_{\rm cooling} + \dot{M}_{\rm expelled}] {M_{\rm chemical}\over M_{\rm hot}} + f_{\rm chemical,outflow} \dot{M}_{\rm outflow,return} \nonumber \\ 
-& & + \dot{M}_{\rm chemical,reactions},
+ \dot{M}_{\rm hot} &=& \dot{M}_{\rm accretion} - \dot{M}_{\rm cooling} + \dot{M}_{\rm outflow,return} - \dot{M}_{\rm expelled} - \dot{M}_{\rm hot, stripped}, \\
+ \dot{M}_{Z, {\rm hot}} &=& - \dot{M}_{\rm cooling} {M_{Z, {\rm hot}}\over M_{\rm hot}} + \dot{M}_{Z, {\rm outflow,return}} - \dot{M}_{Z,{\rm expelled}} - \dot{M}_{Z, {\rm hot, stripped}}, \\
+ \dot{M}_{\rm chemical} &=& - [\dot{M}_{\rm cooling} + \dot{M}_{\rm expelled} + \dot{M}_{\rm hot, stripped}] {M_{\rm chemical}\over M_{\rm hot}} + f_{\rm chemical,outflow} \dot{M}_{\rm outflow,return} \nonumber \\ 
+& & + \dot{M}_{\rm chemical,reactions}, \\
+\dot{r}_{\rm hot, outer} &=& \left\{ \begin{array}{ll} {r_{\rm rp} - r_{\rm hot, outer} \over \tau_{\rm dynamical}} & \hbox{ if } r_{\rm rp} < r_{\rm hot, outer} \\ 0 & \hbox{ otherwise.} \end{array} \right. \\
+\dot{M}_{\rm hot, stripped} &=& -4 \pi \rho_{\rm hot}(r_{\rm hot, outer}) r_{\rm hot, outer}^2 \dot{r}_{\rm hot, outer} + \dot{M}_{\rm outflows} f_{\rm outflow, stripped} \\
+\dot{M}_{Z, {\rm hot, stripped}} &=& -4 \pi \rho_{\rm hot}(r_{\rm hot, outer}) r_{\rm hot, outer}^2 \dot{r}_{\rm hot, outer} (M_{Z, {\rm hot}} / M_{\rm hot}) \nonumber \\
+ & & + \dot{M}_{Z, {\rm outflows}} f_{\rm outflow, stripped}  
 \end{eqnarray}
-where $\dot{M}_{\rm accretion}$ is the rate of growth of the hot \gls{component} due to accretion from the \gls{igm} and $\dot{M}_{\rm failed~accretion}$ is the rate of failed accretion from the \gls{igm} (these may include a \gls{component} due to transfer of mass from the failed to accreted reservoirs) and $\dot{M}_{\rm cooling}$ is the rate of mass loss from the hot halo due to cooling (see \S\ref{sec:CoolingRate}---cooling rates are computed using the current \gls{node} if {\tt [hotHaloCoolingFromNode]}$=${\tt current node} or from the formation \gls{node} if that parameter is set to {\tt formation node}) minus any heating rate defined as
+where $r_{\rm rp}$ is the ram pressure stripping radius as computed by the {\tt hotHaloRamPressureStrippingMethod} method (see \S\ref{sec:HotHaloRamPressureStrip}), $\dot{M}_{\rm accretion}$ is the rate of growth of the hot \gls{component} due to accretion from the \gls{igm} and $\dot{M}_{\rm failed~accretion}$ is the rate of failed accretion from the \gls{igm} (these may include a \gls{component} due to transfer of mass from the failed to accreted reservoirs) and $\dot{M}_{\rm cooling}$ is the rate of mass loss from the hot halo due to cooling (see \S\ref{sec:CoolingRate}---cooling rates are computed using the current \gls{node} if {\tt [hotHaloCoolingFromNode]}$=${\tt current node} or from the formation \gls{node} if that parameter is set to {\tt formation node}) minus any heating rate defined as
 \begin{equation}
  \dot{M}_{\rm heating} = \dot{E}_{\rm input} / V_{\rm virial}^2,
 \end{equation}
@@ -258,8 +265,8 @@ In the above, $f_{\rm chemical,return}$ if the mass fraction of each chemical sp
 \end{equation}
 where $\dot{M}_{\rm node}$ and $\dot{J}_{\rm node}$ are defined in \S\ref{sec:ComponentBasicProperties}. For the outflowed components:
 \begin{eqnarray}
- \dot{M}_{\rm outflowed} &=& - \dot{M}_{\rm outflow,return} + \dot{M}_{\rm outflows}, \\
- \dot{M}_{Z, {\rm outflowed}} &=& - \dot{M}_{Z, {\rm outflow,return}} + \dot{M}_{Z, {\rm outflows}}, \\
+ \dot{M}_{\rm outflowed} &=& - \dot{M}_{\rm outflow,return} + \dot{M}_{\rm outflows} (1-f_{\rm outflow, stripped}), \\
+ \dot{M}_{Z, {\rm outflowed}} &=& - \dot{M}_{Z, {\rm outflow,return}} + \dot{M}_{Z, {\rm outflows}} (1-f_{\rm outflow, stripped}), \\
 \end{eqnarray}
 and:
 \begin{equation}
@@ -269,11 +276,19 @@ In the above
 \begin{equation}
  \dot{M}|\dot{M}_Z|\dot{J}_{\rm outflow,return} = \alpha_{\rm outflow~return~rate} {M|M_Z|J_{\rm outflowed}\over \tau_{\rm dynamical, halo}},
 \end{equation}
-where $\alpha_{\rm outflow~return~rate}=(${\tt hotHaloOutflowReturnRate}) is an input parameter controlling the rate at which gas flows from the outflowed to hot reservoirs, and $\dot{M}|\dot{M}_Z|\dot{J}_{\rm outflows}$ are the net rates of outflow from any components in the node. A fraction $1-${\tt [hotHaloAngularMomentumLossFraction]} of the cooling angular momentum rate, $\dot{M}_{\rm cooling} r_{\rm cool} V_{\rm rotate}$, is sent through the {\tt Hot\_Halo\_Cooling\_Angular\_Momentum} pipe.
+where $\alpha_{\rm outflow~return~rate}=(${\tt hotHaloOutflowReturnRate}) is an input parameter controlling the rate at which gas flows from the outflowed to hot reservoirs, and $\dot{M}|\dot{M}_Z|\dot{J}_{\rm outflows}$ are the net rates of outflow from any components in the node.
+
+In the above, $f_{\rm outflow, stripped}$ is the fraction of outflowing material assumed to be stripped from the halo. The is computed following the algorithm of \cite{font_colours_2008}, namely
+\begin{equation}
+f_{\rm outflow, stripped} = \epsilon_{\rm strip} {M_{\rm hot, outer} \over  M_{\rm hot, virial}},
+\end{equation}
+where $\epsilon_{\rm strip}=${\tt [hotHaloOutflowStrippingEfficiency]} is an input parameter, $M_{\rm hot, outer}$ is the mass of hot gas contained within the outer radius of the hot halo and $M_{\rm hot, virial}$ is the mass of hot gas that would be present if the hot halo extended to the virial radius (i.e. if no stripping had occurred).
+
+A fraction $1-${\tt [hotHaloAngularMomentumLossFraction]} of the cooling angular momentum rate, $\dot{M}_{\rm cooling} r_{\rm cool} V_{\rm rotate}$, is sent through the {\tt Hot\_Halo\_Cooling\_Angular\_Momentum} pipe.
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} If the {\tt starveSatellites} parameter is true, then any hot halo properties of the minor \gls{node} are added to those of the major \gls{node} and the hot halo \gls{component} removed from the minor node. Additionally in this case, any material outflowed from the the satellite galaxy to its hot halo is transferred to the hot halo of the host dark matter halo after each timestep.\\
+\noindent\emph{Node mergers:} If the {\tt starveSatellites} parameter is true, then any hot halo properties of the minor \gls{node} are added to those of the major \gls{node} and the hot halo \gls{component} removed from the minor node. Additionally in this case, any material outflowed or stripped from the the satellite galaxy to its hot halo is transferred to the hot halo of the host dark matter halo after each timestep. If stripped mass is being tracked (i.e. if {\tt [hotHaloTrackStrippedGas]}$=${\tt true}) then any stripped mass is transferred from the satellite galaxy to the hot halo of the host dark matter halo after each timestep.\\
 
 \noindent\emph{Satellite merging:} If the {\tt starveSatellites} parameter is false, then any hot halo properties of the satellite \gls{node} are added to those of the host \gls{node} and the hot halo \gls{component} removed from the satellite node.\\
 
