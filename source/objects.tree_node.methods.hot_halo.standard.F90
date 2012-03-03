@@ -976,8 +976,9 @@ contains
           outerRadiusGrowthRate=(ramPressureRadius-outerRadius)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
           if (outerRadius <= Dark_Matter_Halo_Virial_Radius(thisNode)) then
              massLossRate         =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
-             call Tree_Node_Hot_Halo_Hot_Gas_All_Rate_Adjust_Standard     (thisNode,+massLossRate)
-             call Tree_Node_Hot_Halo_Stripped_Gas_All_Rate_Adjust_Standard(thisNode,-massLossRate)
+             call Tree_Node_Hot_Halo_Outer_Radius_Rate_Adjust_Standard    (thisNode,interrupt,interruptProcedure,+outerRadiusGrowthRate)
+             call Tree_Node_Hot_Halo_Hot_Gas_All_Rate_Adjust_Standard     (thisNode,                             +         massLossRate)
+             call Tree_Node_Hot_Halo_Stripped_Gas_All_Rate_Adjust_Standard(thisNode,                             -         massLossRate)
           end if
        else
           ! The ram pressure stripping radius is larger than the current outer radius of the hot halo. Therefore, the outer radius
