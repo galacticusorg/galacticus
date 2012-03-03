@@ -153,8 +153,8 @@ contains
     real(c_double)          :: Tidal_Radius_Root
 
     ! Evaluate the root function.
-    Tidal_Radius_Root= Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeGalactic)/radius        **3 &
-       &              -massHalf                                                                     /radiusHalfMass**3
+    Tidal_Radius_Root= Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeGalactic)/massHalf &
+       &              -(radius/radiusHalfMass)**3
     return
   end function Tidal_Radius_Root
 
