@@ -32,7 +32,7 @@ F03FLAGS += -g
 # A copy of the flags prior to any optimizations.
 F03FLAGS_NOOPT := $(F03FLAGS)
 # Optimization flags.
-F03FLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
+#F03FLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
 # For OpenMP compilation.
 F03FLAGS += -fopenmp
 

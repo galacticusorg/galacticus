@@ -140,11 +140,6 @@ contains
     use Dark_Matter_Halo_Scales
     use Galacticus_Display
     use Galacticus_Error
-
-!! AJB HACK
-    use Dark_Matter_Profiles
-
-
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, parameter              :: hardeningRateDimensionless    =15.0d0
@@ -356,17 +351,6 @@ contains
           write (message,'(a,e12.6)') '  a_{df} = ',dynamicalFrictionAcceleration
           call Galacticus_Display_Message(trim(message))
           call Galacticus_Display_Unindent('done')
-
-!! AJB HACK
-write (0,*) 'additional hacked-in diagnostic information'
-write (0,*) thisNode%index(),&
-&Tree_Node_Disk_Stellar_Mass(thisNode)+Tree_Node_Disk_Gas_Mass(thisNode),Tree_Node_Disk_Radius(thisNode),&
-&Tree_Node_Spheroid_Stellar_Mass(thisNode)+Tree_Node_Spheroid_Gas_Mass(thisNode),Tree_Node_Spheroid_Radius(thisNode),&
-&Tree_Node_Black_Hole_Mass(thisNode),&
-&Dark_Matter_Profile_Circular_Velocity(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
-
-
-
           call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate_Standard','rotation curve gradient is zero')
        end if
        rateScatteringDynamicalFriction= 2.0d0                                                                                                &
