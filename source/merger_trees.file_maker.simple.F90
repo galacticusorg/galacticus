@@ -74,13 +74,17 @@ contains
     use ISO_Varying_String
     use Merger_Tree_Data_Structure
     use File_Utilities
+    use Input_Parameters
     use Dates_and_Times
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
+    use Cosmological_Parameters
     implicit none
     character(len=*),     intent(in)    :: nodesFile
     type(mergerTreeData), intent(inout) :: mergerTrees
     integer                             :: lineCountTotal,lineCountData,lineNumberStart,lineNumberStop
+    double precision                    :: sigma_8,powerSpectrumIndex,boxSize
+    type(varying_string)                :: transferFunction,source
 
     ! Process the file.
 
@@ -110,21 +114,90 @@ contains
     call mergerTrees%setSelfContained        (.true. )
 
     ! Specify units system used.
-    call mergerTrees%setUnits(unitsMass,unitsInSI=massSolar,hubbleExponent=0,scaleFactorExponent=0)
+    call mergerTrees%setUnits(unitsMass  ,unitsInSI=massSolar ,hubbleExponent=0,scaleFactorExponent=0)
+    call mergerTrees%setUnits(unitsLength,unitsInSI=megaParsec,hubbleExponent=0,scaleFactorExponent=0)
 
     ! Set cosmology metadata.
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,0.300d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,0.040d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,0.700d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,0.700d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'sigma_8'                   ,0.930d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'powerSpectrumIndex'        ,1.000d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'transferFunction'          ,'BBKS'                             )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,Omega_Matter()                     )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,Omega_b     ()                     )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,Omega_DE    ()                     )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,Little_H_0  ()                     )
+    if (Input_Parameter_Is_Present("sigma_8"           )) then
+       !@ <inputParameter>
+       !@   <name>sigma_8</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'sigma_8'                   ,sigma_8                            )
+       call mergerTrees%addMetadata(metaDataCosmology  ,'sigma_8'                   ,sigma_8                            )
+    end if
+    if (Input_Parameter_Is_Present("powerSpectrumIndex")) then
+       !@ <inputParameter>
+       !@   <name>powerSpectrumIndex</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The index of the power-law primordial power spectrum.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'powerSpectrumIndex'        ,powerSpectrumIndex                 )
+       call mergerTrees%addMetadata(metaDataCosmology  ,'powerSpectrumIndex'        ,powerSpectrumIndex                 )
+    end if
+    if (Input_Parameter_Is_Present("transferFunction"  )) then
+       !@ <inputParameter>
+       !@   <name>transferFunction</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The type of transfer function used.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'transferFunction'          ,     transferFunction              )
+       call mergerTrees%addMetadata(metaDataCosmology  ,'transferFunction'          ,char(transferFunction)             )
+    end if
 
     ! Set provenance metadata.
-    call mergerTrees%addMetadata(metaDataProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
-    call mergerTrees%addMetadata(metaDataProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
-    call mergerTrees%addMetadata(metaDataProvenance ,'source'                    ,'???'                              )
+    call    mergerTrees%addMetadata(metaDataProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
+    call    mergerTrees%addMetadata(metaDataProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
+    if (Input_Parameter_Is_Present("source"            )) then
+       !@ <inputParameter>
+       !@   <name>source</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The source of the merger trees.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'source'                    ,     source                        )
+       call mergerTrees%addMetadata(metaDataProvenance ,'source'                    ,char(source)                       )
+    end if
+
+    ! Set simulation metadata.
+    if (Input_Parameter_Is_Present("boxSize"           )) then
+       !@ <inputParameter>
+       !@   <name>boxSize</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The box size of the simulation from which merger trees were extracted.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'boxSize'                   ,boxSize                            )
+       call mergerTrees%addMetadata(metaDataSimulation ,'boxSize'                   ,boxSize                            )
+    end if
 
     return
   end subroutine Merger_Trees_Simple_Process
