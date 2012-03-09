@@ -21,6 +21,13 @@ $sqlPassword = $arguments{"password"};
 # Specify any selection.
 $selection   = $arguments{"select"};
 
+# Specify the treeId property.
+if ( exists($arguments{"treeId"}) ) {
+    $treeId = $arguments{"treeId"};
+} else {
+    $treeId = "treeId";
+}
+
 # Specify the haloId property.
 if ( exists($arguments{"haloId"}) ) {
     $haloId = $arguments{"haloId"};
@@ -77,6 +84,13 @@ if ( exists($arguments{"traceParticles"}) ) {
     $traceParticles = "yes";
 }
 
+# Determine mass to use.
+if ( exists($arguments{"mass"}) ) {
+    $mass = $arguments{"mass"};
+} else {
+    $mass = "m_tophat";
+}
+
 # Specify the database URL.
 $databaseURL = "http://www.g-vo.org/MyMillennium3?action=doQuery&SQL=";
 
@@ -86,11 +100,11 @@ $getCommandBase .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" );
 $getCommandBase .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 
 # Build the SQL query to retrieve basic node data.
-$sqlQuery = $databaseURL."select node.treeId, indexNode.".$haloId.", indexNode.".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.m_tophat, node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
+$sqlQuery = $databaseURL."select indexNode.".$treeId.", indexNode.".$haloId.", indexNode.".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
 # Append any required selection.
 $sqlQuery .= " and ".$selection unless ( $selection eq "" );
 # Add an order by statement.
-$sqlQuery .= " order by node.treeId";
+$sqlQuery .= " order by indexNode.".$treeId;
 # Retrieve the data.
 $getCommand = $getCommandBase." \"".$sqlQuery."\" -O ".$outputFile;
 system($getCommand);
