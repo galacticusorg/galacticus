@@ -433,18 +433,21 @@ contains
        call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  ,allowPseudoScalar=.true.)
        call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           ,allowPseudoScalar=.true.)
        unitConversionMass    =unitConversionMass    *(localLittleH0**hubbleExponent)/massSolar
+       if (unitConversionMass <= 0.0d0) call Galacticus_Error_Report('Merger_Tree_Read_Do','non-positive units for mass')
        if ((mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits).and..not.(unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI"))) call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities or orbits are to be preset')
        if (unitsGroup%hasAttribute("lengthUnitsInSI")) then
           call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     ,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("lengthHubbleExponent"       ,hubbleExponent           ,allowPseudoScalar=.true.)
           unitConversionLength  =unitConversionLength  *(localLittleH0**hubbleExponent)/megaParsec
+          if (unitConversionLength <= 0.0d0) call Galacticus_Error_Report('Merger_Tree_Read_Do','non-positive units for length')
        end if
        if (unitsGroup%hasAttribute("velocityUnitsInSI")) then
           call unitsGroup%readAttribute("velocityUnitsInSI"          ,unitConversionVelocity     ,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("velocityScaleFactorExponent",scaleFactorExponentVelocity,allowPseudoScalar=.true.)
           call unitsGroup%readAttribute("velocityHubbleExponent"     ,hubbleExponent             ,allowPseudoScalar=.true.)
           unitConversionVelocity=unitConversionVelocity*(localLittleH0**hubbleExponent)/kilo
+          if (unitConversionVelocity <= 0.0d0) call Galacticus_Error_Report('Merger_Tree_Read_Do','non-positive units for velocity')
        end if
        if (unitsGroup%hasAttribute("timeUnitsInSI")) then
           call unitsGroup%readAttribute("timeUnitsInSI"           ,unitConversionTime       ,allowPseudoScalar=.true.)
