@@ -927,6 +927,10 @@ Selected with {\tt mergerTreeConstructMethod}$=${\tt smoothAccretion}, this meth
 
 Arbitrary processing of merger trees prior to their evolution can be carried out using the {\tt mergerTreePreEvolveTask} directive (see \S\ref{sec:MergerTreePreEvolveTask}). Currently defined tasks are defined below.
 
+\subsection{Enforce Monotonic Mass Growth}\index{merger tree!mass accretion history!monotonic}
+
+This task enforces monotonic growth a halo mass along each branch of each merger tree. It does this by searching the tree for nodes which are less massive than the sum of the masses of their immediate progenitors, and increasing the mass of such nodes to equal the sum of the masses of their immediate progenitors. To enforce monotonic mass growth along branches set {\tt [mergerTreeEnforceMonotonicGrowth]}$=${\tt true}.
+
 \subsection{Interpolate Tree to Time Grid}\index{merger tree!fixed time steps}\index{merger tree!regrid times}
 
 This task will interpolate the merger tree structure onto a new array of timesteps if {\tt [mergerTreeRegridTimes]}$=${\tt true}. The timestep array is specified via the parameters:
