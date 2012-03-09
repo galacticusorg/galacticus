@@ -1061,7 +1061,7 @@ contains
        end if
        return
     end if
-    
+
     call Tree_Node_Hot_Halo_Mass_Rate_Adjust_Standard           (thisNode,interrupt,interruptProcedurePassed,massAccretionRate      )
     call Tree_Node_Hot_Halo_Unaccreted_Mass_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,failedMassAccretionRate)
 
@@ -1867,7 +1867,6 @@ contains
        
        ! Determine if starvation is to be applied.
        if (starveSatellites) then
-          
           ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
           ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
           call Tree_Node_Hot_Halo_Mass_Set_Standard(parentNode,Tree_Node_Hot_Halo_Mass_Standard(parentNode) &
@@ -2360,6 +2359,7 @@ contains
     integer(kind=kind_int8), intent(inout)              :: integerBuffer(:,:)
     double precision,        intent(inout)              :: doubleBuffer(:,:)
     double precision,        dimension(abundancesCount) :: hotAbundanceMasses,outflowedAbundanceMasses
+    type(treeNode),                         pointer     :: coolingFromNode
     integer                                             :: iAbundance
 
     if (methodSelected) then
@@ -2388,10 +2388,16 @@ contains
           call Tree_Node_Hot_Halo_Reset_Standard(thisNode)
           ! Get and store the cooling rate.
           call Get_Cooling_Rate(thisNode)
+          select case (hotHaloCoolingFromNode)
+          case (currentNode  )
+             coolingFromNode => thisNode
+          case (formationNode)
+             coolingFromNode => thisNode%formationNode
+          end select
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=coolingRate
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(thisNode)
+          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(coolingFromNode)
        end if
     end if
     return
