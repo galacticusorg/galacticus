@@ -172,10 +172,13 @@ Data on the structure of a merger tree and its halos useful for rendering the tr
  \item [{\tt position}] $(x,y,z)$ position of the node.
 \end{description}
 
-
 \section{Merger Tree Structure}\index{merger tree!structure}
 
 The structure of each merger tree can optionally be dumped to a file suitable for post-processing with \href{http://www.graphviz.org/}{\sc dot} after every step of evolution. To request this output set {\tt [mergerTreesDumpStructure]}$=${\tt true}. After each evolution step the tree structure will be dumped to a file named {\tt mergerTreeDump:$\langle$treeIndex$\rangle$:$\langle$outputIndex$\rangle$.gv} where $\langle${\tt treeIndex}$\rangle$ is the index of the tree and $\langle${\tt outputIndex}$\rangle$ is an incremental counter that tracks the number of outputs for this tree. These files can be processed with \href{http://www.graphviz.org/}{\sc dot} to produce a diagram of the tree structure. The node currently being evolved will be highlighted in green. This output option makes use of the \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump}{\tt Merger\_Trees\_Dump} module to create the outputs.
+
+\section{Most Massive Progenitor}
+
+Setting {\tt [outputMostMassiveProgenitor]}$=${\tt true} causes the property {\tt isMostMassiveProgenitor} to be output. This propert will be $1$ for the most massive progenitor node in a tree at each output time and $0$ for all other nodes.
 
 \section{Star Formation Rates}\index{star formation rate!outputting}\index{outputs!star formation rate}
 
