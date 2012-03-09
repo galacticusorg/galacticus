@@ -151,11 +151,11 @@ which select a satellite orbit method that allows merger times to be present and
 \end{verbatim}
 which selects a standard satellite orbit method, prevents attempts to preset the merger times and selects the {\tt Jiang2008} method for computing merger times instead.
 
-In addition to setting the times of merger events, it is possible to set the target node with which a merging node should merge. By default, \glc\ will assume that all merging occurs with the non-subhalo host node in which a subhalo is located. This may not be the desired behavior when using N-body merger trees. For example, such trees may indicating that a subhalo merges with another subhalo. Setting
+In addition to setting the times of merger events, it is possible to set the target node with which a merging node should merge. By default, \glc\ will assume that all merging occurs with the non-subhalo host node in which a subhalo is located. This may not be the desired behavior when using N-body merger trees. For example, such trees may indicate that a subhalo merges with another subhalo. Setting
 \begin{verbatim}
   <parameter>
     <name>mergerTreeReadPresetMergerNodes</name>
-    <value>false</value>
+    <value>true</value>
   </parameter>
 \end{verbatim}
 will cause the target node with which each merger should occur to be determined from the merger tree structure and preset for use in \glc.
@@ -182,13 +182,13 @@ If information on the angular momenta of nodes is available in the merger tree f
 \begin{verbatim}
   <parameter>
     <name>mergerTreeReadPresetSpins</name>
-    <value>false</value>
+    <value>true</value>
   </parameter>
 \end{verbatim}
 
 The spin parameter is set using the angular momentum of each node stored in the merger tree file using:
 \begin{equation}
- \lambda = {|{\bf J}| {\rm G} M^{5/2} \over |E|^{1/2}}
+ \lambda = {|{\bf J}| |E|^{1/2} \over {\rm G} M^{5/2}}
 \end{equation}
 where $|{\bf J}|$ is the magnitude of the node's angular momentum, $M$ is the node's mass and $E$ is its energy.
 
@@ -199,7 +199,7 @@ If information on the half-mass or scale radii of nodes is available in the merg
 \begin{verbatim}
   <parameter>
     <name>mergerTreeReadPresetScaleRadii</name>
-    <value>false</value>
+    <value>true</value>
   </parameter>
 \end{verbatim}
 
