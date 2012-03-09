@@ -69,7 +69,7 @@ module Merger_Trees_Millennium
 
 contains
 
-  subroutine Merger_Trees_Millennium_Process(nodesFile,particlesFile,mergerTrees)
+  subroutine Merger_Trees_Millennium_Process(nodesFile,particlesFile,mergerTrees,generation)
     !% Read and process a CSV file of merger trees extracted from the Millennium Simulation database.
     use ISO_Varying_String
     use Merger_Tree_Data_Structure
@@ -77,12 +77,15 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use File_Utilities
+    use Galacticus_Error
     implicit none
     character(len=*),     intent(in)    :: nodesFile,particlesFile
     type(mergerTreeData), intent(inout) :: mergerTrees
+    integer,              intent(in)    :: generation
     integer                             :: lineCountTotal,lineCountData,lineNumberStart,lineNumberStop,fileUnit
     character(len=1024)                 :: sqlQuery
     logical                             :: traceParticles
+    double precision                    :: particleMass
 
     ! Process the nodes file.
 
@@ -157,7 +160,15 @@ contains
     call mergerTrees%makeReferences          (.false.)
 
     ! Specify particle mass (in whatever mass units the trees use - in this case 1e10 Msun/h).
-    call mergerTrees%setParticleMass         (8.6d-2 )
+    select case (generation)
+    case (1)
+       particleMass=8.60d-2
+    case (2)
+       particleMass=6.89d-4
+    case default
+       call Galacticus_Error_Report('Merger_Trees_Millennium_Process','unknown Millennium Simulation generation')
+    end select
+    call mergerTrees%setParticleMass         (particleMass)
 
     ! Specify that trees are self-contained (i.e. nodes never move from one tree to another).
     call mergerTrees%setSelfContained        (.true. )
