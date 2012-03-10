@@ -920,7 +920,6 @@ The datasets should contain the following information:
 \end{description}
 \end{description}
 
-
 \subsubsection{Cooling Rate}
 
 Additional methods for the cooling rate from the hot halo can be added using the {\tt coolingRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt White-Frenk1991} method is described by a directive:
@@ -4412,6 +4411,31 @@ Here, {\tt Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name of a subroutine w
   end subroutine Prederivative_Task
 \end{verbatim}
 where {\tt thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives or resetting the state so that stored quantities will be recomputed as needed.
+
+\subsubsection{Cooling Rate Modifiers}
+
+Additional methods for modifying the cooling rate from the hot halo can be added using the {\tt coolingRateModifierMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to modify the cooling rate. For example, the ``cut-off'' modifier is described by a directive:
+\begin{verbatim}
+ !# <coolingRateModifierMethod>
+ !#  <unitName>Cooling_Rate_Modifier_Cut_Off</unitName>
+ !# </coolingRateModifierMethod>
+\end{verbatim}
+Here, {\tt Cooling\_Rate\_Modifier\_Cut\_Off} is the name of the subroutine which will be called modify the cooling rate. The modification subroutine must have the following form:
+\begin{verbatim}
+  subroutine Modify_Rate(thisNode,coolingRate)
+    implicit none
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(inout)          :: coolingRate    
+
+    return
+  end subroutine Modify_Rate
+\end{verbatim}
+The subroutine should modify the {\tt coolingRate} as necessary.
+
+Currently defined cooling rate modifier tasks are:
+\begin{description}
+\item [\hyperlink{cooling.cooling_rate.modifier.cut_off.F90:cooling_rates_modifier_cut_off:cooling_rate_modifier_cut_off}{``cut-off''}] The cooling rate is set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}. In other halos the cooling rate is not modified.
+\end{description}
 
 \subsubsection{Decode Property Identifier Tasks}\label{sec:DecodePropertyIndentifierTask}
 
