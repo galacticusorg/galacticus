@@ -69,9 +69,6 @@ module Cooling_Rates_Cole2000
   private
   public :: Cooling_Rate_Cole2000_Initialize
 
-  ! Parameters controlling the time and velocity scale at which cooling is cut off.
-  double precision :: coolingCutOffVelocity,coolingCutOffRedshift,coolingCutOffTime
-
 contains
 
   !# <coolingRateMethod>
@@ -80,39 +77,12 @@ contains
   subroutine Cooling_Rate_Cole2000_Initialize(coolingRateMethod,Cooling_Rate_Get)
     !% Initializes the ``Cole et al. (2000)'' cooling rate module.
     use ISO_Varying_String
-    use Input_Parameters
-    use Cosmology_Functions
     implicit none
     type(varying_string),                 intent(in)    :: coolingRateMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Rate_Get
     
-    if (coolingRateMethod == 'Cole2000') then
-       ! Return a pointer to our implementation.
-       Cooling_Rate_Get => Cooling_Rate_Cole2000
-       !@ <inputParameter>
-       !@   <name>coolingCutOffVelocity</name>
-       !@   <defaultValue>60.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The velocity below which cooling is suppressed in the `Cole2000' cooling rate algorithm.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("coolingCutOffVelocity",coolingCutOffVelocity,defaultValue=60.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingCutOffRedshift</name>
-       !@   <defaultValue>6.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The redshift below which cooling is suppressed in the `Cole2000' cooling rate algorithm.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("coolingCutOffRedshift",coolingCutOffRedshift,defaultValue= 6.0d0)
-       coolingCutOffTime=Cosmology_Age(Expansion_Factor_from_Redshift(coolingCutOffRedshift))
-    end if
+    ! Return a pointer to our implementation.
+    if (coolingRateMethod == 'Cole2000') Cooling_Rate_Get => Cooling_Rate_Cole2000
     return
   end subroutine Cooling_Rate_Cole2000_Initialize
 
@@ -120,7 +90,6 @@ contains
     !% Computes the mass cooling rate in a hot gas halo utilizing the \cite{cole_hierarchical_2000} method. This is based on the
     !% properties of the halo at formation time, and gives a zero cooling rate when the cooling radius exceeds the virial radius.
     use Tree_Nodes
-    use Dark_Matter_Halo_Scales
     use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile
@@ -129,14 +98,7 @@ contains
     double precision                         :: infallRadius,infallDensity,outerRadius,infallRadiusGrowthRate
     
     ! Check for empty halos.
-    if     (                                                                                         &
-         &         Tree_Node_Hot_Halo_Mass         (thisNode%formationNode) <= 0.0d0                 &
-         &   .or. (                                                                                  &
-         &         Tree_Node_Time                  (thisNode%formationNode) >= coolingCutOffTime     &
-         &          .and.                                                                            &
-         &         Dark_Matter_Halo_Virial_Velocity(thisNode%formationNode) <= coolingCutOffVelocity &
-         &        )                                                                                  &
-         & ) then
+    if (Tree_Node_Hot_Halo_Mass(thisNode%formationNode) <= 0.0d0) then
        Cooling_Rate_Cole2000=0.0d0
        return
     end if

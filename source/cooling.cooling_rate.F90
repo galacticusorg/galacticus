@@ -93,6 +93,9 @@ contains
     !# <include directive="coolingRateMethod" type="moduleUse">
     include 'cooling.cooling_rate.modules.inc'
     !# </include>
+    !# <include directive="coolingRateModifierMethod" type="moduleUse">
+    include 'cooling.cooling_rate.modifier.modules.inc'
+    !# </include>
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -124,6 +127,12 @@ contains
 
     ! Get the cooling rate using the selected method.
     Cooling_Rate=Cooling_Rate_Get(thisNode)
+
+    ! Call routines that modify the cooling rate.
+    !# <include directive="coolingRateModifierMethod" type="code" action="subroutine">
+    !#  <subroutineArgs>thisNode,Cooling_Rate</subroutineArgs>
+    include 'cooling.cooling_rate.modifier.tasks.inc'
+    !# </include>
 
     return
   end function Cooling_Rate
