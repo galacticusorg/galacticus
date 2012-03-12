@@ -29,7 +29,7 @@ endif
 
 # Compile the manual.
 @ iPass = 1
-while( $iPass <= 3 )
+while( $iPass <= 4 )
  # Run pdflatex.
  pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
  if ( $? != 0 ) then
