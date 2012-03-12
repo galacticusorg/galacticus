@@ -448,6 +448,24 @@ b &=& {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
 \end{eqnarray}
 where $w=0.029$, $m=0.097$, $\alpha=-110.001$, $\beta=2469.720$, $\gamma=16.885$.
 
+\subsubsection{Prada et al. (2011)}
+
+Selected with {\tt darkMatterConcentrationMethod}$=${\tt Prada2011}, under this method the concentration is computed using a fitting function from \cite{prada_halo_2011}:
+\begin{equation}
+c(M,t) = B_0(x) \mathcal{C}(\sigma^\prime),
+\end{equation}
+where
+\begin{eqnarray}
+\sigma^\prime(M,t) &=& B_1(x) \sigma(M,t), \\
+B_0(x) &=& c_{\rm min}(x)/c_{\rm min}(1.393), \\
+B_1(x) &=& \sigma^{-1}_{\rm min}(x)/\sigma^{-1}_{\rm min}(1.393), \\
+c_{\rm min}(x) &=& c_0 + (c_1-c_0) [\tan^{-1}\{\alpha (x-x_0)\}/\Pi+1/2], \\
+\sigma^{-1}_{\rm min}(x) &=& \sigma^{-1}_0 + (\sigma^{-1}_1-\sigma^{-1}_0) [\tan^{-1}\{\beta(x-x_1)\}/\Pi+1/2], \\
+\mathcal{C}(\sigma^\prime) &=& A [(\sigma^\prime)/b)^c+1] \exp(d/\sigma^{\prime 2}), \\
+x &=& (\Omega_\Lambda/\Omega_{\rm M})^{1/3} a(t),
+\end{eqnarray}
+with the following parameters (default values taken from \cite{prada_halo_2011} given in []): $A=${\tt [prada2011ConcentrationA]}$=2.881$, $b=${\tt [prada2011ConcentrationB]}$=1.257$, $c=${\tt [prada2011ConcentrationC]}$=1.022$, $d=${\tt [prada2011ConcentrationD]}$=0.060$, $c_0=${\tt [prada2011ConcentrationC0]}$=3.681$, $c_1=${\tt [prada2011ConcentrationC1]}$=5.033$, $x_0=${\tt [prada2011ConcentrationX0]}$=0.424$, $x_1=${\tt [prada2011ConcentrationX1]}$=0.526$, $\sigma^{-1}_0=${\tt [prada2011ConcentrationInverseSigma0]}$=1.047$, $\sigma^{-1}_1=${\tt [prada2011ConcentrationInverseSigma1]}$=1.646$, $\alpha=${\tt [prada2011ConcentrationAlpha]}$=6.948$, and $\beta=${\tt [prada2011ConcentrationBeta]}$=7.386$.
+
 \subsection{Density Profile Shape}\label{sec:DarkMatterProfileShape}\index{dark matter profile!shape}
 
 The method used to compute any shape parameter of dark matter profiles is selected via the {\tt darkMatterShapeMethod} parameter.

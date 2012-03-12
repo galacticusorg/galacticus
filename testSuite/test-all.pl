@@ -192,6 +192,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.Prada2011_concentration.exe",         # Tests of Prada et al. (2011) halo concentration algorithm.
+	valgrind => 0
+    },
+    {
 	name     => "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
 	valgrind => 0
     },
