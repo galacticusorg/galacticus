@@ -100,12 +100,14 @@ sub Get_Datasets_Available {
 
 sub Count_Trees {
     my $dataBlock = shift;
-    unless ( exists($dataBlock->{'mergerTreesAvailable'}) ) {
-	&Open_File($dataBlock);
-	my $outputIndex = 1;
-	$outputIndex = $dataBlock->{'output'} if ( exists($dataBlock->{'output'}) );
+    &Open_File($dataBlock);
+    my $outputIndex = 1;
+    $outputIndex = $dataBlock->{'output'} if ( exists($dataBlock->{'output'}) );
+    # Only read the list of available trees if we have yet to do so, or if it was previously read for a different output.
+    unless ( exists($dataBlock->{'mergerTreesAvailable'}) && $dataBlock->{'mergerTreesAvailableUID'} == $outputIndex ) {
 	my $treesAvailable = $dataBlock->{'hdf5File'}->group("Outputs/Output".$outputIndex)->dataset("mergerTreeIndex")->get;
 	@{$dataBlock->{'mergerTreesAvailable'}} = $treesAvailable->list();
+	$dataBlock->{'mergerTreesAvailableUID'} = $outputIndex;
     }
 }
 
