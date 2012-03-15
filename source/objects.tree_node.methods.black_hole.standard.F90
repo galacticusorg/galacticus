@@ -416,7 +416,7 @@ contains
     integer                                  :: iInstance,instanceCount,thisIndex
     double precision                         :: restMassAccretionRate,massAccretionRate,radiativeEfficiency,energyInputRate &
          &,spheroidDensity,spheroidGasMass,spheroidRadius,criticalDensity,windFraction,spheroidDensityOverCriticalDensity&
-         &,heatingRate,couplingEfficiency
+         &,heatingRate,couplingEfficiency,jetEfficiency
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedurePassed => interruptProcedure
@@ -440,8 +440,15 @@ contains
        ! Find the radiative efficiency of the accretion.
        radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,restMassAccretionRate)
        
+       ! Find the jet efficiency.
+       if (restMassAccretionRate > 0.0d0) then
+          jetEfficiency=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)/restMassAccretionRate
+       else
+          jetEfficiency=0.0d0
+       end if
+       
        ! Find the rate of increase in mass of the black hole.
-       massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency)
+       massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency-jetEfficiency)
        
        ! If no black hole component currently exists and we have some accretion then interrupt and create a black hole.
        if (.not.thisNode%componentExists(componentIndex)) then    
@@ -467,7 +474,7 @@ contains
           couplingEfficiency=Hot_Mode_Fraction(thisNode)*((Omega_Matter()/Omega_b())*Tree_Node_Hot_Halo_Mass(thisNode)/Tree_Node_Mass(thisNode))**2
 
           ! Get jet power.
-          heatingRate=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)*couplingEfficiency
+          heatingRate=jetEfficiency*restMassAccretionRate*couplingEfficiency
 
           ! Pipe this power to the hot halo.
           call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
