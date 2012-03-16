@@ -74,6 +74,11 @@ module Accretion_Disks_ADAF
   ! Flag indicating if the module has been initialized.
   logical                        :: adafInitialized=.false.
 
+  ! Option controlling type of radiative effiency to use.
+  integer                        :: adafRadiativeEfficiencyType
+  integer,             parameter :: adafRadiativeEfficiencyTypeFixed   =0
+  integer,             parameter :: adafRadiativeEfficiencyTypeThinDisk=1
+
   ! Radiative efficiency of the accretion flow.
   double precision               :: adafRadiativeEfficiency
 
@@ -129,13 +134,36 @@ contains
 
   subroutine Accretion_Disks_ADAF_Get_Parameters
     !% Initialize the module by reading in parameter values.
+    use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    double precision :: adafAdiabaticIndexDefault
+    double precision     :: adafAdiabaticIndexDefault
+    type(varying_string) :: adafRadiativeEfficiencyTypeText
 
     !$omp critical(adafInitalize)
     if (.not.adafInitialized) then
+       !@ <inputParameter>
+       !@   <name>adafRadiativeEfficiencyType</name>
+       !@   <defaultValue>pureADAF</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
+       !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
+       !@     stable circular orbit.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter("adafRadiativeEfficiencyType",adafRadiativeEfficiencyTypeText,defaultValue="fixed")
+       select case (char(adafRadiativeEfficiencyTypeText))
+       case ("fixed")
+          adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeFixed
+       case ("thinDisk")
+          adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeThinDisk
+       case default
+          call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafRadiativeEfficiencyType')
+       end select
        !@ <inputParameter>
        !@   <name>adafRadiativeEfficiency</name>
        !@   <defaultValue>0.01</defaultValue>
@@ -243,6 +271,7 @@ contains
 
   double precision function Accretion_Disk_Radiative_Efficiency_ADAF(thisNode,massAccretionRate)
     !% Computes the radiative efficiency for an ADAF.
+    use Accretion_Disks_Shakura_Sunyaev
     use Black_Hole_Fundamentals
     use Tree_Nodes
     implicit none
@@ -252,7 +281,12 @@ contains
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
 
-    Accretion_Disk_Radiative_Efficiency_ADAF=adafRadiativeEfficiency
+    select case (adafRadiativeEfficiencyType)
+    case (adafRadiativeEfficiencyTypeFixed   )
+       Accretion_Disk_Radiative_Efficiency_ADAF=adafRadiativeEfficiency
+    case (adafRadiativeEfficiencyTypeThinDisk)
+       Accretion_Disk_Radiative_Efficiency_ADAF=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate)
+    end select
     return
   end function Accretion_Disk_Radiative_Efficiency_ADAF
 

@@ -80,6 +80,9 @@ module Accretion_Disks_Switched
   double precision :: accretionRateThinDiskMinimumLogarithmic,accretionRateThinDiskMaximumLogarithmic
   logical          :: accretionRateThinDiskMinimumExists,accretionRateThinDiskMaximumExists
 
+  ! Option controlling ADAF radiative efficiency.
+  logical          :: accretionDiskSwitchedScaleAdafRadiativeEfficiency
+
 contains
 
   !# <accretionDisksMethod>
@@ -91,10 +94,10 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: accretionDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get&
+    type     (varying_string  ),          intent(in   ) :: accretionDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get &
          &,Accretion_Disk_Jet_Power_Get
-    character(len=30)                            :: accretionRateThin
+    character(len=30          )                         :: accretionRateThin
     
     if (accretionDisksMethod == 'switched') then
        Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_Switched
@@ -147,6 +150,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("accretionRateTransitionWidth",accretionRateTransitionWidth,defaultValue=0.1d0)
+        !@ <inputParameter>
+       !@   <name>accretionDiskSwitchedScaleAdafRadiativeEfficiency</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether the radiative efficiency of the ADAF component in a switched accretion disk scales with accretion rate.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter("accretionDiskSwitchedScaleAdafRadiativeEfficiency",accretionDiskSwitchedScaleAdafRadiativeEfficiency,defaultValue=.false.)
     end if
     return
   end subroutine Accretion_Disks_Switched_Initialize
@@ -158,11 +172,15 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate
-    double precision                         :: adafFraction
+    double precision                         :: adafFraction,thinDiskRadiativeEfficiency,adafRadiativeEfficiency
 
-    adafFraction=Accretion_Disk_Switched_ADAF_Fraction(thisNode,massAccretionRate)
-    Accretion_Disk_Radiative_Efficiency_Switched= (1.0d0-adafFraction)*Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate) &
-         &                                       +       adafFraction *Accretion_Disk_Radiative_Efficiency_ADAF           (thisNode,massAccretionRate)
+    adafFraction               =Accretion_Disk_Switched_ADAF_Fraction              (thisNode,massAccretionRate)
+    thinDiskRadiativeEfficiency=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate)
+    adafRadiativeEfficiency    =Accretion_Disk_Radiative_Efficiency_ADAF           (thisNode,massAccretionRate)
+    if (accretionDiskSwitchedScaleAdafRadiativeEfficiency) adafRadiativeEfficiency=adafRadiativeEfficiency&
+         &*Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling(thisNode,massAccretionRate)
+    Accretion_Disk_Radiative_Efficiency_Switched= (1.0d0-adafFraction)*thinDiskRadiativeEfficiency &
+         &                                       +       adafFraction *    adafRadiativeEfficiency
     return
   end function Accretion_Disk_Radiative_Efficiency_Switched
 
@@ -240,4 +258,40 @@ contains
     return
   end function Accretion_Disk_Switched_ADAF_Fraction
 
+  double precision function Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling(thisNode,massAccretionRate)
+    !% Determine the scaling of radiative efficiency of the ADAF component in a switched accretion disk.
+    use Tree_Nodes
+    use Black_Hole_Fundamentals
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: massAccretionRate
+    double precision                         :: eddingtonAccretionRate,massAccretionRateDimensionless
+
+    ! Get the Eddington accretion rate.
+    eddingtonAccretionRate=Black_Hole_Eddington_Accretion_Rate(thisNode)
+
+    ! Check that a black hole is present.
+    if (eddingtonAccretionRate > 0.0d0 .and. massAccretionRate > 0.0d0) then
+
+       ! Compute the accretion rate in Eddington units.
+       massAccretionRateDimensionless=massAccretionRate/eddingtonAccretionRate
+
+       ! If below the critical accretion rate for transition to a thin disk, reduce the radiative efficiency by a factor
+       ! proportional to the accretion rate.
+       if (accretionRateThinDiskMinimumExists.and.massAccretionRateDimensionless < accretionRateThinDiskMinimumLogarithmic) then
+          Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=massAccretionRateDimensionless/accretionRateThinDiskMinimumLogarithmic
+       else
+          Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=1.0d0
+       end if
+
+    else
+       
+       ! No black hole present: return unit scaling.
+       Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=1.0d0
+
+    end if
+
+    return
+  end function Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling
+  
 end module Accretion_Disks_Switched
