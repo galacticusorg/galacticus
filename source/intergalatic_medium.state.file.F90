@@ -86,7 +86,7 @@ module Intergalactic_Medium_State_File
   logical                                            :: interpolationResetElectronFraction=.true.,interpolationResetTemperature=.true.
   !$omp threadprivate(interpolationAcceleratorElectronFraction,interpolationObjectElectronFraction,interpolationResetElectronFraction)
   !$omp threadprivate(interpolationAcceleratorTemperature     ,interpolationObjectTemperature     ,interpolationResetTemperature     )
-  
+
 contains
 
   !# <intergalaticMediumStateMethod>
@@ -98,8 +98,13 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: intergalaticMediumStateMethod
-    procedure(),          pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get
-
+    abstract interface
+     double precision function Intergalactic_Medium_State_Get_Template(time)
+       double precision, intent(in) :: time
+     end function Intergalactic_Medium_State_Get_Template
+    end interface
+    procedure(Intergalactic_Medium_State_Get_Template),          pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get
+  
     ! Test if our method has been selected.    
     if (intergalaticMediumStateMethod == 'file') then
        ! Set procedure pointers.
