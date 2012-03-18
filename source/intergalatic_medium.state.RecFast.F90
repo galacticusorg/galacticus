@@ -59,6 +59,8 @@
 !!    http://www.ott.caltech.edu
 
 
+!+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
+
 !% Contains a module that implements calculations of the intergalactic medium thermal and ionization state using RecFast.
 
 module Intergalactic_Medium_State_RecFast
@@ -85,17 +87,12 @@ contains
     use Input_Parameters
     use Galacticus_Input_Paths
     implicit none
-    type(varying_string),          intent(in)    :: intergalaticMediumStateMethod
-    abstract interface
-     double precision function Intergalactic_Medium_State_Get_Template(time)
-       double precision, intent(in) :: time
-     end function Intergalactic_Medium_State_Get_Template
-     end interface
-    procedure(Intergalactic_Medium_State_Get_Template), pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get
-    procedure(Intergalactic_Medium_State_Get_Template), pointer, intent(inout) :: Intergalactic_Medium_Temperature_Get
-    character(len=32)                            :: parameterLabel
-    type(varying_string)                         :: parameterFile,recfastFile,command
-    type(xmlf_t)                                 :: parameterDoc
+    type(varying_string),                 intent(in   ) :: intergalaticMediumStateMethod
+    procedure(double precision), pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get
+    procedure(double precision), pointer, intent(inout) :: Intergalactic_Medium_Temperature_Get
+    character(len=32)                                   :: parameterLabel
+    type(varying_string)                                :: parameterFile,recfastFile,command
+    type(xmlf_t)                                        :: parameterDoc
 
     ! Test if our method has been selected.    
     if (intergalaticMediumStateMethod == 'RecFast') then
