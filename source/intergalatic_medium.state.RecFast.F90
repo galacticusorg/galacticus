@@ -83,9 +83,16 @@ contains
     use Cosmological_Parameters
     use Numerical_Constants_Astronomical
     use Input_Parameters
+    use Galacticus_Input_Paths
     implicit none
     type(varying_string),          intent(in)    :: intergalaticMediumStateMethod
-    procedure(),          pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get
+    abstract interface
+     double precision function Intergalactic_Medium_State_Get_Template(time)
+       double precision, intent(in) :: time
+     end function Intergalactic_Medium_State_Get_Template
+     end interface
+    procedure(Intergalactic_Medium_State_Get_Template), pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get
+    procedure(Intergalactic_Medium_State_Get_Template), pointer, intent(inout) :: Intergalactic_Medium_Temperature_Get
     character(len=32)                            :: parameterLabel
     type(varying_string)                         :: parameterFile,recfastFile,command
     type(xmlf_t)                                 :: parameterDoc
