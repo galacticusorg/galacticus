@@ -59,6 +59,8 @@
 !!    http://www.ott.caltech.edu
 
 
+!+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
+
 !% Contains a module that implements calculations of the intergalactic medium thermal and ionization state read from a file.
 
 module Intergalactic_Medium_State_File
@@ -97,13 +99,8 @@ contains
     !% Initializes the ``file'' intergalactic medium state module.
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: intergalaticMediumStateMethod
-    abstract interface
-     double precision function Intergalactic_Medium_State_Get_Template(time)
-       double precision, intent(in) :: time
-     end function Intergalactic_Medium_State_Get_Template
-    end interface
-    procedure(Intergalactic_Medium_State_Get_Template),          pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get
+    type(varying_string),                 intent(in   ) :: intergalaticMediumStateMethod
+    procedure(double precision), pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get
   
     ! Test if our method has been selected.    
     if (intergalaticMediumStateMethod == 'file') then
