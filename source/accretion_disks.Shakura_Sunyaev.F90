@@ -122,6 +122,12 @@ contains
     double precision, parameter              :: meierMassNormalization        =1.0d9
     double precision                         :: blackHoleSpin,accretionRateDimensionless,blackHoleMassDimensionless
 
+    ! Return immediately for non-positive accretion rates.
+    if (massAccretionRate <= 0.0d0) then
+       Accretion_Disk_Jet_Power_Shakura_Sunyaev=0.0d0
+       return
+    end if
+
     ! Get the black hole spin and dimensionless accretion rate and mass as defined by Meier (2001).
     blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
     accretionRateDimensionless=massAccretionRate/Black_Hole_Eddington_Accretion_Rate(thisNode)
