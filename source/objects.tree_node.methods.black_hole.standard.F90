@@ -442,11 +442,11 @@ contains
        
        ! Find the jet efficiency.
        if (restMassAccretionRate > 0.0d0) then
-          jetEfficiency=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)/restMassAccretionRate
+          jetEfficiency=Accretion_Disk_Jet_Power(thisNode,restMassAccretionRate)/restMassAccretionRate/(speedLight/kilo)**2
        else
           jetEfficiency=0.0d0
        end if
-       
+
        ! Find the rate of increase in mass of the black hole.
        massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency-jetEfficiency)
        
