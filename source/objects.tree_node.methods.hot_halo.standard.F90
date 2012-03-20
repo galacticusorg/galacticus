@@ -1973,6 +1973,7 @@ contains
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
     !% thisNode} to account for any hot halo already in the parent.
     use Galacticus_Error
+    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: parentNode
@@ -1983,7 +1984,8 @@ contains
     if (methodSelected) then
        ! Get the parent node of this node.
        parentNode => thisNode%parentNode
-       ! If the parent node has a hot halo component, then add it to that of this node.
+       ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
+       ! promotion.
        if (parentNode%componentExists(componentIndex)) then
           hotHaloMass=Tree_Node_Hot_Halo_Mass_Standard(thisNode)+Tree_Node_Hot_Halo_Mass_Standard(parentNode)
           call Tree_Node_Hot_Halo_Mass_Set_Standard(thisNode,hotHaloMass)
@@ -1991,6 +1993,8 @@ contains
           call Tree_Node_Hot_Halo_Angular_Momentum_Set_Standard(thisNode,angularMomentum)
           hotHaloMass=Tree_Node_Hot_Halo_Outflowed_Mass_Standard(thisNode)+Tree_Node_Hot_Halo_Outflowed_Mass_Standard(parentNode)
           call Tree_Node_Hot_Halo_Outflowed_Mass_Set_Standard(thisNode,hotHaloMass)
+          hotHaloMass=Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(thisNode)+Tree_Node_Hot_Halo_Unaccreted_Mass_Standard(parentNode)
+          call Tree_Node_Hot_Halo_Unaccreted_Mass_Set_Standard(thisNode,hotHaloMass)
           angularMomentum=Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(thisNode)&
                &+Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Standard(parentNode)
           call Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard(thisNode,angularMomentum)
@@ -2007,6 +2011,8 @@ contains
           call Tree_Node_Hot_Halo_Chemicals_Standard               (parentNode,chemicalsParent )
           chemicals      =chemicalsParent +chemicals
           call Tree_Node_Hot_Halo_Chemicals_Set_Standard           (thisNode  ,chemicals       )
+          ! Update the outer radius to match the virial radius of the parent halo.
+          call Tree_Node_Hot_Halo_Outer_Radius_Set_Standard(thisNode,Dark_Matter_Halo_Virial_Radius(parentNode))
        end if
     end if
     return
