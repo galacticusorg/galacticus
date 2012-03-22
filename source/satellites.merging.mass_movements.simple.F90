@@ -126,7 +126,7 @@ contains
   end subroutine Satellite_Merging_Mass_Movements_Simple_Initialize
 
   subroutine Satellite_Merging_Mass_Movement_Simple(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
-    !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{benson_orbital_2005}.
+    !% Determine where stars and gas move as the result of a merger event using a simple algorithm.
     use Tree_Nodes
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options

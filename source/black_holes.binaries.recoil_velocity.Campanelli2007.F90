@@ -67,9 +67,16 @@
 module Black_Hole_Binary_Recoil_Velocities_Standard
   !% Implements a black hole binary recoil velocity which follows the formulae in \cite{campanelli_large_2007}, derived from
   !% post-Newtonian evaluations.
+  use FGSL
   implicit none
   private
-  public :: Black_Hole_Binary_Recoil_Velocity_Standard_Initialize
+  public :: Black_Hole_Binary_Recoil_Velocity_Standard_Initialize, Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot,&
+       & Black_Hole_Binary_Recoil_Velocity_Standard_State_Store, Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve
+
+  ! Random sequence objects.
+  type(fgsl_rng) :: pseudoSequenceObject,clonedPseudoSequenceObject
+  logical        :: pseudoSequenceReset=.true.,pseudoSequenceResetSnapshot
+  !$omp threadprivate(pseudoSequenceReset,pseudoSequenceObject,pseudoSequenceResetSnapshot,clonedPseudoSequenceObject)
 
 contains
 
@@ -93,16 +100,13 @@ contains
     !% the binary's center of mass. Constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm
     !% 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K
     !% \cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
-    use FGSL
     use Tree_Nodes
     use Pseudo_Random
     use Numerical_Constants_Math
     implicit none
-    type(fgsl_rng),   save      :: pseudoSequenceObject
-    logical,          save      :: pseudoSequenceReset=.true.
     double precision, intent(in):: massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2
     double precision, parameter :: H=7.3d3, K=6.0d4, A=1.2d4, B=-0.93
-    double precision            :: velocityRecoil,velocityOrthogonal,velocityParallel,velocityMass,q    
+    double precision            :: velocityOrthogonal,velocityParallel,velocityMass,q    
     double precision            :: alpha1Orthogonal,alpha2Orthogonal,alpha1Parallel,alpha2Parallel
     double precision            :: theta, phi
 
@@ -136,4 +140,48 @@ contains
     return
   end function Black_Hole_Binary_Recoil_Velocity_Standard
 
+  !# <galacticusStateSnapshotTask>
+  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot</unitName>
+  !# </galacticusStateSnapshotTask>
+  subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot
+    !% Store a snapshot of the random number generator internal state.
+    implicit none
+
+    if (.not.pseudoSequenceReset) clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
+    pseudoSequenceResetSnapshot=pseudoSequenceReset
+    return
+  end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot
+  
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Store(stateFile,fgslStateFile)
+    !% Write the stored snapshot of the random number state to file.
+    use FGSL
+    use Pseudo_Random
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) pseudoSequenceResetSnapshot
+    if (.not.pseudoSequenceResetSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+    return
+  end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Store
+  
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve(stateFile,fgslStateFile)
+    !% Write the stored snapshot of the random number state to file.
+    use FGSL
+    use Pseudo_Random
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    read (stateFile) pseudoSequenceReset
+    if (.not.pseudoSequenceReset) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
+    return
+  end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve
+    
 end module Black_Hole_Binary_Recoil_Velocities_Standard
