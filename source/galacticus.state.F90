@@ -97,7 +97,7 @@ contains
     return
   end subroutine Galacticus_State_Snapshot
 
-  subroutine Galacticus_State_Store
+  subroutine Galacticus_State_Store(logMessage)
     !% Store the internal state.
     !$ use OMP_Lib
     use String_Handling
@@ -106,9 +106,10 @@ contains
     include 'galacticus.state.store.modules.inc'
     !# </include>
     implicit none
-    integer              :: stateUnit,iError
-    type(fgsl_file)      :: fgslStateFile
-    type(varying_string) :: fileName,fileNameFGSL
+    type(varying_string), intent(in), optional :: logMessage
+    integer                                    :: stateUnit,iError
+    type(fgsl_file)                            :: fgslStateFile
+    type(varying_string)                       :: fileName,fileNameFGSL,fileNameLog
 
     ! Ensure that module is initialized.
     call State_Initialize
@@ -120,12 +121,21 @@ contains
        !$ if (omp_in_parallel()) then
        !$    fileName    =stateFileRoot//     '.state.'
        !$    fileNameFGSL=stateFileRoot//'.fgsl.state.'
+       !$    fileNameLog =stateFileRoot//     '.state.log.'
        !$    fileName    =fileName    //omp_get_thread_num()
        !$    fileNameFGSL=fileNameFGSL//omp_get_thread_num()
+       !$    fileNameLog =fileNameLog //omp_get_thread_num()
        !$ else
        fileName    =stateFileRoot//'.state'
        fileNameFGSL=stateFileRoot//'.fgsl.state'
+       fileNameLog =stateFileRoot//'.state.log'
        !$ end if
+       if (present(logMessage)) then
+          open(newunit=stateUnit,file=char(fileNameLog),form='formatted',status='unknown',access='append')
+          write (stateUnit,*) char(logMessage)
+          close(stateUnit)
+       end if
+
        open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
        fgslStateFile=FGSL_Open(char(fileNameFGSL),'w')
        
