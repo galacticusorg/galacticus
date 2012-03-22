@@ -122,10 +122,16 @@ contains
   
   subroutine Galacticus_Signal_Handler_SIGINT()
     !% Handle {\tt SIGINT} signals, by flushing all data and then aborting.
+    !$ use OMP_Lib
     implicit none
     integer :: error
 
     write (0,*) 'Galacticus was interrupted - will try to flush data before exiting.'
+    !$ if (omp_in_parallel()) then
+    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
+    !$ else
+    !$    write (0,*) " => Error occurred in master thread"
+    !$ end if
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
@@ -135,10 +141,16 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGSEGV()
     !% Handle {\tt SIGSEGV} signals, by flushing all data and then aborting.
+    !$ use OMP_Lib
     implicit none
     integer :: error
 
     write (0,*) 'Galacticus experienced a segfault - will try to flush data before exiting.'
+    !$ if (omp_in_parallel()) then
+    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
+    !$ else
+    !$    write (0,*) " => Error occurred in master thread"
+    !$ end if
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
@@ -148,10 +160,16 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGFPE()
     !% Handle {\tt SIGFPE} signals, by flushing all data and then aborting.
+    !$ use OMP_Lib
     implicit none
     integer :: error
 
     write (0,*) 'Galacticus experienced a floating point exception - will try to flush data before exiting.'
+    !$ if (omp_in_parallel()) then
+    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
+    !$ else
+    !$    write (0,*) " => Error occurred in master thread"
+    !$ end if
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()

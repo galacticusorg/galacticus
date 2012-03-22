@@ -339,11 +339,14 @@ contains
     use Tree_Nodes
     use Galacticus_State
     use Kind_Numbers
+    use String_Handling
+    use ISO_Varying_String
     implicit none
     type(mergerTree),        intent(inout) :: thisTree
     logical,                 intent(in)    :: skipTree
     integer(kind=kind_int8), parameter     :: baseNodeIndex=1
     integer(kind=kind_int8)                :: thisTreeIndex
+    type(varying_string)                   :: message
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
@@ -353,7 +356,9 @@ contains
        call Galacticus_State_Retrieve
        ! Take a snapshot of the internal state and store it.
        call Galacticus_State_Snapshot
-       call Galacticus_State_Store
+       message='Storing state for tree #'
+       message=message//nextTreeIndex
+       call Galacticus_State_Store(message)
        ! Determine the index of the tree to process.
        select case (mergerTreeBuildTreesProcessDescending)
        case(.false.)

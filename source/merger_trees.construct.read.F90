@@ -657,6 +657,7 @@ contains
     use Memory_Management
     use Kind_Numbers
     use Histories
+    use ISO_Varying_String
     implicit none
     type(mergerTree),        intent(inout)                     :: thisTree
     logical,                 intent(in)                        :: skipTree
@@ -669,6 +670,7 @@ contains
     integer                                                    :: isolatedNodeCount,primaryRootIndex,iExtraTree
     integer(kind=kind_int8)                                    :: iNode,historyCountMaximum
     logical                                                    :: haveTree
+    type(varying_string)                                       :: message
 
     !$omp critical(mergerTreeReadTree)
     ! Do we have some queued trees to process?
@@ -719,7 +721,9 @@ contains
           call Galacticus_State_Retrieve
           ! Take a snapshot of the internal state and store it.
           call Galacticus_State_Snapshot
-          call Galacticus_State_Store
+          message='Storing state for tree #'
+          message=message//nextTreeToRead
+          call Galacticus_State_Store(message)
 
           ! If the tree is to be skipped, do not read it.
           if (skipTree) then
