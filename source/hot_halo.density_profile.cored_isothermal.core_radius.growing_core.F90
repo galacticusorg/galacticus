@@ -71,7 +71,9 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core
   use FGSL
   implicit none
   private
-  public :: Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize
+  public :: Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize,&
+       & Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store,&
+       & Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve
 
   ! Parameters of the model.
   double precision                            :: isothermalCoreRadiusOverScaleRadius,isothermalCoreRadiusOverVirialRadiusMaximum
@@ -226,5 +228,34 @@ contains
     Growing_Core_Virial_Density_Function=(1.0d0+radiusOverVirialRadius**2)*(1.0d0-radiusOverVirialRadius*datan(1.0d0/radiusOverVirialRadius))
     return
   end function Growing_Core_Virial_Density_Function
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store(stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) coreRadiusMinimum,coreRadiusMaximum
+    return
+  end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store
   
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    ! Read the minimum and maximum tabulated times.
+    read (stateFile) coreRadiusMinimum,coreRadiusMaximum
+    ! Force retabulation on next evaluation.
+    coreRadiusTableInitialized=.false.
+    return
+  end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve
+
 end module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core
