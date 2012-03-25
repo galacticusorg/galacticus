@@ -85,7 +85,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: blackHoleBinaryInitialRadiiMethod
+    type     (varying_string  ),          intent(in   ) :: blackHoleBinaryInitialRadiiMethod
     procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
     
     if (blackHoleBinaryInitialRadiiMethod == 'tidalRadius') Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Tidal_Radius
@@ -106,12 +106,12 @@ contains
     use Galacticus_Display
     use String_Handling
     implicit none
-    type(treeNode),          intent(inout), pointer  :: thisNode, hostNode
-    type(fgsl_function),     save                    :: rootFunction
+    type(treeNode         ), intent(inout), pointer  :: thisNode, hostNode
+    type(fgsl_function    ), save                    :: rootFunction
     type(fgsl_root_fsolver), save                    :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
     double precision                                 :: radiusMinimum,radiusMaximum
-    type(c_ptr)                                      :: parameterPointer
+    type(c_ptr            )                          :: parameterPointer
 
     ! Assume zero separation by default.
     Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
@@ -124,6 +124,12 @@ contains
 
     ! Get the mass within the half-mass radius.
     massHalf=Galactic_Structure_Enclosed_Mass(thisNode,radiusHalfMass,massType=massTypeGalactic)
+
+    ! Return zero radius for massless galaxy.
+    if (radiusHalfMass <= 0.0d0 .or. masHalf <= 0.0d0) then
+       Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
+       return
+    end if
 
     ! Solve for the radius around the host at which the satellite gets disrupted.
     activeNode => hostNode
@@ -148,9 +154,9 @@ contains
     use Galactic_Structure_Options
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double), value   :: radius
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: Tidal_Radius_Root
+    real(c_double), value :: radius
+    type(c_ptr   ), value :: parameterPointer
+    real(c_double)        :: Tidal_Radius_Root
 
     ! Evaluate the root function.
     Tidal_Radius_Root= Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeGalactic)/massHalf &
