@@ -88,6 +88,8 @@ contains
        ! Set pointers to our implementation.
        Cooling_Time_Available_Get               => Cooling_Time_Available_Halo_Formation
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_Halo_Formation
+       ! Check that there is a gettable formation time property.
+       if (.not.associated(Tree_Node_Formation_Time)) call Galacticus_Error_Report('Cooling_Time_Available_Halo_Formation_Initialize',"'haloFormation' method for time available for cooling requires a component that supports getting of the Formation_Time property")
     end if
     return
   end subroutine Cooling_Time_Available_Halo_Formation_Initialize
