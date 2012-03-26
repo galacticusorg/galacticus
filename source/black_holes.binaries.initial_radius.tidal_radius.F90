@@ -126,7 +126,7 @@ contains
     massHalf=Galactic_Structure_Enclosed_Mass(thisNode,radiusHalfMass,massType=massTypeGalactic)
 
     ! Return zero radius for massless galaxy.
-    if (radiusHalfMass <= 0.0d0 .or. masHalf <= 0.0d0) then
+    if (radiusHalfMass <= 0.0d0 .or. massHalf <= 0.0d0) then
        Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
        return
     end if
