@@ -43,7 +43,7 @@ foreach $srcdir ( @sourcedirs ) {
 	    while (my $line = <infile>) {
 		if ( $line =~ m/^\s*program\s/i ) {
 		    $ename = $fname;
-		    $ename =~ s/\.[fF](90)?t?/\.exe/;
+		    $ename =~ s/\.[fF](90)?t?$/\.exe/;
 		    $do_entry = 0;
 		    if ( $ibase == 0 ) {
 			@exes[++$#exes] = $ename;
@@ -54,11 +54,11 @@ foreach $srcdir ( @sourcedirs ) {
 		    }
 		    if ( $do_entry == 1 ) {
 			$ofile = $fname;
-			$ofile =~ s/\.[fF](90)?t?/\.o/;
+			$ofile =~ s/\.[fF](90)?t?$/\.o/;
 			$dfile = $fname;
-			$dfile =~ s/\.[fF](90)?t?/\.d/;
+			$dfile =~ s/\.[fF](90)?t?$/\.d/;
 			$root = $fname;
-			$root =~ s/\.[fF](90)?t?//;
+			$root =~ s/\.[fF](90)?t?$//;
 			$eleaf = $root.".exe";
 			print outfile "$root.exe: .$workDir$base$ofile .$workDir$base$dfile \$(MAKE_DEPS)\n";
 			print outfile "\t\$(F03COMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(F03FLAGS) \$(LIBS)\n";
