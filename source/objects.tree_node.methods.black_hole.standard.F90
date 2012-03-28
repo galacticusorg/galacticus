@@ -474,7 +474,7 @@ contains
           couplingEfficiency=Hot_Mode_Fraction(thisNode)*((Omega_Matter()/Omega_b())*Tree_Node_Hot_Halo_Mass(thisNode)/Tree_Node_Mass(thisNode))**2
 
           ! Get jet power.
-          heatingRate=jetEfficiency*restMassAccretionRate*couplingEfficiency
+          heatingRate=jetEfficiency*restMassAccretionRate*(speedLight/kilo)**2*couplingEfficiency
 
           ! Pipe this power to the hot halo.
           call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
