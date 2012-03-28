@@ -104,6 +104,7 @@ sub processFile {
 
     # Check if this is a Fortran or C++ source file.
     if ( $fileName =~ m/\.[fF]90$/ ) {
+
 	# Initialize the unitIdList array and the units hash.
 	undef(@unitIdList);
 	$unitIdList[0] = $fileName;
@@ -297,6 +298,7 @@ sub processFile {
 		# Check for function calls.
 		$functionSeek = lc($processedLine);
 		$functionSeek =~ s/'[^']+'//g;
+		$functionSeek =~ s/"[^"]+"//g;
 		while ( $functionSeek =~ m/\(/ ) {
 		    ($extracted,$remainder,$prefix) = extract_bracketed($functionSeek,"()","[^\\(]+");
 		    if ( $prefix =~ m/(([a-z0-9_]+)\s*%\s*)*([a-z0-9_]+)$/ ) {
