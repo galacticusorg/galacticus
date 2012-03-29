@@ -369,7 +369,13 @@
       <value>Volonteri2003</value>
     </parameter>
   </parameters>
-  
+  <parameters>
+    <parameter>
+      <name>blackHoleOutputData</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
+
   <!-- Cooling rate methods. -->
   <parameters>
     <parameter>
@@ -624,6 +630,18 @@
     <parameter>
       <name>outputVirialData</name>
       <value>true</value>
+    </parameter>
+  </parameters>
+  
+  <!-- Output descendent indices -->
+  <parameters>
+    <parameter>
+      <name>outputDescendentIndices</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>treeNodeMethodSatelliteOrbit</name>
+      <value>simple</value>
     </parameter>
   </parameters>
   
