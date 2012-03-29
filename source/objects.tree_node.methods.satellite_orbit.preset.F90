@@ -59,6 +59,8 @@
 !!    http://www.ott.caltech.edu
 
 
+!+    Contributions to this file made by:  Andrew Benson, Jianling Gan.
+
 !% Contains a module of satellite orbit tree node methods in which properties are preset.
 
 module Tree_Node_Methods_Satellite_Orbit_Preset
@@ -69,19 +71,21 @@ module Tree_Node_Methods_Satellite_Orbit_Preset
   private
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize_Preset, Satellite_Orbit_Create_Preset, Galacticus_Output_Tree_Satellite_Orbit_Preset,&
        & Galacticus_Output_Tree_Satellite_Orbit_Preset_Property_Count, Galacticus_Output_Tree_Satellite_Orbit_Preset_Names,&
-       & Tree_Node_Methods_Satellite_Orbit_Preset_Dump
+       & Tree_Node_Methods_Satellite_Orbit_Preset_Dump, Tree_Node_Satellite_Preset_Promote
   
   ! The index used as a reference for this component.
   integer :: componentIndex=-1
 
   ! Property indices.
   integer, parameter :: propertyCount =0, dataCount=5, historyCountInitial=0, historyCount=1
+  ! Indices for data properties.
   integer, parameter :: mergeTimeIndex         =1
-  integer, parameter :: boundMassIndex         =1
   integer, parameter :: velocityRadialIndex    =2
   integer, parameter :: velocityTangentialIndex=3
   integer, parameter :: virialRadiusIndex      =4
   integer, parameter :: hostMassIndex          =5
+  ! Indices for histories.
+  integer, parameter :: boundMassIndex         =1
 
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
@@ -326,10 +330,10 @@ contains
     ! Ensure the orbit is defined.
     call thisOrbit%assertIsDefined()
     ! Extract components of the orbit.
-    thisNode%components(thisIndex)%instance(1)%data(hostMassIndex      )=thisOrbit%hostMass          ()
-    thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex  )=thisOrbit%radius            ()
-    thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex)=thisOrbit%velocityRadial    ()
-    thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex)=thisOrbit%velocityTangential()
+    thisNode%components(thisIndex)%instance(1)%data(hostMassIndex          )=thisOrbit%hostMass          ()
+    thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex      )=thisOrbit%radius            ()
+    thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex    )=thisOrbit%velocityRadial    ()
+    thisNode%components(thisIndex)%instance(1)%data(velocityTangentialIndex)=thisOrbit%velocityTangential()
     return
   end subroutine Tree_Node_Satellite_Virial_Orbit_Set_Preset
 
@@ -349,11 +353,11 @@ contains
        thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
        call thisOrbit%massesSet            (                                                          &
             &                               Tree_Node_Mass(thisNode)                                , &
-            &                               thisNode%components(thisIndex)%instance(1)%data(hostMassIndex      )  &
+            &                               thisNode%components(thisIndex)%instance(1)%data(hostMassIndex          )  &
             &                              )
-       call thisOrbit%radiusSet            (thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex  ))
-       call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex))
-       call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex))
+       call thisOrbit%radiusSet            (thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex      ))
+       call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex    ))
+       call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%instance(1)%data(velocityTangentialIndex))
     else
        call thisOrbit%reset()
     end if
@@ -378,6 +382,39 @@ contains
     return
   end subroutine Satellite_Orbit_Create_Preset
 
+  !# <nodePromotionTask>
+  !#  <unitName>Tree_Node_Satellite_Preset_Promote</unitName>
+  !# </nodePromotionTask>
+  subroutine Tree_Node_Satellite_Preset_Promote(thisNode)
+    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
+    !% from the parent.
+    use Galacticus_Error
+    use Kepler_Orbits_Structure
+    use Histories
+    implicit none
+    type(treeNode   ),   pointer, intent(inout) :: thisNode
+    type(treeNode   ),   pointer                :: parentNode
+    type(keplerOrbit)                           :: thisOrbit
+    type(history    )                           :: thisHistory
+
+    ! Check if this method is selected.
+    if (methodSelected) then
+       ! Get the parent node of this node.
+       parentNode => thisNode%parentNode
+       ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
+       ! promotion.
+       if (parentNode%componentExists(componentIndex)) then
+          thisOrbit=Tree_Node_Satellite_Virial_Orbit(parentNode)
+          thisHistory=Tree_Node_Bound_Mass_History  (parentNode)
+          call                            Tree_Node_Satellite_Time_Of_Merging_Set(thisNode,Tree_Node_Satellite_Time_Of_Merging(parentNode))
+          call                            Tree_Node_Bound_Mass_History_Set       (thisNode,thisHistory                                    )
+          if (thisOrbit%isDefined()) call Tree_Node_Satellite_Virial_Orbit_Set   (thisNode,thisOrbit                                      )
+          call thisHistory%destroy()
+       end if
+    end if
+    return
+  end subroutine Tree_Node_Satellite_Preset_Promote
+  
   integer function Tree_Node_Satellite_Orbit_Index(thisNode)
     !% Ensure the satellite orbit component exists and return its position in the components array.
     implicit none
