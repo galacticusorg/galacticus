@@ -712,9 +712,9 @@ Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt virialRadius} this 
 
 Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt Font2008} this method computes the ram pressure stripping radius using the algorithm of \cite{font_colours_2008}. Specifically, the radius, $r_{\rm rp}$, is computed as the solution of
 \begin{equation}
-\alpha_{\rm rp} {{\rm G} M_{\rm satellite}(r_{\rm rp}) \rho_{\rm hot, satellite}(r_{\rm rp}) \over r_{\rm rp} } = \rho_{\rm hot, host}(r_{\rm apo}) V_{\rm apo}^2,
+\alpha_{\rm rp} {{\rm G} M_{\rm satellite}(r_{\rm rp}) \rho_{\rm hot, satellite}(r_{\rm rp}) \over r_{\rm rp} } = \rho_{\rm hot, host}(r_{\rm per}) V_{\rm peri}^2,
 \end{equation}
-where $M_{\rm satellite}(r)$ is the total mass of the satellite within radius $r$, $\rho_{\rm hot}(r)$ is the hot halo density profile of the specified component at radius $r$, $r_{\rm apo}$ is the apocentric radius of the satellite's orbit in its host halo, with $V_{\rm apo}$ being the orbital velocity at that location. The parameter $\alpha_{\rm rp}=${\tt [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
+where $M_{\rm satellite}(r)$ is the total mass of the satellite within radius $r$, $\rho_{\rm hot}(r)$ is the hot halo density profile of the specified component at radius $r$, $r_{\rm peri}$ is the pericentric radius of the satellite's orbit in its host halo, with $V_{\rm peri}$ being the orbital velocity at that location. The parameter $\alpha_{\rm rp}=${\tt [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
 
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 
