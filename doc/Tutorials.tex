@@ -118,8 +118,16 @@ If position and velocity information for tree nodes is available within the merg
     <name>mergerTreeReadPresetOrbitsBoundOnly</name>
     <value>true</value>
   </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetOrbitsSetAll</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetOrbitsAssertAllSet</name>
+    <value>true</value>
+  </parameter>
 \end{verbatim}
-Typically, a merging halo is not seen at precisely the time at which it crosses the virial radius of its host (due to the fact that N-body simulations are output at discretely spaced timesteps). Therefore, \glc\ computes the orbit at the time just prior to merging and assumes that the orbital parameters (energy and angular momentum) remain fixed to propagate the orbit to the virial radius of the host. The second parameter in the above example, {\tt [mergerTreeReadPresetOrbitsBoundOnly]}, specifies whether or not only bound orbits should be set. Some calculations (e.g. of subhalo merging times) assume bound orbits and may fail if given an unbound orbit. Setting this option to {\tt true} causes only bound orbits to be preset---unbound orbits are ignored and must either be set elsewhere or may be assigned a random value (as in the case of the ``simple'' satellite orbit component for example; see \S\ref{sec:SatelliteOrbitComponentSimple}).
+Typically, a merging halo is not seen at precisely the time at which it crosses the virial radius of its host (due to the fact that N-body simulations are output at discretely spaced timesteps). Therefore, \glc\ computes the orbit at the time just prior to merging and assumes that the orbital parameters (energy and angular momentum) remain fixed to propagate the orbit to the virial radius of the host. The second parameter in the above example, {\tt [mergerTreeReadPresetOrbitsBoundOnly]}, specifies whether or not only bound orbits should be set. Some calculations (e.g. of subhalo merging times) assume bound orbits and may fail if given an unbound orbit. Setting this option to {\tt true} causes only bound orbits to be preset---unbound orbits are ignored. Note that some orbits cannot be propagated to the virial radius (i.e. their pericenter is larger than the virial radius). The {\tt [mergerTreeReadPresetOrbitsSetAll]} option, if true, will cause such orbits to be assigned randomly using the selected XXXXX method, such that all orbits are assigned. The {\tt [mergerTreeReadPresetOrbitsAssertAllSet]} option requires that all orbits be set---if {\tt [mergerTreeReadPresetOrbitsSetAll]}$=${\tt false} and {\tt [mergerTreeReadPresetOrbitsAssertAllSet]}$=${\tt true} then \glc\ will exit with an error message if any orbit cannot be set.
 
 \subsubsection{Merging Times and Targets}
 

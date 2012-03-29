@@ -145,7 +145,8 @@ module Merger_Tree_Read
   logical                                            :: mergerTreeReadPresetScaleRadii
   double precision                                   :: mergerTreeReadPresetScaleRadiiMinimumMass
   logical                                            :: mergerTreeReadPresetSpins
-  logical                                            :: mergerTreeReadPresetOrbits,mergerTreeReadPresetOrbitsBoundOnly
+  logical                                            :: mergerTreeReadPresetOrbits,mergerTreeReadPresetOrbitsBoundOnly&
+       &,mergerTreeReadPresetOrbitsSetAll, mergerTreeReadPresetOrbitsAssertAllSet
 
   ! Option controlling fatality of missing host node condition.
   logical                                            :: mergerTreeReadMissingHostsAreFatal
@@ -330,6 +331,28 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetOrbits',mergerTreeReadPresetOrbits,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetOrbitsSetAll</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
+       !@   <description>
+       !@     Forces all orbits to be set. If the computed orbit does not cross the virial radius, then select one at random instead.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetOrbitsSetAll',mergerTreeReadPresetOrbitsSetAll,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetOrbitsAssertAllSet</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
+       !@   <description>
+       !@     Asserts that all virial orbits must be preset. If any can not be set, \glc\ will stop.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetOrbitsAssertAllSet',mergerTreeReadPresetOrbitsAssertAllSet,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetOrbitsBoundOnly</name>
        !@   <attachedTo>module</attachedTo>
@@ -1616,6 +1639,7 @@ contains
   subroutine Scan_For_Mergers(nodes,nodeList,historyCountMaximum)
     !% Scan for and record mergers between nodes.
     use Vectors
+    use Virial_Orbits
     use Kepler_Orbits_Structure
     use Tree_Nodes
     use Cosmology_Functions
@@ -1623,6 +1647,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Error
+    use Numerical_Comparison
     implicit none
     type(nodeData),          intent(inout), dimension(:) :: nodes
     type(treeNodeList),      intent(inout), dimension(:) :: nodeList
@@ -1632,6 +1657,7 @@ contains
     double precision,        parameter                   :: timeUntilMergingInfinite=1.0d30
     double precision,                       dimension(3) :: satellitePosition,hostPosition,relativePosition
     double precision,                       dimension(3) :: satelliteVelocity,hostVelocity,relativeVelocity
+    logical,                 parameter                   :: acceptUnboundOrbits=.false.
     type(keplerOrbit)                                    :: thisOrbit
     integer                                              :: iNode,iIsolatedNode,descendentIndex
     integer(kind=kind_int8)                              :: historyCount,descendentLocation
@@ -1743,6 +1769,19 @@ contains
           if (mergerTreeReadPresetPositions) then
              call Tree_Node_Position_Set(nodeList(iIsolatedNode)%node,nodes(iNode)%position)
              call Tree_Node_Velocity_Set(nodeList(iIsolatedNode)%node,nodes(iNode)%velocity)
+             ! Detect if the node parent has no isolated child - in which case one will have been made for it using a
+             ! direct copy of itself. Note that this is an ugly solution - once trees can handle nodes with no primary
+             ! progenitor (but with secondary progenitors) a cleaner test could be used here.
+             if (associated(nodeList(iIsolatedNode)%node%childNode)) then
+                if     (                                                                                                                                                       &
+                     &                                    nodeList(iIsolatedNode)%node%index() ==                nodeList(iIsolatedNode)%node%childNode%index()                &
+                     &  .and. Values_Agree(Tree_Node_Time(nodeList(iIsolatedNode)%node)        ,  Tree_Node_Time(nodeList(iIsolatedNode)%node%childNode)       ,relTol=2.0d-6) &
+                     & ) then
+                   ! Set the position and velocity of the pseudo-primary progenitor here also.
+                   call Tree_Node_Position_Set(nodeList(iIsolatedNode)%node%childNode,nodes(iNode)%position)
+                   call Tree_Node_Velocity_Set(nodeList(iIsolatedNode)%node%childNode,nodes(iNode)%velocity)
+                end if
+             end if
           end if
        end if
     end do
@@ -1803,6 +1842,16 @@ contains
                    call thisOrbit%propagate(radiusVirial,infalling=.true.)
                    ! Set the orbit.
                    call Tree_Node_Satellite_Virial_Orbit_Set(satelliteNode,thisOrbit)
+                else if (mergerTreeReadPresetOrbitsSetAll) then
+                   ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
+                   thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                   call Tree_Node_Satellite_Virial_Orbit_Set(satelliteNode,thisOrbit)
+                else if (mergerTreeReadPresetOrbitsAssertAllSet) then
+                   message='virial orbit could not be set for node '
+                   message=message//satelliteNode%index()//char(10)
+                   message=message//' -> set [mergerTreeReadPresetOrbitsAssertAllSet]=false to ignore this problem'//char(10)
+                   message=message//'    (this may lead to other problems)'
+                   call Galacticus_Error_Report('Scan_For_Mergers',message)
                 end if
              end if
           end if
