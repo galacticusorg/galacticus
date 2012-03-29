@@ -91,7 +91,7 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_History</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_History(thisNode,timeStep,End_Of_Timestep_Task)
+  subroutine Merger_Tree_Timestep_History(thisNode,timeStep,End_Of_Timestep_Task,report)
     !% Determines the timestep to go to the next tabulation point for global history storage.
     use Tree_Nodes
     use Input_Parameters
@@ -100,10 +100,12 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     use Merger_Trees_Evolve_Timesteps_Template
+    use Evolve_To_Time_Reports
     implicit none
     type(treeNode),                           intent(inout), pointer :: thisNode
     procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
     double precision,                         intent(inout)          :: timeStep
+    logical,                                  intent(in)             :: report
     integer                                                          :: timeIndex
     double precision                                                 :: time,ourTimeStep
     
@@ -197,6 +199,7 @@ contains
           End_Of_Timestep_Task => Merger_Tree_History_Store
        end if
     end if
+    if (report) call Evolve_To_Time_Report("history: ",timeStep)
     return
   end subroutine Merger_Tree_Timestep_History
 

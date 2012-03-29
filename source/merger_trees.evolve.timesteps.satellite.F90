@@ -81,15 +81,17 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Satellite</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Satellite(thisNode,timeStep,End_Of_Timestep_Task)
+  subroutine Merger_Tree_Timestep_Satellite(thisNode,timeStep,End_Of_Timestep_Task,report)
     !% Determines the timestep to go to the time at which the node merges.
     use Tree_Nodes
+    use Evolve_To_Time_Reports
     use Merger_Trees_Evolve_Timesteps_Template
     use Input_Parameters
     implicit none
     type(treeNode),                           intent(inout), pointer :: thisNode
     procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
     double precision,                         intent(inout)          :: timeStep
+    logical,                                  intent(in)             :: report
     type(treeNode),                                          pointer :: hostNode
     double precision                                                 :: timeUntilMerging,timeStepAllowed,mergeTargetTimeMinimum,mergeTargetTimeOffsetMaximum
 
@@ -155,6 +157,7 @@ contains
           timeStep=timeStepAllowed
           End_Of_Timestep_Task => null()
        end if
+       if (report) call Evolve_To_Time_Report("satellite (host): ",timeStep)
     else
        ! Set return value if our timestep is smaller than current one.
        if (timeUntilMerging <= timeStep) then
@@ -167,8 +170,8 @@ contains
              End_Of_Timestep_Task => null()
           end if
        end if
+       if (report) call Evolve_To_Time_Report("satellite (self): ",timeStep)
      end if
-
     return
   end subroutine Merger_Tree_Timestep_Satellite
 
