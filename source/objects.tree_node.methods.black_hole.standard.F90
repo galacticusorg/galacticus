@@ -1515,6 +1515,7 @@ contains
     if (massBlackHole2 <= 0.0d0) return
 
     ! Open the group to which black hole mergers should be written.
+    !$omp critical (Galacticus_Output_Tree_Black_Hole_Merger)
     mergersGroup=IO_HDF5_Open_Group(galacticusOutputFile,"blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
     call mergersGroup%writeDataset([massBlackHole1          ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
@@ -1523,6 +1524,7 @@ contains
     call mergersGroup%writeDataset([activeTreeWeight        ],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
     ! Close the group.
     call mergersGroup%close()  
+    !$omp end critical (Galacticus_Output_Tree_Black_Hole_Merger)
     return
   end subroutine Galacticus_Output_Tree_Black_Hole_Merger
 
@@ -1551,7 +1553,7 @@ contains
     integer,                 intent(in)                  :: iOutput
     logical,                 intent(in)                  :: nodePassesFilter
     integer(kind=kind_int8), allocatable,   dimension(:) :: nodeIndex, mergerTreeIndex
-    double precision,        allocatable,   dimension(:) :: accretionRate, radiativeEfficiency, mass, spin, timescale, radius
+    double precision,        allocatable,   dimension(:) :: massAccretionRate, radiativeEfficiency, mass, spin, timescale, radius
     integer                                              :: iBlackHoleNumber,blackHoleCount,thisIndex
     type(hdf5Object)                                     :: blackHolesGroup, outputGroup
     type(varying_string)                                 :: groupName
@@ -1567,6 +1569,7 @@ contains
        end if
 
        ! Open the output group.
+       !$omp critical (HDF5_Access)
        blackHolesGroup=IO_HDF5_Open_Group(galacticusOutputFile,"blackHole","Black hole data.")
        groupName="Output"
        groupName=groupName//iOutput
@@ -1577,24 +1580,24 @@ contains
        call Alloc_Array(spin,               [blackHoleCount])
        call Alloc_Array(mass,               [blackHoleCount])
        call Alloc_Array(timescale,          [blackHoleCount])
-       call Alloc_Array(accretionRate,      [blackHoleCount])
+       call Alloc_Array(massAccretionRate,  [blackHoleCount])
        call Alloc_Array(radiativeEfficiency,[blackHoleCount])
        call Alloc_Array(nodeIndex,          [blackHoleCount])
        call Alloc_Array(mergerTreeIndex,    [blackHoleCount])
 
        ! Construct arrays of black hole properties.
+       if (thisNode%componentExists(componentIndex)) thisIndex=Tree_Node_Black_Hole_Index(thisNode)
        do iBlackHoleNumber=1,blackHoleCount
-          thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-          call thisNode%components(thisIndex)%activeInstanceSet(iBlackHoleNumber)
+          if (blackHoleCount > 1) call thisNode%components(thisIndex)%activeInstanceSet(iBlackHoleNumber)
           mass               (iBlackHoleNumber)=Tree_Node_Black_Hole_Mass           (thisNode                              )
           spin               (iBlackHoleNumber)=Tree_Node_Black_Hole_Spin           (thisNode                              )
           radius             (iBlackHoleNumber)=Tree_Node_Black_Hole_Radial_Position(thisNode                              )
           radiativeEfficiency(iBlackHoleNumber)=Accretion_Disk_Radiative_Efficiency (thisNode,Mass_Accretion_Rate(thisNode))
-          accretionRate      (iBlackHoleNumber)=Mass_Accretion_Rate                 (thisNode                              ) 
-          nodeIndex          (iBlackHoleNumber)=thisIndex  
+          massAccretionRate  (iBlackHoleNumber)=Mass_Accretion_Rate                 (thisNode                              ) 
+          nodeIndex          (iBlackHoleNumber)=thisNode%index()
           mergerTreeIndex    (iBlackHoleNumber)=treeIndex     
           if (iBlackHoleNumber > 1) then
-             if (.not. Black_Hole_Binary_Separation_Growth_Rate(thisNode) == 0.0d0)then
+             if (Black_Hole_Binary_Separation_Growth_Rate(thisNode) /= 0.0d0)then
                 timescale(iBlackHoleNumber)=-Tree_Node_Black_Hole_Radial_Position    (thisNode) &
                      &                      /Black_Hole_Binary_Separation_Growth_Rate(thisNode) 
              else
@@ -1604,29 +1607,30 @@ contains
              timescale   (iBlackHoleNumber)=0.0d0
           end if
        end do
+       if (blackHoleCount > 1) call thisNode%components(thisIndex)%activeInstanceNullify()
        ! Write dataset to the group, first the arrays containing all data.
-       call outputGroup%writeDataset(mass,               "mass"               ,"The black holes masses.",                appendTo=.true.)
-       call outputGroup%writeDataset(spin,               "spin"               ,"The black holes spins.",                 appendTo=.true.)
-       call outputGroup%writeDataset(radius,             "radius"             ,"The black holes radial position.",       appendTo=.true.)
-       call outputGroup%writeDataset(timescale,          "timescale"          ,"The black holes timescale for merger.",  appendTo=.true.)
-       call outputGroup%writeDataset(radiativeEfficiency,"radiativeEfficiency","The black holes radiative efficiencies.",appendTo=.true.)
-       call outputGroup%writeDataset(accretionRate,      "accretionRate"      ,"The black holes accretion rates.",       appendTo=.true.)
-       call outputGroup%writeDataset(nodeIndex,          "nodeIndex"          ,"The black holes host galaxy index.",     appendTo=.true.)
-       call outputGroup%writeDataset(mergerTreeIndex,    "mergerTreeIndex"    ,"The black holes merger tree index.",     appendTo=.true.)
+       call outputGroup%writeDataset(mass,               "mass"               ,"The black hole masses.",                appendTo=.true.)
+       call outputGroup%writeDataset(spin,               "spin"               ,"The black hole spins.",                 appendTo=.true.)
+       call outputGroup%writeDataset(radius,             "radius"             ,"The black hole radial positions.",      appendTo=.true.)
+       call outputGroup%writeDataset(timescale,          "timescale"          ,"The black hole timescales for merger.", appendTo=.true.)
+       call outputGroup%writeDataset(radiativeEfficiency,"radiativeEfficiency","The black hole radiative efficiencies.",appendTo=.true.)
+       call outputGroup%writeDataset(massAccretionRate,  "accretionRate"      ,"The black hole accretion rates.",       appendTo=.true.)
+       call outputGroup%writeDataset(nodeIndex,          "nodeIndex"          ,"The black hole host galaxy inices.",    appendTo=.true.)
+       call outputGroup%writeDataset(mergerTreeIndex,    "mergerTreeIndex"    ,"The black hole merger tree indices.",   appendTo=.true.)
 
-       !Deallocatate profile array
+       ! Deallocatate profile arrays.
        call Dealloc_Array(mass               )
        call Dealloc_Array(spin               )
        call Dealloc_Array(radius             )
        call Dealloc_Array(timescale          )
        call Dealloc_Array(radiativeEfficiency)
-       call Dealloc_Array(accretionRate      )
+       call Dealloc_Array(massAccretionRate  )
        call Dealloc_Array(nodeIndex          )
        call Dealloc_Array(mergerTreeIndex    )
        call outputGroup    %close()
        call blackHolesGroup%close()   
-       end if
-    
+       !$omp end critical (HDF5_Access)
+    end if
     return
   end subroutine Galacticus_Output_Tree_Black_Hole_Properties
 
