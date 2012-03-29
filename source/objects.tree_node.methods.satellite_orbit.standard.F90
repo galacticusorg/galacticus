@@ -59,6 +59,8 @@
 !!    http://www.ott.caltech.edu
 
 
+!+    Contributions to this file made by:  Andrew Benson, Jianling Gan.
+
 !% Contains a module of satellite orbit tree node methods.
 
 module Tree_Node_Methods_Satellite_Orbit
@@ -361,10 +363,10 @@ contains
        ! Ensure the orbit is defined.
        call thisOrbit%assertIsDefined()
        ! Extract components of the orbit.
-       thisNode%components(thisIndex)%instance(1)%data(hostMassIndex      )=thisOrbit%hostMass          ()
-       thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex  )=thisOrbit%radius            ()
-       thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex)=thisOrbit%velocityRadial    ()
-       thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex)=thisOrbit%velocityTangential()
+       thisNode%components(thisIndex)%instance(1)%data(hostMassIndex          )=thisOrbit%hostMass          ()
+       thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex      )=thisOrbit%radius            ()
+       thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex    )=thisOrbit%velocityRadial    ()
+       thisNode%components(thisIndex)%instance(1)%data(velocityTangentialIndex)=thisOrbit%velocityTangential()
        ! Update the stored time until merging to reflect the new orbit.
        mergeTime=Satellite_Time_Until_Merging(thisNode,thisOrbit)
        if (mergeTime >= 0.0d0) call Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime)
@@ -391,11 +393,11 @@ contains
           thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
           call thisOrbit%massesSet            (                                                          &
                &                               Tree_Node_Mass(thisNode)                                , &
-               &                               thisNode%components(thisIndex)%instance(1)%data(hostMassIndex      )  &
+               &                               thisNode%components(thisIndex)%instance(1)%data(hostMassIndex          )  &
                &                              )
-          call thisOrbit%radiusSet            (thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex  ))
-          call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex))
-          call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex))
+          call thisOrbit%radiusSet            (thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex      ))
+          call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex    ))
+          call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%instance(1)%data(velocityTangentialIndex))
        else
           hostNode => thisNode%parentNode
           thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
