@@ -59,42 +59,36 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements calculations of timesteps for merger tree evolution.
+!% Contains a module which reports on timestepping criteria.
 
-module Merger_Tree_Timesteps
-  !% Implements calculations of timesteps for merger tree evolution.
+module Evolve_To_Time_Reports
+  !% Contains functions which report on timestepping criteria.
   implicit none
   private
-  public :: Time_Step_Get
-
+  public :: Evolve_To_Time_Report
+  
 contains
-
-  double precision function Time_Step_Get(thisNode,evolveToTime,End_Of_Timestep_Task,report)
-    !% Computes a suitable timestep over which to evolve a node in a tree.
-    use Tree_Nodes
-    use Merger_Trees
-    use Input_Parameters
-    use Galacticus_Error
-    use Merger_Trees_Evolve_Timesteps_Template
-    !# <include directive="timeStepsTask" type="moduleUse">
-    include 'merger_trees.evolve.timesteps.moduleUse.inc'
-    !# </include>
+  
+  subroutine Evolve_To_Time_Report(message,time,index)
+    !% Display a report on evolution timestep criteria.
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
+    use Kind_Numbers
     implicit none
-    type(treeNode),                           intent(inout), pointer :: thisNode
-    double precision,                         intent(in)             :: evolveToTime
-    procedure(),                              intent(out),   pointer :: End_Of_Timestep_Task
-    logical,                                  intent(in)             :: report
-    procedure(End_Of_Timestep_Task_Template),                pointer :: End_Of_Timestep_Task_Internal
-
-    ! Call the function to get the timestep.
-    Time_Step_Get=evolveToTime-Tree_Node_Time(thisNode)
-    End_Of_Timestep_Task_Internal => null()
-    !# <include directive="timeStepsTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,Time_Step_Get,End_Of_Timestep_Task_Internal,report</subroutineArgs>
-    include 'merger_trees.evolve.timesteps.inc'
-    !# </include>
-    End_Of_Timestep_Task => End_Of_Timestep_Task_Internal
+    character(len=*         ), intent(in)           :: message
+    double precision         , intent(in)           :: time
+    integer  (kind=kind_int8), intent(in), optional :: index
+    type     (varying_string)                       :: vMessage
+    character(len=12        )                       :: label 
+    character(len=32        )                       :: paddedMessage
+    
+    write (paddedMessage,'(a32  )') message
+    write (label        ,'(e12.6)') time
+    vMessage=paddedMessage//label
+    if (present(index)) vMessage=vMessage//" ["//index//"]"
+    call Galacticus_Display_Message(vMessage)
     return
-  end function Time_Step_Get
-
-end module Merger_Tree_Timesteps
+  end subroutine Evolve_To_Time_Report
+  
+end module Evolve_To_Time_Reports

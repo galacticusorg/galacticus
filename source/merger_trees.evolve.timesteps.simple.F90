@@ -78,16 +78,18 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Simple</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Simple(thisNode,timeStep,End_Of_Timestep_Task)
+  subroutine Merger_Tree_Timestep_Simple(thisNode,timeStep,End_Of_Timestep_Task,report)
     !% Determine a suitable timestep for {\tt thisNode} using the simple method. This simply selects the smaller of {\tt
     !% timestepSimpleAbsolute} and {\tt timestepSimpleRelative}$H^{-1}(t)$.
     use Tree_Nodes
     use Input_Parameters
     use Cosmology_Functions
+    use Evolve_To_Time_Reports
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     procedure(),      intent(inout), pointer :: End_Of_Timestep_Task
     double precision, intent(inout)          :: timeStep
+    logical,                                  intent(in)             :: report
     double precision                         :: time,expansionFactor,expansionTimescale,ourTimeStep
 
     !$omp critical (timestepSimpleInitialize)
@@ -133,6 +135,7 @@ contains
     ! Set return value if our timestep is smaller than current one.
     if (ourTimeStep < timeStep) timeStep=ourTimeStep
 
+    if (report) call Evolve_To_Time_Report("simple: ",timeStep)
     return
   end subroutine Merger_Tree_Timestep_Simple
 
