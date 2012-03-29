@@ -67,6 +67,9 @@ module Kepler_Orbits_Structure
   private
   public :: keplerOrbit
 
+  ! Effective infinite radius used for apocenters in unbound orbits.
+  double precision, parameter :: radiusEffectiveInfinity=1.0d30
+
   type keplerOrbit
      !% The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital
      !% parameters to another where possible. The orbitting bodies (a satellite orbitting around its host) are treated as point
@@ -484,7 +487,11 @@ contains
           ! Assert that the orbit is defined.
           call thisOrbit%assertIsDefined()
           ! Compute the pericenter radius.
-          thisOrbit%radiusApocenterValue=thisOrbit%semiMajorAxis()*(1.0d0+thisOrbit%eccentricity())
+          if (thisOrbit%isBound()) then
+             thisOrbit%radiusApocenterValue=thisOrbit%semiMajorAxis()*(1.0d0+thisOrbit%eccentricity())
+          else
+             thisOrbit%radiusApocenterValue=radiusEffectiveInfinity
+          end if
           thisOrbit%radiusApocenterIsSet=.true.
        end if
        Kepler_Orbits_Apocenter_Radius=thisOrbit%radiusApocenterValue
