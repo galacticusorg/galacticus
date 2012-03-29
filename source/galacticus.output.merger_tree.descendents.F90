@@ -81,6 +81,8 @@ contains
   subroutine Galacticus_Output_Tree_Descendents_Initialize
     !% Initializes the module by determining whether or not descendent data should be output.
     use Input_Parameters
+    use Galacticus_Error
+    use Tree_Nodes
     implicit none
 
     !$omp critical(Galacticus_Output_Tree_Descendents_Initialize)
@@ -97,6 +99,10 @@ contains
        !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('outputDescendentIndices',outputDescendentIndices,defaultValue=.false.)
+
+       ! Ensure that the Satellite_Time_Of_Merging property is gettable.
+       if (outputDescendentIndices.and..not.associated(Tree_Node_Satellite_Time_Of_Merging)) &
+            & call Galacticus_Error_Report('Galacticus_Output_Tree_Descendents_Initialize','the Satellite_Time_Of_Merging property must be gettable to output descendent indices')
 
        ! Flag that module is now initialized.
        outputDescendentsInitialized=.true.

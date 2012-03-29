@@ -59,8 +59,6 @@
 !!    http://www.ott.caltech.edu
 
 
-!+    Contributions to this file made by:  Andrew Benson, Jianling Gan.
-
 !% Contains a module of satellite orbit tree node methods.
 
 module Tree_Node_Methods_Satellite_Orbit
@@ -91,6 +89,9 @@ module Tree_Node_Methods_Satellite_Orbit
   ! Define procedure pointers.
   !# <treeNodeMethodsPointer>
   !#  <methodName>Tree_Node_Satellite_Merge_Time</methodName>
+  !# </treeNodeMethodsPointer>
+  !# <treeNodeMethodsPointer>
+  !#  <methodName>Tree_Node_Satellite_Time_Of_Merging</methodName>
   !# </treeNodeMethodsPointer>
   !# <treeNodeMethodsPointer>
   !#  <methodName>Tree_Node_Bound_Mass</methodName>
@@ -157,18 +158,23 @@ contains
        call Galacticus_Display_Message(message,verbosityInfo)
 
        ! Set up procedure pointers.
-       Tree_Node_Satellite_Merge_Time              => Tree_Node_Satellite_Merge_Time_Simple
-       Tree_Node_Satellite_Merge_Time_Set          => Tree_Node_Satellite_Merge_Time_Set_Simple
-       Tree_Node_Satellite_Merge_Time_Rate_Adjust  => Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple
-       Tree_Node_Satellite_Merge_Time_Rate_Compute => Tree_Node_Satellite_Merge_Time_Rate_Compute_Simple
+       Tree_Node_Satellite_Merge_Time                   => Tree_Node_Satellite_Merge_Time_Simple
+       Tree_Node_Satellite_Merge_Time_Set               => Tree_Node_Satellite_Merge_Time_Set_Simple
+       Tree_Node_Satellite_Merge_Time_Rate_Adjust       => Tree_Node_Satellite_Merge_Time_Rate_Adjust_Simple
+       Tree_Node_Satellite_Merge_Time_Rate_Compute      => Tree_Node_Satellite_Merge_Time_Rate_Compute_Simple
 
-       Tree_Node_Bound_Mass                        => Tree_Node_Bound_Mass_Simple
-       Tree_Node_Bound_Mass_Set                    => null()
-       Tree_Node_Bound_Mass_Rate_Adjust            => Tree_Node_Bound_Mass_Rate_Adjust_Simple
-       Tree_Node_Bound_Mass_Rate_Compute           => Tree_Node_Bound_Mass_Rate_Compute_Simple
+       Tree_Node_Satellite_Time_of_Merging              => Tree_Node_Satellite_Time_of_Merging_Simple
+       Tree_Node_Satellite_Time_of_Merging_Set          => null()
+       Tree_Node_Satellite_Time_of_Merging_Rate_Adjust  => null()
+       Tree_Node_Satellite_Time_of_Merging_Rate_Compute => Tree_Node_Rate_Rate_Compute_Dummy
 
-       Tree_Node_Satellite_Virial_Orbit            => Tree_Node_Satellite_Virial_Orbit_Simple
-       Tree_Node_Satellite_Virial_Orbit_Set        => Tree_Node_Satellite_Virial_Orbit_Set_Simple
+       Tree_Node_Bound_Mass                             => Tree_Node_Bound_Mass_Simple
+       Tree_Node_Bound_Mass_Set                         => null()
+       Tree_Node_Bound_Mass_Rate_Adjust                 => Tree_Node_Bound_Mass_Rate_Adjust_Simple
+       Tree_Node_Bound_Mass_Rate_Compute                => Tree_Node_Bound_Mass_Rate_Compute_Simple
+
+       Tree_Node_Satellite_Virial_Orbit                 => Tree_Node_Satellite_Virial_Orbit_Simple
+       Tree_Node_Satellite_Virial_Orbit_Set             => Tree_Node_Satellite_Virial_Orbit_Set_Simple
 
        ! Determine if satellite orbits are to be stored.
        !@ <inputParameter>
@@ -240,6 +246,22 @@ contains
     end if
     return
   end function Tree_Node_Satellite_Merge_Time_Simple
+
+  double precision function Tree_Node_Satellite_Time_Of_Merging_Simple(thisNode,instance)
+    !% Return the time until satellite merging.
+    implicit none
+    type(treeNode), intent(inout), pointer  :: thisNode
+    integer,        intent(in),    optional :: instance
+    integer                                 :: thisIndex
+
+    if (thisNode%componentExists(componentIndex).and.thisNode%isSatellite()) then
+       thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
+       Tree_Node_Satellite_Time_Of_Merging_Simple=thisNode%components(thisIndex)%instance(1)%properties(mergeTimeIndex,propertyValue)+Tree_Node_Time(thisNode)
+    else
+       Tree_Node_Satellite_Time_Of_Merging_Simple=-1.0d0 ! Negative time indicates that this is not a satellite.
+    end if
+    return
+  end function Tree_Node_Satellite_Time_Of_Merging_Simple
 
   subroutine Tree_Node_Satellite_Merge_Time_Set_Simple(thisNode,mergeTime,instance)
     !% Set the time until satellite merging.
