@@ -351,13 +351,15 @@ contains
        if (.not.thisNode%componentExists(componentIndex)) call Satellite_Orbit_Create_Preset(thisNode)
        call thisOrbit%reset()
        thisIndex=Tree_Node_Satellite_Orbit_Index(thisNode)
-       call thisOrbit%massesSet            (                                                          &
-            &                               Tree_Node_Mass(thisNode)                                , &
-            &                               thisNode%components(thisIndex)%instance(1)%data(hostMassIndex          )  &
-            &                              )
-       call thisOrbit%radiusSet            (thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex      ))
-       call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex    ))
-       call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%instance(1)%data(velocityTangentialIndex))
+       if (thisNode%components(thisIndex)%instance(1)%data(hostMassIndex) > 0.0d0) then
+          call thisOrbit%massesSet            (                                                          &
+               &                               Tree_Node_Mass(thisNode)                                , &
+               &                               thisNode%components(thisIndex)%instance(1)%data(hostMassIndex          )  &
+               &                              )
+          call thisOrbit%radiusSet            (thisNode%components(thisIndex)%instance(1)%data(virialRadiusIndex      ))
+          call thisOrbit%velocityRadialSet    (thisNode%components(thisIndex)%instance(1)%data(velocityRadialIndex    ))
+          call thisOrbit%velocityTangentialSet(thisNode%components(thisIndex)%instance(1)%data(velocityTangentialIndex))
+       end if
     else
        call thisOrbit%reset()
     end if
