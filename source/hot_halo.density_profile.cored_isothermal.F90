@@ -98,11 +98,21 @@ contains
     double precision             :: outerRadiusOverCoreRadius    
     double precision, save       :: outerRadiusOverCoreRadiusPrevious=-1.0d0,densityNormalizationPrevious
     !$omp threadprivate(outerRadiusOverCoreRadiusPrevious,densityNormalizationPrevious)
+    double precision, parameter  :: outerRadiusOverCoreRadiusSmall=1.0d-6
 
     outerRadiusOverCoreRadius=outerRadius/coreRadius
     if (outerRadiusOverCoreRadius /= outerRadiusOverCoreRadiusPrevious) then
        outerRadiusOverCoreRadiusPrevious=outerRadiusOverCoreRadius
-       densityNormalizationPrevious=1.0d0/(outerRadiusOverCoreRadius-datan(outerRadiusOverCoreRadius))
+       if      (outerRadiusOverCoreRadius <= 0.0d0                         ) then
+          ! For zero or negative outer radius, return a zero normalization.
+          densityNormalizationPrevious=0.0d0
+       else if (outerRadiusOverCoreRadius <  outerRadiusOverCoreRadiusSmall) then 
+          ! For small outer radii, use a series approximation to the exact solution.
+          densityNormalizationPrevious=3.0d0/outerRadiusOverCoreRadius**3+9.0d0/5.0d0/outerRadiusOverCoreRadius
+       else
+          ! For larger outer radii, use the exact solution.
+          densityNormalizationPrevious=1.0d0/(outerRadiusOverCoreRadius-datan(outerRadiusOverCoreRadius))
+       end if
     end if
     Density_Normalization_Factor=densityNormalizationPrevious
     return
