@@ -784,7 +784,7 @@ contains
     double precision                         :: angularMomentumCoolingRate
 
     ! Ignore zero rates.
-    if (massRate /= 0.0d0 .and. Tree_Node_Hot_Halo_Mass(thisNode) > 0.0d0) then
+    if (massRate /= 0.0d0 .and. Tree_Node_Hot_Halo_Mass(thisNode) > 0.0d0 .and. Tree_Node_Hot_Halo_Angular_Momentum(thisNode) > 0.0d0) then
        
        ! Get a local copy of the interrupt procedure.
        interruptProcedurePassed => interruptProcedure
@@ -969,7 +969,7 @@ contains
        ramPressureRadius=Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
        outerRadius      =thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyValue)
        ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
-       if (ramPressureRadius < outerRadius) then
+       if (ramPressureRadius < outerRadius .and. Tree_Node_Hot_Halo_Mass(thisNode) > 0.0d0 .and.Tree_Node_Hot_Halo_Angular_Momentum(thisNode) > 0.0d0) then
           ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
           ! stripping radius on the halo dynamical timescale.
           densityAtOuterRadius =Hot_Halo_Density(thisNode,outerRadius)
@@ -1389,7 +1389,7 @@ contains
     massOuter   =Hot_Halo_Enclosed_Mass         (thisNode,radiusOuter )
     massVirial  =Hot_Halo_Enclosed_Mass         (thisNode,radiusVirial)
     if (massVirial > 0.0d0) then
-       Hot_Halo_Outflow_Stripped_Fraction=hotHaloOutflowStrippingEfficiency*massOuter/massVirial
+       Hot_Halo_Outflow_Stripped_Fraction=hotHaloOutflowStrippingEfficiency*(1.0d0-massOuter/massVirial)
     else
        Hot_Halo_Outflow_Stripped_Fraction=hotHaloOutflowStrippingEfficiency
     end if
@@ -1540,7 +1540,7 @@ contains
   end subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_Set_Standard
 
   subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_To_Standard(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
-    !% Return the node hot halo mass rate of change.
+    !% Accept angular momentum from galactic outflows.
     implicit none
     integer,          intent(in   ), optional :: instance
     type(treeNode),   intent(inout), pointer  :: thisNode
@@ -1551,14 +1551,17 @@ contains
     double precision                          :: strippedOutflowFraction
 
     thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
+    ! Compute the fraction of the outflowed angular momentum that will be lost due to ram pressure stripping.
     if (thisNode%isSatellite().and.hotHaloTrackStrippedGas) then
        strippedOutflowFraction=Hot_Halo_Outflow_Stripped_Fraction(thisNode)
     else
        strippedOutflowFraction=0.0d0
     end if
+    ! Add the outflow rate into the outflowed angular momentum property. Apply a correction for the angular momentum loss fraction
+    ! so that if and when this material recools it does not have this loss applied again.
     thisNode         %components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex,propertyDerivative) &
          & = thisNode%components(thisIndex)%instance(1)%properties(outflowedAngularMomentumIndex,propertyDerivative) &
-         &  +rateAdjustment*(1.0d0-strippedOutflowFraction)
+         &  +rateAdjustment*(1.0d0-strippedOutflowFraction)/(1.0d0-hotHaloAngularMomentumLossFraction)
     return
   end subroutine Tree_Node_Hot_Halo_Outflowed_Ang_Mom_To_Standard
 
