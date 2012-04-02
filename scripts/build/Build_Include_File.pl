@@ -267,6 +267,9 @@ foreach $fullname ( @filesToScan ) {
 		if ( exists($data->{'sortName'}) ) {
 		    # One has, so store it.
 		    $sortNames{$data->{'unitName'}} = $data->{'sortName'};
+		    $sortNamesReverse{$data->{'sortName'}} = $data->{'unitName'};
+		} else {
+		    $sortNamesReverse{$data->{'unitName'}} = $data->{'unitName'};
 		}
 	    }
 	}
@@ -279,8 +282,8 @@ sub Dependencies { @{$Dependencies{$_[0]} || []}; } # Comparison function for de
 # Create a list of names for sorting.
 foreach $BlockName ( keys(%inserts) ) {
     # Sort on the given sorting name or on the block name otherwise.
-    if ( exists($sortName{$BlockName}) ) {
-	$UnsortedBlocks[++$#UnsortedBlocks] = $sortName{$BlockName};
+    if ( exists($sortNames{$BlockName}) ) {
+	$UnsortedBlocks[++$#UnsortedBlocks] = $sortNames{$BlockName};
     } else {
 	$UnsortedBlocks[++$#UnsortedBlocks] = $BlockName;
     }
@@ -288,7 +291,15 @@ foreach $BlockName ( keys(%inserts) ) {
 # Perform initial alphanumerical sort.
 @PresortedBlocks = sort(@UnsortedBlocks);
 # Perform dependency sort.
-@SortedBlocks    = toposort(\&Dependencies, \@PresortedBlocks);
+my @SortedSortNames = toposort(\&Dependencies, \@PresortedBlocks);
+my @SortedBlocks;
+if ( $instructions->{'type'} eq "code" ) {
+    foreach my $sortName ( @SortedSortNames ) {
+	push(@SortedBlocks,$sortNamesReverse{$sortName});
+    }
+} else {
+    @SortedBlocks = @SortedSortNames;
+}
 
 # Open the output file.
 open(includeFile,">".$instructions->{'fileName'});
