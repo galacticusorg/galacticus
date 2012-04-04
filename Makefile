@@ -24,6 +24,7 @@ MODULETYPE = GCC-f95-on-LINUX
 # Fortran compiler flags:
 F03FLAGS = -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules
 # Error checking flags
+F03FLAGS += $(FCFLAGS)
 F03FLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
 # Add bounds checking.
 #F03FLAGS += -fbounds-check
@@ -37,11 +38,11 @@ F03FLAGS_NOOPT := $(F03FLAGS)
 F03FLAGS += -fopenmp
 
 # C compiler flags:
-CFLAGS = -I./source/ -I./work/build/ ${GALACTICUS_FLAGS}
+CFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_FLAGS}
 CFLAGS += -g
 
 # C++ compiler flags:
-CPPFLAGS = -I./source/ -I./work/build/ ${GALACTICUS_FLAGS}
+CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_FLAGS}
 CPPFLAGS += -g
 
 # Libraries:
