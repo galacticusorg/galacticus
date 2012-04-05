@@ -33,10 +33,10 @@ outputFile.hdf5
  |    +-> make_CPPCOMPILER                    Attribute {1}
  |    +-> make_CPPCOMPILER_VERSION            Attribute {1}
  |    +-> make_CPPFLAGS                       Attribute {1}
- |    +-> make_F03COMPILER                    Attribute {1}
- |    +-> make_F03COMPILER_VERSION            Attribute {1}
- |    +-> make_F03FLAGS                       Attribute {1}
- |    +-> make_F03FLAGS_NOOPT                 Attribute {1}
+ |    +-> make_FCCOMPILER                     Attribute {1}
+ |    +-> make_FCCOMPILER_VERSION             Attribute {1}
+ |    +-> make_FCFLAGS                        Attribute {1}
+ |    +-> make_FCFLAGS_NOOPT                  Attribute {1}
  |    +-> make_MODULETYPE                     Attribute {1}
  |    +-> make_PREPROCESSOR                   Attribute {1}
  |    +-> sourceChangeSetDiff                 Dataset   {1}
@@ -127,10 +127,10 @@ The UUID (\href{https://secure.wikimedia.org/wikipedia/en/wiki/Universally_uniqu
 \item[{\tt make\_CPPCOMPILER}] The C++ compiler command used;
 \item[{\tt make\_CPPCOMPILER\_VERSION}] The C++ compiler version information;
 \item[{\tt make\_CPPFLAGS}] The flags passed to the C++ compiler;
-\item[{\tt make\_F03COMPILER}] The Fortran compiler command used;
-\item[{\tt make\_F03COMPILER\_VERSION}] The Fortran compiler version information;
-\item[{\tt make\_F03FLAGS}] The flags passed to the Fortran compiler;
-\item[{\tt make\_F03FLAGS\_NOOPT}] The flags passed to the Fortran compiler for unoptimized compiles;
+\item[{\tt make\_FCCOMPILER}] The Fortran compiler command used;
+\item[{\tt make\_FCCOMPILER\_VERSION}] The Fortran compiler version information;
+\item[{\tt make\_FCFLAGS}] The flags passed to the Fortran compiler;
+\item[{\tt make\_FCFLAGS\_NOOPT}] The flags passed to the Fortran compiler for unoptimized compiles;
 \item[{\tt make\_MODULETYPE}] The Fortran module type identifier string;
 \item[{\tt make\_PREPROCESSOR}] The preprocessor command used.
 \end{description}
@@ -454,7 +454,7 @@ The \hyperlink{galacticus.meta.tree_timing.F90:galacticus_meta_tree_timing}{{\tt
 
 The \hyperlink{galacticus.meta.evolver_profiler.F90:galacticus_meta_evolver_profiler}{{\tt Galacticus\_Meta\_Evolver\_Profiler}} module records statistics on the performance of the main ODE solver used to advance galaxies through time. 
 
-\emph{Note:} Currently, this profiler requires access to features of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} that are not implemeted within \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL}. As such, this functionallity is normally \emph{not} compiled with \glc. If you want to use the profiler, contact \href{mailto:abenson@caltech.edu}{Andrew Benson} and request a copy of the modified FGSL source code. Once this is installed, the profiler can be activated by including {\tt -DPROFILE} in the compilation options (e.g. add this to your {\tt GALACTICUS\_FLAGS} environment variable).
+\emph{Note:} Currently, this profiler requires access to features of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} that are not implemeted within \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL}. As such, this functionallity is normally \emph{not} compiled with \glc. If you want to use the profiler, contact \href{mailto:abenson@caltech.edu}{Andrew Benson} and request a copy of the modified FGSL source code. Once this is installed, the profiler can be activated by including {\tt -DPROFILE} in the compilation options (e.g. add this to your {\tt GALACTICUS\_FCFLAGS} environment variable).
 
 When active, setting {\tt [profileOdeEvolver]}$=${\tt true} will activate profiling. Each step taken by the ODE evolver is then analyzed. First, a record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to determine step size) is determined and a record of this is kept.
 

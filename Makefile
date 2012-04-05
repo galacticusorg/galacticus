@@ -3,45 +3,45 @@
 # Andrew Benson (06-Feb-2010)
 
 # Preprocessor:
-PREPROCESSOR = cpp
+PREPROCESSOR ?= cpp
 
 # Fortran compiler:
-F03COMPILER = gfortran
+FCCOMPILER ?= gfortran
 
 # C compiler:
-CCOMPILER = gcc
+CCOMPILER ?= gcc
 
 # C++ compiler:
-CPPCOMPILER = g++
+CPPCOMPILER ?= g++
 
 # Linker for Condor standard universe executables. Uncomment the second line to link for submission to the Condor standard universe.
 CONDORLINKER = 
 #CONDORLINKER = condor_compile
 
 # Module type (used for checking if module interfaces have changed):
-MODULETYPE = GCC-f95-on-LINUX
+MODULETYPE ?= GCC-f95-on-LINUX
 
 # Fortran compiler flags:
-F03FLAGS = -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules
+FCFLAGS += -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules
 # Error checking flags
-F03FLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
+FCFLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
 # Add bounds checking.
-#F03FLAGS += -fbounds-check
+#FCFLAGS += -fbounds-check
 # Add profiling.
-F03FLAGS += -g
+FCFLAGS += -g
 # A copy of the flags prior to any optimizations.
-F03FLAGS_NOOPT := $(F03FLAGS)
+FCFLAGS_NOOPT := $(FCFLAGS)
 # Optimization flags.
-#F03FLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
+#FCFLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
 # For OpenMP compilation.
-F03FLAGS += -fopenmp
+FCFLAGS += -fopenmp
 
 # C compiler flags:
-CFLAGS = -I./source/ -I./work/build/ ${GALACTICUS_FLAGS}
+CFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CFLAGS}
 CFLAGS += -g
 
 # C++ compiler flags:
-CPPFLAGS = -I./source/ -I./work/build/ ${GALACTICUS_FLAGS}
+CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
 # Libraries:
@@ -51,7 +51,7 @@ LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
 
 # Get versions of build tools.
-F03COMPILER_VERSION = `$(F03COMPILER) -v 2>&1`
+FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
 CCOMPILER_VERSION = `$(CCOMPILER) -v 2>&1`
 CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 
@@ -66,7 +66,7 @@ vpath %.F90 source
 	do \
 	 if [ -f $$mod ] ; then mv $$mod $$mod~; fi \
 	done
-	$(F03COMPILER) -c $< -o ./work/build/$*.o $(F03FLAGS)
+	$(FCCOMPILER) -c $< -o ./work/build/$*.o $(FCFLAGS)
 	@mlist=`cat ./work/build/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
@@ -92,7 +92,7 @@ vpath %.cpp source
 # Special rules required for building some sources (unfortunate, but necessary....)
 # bivar.F90 doesn't like to be compiled with any optimization:
 ./work/build/Bivar/bivar.o : ./source/Bivar/bivar.F90 Makefile
-	$(F03COMPILER) -c $< -o ./work/build/Bivar/bivar.o $(F03FLAGS_NOOPT)
+	$(FCCOMPILER) -c $< -o ./work/build/Bivar/bivar.o $(FCFLAGS_NOOPT)
 
 # Rule for running *.Inc files through the preprocessor.
 ./work/build/%.inc : ./work/build/%.Inc Makefile
@@ -133,7 +133,7 @@ vpath %.cpp source
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
 %.exe : ./work/build/%.o ./work/build/%.d `cat ./work/build/$*.d` $(MAKE_DEPS)
-	 $(CONDORLINKER) $(F03COMPILER) `cat $*.d` -o $*.exe $(F03FLAGS) $(LIBS)
+	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) $(LIBS)
 	 ./scripts/build/Find_Executable_Size.pl $*.exe $*.size
 	 ./scripts/build/Find_Parameter_Dependencies.pl $*.exe
 
@@ -169,16 +169,16 @@ vpath %.cpp source
 # Rules for build information routines.
 ./work/build/galacticus.output.build.environment.inc:
 	@echo PREPROCESSOR=\"$(PREPROCESSOR)\" > ./work/build/galacticus.output.build.environment.inc
-	@echo F03COMPILER=\"$(F03COMPILER)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo FCCOMPILER=\"$(FCCOMPILER)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CCOMPILER=\"$(CCOMPILER)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CPPCOMPILER=\"$(CPPCOMPILER)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo MODULETYPE=\"$(MODULETYPE)\" >> ./work/build/galacticus.output.build.environment.inc
-	@echo F03FLAGS=\"$(F03FLAGS)\" >> ./work/build/galacticus.output.build.environment.inc
-	@echo F03FLAGS_NOOPT=\"$(F03FLAGS_NOOPT)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo FCFLAGS=\"$(FCFLAGS)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo FCFLAGS_NOOPT=\"$(FCFLAGS_NOOPT)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CFLAGS=\"$(CFLAGS)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CPPFLAGS=\"$(CPPFLAGS)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo LIBS=\"$(LIBS)\" >> ./work/build/galacticus.output.build.environment.inc
-	@echo F03COMPILER_VERSION=\"$(F03COMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
+	@echo FCCOMPILER_VERSION=\"$(FCCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
 
