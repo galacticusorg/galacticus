@@ -29,7 +29,7 @@ $workDir = "/work/build/";
 foreach $makefile ( "Makefile" ) {
     open(ophndl,$makefile);
     while ( $line = <ophndl> ) {
-        if ( $line =~ m/^\s*F03FLAGS\s*\+??=/ ) {
+        if ( $line =~ m/^\s*FCFLAGS\s*\+??=/ ) {
             while ( $line =~ s/\s\-D([0-9A-Z]+)\s// ) {
                 $preprocs[++$#preprocs] = $1;
             }

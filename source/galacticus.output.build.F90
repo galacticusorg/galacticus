@@ -103,8 +103,8 @@ contains
     type(hdf5Object)                                    :: buildGroup
     integer                                             :: hdfVersionMajor,hdfVersionMinor,hdfVersionRelease,hdfError,iChr
     type(c_ptr)                                         :: charVersionPointer
-    type(varying_string)                                :: versionString,PREPROCESSOR,F03COMPILER,CCOMPILER,CPPCOMPILER,MODULETYPE,F03FLAGS &
-      &  ,F03FLAGS_NOOPT,CFLAGS,CPPFLAGS,LIBS,F03COMPILER_VERSION,CCOMPILER_VERSION,CPPCOMPILER_VERSION
+    type(varying_string)                                :: versionString,PREPROCESSOR,FCCOMPILER,CCOMPILER,CPPCOMPILER,MODULETYPE,FCFLAGS &
+      &  ,FCFLAGS_NOOPT,CFLAGS,CPPFLAGS,LIBS,FCCOMPILER_VERSION,CCOMPILER_VERSION,CPPCOMPILER_VERSION
 
     ! Include build environment definitions.
     include 'galacticus.output.build.environment.inc' ! NO_USES
@@ -140,16 +140,16 @@ contains
     call buildGroup%writeAttribute(versionString,'HDF5_library_version' )
 
     ! Write Make environment variables.
-    call buildGroup%writeAttribute(F03COMPILER        ,'make_F03COMPILER        ')
+    call buildGroup%writeAttribute(FCCOMPILER         ,'make_FCCOMPILER         ')
     call buildGroup%writeAttribute(PREPROCESSOR       ,'make_PREPROCESSOR       ')
     call buildGroup%writeAttribute(CCOMPILER          ,'make_CCOMPILER          ')
     call buildGroup%writeAttribute(CPPCOMPILER        ,'make_CPPCOMPILER        ')
     call buildGroup%writeAttribute(MODULETYPE         ,'make_MODULETYPE         ')
-    call buildGroup%writeAttribute(F03FLAGS           ,'make_F03FLAGS           ')
-    call buildGroup%writeAttribute(F03FLAGS_NOOPT     ,'make_F03FLAGS_NOOPT     ')
+    call buildGroup%writeAttribute(FCFLAGS            ,'make_FCFLAGS            ')
+    call buildGroup%writeAttribute(FCFLAGS_NOOPT      ,'make_FCFLAGS_NOOPT      ')
     call buildGroup%writeAttribute(CFLAGS             ,'make_CFLAGS             ')
     call buildGroup%writeAttribute(CPPFLAGS           ,'make_CPPFLAGS           ')
-    call buildGroup%writeAttribute(F03COMPILER_VERSION,'make_F03COMPILER_VERSION')
+    call buildGroup%writeAttribute(FCCOMPILER_VERSION ,'make_FCCOMPILER_VERSION ')
     call buildGroup%writeAttribute(CCOMPILER_VERSION  ,'make_CCOMPILER_VERSION  ')
     call buildGroup%writeAttribute(CPPCOMPILER_VERSION,'make_CPPCOMPILER_VERSION')
 
