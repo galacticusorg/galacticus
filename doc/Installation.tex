@@ -288,18 +288,22 @@ This will create the {\tt Galacticus.exe} executable. The build takes some time,
 
 The {\tt Makefile} contains a few options that you may want to adjust:
 \begin{description}
- \item[{\tt F03COMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.6. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
+ \item[{\tt FCCOMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.6+. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
+ \item[{\tt CCOMPILER}] The command to invoke a C compiler.
+ \item[{\tt CPPCOMPILER}] The command to invoke a C++ compiler.
  \item[{\tt PREPROCESSOR}] The command to invoke a preprocessor to handle {\tt \#IFDEF} etc. statements. We normally use {\tt cpp};
  \item[{\tt MODULETYPE}] A label identifying the structure of modules built by the compiler. This is used to detected when module interfaces have been changed (requiring a recompile of all dependent code) and when only the module internals have changed. When the {\sc GFortran} compiler is used {\tt GCC-f95-on-LINUX} should be used here. Look in {\tt ./scripts/build/Compare\_Module\_Files.pl} for other possibilities (if your compiler isn't listed you'll need to either edit that script or deal with longer recompiles if you edit the code).
- \item[{\tt F03FLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
+ \item[{\tt FCFLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
+ \item[{\tt CFLAGS}] Flags to pass to the C compiler.
+ \item[{\tt CPPFLAGS}] Flags to pass to the C++ compiler.
 \end{description}
-Additionally, you can add compiler options to the {\tt GALACTICUS\_FLAGS} environment variable. This is useful to add machine-specific options.
+Additionally, you can add compiler options to the {\tt GALACTICUS\_FCFLAGS}, {\tt GALACTICUS\_CFLAGS}, and {\tt GALACTICUS\_CPPFLAGS} environment variables. This is useful to add machine-specific options.
 
 \subsection{Compiling with OpenMP Parallelism}\index{OpenMP}\index{parallel}
 
 By default, \glc\ will be compiled to run in parallel on machine with multiple CPUs using \href{http://openmp.org/wp/}{OpenMP}. To disable this simply remove (or comment out the)
 \begin{verbatim}
-F03FLAGS += -fopenmp
+FCFLAGS += -fopenmp
 \end{verbatim}
 line in the Makefile. When running \glc\ in parallel using OpenMP it may be necessary to increase the stack size allocated to each thread (since \glc\ calls some procedures recursively this can result in large numbers of local variables being allocated on the stack). To do this, use
 \begin{verbatim}
@@ -322,11 +326,11 @@ It is possible to install \glc\ without root access to your computer. The follow
 
 ! Install GFortran, GCC and G++:
 
-wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.6.1/gcc-4.6.1.tar.bz2"
-tar xvfj gcc-4.6.1.tar.bz2
+wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.7.0/gcc-4.7.0.tar.bz2''
+tar xvfj gcc-4.7.0.tar.bz2
 mkdir gcc-build
 cd gcc-build
-../gcc-4.6.1/configure --prefix=/your/install/path/gcc-trunk --enable-languages=c,c++,fortran --disable-multilib
+../gcc-4.7.0/configure --prefix=/your/install/path/gcc-trunk --enable-languages=c,c++,fortran --disable-multilib
 make
 make install
 
@@ -461,13 +465,13 @@ make install
 
 ! Install Galacticus:
 
-wget "http://www.ctcp.caltech.edu/galacticus/galacticus_v0.9.0.tar.bz2"
-tar xvfj galacticus_v0.9.0.tar.bz2
-cd Galacticus/v0.9.0
+wget "http://www.ctcp.caltech.edu/galacticus/galacticus_v0.9.1.tar.bz2"
+tar xvfj galacticus_v0.9.1.tar.bz2
+cd Galacticus/v0.9.1
 
-! Add to Makefile (below the F03FLAGS = line):
+! Add to Makefile (below the FCFLAGS = line):
 
-F03FLAGS += -fintrinsic-modules-path /your/install/path/finclude -fintrinsic-modules-path /your/install/path/include/gfortran -fintrinsic-modules-path /your/install/path -fintrinsic-modules-path /your/install/path/include -L /your/install/path/lib
+FCFLAGS += -fintrinsic-modules-path /your/install/path/finclude -fintrinsic-modules-path /your/install/path/include/gfortran -fintrinsic-modules-path /your/install/path -fintrinsic-modules-path /your/install/path/include -L /your/install/path/lib
 \end{lstlisting}
 
 It should then be possible to compile and run \glc.
