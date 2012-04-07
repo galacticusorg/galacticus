@@ -85,6 +85,9 @@ module Accretion_Disks_ADAF
   ! Adiabatic index of the accretion flow.
   double precision               :: adafAdiabaticIndex,adafThermalPressureFraction
 
+  ! Limit to the jet efficiency.
+  double precision               :: adafJetEfficiencyMaximum
+
   ! Options for the viscosity prescription.
   type(varying_string)           :: adafViscosityOption
   integer,             parameter :: adafViscosityFixed=0, adafViscosityFit=1
@@ -263,6 +266,17 @@ contains
        case default
           call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafViscosityOption')
        end select
+       !@ <inputParameter>
+       !@   <name>adafJetEfficiencyMaximum</name>
+       !@   <defaultValue>2</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The maximum efficiency allowed for ADAF-driven jets (in units of the accretion power).
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter("adafJetEfficiencyMaximum",adafJetEfficiencyMaximum,defaultValue=2.0d0)
        adafInitialized=.true.
     end if
     !$omp end critical(adafInitalize)
@@ -333,8 +347,15 @@ contains
           radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
           radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
 
-          jetPowerTable(iSpin)=(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin,adafViscosityAlpha)+ADAF_Disk_Jet_Power(radiusIsco&
-               &,blackHoleSpin,adafViscosityAlpha))*(speedLight/kilo)**2
+          ! Compute the jet power.
+          jetPowerTable(iSpin)= min(                                                                     &
+               &                    (                                                                    &
+               &                      ADAF_BH_Jet_Power  (radiusStatic,blackHoleSpin,adafViscosityAlpha) &
+               &                     +ADAF_Disk_Jet_Power(radiusIsco  ,blackHoleSpin,adafViscosityAlpha) &
+               &                    ),                                                                   &
+               &                    adafJetEfficiencyMaximum                                             &
+               &                   )                                                                     &
+               &               *(speedLight/kilo)**2
        end do
        jetPowerFunctionTabulated=.true.
     end if
