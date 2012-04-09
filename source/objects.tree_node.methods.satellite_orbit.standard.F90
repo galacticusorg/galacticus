@@ -100,16 +100,6 @@ module Tree_Node_Methods_Satellite_Orbit
   !#  <methodName>Tree_Node_Satellite_Virial_Orbit</methodName>
   !# </treeNodeMethodsPointer>
 
-  ! Procedure pointer for function that will be called to assign merging times to satellites.
-  procedure(Satellite_Time_Until_Merging_Template), pointer :: Satellite_Time_Until_Merging => null()
-  abstract interface
-     double precision function Satellite_Time_Until_Merging_Template(thisNode,thisOrbit)
-       import treeNode, keplerOrbit
-       type(treeNode),    pointer, intent(inout) :: thisNode
-       type(keplerOrbit),          intent(inout) :: thisOrbit
-     end function Satellite_Time_Until_Merging_Template
-  end interface
-
   ! Flag to indicate if this method is selected.
   logical :: methodSelected=.false.
 
@@ -135,9 +125,6 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use String_Handling
-    !# <include directive="satelliteMergingMethod" type="moduleUse">
-    include 'objects.tree_node.methods.satellite_orbit.moduleUse.inc'
-    !# </include>
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
@@ -204,28 +191,6 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteOrbitResetOnHaloFormation',satelliteOrbitResetOnHaloFormation,defaultValue=.false.)
-
-       ! Get the satellite merging timescale method.
-       !@ <inputParameter>
-       !@   <name>satelliteMergingMethod</name>
-       !@   <defaultValue>Jiang2008</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used to compute satellite merging timescales.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="satelliteMergingMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>satelliteMergingMethod,Satellite_Time_Until_Merging</subroutineArgs>
-       include 'objects.tree_node.methods.satellite_orbit.inc'
-       !# </include>
-       if (.not.associated(Satellite_Time_Until_Merging)) call&
-            & Galacticus_Error_Report('Tree_Node_Methods_Satellite_Orbit_Initialize','method '//char(satelliteMergingMethod)//' is&
-            & unrecognized')
-       
     end if
 
     return
@@ -372,6 +337,7 @@ contains
     !% Set the orbit of the satellite at the virial radius.
     use Kepler_Orbits_Structure
     use Galacticus_Error
+    use Satellite_Merging_Timescales
     implicit none
     type(keplerOrbit),         intent(inout) :: thisOrbit
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -489,6 +455,7 @@ contains
     use Numerical_Constants_Math
     use Dark_Matter_Halo_Scales
     use Virial_Orbits
+    use Satellite_Merging_Timescales
     implicit none
     type(treeNode),     pointer, intent(inout) :: thisNode
     type(treeNode),     pointer                :: hostNode
