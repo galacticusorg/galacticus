@@ -1375,12 +1375,17 @@ contains
 
   subroutine Build_Isolated_Parent_Pointers(thisTree,nodes,nodeList,primaryRootIndex,iExtraTree)
     !% Create parent pointer links between isolated nodes and assign times and masses to those nodes.
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Error
     implicit none
     type(mergerTree),   intent(inout)               :: thisTree
     type(nodeData),     intent(inout), dimension(:) :: nodes
     type(treeNodeList), intent(inout), dimension(:) :: nodeList
     integer,            intent(inout)               :: iExtraTree,primaryRootIndex
     integer                                         :: iNode,iIsolatedNode
+    type(varying_string)                            :: message
+    character(len=12)                               :: label
 
     iIsolatedNode=0
     do iNode=1,size(nodes)
@@ -1402,6 +1407,18 @@ contains
                 mergerTreesQueued(iExtraTree)%volumeWeight=  treeVolumeWeightCurrent
                 mergerTreesQueued(iExtraTree)%initialized =  .false.
              end if
+          end if
+          if (nodes(iNode)%nodeMass <= 0.0d0) then
+             write (label,'(e12.6)') nodes(iNode)%nodeMass
+             message='non-positive mass ['//label//'] found for node '
+             message=message//nodeList(iIsolatedNode)%node%index()
+             call Galacticus_Error_Report('Build_Isolated_Parent_Pointers',message)
+          end if
+          if (nodes(iNode)%nodeTime <= 0.0d0) then
+             write (label,'(e12.6)') nodes(iNode)%nodeTime
+             message='non-positive time ['//label//'] found for node '
+             message=message//nodeList(iIsolatedNode)%node%index()
+             call Galacticus_Error_Report('Build_Isolated_Parent_Pointers',message)
           end if
           call Tree_Node_Mass_Set(nodeList(iIsolatedNode)%node,nodes(iNode)%nodeMass)
           call Tree_Node_Time_Set(nodeList(iIsolatedNode)%node,nodes(iNode)%nodeTime)
