@@ -112,29 +112,29 @@ contains
     type(xmlf_t)                                               :: parameterDoc
 
     ! Generate the name of the data file and an XML input parameter file.
-    transferFunctionFile=char(Galacticus_Input_Path())//'data/transfer_function_CMBFast'
+    !# <uniqueLabel>
+    !#  <function>Transfer_Function_CMBFast_Label</function>
+    !#  <ignore>transferFunctionFile</ignore>
+    !# </uniqueLabel>
+    transferFunctionFile=char(Galacticus_Input_Path())//'data/transfer_function_CMBFast_'//Transfer_Function_CMBFast_Label(includeVersion=.true.,asHash=.true.)//".xml"
     parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters.xml'
     call xml_OpenFile(char(parameterFile),parameterDoc)
     call xml_NewElement(parameterDoc,"parameters")
+    call xml_NewElement(parameterDoc,"uniqueLabel")
+    call xml_AddCharacters(parameterDoc,char(Transfer_Function_CMBFast_Label(includeVersion=.true.)))
+    call xml_EndElement(parameterDoc,"uniqueLabel")
     write (parameterLabel,'(f5.3)') Omega_Matter()
-    transferFunctionFile=transferFunctionFile//'_OmegaMatter'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"Omega_Matter",parameterLabel)
     write (parameterLabel,'(f5.3)') Omega_DE()
-    transferFunctionFile=transferFunctionFile//'_OmegaDE'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"Omega_DE",parameterLabel)
     write (parameterLabel,'(f6.4)') Omega_b()
-    transferFunctionFile=transferFunctionFile//'_Omegab'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"Omega_b",parameterLabel)
     write (parameterLabel,'(f4.1)') H_0()
-    transferFunctionFile=transferFunctionFile//'_H0'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"H_0",parameterLabel)
     write (parameterLabel,'(f5.3)') T_CMB()
-    transferFunctionFile=transferFunctionFile//'_TCMB'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"T_CMB",parameterLabel)
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    transferFunctionFile=transferFunctionFile//'_YHe'//trim(parameterLabel)
     call Write_Parameter(parameterDoc,"Y_He",parameterLabel)
-    transferFunctionFile=transferFunctionFile//'.xml'
     call xml_Close(parameterDoc)
     ! Determine if we need to reinitialize this module.
     if (.not.transferFunctionInitialized) then

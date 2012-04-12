@@ -61,13 +61,33 @@
 
 !% Contains a module which implements writing of the version number and run time to the \glc\ output file.
 
-module Galacticus_Version
+module Galacticus_Versioning
   !% Implements writing of the version number and run time to the \glc\ output file.
   implicit none
   private
-  public :: Galacticus_Version_Output
+  public :: Galacticus_Version_Output, Galacticus_Version
+
+  ! Define the version.
+  integer, parameter :: versionMajor   =0
+  integer, parameter :: versionMinor   =9
+  integer, parameter :: versionRevision=1
+
+  ! Include the automatically generated Bazaar revision number.
+  include 'galacticus.output.version.revision.inc'
 
 contains
+
+  function Galacticus_Version()
+    !% Returns a string describing the version of \glc.
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    type(varying_string) :: Galacticus_Version
+    
+    Galacticus_Version="v"
+    Galacticus_Version=Galacticus_Version//versionMajor//"."//versionMinor//"."//versionRevision//".r"//bazaarRevision
+    return
+  end function Galacticus_Version
 
   !# <outputFileOpenTask>
   !#  <unitName>Galacticus_Version_Output</unitName>
@@ -83,10 +103,9 @@ contains
     use FoX_dom
     use FoX_utils
     implicit none
-    include 'galacticus.output.version.revision.inc'
     type(Node),           pointer      :: doc,thisNode,nameNode,emailNode
     type(NodeList),       pointer      :: nodesList
-    integer                            :: ioErr,iUnit
+    integer                            :: ioErr
     character(len=128)                 :: textBufferFixed
     type(hdf5Object)                   :: versionGroup
     type(varying_string)               :: runTime
@@ -96,12 +115,12 @@ contains
 
     ! Create a group for version information.
     versionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Version','Version and timestamp for this model.')
-    call versionGroup%writeAttribute(0             ,'versionMajor'   )
-    call versionGroup%writeAttribute(9             ,'versionMinor'   )
-    call versionGroup%writeAttribute(1             ,'versionRevision')
-    call versionGroup%writeAttribute(bazaarRevision,'bazaarRevision' )
+    call versionGroup%writeAttribute(versionMajor   ,'versionMajor'   )
+    call versionGroup%writeAttribute(versionMinor   ,'versionMinor'   )
+    call versionGroup%writeAttribute(versionRevision,'versionRevision')
+    call versionGroup%writeAttribute(bazaarRevision ,'bazaarRevision' )
     runTime=Formatted_Date_and_Time()
-    call versionGroup%writeAttribute(runTime       ,'runTime'        )
+    call versionGroup%writeAttribute(runTime        ,'runTime'        )
 
     ! Check if a galacticusConfig.xml file exists.
     if (File_Exists("galacticusConfig.xml")) then
@@ -133,4 +152,4 @@ contains
     return
   end subroutine Galacticus_Version_Output
   
-end module Galacticus_Version
+end module Galacticus_Versioning

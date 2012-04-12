@@ -72,7 +72,21 @@ foreach $parameter ( @parameters ) {
 $Omega_c = $parameterHash->{'Omega_Matter'}->{'value'}-$parameterHash->{'Omega_b'}->{'value'};
 $kMax = $kMax/($parameterHash->{'H_0'}->{'value'}/100.0);
 
-unless ( -e $transferFunctionFile ) {
+my $makeFile = 0;
+if ( -e $transferFunctionFile ) {
+    my $xmlDoc = new XML::Simple;
+    $transferFunction = $xmlDoc->XMLin($transferFunctionFile);
+    if ( exists($transferFunction->{'fileFormat'}) ) { 
+	$makeFile = 1 if ( $transferFunction->{'fileFormat'} != 1 );
+    } else {
+	$makeFile = 1;
+    }
+} else {
+    $makeFile = 1;
+}
+
+# Create the file if necessary.
+if ( $makeFile == 1 ) {
    # Run CMBFast.
    open(cmbPipe,"|".$galacticusPath."aux/cmbfast4.5.1/cmb");
    print cmbPipe "1\n";
@@ -121,6 +135,10 @@ unless ( -e $transferFunctionFile ) {
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[0]->{'method'} = "power law";
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'limit' } = "high";
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'method'} = "power law";
+   # Add file format version.
+   $transferFunction{'fileFormat'} = 1;
+   # Add unique label.
+   $transferFunction{'uniqueLabel'} = $data->{'uniqueLabel'};
    # Output the transfer function.
    $transferFunction = \%transferFunction;
    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"data");
