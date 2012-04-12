@@ -100,6 +100,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.hashes.cryptographic.exe",            # Tests of cryptographic hashing utilities.
+	valgrind => 0
+    },
+    {
 	name     => "tests.integration.exe",                     # Tests of integration functions.
 	valgrind => 0
     },

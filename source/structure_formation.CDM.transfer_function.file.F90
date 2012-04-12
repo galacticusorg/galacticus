@@ -145,11 +145,13 @@ contains
     double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
     integer,                                     intent(out)   :: transferFunctionNumberPoints
     type(Node),       pointer                                  :: doc,datum,thisParameter,nameElement,valueElement&
-         &,extrapolationElement,extrapolation
+         &,extrapolationElement,extrapolation,formatElement
     type(NodeList),   pointer                                  :: datumList,parameterList,wavenumberExtrapolationList
     double precision, allocatable, dimension(:)                :: wavenumberTemporary,transferFunctionTemporary
+
+    integer         , parameter                                :: versionNumberCurrent=1
     integer                                                    :: iDatum,ioErr,iParameter,addCount,iExtrapolation&
-         &,extrapolationMethod
+         &,extrapolationMethod,versionNumber
     double precision                                           :: datumValues(2),parameterValue
     character(len=32)                                          :: limitType
 
@@ -159,6 +161,10 @@ contains
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(transferFunctionFile),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Transfer_Function_File_Read','Unable to find transfer function file')
+       ! Check that the file has the correct format version number.
+       formatElement => item(getElementsByTagname(doc,"fileFormat"),0)
+       call extractDataContent(formatElement,versionNumber)
+       if (versionNumber /= versionNumberCurrent) call Galacticus_Error_Report('Transfer_Function_File_Read','file has the incorrect version number')
        ! Check that parameters match if any are present.
        parameterList => getElementsByTagname(doc,"parameter")
        do iParameter=0,getLength(parameterList)-1

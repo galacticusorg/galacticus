@@ -4291,6 +4291,7 @@ The XML file format for transfer functions looks like:
   .
   .
   <description>Cold dark matter power spectrum created by CMBFast.</description>
+  <fileFormat>1</fileFormat>
   <parameter>
     <name>Omega_b</name>
     <value>0.0450</value>
@@ -4327,7 +4328,7 @@ The XML file format for transfer functions looks like:
   </extrapolation>
 </data>
 \end{verbatim}
-The {\tt datum} elements give wavenumber (in Mpc$^{-1}$) and transfer function pairs. The {\tt extrapolation} element defines how the tabulated function should be extrapolated to lower and higher wavenumbers. The two options for the {\tt method} are ``fixed'', in which case the transfer function is extrapolated assuming that it remains constant, and ``power law'' in which case the extrapolation is performed assuming a fixed power-law relation between transfer function and wavenumber. The {\tt column}, {\tt description} and {\tt parameter} elements are optional, but are encouraged to make the file easier to understand.
+The {\tt datum} elements give wavenumber (in Mpc$^{-1}$) and transfer function pairs. The {\tt extrapolation} element defines how the tabulated function should be extrapolated to lower and higher wavenumbers. The two options for the {\tt method} are ``fixed'', in which case the transfer function is extrapolated assuming that it remains constant, and ``power law'' in which case the extrapolation is performed assuming a fixed power-law relation between transfer function and wavenumber. The {\tt column}, {\tt description} and {\tt parameter} elements are optional, but are encouraged to make the file easier to understand. Finally, the {\tt fileFormat} element should currently always contain the value $1$---this may change in future if the format of this file is modified.
 
 \subsection{Events}
 

@@ -69,10 +69,15 @@ module Input_Parameters
   use IO_HDF5
   use ISO_Varying_String
   use Galacticus_Error
+  use Hashes_Cryptographic
+  use Galacticus_Versioning
   implicit none
   private
   public :: Input_Parameters_File_Open, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
        & Write_Parameter, Input_Parameter_Is_Present
+
+  ! Include public specifiers for functions that will generate unique labels for modules.
+  include 'utility.input_parameters.unique_labels.visibilities.inc'
 
   ! Node to hold the parameter document.
   type(Node),     pointer :: parameterDoc => null()
@@ -1087,5 +1092,8 @@ contains
     call Get_Input_Parameter_Integer(char(parameterNameF),parameterValue,defaultValue)
     return
   end subroutine Get_Input_Parameter_Integer_C
+
+  ! Include functions that generate unique labels for modules.
+  include 'utility.input_parameters.unique_labels.inc'
 
 end module Input_Parameters

@@ -45,7 +45,7 @@ CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
 # Libraries:
-LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lhdf5hl_fortran -lhdf5_hl -lhdf5_fortran -lhdf5 -lm -lz -lstdc++
+LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lhdf5hl_fortran -lhdf5_hl -lhdf5_fortran -lhdf5 -lm -lz -lstdc++ -lcrypt
 
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
@@ -181,6 +181,14 @@ vpath %.cpp source
 	@echo FCCOMPILER_VERSION=\"$(FCCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
 	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> ./work/build/galacticus.output.build.environment.inc
+
+# Rules for unique label function creation.
+dfiles := $(patsubst source/%.F90,work/build/%.d,$(wildcard source/*.F90))
+mfiles := $(patsubst source/%.F90,work/build/%.m,$(wildcard source/*.F90))
+./work/build/utility.input_parameters.unique_labels.inc:
+	@touch ./work/build/utility.input_parameters.unique_labels.inc
+./work/build/utility.input_parameters.unique_labels.visibilities.inc: $(dfiles) $(mfiles)
+	scripts/build/Make_Unique_Label_Functions.pl `pwd`
 
 # Rules for changeset creation.
 Galacticus.exe: ./work/build/galacticus.bzr.patch ./work/build/galacticus.bzr.merge
