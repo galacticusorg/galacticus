@@ -1,9 +1,18 @@
 #!/usr/bin/env perl
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use strict;
 use warnings;
 use XML::Simple;
 use UNIVERSAL 'isa';
 use Data::Dumper;
+require Fortran::Utils;
 
 # Construct a unique string that defines the operation of a given module.
 # Andrew Benson (10-April-2012)
@@ -100,10 +109,35 @@ while ( my $fileName = readdir(dHndl) ) {
 		    $moduleName       =~ s/\.\/work\/build\/(.*)\.mod$/$1/;
 		    my $moduleCode    = "  ".$labelFunction."=".$labelFunction."//'::".$moduleName."'\n";	
 		    my $hasParameters = 0;
+
+		    # Scan the file for default parameter values.
+		    my %defaultValues;
+		    my $sourceFile = $sourceDirectory."/".$depName.".F90";
+		    unless ( $depName eq "utility.input_parameters" ) {
+			my $fileHandle;
+			open($fileHandle,$sourceFile);
+			until ( eof($fileHandle) ) {
+			    # Grab the next Fortran line.
+			    my $rawLine;
+			    my $processedLine;
+			    my $bufferedComments;
+			    &Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
+			    if ( $processedLine =~ m/Get_Input_Parameter/i ) {
+				if ( $processedLine =~ m/defaultValue\s*=\s*(.*)[,\)]/i ) {
+				    my $defaultValue = $1;
+				    if ( $processedLine =~ m/Get_Input_Parameter\s*\(\s*'(.*)'/i ) {
+					my $parameterName = $1;
+					$defaultValues{$parameterName} = $defaultValue;
+				    }
+				}
+			    }
+			}
+			close(sFile);
+		    }
+
 		    # Scan this file for parameters.
 		    my $methodParameter;
 		    my $methodValue;
-		    my $sourceFile = $sourceDirectory."/".$depName.".F90";
 		    my $xmlBuffer;
 		    open(sFile,$sourceFile);
 		    while ( my $line = <sFile> ) {
@@ -122,7 +156,9 @@ while ( my $fileName = readdir(dHndl) ) {
 				my $xml = new XML::Simple;
 				my $inputParameter = $xml->XMLin($xmlBuffer);
 				unless ( exists($ignoreParameters{$inputParameter->{'name'}}) ) {
-				    $moduleCode .= "  call Get_Input_Parameter_VarString('".$inputParameter->{'name'}."',parameterValue,writeOutput=.false.)\n";
+				    $moduleCode .= "  call Get_Input_Parameter_VarString('".$inputParameter->{'name'}."',parameterValue";
+				    $moduleCode .= ",defaultValue='".$defaultValues{$inputParameter->{'name'}}."'" if ( exists($defaultValues{$inputParameter->{'name'}}) );
+				    $moduleCode .= ",writeOutput=.false.)\n";
 				    $moduleCode .= "  ".$labelFunction."=".$labelFunction."//'#".$inputParameter->{'name'}."['//parameterValue//']'\n";
 				    $hasParameters = 1;
 				}
@@ -131,8 +167,11 @@ while ( my $fileName = readdir(dHndl) ) {
 		    }
 		    close(sFile);
 		    if ( $hasParameters == 1 ) {
-			$definitionCode .= "  call Get_Input_Parameter_VarString('".$methodParameter."',parameterValue,writeOutput=.false.)\n"
-			    if ( defined($methodParameter) );
+			if ( defined($methodParameter) ) {
+			    $definitionCode .= "  call Get_Input_Parameter_VarString('".$methodParameter."',parameterValue";
+			    $definitionCode .= ",defaultValue='".$defaultValues{$methodParameter}."'" if ( exists($defaultValues{$methodParameter}) );
+			    $definitionCode .= ",writeOutput=.false.)\n";
+			}
 			$definitionCode .= "  if (parameterValue == '".$methodValue."') then\n"
 			    if ( defined($methodParameter) );
 			$definitionCode .= $moduleCode;
