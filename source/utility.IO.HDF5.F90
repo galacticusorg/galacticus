@@ -470,13 +470,12 @@ contains
 
     !$omp critical(HDF5_Access)
     if (present(chunkSize)) then
-       if (chunkSize        ==  0                         ) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','zero chunksize is invalid'                )
-       if (chunkSize        <  -1                         ) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','chunksize less than -1 is invalid'        )
+       if (chunkSize        ==  0) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','zero chunksize is invalid'        )
+       if (chunkSize        <  -1) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','chunksize less than -1 is invalid')
        hdf5ChunkSize=chunkSize
     end if
     if (present(compressionLevel)) then
-       if (compressionLevel < -1                          ) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','compression level less than -1 is invalid')
-       if (compressionLevel <  1 .or. compressionLevel > 9) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','compression level less than -1 is invalid')
+       if (compressionLevel <  -1 .or. compressionLevel > 9) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','compression level must be in range -1 to 9')
        hdf5CompressionLevel=compressionLevel
     end if
     !$omp end critical(HDF5_Access)
