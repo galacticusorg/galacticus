@@ -59,69 +59,60 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements calculations of dark matter halo angular momentum.
+!% Contains a module which implements a fixed star formation timescale for galactic disks.
 
-module Dark_Matter_Halo_Spins
-  !% Implements calculations of dark matter halo angular momentum.
+module Star_Formation_Timescale_Disks_Fixed
+  !% Implements a fixed star formation timescale for galactic disks.
   implicit none
   private
-  public :: Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Angular_Momentum_Growth_Rate
+  public :: Star_Formation_Timescale_Disks_Fixed_Initialize
 
-  ! Record of whether the module has been initialized.
-  logical :: moduleInitialized=.false.
-
+  ! Parameters of the timescale model.
+  double precision :: starFormationTimescaleDisksFixedTimescale
+  
 contains
 
-  subroutine Dark_Matter_Halo_Spins_Initialize()
-    !% Initialize the halo spins module.
-    use Tree_Nodes
+  !# <starFormationTimescaleDisksMethod>
+  !#  <unitName>Star_Formation_Timescale_Disks_Fixed_Initialize</unitName>
+  !# </starFormationTimescaleDisksMethod>
+  subroutine Star_Formation_Timescale_Disks_Fixed_Initialize(starFormationTimescaleDisksMethod,Star_Formation_Timescale_Disk_Get)
+    !% Initializes the ``fixed'' disk star formation timescale module.
+    use ISO_Varying_String
+    use Input_Parameters
     use Galacticus_Error
+    use Tree_Nodes
     implicit none
-
-    !$omp critical(Dark_Matter_Halo_Spins_Initialize)
-    if (.not.moduleInitialized) then
-       ! Ensure that the spin property is available.
-       if (.not.associated(Tree_Node_Spin)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Spin property must be gettable')
-       if (.not.associated(Tree_Node_Mass)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Mass property must be gettable')
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
+    type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
+    
+    if (starFormationTimescaleDisksMethod == 'fixed') then
+       Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Fixed
+       ! Get parameters of for the timescale calculation.
+       !@ <inputParameter>
+       !@   <name>starFormationTimescaleDisksFixedTimescale</name>
+       !@   <defaultValue>1 Gyr</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The timescale for star formation in the fixed timescale model for disks.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('starFormationTimescaleDisksFixedTimescale',starFormationTimescaleDisksFixedTimescale,defaultValue=1.0d0)
     end if
-    !$omp end critical(Dark_Matter_Halo_Spins_Initialize)
     return
-  end subroutine Dark_Matter_Halo_Spins_Initialize
+  end subroutine Star_Formation_Timescale_Disks_Fixed_Initialize
 
-  double precision function Dark_Matter_Halo_Angular_Momentum(thisNode)
-    !% Returns the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
+  double precision function Star_Formation_Timescale_Disk_Fixed(thisNode)
+    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}, assuming a fixed timecale.
     use Tree_Nodes
-    use Numerical_Constants_Physical
-    use Dark_Matter_Profiles
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode), intent(inout), pointer :: thisNode
 
-    ! Ensure that the module is initialized.
-    call Dark_Matter_Halo_Spins_Initialize
-
-    Dark_Matter_Halo_Angular_Momentum=Tree_Node_Spin(thisNode)*gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)**2.5d0 &
-         &/dsqrt(dabs(Dark_Matter_Profile_Energy(thisNode)))
+    ! Return the timescale.
+    Star_Formation_Timescale_Disk_Fixed=starFormationTimescaleDisksFixedTimescale
     return
-  end function Dark_Matter_Halo_Angular_Momentum
-
-  double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)
-    !% Returns the rate of change of the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
-    use Tree_Nodes
-    use Numerical_Constants_Physical
-    use Dark_Matter_Profiles
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Ensure that the module is initialized.
-    call Dark_Matter_Halo_Spins_Initialize
-
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate=Dark_Matter_Halo_Angular_Momentum(thisNode)&
-         &*(Tree_Node_Spin_Growth_Rate(thisNode)/Tree_Node_Spin(thisNode)+2.5d0*Tree_Node_Mass_Accretion_Rate(thisNode)&
-         &/Tree_Node_Mass(thisNode)-0.5d0*Dark_Matter_Profile_Energy_Growth_Rate(thisNode)/Dark_Matter_Profile_Energy(thisNode))
-
-    return
-  end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
-
-end module Dark_Matter_Halo_Spins
+  end function Star_Formation_Timescale_Disk_Fixed
+  
+end module Star_Formation_Timescale_Disks_Fixed

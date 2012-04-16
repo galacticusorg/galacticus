@@ -558,6 +558,10 @@ The process of merging two galaxies currently involves two algorithms: one which
 
 The movement of mass elements in the merging galaxies is determined by the {\tt satelliteMergingMassMovementsMethod} parameter. 
 
+\subsubsection{Very Simple}
+
+Selected with {\tt satelliteMergingMassMovementsMethod}$=${\tt verySimple}, this method assumes that the satellite material is always added to the disk of the host, while the host mass is not moved.
+
 \subsubsection{Simple}
 
 Selected with {\tt satelliteMergingMassMovementsMethod}$=${\tt simple}, this method implements mass movements according to:
@@ -993,6 +997,10 @@ Selected with {\tt chemicalReactionRatesMethods}$=${\tt hydrogenNetwork} this me
 
 The methods for computing star formation timescales in disks and spheroids are selected via the {\tt starFormationTimescaleDisksMethod} and {\tt starFormationTimescaleSpheroidsMethod} respectively.
 
+\subsection{Fixed}
+
+Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt fixed} this method assumes a fixed timescale for star formation {\tt [starFormationTimescaleDisksFixedTimescale]} (in Gyr).
+
 \subsection{Dynamical Time}
 
 Selected with {\tt starFormationTimescale[Disks|Spheroids]Method}$=${\tt dynamicalTime} this method computes the star formation timescale to be:
@@ -1307,6 +1315,14 @@ Selcted with {\tt nodeMergersMethod}$=${\tt singleLevelHierarchy}, this method m
 \section{Supernovae Feedback Models}\label{sec:sneFeedback}\index{supernovae!feedback}\index{feedback}
 
 The supernovae feedback driven outflow rate is computed using the method specified by the {\tt starFormationFeedback[Disks|Spheroids]Method} for disks and spheroids respectively.
+
+\subsection{Fixed}
+
+Selected with {\tt starFormationFeedbackDisksMethod}$=${\tt fixed}, this method assumes an outflow rate of:
+\begin{equation}
+ \dot{M}_{\rm outflow} = f_{\rm outflow} {\dot{E} \over E_{\rm canonical}},
+\end{equation}
+where $f_{\rm outflow}=${\tt [diskOutflowFraction]} is the fraction of the star formation rate that goes into outflow, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
 
 \subsection{Power Law}
 

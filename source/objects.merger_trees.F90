@@ -331,9 +331,11 @@ contains
     parentNode => thisNode%parentNode
 
     ! Display a message.
-    message='Promoting node '
-    message=message//thisNode%index()//' to '//parentNode%index()
-    call Galacticus_Display_Message(message,verbosityInfo)
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Promoting node '
+       message=message//thisNode%index()//' to '//parentNode%index()
+       call Galacticus_Display_Message(message,verbosityInfo)
+    end if
 
     ! Perform any processing necessary before this halo is promoted.
     !# <include directive="nodePromotionTask" type="code" action="subroutine">
@@ -451,13 +453,16 @@ contains
     double precision,                        intent(in)             :: endTime
     logical,                                 intent(out)            :: interrupted
     procedure(Interrupt_Procedure_Template), intent(out),   pointer :: interruptProcedure
+    integer,                                 save                   :: nPropertiesPrevious=-1
+    !$omp threadprivate(nPropertiesPrevious)
     double precision                                                :: startTimeThisNode
     ! Variables used in the ODE solver.
-    type(fgsl_odeiv_step)                                           :: odeStepper
-    type(fgsl_odeiv_control)                                        :: odeController
-    type(fgsl_odeiv_evolve)                                         :: odeEvolver
-    type(fgsl_odeiv_system)                                         :: odeSystem
-    logical                                                         :: odeReset
+    type(fgsl_odeiv_step),                   save                   :: odeStepper
+    type(fgsl_odeiv_control),                save                   :: odeController
+    type(fgsl_odeiv_evolve),                 save                   :: odeEvolver
+    type(fgsl_odeiv_system),                 save                   :: odeSystem
+    logical,                                 save                   :: odeReset=.true.
+    !$omp threadprivate(odeStepper,odeController,odeEvolver,odeSystem,odeReset)
     type(c_ptr)                                                     :: parameterPointer
 #ifdef PROFILE
     procedure(),                                            pointer :: My_Error_Analyzer
@@ -532,7 +537,6 @@ contains
 
     ! Call ODE solver routines.
     startTimeThisNode=Tree_Node_Time(thisNode)
-    odeReset=.true.
 #ifdef PROFILE
     if (profileOdeEvolver) then
        My_Error_Analyzer => Tree_Node_Evolve_Error_Analyzer
@@ -540,6 +544,11 @@ contains
        My_Error_Analyzer => Tree_Node_Evolve_Error_Analyzer_Dummy
     end if
 #endif
+    if (nProperties /= nPropertiesPrevious) then
+       odeReset=.true.
+       if (nPropertiesPrevious > 0) call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
+       nPropertiesPrevious=nProperties
+    end if
     call ODE_Solve(                                               &
          &         odeStepper,odeController,odeEvolver,odeSystem, &
          &         startTimeThisNode,endTime,                     &
@@ -553,7 +562,6 @@ contains
          &         yScale        =propertyScales,                 &
          &         reset         =odeReset                        &
          &        )
-    call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
 
     ! Extract values.
     call Map_Properties_From_ODE_Array(thisNode,propertyValues)
