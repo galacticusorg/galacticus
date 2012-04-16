@@ -24,7 +24,8 @@ The file {\tt galacticusConfig.xml}, is present, is used to configure \glc\ and 
   </email>
 </config>
 \end{verbatim}
-The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\tt email} section determines how e-mail will be sent. Within this section, you can place one or more {\tt host} elements, the {\tt name} element of which specifies the host name of the computer to which these rules apply (the {\tt default} host is used if no other match is found). For each host, the {\tt method} element specifies how e-mail should be sent, either by {\tt sendmail} or via {\tt smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\tt host} SMTP server, {\tt user} name. The {\tt passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\tt input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, setting {\tt passwordFrom} to {\tt kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
+The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\tt email} section determines how e-mail will be sent. Within this section, you can place one or more {\tt host} elements, the {\tt name} element of which specifies the host name of the computer to which these rules apply (the {\tt default} host is used if no other match is found). For each host, the {\tt method} element specifies how e-mail should be sent, either by {\tt sendmail} or via {\tt smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\tt host} SMTP server, {\tt user} name. The {\tt passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\tt input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
+setting {\tt passwordFrom} to {\tt kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
 
 \section{Parameter Files}
 
@@ -103,13 +104,23 @@ The {\tt runFile} is an XML file with the following structure:
  <threadCount>maximum</threadCount>
  <condor>
    <useCondor>true</useCondor>
-   <galacticusDirectory>/home/condor/Galacticus/v0.9.0</galacticusDirectory>
+   <galacticusDirectory>/home/condor/Galacticus/v0.9.1</galacticusDirectory>
    <universe>vanilla</universe>
    <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
    <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
    <transferFile>{PWD}/myFile.data</transferFile>
    <wholeMachine>true</wholeMachine>
  </condor>
+ <pbs>
+   <usePBS>true</usePBS>
+   <scratchPath>/scratch/me</scratchPath>
+   <wallTime>48:00:00</wallTime>
+   <memory>3gb</memory>
+   <ompThreads>8</ompThreads>
+   <queue>stanard</queue>
+   <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
+   <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
+ </pbs>                                                                                                             
  <parameters>
   <label>modelLabel</label>
   <parameter>
@@ -150,6 +161,7 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be. Optionally, the analysis script to run can be specified via the {\tt analysisScript} element (see \S\ref{sec:AnalysisScripts});
 \item[{\tt emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\tt galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.
 \item[{\tt threadCount}] Specifies the number of threads that should be launched (each running a separate \glc\ model) when running on the local machine. If set to ``maximum'' then the number of threads will be set to the available number of cores on the local machine. If not present, a single thread is used.
+
 \item[{\tt condor}] This section, if present, specifies if and how jobs should be submitted to a {\tt Condor} cluster. The following options are available:
 \begin{description}
 \item[{\tt useCondor}] If set to ``true'' then jobs will be submitted to a {\sc Condor} cluster, otherwise they will be run on the local machine;
@@ -159,6 +171,17 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
 \item[{\tt transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\tt \{PWD\}} will be automatically expanded to the present working directory. Multiple {\tt transferFile} entries can be given.
 \item [{\tt wholeFile}] Setting this option to {\tt true} will add {\tt +RequiresWholeMachine = True} to the Condor submit file. If Condor has been configured to allow jobs to take over a whole machine\footnote{As described \protect\href{https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml}{here} for example.}, this will cause jobs to do so. This is useful if you want to run OpenMP \glc\ on a Condor cluster.
+\end{description}
+\item[{\tt pbs}] This section, if present, specifies if and how jobs should be submitted to a {\tt PBS} batch queue system. The following options are available:
+\begin{description}
+\item[{\tt usePBS}] If set to ``true'' then jobs will be submitted to a {\sc PBS} batch queue system, otherwise they will be run on the local machine;
+\item[{\tt scratchPath}] An optional path to which the model output will be written at run time. At the completion of each run, the data will be transferred to the usual output location. This is useful to avoid network I/O during run time;
+\item[{\tt wallTime}] A limit on the wall time allowed for each model (optional);
+\item[{\tt memory}] A limit on the memory allowed for each model (optional);
+\item[{\tt ompThreads}] The number of OpenMP threads to use for each model (optional). This is used to request an appropriate number of processors per node;
+\item[{\tt queue}] The name of the queue to submit the jobs to (optional);
+\item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
+\item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
 \end{description}
 \end{description}
 

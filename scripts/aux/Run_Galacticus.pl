@@ -83,6 +83,12 @@ $launchMethod    = "condor"
 	&& exists($modelsToRun->{'condor'}->{'useCondor'})
 	&&        $modelsToRun->{'condor'}->{'useCondor'} eq "true"
 	);
+$launchMethod    = "pbs"
+    if (
+	exists($modelsToRun->{'pbs'})
+	&& exists($modelsToRun->{'pbs'}->{'usePBS'})
+	&&        $modelsToRun->{'pbs'}->{'usePBS'} eq "true"
+    );
 
 # Record where we are running.
 my $pwd = `pwd`;
@@ -91,8 +97,11 @@ chomp($pwd);
 # Define a hash for Condor job IDs.
 my %condorJobs;
 
+# Define a hash for PBS job IDS.
+my %pbsJobs;
+
 # Launch threads.
-if ( $threadCount <= 1 || $launchMethod eq "condor" ) {
+if ( $threadCount <= 1 || $launchMethod eq "condor" || $launchMethod eq "pbs" ) {
     &Launch_Models($modelsToRun);
 } else {
     my @threads = ();
@@ -138,6 +147,40 @@ if ( $launchMethod eq "condor" ) {
 	} else {
 	    sleep 10;
 	}
+    }
+}
+
+# Wait for PBS models to finish.
+if ( $launchMethod eq "pbs" ) {
+    print "Waiting for PBS jobs to finish...\n";
+    while ( scalar(keys %pbsJobs) > 0 ) {
+	# Report on number of jobs remaining.
+	# Find all PBS jobs that are running.
+	my %runningPBSJobs;
+	undef(%runningPBSJobs);
+	open(pHndl,"qstat -f|");
+	while ( my $line = <pHndl> ) {
+	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
+	}
+	close(pHndl);
+	foreach my $jobID ( keys(%pbsJobs) ) {
+	    unless ( exists($runningPBSJobs{$jobID}) ) {
+		print "PBS job ".$jobID." has finished. Post-processing....\n";
+		system("ls ".$pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5");
+		system("ls ".$pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5");
+		system("ls ".$pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5");
+		&Model_Finalize(
+		    $pbsJobs{$jobID}->{'directory'},
+		    $pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5",
+		    0
+		    );
+		# Remove any temporary files associated with this job.
+		unlink(@{$pbsJobs{$jobID}->{'temporaryFiles'}});
+		# Remove the job ID from the list of active PBS jobs.
+		delete($pbsJobs{$jobID});
+	    }
+	}
+	sleep 60;
     }
 }
 
@@ -206,6 +249,14 @@ sub Launch_Models {
 		    }
 		    case ( "condor" ) {
 			$parameters{'galacticusOutputFileName'} = "galacticus.hdf5";
+		    }
+		    case ( "pbs"    ) {
+			if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) ) {
+			    $parameters{'galacticusOutputFileName'} = $modelsToRun->{'pbs'}->{'scratchPath'}."/";
+			} else {
+			    $parameters{'galacticusOutputFileName'} = "";
+			}
+			$parameters{'galacticusOutputFileName'} .= "galacticus_".$modelCounter."_".$$.".hdf5";
 		    }
 		}
 
@@ -320,6 +371,73 @@ sub Launch_Models {
 			sleep 10;
 
 		    }
+		    case ( "pbs"    ) {
+			# Create the PBS submission script.
+			my $pbsScript = "pbs_run_".$modelCounter."_".$$.".sh";
+			open(oHndl,">".$pbsScript);
+			print oHndl "#!/bin/bash\n";
+			print oHndl "#PBS -N Galacticus_".$modelCounter."_".$$."\n";
+			if ( exists($config->{'contact'}->{'email'}) && $config->{'contact'}->{'email'} =~ m/\@/ && $modelsToRun->{'emailReport'} eq "yes" ) {
+			    print oHndl "#PBS -M ".$config->{'contact'}->{'email'}."\n";
+			    print oHndl "#PBS -m bea\n";
+			}
+			print oHndl "#PBS -l walltime=".$modelsToRun->{'pbs'}->{'wallTime'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'wallTime'}) );
+			print oHndl "#PBS -l mem=".$modelsToRun->{'pbs'}->{'memory'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'memory'}) );
+			if ( exists($modelsToRun->{'pbs'}->{'ompThreads'}) ) {
+			    print oHndl "#PBS -l nodes=1:ppn=".$modelsToRun->{'pbs'}->{'ompThreads'}."\n";
+			} else {
+			    print oHndl "#PBS -l nodes=1:ppn=1\n";
+			}
+			print oHndl "#PBS -j oe\n";
+			my $pwd = "";
+			unless ( $galacticusOutputDirectory =~ m/^\// ) {
+			    $pwd = `pwd`;
+			    chomp($pwd);
+			}
+			print oHndl "#PBS -o ".$pwd."/".$galacticusOutputDirectory."/galacticus.log\n";
+			print oHndl "#PBS -q ".$modelsToRun->{'pbs'}->{'queue'}."\n";
+			print oHndl "#PBS -V\n";
+			print oHndl "echo \$PBS_O_WORKDIR\n";
+			print oHndl "cd \$PBS_O_WORKDIR\n";
+			if ( exists($modelsToRun->{'pbs'}->{'environment'}) ) {
+			    foreach my $environment ( @{$modelsToRun->{'pbs'}->{'environment'}} ) {
+				print oHndl "export ".$environment."\n";
+			    }
+			}
+			print oHndl "export OMP_NUM_THREADS=".$modelsToRun->{'pbs'}->{'ompThreads'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'ompThreads'}) );
+			print oHndl "mkdir -p ".$modelsToRun->{'pbs'}->{'scratchPath'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			if ( exists($modelsToRun->{'pbs'}->{'mpiRun'}) ) {
+			    print oHndl $modelsToRun->{'pbs'}->{'mpiRun'};
+			} else {
+			    print oHndl "mpirun";
+			}
+			print oHndl " --bynode -np 1 Galacticus.exe ".$galacticusOutputDirectory."/newParameters.xml\n";
+			print oHndl "mv ";
+			print oHndl $modelsToRun->{'pbs'}->{'scratchPath'}."/"
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "galacticus_".$modelCounter."_".$$.".hdf5 ".$galacticusOutputDirectory."/galacticus.hdf5\n";
+			close(oHndl);
+			
+			# Submit the job - capture the job number?
+			open(pHndl,"qsub ".$pbsScript."|");
+			my $jobID = "";
+			while ( my $line = <pHndl> ) {
+			    if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
+			}
+			close(pHndl);
+			
+                        # Add job number to active job hash
+			unless ( $jobID eq "" ) {
+			    $pbsJobs{$jobID}->{'directory'} = $galacticusOutputDirectory;
+			    @{$pbsJobs{$jobID}->{'temporaryFiles'}} = [$pbsScript];
+			}
+			sleep 10;
+		    }
+
 		}
 
 	    }
