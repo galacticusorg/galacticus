@@ -159,6 +159,7 @@ contains
     !% Compute the mass enclosed within radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
     use Tree_Nodes
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
+    use Galactic_Structure_Options
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
@@ -167,6 +168,10 @@ contains
     hotGasMass =Tree_Node_Hot_Halo_Mass                      (thisNode)
     if (hotGasMass <= 0.0d0) then
        Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=0.0d0
+       return
+    end if
+    if (radius >= radiusLarge) then
+       Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass
        return
     end if
     outerRadius=Tree_Node_Hot_Halo_Outer_Radius              (thisNode)

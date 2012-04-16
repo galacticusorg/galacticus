@@ -169,7 +169,7 @@ contains
 
     ! Get the energy using the selected method.
     Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum&
-         &=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get(thisNode,specificAngularMomentum)
+         & =Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get(thisNode,specificAngularMomentum)
 
     return
   end function Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum

@@ -131,6 +131,9 @@ contains
     end if
     !$omp end critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
 
+    ! Return immediately if cut-off is non-positive.
+    if (coolingCutOffVelocity <= 0.0d0) return
+
     ! Test for halos where cooling should be cut off.
     select case (coolingCutOffFormationNode)
     case (.false.)

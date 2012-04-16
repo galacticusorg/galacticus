@@ -79,6 +79,8 @@ contains
     !% Initializes the ``dynamical time'' disk star formation timescale module.
     use ISO_Varying_String
     use Input_Parameters
+    use Galacticus_Error
+    use Tree_Nodes
     implicit none
     type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
@@ -122,9 +124,13 @@ contains
        !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationDiskMinimumTimescale',starFormationDiskMinimumTimescale,defaultValue=1.0d-3)
+
+       ! Check that required properties are gettable.
+       if (.not.associated(Tree_Node_Disk_Velocity)) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_Dynamical_Time_Initialize','Tree_Node_Disk_Velocity must be gettable')
+       if (.not.associated(Tree_Node_Disk_Radius  )) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_Dynamical_Time_Initialize','Tree_Node_Disk_Radius must be gettable')
     end if
     return
-  end subroutine Star_Formation_Timescale_Disks_Dynamical_time_Initialize
+  end subroutine Star_Formation_Timescale_Disks_Dynamical_Time_Initialize
 
   double precision function Star_Formation_Timescale_Disk_Dynamical_Time(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}. The timescale is given by

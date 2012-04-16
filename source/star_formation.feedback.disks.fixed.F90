@@ -59,69 +59,61 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements calculations of dark matter halo angular momentum.
+!% Contains a module which implements a fixed outflow rate due to star formation feedback in galactic disks.
 
-module Dark_Matter_Halo_Spins
-  !% Implements calculations of dark matter halo angular momentum.
+module Star_Formation_Feedback_Disks_Fixed
+  !% Implements a fixed outflow rate due to star formation feedback in galactic disks.
+  use Tree_Nodes
   implicit none
   private
-  public :: Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Angular_Momentum_Growth_Rate
+  public :: Star_Formation_Feedback_Disks_Fixed_Initialize
 
-  ! Record of whether the module has been initialized.
-  logical :: moduleInitialized=.false.
-
+  ! Parameters of the feedback model.
+  double precision :: diskOutflowFraction
+  
 contains
 
-  subroutine Dark_Matter_Halo_Spins_Initialize()
-    !% Initialize the halo spins module.
-    use Tree_Nodes
-    use Galacticus_Error
+  !# <starFormationFeedbackDisksMethod>
+  !#  <unitName>Star_Formation_Feedback_Disks_Fixed_Initialize</unitName>
+  !# </starFormationFeedbackDisksMethod>
+  subroutine Star_Formation_Feedback_Disks_Fixed_Initialize(starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get)
+    !% Initializes the ``fixed'' disk star formation feedback module.
+    use ISO_Varying_String
+    use Input_Parameters
     implicit none
-
-    !$omp critical(Dark_Matter_Halo_Spins_Initialize)
-    if (.not.moduleInitialized) then
-       ! Ensure that the spin property is available.
-       if (.not.associated(Tree_Node_Spin)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Spin property must be gettable')
-       if (.not.associated(Tree_Node_Mass)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Mass property must be gettable')
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
+    type(varying_string),                 intent(in   ) :: starFormationFeedbackDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+    
+    if (starFormationFeedbackDisksMethod == 'fixed') then
+       Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Fixed
+       ! Get parameters of for the feedback calculation.
+       !@ <inputParameter>
+       !@   <name>diskOutflowFraction</name>
+       !@   <defaultValue>0.01</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The ratio of outflow rate to star formation rate in disks.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskOutflowFraction',diskOutflowFraction,defaultValue=0.01d0)
     end if
-    !$omp end critical(Dark_Matter_Halo_Spins_Initialize)
     return
-  end subroutine Dark_Matter_Halo_Spins_Initialize
+  end subroutine Star_Formation_Feedback_Disks_Fixed_Initialize
 
-  double precision function Dark_Matter_Halo_Angular_Momentum(thisNode)
-    !% Returns the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
+  double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Fixed(thisNode,starFormationRate,energyInputRate)
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\tt thisNode}. Assumes a
+    !% fixed ratio of outflow rate to star formation rate.
     use Tree_Nodes
-    use Numerical_Constants_Physical
-    use Dark_Matter_Profiles
+    use Stellar_Feedback
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: starFormationRate,energyInputRate
 
-    ! Ensure that the module is initialized.
-    call Dark_Matter_Halo_Spins_Initialize
-
-    Dark_Matter_Halo_Angular_Momentum=Tree_Node_Spin(thisNode)*gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)**2.5d0 &
-         &/dsqrt(dabs(Dark_Matter_Profile_Energy(thisNode)))
+    Star_Formation_Feedback_Disk_Outflow_Rate_Fixed=diskOutflowFraction*energyInputRate/feedbackEnergyInputAtInfinityCanonical
     return
-  end function Dark_Matter_Halo_Angular_Momentum
-
-  double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)
-    !% Returns the rate of change of the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
-    use Tree_Nodes
-    use Numerical_Constants_Physical
-    use Dark_Matter_Profiles
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Ensure that the module is initialized.
-    call Dark_Matter_Halo_Spins_Initialize
-
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate=Dark_Matter_Halo_Angular_Momentum(thisNode)&
-         &*(Tree_Node_Spin_Growth_Rate(thisNode)/Tree_Node_Spin(thisNode)+2.5d0*Tree_Node_Mass_Accretion_Rate(thisNode)&
-         &/Tree_Node_Mass(thisNode)-0.5d0*Dark_Matter_Profile_Energy_Growth_Rate(thisNode)/Dark_Matter_Profile_Energy(thisNode))
-
-    return
-  end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
-
-end module Dark_Matter_Halo_Spins
+  end function Star_Formation_Feedback_Disk_Outflow_Rate_Fixed
+  
+end module Star_Formation_Feedback_Disks_Fixed

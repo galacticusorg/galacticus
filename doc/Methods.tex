@@ -3422,6 +3422,7 @@ Additionally, the {\tt mergerIsMajor} flag should be set to indicate whether thi
 
 Currently defined satellite merger mass movement methods are:
 \begin{description}
+ \item [{\tt verySimple}] In this case, the satellite is always added to the disk of the host, while material in the host does not move.
  \item [{\tt simple}] If the baryonic mass of the satellite exceeds a fraction {\tt majorMergerMassRatio} of the baryonic mass of the host then all material is moved to the spheroid of the host. Otherwise, satellite gas moves to the component given by {\tt minorMergerGasMovesTo}, satellite stars move to the host spheroid and host material does not move.
  \item [{\tt Baugh2005}] If the baryonic mass of the satellite exceeds a fraction {\tt majorMergerMassRatio} of the baryonic mass of the host then all material is moved to the spheroid of the host. Otherwise, if the baryonic mass of the satellite exceeds a fraction {\tt burstMassRatio} of the baryonic mass of the host and the gas fraction in the host exceeds {\tt burstCriticalGasFraction} then all gas is moved to the host spheroid, while the host stellar disk remains in place. For mergers failing both criteria, satellite gas moves to the component given by {\tt minorMergerGasMovesTo}, satellite stars move to the host spheroid and host material does not move. 
 \end{description}
@@ -3638,6 +3639,7 @@ The function must return the mass outflow rate (in $M_\odot$ Gyr$^{-1}$) for {\t
 
 Currently defined star formation feedback methods are:
 \begin{description}
+ \item [\hyperlink{star_formation.feedback.disks.fixed.F90:star_formation_feedback_disks_fixed}{{\tt fixed}}] The outflow rate is a fixed multiple of the the star formation rate.
  \item [\hyperlink{star_formation.feedback.spheroids.power_law.F90:star_formation_feedback_spheroids_power_law:star_formation_feedback_spheroid_outflow_rate_power_law}{{\tt powerLaw}}] The outflow rate is given by
 \begin{equation}
  \dot{M}_{\rm outflow} = \left({V_{\rm outflow} \over V}\right)^{\alpha_{\rm outflow}} {\dot{E} \over E_{\rm canonical}},
@@ -3726,6 +3728,7 @@ The function must return the star formation timescale (in units of Gyr) for {\tt
 
 Currently defined star formation timescale methods are:
 \begin{description}
+ \item [\hyperlink{star_formation.timescales.disks.fixed.F90:star_formation_timescale_disks_fixed}{{\tt fixed}}]  The timescale is a fixed quantity;
  \item [\hyperlink{star_formation.timescales.disks.dynamical_time.F90:star_formation_timescale_disks_dynamical_time:star_formation_timescale_disk_dynamical_time}{{\tt dynamicalTime}}]  The timescale is given by
 \begin{equation}
  \tau_\star = \epsilon_\star^{-1} \tau_{\rm dynamical, [disk|spheroid]} \left( {V_{\rm [disk|spheroid]} \over 200\hbox{km/s}} \right)^{\alpha_\star},

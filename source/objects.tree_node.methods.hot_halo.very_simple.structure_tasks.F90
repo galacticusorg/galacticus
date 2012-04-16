@@ -59,69 +59,40 @@
 !!    http://www.ott.caltech.edu
 
 
-!% Contains a module which implements calculations of dark matter halo angular momentum.
+!% Contains a module which implements structure tasks for the standard hot halo component.
 
-module Dark_Matter_Halo_Spins
-  !% Implements calculations of dark matter halo angular momentum.
+module Tree_Node_Methods_Hot_Halo_Structure_Tasks_Very_Simple
+  !% Implements structure tasks for the standard hot halo component.
+  use Tree_Node_Methods_Hot_Halo_Data_Very_Simple
   implicit none
   private
-  public :: Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Angular_Momentum_Growth_Rate
-
-  ! Record of whether the module has been initialized.
-  logical :: moduleInitialized=.false.
-
+  public :: Hot_Halo_Very_Simple_Density
+  
 contains
 
-  subroutine Dark_Matter_Halo_Spins_Initialize()
-    !% Initialize the halo spins module.
+  !# <densityTask>
+  !#  <unitName>Hot_Halo_Very_Simple_Density</unitName>
+  !# </densityTask>
+  subroutine Hot_Halo_Very_Simple_Density(thisNode,positionSpherical,massType,componentType,componentDensity)
+    !% Computes the density at a given position in the hot halo.
     use Tree_Nodes
-    use Galacticus_Error
+    use Hot_Halo_Density_Profile
+    use Galactic_Structure_Options
     implicit none
-
-    !$omp critical(Dark_Matter_Halo_Spins_Initialize)
-    if (.not.moduleInitialized) then
-       ! Ensure that the spin property is available.
-       if (.not.associated(Tree_Node_Spin)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Spin property must be gettable')
-       if (.not.associated(Tree_Node_Mass)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Mass property must be gettable')
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
-    end if
-    !$omp end critical(Dark_Matter_Halo_Spins_Initialize)
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: positionSpherical(3)
+    double precision, intent(out)            :: componentDensity
+    
+    componentDensity=0.0d0
+    if (.not.methodSelected                           ) return
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo)) return
+    if (.not.thisNode%componentExists(componentIndex)) return
+    select case (massType)
+    case (massTypeAll,massTypeBaryonic,massTypeGaseous)
+       componentDensity=Hot_Halo_Density(thisNode,positionSpherical(1))
+    end select
     return
-  end subroutine Dark_Matter_Halo_Spins_Initialize
+  end subroutine Hot_Halo_Very_Simple_Density
 
-  double precision function Dark_Matter_Halo_Angular_Momentum(thisNode)
-    !% Returns the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
-    use Tree_Nodes
-    use Numerical_Constants_Physical
-    use Dark_Matter_Profiles
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Ensure that the module is initialized.
-    call Dark_Matter_Halo_Spins_Initialize
-
-    Dark_Matter_Halo_Angular_Momentum=Tree_Node_Spin(thisNode)*gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)**2.5d0 &
-         &/dsqrt(dabs(Dark_Matter_Profile_Energy(thisNode)))
-    return
-  end function Dark_Matter_Halo_Angular_Momentum
-
-  double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)
-    !% Returns the rate of change of the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
-    use Tree_Nodes
-    use Numerical_Constants_Physical
-    use Dark_Matter_Profiles
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Ensure that the module is initialized.
-    call Dark_Matter_Halo_Spins_Initialize
-
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate=Dark_Matter_Halo_Angular_Momentum(thisNode)&
-         &*(Tree_Node_Spin_Growth_Rate(thisNode)/Tree_Node_Spin(thisNode)+2.5d0*Tree_Node_Mass_Accretion_Rate(thisNode)&
-         &/Tree_Node_Mass(thisNode)-0.5d0*Dark_Matter_Profile_Energy_Growth_Rate(thisNode)/Dark_Matter_Profile_Energy(thisNode))
-
-    return
-  end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
-
-end module Dark_Matter_Halo_Spins
+end module Tree_Node_Methods_Hot_Halo_Structure_Tasks_Very_Simple

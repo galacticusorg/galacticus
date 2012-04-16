@@ -81,6 +81,7 @@ contains
     !% Initializes the ``White-Frenk1991'' cooling rate module.
     use ISO_Varying_String
     use Input_Parameters
+    use Galacticus_Error
     implicit none
     type(varying_string),                 intent(in   ) :: coolingRateMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Rate_Get
@@ -100,7 +101,19 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
-   end if
+
+       ! Check that the properties we need are gettable.
+       if (.not.associated(Tree_Node_Hot_Halo_Mass        ))                                   &
+            & call Galacticus_Error_Report(                                                    &
+            &                              'Cooling_Rate_White_Frenk_Initialize'             , &
+            &                              'Tree_Node_Hot_Halo_Mass must be gettable'          &
+            &                             )
+       if (.not.associated(Tree_Node_Hot_Halo_Outer_Radius))                                   &
+            & call Galacticus_Error_Report(                                                    &
+            &                              'Cooling_Rate_White_Frenk_Initialize'             , &
+            &                              'Tree_Node_Hot_Halo_Outer_Radius must be gettable'  &
+            &                             )
+    end if
     return
   end subroutine Cooling_Rate_White_Frenk_Initialize
 
