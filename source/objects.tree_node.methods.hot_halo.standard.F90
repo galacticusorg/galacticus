@@ -898,6 +898,7 @@ contains
 
   double precision function Tree_Node_Hot_Halo_Outer_Radius_Standard(thisNode,instance)
     !% Return the node hot halo mass.
+    use Dark_Matter_Halo_Scales
     implicit none
     integer,        optional, intent(in   ) :: instance
     type(treeNode), pointer,  intent(inout) :: thisNode
@@ -905,7 +906,8 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-       Tree_Node_Hot_Halo_Outer_Radius_Standard=thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyValue)
+
+       Tree_Node_Hot_Halo_Outer_Radius_Standard=min(thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyValue),Dark_Matter_Halo_Virial_Radius(thisNode))
     else
        Tree_Node_Hot_Halo_Outer_Radius_Standard=0.0d0
     end if
