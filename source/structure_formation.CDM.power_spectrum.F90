@@ -367,6 +367,7 @@ contains
     read (stateFile) sigmaTableLogMassMinimum,sigmaTableLogMassMaximum
     ! Flag that sigma tabulation needs to be reinitialized.
     sigmaInitialized=.false.
+    call Initialize_Sigma(0.5d0*(sigmaTableLogMassMinimum+sigmaTableLogMassMaximum))
     return
   end subroutine CDM_Power_Spectrum_State_Retrieve
     
