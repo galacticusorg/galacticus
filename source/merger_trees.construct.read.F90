@@ -1749,6 +1749,7 @@ contains
                                descendentLocation=descendentLocations(descendentIndex)
                                if (associated(nodes(descendentLocation)%descendentNode)) exit
                             end do
+                            if (descendentIndex == 0) exit
                          end do
                       end if
                       ! Step to the next descendent.
@@ -2015,6 +2016,7 @@ contains
                                   descendentLocation=descendentLocations(descendentIndex)
                                   if (associated(nodes(descendentLocation)%descendentNode)) exit
                                end do
+                               if (descendentIndex == 0) exit
                             end do
                          end if
                          ! Step to the next descendent.
