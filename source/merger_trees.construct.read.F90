@@ -1744,8 +1744,11 @@ contains
                                thisNode                    => thisNode%descendentNode
                                exit
                             end if
-                            descendentIndex   =descendentIndex-1
-                            descendentLocation=descendentLocations(descendentIndex)
+                            do while (descendentIndex > 0)
+                               descendentIndex   =descendentIndex-1
+                               descendentLocation=descendentLocations(descendentIndex)
+                               if (associated(nodes(descendentLocation)%descendentNode)) exit
+                            end do
                          end do
                       end if
                       ! Step to the next descendent.
@@ -2007,8 +2010,11 @@ contains
                                   endOfBranch =.true.
                                   exit
                                end if
-                               descendentIndex   =descendentIndex-1
-                               descendentLocation=descendentLocations(descendentIndex)
+                               do while (descendentIndex > 0)
+                                  descendentIndex   =descendentIndex-1
+                                  descendentLocation=descendentLocations(descendentIndex)
+                                  if (associated(nodes(descendentLocation)%descendentNode)) exit
+                               end do
                             end do
                          end if
                          ! Step to the next descendent.
