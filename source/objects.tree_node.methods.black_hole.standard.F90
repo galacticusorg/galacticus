@@ -876,104 +876,103 @@ contains
     integer                                      :: thisIndex,hostIndex,iInstance,nonNullBlackHoleCount,firstNonNullBlackHole
     double precision                             :: radiusInitial,blackHoleMassNew,blackHoleSpinNew
     double precision                             :: recoilVelocity,massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2
-    if (methodSelected.and.thisNode%componentExists(componentIndex)) then
+
+    if (methodSelected) then
        
        ! Find the node to merge with.
        call thisNode%mergesWith(hostNode)
-
+       
        ! Find the initial radius of the satellite black hole in the remnant.
        radiusInitial=Black_Hole_Binary_Initial_Radius(thisNode,hostNode)
-
+       
        ! If the separation is non-positive, assume that the black holes merge instantaneously.
-       if (thisNode%componentExists(componentIndex)) then
-          if (radiusInitial <= 0.0d0) then
-             ! Loop over all black holes in the satellite galaxy.
-             thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-             do iInstance=1,size(thisNode%components(thisIndex)%instance)
-                call Black_Hole_Binary_Merger(Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance), &
-                     &                        Tree_Node_Black_Hole_Mass_Standard(hostNode                   ), &
-                     &                        Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance), &
-                     &                        Tree_Node_Black_Hole_Spin_Standard(hostNode                   ), &
-                     &                        blackHoleMassNew                                               , &
-                     &                        blackHoleSpinNew                                                 &
-                     &                       )     
-                ! Merge the black holes instantaneously.
-                ! Check which black hole is more massive in order to compute an appropriate recoil velocity
-                if (Tree_Node_Black_Hole_Mass_Standard(hostNode) >= Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)) then
-                   massBlackHole1=Tree_Node_Black_Hole_Mass_Standard(hostNode                   ) 
-                   massBlackHole2=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)
-                   spinBlackHole1=Tree_Node_Black_Hole_Spin_Standard(hostNode                   )
-                   spinBlackHole2=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance)
-                else
-                   massBlackHole2=Tree_Node_Black_Hole_Mass_Standard(hostNode                   ) 
-                   massBlackHole1=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)
-                   spinBlackHole2=Tree_Node_Black_Hole_Spin_Standard(hostNode                   )
-                   spinBlackHole1=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance)
-                end if
-                ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy. (Note that
-                ! we subtract the black hole's own contribution to the potential here.)
-                recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
-                if (recoilVelocity > 0.0d0) then
-                   if (0.5d0*recoilVelocity**2+Galactic_Structure_Potential(thisNode,0.0d0)-Galactic_Structure_Potential(thisNode&
-                        &,0.0d0,componentType=componentTypeBlackHole) > 0.0d0) then
-                      blackHoleMassNew=0.0d0
-                      blackHoleSpinNew=0.0d0
-                   end if
-                end if
-                ! Move the black hole to the host.
-                call Galacticus_Output_Tree_Black_Hole_Merger(thisNode,massBlackHole1,massBlackHole2)
-                call Tree_Node_Black_Hole_Mass_Set_Standard(hostNode,blackHoleMassNew)
-                call Tree_Node_Black_Hole_Spin_Set_Standard(hostNode,blackHoleSpinNew)
-             end do
-          else
-             ! Move black holes from the satellite to the host, giving them the appropriate initial radius.
-             if (hostNode%componentExists(componentIndex)) then
-                hostIndex=Tree_Node_Black_Hole_Index(hostNode)
-                thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-                ! Adjust the radii of the black holes in the satellite galaxy.
-                forall(iInstance=1:size(thisNode%components(thisIndex)%instance))
-                   thisNode%components(thisIndex)%instance(iInstance)%properties(radiusIndex,propertyValue)=radiusInitial
-                   ! Declares them as not having interacted in a triple black hole interaction.
-                   thisNode%components(thisIndex)%instance(iInstance)%data(tripleInteractionTimeIndex)=0
-                end forall
-                ! Determine how many non-null black holes the satellite contains.
-                nonNullBlackHoleCount=size(thisNode%components(thisIndex)%instance)
-                firstNonNullBlackHole=1
-                if (thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue) <= 0.0d0) then
-                   nonNullBlackHoleCount=nonNullBlackHoleCount-1
-                   firstNonNullBlackHole=2
-                end if
-                if (nonNullBlackHoleCount > 0) then
-                   ! The host already has some black holes, so append those from the satellite to this list.
-                   allocate(                                                                  &
-                        &   instancesTemporary(                                               &
-                        &                       nonNullBlackHoleCount                         &
-                        &                      +size(hostNode%components(hostIndex)%instance) &
-                        &                     )                                               &
-                        &  )
-                   instancesTemporary(                                               1                     &
-                        &             :size(hostNode%components(hostIndex)%instance)                       &
-                        &            )=hostNode%components(hostIndex)%instance
-                   instancesTemporary( size(hostNode%components(hostIndex)%instance)+1                     &
-                        &             :size(hostNode%components(hostIndex)%instance)+nonNullBlackHoleCount &
-                        &            )=thisNode%components(thisIndex)%instance(firstNonNullBlackHole:firstNonNullBlackHole+nonNullBlackHoleCount-1)
-                   deallocate(thisNode%components(thisIndex)%instance)
-                   deallocate(hostNode%components(hostIndex)%instance)
-                   call Move_Alloc(instancesTemporary,hostNode%components(hostIndex)%instance)
-                end if
+       if (radiusInitial <= 0.0d0) then
+          ! Loop over all black holes in the satellite galaxy.
+          thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+          do iInstance=1,size(thisNode%components(thisIndex)%instance)
+             call Black_Hole_Binary_Merger(Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance), &
+                  &                        Tree_Node_Black_Hole_Mass_Standard(hostNode                   ), &
+                  &                        Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance), &
+                  &                        Tree_Node_Black_Hole_Spin_Standard(hostNode                   ), &
+                  &                        blackHoleMassNew                                               , &
+                  &                        blackHoleSpinNew                                                 &
+                  &                       )     
+             ! Merge the black holes instantaneously.
+             ! Check which black hole is more massive in order to compute an appropriate recoil velocity
+             if (Tree_Node_Black_Hole_Mass_Standard(hostNode) >= Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)) then
+                massBlackHole1=Tree_Node_Black_Hole_Mass_Standard(hostNode                   ) 
+                massBlackHole2=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)
+                spinBlackHole1=Tree_Node_Black_Hole_Spin_Standard(hostNode                   )
+                spinBlackHole2=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance)
              else
-                ! The host has no black hole of its own. Simply move those from the satellite to the host.
-                hostIndex=Tree_Node_Black_Hole_Index(hostNode)
-                thisIndex=Tree_Node_Black_Hole_Index(thisNode)
-                call Move_Alloc(thisNode%components(thisIndex)%instance,hostNode%components(hostIndex)%instance)
-                forall(iInstance=1:size(hostNode%components(hostIndex)%instance))
-                   hostNode%components(hostIndex)%instance(iInstance)%properties(radiusIndex,propertyValue)=radiusInitial
-                end forall
+                massBlackHole2=Tree_Node_Black_Hole_Mass_Standard(hostNode                   ) 
+                massBlackHole1=Tree_Node_Black_Hole_Mass_Standard(thisNode,instance=iInstance)
+                spinBlackHole2=Tree_Node_Black_Hole_Spin_Standard(hostNode                   )
+                spinBlackHole1=Tree_Node_Black_Hole_Spin_Standard(thisNode,instance=iInstance)
              end if
+             ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy. (Note that
+             ! we subtract the black hole's own contribution to the potential here.)
+             recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
+             if (recoilVelocity > 0.0d0) then
+                if (0.5d0*recoilVelocity**2+Galactic_Structure_Potential(thisNode,0.0d0)-Galactic_Structure_Potential(thisNode&
+                     &,0.0d0,componentType=componentTypeBlackHole) > 0.0d0) then
+                   blackHoleMassNew=0.0d0
+                   blackHoleSpinNew=0.0d0
+                end if
+             end if
+             ! Move the black hole to the host.
+             call Galacticus_Output_Tree_Black_Hole_Merger(thisNode,massBlackHole1,massBlackHole2)
+             call Tree_Node_Black_Hole_Mass_Set_Standard(hostNode,blackHoleMassNew)
+             call Tree_Node_Black_Hole_Spin_Set_Standard(hostNode,blackHoleSpinNew)
+          end do
+       else
+          ! Move black holes from the satellite to the host, giving them the appropriate initial radius.
+          if (hostNode%componentExists(componentIndex)) then
+             hostIndex=Tree_Node_Black_Hole_Index(hostNode)
+             thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+             ! Adjust the radii of the black holes in the satellite galaxy.
+             forall(iInstance=1:size(thisNode%components(thisIndex)%instance))
+                thisNode%components(thisIndex)%instance(iInstance)%properties(radiusIndex,propertyValue)=radiusInitial
+                ! Declares them as not having interacted in a triple black hole interaction.
+                thisNode%components(thisIndex)%instance(iInstance)%data(tripleInteractionTimeIndex)=0
+             end forall
+             ! Determine how many non-null black holes the satellite contains.
+             nonNullBlackHoleCount=size(thisNode%components(thisIndex)%instance)
+             firstNonNullBlackHole=1
+             if (thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyValue) <= 0.0d0) then
+                nonNullBlackHoleCount=nonNullBlackHoleCount-1
+                firstNonNullBlackHole=2
+             end if
+             if (nonNullBlackHoleCount > 0) then
+                ! The host already has some black holes, so append those from the satellite to this list.
+                allocate(                                                                  &
+                     &   instancesTemporary(                                               &
+                     &                       nonNullBlackHoleCount                         &
+                     &                      +size(hostNode%components(hostIndex)%instance) &
+                     &                     )                                               &
+                     &  )
+                instancesTemporary(                                               1                     &
+                     &             :size(hostNode%components(hostIndex)%instance)                       &
+                     &            )=hostNode%components(hostIndex)%instance
+                instancesTemporary( size(hostNode%components(hostIndex)%instance)+1                     &
+                     &             :size(hostNode%components(hostIndex)%instance)+nonNullBlackHoleCount &
+                     &            )=thisNode%components(thisIndex)%instance(firstNonNullBlackHole:firstNonNullBlackHole+nonNullBlackHoleCount-1)
+                deallocate(thisNode%components(thisIndex)%instance)
+                deallocate(hostNode%components(hostIndex)%instance)
+                call Move_Alloc(instancesTemporary,hostNode%components(hostIndex)%instance)
+             end if
+          else
+             ! The host has no black hole of its own. Simply move those from the satellite to the host.
+             hostIndex=Tree_Node_Black_Hole_Index(hostNode)
+             thisIndex=Tree_Node_Black_Hole_Index(thisNode)
+             call Move_Alloc(thisNode%components(thisIndex)%instance,hostNode%components(hostIndex)%instance)
+             forall(iInstance=1:size(hostNode%components(hostIndex)%instance))
+                hostNode%components(hostIndex)%instance(iInstance)%properties(radiusIndex,propertyValue)=radiusInitial
+             end forall
           end if
-          ! Destroy the black hole component in the satellite.
-          call thisNode%destroyComponent(componentIndex)
        end if
+       ! Destroy the black hole component in the satellite.
+       call thisNode%destroyComponent(componentIndex)
     end if
     return
   end subroutine Black_Hole_Satellite_Merging
