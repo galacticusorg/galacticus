@@ -174,8 +174,17 @@ contains
 
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
-    Modified_Press_Schechter_Branch_Mass=Root_Find(massResolution,0.5d0*haloMass,Modified_Press_Schechter_Branch_Mass_Root&
-         &,parameterPointer,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+
+    ! Check the sign of the root function at half the halo mass.
+    if (Modified_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass,parameterPointer) >= 0.0d0) then
+       ! The root function is zero, or very close to it (which can happen due to rounding errors
+       ! occasionally). Therefore we have an almost perfect binary split.
+       Modified_Press_Schechter_Branch_Mass=0.5d0*haloMass
+    else
+       ! Split is not binary - seek the actual mass of the smaller progenitor.
+       Modified_Press_Schechter_Branch_Mass=Root_Find(massResolution,0.5d0*haloMass,Modified_Press_Schechter_Branch_Mass_Root&
+            &,parameterPointer,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+    end if
     return
   end function Modified_Press_Schechter_Branch_Mass
 
