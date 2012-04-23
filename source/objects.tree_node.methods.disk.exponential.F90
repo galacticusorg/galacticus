@@ -724,7 +724,7 @@ contains
           
           ! Compute the angular momentum outflow rate.
           if (diskMass > 0.0d0) then
-             angularMomentumOutflowRate=massOutflowRate*Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)/diskMass
+             angularMomentumOutflowRate=Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)*(massOutflowRate/diskMass)
           else
              angularMomentumOutflowRate=0.0d0
           end if
@@ -984,9 +984,6 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       ! Force angular momentum to be positive. Can become negative due to rounding errors in ODE solver.
-       if (thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue) < 0.0d0)&
-            & thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)=0.0d0
        Tree_Node_Disk_Angular_Momentum_Exponential=thisNode%components(thisIndex)%instance(1)%properties(angularMomentumIndex,propertyValue)
     else
        Tree_Node_Disk_Angular_Momentum_Exponential=0.0d0

@@ -906,7 +906,6 @@ contains
 
     if (thisNode%componentExists(componentIndex)) then
        thisIndex=Tree_Node_Hot_Halo_Index(thisNode)
-
        Tree_Node_Hot_Halo_Outer_Radius_Standard=min(thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyValue),Dark_Matter_Halo_Virial_Radius(thisNode))
     else
        Tree_Node_Hot_Halo_Outer_Radius_Standard=0.0d0
@@ -952,12 +951,13 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    logical,                 intent(inout) :: interrupt
-    procedure(),    pointer, intent(inout) :: interruptProcedure
-    double precision                       :: ramPressureRadius,outerRadius,angularMomentumLossRate,densityAtOuterRadius&
+    type(treeNode)  , pointer, intent(inout) :: thisNode
+    logical,                   intent(inout) :: interrupt
+    procedure(),      pointer, intent(inout) :: interruptProcedure
+    double precision, parameter              :: outerRadiusOverVirialRadiusMinimum=1.0d-3
+    double precision                         :: ramPressureRadius,outerRadius,angularMomentumLossRate,densityAtOuterRadius&
          &,outerRadiusGrowthRate,massLossRate
-    integer                                :: thisIndex
+    integer                                  :: thisIndex
 
     ! Return immediately if no hot halo exists.
     if (.not.thisNode%componentExists(componentIndex)) return
@@ -969,14 +969,14 @@ contains
     if (thisNode%isSatellite()) then
        ! For satellites, get the current ram pressure stripping radius for this hot halo.
        ramPressureRadius=Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
-       outerRadius      =thisNode%components(thisIndex)%instance(1)%properties(outerRadiusIndex,propertyValue)
+       outerRadius      =Tree_Node_Hot_Halo_Outer_Radius(thisNode)
        ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
        if (ramPressureRadius < outerRadius .and. Tree_Node_Hot_Halo_Mass(thisNode) > 0.0d0 .and.Tree_Node_Hot_Halo_Angular_Momentum(thisNode) > 0.0d0) then
           ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
           ! stripping radius on the halo dynamical timescale.
           densityAtOuterRadius =Hot_Halo_Density(thisNode,outerRadius)
           outerRadiusGrowthRate=(ramPressureRadius-outerRadius)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
-          if (outerRadius <= Dark_Matter_Halo_Virial_Radius(thisNode)) then
+          if (outerRadius <= Dark_Matter_Halo_Virial_Radius(thisNode) .and. outerRadius > outerRadiusOverVirialRadiusMinimum*Dark_Matter_Halo_Virial_Radius(thisNode)) then
              massLossRate         =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
              call Tree_Node_Hot_Halo_Outer_Radius_Rate_Adjust_Standard    (thisNode,interrupt,interruptProcedure,+outerRadiusGrowthRate)
              call Tree_Node_Hot_Halo_Hot_Gas_All_Rate_Adjust_Standard     (thisNode,                             +         massLossRate)
