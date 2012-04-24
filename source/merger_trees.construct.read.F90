@@ -1746,6 +1746,7 @@ contains
                             end if
                             do while (descendentIndex > 0)
                                descendentIndex   =descendentIndex-1
+                               if (descendentIndex <= 0) exit
                                descendentLocation=descendentLocations(descendentIndex)
                                if (associated(nodes(descendentLocation)%descendentNode)) exit
                             end do
@@ -2013,6 +2014,7 @@ contains
                                end if
                                do while (descendentIndex > 0)
                                   descendentIndex   =descendentIndex-1
+                                  if (descendentIndex <= 0) exit
                                   descendentLocation=descendentLocations(descendentIndex)
                                   if (associated(nodes(descendentLocation)%descendentNode)) exit
                                end do
