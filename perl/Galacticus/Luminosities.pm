@@ -12,9 +12,6 @@ use XML::Simple;
     "^bulgeToTotalLuminosity:([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?" => \&Luminosities::Get_BulgeToTotal
     );
 
-my $status = 1;
-$status;
-
 sub Get_Luminosity {
     $dataSet = shift;
     $dataSetName = $_[0];
@@ -60,3 +57,5 @@ sub Get_BulgeToTotal {
 	die("Get_Luminosity(): unable to parse data set: ".$dataSetName);
     }
 }
+
+1;

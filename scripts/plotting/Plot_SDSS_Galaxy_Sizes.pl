@@ -86,7 +86,7 @@ my $chiSquared = 0.0;
 my $degreesOfFreedom = 0;
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot");
+open(gnuPlot,"|gnuplot > /dev/null 2&>1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 
@@ -105,16 +105,16 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
 
     # Select Galacticus galaxies and compute distribution.
     my $logRadiusSelected = where(log10($radius),
-			    $magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
-			    & $magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
-			    & $morphology >= $dataSet->{'morphologyRange'}->{'minimum'}
-			    & $morphology < $dataSet->{'morphologyRange'}->{'maximum'}
+			    ($magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'}))
+			    & ($magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'}))
+			    & ($morphology >= $dataSet->{'morphologyRange'}->{'minimum'})
+			    & ($morphology < $dataSet->{'morphologyRange'}->{'maximum'})
 	);
     my $weightSelected = where($weight,
-			    $magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
-			    & $magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
-			    & $morphology >= $dataSet->{'morphologyRange'}->{'minimum'}
-			    & $morphology < $dataSet->{'morphologyRange'}->{'maximum'}
+			    ($magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'}))
+			    & ($magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'}))
+			    & ($morphology >= $dataSet->{'morphologyRange'}->{'minimum'})
+			    & ($morphology < $dataSet->{'morphologyRange'}->{'maximum'})
 	);
     
     my $xGalacticus;
@@ -128,7 +128,7 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
 	($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logRadiusSelected,$weightSelected
 								 ,normalized => 1, differential => 1);
 	# Compute chi^2.
-	my $chiSquaredList = where(($yGalacticus-$y)**2/($errorGalacticus**2+$yError**2),$y > 0.0 & $errorGalacticus > 0.0);
+	my $chiSquaredList = where(($yGalacticus-$y)**2/($errorGalacticus**2+$yError**2),($y > 0.0) & ($errorGalacticus > 0.0));
 	$chiSquaredRange = sum($chiSquaredList);
 	$degreesOfFreedomRange = nelem($chiSquaredList);
 	$chiSquared += $chiSquaredRange;

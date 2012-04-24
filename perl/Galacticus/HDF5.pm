@@ -22,9 +22,6 @@ my %propertyKnowledgeBase = (
 our @missingDatasets;
 our %parameterList;
 
-my $status = 1;
-$status;
-
 sub Open_File {
     my $dataBlock = shift;
     unless ( exists($dataBlock->{'hdf5File'}) ) {
@@ -309,3 +306,5 @@ sub Reset_Structure {
 	}
     }
 }
+
+1;

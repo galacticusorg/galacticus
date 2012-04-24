@@ -60,7 +60,7 @@ $xml     = new XML::Simple;
 $data    = $xml->XMLin($galacticusPath."data/Correlation_Functions_2dFGRS_Norberg_2002.xml");
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot");
+open(gnuPlot,"|gnuplot > /dev/null 2&>1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 
@@ -84,8 +84,8 @@ foreach $correlationFunction ( @{$data->{'correlationFunction'}} ) {
 	$xiErrorData      = $xiData*$xiBootErrorData/$xiBootData;
 
 	# Select a matching subset of model galaxies.
-	$selected         = which($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} >= $magnitudeMinimum
-				  & $dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} < $magnitudeMaximum);
+	$selected         = which(($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} >= $magnitudeMinimum)
+				  & ($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} < $magnitudeMaximum));
 
 	# Skip empty selections.
 	unless ( nelem($selected) == 0 ) {

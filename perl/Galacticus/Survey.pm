@@ -15,9 +15,6 @@ use Data::Dumper;
 			       "angularWeight"      => \&Survey::Get_SurveyProperties
     );
 
-my $status = 1;
-$status;
-
 sub Get_SurveyProperties {
     # Get the data structure and the dataset name.
     my $dataBlock     = shift;
@@ -123,3 +120,5 @@ sub Get_SurveyProperties {
 	}
     }
 }
+
+1;

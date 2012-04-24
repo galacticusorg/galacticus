@@ -14,9 +14,6 @@ require Galacticus::Inclination;
 # Flag indicating whether dust data is loaded yet.
 $dustDataLoaded = 0;
 
-my $status = 1;
-$status;
-
 sub Get_Dust_Attenuated_Luminosity {
     $dataSet = shift;
     $dataSetName = $_[0];
@@ -306,3 +303,5 @@ sub Load_Dust_Atlas {
 	$dustDataLoaded = 1;
     }
 }
+
+1;

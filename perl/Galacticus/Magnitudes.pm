@@ -12,9 +12,6 @@ use XML::Simple;
     "^magnitude([^:]+):([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?(:vega|:AB)?" => \&Magnitudes::Get_Magnitude
     );
 
-my $status = 1;
-$status;
-
 sub Get_Magnitude {
     $dataSet = shift;
     $dataSetName = $_[0];
@@ -57,3 +54,5 @@ sub Get_Magnitude {
 	die("Get_Magnitude(): unable to parse data set: ".$dataSetName);
     }
 }
+
+1;

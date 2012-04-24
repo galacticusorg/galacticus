@@ -1,12 +1,5 @@
 #!/usr/bin/env perl
-my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
-} else {
- $galacticusPath = "./";
-}
-unshift(@INC,$galacticusPath."perl"); 
+use lib "./perl";
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
@@ -16,11 +9,11 @@ require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require System::Redirect;
 require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Colors_Distribution.pl <galacticusFile> <outputDir/File> [<showFit>]")};
-$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -49,7 +42,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/Galaxy_Colors_SDSS_Weinmann_2006.xml");
+$data = $xml->XMLin("data/Galaxy_Colors_SDSS_Weinmann_2006.xml");
 $columns = $data->{'galaxyColors'}->{'columns'};
 $magnitude = pdl @{$columns->{'magnitude'}->{'data'}};
 $color = pdl @{$columns->{'color'}->{'data'}};
@@ -80,7 +73,7 @@ for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     }
 }
 for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
-    $errorSDSS($iMagnitude,:) += sqrt($countSDSS($iMagnitude,:))/(sum($countSDSS($iMagnitude,:))*$magnitudeBin*$colorBin);
+    $errorSDSS($iMagnitude,:) .= sqrt($countSDSS($iMagnitude,:))/(sum($countSDSS($iMagnitude,:))*$magnitudeBin*$colorBin);
     $countSDSS($iMagnitude,:) .= $countSDSS($iMagnitude,:)/(sum($countSDSS($iMagnitude,:))*$magnitudeBin*$colorBin);
 }
 
@@ -102,12 +95,13 @@ for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
 	$minimumColor = $colorBins->index($iColor)-0.5*$colorBin;
 	$maximumColor = $minimumColor+$colorBin;
 	$countGalacticus($iMagnitude,$iColor) .= sum(where($weight,$magnitude >= $minimumMagnitude & $magnitude < $maximumMagnitude & $color >= $minimumColor & $color < $maximumColor));
+	$errorGalacticus($iMagnitude,$iColor) .= sum(where($weight**2,$magnitude >= $minimumMagnitude & $magnitude < $maximumMagnitude & $color >= $minimumColor & $color < $maximumColor));
     }
 }
 
 for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     if ( sum($countGalacticus($iMagnitude,:)) > 0.0 ) {
-	$errorGalacticus($iMagnitude,:) .= sqrt($countGalacticus($iMagnitude,:))/(sum($countGalacticus($iMagnitude,:))*$magnitudeBin*$colorBin);
+	$errorGalacticus($iMagnitude,:) .= sqrt($errorGalacticus($iMagnitude,:))/(sum($countGalacticus($iMagnitude,:))*$magnitudeBin*$colorBin);
 	$countGalacticus($iMagnitude,:) .= $countGalacticus($iMagnitude,:)/(sum($countGalacticus($iMagnitude,:))*$magnitudeBin*$colorBin);
     } else {
 	$errorGalacticus($iMagnitude,:) .= 0.0;
@@ -129,7 +123,7 @@ if ( $showFit == 1 ) {
 }
 
 # Make the plot.
-open(pHndl,"|gnuplot");
+open(pHndl,"|gnuplot > /dev/null 2&>1");
 
 # Check which version of GnuPlot we're using.
 $gnuPlotVersionString = `gnuplot -V`;
@@ -172,7 +166,7 @@ print $gnuPlot "set palette rgbformulae 34,35,36\n";
 print $gnuPlot "splot '-' with pm3d title \"".$data->{'galaxyColors'}->{'label'}."\", 'contour1.dat' with line lt -1 lc rgbcolor \"#FFFF00\" title \"Galacticus\"\n";
 for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     for($iColor=0;$iColor<$colorPoints;++$iColor) {
-	print $gnuPlot $magnitudeBins->index($iMagnitude)." ".$colorBins->index($iColor)." ".$countSDSS(($iMagnitude),($iColor))."\n";
+ 	print $gnuPlot $magnitudeBins->index($iMagnitude)." ".$colorBins->index($iColor)." ".$countSDSS(($iMagnitude),($iColor))."\n";
     }
     print $gnuPlot "\n" unless ( $iMagnitude == $magnitudePoints-1 );
 }
@@ -182,7 +176,39 @@ close($gnuPlot);
 unlink("tmp.eps");
 unlink("contour.dat");
 unlink("contour1.dat");
-system("mv -f tmp.pdf ".$outputFile)
+
+# Plot slices through
+open(pHndl,"|gnuplot");
+print pHndl "set terminal postscript enhanced color lw 3 solid\n";
+print pHndl "set output 'tmp.ps'\n";
+print pHndl "set title 'SDSS Galaxy Color Distribution'\n";
+for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
+    $minimumMagnitude = $magnitudeBins->index($iMagnitude)-0.5*$magnitudeBin;
+    $maximumMagnitude = $minimumMagnitude+$magnitudeBin;
+    print pHndl "set xlabel \"^{0.1}g-^{0.1}r\"\n";
+    print pHndl "set ylabel \"dn/dlog(^{0.1}g-^{0.1}r)/n\"\n";
+    print pHndl "set title \"SDSS Galaxy Color Distribution for ".$minimumMagnitude." < ^{0.1}r < ".$maximumMagnitude."\"\n";
+    print pHndl "set xrange [".$colorMin.":".$colorMax."]\n";
+    print pHndl "set yrange [0.0:10.0]\n";
+    print pHndl "set pointsize 1.0\n";
+    print pHndl "plot '-' with errorbars lt 1 pt 6 title \"SDSS\", '-' with errorbars lt 2 pt 6 title \"Galacticus\"";
+    print pHndl "\n";
+    for($iColor=0;$iColor<$colorPoints;++$iColor) {
+	print pHndl $colorBins->index($iColor)." ".$countSDSS(($iMagnitude),($iColor))." ".$errorSDSS(($iMagnitude),($iColor))."\n";
+    }
+    print pHndl "e\n";
+    for($iColor=0;$iColor<$colorPoints;++$iColor) {
+	print pHndl $colorBins->index($iColor)." ".$countGalacticus(($iMagnitude),($iColor))." ".$errorGalacticus(($iMagnitude),($iColor))."\n";
+    }
+    print pHndl "e\n";
+}
+
+# Convert to PDF.
+close(pHndl);
+system("ps2pdf tmp.ps tmp2.pdf");
+unlink($outputFile);
+&SystemRedirect::tofile("pdfmerge tmp.pdf tmp2.pdf ".$outputFile,"/dev/null");
+unlink("tmp.ps","tmp.pdf","tmp2.pdf");
 &MetaData::Write($outputFile,$galacticusFile,$self);
 
 exit;

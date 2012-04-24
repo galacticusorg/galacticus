@@ -118,7 +118,7 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $gnuPlot;
     (my $plotFile = $outputFile) =~ s/\.pdf/_$i.pdf/;
     (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-    open($gnuPlot,"|gnuplot");
+    open($gnuPlot,"|gnuplot > /dev/null 2>&1");
     print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
     print $gnuPlot "set output '".$plotFileEPS."'\n";
     my $title = $dataSet->{'description'};

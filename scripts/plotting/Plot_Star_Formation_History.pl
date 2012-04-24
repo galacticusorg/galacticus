@@ -124,17 +124,21 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
     $dataSets[$iDataset]->{'label'}       = $dataSet->{'label'};
 
     # Compute a binned mean star formation rate.
+    $e      = sqrt($yUpperError**2+$yLowerError**2);
     $weight = 1.0/($yUpperError**2+$yLowerError**2);
     ($yBinned,$yBinnedError,$ySigma,$ySigmaError)
 	= &Means::BinnedMean($redshiftBins,$x,$y,$weight);
+    ($eBinned,$eBinnedError,$eSigma,$eSigmaError)
+	= &Means::BinnedMean($redshiftBins,$x,$e,$weight);
+    $sigmaMax = which($ySigma > $eBinned);
+    $eBinned->index($sigmaMax) .= $ySigma->index($sigmaMax);
     $empty = which($yBinnedError == 0.0);
-    $yBinnedError->index($empty) .= 1.0e30;
+    $eBinned->index($empty) .= 1.0e30;
 
     # Interpolate model to data points and compute chi^2.
     ($sfrInterpolated,$error) = interpolate($redshiftBins,$redshift,$SFR);
-    $chiSquared += sum((($yBinned-$sfrInterpolated)/$yBinnedError)**2);
+    $chiSquared += sum((($yBinned-$sfrInterpolated)/$eBinned)**2);
     $degreesOfFreedom += nelem($yBinned)-nelem($empty);
-
 }
 
 # Display chi^2 information if requested.
@@ -152,7 +156,7 @@ my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot");
+open($gnuPlot,"|gnuplot > /dev/null 2&>1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
 print $gnuPlot "set title 'Star Formation Rate History'\n";

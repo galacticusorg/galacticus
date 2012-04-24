@@ -4,9 +4,6 @@ package Histograms;
 use PDL;
 use Data::Dumper;
 
-my $status = 1;
-$status;
-
 sub Histogram {
     # Distribute input data into specified bins, find the total weight and the error.
 
@@ -66,3 +63,5 @@ sub Histogram {
     # Return the results.
     return ($histogram,$errors);
 }
+
+1;

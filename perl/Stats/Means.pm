@@ -3,9 +3,6 @@
 package Means;
 use PDL;
 
-my $status = 1;
-$status;
-
 sub BinnedMean {
     # Distribute input data into specified bins, find the total weight and the error.
 
@@ -76,3 +73,5 @@ sub BinnedMean {
     # Return the results.
     return ($mean,$meanError,$dispersion,$dispersionError);
 }
+
+1;
