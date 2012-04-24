@@ -1029,9 +1029,11 @@ contains
     if (Galacticus_Verbosity_Level() >= verbosityWarn) then
        do iNode=2,int(nodeCount(1))
           if (nodeIndicesSorted(iNode) == nodeIndicesSorted(iNode-1)) then
-             message="duplicate node index found ["
-             message=message//nodeIndicesSorted(iNode)//']'
-             call Galacticus_Display_Message(message,verbosityWarn)
+             if (Galacticus_Verbosity_Level() >= verbosityWarn) then
+                message="duplicate node index found ["
+                message=message//nodeIndicesSorted(iNode)//']'
+                call Galacticus_Display_Message(message,verbosityWarn)
+             end if
           end if
        end do
     end if

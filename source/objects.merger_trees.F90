@@ -977,9 +977,11 @@ contains
     type(varying_string)                        :: message
     
     ! Display a message.
-    message='Making node '
-    message=message//thisNode%index()//' a satellite in '//thisNode%parentNode%index()
-    call Galacticus_Display_Message(message,verbosityInfo)
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Making node '
+       message=message//thisNode%index()//' a satellite in '//thisNode%parentNode%index()
+       call Galacticus_Display_Message(message,verbosityInfo)
+    end if
 
     ! Call subroutines to perform any necessary processing prior to this node merger event.
     !# <include directive="nodeMergerTask" type="code" action="subroutine">

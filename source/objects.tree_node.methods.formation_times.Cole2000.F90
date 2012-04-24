@@ -221,9 +221,11 @@ contains
 
     ! Display a message.
     if (.not.thisNode%componentExists(componentIndex)) then
-       message='Creating halo formation component for node '
-       message=message//thisNode%index()
-       call Galacticus_Display_Message(message,verbosityInfo)
+       if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+          message='Creating halo formation component for node '
+          message=message//thisNode%index()
+          call Galacticus_Display_Message(message,verbosityInfo)
+       end if
     end if
     ! Trigger a halo formation event.
     call Event_Halo_Formation(thisNode)

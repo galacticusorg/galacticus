@@ -566,9 +566,11 @@ contains
     integer                                     :: thisIndex
 
     ! Display a message.
-    message='Creating very simple disk component for node '
-    message=message//thisNode%index()
-    call Galacticus_Display_Message(message,verbosityInfo)
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Creating very simple disk component for node '
+       message=message//thisNode%index()
+       call Galacticus_Display_Message(message,verbosityInfo)
+    end if
     ! Get the index of the component (which will also ensure that the component is created).
     thisIndex=Tree_Node_Very_Simple_Disk_Index(thisNode)
     return
