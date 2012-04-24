@@ -12,9 +12,6 @@ use Text::Wrap;
 use XML::Simple;
 use Data::Dumper;
 
-my $status = 1;
-$status;
-
 # Define new XMP tags.
 my %sourceStruct = (
     STRUCT_NAME => "Source",
@@ -121,7 +118,8 @@ sub Write {
 	bzrDiff  => "",
 	bzrMerge => ""
     };
-    my $bzr = which("bzr");
+
+    my $bzr =&File::Which::which("bzr");
     unless ( $bzr eq "" ) {
 	system("bzr info ".$galacticusPath." > /dev/null 2>&1");
 	my $isBazaarBranch = $?;
@@ -150,10 +148,10 @@ sub Write {
 	"make_CPPCOMPILER",
 	"make_CPPCOMPILER_VERSION",
 	"make_CPPFLAGS",
-	"make_F03COMPILER",
-	"make_F03COMPILER_VERSION",
-	"make_F03FLAGS",
-	"make_F03FLAGS_NOOPT",
+	"make_FCCOMPILER",
+	"make_FCCOMPILER_VERSION",
+	"make_FCFLAGS",
+	"make_FCFLAGS_NOOPT",
 	"make_MODULETYPE",
 	"make_PREPROCESSOR"
 	);
@@ -326,3 +324,5 @@ sub Read {
     }
 
 }
+
+1;

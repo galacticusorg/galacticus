@@ -113,9 +113,9 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     
     # Compute chi^2.
     if ( nelem($logSpheroidMass) > 0 ) {
-	$degreesOfFreedom = 2*nelem($logBlackHoleMassMean);
-	$chiSquared = sum((($logBlackHoleMassMean-$logBlackHoleMassMeanGalacticus)**2)/($logBlackHoleMassMeanError**2+$logBlackHoleMassMeanErrorGalacticus**2))
-	    +sum((($logBlackHoleMassSigma-$logBlackHoleMassSigmaGalacticus)**2)/($logBlackHoleMassSigmaError**2+$logBlackHoleMassSigmaErrorGalacticus**2));
+	$nonzero = which($logBlackHoleMassMeanGalacticus > 0.0);
+	$degreesOfFreedom = nelem($nonzero);
+	$chiSquared = sum((($logBlackHoleMassMean->index($nonzero)-$logBlackHoleMassMeanGalacticus->index($nonzero))**2)/($logBlackHoleMassMeanError->index($nonzero)**2+$logBlackHoleMassMeanErrorGalacticus->index($nonzero)**2));
     } else {
 	$chiSquared = 0.0;
 	$degreesOfFreedom = 0;
@@ -135,7 +135,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     my $gnuPlot;
     my $plotFile = $outputFile;
     (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-    open($gnuPlot,"|gnuplot");
+    open($gnuPlot,"|gnuplot > /dev/null 2&>1");
     print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
     print $gnuPlot "set output '".$plotFileEPS."'\n";
     print $gnuPlot "set title 'Black Hole Mass vs. Bulge Stellar Mass \$z=0\$'\n";
@@ -189,7 +189,6 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     close($gnuPlot);
     &LaTeX::GnuPlot2PDF($plotFileEPS);
     &MetaData::Write($plotFile,$galacticusFile,$self);
-
 }
 
 exit;

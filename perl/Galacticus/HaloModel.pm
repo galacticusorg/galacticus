@@ -17,9 +17,6 @@ use Data::Dumper;
 # Define Pi.
 $Pi = pdl 3.141592653589793;
 
-my $status = 1;
-$status;
-
 # Computes the power spectrum of a selected subset of galaxies. This
 # subroutine should be passed a standard data hash reference as used by
 # the Galacticus::HDF5 module which has been initialized for a
@@ -309,3 +306,5 @@ sub Correlation_Function_Integrand {
     $integrand       = ($myWaveNumber**2)*$myPowerSpectrum/2.0/($Pi**2)/$separation/$myWaveNumber;
     return $integrand;
 }
+
+1;

@@ -11,9 +11,6 @@ require Galacticus::HDF5;
 			       "flux850micronHayward"   => \&SubMmFluxesHayward::Get_850micron,
     );
 
-my $status = 1;
-$status;
-
 sub Get_850micron {
     # Get the data structure and the dataset name.
     my $dataBlock   = shift;
@@ -51,3 +48,5 @@ sub Get_850micron {
 	*($dustMass         /  1.0e8)**$dustMassExponent;
 
 }
+
+1;

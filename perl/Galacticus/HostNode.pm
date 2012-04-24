@@ -8,9 +8,6 @@ require Galacticus::HDF5;
     "hostNodeMass" => \&HostNode::Get_Host_Node_Mass
     );
 
-my $status = 1;
-$status;
-
 sub Get_Host_Node_Mass {
     $dataSet     = shift;
     $dataSetName = $_[0];
@@ -44,3 +41,5 @@ sub Get_Host_Node_Mass {
     # Transfer to the output data structure.
     $dataSet->{'dataSets'}->{"hostNodeMass"} = $hostNodeMass;
 }
+
+1;

@@ -32,9 +32,6 @@ my $solarLuminosity  = pdl 3.845e3; # Solar luminosity in units of 10^30 ergs/s.
 my $irWavelengthMinimum =    8.0e4; # Angstroms.
 my $irWavelengthMaximum = 1000.0e4; # Angstroms.
 
-my $status = 1;
-$status;
-
 sub Get_Flux {
     # Get the flux at a specified wavelength.
     my $dataSet     = shift;
@@ -646,3 +643,5 @@ sub Process_Through_Grasil {
 	}
     }
 }
+
+1;

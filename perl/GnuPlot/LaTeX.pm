@@ -6,9 +6,6 @@ use warnings;
 use File::Copy;
 require System::Redirect;
 
-my $status = 1;
-$status;
-
 sub GnuPlot2PNG {
     # Generate a PNG image of the plot with a transparent background.
 
@@ -199,3 +196,5 @@ sub GnuPlot2PDF {
 	   $gnuplotAuxFile
 	   );
 }
+
+1;
