@@ -173,11 +173,10 @@ sub Get_Dataset {
      		my $mergerTreeWeight     = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight"    )->get;
      		foreach my $mergerTree ( @mergerTrees ) {
      		    # Check that this tree contains some nodes at this output. If it does not, skip it.
-     		    my $treeIndex      = which($mergerTreeIndex == $mergerTree);
-		    if ( nelem($treeIndex) > 1 ) {
-			print "Galacticus::HDF5 - Warning: apparent repeated merger tree index - taking the first instance (** could be a PDL bug**)\n";
-			$treeIndex = $treeIndex(0:0);
-		    }
+		    my $mergerTreePDL = pdl $mergerTree;
+     		    my $treeIndex      = which($mergerTreeIndex == $mergerTreePDL);
+		    die("Galacticus::HDF5 - Error: apparent repeated merger tree index")
+			if ( nelem($treeIndex) > 1 );
      		    my $treeStartIndex = $mergerTreeStartIndex->index($treeIndex);
      		    my $treeCount      = $mergerTreeCount     ->index($treeIndex)->squeeze;
      		    my $treeWeight     = $mergerTreeWeight    ->index($treeIndex)->squeeze;
