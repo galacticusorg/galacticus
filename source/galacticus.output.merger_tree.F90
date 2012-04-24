@@ -145,7 +145,7 @@ contains
        ! Get input parameters.
        !@ <inputParameter>
        !@   <name>mergerTreeOutputReferences</name>
-       !@   <defaultValue>true</defaultValue>
+       !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies whether or not references to individual merger tree datasets should be output.
@@ -154,7 +154,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>output</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeOutputReferences',mergerTreeOutputReferences,defaultValue=.true.)
+       call Get_Input_Parameter('mergerTreeOutputReferences',mergerTreeOutputReferences,defaultValue=.false.)
 
        ! Flag that the module is now initialized.
        mergerTreeOutputInitialized=.true.
