@@ -126,9 +126,11 @@ contains
        componentIndex=componentTypeCount
 
        ! Display message.
-       message='Simple black hole method selected [component index '
-       message=message//componentIndex//']'
-       call Galacticus_Display_Message(message,verbosityInfo)
+       if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+          message='Simple black hole method selected [component index '
+          message=message//componentIndex//']'
+          call Galacticus_Display_Message(message,verbosityInfo)
+       end if
 
        ! Set up procedure pointers.
        Tree_Node_Black_Hole_Mass              => Tree_Node_Black_Hole_Mass_Simple
@@ -422,9 +424,11 @@ contains
     type(varying_string)                        :: message
 
     ! Display a message.
-    message='Creating black hole component for node '
-    message=message//thisNode%index()
-    call Galacticus_Display_Message(message,verbosityInfo)
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Creating black hole component for node '
+       message=message//thisNode%index()
+       call Galacticus_Display_Message(message,verbosityInfo)
+    end if
     ! Create the component.
     call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
     ! Set to the seed mass.

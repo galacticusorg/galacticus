@@ -2068,9 +2068,11 @@ contains
     type(varying_string)                        :: message
 
     ! Display a message.
-    message='Creating hot halo component for node '
-    message=message//thisNode%index()
-    call Galacticus_Display_Message(message,verbosityInfo)
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Creating hot halo component for node '
+       message=message//thisNode%index()
+       call Galacticus_Display_Message(message,verbosityInfo)
+    end if
     ! Create the component.
     call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
     ! Initialize the outer boundary to the virial radius.
