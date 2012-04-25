@@ -1482,7 +1482,8 @@ contains
     if (radius <= 0.0d0                                                                      ) return
 
     call Exponential_Disk_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,componentMass)
-    if (componentMass == 0.0d0) return
+    if (componentMass                   <= 0.0d0) return
+    if (Tree_Node_Disk_Radius(thisNode) <= 0.0d0) return
     besselArgument= radius                          &
          &         /2.0d0                           &
          &         /Tree_Node_Disk_Radius(thisNode)
@@ -1640,11 +1641,10 @@ contains
 
     ! Return immediately if our method is not selected.
     if (.not.methodSelected) return
-    
     ! Determine the plausibility of the current disk.
     if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) < -diskMassToleranceAbsolute) then
        galaxyIsPhysicallyPlausible=.false.
-    else if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) > 0.0d0) then
+    else if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) >= 0.0d0) then
        if (Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) then
           galaxyIsPhysicallyPlausible=.false.
        else if (Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) > angularMomentumMaximum&
