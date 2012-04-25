@@ -1575,6 +1575,7 @@ contains
        groupName="Output"
        groupName=groupName//iOutput
        outputGroup=IO_HDF5_Open_Group(blackHolesGroup,char(groupName),"Properties of black holes for all trees at each output.")  
+       !$omp end critical (HDF5_Access)
 
        ! Allocate array to store profile.
        call Alloc_Array(radius,             [blackHoleCount])
@@ -1610,6 +1611,7 @@ contains
        end do
        if (blackHoleCount > 1) call thisNode%components(thisIndex)%activeInstanceNullify()
        ! Write dataset to the group, first the arrays containing all data.
+       !$omp critical (HDF5_Access)
        call outputGroup%writeDataset(mass,               "mass"               ,"The black hole masses.",                appendTo=.true.)
        call outputGroup%writeDataset(spin,               "spin"               ,"The black hole spins.",                 appendTo=.true.)
        call outputGroup%writeDataset(radius,             "radius"             ,"The black hole radial positions.",      appendTo=.true.)
