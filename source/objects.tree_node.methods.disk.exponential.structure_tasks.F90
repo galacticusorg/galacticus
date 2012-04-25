@@ -134,7 +134,9 @@ contains
        componentDensity=Tree_Node_Disk_Stellar_Mass(thisNode)
     end select
     ! Return if no density.
-    if (componentDensity <= 0.0d0) return
+    if (componentDensity                <= 0.0d0) return
+    ! Return if zero size disk.
+    if (Tree_Node_Disk_Radius(thisNode) <= 0.0d0) return
     ! Compute the actual density.
     positionCylindrical=Coordinates_Spherical_To_Cylindrical(positionSpherical)
     fractionalRadius=positionCylindrical(1)/Tree_Node_Disk_Radius(thisNode)

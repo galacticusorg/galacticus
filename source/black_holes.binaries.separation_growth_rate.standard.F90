@@ -183,6 +183,7 @@ contains
        velocityDispersionSpheroid  =Tree_Node_Spheroid_Velocity     (thisNode)
        velocityDispersionDarkMatter=Dark_Matter_Halo_Virial_Velocity(thisNode)
     end if
+
     ! Compute the separation growth rate due to emission of gravitational waves.
     rateGravitationalWaves=-( 256.0d0                                                  &
          &             *gravitationalConstantGalacticus**3                             &
@@ -201,23 +202,27 @@ contains
          &           /Mpc_per_km_per_s_To_Gyr
     ! Compute the hard binary radius, where shrinking of the binary switches from dynamical friction to hardening due to strong
     ! scattering of individual stars.
-    radiusHardBinary= (                                                         &
-         &              gravitationalConstantGalacticus                         &
-         &             *(                                                       &
-         &                Tree_Node_Black_Hole_Mass       (thisNode           ) &
-         &               +Tree_Node_Black_Hole_Mass       (thisNode,instance=1) &
-         &              )                                                       &
-         &            )                                                         &
-         &           /(                                                         &
-         &              4.0d0                                                   &
-         &             *velocityDispersionSpheroid**2                           &
-         &            )
+    if (velocityDispersionSpheroid > 0.0d0) then
+       radiusHardBinary= (                                                         &
+            &              gravitationalConstantGalacticus                         &
+            &             *(                                                       &
+            &                Tree_Node_Black_Hole_Mass       (thisNode           ) &
+            &               +Tree_Node_Black_Hole_Mass       (thisNode,instance=1) &
+            &              )                                                       &
+            &            )                                                         &
+            &           /(                                                         &
+            &              4.0d0                                                   &
+            &             *velocityDispersionSpheroid**2                           &
+            &            )
+    else
+       radiusHardBinary=0.0d0
+    end if
     
     ! First, check if the change in stellar density due to the binary's inward motion is to be computed.
     stellarDensityFractionRemaining=1.0d0
     ! If it does change, we first compute the fraction of that change according to Volonteri et al. (2003) else we set it as the
     ! normal density.
-    if (stellarDensityChangeBinaryMotion)                                                                                                                   &
+    if (stellarDensityChangeBinaryMotion .and. velocityDispersionSpheroid > 0.0d0)                                                                          &
          &  stellarDensityFractionRemaining=(                                                  Tree_Node_Black_Hole_Radial_Position(thisNode           )    &
          &                                   *                                                 velocityDispersionSpheroid**2                                &
          &                                   *(4.0d0/3.0d0)/(gravitationalConstantGalacticus*( Tree_Node_Black_Hole_Mass           (thisNode,instance=1)    &
@@ -244,12 +249,16 @@ contains
          &         *stellarDensityFractionRemaining
  
     ! Compute the hardening rate due to strong scattering of individual stars.
-    rateScatteringStars=-gravitationalConstantGalacticus                   &
-         &              *densityStellar                                    &
-         &              *Tree_Node_Black_Hole_Radial_Position(thisNode)**2 &
-         &              *hardeningRateDimensionless                        &
-         &              /velocityDispersionSpheroid                        &
-         &              /Mpc_per_km_per_s_To_Gyr  
+    if (velocityDispersionSpheroid > 0.0d0) then
+       rateScatteringStars=-gravitationalConstantGalacticus                   &
+            &              *densityStellar                                    &
+            &              *Tree_Node_Black_Hole_Radial_Position(thisNode)**2 &
+            &              *hardeningRateDimensionless                        &
+            &              /velocityDispersionSpheroid                        &
+            &              /Mpc_per_km_per_s_To_Gyr  
+    else
+       rateScatteringStars=0.0d0
+    end if
 
     ! Check if the binary has sufficiently large separation that we should compute the rate of hardening due to dynamical friction.
     if (Tree_Node_Black_Hole_Radial_Position(thisNode) > dynamicalFrictionMinimumRadius*radiusHardBinary) then
@@ -290,12 +299,16 @@ contains
        ! Compute the rotation curve of the galaxy and the additional contribution from the active black hole. Add them in
        ! quadrature to get an estimate of the actual orbital speed of the black hole binary.
        ! Precompute the "X" term appearing in the dynamical friction formula.
-       dynamicalFrictionXSpheroid  = Galactic_Structure_Rotation_Curve(                                                &
-            &                                                                                                thisNode  &
-            &                                                          ,Tree_Node_Black_Hole_Radial_Position(thisNode) &
-            &                                                         )                                                &
-            &                       /dsqrt(2.0d0)                                                                      &
-            &                       /velocityDispersionSpheroid
+       if (velocityDispersionSpheroid > 0.0d0) then
+          dynamicalFrictionXSpheroid  = Galactic_Structure_Rotation_Curve(                                                &
+               &                                                                                                thisNode  &
+               &                                                          ,Tree_Node_Black_Hole_Radial_Position(thisNode) &
+               &                                                         )                                                &
+               &                       /dsqrt(2.0d0)                                                                      &
+               &                       /velocityDispersionSpheroid
+       else
+          dynamicalFrictionXSpheroid=0.0d0
+       end if
        dynamicalFrictionXDarkMatter= Galactic_Structure_Rotation_Curve(                                                &
             &                                                                                                thisNode  &
             &                                                          ,Tree_Node_Black_Hole_Radial_Position(thisNode) &
