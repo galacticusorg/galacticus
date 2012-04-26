@@ -153,9 +153,9 @@
 	<!-- Bouwens et al 2003a UV (I-dropouts) -->
 	<!-- These values only include high-L end of LF - they are too low -->
 	<!-- compared to other SFH data in this regime. -->
-	<data>2.700</data>
-	<data>3.850</data>
-	<data>4.700</data>
+<!-- 	<data>2.700</data> -->
+<!-- 	<data>3.850</data> -->
+<!-- 	<data>4.700</data> -->
 	<!-- Bouwens et al 2003b UV (I-dropouts) -->
 	<data>5.800</data>
 	<!-- Bouwens et al 2005 UV (I-dropouts) -->
@@ -164,7 +164,7 @@
 	<data>4.000</data>
 	<data>4.700</data>
 	<!-- Bunker et al (2004) UV (I-dropouts) -->
-	<data>5.900</data>
+<!-- 	<data>5.900</data> -->
 	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
 	<data>0.100</data>
 	<data>0.300</data>
@@ -333,9 +333,9 @@
 	<!-- Bouwens et al 2003a UV (I-dropouts) -->
 	<!-- These values only include high-L end of LF - they are too low -->
 	<!-- compared to other SFH data in this regime. -->
-	<data>-1.139</data>
-	<data>-1.361</data>
-	<data>-1.421</data>
+<!-- 	<data>-1.139</data> -->
+<!-- 	<data>-1.361</data> -->
+<!-- 	<data>-1.421</data> -->
 	<!-- Bouwens et al 2003b UV (I-dropouts) -->
 	<data>-0.862</data>
 	<!-- Bouwens et al 2005 UV (I-dropouts) -->
@@ -344,7 +344,7 @@
 	<data>-0.770</data>
 	<data>-0.941</data>
 	<!-- Bunker et al (2004) UV (I-dropouts) -->
-	<data>-1.763</data>
+<!-- 	<data>-1.763</data> -->
 	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
 	<data>-1.744</data>
 	<data>-1.416</data>
@@ -510,9 +510,9 @@
 	<!-- Bouwens et al 2003a UV (I-dropouts) -->
 	<!-- These values only include high-L end of LF - they are too low -->
 	<!-- compared to other SFH data in this regime. -->
-	<data>0.700</data>
-	<data>0.450</data>
-	<data>0.200</data>
+<!-- 	<data>0.700</data> -->
+<!-- 	<data>0.450</data> -->
+<!-- 	<data>0.200</data> -->
 	<!-- Bouwens et al 2003b UV (I-dropouts) -->
 	<data>0.300</data>
 	<!-- Bouwens et al 2005 UV (I-dropouts) -->
@@ -521,7 +521,7 @@
 	<data>0.500</data>
 	<data>0.500</data>
 	<!-- Bunker et al (2004) UV (I-dropouts) -->
-	<data>0.500</data>
+<!-- 	<data>0.500</data> -->
 	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
 	<data>0.100</data>
 	<data>0.100</data>
@@ -687,9 +687,9 @@
 	<!-- Bouwens et al 2003a UV (I-dropouts) -->
 	<!-- These values only include high-L end of LF - they are too low -->
 	<!-- compared to other SFH data in this regime. -->
-	<data>0.700</data>
-	<data>0.450</data>
-	<data>0.200</data>
+<!-- 	<data>0.700</data> -->
+<!-- 	<data>0.450</data> -->
+<!-- 	<data>0.200</data> -->
 	<!-- Bouwens et al 2003b UV (I-dropouts) -->
 	<data>0.300</data>
 	<!-- Bouwens et al 2005 UV (I-dropouts) -->
@@ -698,7 +698,7 @@
 	<data>0.500</data>
 	<data>0.500</data>
 	<!-- Bunker et al (2004) UV (I-dropouts) -->
-	<data>0.500</data>
+<!-- 	<data>0.500</data> -->
 	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
 	<data>0.100</data>
 	<data>0.100</data>
@@ -867,9 +867,9 @@
 	<!-- Bouwens et al 2003a UV (I-dropouts) -->
 	<!-- These values only include high-L end of LF - they are too low -->
 	<!-- compared to other SFH data in this regime. -->
-	<data>0.054</data>
-	<data>0.080</data>
-	<data>0.060</data>
+<!-- 	<data>0.054</data> -->
+<!-- 	<data>0.080</data> -->
+<!-- 	<data>0.060</data> -->
 	<!-- Bouwens et al 2003b UV (I-dropouts) -->
 	<data>0.176</data>
 	<!-- Bouwens et al 2005 UV (I-dropouts) -->
@@ -878,7 +878,7 @@
 	<data>0.030</data>
 	<data>0.230</data>
 	<!-- Bunker et al (2004) UV (I-dropouts) -->
-	<data>0.097</data>
+<!-- 	<data>0.097</data> -->
 	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
 	<data>0.060</data>
 	<data>0.020</data>
@@ -1047,9 +1047,9 @@
 	<!-- Bouwens et al 2003a UV (I-dropouts) -->
 	<!-- These values only include high-L end of LF - they are too low -->
 	<!-- compared to other SFH data in this regime. -->
-	<data>0.054</data>
-	<data>0.070</data>
-	<data>0.070</data>
+<!-- 	<data>0.054</data> -->
+<!-- 	<data>0.070</data> -->
+<!-- 	<data>0.070</data> -->
 	<!-- Bouwens et al 2003b UV (I-dropouts) -->
 	<data>0.125</data>
 	<!-- Bouwens et al 2005 UV (I-dropouts) -->
@@ -1058,7 +1058,7 @@
 	<data>0.030</data>
 	<data>0.150</data>
 	<!-- Bunker et al (2004) UV (I-dropouts) -->
-	<data>0.079</data>
+<!-- 	<data>0.079</data> -->
 	<!-- Perez-Gonzalez et al (2005) Spitzer data -->
 	<data>0.060</data>
 	<data>0.020</data>
