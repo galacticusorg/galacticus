@@ -9,13 +9,38 @@ use Text::Table;
 # Andrew Benson (2-June-2010)
 
 # Set default list of model directories to scan.
-$parameters{'modelDirectories'} = "models";
+$parameters{'modelDirectories'} = "projects/parameterSearch/models/model0013";
 
 # Set default list of parameters to show.
 $parameters{'parametersToShow' } = "starFormationDiskEfficiency";
 
 # Set default fit value on which to sort.
-$parameters{'sortOn'} = "^net\$";
+$parameters{'sortOn'} = [
+			 {
+			     name => "Volume averaged star formation rate history.",
+			     weight => 10.0
+			     },
+			 {
+			     name => "Li and White (2009) stellar mass function",
+			     weight => 0.25
+			     },
+			 {
+			     name => "Feoli & Mancini (2009) black hole vs. bulge mass relation",
+			     weight =>0.001
+			     },
+			 {
+			     name => "Pizagno et al. (2007) SDSS Tully-Fisher relation",
+			     weight => 0.001
+			     },
+			 {
+			     name => "Dejong & Lacey (2000) disk scale length distributions",
+			     weight => 0.075
+			     },
+			 {
+			     name => "Weinmann et al. (2006) SDSS galaxy colors",
+			     weight => 0.033
+			     },
+			 ];
 
 # Set default sort methods.
 $parameters{'useReducedChi2'} = 1;
@@ -53,7 +78,8 @@ if ( exists($parameters{'modelsRunAfter'}) ) {
 
 # Specify value on which to sort - this will be treated as a regular expression
 $sortOn = $parameters{'sortOn'};
-print "Sorting on fit: ".$sortOn."\n";
+print "Sorting on fit:\n";
+print Dumper($parameters{'sortOn'});
 
 # Specify whether or not to use reduced chi^2 for sort.
 $useReducedChi2 = $parameters{'useReducedChi2'};
@@ -155,15 +181,18 @@ sub processFile {
 	    $xml = new XML::Simple;
 	    $data = $xml->XMLin($fitFile,ForceArray => 1);
 	    foreach $fit ( @{$data->{'galacticusFit'}} ) {
-		if ( ${$fit->{'name'}}[0] =~ m/$sortOn/ ) {
-		    $modelName = $File::Find::dir;
-		    unless ( ${$fit->{'chiSquared'}}[0] eq "nan" ) {
-			$results{$modelName}->{'chiSquared'} = ${$fit->{'chiSquared'}}[0];
-			if ( $useReducedChi2== 1 ) {
-			    $results{$modelName}->{'chiSquared'} /= ${$fit->{'degreesOfFreedom'}}[0];
-			}
+		foreach my $sortOn ( @{$parameters{'sortOn'}} ) {
+		    if ( ${$fit->{'name'}}[0] eq $sortOn->{'name'} ) {
+		       $modelName = $File::Find::dir;
+		       unless ( ${$fit->{'chiSquared'}}[0] eq "nan" ) {
+		          my $chiSquared = ${$fit->{'chiSquared'}}[0];
+			  if ( $useReducedChi2== 1 ) {
+			      $chiSquared /= ${$fit->{'degreesOfFreedom'}}[0];
+	                  }
+	                  $results{$modelName}->{'chiSquared'} += $chiSquared*$sortOn->{'weight'};
+	               }
+	               $results{$modelName}->{'rating'} = ${${$fit->{'rating'}}[0]->{'value'}}[0];
 		    }
-		    $results{$modelName}->{'rating'} = ${${$fit->{'rating'}}[0]->{'value'}}[0];
 		}
 	    }
 	    system("bzip2 ".$fitFile) if ( $reCompressFits == 1 );
