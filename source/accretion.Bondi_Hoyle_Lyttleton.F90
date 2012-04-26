@@ -72,7 +72,7 @@ module Bondi_Hoyle_Lyttleton_Accretion
 
 contains
 
-  double precision function Bondi_Hoyle_Lyttleton_Accretion_Rate(mass,density,velocity,temperature)
+  double precision function Bondi_Hoyle_Lyttleton_Accretion_Rate(mass,density,velocity,temperature,radius)
     !% Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
     use Numerical_Constants_Math
     use Numerical_Constants_Physical
@@ -80,16 +80,21 @@ contains
     use Numerical_Constants_Astronomical
     use Ideal_Gases_Thermodynamics
     implicit none
-    double precision, intent(in) :: mass,density,velocity,temperature
-    double precision             :: soundSpeed
+    double precision, intent(in)           :: mass,density,velocity,temperature
+    double precision, intent(in), optional :: radius
+    double precision                       :: soundSpeed
 
     ! Compute the sound speed.
     soundSpeed=Ideal_Gas_Sound_Speed(temperature)
 
     ! Compute the accretion rate.
-    Bondi_Hoyle_Lyttleton_Accretion_Rate=(kilo*gigaYear/megaParsec)*4.0d0*Pi*(gravitationalConstantGalacticus*mass)**2*density &
-         &/(soundSpeed**2+velocity**2)**1.5d0
-
+    if (present(radius)) then
+       Bondi_Hoyle_Lyttleton_Accretion_Rate=(kilo*gigaYear/megaParsec)*4.0d0*Pi*radius**2*density*sqrt(soundSpeed**2+velocity**2)
+    else
+       ! Assume that the accretion radius is equal to the Bondi-Hoyle-Lyttleton radius.
+       Bondi_Hoyle_Lyttleton_Accretion_Rate=(kilo*gigaYear/megaParsec)*4.0d0*Pi*(gravitationalConstantGalacticus*mass)**2*density &
+            &/(soundSpeed**2+velocity**2)**1.5d0
+    end if
     return
   end function Bondi_Hoyle_Lyttleton_Accretion_Rate
 
@@ -104,9 +109,8 @@ contains
     ! Compute the sound speed.
     soundSpeed=Ideal_Gas_Sound_Speed(temperature)
 
-    ! Compute the accretion radius.
-    Bondi_Hoyle_Lyttleton_Accretion_Radius=gravitationalConstantGalacticus*mass/soundSpeed**2
-
+    ! Compute the accretion radius
+    Bondi_Hoyle_Lyttleton_Accretion_Radius=gravitationalConstantGalacticus*mass/soundSpeed**2    
     return
   end function Bondi_Hoyle_Lyttleton_Accretion_Radius
 

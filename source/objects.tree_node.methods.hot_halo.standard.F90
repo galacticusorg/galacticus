@@ -2479,6 +2479,10 @@ contains
                 propertyName=propertyName//":unaccretedMass"
              else if (propertyIndex == outerRadiusIndex                                                            ) then
                 propertyName=propertyName//":outerRadius"
+             else if (propertyIndex == strippedMassIndex                                                           ) then
+                propertyName=propertyName//":strippedMass"
+             else if (propertyIndex >= strippedAbundancesIndex  .and. propertyIndex <= strippedAbundancesIndexEnd  ) then
+                propertyName=propertyName//":strippedAbundances"
              else if (propertyIndex >= hotAbundancesIndex       .and. propertyIndex <= hotAbundancesIndexEnd       ) then
                 propertyName=propertyName//":hotGasAbundances"
              else if (propertyIndex >= outflowedAbundancesIndex .and. propertyIndex <= outflowedAbundancesIndexEnd ) then

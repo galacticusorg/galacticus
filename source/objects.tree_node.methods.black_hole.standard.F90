@@ -1150,7 +1150,7 @@ contains
     double precision, parameter              :: gasDensityMinimum=1.0d0 ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
     integer                                  :: iInstance
     double precision                         :: blackHoleMass,gasDensity,relativeVelocity,accretionRadius,jeansLength&
-         &,radiativeEfficiency,position(3),hotHaloTemperature,hotModeFraction
+         &,radiativeEfficiency,position(3),hotHaloTemperature,hotModeFraction,accretionRateMaximum
     
     ! Get the active instance.
     iInstance=Tree_Node_Black_Hole_Get_Instance(thisNode)
@@ -1239,6 +1239,7 @@ contains
 
           ! Get the accretion radius.
           accretionRadius=Bondi_Hoyle_Lyttleton_Accretion_Radius(blackHoleMass,hotHaloTemperature)
+          accretionRadius=min(accretionRadius,Tree_Node_Hot_Halo_Outer_Radius(thisNode))
           
           ! Set the position.
           position=[accretionRadius,0.0d0,0.0d0]
@@ -1260,7 +1261,11 @@ contains
 
              ! Compute the accretion rate.
              accretionRateHotHalo(iInstance)=bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass,gasDensity&
-                  &,relativeVelocity,hotHaloTemperature)
+                  &,relativeVelocity,hotHaloTemperature,accretionRadius)
+
+             ! Limit the accretion rate to the total mass of the hot halo, divided by the sound crossing time.
+             accretionRateMaximum=Tree_Node_Hot_Halo_Mass(thisNode)/(Tree_Node_Hot_Halo_Outer_Radius(thisNode)/(kilo*gigaYear/megaParsec)/Ideal_Gas_Sound_Speed(hotHaloTemperature))
+             accretionRateHotHalo(iInstance)=min(accretionRateHotHalo(iInstance),accretionRateMaximum)
 
              ! Get the radiative efficiency of the accretion.
              radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(thisNode,accretionRateHotHalo(iInstance))
