@@ -166,9 +166,6 @@ if ( $launchMethod eq "pbs" ) {
 	foreach my $jobID ( keys(%pbsJobs) ) {
 	    unless ( exists($runningPBSJobs{$jobID}) ) {
 		print "PBS job ".$jobID." has finished. Post-processing....\n";
-		system("ls ".$pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5");
-		system("ls ".$pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5");
-		system("ls ".$pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5");
 		&Model_Finalize(
 		    $pbsJobs{$jobID}->{'directory'},
 		    $pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5",
@@ -252,7 +249,7 @@ sub Launch_Models {
 		    }
 		    case ( "pbs"    ) {
 			if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) ) {
-			    $parameters{'galacticusOutputFileName'} = $modelsToRun->{'pbs'}->{'scratchPath'}."/";
+			    $parameters{'galacticusOutputFileName'} = $modelsToRun->{'pbs'}->{'scratchPath'}."/model_".$modelCounter."_".$$."/";
 			} else {
 			    $parameters{'galacticusOutputFileName'} = "";
 			}
@@ -406,9 +403,15 @@ sub Launch_Models {
 				print oHndl "export ".$environment."\n";
 			    }
 			}
+			print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
+			print oHndl "ulimit -t unlimited\n";
+			print oHndl "ulimit -c unlimited\n";
 			print oHndl "export OMP_NUM_THREADS=".$modelsToRun->{'pbs'}->{'ompThreads'}."\n"
 			    if ( exists($modelsToRun->{'pbs'}->{'ompThreads'}) );
-			print oHndl "mkdir -p ".$modelsToRun->{'pbs'}->{'scratchPath'}."\n"
+			my $scratchPath;
+			$scratchPath = $modelsToRun->{'pbs'}->{'scratchPath'}."/model_".$modelCounter."_".$$."/"
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "mkdir -p ".$scratchPath."\n"
 			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
 			if ( exists($modelsToRun->{'pbs'}->{'mpiRun'}) ) {
 			    print oHndl $modelsToRun->{'pbs'}->{'mpiRun'};
@@ -417,9 +420,12 @@ sub Launch_Models {
 			}
 			print oHndl " --bynode -np 1 Galacticus.exe ".$galacticusOutputDirectory."/newParameters.xml\n";
 			print oHndl "mv ";
-			print oHndl $modelsToRun->{'pbs'}->{'scratchPath'}."/"
+			print oHndl $scratchPath
 			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
 			print oHndl "galacticus_".$modelCounter."_".$$.".hdf5 ".$galacticusOutputDirectory."/galacticus.hdf5\n";
+			print oHndl "mv ".$scratchPath."/* ".$galacticusOutputDirectory."/\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "mv core* ".$galacticusOutputDirectory."/\n";
 			close(oHndl);
 			
 			# Submit the job - capture the job number?
