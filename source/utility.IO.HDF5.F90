@@ -231,6 +231,10 @@ module IO_HDF5
      !@     <method>readDatasetStatic</method>
      !@     <description>Read a dataset from an HDF5 group into a static array.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>size</method>
+     !@     <description>Return the size of a dataset.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: IO_HDF5_Read_Attribute_Integer_Scalar
      procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable
@@ -298,6 +302,7 @@ module IO_HDF5
           &                              IO_HDF5_Read_Dataset_Double_5D_Array_Static          , &
           &                              IO_HDF5_Read_Dataset_Character_1D_Array_Static       , &
           &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Static
+     procedure :: size                => IO_HDF5_Dataset_Size
      ! Check methods.
      !@ <objectMethods>
      !@   <object>hdf5Object</object>
@@ -3383,6 +3388,71 @@ contains
   end subroutine IO_HDF5_Assert_Attribute_Type
 
   !! Dataset routines.
+
+  function IO_HDF5_Dataset_Size(datasetObject,dim)
+    !% Return the size of the {\tt dim}$^{\rm th}$ dimension of dataset {\tt datasetObject}.
+    use Galacticus_Error
+    implicit none
+    integer(kind=HSIZE_T  )                            :: IO_HDF5_Dataset_Size
+    class  (hdf5Object    ), intent(in)                :: datasetObject
+    integer                , intent(in)                :: dim
+    integer(kind=HSIZE_T  ), allocatable, dimension(:) :: dimensions,maximumDimensions
+    integer                                            :: errorCode,datasetRank
+    integer(kind=HID_T    )                            :: datasetDataspaceID
+    type   (varying_string)                            :: message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Ensure that the object is a dataset.
+    if (datasetObject%hdf5ObjectType /= hdf5ObjectTypeDataset) then
+       message="object is not a dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+
+    ! Ensure that the dataset is open.    
+    if (.not.datasetObject%isOpenValue) then
+       message="attempt to get size of unopen dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+
+    ! Get the rank of the dataset
+    call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
+    if (errorCode /= 0) then
+       message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    call h5sget_simple_extent_ndims_f(datasetDataspaceID,datasetRank,errorCode) 
+    if (errorCode /= 0) then
+       message="unable to get rank of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    if (datasetRank < dim) then
+       message="dataset '"//datasetObject%objectName//"' has rank smaller than the dimension requested"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+
+    ! Get the dimensions of the dataspace.
+    allocate  (       dimensions(datasetRank))
+    allocate  (maximumDimensions(datasetRank))
+    call h5sget_simple_extent_dims_f(datasetDataspaceID,dimensions,maximumDimensions,errorCode) 
+    if (errorCode == -1) then
+       message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    IO_HDF5_Dataset_Size=dimensions(dim)
+    deallocate(       dimensions             )
+    deallocate(maximumDimensions             )
+
+    ! Close the dataspace
+    call h5sclose_f(datasetDataspaceID,errorCode)
+    if (errorCode /= 0) then
+       message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    
+    return
+  end function IO_HDF5_Dataset_Size
 
   function IO_HDF5_Open_Dataset(inObject,datasetName,commentText,datasetDataType,datasetDimensions,isOverwritable,appendTo&
        &,useDataType,chunkSize,compressionLevel) result(datasetObject)

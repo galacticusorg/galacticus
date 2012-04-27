@@ -241,9 +241,17 @@ contains
      do jAge=0,1
         do jWavelength=0,1
            do jMetallicity=0,1
-              Stellar_Population_Spectra_File_Interpolate=Stellar_Population_Spectra_File_Interpolate&
-                   &+spectra(imfLookupIndex)%stellarPopulationSpectraTable(iMetallicity+jMetallicity,iAge+jAge,iWavelength&
-                   &+jWavelength)*hAge(jAge)*hWavelength(jWavelength)*hMetallicity(jMetallicity)
+              Stellar_Population_Spectra_File_Interpolate=&
+                   &                                       Stellar_Population_Spectra_File_Interpolate&
+                   &                                      +spectra(imfLookupIndex)&
+                   &                                        %stellarPopulationSpectraTable(&
+                   &                                                                       iWavelength +jWavelength , &
+                   &                                                                       iAge        +jAge        , &
+                   &                                                                       iMetallicity+jMetallicity  &
+                   &                                                                      )                           &
+                   &                                      *hAge                           (             jAge        ) &
+                   &                                      *hWavelength                    (             jWavelength ) &
+                   &                                      *hMetallicity                   (             jMetallicity)
            end do
         end do
      end do
@@ -258,17 +266,13 @@ contains
     use Galacticus_Error
     use Memory_Management
     use IO_HDF5
-    use HDF5
-    use H5Lt
     implicit none
     integer,              intent(in)                :: imfIndex
     type(varying_string), intent(in)                :: stellarPopulationSpectraFileToRead
     integer,              allocatable, dimension(:) :: imfLookupTemporary
     type(spectralTable),  allocatable, dimension(:) :: spectraTemporary
-    integer                                         :: errorCode,typeClass,imfLookupIndex
-    integer(HSIZE_T)                                :: dimensions(3)
-    integer(HID_T)                                  :: fileIndex
-    integer(SIZE_T)                                 :: typeSize
+    integer                                         :: imfLookupIndex
+    type(hdf5Object)                                :: stellarPopulationSpectraFile
 
     ! Ensure that array for IMF index mappings is sufficiently large.
     if (allocated(imfLookup)) then
@@ -302,45 +306,25 @@ contains
             
        !$omp critical(HDF5_Access)
        ! Open the HDF5 file.
-       call h5fopen_f(char(stellarPopulationSpectraFileToRead),H5F_ACC_RDONLY_F,fileIndex,errorCode)
+       call stellarPopulationSpectraFile%openFile(char(stellarPopulationSpectraFileToRead),readOnly=.true.)
        
        ! Read the wavelengths array.
-       call h5ltget_dataset_info_f(fileIndex,'wavelengths',dimensions,typeClass,typeSize,errorCode)
-       spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints=dimensions(1)
-       call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths&
-            &,[spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints])
-       call h5ltread_dataset_double_f(fileIndex,'wavelengths',spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths&
-            &,dimensions,errorCode)
-       
+       call stellarPopulationSpectraFile%readDataset('wavelengths'                 ,spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths  )
+       spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints=size(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths  )
+
        ! Read the ages array.
-       call h5ltget_dataset_info_f(fileIndex,'ages',dimensions,typeClass,typeSize,errorCode)
-       spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints=dimensions(1)
-       call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraAges&
-            &,[spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints])
-       call h5ltread_dataset_double_f(fileIndex,'ages',spectra(imfLookupIndex)%stellarPopulationSpectraAges,dimensions,errorCode)
+       call stellarPopulationSpectraFile%readDataset('ages'                        ,spectra(imfLookupIndex)%stellarPopulationSpectraAges         )
+       spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints       =size(spectra(imfLookupIndex)%stellarPopulationSpectraAges         )
        
        ! Read the metallicity array.
-       call h5ltget_dataset_info_f(fileIndex,'metallicities',dimensions,typeClass,typeSize,errorCode)
-       spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints=dimensions(1)
-       call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities&
-            &,[spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints])
-       call h5ltread_dataset_double_f(fileIndex,'metallicities',spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities&
-            &,dimensions ,errorCode)
-       
-       ! Allocate space for the spectra.
-       call Alloc_Array(spectra(imfLookupIndex)%stellarPopulationSpectraTable,[        &
-            &  spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints &
-            & ,spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints        &
-            & ,spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints &
-            &                                                                 ]        &
-            &          )
+       call stellarPopulationSpectraFile%readDataset('metallicities'               ,spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities)
+       spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints=size(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities)
        
        ! Read the spectra.
-       call h5ltread_dataset_double_f(fileIndex,'spectra',spectra(imfLookupIndex)%stellarPopulationSpectraTable,dimensions&
-            &,errorCode)
-       
+       call stellarPopulationSpectraFile%readDataset('spectra'                     ,spectra(imfLookupIndex)%stellarPopulationSpectraTable        )
+
        ! Close the HDF5 file. 
-       call h5fclose_f(fileIndex,errorCode)       
+       call stellarPopulationSpectraFile%close()
        !$omp end critical(HDF5_Access)
 
        ! Force interpolation accelerators to be reset.
