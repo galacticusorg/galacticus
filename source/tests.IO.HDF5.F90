@@ -551,6 +551,10 @@ program Tests_IO_HDF5
      ! Read part of a double 4-D array dataset from the group into a array.
      call groupObject%readDataset("doubleDataset4dArray",doubleValueArray4dReread,int([3,6,2,7],kind=HSIZE_T),int([4,3,5,2],kind=HSIZE_T))
      call Assert("re-read part of a 4-D array double dataset to allocatable array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dReread(1:4,1:3,1:5,1:2))
+     ! Check the dimensions of the dataset.
+     datasetObject=groupObject%openDataset("doubleDataset4dArray")
+     call Assert("get dimensions of a dataset",[10,10,10,10],[int(datasetObject%size(1)),int(datasetObject%size(2)),int(datasetObject%size(3)),int(datasetObject%size(4))])
+     call datasetObject%close()
 
      ! Open the dataset.
      datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset4dArray")
@@ -644,7 +648,7 @@ program Tests_IO_HDF5
      ! Close the file.
      call fileObject%close()
 
-     ! End the pass and destroiy objects.
+     ! End the pass and destroy objects.
      call Unit_Tests_End_Group()
      call fileObject   %destroy()
      call groupObject  %destroy()

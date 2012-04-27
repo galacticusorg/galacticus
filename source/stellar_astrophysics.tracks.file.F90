@@ -88,22 +88,18 @@ contains
     use Galacticus_Error
     use Memory_Management
     use IO_HDF5
-    use HDF5
-    use H5Lt
     use ISO_Varying_String
     use Galacticus_Input_Paths
     use Input_Parameters
     use String_Handling
     implicit none
-    type(varying_string),                 intent(in)    :: stellarTracksMethod
+    type     (varying_string  ),          intent(in   ) :: stellarTracksMethod
     procedure(double precision), pointer, intent(inout) :: Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get
-    type(varying_string)                                :: stellarTracksFile,metallicityGroup,massGroup
-    integer                                             :: errorCode,groupCount,iGroup,objectType,initialMassCount &
-         &,initialMassCountMaximum ,ageCountMaximum,iSubGroup,subGroupCount,subObjectType,typeClass,metallicityCountMaximum
-    integer(HSIZE_T)                                    :: dimensions(1)
-    integer(HID_T)                                      :: fileIndex
-    integer(SIZE_T)                                     :: typeSize
-    character(len=128)                                  :: objectName,subObjectName
+    type     (varying_string  )                         :: stellarTracksFile,groupName
+    integer                                             :: initialMassCount,initialMassCountMaximum ,ageCountMaximum&
+         &,metallicityCountMaximum
+    type     (hdf5Object      )                         :: stellarTracks,metallicityGroup,massGroup,ageDataset
+    logical                                             :: foundMetallicityGroup,foundMassGroup
 
     ! Check if our method is selected.
     if (stellarTracksMethod == 'file') then
@@ -126,81 +122,88 @@ contains
        
        ! Open the HDF5 file.
        !$omp critical(HDF5_Access)
-       call h5fopen_f(char(stellarTracksFile),H5F_ACC_RDONLY_F,fileIndex,errorCode)
+       call stellarTracks%openFile(char(stellarTracksFile),readOnly=.true.)
        
        ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
        metallicityCountMaximum=0
        initialMassCountMaximum=0
        ageCountMaximum        =0
-       call h5gn_members_f(fileIndex,".",groupCount,errorCode)
-       do iGroup=0,groupCount-1
-          call h5gget_obj_info_idx_f(fileIndex,".",iGroup,objectName,objectType,errorCode)           
-          if (objectName(1:11)=="metallicity") then
+       ! Count metallicity groups.
+       foundMetallicityGroup=.true.
+       do while (foundMetallicityGroup)
+          groupName="metallicity"
+          groupName=groupName//(metallicityCountMaximum+1)
+          foundMetallicityGroup=stellarTracks%hasGroup(char(groupName))
+          if (foundMetallicityGroup) then
              metallicityCountMaximum=metallicityCountMaximum+1
-             call h5gn_members_f(fileIndex,"./"//objectName,subGroupCount,errorCode)
-             initialMassCount=0
-             do iSubGroup=0,subGroupCount-1
-                call h5gget_obj_info_idx_f(fileIndex,"./"//objectName,iSubGroup,subObjectName,subObjectType,errorCode)           
-                if (subObjectName(1:4)=="mass") then
-                   initialMassCount=initialMassCount+1
-                   call h5ltget_dataset_info_f(fileIndex,"./"//trim(objectName)//"/"//trim(subObjectName)//"/age",dimensions&
-                        &,typeClass,typeSize,errorCode)
-                   ageCountMaximum=max(ageCountMaximum,int(dimensions(1)))
+             metallicityGroup=stellarTracks%openGroup(char(groupName))
+             ! Find mass groups.
+             foundMassGroup=.true.
+             do while (foundMassGroup)
+                groupName="mass"
+                groupName=groupName//(initialMassCountMaximum+1)
+                foundMassGroup=metallicityGroup%hasGroup(char(groupName))
+                if (foundMassGroup) then
+                   initialMassCountMaximum=initialMassCountMaximum+1
+                   massGroup=metallicityGroup%openGroup(char(groupName))
+                   ageDataset=massGroup%openDataset('age')
+                   ageCountMaximum=max(ageCountMaximum,int(ageDataset%size(1)))
+                   call ageDataset%close()
                 end if
              end do
-             initialMassCountMaximum=max(initialMassCountMaximum,initialMassCount)
           end if
        end do
 
        ! Allocate storage space for data.
-       call Alloc_Array(stellarTrackLogMetallicities,                                        [metallicityCountMaximum])
-       call Alloc_Array(stellarTrackInitialMassCount,                                        [metallicityCountMaximum])
-       call Alloc_Array(stellarTrackInitialMasses   ,                [initialMassCountMaximum,metallicityCountMaximum])
-       call Alloc_Array(stellarTrackAgesCount       ,                [initialMassCountMaximum,metallicityCountMaximum])
+       call Alloc_Array(stellarTrackLogMetallicities,[                                        metallicityCountMaximum])
+       call Alloc_Array(stellarTrackInitialMassCount,[                                        metallicityCountMaximum])
+       call Alloc_Array(stellarTrackInitialMasses   ,[                initialMassCountMaximum,metallicityCountMaximum])
+       call Alloc_Array(stellarTrackAgesCount       ,[                initialMassCountMaximum,metallicityCountMaximum])
        call Alloc_Array(stellarTrackAges            ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
        call Alloc_Array(stellarTrackLuminosities    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
        call Alloc_Array(stellarTrackTemperatures    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
 
-       ! Read in all data.
-       do stellarTrackMetallicityCount=1,metallicityCountMaximum
-          metallicityGroup="./metallicity"
-          metallicityGroup=metallicityGroup//stellarTrackMetallicityCount
-          dimensions(1)=1
-          ! Get the metallicity.
-          call h5ltread_dataset_double_f(fileIndex,char(metallicityGroup)//"/metallicity"&
-               &,stellarTrackLogMetallicities(stellarTrackMetallicityCount:stellarTrackMetallicityCount),dimensions,errorCode)
-          ! Count how many masses are tabulated at this metallicity.
-          call h5gn_members_f(fileIndex,char(metallicityGroup),subGroupCount,errorCode)
-          initialMassCount=0
-          do iSubGroup=0,subGroupCount-1
-             call h5gget_obj_info_idx_f(fileIndex,char(metallicityGroup),iSubGroup,subObjectName,subObjectType,errorCode)
-             if (subObjectName(1:4)=="mass") initialMassCount=initialMassCount+1
-          end do
-          stellarTrackInitialMassCount(stellarTrackMetallicityCount)=initialMassCount
-          ! Loop through all tabulated masses.
-          do initialMassCount=1,stellarTrackInitialMassCount(stellarTrackMetallicityCount)
-             massGroup=metallicityGroup//"/mass"//initialMassCount
-             ! Get initial mass.
-             dimensions(1)=1
-             call h5ltread_dataset_double_f(fileIndex,char(massGroup//"/mass")&
-                  &,stellarTrackInitialMasses(initialMassCount:initialMassCount,stellarTrackMetallicityCount),dimensions,errorCode)          
-             ! Read tracks.
-             call h5ltget_dataset_info_f(fileIndex,char(massGroup)//"/age",dimensions,typeClass,typeSize,errorCode)
-             stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount)=int(dimensions(1))
-             call h5ltread_dataset_double_f(fileIndex,char(massGroup//"/age"                 ),stellarTrackAges       &
-                  & (1:dimensions(1),initialMassCount ,stellarTrackMetallicityCount),dimensions,errorCode)
-             call h5ltread_dataset_double_f(fileIndex,char(massGroup//"/luminosity"          )&
-                  &,stellarTrackLuminosities(1:dimensions(1),initialMassCount ,stellarTrackMetallicityCount),dimensions,errorCode)          
-             call h5ltread_dataset_double_f(fileIndex,char(massGroup//"/effectiveTemperature")&
-                  &,stellarTrackTemperatures(1:dimensions(1),initialMassCount ,stellarTrackMetallicityCount),dimensions,errorCode)          
-          end do
-       end do
+        ! Read in all data.
+        do stellarTrackMetallicityCount=1,metallicityCountMaximum
+           ! Open the metallicity group.
+           groupName="metallicity"
+           groupName=groupName//stellarTrackMetallicityCount
+           metallicityGroup=stellarTracks%openGroup(char(groupName))
+           ! Get the metallicity.
+           call metallicityGroup%readDatasetStatic('metallicity', stellarTrackLogMetallicities(stellarTrackMetallicityCount:stellarTrackMetallicityCount))
+           ! Count how many masses are tabulated at this metallicity.
+           initialMassCount=0
+           foundMassGroup=.true.
+           do while (foundMassGroup)
+              groupName="mass"
+              groupName=groupName//(initialMassCount+1)
+              foundMassGroup=metallicityGroup%hasGroup(char(groupName))
+              if (foundMassGroup) initialMassCount=initialMassCount+1                
+           end do
+           stellarTrackInitialMassCount(stellarTrackMetallicityCount)=initialMassCount
+           ! Loop through all tabulated masses.
+           do initialMassCount=1,stellarTrackInitialMassCount(stellarTrackMetallicityCount)
+              ! Open the mass group.
+              groupName="mass"
+              groupName=groupName//initialMassCount
+              massGroup=metallicityGroup%openGroup(char(groupName))
+              ! Get initial mass.
+              call massGroup%readDatasetStatic('mass',stellarTrackInitialMasses(initialMassCount:initialMassCount,stellarTrackMetallicityCount))
+              ! Read tracks.
+              ageDataset=massGroup%openDataset('age')
+              stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount)=int(ageDataset%size(1))
+              call ageDataset%close()
+              call massGroup%readDatasetStatic('age'                 ,stellarTrackAges        (1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
+              call massGroup%readDatasetStatic('luminosity'          ,stellarTrackLuminosities(1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
+              call massGroup%readDatasetStatic('effectiveTemperature',stellarTrackTemperatures(1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
+           end do
+        end do
        ! Convert metallicities to logarithmic scale.
        stellarTrackLogMetallicities=dlog(stellarTrackLogMetallicities)
        stellarTrackMetallicityCount=metallicityCountMaximum
 
        ! Close the file.
-       call h5fclose_f(fileIndex,errorCode)       
+       call stellarTracks%close()
        !$omp end critical(HDF5_Access)
 
     end if
