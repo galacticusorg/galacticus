@@ -245,9 +245,9 @@ contains
                    &                                       Stellar_Population_Spectra_File_Interpolate                &
                    &                                      +spectra(imfLookupIndex)                                    &
                    &                                        %stellarPopulationSpectraTable(                           &
-                   &                                                                       iMetallicity+jMetallicity, &
+                   &                                                                       iWavelength +jWavelength , &
                    &                                                                       iAge        +jAge        , &
-                   &                                                                       iWavelength +jWavelength   &
+                   &                                                                       iMetallicity+jMetallicity  &
                    &                                                                      )                           &
                    &                                      *hAge                           (             jAge        ) &
                    &                                      *hWavelength                    (             jWavelength ) &
