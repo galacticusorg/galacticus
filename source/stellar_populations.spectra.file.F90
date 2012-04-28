@@ -241,13 +241,13 @@ contains
      do jAge=0,1
         do jWavelength=0,1
            do jMetallicity=0,1
-              Stellar_Population_Spectra_File_Interpolate=&
-                   &                                       Stellar_Population_Spectra_File_Interpolate&
-                   &                                      +spectra(imfLookupIndex)&
-                   &                                        %stellarPopulationSpectraTable(&
-                   &                                                                       iWavelength +jWavelength , &
+              Stellar_Population_Spectra_File_Interpolate=                                                            &
+                   &                                       Stellar_Population_Spectra_File_Interpolate                &
+                   &                                      +spectra(imfLookupIndex)                                    &
+                   &                                        %stellarPopulationSpectraTable(                           &
+                   &                                                                       iMetallicity+jMetallicity, &
                    &                                                                       iAge        +jAge        , &
-                   &                                                                       iMetallicity+jMetallicity  &
+                   &                                                                       iWavelength +jWavelength   &
                    &                                                                      )                           &
                    &                                      *hAge                           (             jAge        ) &
                    &                                      *hWavelength                    (             jWavelength ) &
