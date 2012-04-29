@@ -61,29 +61,32 @@
 
 !% Contains a module which implements the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
 
-module Stellar_Population_Spectra_Postprocess_Madau1995
+module Stellar_Population_Spectra_Postprocessing_Madau1995
   !% Implements the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
   use ISO_Varying_String
+  public :: Stellar_Population_Spectra_Postprocess_Madau1995_Initialize,Stellar_Population_Spectra_Postprocess_Madau1995
 
-  public :: Stellar_Population_Spectra_Postprocess_Madau1995_Initialize
+  ! Record of whether this method is active.
+  logical :: methodIsActive
 
 contains
   
-  !# <stellarPopulationSpectraPostprocessMethod>
+  !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Madau1995_Initialize</unitName>
-  !# </stellarPopulationSpectraPostprocessMethod>
-  subroutine Stellar_Population_Spectra_Postprocess_Madau1995_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
+  !# </stellarPopulationSpectraPostprocessInitialize>
+  subroutine Stellar_Population_Spectra_Postprocess_Madau1995_Initialize(stellarPopulationSpectraPostprocessMethods)
     !% Initializes the ``Madau1995'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string),                 intent(in)    :: stellarPopulationSpectraPostprocessMethod
-    procedure(double precision), pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
+    type(varying_string), dimension(:), intent(in) :: stellarPopulationSpectraPostprocessMethods
     
-    if (stellarPopulationSpectraPostprocessMethod == 'Madau1995') Stellar_Population_Spectra_Postprocess_Get =>&
-         & Stellar_Population_Spectra_Postprocess_Madau1995_Get
+    methodIsActive=any(stellarPopulationSpectraPostprocessMethods == 'Madau1995')
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Madau1995_Initialize
 
-  double precision function Stellar_Population_Spectra_Postprocess_Madau1995_Get(wavelength,redshift)
+  !# <stellarPopulationSpectraPostprocess>
+  !#  <unitName>Stellar_Population_Spectra_Postprocess_Madau1995</unitName>
+  !# </stellarPopulationSpectraPostprocess>
+  subroutine Stellar_Population_Spectra_Postprocess_Madau1995(wavelength,redshift,modifier)
     !% Computes the factor by which the spectrum of a galaxy at given {\tt redshift} is attenuated at the given {\tt wavelength}
     !% by the intervening intergalactic medium according to \cite{madau_radiative_1995}.
     use Numerical_Constants_Atomic
@@ -91,6 +94,7 @@ contains
     use Gamma_Functions
     implicit none
     double precision, intent(in)              :: wavelength,redshift
+    double precision, intent(inout)           :: modifier
     double precision, dimension(9), parameter :: opticalDepthLymanLinesCoefficients=[0.00360d0,0.00170d0,0.00120d0,0.00093d0&
          &,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0]
     double precision, dimension(9)            :: opticalDepthLymanLines
@@ -98,9 +102,9 @@ contains
     double precision                          :: opticalDepth,emissionFactor,continuumFactor,wavelengthObservedLymanContinuum
     
     ! Check if this is a zero redshift case.
-    if (redshift <= 0.0d0) then
-       ! It is, so return no attenuation.
-       Stellar_Population_Spectra_Postprocess_Madau1995_Get=1.0d0
+    if (.not.methodIsActive .or. redshift <= 0.0d0) then
+       ! It is, so return no modification.
+       return
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
        wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/ionizationWavelengthHydrogen
@@ -128,9 +132,9 @@ contains
        end if
        
        ! Compute attenuation from optical depth.
-       Stellar_Population_Spectra_Postprocess_Madau1995_Get=dexp(-opticalDepth) 
+       modifier=modifier*dexp(-opticalDepth) 
     end if
     return
-  end function Stellar_Population_Spectra_Postprocess_Madau1995_Get
+  end subroutine Stellar_Population_Spectra_Postprocess_Madau1995
 
-end module Stellar_Population_Spectra_Postprocess_Madau1995
+end module Stellar_Population_Spectra_Postprocessing_Madau1995
