@@ -116,6 +116,7 @@ contains
     use Abundances_Structure
     use System_Command
     use Galacticus_Input_Paths
+    use String_Handling
     implicit none
     type(abundancesStructure), intent(in) :: abundances
     logical                               :: makeFile
@@ -154,6 +155,7 @@ contains
        ! Run Atomic_CIE_Cloudy wrapper script.
        command=char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl '//metallicityLabel//' '//char(Galacticus_Input_Path())//trim(coolingFunctionFile)//' '&
             &//char(Galacticus_Input_Path())//trim(chemicalStateFile)
+       command=command//" "//Chemical_State_CIE_File_Format_Version()
        call System_Command_Do(command)
 
        ! Call routine to read in the tabulated data.

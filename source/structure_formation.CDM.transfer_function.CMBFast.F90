@@ -102,6 +102,7 @@ contains
     use Cosmological_Parameters
     use Numerical_Constants_Astronomical
     use Galacticus_Input_Paths
+    use String_Handling
     implicit none
     double precision,                            intent(in)    :: logWavenumber
     double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
@@ -151,7 +152,7 @@ contains
     if (makeFile) then
        ! Run CMBFast wrapper script.
        write (wavenumberLabel,'(e12.6)') dexp(max(logWavenumber+1.0d0,logWavenumberMaximumDefault))
-       command=char(Galacticus_Input_Path())//'scripts/aux/CMBFast_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)
+       command=char(Galacticus_Input_Path())//'scripts/aux/CMBFast_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)//' '//Transfer_Function_Named_File_Format_Version()
        call System_Command_Do(command)
 
        ! Flag that transfer function is now initialized.

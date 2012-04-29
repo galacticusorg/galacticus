@@ -3,6 +3,7 @@
   <description>Recycled fraction for a Scalo IMF</description>
   <source>Computed by Galacticus</source>
   <date>Thu Apr 29  2:14:49 (GMT -07:00) 2010</date>
+  <fileFormat>1</fileFormat>
   <ages>
     <description>Age of the stellar population in Gyr</description>
     <data>0.1000E-02</data>

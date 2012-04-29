@@ -68,7 +68,8 @@ module Chemical_States_CIE_File
   implicit none
   private
   public :: Chemical_State_CIE_File_Initialize, Chemical_State_CIE_File_Read, Electron_Density_CIE_File_Interpolate,&
-       & Electron_Density_CIE_File_logTemperature_Interpolate, Chemical_Densities_CIE_File_Interpolate
+       & Electron_Density_CIE_File_logTemperature_Interpolate, Chemical_Densities_CIE_File_Interpolate,&
+       & Chemical_State_CIE_File_Format_Version
 
   ! Flag to indicate if this module has been initialized.
   logical              :: chemicalStateInitialized         =.false.
@@ -97,7 +98,18 @@ module Chemical_States_CIE_File
   ! Chemical indices.
   integer                                       :: electronChemicalIndex,atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex
 
+  ! Current file format version for CIE cooling files.
+  integer         , parameter                   :: fileFormatVersionCurrent=1
+
 contains
+
+  integer function Chemical_State_CIE_File_Format_Version()
+    !% Return the current file format version of CIE chemical state files.
+    implicit none
+
+    Chemical_State_CIE_File_Format_Version=fileFormatVersionCurrent
+    return
+  end function Chemical_State_CIE_File_Format_Version
 
   !# <chemicalStateMethod>
   !#  <unitName>Chemical_State_CIE_File_Initialize</unitName>
@@ -413,10 +425,10 @@ contains
     type(varying_string), intent(in)            :: chemicalStateFileToRead
     double precision,     intent(out), optional :: metallicityMaximumTabulated
     type(Node),           pointer               :: doc,datum,thisChemicalState,metallicityElement,extrapolationElement &
-         &,extrapolation,thisTemperature,thisElectronDensity,thisHydrogenAtomicDensity ,thisHydrogenCationDensity
+         &,extrapolation,thisTemperature,thisElectronDensity,thisHydrogenAtomicDensity ,thisHydrogenCationDensity,version
     type(NodeList),       pointer               :: temperatureDatumList,electronDatumList,hydrogenAtomicDatumList &
-         &,hydrogenCationDatumList,chemicalStateList ,metallicityExtrapolationList,temperatureExtrapolationList
-    integer                                     :: iDatum,ioErr,iChemicalState,iExtrapolation,extrapolationMethod
+         &,hydrogenCationDatumList,chemicalStateList ,metallicityExtrapolationList,temperatureExtrapolationList,versionList
+    integer                                     :: iDatum,ioErr,iChemicalState,iExtrapolation,extrapolationMethod,fileFormatVersion
     double precision                            :: datumValues(1)
     character(len=32)                           :: limitType
 
@@ -426,6 +438,12 @@ contains
     call Galacticus_Display_Indent('Parsing file: '//chemicalStateFileToRead,verbosityDebug)
     doc => parseFile(char(chemicalStateFileToRead),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Chemical_State_CIE_File_Read','Unable to find chemical state file')
+ 
+    ! Check the file format version of the file.
+    versionList => getElementsByTagname(doc,"fileFormat")
+    version     => item(versionList,0)
+    call extractDataContent(version,fileFormatVersion)
+    if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Chemical_State_CIE_File_Read','file format version is out of date')
 
     ! Get a list of all <ionizationState> elements.
     chemicalStateList => getElementsByTagname(doc,"ionizationState")
@@ -701,7 +719,7 @@ contains
     if (temperatureUse < temperatureMinimum) then
        select case (extrapolateTemperatureLow)
        case (extrapolateZero)
-          call Chemicals_Abundances_Reset(theseChemicals)
+          call theseChemicals%reset()
           return
        case (extrapolateFixed,extrapolatePowerLaw)
           temperatureUse=temperatureMinimum
@@ -710,7 +728,7 @@ contains
     if (temperatureUse > temperatureMaximum) then
        select case (extrapolateTemperatureHigh)
        case (extrapolateZero)
-          call Chemicals_Abundances_Reset(theseChemicals)
+          call theseChemicals%reset()
           return
        case (extrapolateFixed,extrapolatePowerLaw)
           temperatureUse=temperatureMaximum
@@ -723,7 +741,7 @@ contains
     if (metallicityUse < metallicityMinimum) then
        select case (extrapolateMetallicityLow)
        case (extrapolateZero)
-          call Chemicals_Abundances_Reset(theseChemicals)
+          call theseChemicals%reset()
           return
        case (extrapolateFixed)
           metallicityUse=metallicityMinimum
@@ -732,7 +750,7 @@ contains
     if (metallicityUse > metallicityMaximum) then
        select case (extrapolateMetallicityHigh)
        case (extrapolateZero)
-          call Chemicals_Abundances_Reset(theseChemicals)
+          call theseChemicals%reset()
           return
        case (extrapolateFixed)
           metallicityUse=metallicityMaximum

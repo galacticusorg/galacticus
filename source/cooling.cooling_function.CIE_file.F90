@@ -69,7 +69,8 @@ module Cooling_Functions_CIE_File
   private
   public :: Cooling_Function_CIE_File_Initialize, Cooling_Function_CIE_File_Read, Cooling_Function_CIE_File_Interpolate,&
        & Cooling_Function_CIE_File_logTemperature_Interpolate, Cooling_Function_CIE_File,&
-       & Cooling_Function_Temperature_Slope_CIE_File, Cooling_Function_Density_Slope_CIE_File
+       & Cooling_Function_Temperature_Slope_CIE_File, Cooling_Function_Density_Slope_CIE_File,&
+       & Cooling_Function_CIE_File_Format_Version
   
   ! Flag indicating whether or not this cooling function is selected.
   logical              :: functionSelected=.false.
@@ -97,8 +98,19 @@ module Cooling_Functions_CIE_File
   logical                                       :: resetTemperature=.true., resetMetallicity=.true.
   type(fgsl_interp_accel)                       :: interpolationAcceleratorTemperature,interpolationAcceleratorMetallicity
 
+  ! Current file format version for CIE cooling files.
+  integer         , parameter                   :: fileFormatVersionCurrent=1
+
 contains
   
+  integer function Cooling_Function_CIE_File_Format_Version()
+    !% Return the current file format version of CIE cooling files.
+    implicit none
+
+    Cooling_Function_CIE_File_Format_Version=fileFormatVersionCurrent
+    return
+  end function Cooling_Function_CIE_File_Format_Version
+
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_CIE_File_Initialize</unitName>
   !# </coolingFunctionMethods>
@@ -431,10 +443,10 @@ contains
     type(varying_string), intent(in)            :: coolingFunctionFileToRead
     double precision,     intent(out), optional :: metallicityMaximumTabulated
     type(Node),           pointer               :: doc,datum,thisCoolingFunction,metallicityElement,extrapolationElement&
-         &,extrapolation,thisTemperature,thisCoolingRate
+         &,extrapolation,thisTemperature,thisCoolingRate,version
     type(NodeList),       pointer               :: temperatureDatumList,coolingDatumList,coolingFunctionList&
-         &,metallicityExtrapolationList ,temperatureExtrapolationList
-    integer                                     :: iDatum,ioErr,iCoolingFunction,iExtrapolation,extrapolationMethod
+         &,metallicityExtrapolationList ,temperatureExtrapolationList,versionList
+    integer                                     :: iDatum,ioErr,iCoolingFunction,iExtrapolation,extrapolationMethod,fileFormatVersion
     double precision                            :: datumValues(1)
     character(len=32)                           :: limitType
 
@@ -444,6 +456,11 @@ contains
     call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     doc => parseFile(char(coolingFunctionFileToRead),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','Unable to find cooling function file')
+    ! Check the file format version of the file.
+    versionList => getElementsByTagname(doc,"fileFormat")
+    version     => item(versionList,0)
+    call extractDataContent(version,fileFormatVersion)
+    if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','file format version is out of date')
     call Galacticus_Display_Counter(50,.false.,verbosityWorking)
     ! Get a list of all <coolingFunction> elements.
     coolingFunctionList => getElementsByTagname(doc,"coolingFunction")

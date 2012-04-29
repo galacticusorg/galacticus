@@ -3,6 +3,7 @@
   <description>Cosmic background radiation spectrum from quasars plus galaxies.</description>
   <reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20</reference>
   <source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00</source>
+  <fileFormat>1</fileFormat>
   <spectra>
     <datum>7.039E-49</datum>
     <datum>8.379E-48</datum>

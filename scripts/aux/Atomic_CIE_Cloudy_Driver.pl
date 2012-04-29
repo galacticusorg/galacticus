@@ -15,21 +15,39 @@ unshift(@INC,$galacticusPath."perl");
 # Andrew Benson (26-Jan-2010)
 
 # Get arguments.
-if ( $#ARGV != 2 ) {die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <chemicalStateFile>"};
+if ( $#ARGV != 3 ) {die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <chemicalStateFile> <fileFormatVersion>"};
 $logMetallicityMaximum = $ARGV[0];
 $coolingFunctionFile   = $ARGV[1];
 $chemicalStateFile     = $ARGV[2];
+$fileFormat            = $ARGV[3];
+
+# Ensure the requested file format version is compatible.
+my $fileFormatCurrent = 1;
+die('Atomic_CIE_Cloudy_Driver.pl: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
+    unless ( $fileFormat == $fileFormatCurrent );
 
 # Determine if we need to compute cooling functions.
 if ( -e $coolingFunctionFile ) {
-    $computeCoolingFunctions = 0;
+    my $xmlDoc = new XML::Simple;
+    $coolingFunction = $xmlDoc->XMLin($coolingFunctionFile);
+    if ( exists($coolingFunction->{'fileFormat'}) ) { 
+	$computeCoolingFunctions = 1 unless ( $coolingFunction->{'fileFormat'} == $fileFormatCurrent );
+    } else {
+	$computeCoolingFunctions = 0;
+    }
 } else {
     $computeCoolingFunctions = 1;
 }
 
 # Determine if we need to compute cooling functions.
 if ( -e $chemicalStateFile ) {
-    $computeChemicalStates = 0;
+    my $xmlDoc = new XML::Simple;
+    $chemicalState = $xmlDoc->XMLin($chemicalStateFile);
+    if ( exists($chemicalState->{'fileFormat'}) ) { 
+	$computeChemicalStates = 1 unless ( $chemicalState->{'fileFormat'} == $fileFormatCurrent );
+    } else {
+	$computeChemicalStates = 0;
+    }
 } else {
     $computeChemicalStates = 1;
 }

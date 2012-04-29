@@ -3,6 +3,7 @@
   <description>Fe yield for a Kennicutt IMF</description>
   <source>Computed by Galacticus</source>
   <date>Thu Jun 10  4:50:01 (GMT -07:00) 2010</date>
+  <fileFormat>1</fileFormat>
   <ages>
     <description>Age of the stellar population in Gyr</description>
     <data>0.1000E-02</data>

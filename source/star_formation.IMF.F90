@@ -141,6 +141,9 @@ module Star_Formation_IMF
      end function IMF_Select_Template
   end interface
 
+  ! Current file format used for stellar population properties.
+  integer, parameter :: fileFormatCurrent=1
+
 contains
 
   integer function IMF_Select(starFormationRate,fuelAbundances,component)
@@ -412,11 +415,12 @@ contains
     type(fgsl_function)                                      :: integrandFunction
     type(fgsl_integration_workspace)                         :: integrationWorkspace
     integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
-         &,metallicityIndex,iRecycledFraction,ioErr
+         &,metallicityIndex,iRecycledFraction,ioErr,fileFormat
     double precision                                         :: minimumMass,maximumMass
     character(len=20)                                        :: progressMessage,parameterValue
     type(xmlf_t)                                             :: recycledFractionDoc
     type(varying_string)                                     :: fileName
+    logical                                                  :: makeFile
 
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
@@ -474,13 +478,31 @@ contains
 
        ! Check if the table has been computed and stored previously.
        fileName=char(Galacticus_Input_Path())//'data/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'.xml'
+       makeFile=.false.
        if (File_Exists(fileName)) then
-          
-          ! Open the XML file containing recycled fractions.
+          ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','Unable to parse recycled fractions file')
-          
+          ! Check the version number.
+          dataList => getElementsByTagname(doc,"fileFormat")
+          if (getLength(dataList) == 1) then
+             thisItem => item(dataList,0)
+             call extractDataContent(thisItem,fileFormat)
+             if (fileFormat /= fileFormatCurrent) makeFile=.true.
+          else
+             makeFile=.true.
+          end if
+          if (makeFile) then
+             call destroy(doc)
+             call Galacticus_Display_Unindent('done',verbosityDebug)
+          end if
+       else
+          makeFile=.true.
+       end if
+       
+       if (.not.makeFile) then
+
           ! Find the ages element and extract data.
           columnList => getElementsByTagname(doc     ,"ages")
           thisItem   => item(columnList,0)
@@ -542,6 +564,9 @@ contains
           ! Open an XML file to output the data to.
           call xml_OpenFile(char(fileName),recycledFractionDoc)
           call xml_NewElement(recycledFractionDoc,"stellarPopulation")
+          call xml_NewElement(recycledFractionDoc,"fileFormat")
+          call xml_AddCharacters(recycledFractionDoc,fileFormatCurrent)
+          call xml_EndElement(recycledFractionDoc,"fileFormat")
           call xml_NewElement(recycledFractionDoc,"description")
           call xml_AddCharacters(recycledFractionDoc,"Recycled fraction for a "//char(imfNames(imfSelected))//" IMF")
           call xml_EndElement(recycledFractionDoc,"description")
@@ -742,11 +767,12 @@ contains
      type(fgsl_function)                                        :: integrandFunction
      type(fgsl_integration_workspace)                           :: integrationWorkspace
      integer                                                    :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
-          &,metallicityIndex,iMetalYield,ioErr,abundanceIndexActual,iElement
+          &,metallicityIndex,iMetalYield,ioErr,abundanceIndexActual,iElement,fileFormat
      double precision                                           :: minimumMass,maximumMass
      character(len=20)                                          :: progressMessage,parameterValue
      type(xmlf_t)                                               :: metalYieldDoc
      type(varying_string)                                       :: fileName
+     logical                                                    :: makeFile
 
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
@@ -814,12 +840,30 @@ contains
              ! Individual element.
              fileName=char(Galacticus_Input_Path())//'data/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'.xml'
           end select
-          fileNameCheck : if (File_Exists(fileName)) then
-             
-             ! Open the XML file containing metal yields.
+          makeFile=.false.
+          if (File_Exists(fileName)) then
+             ! Open the XML file containing energy input.
              call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
              doc => parseFile(char(fileName),iostat=ioErr)
              if (ioErr /= 0) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','Unable to parse metal yields file')
+             ! Check the version number.
+             dataList => getElementsByTagname(doc,"fileFormat")
+             if (getLength(dataList) == 1) then
+                thisItem => item(dataList,0)
+                call extractDataContent(thisItem,fileFormat)
+                if (fileFormat /= fileFormatCurrent) makeFile=.true.
+             else
+                makeFile=.true.
+             end if
+             if (makeFile) then
+                call destroy(doc)
+                call Galacticus_Display_Unindent('done',verbosityDebug)
+             end if
+          else
+             makeFile=.true.
+          end if
+          
+          fileBuildCheck : if (.not.makeFile) then
              
              ! Find the ages element and extract data.
              columnList => getElementsByTagname(doc     ,"ages")
@@ -898,6 +942,9 @@ contains
              ! Open an XML file to output the data to.
              call xml_OpenFile(char(fileName),metalYieldDoc)
              call xml_NewElement(metalYieldDoc,"stellarPopulation")
+             call xml_NewElement(metalYieldDoc,"fileFormat")
+             call xml_AddCharacters(metalYieldDoc,fileFormatCurrent)
+             call xml_EndElement(metalYieldDoc,"fileFormat")
              call xml_NewElement(metalYieldDoc,"description")
              select case (iElement)
              case (1)
@@ -1000,7 +1047,7 @@ contains
              call Galacticus_Display_Unindent     ('finished',verbosityWorking)
              call xml_EndElement(metalYieldDoc,"stellarPopulation")
              call xml_Close(metalYieldDoc)
-          end if fileNameCheck
+          end if fileBuildCheck
           
        end do elementsLoop
      
@@ -1149,11 +1196,12 @@ contains
     type(fgsl_function)                                      :: integrandFunction
     type(fgsl_integration_workspace)                         :: integrationWorkspace
     integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
-         &,metallicityIndex,iEnergyInput,ioErr
+         &,metallicityIndex,iEnergyInput,ioErr,fileFormat
     double precision                                         :: minimumMass,maximumMass
     character(len=20)                                        :: progressMessage,parameterValue
     type(xmlf_t)                                             :: energyInputDoc
     type(varying_string)                                     :: fileName
+    logical                                                  :: makeFile
 
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
@@ -1211,13 +1259,31 @@ contains
 
        ! Check if the table has been computed and stored previously.
        fileName=char(Galacticus_Input_Path())//'data/Stellar_Energy_Input_'//imfNames(imfSelected)//'.xml'
+       makeFile=.false.
        if (File_Exists(fileName)) then
-          
-          ! Open the XML file containing energy input.
+           ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input file')
-          
+          ! Check the version number.
+          dataList => getElementsByTagname(doc,"fileFormat")
+          if (getLength(dataList) == 1) then
+             thisItem => item(dataList,0)
+             call extractDataContent(thisItem,fileFormat)
+             if (fileFormat /= fileFormatCurrent) makeFile=.true.
+          else
+             makeFile=.true.
+          end if
+          if (makeFile) then
+             call destroy(doc)
+             call Galacticus_Display_Unindent('done',verbosityDebug)
+          end if
+       else
+          makeFile=.true.
+       end if
+       
+       if (.not.makeFile) then
+
           ! Find the ages element and extract data.
           columnList => getElementsByTagname(doc       ,"ages")
           thisItem => item(columnList,0)
@@ -1274,6 +1340,9 @@ contains
           ! Open an XML file to output the data to.
           call xml_OpenFile(char(fileName),energyInputDoc)
           call xml_NewElement(energyInputDoc,"stellarPopulation")
+          call xml_NewElement(energyInputDoc,"fileFormat")
+          call xml_AddCharacters(energyInputDoc,fileFormatCurrent)
+          call xml_EndElement(energyInputDoc,"fileFormat")
           call xml_NewElement(energyInputDoc,"description")
           call xml_AddCharacters(energyInputDoc,"Cumulative energy input for a "//char(imfNames(imfSelected))//" IMF")
           call xml_EndElement(energyInputDoc,"description")

@@ -66,7 +66,7 @@ module Stellar_Astrophysics_File
   use Numerical_Interpolation_2D_Irregular
   implicit none
   private
-  public :: Stellar_Astrophysics_File_Initialize
+  public :: Stellar_Astrophysics_File_Initialize, Stellar_Astrophysics_File_Format_Version
 
   ! Arrays to store stellar properties.
   double precision, allocatable, dimension(:  ) :: stellarLifetime,stellarLifetimeMass,stellarLifetimeMetallicity
@@ -82,7 +82,18 @@ module Stellar_Astrophysics_File
   logical,                       allocatable, dimension(:) :: elementYieldResetInterpolation
   !$omp threadprivate(elementYieldInterpolationWorkspace,elementYieldResetInterpolation)
 
+  ! Current file format version for intergalactic background radiation files.
+  integer                      , parameter                 :: fileFormatVersionCurrent=1
+  
 contains
+
+  integer function Stellar_Astrophysics_File_Format_Version()
+    !% Return the current file format version of stellar astrophysics files.
+    implicit none
+
+    Stellar_Astrophysics_File_Format_Version=fileFormatVersionCurrent
+    return
+  end function Stellar_Astrophysics_File_Format_Version
 
   !# <stellarAstrophysicsMethod>
   !#  <unitName>Stellar_Astrophysics_File_Initialize</unitName>
@@ -105,7 +116,7 @@ contains
     type(NodeList),              pointer                :: starList,propertyList
     type(varying_string)                                :: stellarPropertiesFile
     integer                                             :: ioErr,iStar,lifetimeCount,ejectedMassCount,metalYieldCount,iElement &
-         &,elementCount,elementYieldCountMaximum,mapToIndex
+         &,elementCount,elementYieldCountMaximum,mapToIndex,fileFormatVersion
     double precision                                    :: initialMass,metallicity
     logical                                             :: starHasElements
 
@@ -139,6 +150,12 @@ contains
        ! Open the XML file containing stellar properties.
        doc => parseFile(char(stellarPropertiesFile),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize','Unable to parse stellar properties file')
+  
+       ! Check the file format version of the file.
+       propertyList => getElementsByTagname(doc,"fileFormat")
+       thisDatum => item(propertyList,0)
+       call extractDataContent(thisDatum,fileFormatVersion)
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Stellar_Astrophysics_File_Initialize','file format version is out of date')
 
        ! Get a list of all stars.
        starList => getElementsByTagname(doc,"star")

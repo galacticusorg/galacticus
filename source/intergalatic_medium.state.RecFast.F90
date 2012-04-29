@@ -103,7 +103,7 @@ contains
        ! Ensure that the RecFast data file has been generated.
        
        ! Generate the name of the data file and an XML input parameter file.
-       recfastFile=char(Galacticus_Input_Path())//'data/recFast'
+       recfastFile  =char(Galacticus_Input_Path())//'data/recFast'
        parameterFile=char(Galacticus_Input_Path())//'data/recfast_parameters.xml'
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
@@ -126,6 +126,8 @@ contains
        recfastFile=recfastFile//'_YHe'//trim(parameterLabel)
        call Write_Parameter(parameterDoc,"Y_He",parameterLabel)
        recfastFile=recfastFile//'.xml'
+       write (parameterLabel,'(i1)') Intergalactic_Medium_State_File_Current_File_Format_Version()
+       call Write_Parameter(parameterDoc,"fileFormat",parameterLabel)
        call xml_Close(parameterDoc)
        
        ! Run the RecFast driver script to generate the data.

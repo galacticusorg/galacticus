@@ -66,22 +66,33 @@ module Radiation_IGB_File
   use FGSL
   implicit none
   private
-  public :: Radiation_IGB_File_Initialize
+  public :: Radiation_IGB_File_Initialize,Radiation_IGB_File_Format_Version
 
   ! Flag indicating whether the module has been initialized yet.
   logical :: moduleInitialized=.false.
 
   ! Arrays holding the radiation data.
   integer                                       :: spectraTimesCount,spectraWavelengthsCount
-  double precision, allocatable, dimension(:)   :: spectraTimes,spectraWavelengths
+  double precision, allocatable, dimension(:  ) :: spectraTimes,spectraWavelengths
   double precision, allocatable, dimension(:,:) :: spectra
 
   ! Interpolation structures.
-  logical                 :: interpolationReset=.true., interpolationResetTimes=.true.
-  type(fgsl_interp_accel) :: interpolationAccelerator , interpolationAcceleratorTimes
-  type(fgsl_interp)       :: interpolationObject
+  logical                                       :: interpolationReset=.true., interpolationResetTimes=.true.
+  type(fgsl_interp_accel)                       :: interpolationAccelerator , interpolationAcceleratorTimes
+  type(fgsl_interp      )                       :: interpolationObject
+
+  ! Current file format version for intergalactic background radiation files.
+  integer         , parameter                   :: fileFormatVersionCurrent=1
 
 contains
+
+  integer function Radiation_IGB_File_Format_Version()
+    !% Return the current file format version of intergalactic background radiation files.
+    implicit none
+
+    Radiation_IGB_File_Format_Version=fileFormatVersionCurrent
+    return
+  end function Radiation_IGB_File_Format_Version
 
   !# <radiationIntergalacticBackgroundMethod>
   !#  <unitName>Radiation_IGB_File_Initialize</unitName>
@@ -101,7 +112,7 @@ contains
     procedure(),          pointer, intent(inout) :: Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do
     type(Node),           pointer                :: doc,thisSpectrum,thisWavelength,thisDatum
     type(NodeList),       pointer                :: spectraList,datumList,wavelengthList
-    integer                                      :: ioErr,iSpectrum,jSpectrum,iWavelength
+    integer                                      :: ioErr,iSpectrum,jSpectrum,iWavelength,fileFormatVersion
     logical                                      :: timesIncreasing
     type(varying_string)                         :: radiationIGBFileName
 
@@ -124,6 +135,11 @@ contains
        ! Parse the XML file.
        doc => parseFile(char(radiationIGBFileName),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Radiation_Initialize_File','Unable to find or parse data file')
+       ! Check the file format version of the file.
+       datumList => getElementsByTagname(doc,"fileFormat")
+       thisDatum => item(datumList,0)
+       call extractDataContent(thisDatum,fileFormatVersion)
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Radiation_IGB_File_Initialize','file format version is out of date')
        ! Get a list of all spectra.
        spectraList => getElementsByTagname(doc,"spectra")
        ! Get the times from the file.
