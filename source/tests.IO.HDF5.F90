@@ -304,7 +304,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 1-D array integer dataset to allocatable array",integerValueArray(3:6),integerValueArrayReread)
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"integerDataset1dArray")
+     datasetObject=groupObject%openDataset("integerDataset1dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference1D(datasetObject,"myReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
      ! Close the dataset.
@@ -351,7 +351,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 1-D array long integer dataset to allocatable array",integer8ValueArray(3:6),integer8ValueArrayReread)
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"integer8Dataset1dArray")
+     datasetObject=groupObject%openDataset("integer8Dataset1dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference1D(datasetObject,"anotherReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
      ! Close the dataset.
@@ -398,7 +398,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 1-D array double dataset to allocatable array",doubleValueArray(3:6),doubleValueArrayReread)
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset1dArray")
+     datasetObject=groupObject%openDataset("doubleDataset1dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference1D(datasetObject,"doubleReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
      ! Close the dataset.
@@ -458,7 +458,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 2-D array double dataset to allocatable array",doubleValueArray2d(3:6,6:8),doubleValueArray2dReread(1:4,1:3))
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset2dArray")
+     datasetObject=groupObject%openDataset("doubleDataset2dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference2D(datasetObject,"double2dReference",int([3,5],kind=HSIZE_T),int([2,3],kind=HSIZE_T))
      ! Close the dataset.
@@ -506,7 +506,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 3-D array double dataset to allocatable array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dReread(1:4,1:3,1:5))
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset3dArray")
+     datasetObject=groupObject%openDataset("doubleDataset3dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference3D(datasetObject,"double3dReference",int([3,5,2],kind=HSIZE_T),int([2,3,4],kind=HSIZE_T))
      ! Close the dataset.
@@ -557,7 +557,7 @@ program Tests_IO_HDF5
      call datasetObject%close()
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset4dArray")
+     datasetObject=groupObject%openDataset("doubleDataset4dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference4D(datasetObject,"double4dReference",int([3,5,2,6],kind=HSIZE_T),int([2,3,4,3],kind=HSIZE_T))
      ! Close the dataset.
@@ -604,7 +604,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 5-D array double dataset to allocatable array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dReread(1:4,1:3,1:5,1:2,1:6))
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset5dArray")
+     datasetObject=groupObject%openDataset("doubleDataset5dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference5D(datasetObject,"double5dReference",int([3,5,2,6,2],kind=HSIZE_T),int([2,3,4,3,8],kind=HSIZE_T))
      ! Close the dataset.

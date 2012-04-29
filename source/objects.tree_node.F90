@@ -217,21 +217,9 @@ module Tree_Nodes
      !@     <description>Walks to the next node in the branch rooted at {\tt startNode}, recursing through satellite nodes, returning the pointer in {\tt nextNode} if given, otherwise moving the target node to the new node.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure                                  ::                             Merger_Tree_Walk_Tree
-! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!     procedure                                  ::                             Merger_Tree_Walk_Tree_Same_Node
-     generic                                    :: walkTree                 => Merger_Tree_Walk_Tree!,&
-!          &                                                                    Merger_Tree_Walk_Tree_Same_Node
-     procedure                                  ::                             Merger_Tree_Walk_Tree_With_Satellites
-! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!     procedure                                  ::                             Merger_Tree_Walk_Tree_With_Satellites_Same_Node
-     generic                                    :: walkTreeWithSatellites   => Merger_Tree_Walk_Tree_With_Satellites!,&
-!          &                                                                    Merger_Tree_Walk_Tree_With_Satellites_Same_Node
-     procedure                                  ::                             Merger_Tree_Construction_Walk
-! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!     procedure                                  ::                             Merger_Tree_Construction_Walk_Same_Node
-     generic                                    :: walkTreeConstruction     => Merger_Tree_Construction_Walk!,&
-!          &                                                                    Merger_Tree_Construction_Walk_Same_Node
+     procedure                                  :: walkTree                 => Merger_Tree_Walk_Tree
+     procedure                                  :: walkTreeWithSatellites   => Merger_Tree_Walk_Tree_With_Satellites
+     procedure                                  :: walkTreeConstruction     => Merger_Tree_Construction_Walk
      procedure                                  :: walkBranch               => Merger_Tree_Walk_Branch
      procedure                                  :: walkBranchWithSatellites => Merger_Tree_Walk_Branch_With_Satellites
      ! Satellite methods.
@@ -943,31 +931,6 @@ contains
     return
   end subroutine Get_Last_Satellite
 
-! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!   subroutine Merger_Tree_Walk_Tree_Same_Node(thisNode)
-!     !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_walk_tree}{{\tt
-!     !% Merger\_Tree\_Walk\_Tree()}} subroutine that does the walk in place, i.e. by updating the input tree node pointer to point
-!     !% to the next node.
-!     implicit none
-! #ifdef GCC45
-!     class (treeNode), target , intent(inout) :: thisNode
-! #else
-!     type (treeNode),  pointer, intent(inout) :: thisNode
-! #endif
-!     type (treeNode),  pointer                :: thisNodeActual
-
-! #ifdef GCC45
-!     select type (thisNode)
-!     type is (treeNode)
-! #endif
-!        thisNodeActual => thisNode
-! #ifdef GCC45
-!     end select
-! #endif
-!     call Merger_Tree_Walk_Tree(thisNode,thisNodeActual)
-!     return
-!   end subroutine Merger_Tree_Walk_Tree_Same_Node
-
   subroutine Get_Earliest_Progenitor(thisNode,progenitorNode)
     !% Returns a pointer to the earliest progenitor of with {\tt thisNode}.
     implicit none
@@ -1024,31 +987,6 @@ contains
     nextNode => workNode
     return
   end subroutine Merger_Tree_Walk_Tree
-
-! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!   subroutine Merger_Tree_Walk_Tree_With_Satellites_Same_Node(thisNode)
-!     !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_walk_tree_with_satellites}{{\tt
-!     !% Merger\_Tree\_Walk\_Tree\_With \_Satelites()}} subroutine that does the walk in place, i.e. by updating the input tree node
-!     !% pointer to point to the next node.
-!     implicit none
-! #ifdef GCC45
-!     class (treeNode), intent(inout)          :: thisNode
-! #else
-!     type (treeNode),  intent(inout), pointer :: thisNode
-! #endif
-!     type (treeNode),                 pointer :: thisNodeActual
-
-! #ifdef GCC45
-!     select type (thisNode)
-!     type is (treeNode)
-! #endif
-!        thisNodeActual => thisNode
-! #ifdef GCC45
-!     end select
-! #endif
-!     call Merger_Tree_Walk_Tree_With_Satellites(thisNode,thisNodeActual)
-!     return
-!   end subroutine Merger_Tree_Walk_Tree_With_Satellites_Same_Node
 
   subroutine Merger_Tree_Walk_Tree_With_Satellites(thisNode,nextNode)
     !% Merger tree walk function which also descends through satellite nodes. Note that it is important that the walk descends to
@@ -1191,31 +1129,6 @@ contains
     nextNode => workNode
     return
   end subroutine Merger_Tree_Walk_Branch_With_Satellites
-
-! <gfortran 4.6> not sure we can support the following since class dummy argument can not be pointer.
-!   subroutine Merger_Tree_Construction_Walk_Same_Node(thisNode)
-!     !% Simple interface to the \hyperlink{objects.tree_node.F90:tree_nodes:merger_tree_construction_walk}{{\tt Merger\_Tree\_Construction\_Walk()}} subroutine
-!     !% that does the walk in place, i.e. by updating the input tree node pointer to point to the next node.
-!     implicit none
-! #ifdef GCC45
-!     class (treeNode), target,  intent(inout) :: thisNode
-! #else
-!     type (treeNode),  pointer, intent(inout) :: thisNode
-! #endif
-!     type (treeNode),  pointer                :: thisNodeActual
-
-! #ifdef GCC45
-!     select type (thisNode)
-!     type is (treeNode)
-! #endif
-!        thisNodeActual => thisNode
-! #ifdef GCC45
-!     end select
-! #endif
-
-!     call Merger_Tree_Construction_Walk(thisNode,thisNodeActual)
-!     return
-!   end subroutine Merger_Tree_Construction_Walk_Same_Node
 
   function Merger_Tree_Walk_Descend_to_Progenitors(thisNode) result (progenitorNode)
     !% Descend to the deepest progenitor (satellites and children) of {\tt thisNode}.

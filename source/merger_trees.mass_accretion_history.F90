@@ -121,7 +121,7 @@ contains
        call Get_Input_Parameter('massAccretionHistoryOutput',massAccretionHistoryOutput,defaultValue=.false.)
        ! Create an output group if necessary.
        !$omp critical (HDF5_Access)
-       if (massAccretionHistoryOutput) accretionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'massAccretionHistories','Mass&
+       if (massAccretionHistoryOutput) accretionGroup=galacticusOutputFile%openGroup('massAccretionHistories','Mass&
             & accretion histories of main branches in merger trees.')
        !$omp end critical (HDF5_Access)
        ! Flag that module is initialized.
@@ -156,7 +156,7 @@ contains
        groupName   ='mergerTree'
        groupName   =groupName//thisTree%index
        !$omp critical (HDF5_Access)
-       treeGroup=IO_HDF5_Open_Group(accretionGroup,char(groupName),'Mass accretion history for main branch of merger tree.')
+       treeGroup=accretionGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call treeGroup%writeDataset(accretionHistoryNodeIndex,'nodeIndex','Index of the node.'         )
        call treeGroup%writeDataset(accretionHistoryNodeTime ,'nodeTime' ,'Time at node [Gyr].'        ,datasetReturned=accretionDataset)
        call accretionDataset%writeAttribute(gigaYear ,"unitsInSI")

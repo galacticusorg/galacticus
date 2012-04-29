@@ -126,12 +126,7 @@ contains
     !$omp end critical(Galactic_Structure_Radii_Initialization) 
 
     ! Call the routine to solve for the radii.
-    !! <gfortran 4.6> We shouldn't need the OpenMP Critical section here, but it seems that the current version of gfortran 4.6
-    !! has problems with the procedure pointers used in radius solving (Radius_Set, Radius_Get, Velocity_Set, Velocity_Get) which can
-    !! cause them to become set by another thread, leading to strange results.
-    !$omp critical(Galactic_Structure_Radii_Do)
     call Galactic_Structure_Radii_Solve_Do(thisNode)
-    !$omp end critical(Galactic_Structure_Radii_Do)
 
     return
   end subroutine Galactic_Structure_Radii_Solve

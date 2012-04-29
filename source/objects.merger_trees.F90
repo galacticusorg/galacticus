@@ -530,10 +530,7 @@ contains
     ! Reset interrupt variables.
     firstInterruptFound     =  .false.
     firstInterruptTime      =  0.0d0
-    !! <gfortran 4.6> The following nullification of firstInterruptProcedure is commented out because it causes problems when
-    !! running under OpenMP. It should be irrelevant as firstInterruptProcedure is only used if an interrupt is actually triggered, in
-    !! which case firstInterruptProcedure will have been associated with a procedure.
-    !!    firstInterruptProcedure => null()
+    firstInterruptProcedure => null()
 
     ! Call ODE solver routines.
     startTimeThisNode=Tree_Node_Time(thisNode)

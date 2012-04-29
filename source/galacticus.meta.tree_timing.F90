@@ -226,8 +226,8 @@ contains
     if (metaCollectTimingData) then
        
        ! Open output groups.
-       metaDataGroup  =IO_HDF5_Open_Group(galacticusOutputFile,'metaData'  ,'Galacticus meta data.'    )
-       timingDataGroup=IO_HDF5_Open_Group(metaDataGroup       ,'treeTiming','Meta-data on tree timing.')
+       metaDataGroup  =galacticusOutputFile%openGroup('metaData'  ,'Galacticus meta data.'    )
+       timingDataGroup=metaDataGroup       %openGroup('treeTiming','Meta-data on tree timing.')
        
        ! Write timing data.
        call timingDataGroup%writeDataset(treeMasses        (1:treesRecordedCount),"treeMasses"        ,"Tree mass [M⊙]"       ,datasetReturned=metaDataDataset)

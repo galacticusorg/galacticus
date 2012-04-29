@@ -110,7 +110,7 @@ contains
     include 'galacticus.output.build.environment.inc' ! NO_USES
 
     ! Create a group for build information.
-    buildGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Build','Build information for this model.')
+    buildGroup=galacticusOutputFile%openGroup('Build','Build information for this model.')
 
     ! Write FGSL library version string.
     call buildGroup%writeAttribute(FGSL_Version,'FGSL_library_version')

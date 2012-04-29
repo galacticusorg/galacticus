@@ -291,7 +291,7 @@ contains
        !@   <description>A set of volume-averaged properites describing the mass content of the Universe.</description>
        !@ </outputType>
 
-       historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,'globalHistory','Global (volume averaged) history for this model.')
+       historyGroup=galacticusOutputFile%openGroup('globalHistory','Global (volume averaged) history for this model.')
        
        !@ <outputProperty>
        !@   <name>historyTime</name>

@@ -141,7 +141,7 @@ contains
        call Get_Input_Parameter('mergerTreeStructureOutputVirialQuantities',mergerTreeStructureOutputVirialQuantities,defaultValue=.false.)
        ! Create an output group if necessary.
        !$omp critical(HDF5_Access)
-       if (mergerTreeStructureOutput) structureGroup=IO_HDF5_Open_Group(galacticusOutputFile,'mergerTreeStructures','Pre-evolution structures of merger trees.')
+       if (mergerTreeStructureOutput) structureGroup=galacticusOutputFile%openGroup('mergerTreeStructures','Pre-evolution structures of merger trees.')
        !$omp end critical(HDF5_Access)
        ! Flag that module is initialized.
        structureOutputModuleInitialized=.true.
@@ -165,7 +165,7 @@ contains
        groupName   =groupName//thisTree%index
        groupComment='Pre-evolution structure of merger tree.'
        !$omp critical(HDF5_Access)
-       treeGroup   =IO_HDF5_Open_Group(structureGroup,char(groupName),'Pre-evolution structure of merger tree.')
+       treeGroup   =structureGroup%openGroup(char(groupName),'Pre-evolution structure of merger tree.')
        !$omp end critical(HDF5_Access)
 
        ! Extract node indices and output to file.
