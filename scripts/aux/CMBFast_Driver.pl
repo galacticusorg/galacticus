@@ -15,10 +15,16 @@ unshift(@INC,$galacticusPath."perl");
 # Andrew Benson (27-Nov-2009)
 
 # Get arguments.
-if ( $#ARGV != 2 ) {die "Usage: CMBFast_Driver.pl <parameterFile> <transferFunctionFile> <kMax>"};
+if ( $#ARGV != 3 ) {die "Usage: CMBFast_Driver.pl <parameterFile> <transferFunctionFile> <kMax> <fileFormatVersion>"};
 $parameterFile        = $ARGV[0];
 $transferFunctionFile = $ARGV[1];
 $kMax                 = $ARGV[2];
+$fileFormat           = $ARGV[3];
+
+# Ensure the requested file format version is compatible.
+my $fileFormatCurrent = 1;
+die('CMBFast_Driver.pl: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
+    unless ( $fileFormat == $fileFormatCurrent );
 
 # Download the code.
 unless ( -e $galacticusPath."aux/cmbfast.tar.gz" ) {
@@ -77,7 +83,7 @@ if ( -e $transferFunctionFile ) {
     my $xmlDoc = new XML::Simple;
     $transferFunction = $xmlDoc->XMLin($transferFunctionFile);
     if ( exists($transferFunction->{'fileFormat'}) ) { 
-	$makeFile = 1 if ( $transferFunction->{'fileFormat'} != 1 );
+	$makeFile = 1 unless ( $transferFunction->{'fileFormat'} == $fileFormatCurrent );
     } else {
 	$makeFile = 1;
     }
@@ -136,7 +142,7 @@ if ( $makeFile == 1 ) {
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'limit' } = "high";
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'method'} = "power law";
    # Add file format version.
-   $transferFunction{'fileFormat'} = 1;
+   $transferFunction{'fileFormat'} = $fileFormatCurrent;
    # Add unique label.
    $transferFunction{'uniqueLabel'} = $data->{'uniqueLabel'};
    # Output the transfer function.

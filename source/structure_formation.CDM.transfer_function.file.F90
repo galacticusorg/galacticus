@@ -66,23 +66,34 @@ module Transfer_Function_File
   use ISO_Varying_String
   implicit none
   private
-  public :: Transfer_Function_File_Initialize, Transfer_Function_Named_File_Read
+  public :: Transfer_Function_File_Initialize, Transfer_Function_Named_File_Read, Transfer_Function_Named_File_Format_Version
   
   ! Flag to indicate if this module has been initialized.
-  logical              :: transferFunctionInitialized=.false.
+  logical                     :: transferFunctionInitialized=.false.
 
   ! File name for the transfer function data.
-  type(varying_string) :: transferFunctionFile
+  type(varying_string)        :: transferFunctionFile
 
   ! Extrapolation methods.
-  integer              :: extrapolateWavenumberLow,extrapolateWavenumberHigh
+  integer                     :: extrapolateWavenumberLow,extrapolateWavenumberHigh
 
   ! Number of points per decade to add per decade when extrapolating and the buffer in log wavenumber to use.
-  integer,         parameter :: extrapolatePointsPerDecade=10
-  double precision           :: extrapolateLogWavenumberBuffer=1.0d0
+  integer         , parameter :: extrapolatePointsPerDecade=10
+  double precision            :: extrapolateLogWavenumberBuffer=1.0d0
+
+  ! Current file format version for intergalactic background radiation files.
+  integer         , parameter :: fileFormatVersionCurrent=1
 
 contains
   
+  integer function Transfer_Function_Named_File_Format_Version()
+    !% Return the current file format version of transfer function files files.
+    implicit none
+
+    Transfer_Function_Named_File_Format_Version=fileFormatVersionCurrent
+    return
+  end function Transfer_Function_Named_File_Format_Version
+
   !# <transferFunctionMethod>
   !#  <unitName>Transfer_Function_File_Initialize</unitName>
   !# </transferFunctionMethod>
@@ -149,7 +160,6 @@ contains
     type(NodeList),   pointer                                  :: datumList,parameterList,wavenumberExtrapolationList
     double precision, allocatable, dimension(:)                :: wavenumberTemporary,transferFunctionTemporary
 
-    integer         , parameter                                :: versionNumberCurrent=1
     integer                                                    :: iDatum,ioErr,iParameter,addCount,iExtrapolation&
          &,extrapolationMethod,versionNumber
     double precision                                           :: datumValues(2),parameterValue
@@ -164,7 +174,7 @@ contains
        ! Check that the file has the correct format version number.
        formatElement => item(getElementsByTagname(doc,"fileFormat"),0)
        call extractDataContent(formatElement,versionNumber)
-       if (versionNumber /= versionNumberCurrent) call Galacticus_Error_Report('Transfer_Function_File_Read','file has the incorrect version number')
+       if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('Transfer_Function_File_Read','file has the incorrect version number')
        ! Check that parameters match if any are present.
        parameterList => getElementsByTagname(doc,"parameter")
        do iParameter=0,getLength(parameterList)-1

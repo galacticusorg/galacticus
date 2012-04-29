@@ -78,6 +78,9 @@ module Stellar_Astrophysics_Tracks_File
   type(fgsl_interp_accel)       :: interpolationAcceleratorMetallicity
   logical                       :: interpolationResetMetallicity=.true.
 
+  ! The current file format version.
+  integer,          parameter   :: fileFormatVersionCurrent=1
+
 contains
 
   !# <stellarTracksMethod>
@@ -97,7 +100,7 @@ contains
     procedure(double precision), pointer, intent(inout) :: Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get
     type     (varying_string  )                         :: stellarTracksFile,groupName
     integer                                             :: initialMassCount,initialMassCountMaximum ,ageCountMaximum&
-         &,metallicityCountMaximum
+         &,metallicityCountMaximum,fileFormatVersion
     type     (hdf5Object      )                         :: stellarTracks,metallicityGroup,massGroup,ageDataset
     logical                                             :: foundMetallicityGroup,foundMassGroup
 
@@ -124,6 +127,10 @@ contains
        !$omp critical(HDF5_Access)
        call stellarTracks%openFile(char(stellarTracksFile),readOnly=.true.)
        
+       ! Check that this file has the correct format.
+       call stellarTracks%readAttribute('fileFormat',fileFormatVersion)
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Stellar_Tracks_Initialize_File','format of stellar tracks file is out of date')
+
        ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
        metallicityCountMaximum=0
        initialMassCountMaximum=0

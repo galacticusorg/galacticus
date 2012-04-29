@@ -101,6 +101,7 @@ contains
     use System_Command
     use Stellar_Population_Spectra_File
     use Galacticus_Input_Paths
+    use String_Handling
     implicit none
     integer,              intent(in)                :: imfIndex
     logical,              allocatable, dimension(:) :: imfReadTemporary
@@ -145,6 +146,7 @@ contains
 
        ! Call the driver script to generate this file.
        command=char(Galacticus_Input_Path())//'scripts/aux/Conroy_SPS_Driver.pl '//imfName//' '//stellarPopulationSpectraFile
+       command=command//' '//Stellar_Population_Spectra_File_Format_Current()
        call System_Command_Do(command)
 
        ! Call routine to read in the tabulated data.

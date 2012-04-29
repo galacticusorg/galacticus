@@ -68,7 +68,8 @@ module Stellar_Population_Spectra_File
   implicit none
   private
   public :: Stellar_Population_Spectra_File_Initialize, Stellar_Population_Spectra_File_Read,&
-       & Stellar_Population_Spectra_File_Interpolate, Stellar_Population_Spectra_File_Tabulation
+       & Stellar_Population_Spectra_File_Interpolate, Stellar_Population_Spectra_File_Tabulation,&
+       & Stellar_Population_Spectra_File_Format_Current
   
   type spectralTable
      !% Structure to hold spectral data.
@@ -92,8 +93,19 @@ module Stellar_Population_Spectra_File
   integer                            :: imfCount=0 ! Number of IMFs currently held.
   integer, allocatable, dimension(:) :: imfLookup ! Look-up array to cross-reference IMF indices to our internal data structure.
 
+  ! The current file format version.
+  integer, parameter                 :: fileFormatVersionCurrent=1
+
 contains
   
+  integer function Stellar_Population_Spectra_File_Format_Current()
+    !% Return the current file format version for stellar spectra files.
+    implicit none
+
+    Stellar_Population_Spectra_File_Format_Current=fileFormatVersionCurrent
+    return
+  end function Stellar_Population_Spectra_File_Format_Current
+
   !# <stellarPopulationSpectraMethod>
   !#  <unitName>Stellar_Population_Spectra_File_Initialize</unitName>
   !# </stellarPopulationSpectraMethod>
@@ -271,7 +283,7 @@ contains
     type(varying_string), intent(in)                :: stellarPopulationSpectraFileToRead
     integer,              allocatable, dimension(:) :: imfLookupTemporary
     type(spectralTable),  allocatable, dimension(:) :: spectraTemporary
-    integer                                         :: imfLookupIndex
+    integer                                         :: imfLookupIndex,fileFormatVersion
     type(hdf5Object)                                :: stellarPopulationSpectraFile
 
     ! Ensure that array for IMF index mappings is sufficiently large.
@@ -308,6 +320,10 @@ contains
        ! Open the HDF5 file.
        call stellarPopulationSpectraFile%openFile(char(stellarPopulationSpectraFileToRead),readOnly=.true.)
        
+       ! Check that this file has the correct format.
+       call stellarPopulationSpectraFile%readAttribute('fileFormat',fileFormatVersion)
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Stellar_Population_Spectra_File_Read','format of stellar tracks file is out of date')
+
        ! Read the wavelengths array.
        call stellarPopulationSpectraFile%readDataset('wavelengths'                 ,spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths  )
        spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints=size(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths  )

@@ -70,7 +70,8 @@ module Intergalactic_Medium_State_File
   implicit none
   private
   public :: Intergalactic_Medium_State_File_Initialize, Intergalactic_Medium_Temperature_File,&
-       & Intergalactic_Medium_Electron_Fraction_File, Intergalactic_Medium_File_Set_File
+       & Intergalactic_Medium_Electron_Fraction_File, Intergalactic_Medium_File_Set_File, &
+       & Intergalactic_Medium_State_File_Current_File_Format_Version
 
   ! Name of the file from which to read intergalactic medium state data.
   type(varying_string)                               :: intergalaticMediumStateFileName
@@ -88,6 +89,9 @@ module Intergalactic_Medium_State_File
   logical                                            :: interpolationResetElectronFraction=.true.,interpolationResetTemperature=.true.
   !$omp threadprivate(interpolationAcceleratorElectronFraction,interpolationObjectElectronFraction,interpolationResetElectronFraction)
   !$omp threadprivate(interpolationAcceleratorTemperature     ,interpolationObjectTemperature     ,interpolationResetTemperature     )
+
+  ! Current file format version for intergalactic medium state files.
+  integer,                 parameter                 :: fileFormatVersionCurrent=1
 
 contains
 
@@ -130,6 +134,14 @@ contains
     return
   end subroutine Intergalactic_Medium_File_Set_File
 
+  integer function Intergalactic_Medium_State_File_Current_File_Format_Version()
+    !% Return the current file format version of intergalactic medium state files.
+    implicit none
+
+    Intergalactic_Medium_State_File_Current_File_Format_Version=fileFormatVersionCurrent
+    return
+  end function Intergalactic_Medium_State_File_Current_File_Format_Version
+
   subroutine Intergalactic_Medium_State_File_Read_Data
     !% Read in data describing the state of the intergalactic medium.
     use Galacticus_Error
@@ -139,7 +151,7 @@ contains
     implicit none
     type(Node),      pointer :: doc,thisItem
     type(NodeList),  pointer :: itemList,redshiftList,electronFractionList,temperatureList
-    integer                  :: ioErr,iRedshift
+    integer                  :: ioErr,iRedshift,fileFormatVersion
     double precision         :: redshift
 
     ! Check if data has yet to be read.
@@ -148,6 +160,12 @@ contains
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(intergalaticMediumStateFileName),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Intergalactic_Medium_State_File_Read_Data','Unable to parse intergalactic medium state file')
+       ! Check the file format version of the file.
+       itemList             => getElementsByTagname(doc,"fileFormat")
+       thisItem             => item(itemList,0)
+       call extractDataContent(thisItem,fileFormatVersion)
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Intergalactic_Medium_State_File_Read_Data','file format version is out of date')
+
        ! Get the redshift element.
        itemList             => getElementsByTagname(doc     ,"redshift"         )
        thisItem             => item(itemList,0)

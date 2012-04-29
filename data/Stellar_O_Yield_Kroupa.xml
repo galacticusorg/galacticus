@@ -3,6 +3,7 @@
   <description>O yield for a Kroupa IMF</description>
   <source>Computed by Galacticus</source>
   <date>Thu Jun 10  7:06:40 (GMT -07:00) 2010</date>
+  <fileFormat>1</fileFormat>
   <ages>
     <description>Age of the stellar population in Gyr</description>
     <data>0.1000E-02</data>

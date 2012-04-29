@@ -1,5 +1,6 @@
 <ionizationStates>
   <description>CIE ionization states computed by Cloudy 08.00</description>
+  <fileFormat>1</fileFormat>
   <extrapolation>
     <metallicity>
       <limit>low</limit>
