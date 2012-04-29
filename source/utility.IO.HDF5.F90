@@ -72,9 +72,6 @@ module IO_HDF5
   implicit none
   private
   public :: hdf5Object, IO_HDF5_Set_Defaults
-  ! <gfortran 4.6> The following routines should ideally only be accessible as type-bound procedures, but this is buggy for
-  ! routines with optional arguments in gfortran 4.4.
-  public :: IO_HDF5_Open_Dataset, IO_HDF5_Open_Group
 
   ! Record of initialization of this module.
   logical :: hdf5IsInitalized=.false.
@@ -742,8 +739,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
     end if
     locationID  =inObject%objectID
-    ! <gfortran 4.6> seems to require the non-type-bound version below.
-    locationPath=IO_HDF5_Path_To(inObject)
+    locationPath=inObject%pathTo()
 
     ! Set the parent for the group.
     select type (inObject)
@@ -752,9 +748,7 @@ contains
     end select
 
     ! Check if the group exists.
-    ! <gfortran 4.6> Use the non-type-bound version here to avoid seg faults.
-    if (IO_HDF5_Has_Group(inObject,groupName)) then
-!    if (inObject%hasGroup(groupName)) then
+    if (inObject%hasGroup(groupName)) then
        ! Open the group.
        call h5gopen_f(locationID,trim(groupName),groupObject%objectID,errorCode)
        if (errorCode /= 0) then
@@ -1228,16 +1222,16 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    class(hdf5Object),       intent(inout), target                :: thisObject
-    character(len=*),        intent(in),    optional              :: attributeName
-    integer(kind=kind_int8), intent(in),             dimension(:) :: attributeValue
-    integer(kind=HSIZE_T),                           dimension(1) :: attributeDimensions
-    integer(kind=kind_int8), allocatable,   target,  dimension(:) :: attributeValueContiguous
-    integer                                                       :: errorCode
-    logical                                                       :: preExisted
-    type(hdf5Object)                                              :: attributeObject
-    type(varying_string)                                          :: message,attributeNameActual
-    type(c_ptr)                                                   :: dataBuffer
+    class(hdf5Object),       intent(inout), target                   :: thisObject
+    character(len=*),        intent(in   ), optional                 :: attributeName
+    integer(kind=kind_int8), intent(in   ),             dimension(:) :: attributeValue
+    integer(kind=HSIZE_T),                              dimension(1) :: attributeDimensions
+    integer(kind=kind_int8), allocatable,   target,     dimension(:) :: attributeValueContiguous
+    integer                                                          :: errorCode
+    logical                                                          :: preExisted
+    type(hdf5Object)                                                 :: attributeObject
+    type(varying_string)                                             :: message,attributeNameActual
+    type(c_ptr)                                                      :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -1293,10 +1287,8 @@ contains
     end if
 
     ! Write the attribute.
-    ! <gfortran 4.6> We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
-    ! since it may be non-contiguous if an array section was passed in and that is not C-interoperable. Under gfortran 4.6 the
-    ! F2008 "contiguous" attribute should be supported. If attributeValue is given the contiguous attribute I expect that this
-    ! work-around should no longer be needed.
+    ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
+    ! since it is of assumed shape.
     call Alloc_Array(attributeValueContiguous,shape(attributeValue))
     attributeValueContiguous=attributeValue
     dataBuffer=c_loc(attributeValueContiguous)
@@ -1366,8 +1358,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Double_Scalar',message)
        end if
        ! Record if attribute already exists.
-       ! <gfortran 4.6> The following should be called via the type-bound procedure, but seems to cause weird problems {gcc version 4.6.0 20100813} if we do that.
-       preExisted=IO_HDF5_Has_Attribute(thisObject,attributeName)
+       preExisted=thisObject%hasAttribute(attributeName)
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeDouble)
        ! Check that pre-existing object is a scalar double.
@@ -1537,8 +1528,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
        end if
        ! Record if attribute already exists.
-       ! <gfortran 4.6> The following should be called via the type-bound procedure, but seems to cause weird problems {gcc version 4.6.0 20100813} if we do that.
-       preExisted=IO_HDF5_Has_Attribute(thisObject,attributeName)
+       preExisted=thisObject%hasAttribute(attributeName)
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeCharacter,useDataType=dataTypeID)
        ! Check that pre-existing object is a scalar character.
@@ -2294,10 +2284,8 @@ contains
     end if
 
     ! Read the attribute.
-    ! <gfortran 4.6> We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
-    ! since it may be non-contiguous if an array section was passed in and that is not C-interoperable. Under gfortran 4.6 the
-    ! F2008 "contiguous" attribute should be supported. If attributeValue is given the contiguous attribute I expect that this
-    ! work-around should no longer be needed.
+    ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
+    ! since it is of assumed shape.
     call Alloc_Array(attributeValueContiguous,shape(attributeValue))
     dataBuffer=c_loc(attributeValueContiguous)
     errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
@@ -3512,8 +3500,7 @@ contains
     end if
 
     ! Check if the dataset exists.
-    ! <gfortran 4.6> Object oriented version below does not work.
-    if (IO_HDF5_Has_Dataset(inObject,datasetName)) then
+    if (inObject%hasDataset(datasetName)) then
        ! Open the dataset.
        call h5dopen_f(locationID,trim(datasetName),datasetObject%objectID,errorCode)
        if (errorCode /= 0) then
@@ -5352,8 +5339,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_1D',message)
        end if
        ! Record if dataset already exists.
-       ! <gfortran 4.6> Object oriented version below does not work.
-       preExisted=IO_HDF5_Has_Dataset(thisObject,datasetName)
+       preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
        datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&

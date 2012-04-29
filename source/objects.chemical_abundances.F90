@@ -67,9 +67,6 @@ module Chemical_Abundances_Structure
   implicit none
   private
   public :: chemicalAbundancesStructure, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count
-  ! <gfortran 4.6> The following method should only be callable as a type-bound procedure, but currently this does not seem to be
-  ! recognized when called on a function result.
-  public :: Chemicals_Abundances_Reset
   
   type chemicalAbundancesStructure
      !% The structure used for describing chemical abundances in \glc.

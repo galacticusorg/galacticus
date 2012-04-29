@@ -1522,7 +1522,7 @@ contains
 
     ! Open the group to which black hole mergers should be written.
     !$omp critical (Galacticus_Output_Tree_Black_Hole_Merger)
-    mergersGroup=IO_HDF5_Open_Group(galacticusOutputFile,"blackHoleMergers","Black hole mergers data.")
+    mergersGroup=galacticusOutputFile%openGroup("blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
     call mergersGroup%writeDataset([massBlackHole1          ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
     call mergersGroup%writeDataset([massBlackHole2          ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
@@ -1576,10 +1576,10 @@ contains
 
        ! Open the output group.
        !$omp critical (HDF5_Access)
-       blackHolesGroup=IO_HDF5_Open_Group(galacticusOutputFile,"blackHole","Black hole data.")
+       blackHolesGroup=galacticusOutputFile%openGroup("blackHole","Black hole data.")
        groupName="Output"
        groupName=groupName//iOutput
-       outputGroup=IO_HDF5_Open_Group(blackHolesGroup,char(groupName),"Properties of black holes for all trees at each output.")  
+       outputGroup=blackHolesGroup%openGroup(char(groupName),"Properties of black holes for all trees at each output.")  
        !$omp end critical (HDF5_Access)
 
        ! Allocate array to store profile.

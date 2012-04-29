@@ -1055,7 +1055,7 @@ contains
     implicit none
 
     if (.not.parametersGroupCreated) then
-       parametersGroup=IO_HDF5_Open_Group(outputFileObject,'Parameters','Contains values for Galacticus parameters')
+       parametersGroup=outputFileObject%openGroup('Parameters','Contains values for Galacticus parameters')
        parametersGroupCreated=.true.
     end if
     return

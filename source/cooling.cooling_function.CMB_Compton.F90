@@ -121,9 +121,8 @@ contains
        electronDensity=Electron_Density(temperature,numberDensityHydrogen,abundances,radiation)
 
        ! Compute the Compton cooling rate.
-       ! <gfortran 4.6> Would like to use the radiation%temperature() type-bound procedure form here, but type-bound procedures with optional arguments are buggy under gfortran 4.4
-       coolingFunction=comptonRateNormalization*electronDensity*(Radiation_Temperature(radiation,[radiationTypeCMB])**4)&
-            &*(temperature-Radiation_Temperature(radiation,[radiationTypeCMB]))
+       coolingFunction=comptonRateNormalization*electronDensity*(radiation%temperature([radiationTypeCMB])**4)&
+            &*(temperature-radiation%temperature([radiationTypeCMB]))
 
     else
 

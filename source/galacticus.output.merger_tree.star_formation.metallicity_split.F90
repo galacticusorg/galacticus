@@ -435,7 +435,7 @@ contains
        ! Write metallicities if not already done.
        if (.not.metallicityTableWritten) then
           ! Open the histories group.
-          historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,"starFormationHistories","Star formation history data.")
+          historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data.")
           
           ! Write the metallicities.
           call historyGroup%writeDataset(metallicityTable,"metallicities","Metallicities at which star formation histories are tabulated.")
@@ -448,13 +448,13 @@ contains
        end if
        
        ! Create a group for the profile datasets.
-       historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,"starFormationHistories","Star formation history data.")
+       historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data.")
        groupName="Output"
        groupName=groupName//iOutput
-       outputGroup=IO_HDF5_Open_Group(historyGroup,char(groupName),"Star formation histories for all trees at each output.")
+       outputGroup=historyGroup%openGroup(char(groupName),"Star formation histories for all trees at each output.")
        groupName="mergerTree"
        groupName=groupName//treeIndex
-       treeGroup=IO_HDF5_Open_Group(outputGroup,char(groupName),"Star formation histories for each tree.")
+       treeGroup=outputGroup%openGroup(char(groupName),"Star formation histories for each tree.")
        ! Write dataset to the group.
        groupName=trim(componentLabel)//"Time"
        groupname=groupName//thisNode%index()

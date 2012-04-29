@@ -261,7 +261,7 @@ contains
     if (nodePassesFilter.and.timestepRecordEvolution.and.iOutput == Galacticus_Output_Time_Count().and.thisNode%isOnMainBranch())&
          & then
        ! Create a group for the profile datasets.
-       outputGroup=IO_HDF5_Open_Group(galacticusOutputFile,"mainProgenitorEvolution","Evolution data of main progenitors.")
+       outputGroup=galacticusOutputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
 
        ! Write one time datasets if necessary.
        if (.not.oneTimeDatasetsWritten) then

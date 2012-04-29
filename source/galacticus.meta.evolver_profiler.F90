@@ -174,8 +174,8 @@ contains
     if (metaProfileInitialized) then
        
        ! Open output groups.
-       metaDataGroup    =IO_HDF5_Open_Group(galacticusOutputFile,'metaData'       ,'Galacticus meta data.'     )
-       profilerDataGroup=IO_HDF5_Open_Group(metaDataGroup       ,'evolverProfiler','Meta-data on tree evolver.')
+       metaDataGroup    =galacticusOutputFile%openGroup('metaData'       ,'Galacticus meta data.'     )
+       profilerDataGroup=metaDataGroup       %openGroup('evolverProfiler','Meta-data on tree evolver.')
        
        ! Write timestep histogram.
        call profilerDataGroup%writeDataset(metaProfileTimeStep     ,"metaProfileTimeStep"     ,"Timestep [Gyr]"        ,datasetReturned=metaDataDataset)

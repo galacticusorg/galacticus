@@ -1235,10 +1235,7 @@ contains
 
        ! Compute rate coefficient.
        if (hydrogenNetworkCMBOnly) then
-          ! <gfortran 4.6> Would like to use the radiation%temperature() type-bound procedure form here, but type-bound procedures
-          ! with optional arguments are buggy under gfortran 4.4
-          rateCoefficient=0.144d0*(Radiation_Temperature(radiation,[radiationTypeCMB])**2.13d0)*dexp(-8650.0d0&
-               &/Radiation_Temperature(radiation,[radiationTypeCMB]))
+          rateCoefficient=0.144d0*(radiation%temperature([radiationTypeCMB])**2.13d0)*dexp(-8650.0d0/radiation%temperature([radiationTypeCMB]))
        else
           rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_Hminus_Gamma_to_H_Electron,[0.0d0&
                &,crossSectionWavelengthHigh])
@@ -1328,9 +1325,7 @@ contains
 
        ! Compute rate coefficient.
        if (hydrogenNetworkCMBOnly) then
-          ! <gfortran 4.6> Would like to use the radiation%temperature() type-bound procedure form here, but type-bound procedures
-          ! with optional arguments are buggy under gfortran 4.4
-          rateCoefficient=6.36d5*dexp(-71600.0d0/Radiation_Temperature(radiation,[radiationTypeCMB]))
+          rateCoefficient=6.36d5*dexp(-71600.0d0/radiation%temperature([radiationTypeCMB]))
        else
           rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2plus_Gamma_to_H_Hplus,[crossSectionWavelengthLow&
                &,crossSectionWavelengthHigh])

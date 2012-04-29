@@ -63,7 +63,6 @@
 
 module Galacticus_Output_Merger_Tree
   !% Implements writing a merger tree to the \glc\ output file.
-  use HDF5
   use IO_HDF5
   use ISO_Varying_String
   use Merger_Trees
@@ -232,14 +231,14 @@ contains
        ! Create references for this tree.
        if (integerPropertyCount > 0 .and. integerPropertiesWritten > 0) then
           do iProperty=1,integerPropertyCount
-             toDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,integerPropertyNames(iProperty))
+             toDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(integerPropertyNames(iProperty))
              call thisTree%hdf5Group%createReference1D(toDataset,integerPropertyNames(iProperty),referenceStart+1,referenceLength)
              call toDataset%close()
           end do
        end if
        if (doublePropertyCount > 0  .and. doublePropertiesWritten  > 0) then
           do iProperty=1,doublePropertyCount
-             toDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,doublePropertyNames(iProperty))
+             toDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(doublePropertyNames(iProperty))
              call thisTree%hdf5Group%createReference1D(toDataset,doublePropertyNames(iProperty),referenceStart+1,referenceLength)
              call toDataset%close()
           end do
@@ -286,7 +285,7 @@ contains
     commentText=commentText//thisTree%index
     
     ! Create a group for the tree.
-    thisTree%hdf5Group=IO_HDF5_Open_Group(outputGroups(iOutput)%hdf5Group,char(groupName),char(commentText))
+    thisTree%hdf5Group=outputGroups(iOutput)%hdf5Group%openGroup(char(groupName),char(commentText))
     
     ! Add the merger tree weight to the group.
     call thisTree%hdf5Group%writeAttribute(thisTree%volumeWeight,"volumeWeight"         )
@@ -308,7 +307,7 @@ contains
           call outputGroups(iOutput)%nodeDataGroup%writeDataset(integerBuffer(1:integerBufferCount,iProperty),integerPropertyNames(iProperty) &
                &,integerPropertyComments(iProperty),appendTo=.true.)
           if (.not.outputGroups(iOutput)%integerAttributesWritten.and.integerPropertyUnitsSI(iProperty) /= 0.0d0) then
-             thisDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,integerPropertyNames(iProperty))
+             thisDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(integerPropertyNames(iProperty))
              call thisDataset%writeAttribute(integerPropertyUnitsSI(iProperty),"unitsInSI")
              call thisDataset%close()
           end if
@@ -335,7 +334,7 @@ contains
           call outputGroups(iOutput)%nodeDataGroup%writeDataset(doubleBuffer(1:doubleBufferCount,iProperty),doublePropertyNames(iProperty) &
                &,doublePropertyComments(iProperty),appendTo=.true.)
           if (.not.outputGroups(iOutput)%doubleAttributesWritten.and.doublePropertyUnitsSI(iProperty) /= 0.0d0) then
-             thisDataset=IO_HDF5_Open_Dataset(outputGroups(iOutput)%nodeDataGroup,doublePropertyNames(iProperty))
+             thisDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(doublePropertyNames(iProperty))
              call thisDataset%writeAttribute(doublePropertyUnitsSI(iProperty),"unitsInSI")
              call thisDataset%close()
           end if
@@ -458,7 +457,7 @@ contains
 
     ! Make the enclosing group if it has not been created.
     if (.not.outputsGroupOpened) then
-       outputsGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Outputs','Contains all outputs from Galacticus.')
+       outputsGroup=galacticusOutputFile%openGroup('Outputs','Contains all outputs from Galacticus.')
        outputsGroupOpened=.true.
     end if
 
@@ -477,8 +476,8 @@ contains
        !@   <name>nodeData</name>
        !@   <description>A representation of the state of all nodes in the simulation at a given time. It consists of numerous datasets which gives the properties of nodes in all merger trees at that time.</description>
        !@ </outputType>
-       outputGroups(iOutput)%hdf5Group    =IO_HDF5_Open_Group(outputsGroup,char(groupName),char(commentText))
-       outputGroups(iOutput)%nodeDataGroup=IO_HDF5_Open_Group(outputGroups(iOutput)%hdf5Group,"nodeData","Group containing data on all nodes at this output.")
+       outputGroups(iOutput)%hdf5Group    =outputsGroup                   %openGroup(char(groupName),char(commentText))
+       outputGroups(iOutput)%nodeDataGroup=outputGroups(iOutput)%hdf5Group%openGroup("nodeData","Group containing data on all nodes at this output.")
        outputGroups(iOutput)%opened                  =.true.
        outputGroups(iOutput)%integerAttributesWritten=.false.
        outputGroups(iOutput)%doubleAttributesWritten =.false.

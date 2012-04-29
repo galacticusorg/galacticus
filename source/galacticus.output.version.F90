@@ -114,7 +114,7 @@ contains
     call galacticusOutputFile%writeAttribute(generate_UUID(4),'UUID')
 
     ! Create a group for version information.
-    versionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Version','Version and timestamp for this model.')
+    versionGroup=galacticusOutputFile%openGroup('Version','Version and timestamp for this model.')
     call versionGroup%writeAttribute(versionMajor   ,'versionMajor'   )
     call versionGroup%writeAttribute(versionMinor   ,'versionMinor'   )
     call versionGroup%writeAttribute(versionRevision,'versionRevision')

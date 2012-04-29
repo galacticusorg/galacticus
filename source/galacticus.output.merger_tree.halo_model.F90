@@ -285,7 +285,7 @@ contains
 
        ! Create a group for halo model data..
        !$omp critical (HDF5_Access)
-       haloModelGroup=IO_HDF5_Open_Group(galacticusOutputFile,'haloModel','Halo model data.')
+       haloModelGroup=galacticusOutputFile%openGroup('haloModel','Halo model data.')
        !$omp end critical (HDF5_Access)
 
        ! Determine how many wavenumbers to tabulate at.
@@ -392,13 +392,13 @@ contains
     if (nodePassesFilter.and.outputHaloModelData.and..not.thisNode%isSatellite()) then
        ! Create a group for the profile datasets.
        !$omp critical (HDF5_Access)
-       profilesGroup=IO_HDF5_Open_Group(galacticusOutputFile,"haloModel","Halo model data.")
+       profilesGroup=galacticusOutputFile%openGroup("haloModel","Halo model data.")
        groupName="Output"
        groupName=groupName//iOutput
-       outputGroup=IO_HDF5_Open_Group(profilesGroup,char(groupName),"Fourier space density profiles of halos for all trees at each output.")
+       outputGroup=profilesGroup%openGroup(char(groupName),"Fourier space density profiles of halos for all trees at each output.")
        groupName="mergerTree"
        groupName=groupName//treeIndex
-       treeGroup=IO_HDF5_Open_Group(outputGroup,char(groupName),"Fourier space density profiles of halos for each tree.")
+       treeGroup=outputGroup%openGroup(char(groupName),"Fourier space density profiles of halos for each tree.")
        !$omp end critical (HDF5_Access)
        ! Allocate array to store profile.
        call Alloc_Array(fourierProfile,[wavenumberCount])

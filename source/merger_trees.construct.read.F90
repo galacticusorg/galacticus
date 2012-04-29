@@ -420,7 +420,7 @@ contains
        ! Open the file.
        call mergerTreeFile%openFile(char(mergerTreeReadFileName),readOnly=.true.)
        ! Open the merger trees group.
-       haloTreesGroup=IO_HDF5_Open_Group(mergerTreeFile,"haloTrees")
+       haloTreesGroup=mergerTreeFile%openGroup("haloTrees")
 
        ! Determine if trees have subhalos.
        if (haloTreesGroup%hasAttribute("treesHaveSubhalos")) then
@@ -451,7 +451,7 @@ contains
        end if
 
        ! Compute unit conversion factors.
-       unitsGroup=IO_HDF5_Open_Group(mergerTreeFile,"units")
+       unitsGroup=mergerTreeFile%openGroup("units")
        call unitsGroup%readAttribute("massUnitsInSI"              ,unitConversionMass       ,allowPseudoScalar=.true.)
        call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  ,allowPseudoScalar=.true.)
        call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           ,allowPseudoScalar=.true.)
@@ -499,7 +499,7 @@ contains
 
        ! Get the volume of the simulation.
        if (mergerTreeFile%hasGroup("simulation")) then
-          simulationGroup=IO_HDF5_Open_Group(mergerTreeFile,"simulation")
+          simulationGroup=mergerTreeFile%openGroup("simulation")
           if (simulationGroup%hasAttribute("boxSize")) then
              call simulationGroup%readAttribute("boxSize",lengthSimulationBox,allowPseudoScalar=.true.)
              lengthSimulationBox=lengthSimulationBox*unitConversionLength
@@ -514,7 +514,7 @@ contains
        end if
 
        ! Check that cosmological parameters are consistent with the internal ones.
-       cosmologicalParametersGroup=IO_HDF5_Open_Group(mergerTreeFile,"cosmology")
+       cosmologicalParametersGroup=mergerTreeFile%openGroup("cosmology")
        if (cosmologicalParametersGroup%hasAttribute("OmegaMatter")) then
           call cosmologicalParametersGroup%readAttribute("OmegaMatter",cosmologicalParameter,allowPseudoScalar=.true.)
           if (Values_Differ(cosmologicalParameter,localOmegaMatter,absTol=0.001d0)) then
@@ -607,7 +607,7 @@ contains
        end if
 
        if (mergerTreeFile%hasGroup("treeIndex")) then
-          treeIndexGroup=IO_HDF5_Open_Group(mergerTreeFile,"treeIndex")
+          treeIndexGroup=mergerTreeFile%openGroup("treeIndex")
           call treeIndexGroup%readDataset("firstNode"    ,mergerTreeFirstNodeIndex)
           call treeIndexGroup%readDataset("numberOfNodes",mergerTreeNodeCount     )
           call treeIndexGroup%readDataset("treeIndex"    ,mergerTreeIndex         )
@@ -652,7 +652,7 @@ contains
 
        ! Open the group of particle data.
        if (mergerTreeFile%hasGroup("particles")) then
-          particlesGroup=IO_HDF5_Open_Group(mergerTreeFile,"particles")
+          particlesGroup=mergerTreeFile%openGroup("particles")
           if (particlesGroup%hasDataset("time")) then
              particleEpochType=particleEpochTypeTime
              particleEpochDatasetName="time"
