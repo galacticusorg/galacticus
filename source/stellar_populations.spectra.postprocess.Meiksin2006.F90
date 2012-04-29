@@ -61,29 +61,32 @@
 
 !% Contains a module which implements the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
 
-module Stellar_Population_Spectra_Postprocess_Meiksin2006
+module Stellar_Population_Spectra_Postprocessing_Meiksin2006
   !% Implements the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
   use ISO_Varying_String
+  public :: Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize,Stellar_Population_Spectra_Postprocess_Meiksin2006
 
-  public :: Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize
+  ! Record of whether this method is active.
+  logical :: methodIsActive
 
 contains
   
-  !# <stellarPopulationSpectraPostprocessMethod>
+  !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize</unitName>
-  !# </stellarPopulationSpectraPostprocessMethod>
-  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
+  !# </stellarPopulationSpectraPostprocessInitialize>
+  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethods)
     !% Initializes the ``Meiksin2006'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string),                 intent(in)    :: stellarPopulationSpectraPostprocessMethod
-    procedure(double precision), pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
+    type(varying_string), dimension(:), intent(in) :: stellarPopulationSpectraPostprocessMethods
     
-    if (stellarPopulationSpectraPostprocessMethod == 'Meiksin2006') Stellar_Population_Spectra_Postprocess_Get =>&
-         & Stellar_Population_Spectra_Postprocess_Meiksin2006_Get
+    methodIsActive=any(stellarPopulationSpectraPostprocessMethods == 'Meiksin2006')
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize
 
-  double precision function Stellar_Population_Spectra_Postprocess_Meiksin2006_Get(wavelength,redshift)
+  !# <stellarPopulationSpectraPostprocess>
+  !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006</unitName>
+  !# </stellarPopulationSpectraPostprocess>
+  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006(wavelength,redshift,modifier)
     !% Computes the factor by which the spectrum of a galaxy at given {\tt redshift} is attenuated at the given {\tt wavelength}
     !% by the intervening intergalactic medium according to \cite{meiksin_colour_2006}.
     use Numerical_Constants_Atomic
@@ -91,6 +94,7 @@ contains
     use Gamma_Functions
     implicit none
     double precision, intent(in)    :: wavelength,redshift
+    double precision, intent(inout) :: modifier
     ! Parameters of the Lyman-limit system distribution.
     double precision, parameter     :: N0   =0.25d0
     double precision, parameter     :: beta =1.50d0
@@ -100,9 +104,9 @@ contains
     double precision                :: seriesSolutionTermA,seriesSolutionTermB,wavelengthObservedLymanContinuum,nFactorial,opticalDepth
 
     ! Check if this is a zero redshift case.
-    if (redshift <= 0.0d0) then
-       ! It is, so return no attenuation.
-       Stellar_Population_Spectra_Postprocess_Meiksin2006_Get=1.0d0
+    if (.not.methodIsActive .or. redshift <= 0.0d0) then
+       ! It is, so return no attenuation modification.
+       return
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
        wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/ionizationWavelengthHydrogen
@@ -175,9 +179,9 @@ contains
        end if
        
        ! Compute attenuation from optical depth.
-       Stellar_Population_Spectra_Postprocess_Meiksin2006_Get=dexp(-opticalDepth)
+       modifier=modifier*dexp(-opticalDepth)
     end if
     return
-  end function Stellar_Population_Spectra_Postprocess_Meiksin2006_Get
+  end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006
 
-end module Stellar_Population_Spectra_Postprocess_Meiksin2006
+end module Stellar_Population_Spectra_Postprocessing_Meiksin2006

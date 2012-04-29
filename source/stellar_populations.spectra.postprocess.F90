@@ -65,58 +65,63 @@ module Stellar_Population_Spectra_Postprocess
   !% Implements postprocessing of stellar population spectra.
   use Abundances_Structure
   use ISO_Varying_String 
-  !# <include directive="stellarPopulationSpectraPostprocessMethod" type="moduleUse">
-  include 'stellar_populations.spectra.postprocess.modules.inc'
-  !# </include>
   implicit none
   private
   public :: Stellar_Population_Spectrum_Postprocess
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: stellarPopulationSpectraPostprocessInitialized=.false.
+  logical                                         :: stellarPopulationSpectraPostprocessInitialized=.false.
 
-  ! Name of cooling time available method used.
-  type(varying_string) :: stellarPopulationSpectraPostprocessMethod
+  ! Count of the number of methods being applied.
+  integer                                         :: methodCount=0
 
-  ! Pointer to the function that actually does the calculation.
-  procedure(Stellar_Population_Spectrum_Postprocess_Get_Template), pointer :: Stellar_Population_Spectrum_Postprocess_Get => null()
-  abstract interface
-     double precision function Stellar_Population_Spectrum_Postprocess_Get_Template(wavelength,redshift)
-       double precision, intent(in) :: wavelength,redshift
-     end function Stellar_Population_Spectrum_Postprocess_Get_Template
-  end interface
- 
+  ! Name of stellar population postprocessing methods to apply.
+  type(varying_string), allocatable, dimension(:) :: stellarPopulationSpectraPostprocessMethods
+
 contains
 
   subroutine Stellar_Population_Spectrum_Postprocess_Initialize
     !% Initialize the stellar population spectra postprocessing module
     use Galacticus_Error
     use Input_Parameters
+    use Memory_Management
+    !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="moduleUse">
+    include 'stellar_populations.spectra.postprocess.initialize.modules.inc'
+    !# </include>
     implicit none
     
     !$omp critical(Stellar_Population_Spectrum_Postprocess_Initialization) 
     ! Initialize if necessary.
     if (.not.stellarPopulationSpectraPostprocessInitialized) then
-       ! Get the cooling function method parameter.
+       ! Get the stellar population postprocessing methods parameter.
        !@ <inputParameter>
-       !@   <name>stellarPopulationSpectraPostprocessMethod</name>
+       !@   <name>stellarPopulationSpectraPostprocessMethods</name>
        !@   <defaultValue>Meiksin2006</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the method to be used for post-processing of stellar population spectra.
+       !@     The name of methods to be used for post-processing of stellar population spectra.
        !@   </description>
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethod',stellarPopulationSpectraPostprocessMethod,defaultValue='Meiksin2006')
+       ! Determine how many filters are to be applied.
+       methodCount=Get_Input_Parameter_Array_Size('stellarPopulationSpectraPostprocessMethods')
+       ! Allocate methods array and read method names.
+       if (methodCount > 0) then
+          allocate(stellarPopulationSpectraPostprocessMethods(methodCount))
+          call Memory_Usage_Record(sizeof(stellarPopulationSpectraPostprocessMethods))
+          call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethods',stellarPopulationSpectraPostprocessMethods)
+       else
+          methodCount=1
+          allocate(stellarPopulationSpectraPostprocessMethods(methodCount))
+          call Memory_Usage_Record(sizeof(stellarPopulationSpectraPostprocessMethods))
+          call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethods',stellarPopulationSpectraPostprocessMethods,defaultValue=['Meiksin2006'])
+       end if
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarPopulationSpectraPostprocessMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectrum_Postprocess_Get</subroutineArgs>
-       include 'stellar_populations.spectra.postprocess.inc'
+       !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="code" action="subroutine">
+       !#  <subroutineArgs>stellarPopulationSpectraPostprocessMethods</subroutineArgs>
+       include 'stellar_populations.spectra.postprocess.initialize.inc'
        !# </include>
-       if (.not.associated(Stellar_Population_Spectrum_Postprocess_Get)) call&
-            & Galacticus_Error_Report('Stellar_Population_Spectrum_Postprocess','method ' //char(stellarPopulationSpectraPostprocessMethod)//' is&
-            & unrecognized')
        stellarPopulationSpectraPostprocessInitialized=.true.
     end if
     !$omp end critical(Stellar_Population_Spectrum_Postprocess_Initialization) 
@@ -125,14 +130,24 @@ contains
 
   double precision function Stellar_Population_Spectrum_Postprocess(wavelength,redshift)
     !% Return a multiplicative factor by which a stellar population spectrum should be modified by any postprocessing.
+    !# <include directive="stellarPopulationSpectraPostprocess" type="moduleUse">
+    include 'stellar_populations.spectra.postprocess.modules.inc'
+    !# </include>
     implicit none
     double precision, intent(in) :: wavelength,redshift
     
     ! Initialize the module.
-    call Stellar_Population_Spectrum_Postprocess_Initialize
-    
-    ! Get the spectrum using the selected method.
-    Stellar_Population_Spectrum_Postprocess=Stellar_Population_Spectrum_Postprocess_Get(wavelength,redshift)    
+    call Stellar_Population_Spectrum_Postprocess_Initialize()
+
+    ! Return immediately if no methods were defined.
+    if (methodCount == 0) return
+
+    ! Compute the postprocessing factor.
+    Stellar_Population_Spectrum_Postprocess=1.0d0
+    !# <include directive="stellarPopulationSpectraPostprocess" type="code" action="subroutine">
+    !#  <subroutineArgs>wavelength,redshift,Stellar_Population_Spectrum_Postprocess</subroutineArgs>
+    include 'stellar_populations.spectra.postprocess.inc'
+    !# </include>
     return
   end function Stellar_Population_Spectrum_Postprocess
   
