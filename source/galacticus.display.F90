@@ -82,6 +82,10 @@ module Galacticus_Display
        &                                          verbosityInfo   =4, &
        &                                          verbosityDebug  =5
 
+  ! Progress bar state.
+  logical                                      :: barVisible=.false.
+  integer                                      :: barPercentage
+
   interface Galacticus_Display_Message
      module procedure Galacticus_Display_Message_Char
      module procedure Galacticus_Display_Message_VarStr
@@ -237,6 +241,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
        !$ if (omp_in_parallel()) then
        !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
        !$ else
@@ -245,6 +250,7 @@ contains
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormat(threadNumber)) trim(message)
+       if (barVisible) call Galacticus_Display_Counter_Lockless(barPercentage,.true.)
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
@@ -266,6 +272,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
        !$ if (omp_in_parallel()) then
        !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
        !$ else
@@ -274,6 +281,7 @@ contains
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormat(threadNumber)) char(message)
+       if (barVisible) call Galacticus_Display_Counter_Lockless(barPercentage,.true.)
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
@@ -312,11 +320,23 @@ contains
     integer,          intent(in)           :: percentageComplete
     logical,          intent(in)           :: isNew
     integer,          intent(in), optional :: verbosity
+
+    !$omp critical(Galacticus_Message_Lock)
+    call Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
+    !$omp end critical(Galacticus_Message_Lock)
+    return
+  end subroutine Galacticus_Display_Counter
+
+  subroutine Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
+    !% Displays a percentage counter and bar to show progress.
+    implicit none
+    integer,          intent(in)           :: percentageComplete
+    logical,          intent(in)           :: isNew
+    integer,          intent(in), optional :: verbosity
     character(len=50)                      :: bar
     integer                                :: percentage,minorCount,majorCount
     logical                                :: showMessage
     
-    !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
        showMessage=(verbosity<=verbosityLevel)
@@ -330,10 +350,11 @@ contains
        minorCount=percentage-majorCount*2
        bar=repeat("=",majorCount)//repeat("-",minorCount)//repeat(" ",50-majorCount-minorCount)
        write (0,'(1x,i3,"% [",a50,"]",$)') percentage,bar
+       barVisible   =.true.
+       barPercentage=percentageComplete
     end if
-    !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Counter
+  end subroutine Galacticus_Display_Counter_Lockless
 
   subroutine Galacticus_Display_Counter_Clear(verbosity)
     !% Clears a percentage counter.
@@ -343,6 +364,7 @@ contains
     
     !$omp critical(Galacticus_Message_Lock)
     call Galacticus_Display_Counter_Clear_Lockless(verbosity)
+    barVisible=.false.
     !$omp end critical(Galacticus_Message_Lock)
     return
   end subroutine Galacticus_Display_Counter_Clear
