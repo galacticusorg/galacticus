@@ -78,6 +78,7 @@ module Tree_Nodes
      integer(kind=kind_int8), private                   :: nodeIndex,nodeUniqueID
      type(treeNode),          pointer                   :: parentNode,childNode,siblingNode,satelliteNode,mergeNode,mergeeNode&
           &,nextMergee,formationNode
+     logical                                            :: isPhysicallyPlausible
      integer,                 allocatable, dimension(:) :: componentIndex
      type(componentArray),    allocatable, dimension(:) :: components
    contains

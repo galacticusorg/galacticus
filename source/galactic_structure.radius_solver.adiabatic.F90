@@ -178,13 +178,13 @@ contains
     procedure(Structure_Get_Template), save,          pointer :: Radius_Get => null(), Velocity_Get => null()
     procedure(Structure_Set_Template), save,          pointer :: Radius_Set => null(), Velocity_Set => null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    logical                                                   :: componentActive,galaxyIsPhysicallyPlausible
+    logical                                                   :: componentActive
     double precision                                          :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
-    galaxyIsPhysicallyPlausible=.true.
+    thisNode%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-    if (galaxyIsPhysicallyPlausible) then
+    if (thisNode%isPhysicallyPlausible) then
        ! Initialize the solver state.
        iterationCount=0
        fitMeasure    =2.0d0*adiabaticContractionSolutionTolerance
