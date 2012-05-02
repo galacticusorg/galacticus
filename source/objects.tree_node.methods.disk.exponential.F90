@@ -750,7 +750,14 @@ contains
        end if
 
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
-       barInstabilityTimescale=Bar_Instability_Timescale(thisNode)
+       if (thisNode%isPhysicallyPlausible) then
+          ! Disk has positive angular momentum, so compute an instability timescale.
+          barInstabilityTimescale=Bar_Instability_Timescale(thisNode)
+       else
+          ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
+          ! case as the disk radius may be unphysical also.
+          barInstabilityTimescale=-1.0d0
+       end if
 
        ! Negative timescale indicates no bar instability.
        if (barInstabilityTimescale >= 0.0d0) then
