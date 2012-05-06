@@ -131,6 +131,7 @@ contains
     !% </parameters>
     !% \end{verbatim}
     use Galacticus_Input_Paths
+    use String_Handling
     !$ use OMP_Lib
     implicit none
     type(varying_string), intent(in)                   :: parameterFile
@@ -139,7 +140,8 @@ contains
     type(Node),           pointer                      :: thisParameter,nameElement,allowedParameterDoc
     type(NodeList),       pointer                      :: allowedParameterList
     logical                                            :: parameterMatched,unknownParametersPresent
-    integer                                            :: ioErr,iParameter,jParameter,allowedParameterCount
+    integer                                            :: ioErr,iParameter,jParameter,allowedParameterCount,distance,minimumDistance
+    type(varying_string)                               :: unknownParameter,possibleMatch
 
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
@@ -193,7 +195,17 @@ contains
              !$ else
              !$    write (0,'(a2,a2,$)') "MM",": "
              !$ end if
-             write (0,'(a,a)') '    ',getTextContent(nameElement)
+            unknownParameter=getTextContent(nameElement)
+            minimumDistance=1e4
+            do jParameter=0,allowedParameterCount-1
+               thisParameter => item(allowedParameterList,jParameter)
+               distance=String_Levenshtein_Distance(char(unknownParameter),getTextContent(thisParameter))
+               if (distance < minimumDistance) then
+                  minimumDistance=distance
+                  possibleMatch=getTextContent(thisParameter)
+               end if
+            end do
+            write (0,'(5a)') '    ',char(unknownParameter),' [did you mean "',char(possibleMatch),'"?]'
           end if
        end do
        ! Destroy the document.
