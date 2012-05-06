@@ -67,7 +67,7 @@ module String_Handling
   implicit none
   private
   public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
-       & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript
+       & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript, String_Levenshtein_Distance
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -346,5 +346,40 @@ contains
     end do
     return
   end function String_Superscript
+
+  integer function String_Levenshtein_Distance(s,t)
+    !% Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings {\tt a} and {\tt
+    !% b}.
+    implicit none
+    character(len=*), intent(in)                   :: s,t
+    integer         , dimension(0:len(s),0:len(t)) :: d
+    integer                                        :: i,j,m,n
+
+    m=len(s)
+    n=len(t)
+    do i=0,m
+       d(i,0)=i ! The distance of any first string to an empty second string.
+    end do
+    do j=0,n
+       d(0,j)=j ! The distance of any second string to an empty first string.
+    end do
+    do j=1,n
+       do i=1,m
+          if (s(i:i) == t(j:j)) then
+             d(i,j)=d(i-1,j-1)       ! No operation required.
+          else
+             d(i,j)=minval(               &
+                  &        [              &
+                  &         d(i-1,j  )+1, & ! A deletion.
+                  &         d(i  ,j-1)+1, & ! An insertion.
+                  &         d(i-1,j-1)+1  & ! A substitution.
+                  &        ]              &
+                  &       )
+                end if
+             end do
+          end do
+          String_Levenshtein_Distance=d(m,n)
+    return
+  end function String_Levenshtein_Distance
 
 end module String_Handling

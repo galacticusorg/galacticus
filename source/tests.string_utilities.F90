@@ -116,6 +116,23 @@ program Test_String_Utilities
   myStrings=["one  ","two  ","three"]
   call Assert('convert varying string to character array',Convert_VarString_To_Char(myStrings),["one  ","two  ","three"])
 
+  ! Test Levenshtein distance.
+  call Assert(                                                  &
+       &      'measure Levenshtein distance'                  , &
+       &      [                                                 &
+       &       String_Levenshtein_Distance('kitten','sitting'), &
+       &       String_Levenshtein_Distance('grapes','wine'   ), &
+       &       String_Levenshtein_Distance('monkey','human'  ), &
+       &       String_Levenshtein_Distance('lead'  ,'gold'   )  &
+       &      ]                                               , &
+       &      [                                                 &
+       &       3                                              , &
+       &       5                                              , &
+       &       6                                              , &
+       &       3                                                &
+       &      ]                                                 &
+       &     )
+  
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
