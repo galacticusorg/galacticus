@@ -37,7 +37,7 @@ FCFLAGS_NOOPT := $(FCFLAGS)
 FCFLAGS += -fopenmp
 
 # C compiler flags:
-CFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CFLAGS}
+CFLAGS = -I./source/ -I./work/build/ -I/opt/gsl-trunk/include ${GALACTICUS_CFLAGS}
 CFLAGS += -g
 
 # C++ compiler flags:
@@ -45,7 +45,7 @@ CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
 # Libraries:
-LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lhdf5_fortran -lhdf5 -lm -lz -lstdc++ -lcrypt
+LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -L/opt/gsl-trunk/lib -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5 -lhdf5_fortran -lz -lstdc++ -lcrypt
 
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
@@ -79,7 +79,7 @@ vpath %.F90 source
 	 fi \
 	done
 
-# Object (*.o) can also be built from C source files.
+# Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
 ./work/build/%.o : %.c ./work/build/%.d Makefile
 	$(CCOMPILER) -c $< -o ./work/build/$*.o $(CFLAGS)

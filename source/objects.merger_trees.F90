@@ -442,7 +442,8 @@ contains
 
   subroutine Tree_Node_Evolve(thisTree,thisNode,endTime,interrupted,interruptProcedure)
     !% Evolves {\tt thisNode} to time {\tt endTime}, or until evolution is interrupted.
-    use ODE_Solver
+    use ODEIV2_Solver
+    use FODEIV2
     use Memory_Management
     !# <include directive="postEvolveTask" type="moduleUse">
     include 'objects.tree_node.post_evolve.modules.inc'
@@ -457,12 +458,10 @@ contains
     !$omp threadprivate(nPropertiesPrevious)
     double precision                                                :: startTimeThisNode
     ! Variables used in the ODE solver.
-    type(fgsl_odeiv_step),                   save                   :: odeStepper
-    type(fgsl_odeiv_control),                save                   :: odeController
-    type(fgsl_odeiv_evolve),                 save                   :: odeEvolver
-    type(fgsl_odeiv_system),                 save                   :: odeSystem
-    logical,                                 save                   :: odeReset=.true.
-    !$omp threadprivate(odeStepper,odeController,odeEvolver,odeSystem,odeReset)
+    type(fodeiv2_system    ), save                                  :: ode2System
+    type(fodeiv2_driver    ), save                                  :: ode2Driver
+    logical                 , save                                  :: odeReset
+    !$omp threadprivate(ode2System,ode2Driver,odeReset)
     type(c_ptr)                                                     :: parameterPointer
 #ifdef PROFILE
     procedure(),                                            pointer :: My_Error_Analyzer
@@ -542,23 +541,25 @@ contains
     end if
 #endif
     if (nProperties /= nPropertiesPrevious) then
+       if (nPropertiesPrevious > 0 .and. .not.odeReset) call ODEIV2_Solver_Free(ode2Driver,ode2System)
        odeReset=.true.
-       if (nPropertiesPrevious > 0) call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
        nPropertiesPrevious=nProperties
     end if
-    call ODE_Solve(                                               &
-         &         odeStepper,odeController,odeEvolver,odeSystem, &
-         &         startTimeThisNode,endTime,                     &
-         &         nProperties,propertyValues,                    &
-         &         Tree_Node_ODEs,                                &
-         &         parameterPointer,                              &
-         &         odeToleranceAbsolute,odeToleranceRelative,     &
+    if (startTimeThisNode /= endTime)                                   &
+         & call ODEIV2_Solve(                                           &
+         &                   ode2Driver,ode2System                    , &
+         &                   startTimeThisNode,endTime                , &
+         &                   nProperties                              , &
+         &                   propertyValues                           , &
+         &                   Tree_Node_ODEs                           , &
+         &                   parameterPointer                         , &
+         &                   odeToleranceAbsolute,odeToleranceRelative, &
+         &                   propertyScales                           , &
+         &                   reset=odeReset                             &
 #ifdef PROFILE
-         &         Error_Analyzer=My_Error_Analyzer,              &
+         &                  ,Error_Analyzer=My_Error_Analyzer           &
 #endif
-         &         yScale        =propertyScales,                 &
-         &         reset         =odeReset                        &
-         &        )
+         &                  )
 
     ! Extract values.
     call Map_Properties_From_ODE_Array(thisNode,propertyValues)

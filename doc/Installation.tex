@@ -39,7 +39,7 @@ yum install gcc-c++
 \end{verbatim}
 Alternatively, GNU C++ can be downloaded and installed from source as described online.
 
-\item [GNU Scientific Library] The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.15 of GSL---other versions may or may not work (we have had success with v1.13 and v1.14). On Fedora the following (as root) will install GSL:
+\item [GNU Scientific Library] The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.15 of GSL---earlier versions will not work (due to \glc's use of the {\tt odeiv2} ODE solver interface that was introduced in GSL v1.15). On Fedora the following (as root) will install GSL:
 \begin{verbatim}
 yum install gsl gsl-devel
 \end{verbatim}
@@ -61,7 +61,7 @@ Alternatively, HDF5 can be downloaded and installed from source. If this is done
  make install
 \end{verbatim}
 
-\item [FGSL] \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL} is a Fortran interface to the GNU Scientific Library and is used extensively by \glc. It can be downloaded from the link above. We use FGSL v0.9.4\footnote{Note that if you use v1.13 or earlier of the GNU Scientific Library you should used FGSL v0.9.2 instead.} and recommend the following build sequence. 
+\item [FGSL] \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL} is a Fortran interface to the GNU Scientific Library and is used extensively by \glc. It can be downloaded from the link above. We use FGSL v0.9.4 and recommend the following build sequence. 
 \begin{verbatim}
  ./configure --f90 gfortran
  make
