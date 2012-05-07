@@ -976,7 +976,7 @@ contains
     call outputFile%openFile(outputFileName,overWrite=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Create a group for the datasets.
-    haloTrees=IO_HDF5_Open_Group(outputFile,"haloTrees","Stores all data for merger trees.")
+    haloTrees=outputFile%openGroup("haloTrees","Stores all data for merger trees.")
 
     ! Write the data.
     if (mergerTrees%hasNodeIndex               ) call haloTrees%writeDataset(mergerTrees%nodeIndex               ,"nodeIndex"      ,"The index of each node."                )
@@ -1000,13 +1000,13 @@ contains
     if (mergerTrees%doMakeReferences) then
        
        ! Create a containing group for individual trees.
-       treesGroup=IO_HDF5_Open_Group(outputFile,"mergerTrees","Data for individual merger trees.")
+       treesGroup=outputFile%openGroup("mergerTrees","Data for individual merger trees.")
        
        ! Create groups for trees and dataset references.
        do iTree=1,mergerTrees%treeCount
           groupName="mergerTree"
           groupName=groupName//iTree
-          treeGroup=IO_HDF5_Open_Group(treesGroup,char(groupName),"Data for a merger tree.")
+          treeGroup=treesGroup%openGroup(char(groupName),"Data for a merger tree.")
           
           ! Standard datasets.
           hyperslabStart(1)=mergerTrees%treeBeginsAt (iTree)
@@ -1016,7 +1016,7 @@ contains
              if (trim(propertyNames(iProperty)) == "spin"            .and. .not.mergerTrees%hasSpinMagnitude           ) cycle
              if (trim(propertyNames(iProperty)) == "angularMomentum" .and. .not.mergerTrees%hasAngularMomentumMagnitude) cycle
              if (haloTrees%hasDataset(trim(propertyNames(iProperty)))) then
-                treeDataset=IO_HDF5_Open_Dataset(haloTrees,propertyNames(iProperty))
+                treeDataset=haloTrees%openDataset(propertyNames(iProperty))
                 call treeGroup%createReference1D(treeDataset,trim(propertyNames(iProperty)),hyperslabStart,hyperslabCount)
                 call treeDataset%close()
              end if
@@ -1029,7 +1029,7 @@ contains
           hyperslabCount(1)=int(3,kind=HSIZE_T)
           do iProperty=1,size(propertyNames3D)
              if (haloTrees%hasDataset(trim(propertyNames3D(iProperty)))) then
-                treeDataset=IO_HDF5_Open_Dataset(haloTrees,propertyNames3D(iProperty))
+                treeDataset=haloTrees%openDataset(propertyNames3D(iProperty))
                 call treeGroup%createReference2D(treeDataset,trim(propertyNames3D(iProperty)),hyperslabStart,hyperslabCount)
                 call treeDataset%close()
              end if
@@ -1047,7 +1047,7 @@ contains
     ! Write particle data if necessary.
     if (mergerTrees%hasParticles) then
        ! Open the particles group.
-       particlesGroup=IO_HDF5_Open_Group(outputFile,"particles","Data for a particles.")
+       particlesGroup=outputFile%openGroup("particles","Data for a particles.")
 
        ! Write datasets.
        if (mergerTrees%hasParticleIndex    ) call particlesGroup%writeDataset(mergerTrees%particleIndex   ,"particleID","The ID of each particle."      )
@@ -1106,26 +1106,26 @@ contains
     call haloTrees%close()
 
     ! Store units.
-    unitsGroup=IO_HDF5_Open_Group(outputFile,"units","The units system used.")
+    unitsGroup=outputFile%openGroup("units","The units system used.")
     if (mergerTrees%unitsSet(unitsMass    )) call Store_Unit_Attributes(unitsMass    ,"mass"    ,mergerTrees,unitsGroup)
     if (mergerTrees%unitsSet(unitsLength  )) call Store_Unit_Attributes(unitsLength  ,"length"  ,mergerTrees,unitsGroup)
     if (mergerTrees%unitsSet(unitsTime    )) call Store_Unit_Attributes(unitsTime    ,"time"    ,mergerTrees,unitsGroup)
     if (mergerTrees%unitsSet(unitsVelocity)) call Store_Unit_Attributes(unitsVelocity,"velocity",mergerTrees,unitsGroup)
 
     ! Create datasets giving positions of merger trees within the node arrays.
-    treeIndexGroup=IO_HDF5_Open_Group(outputFile,"treeIndex","Locations of merger trees within the halo data arrays.")
+    treeIndexGroup=outputFile%openGroup("treeIndex","Locations of merger trees within the halo data arrays.")
     call treeIndexGroup%writeDataset(mergerTrees%treeBeginsAt ,"firstNode"    ,"Position of the first node in each tree in the halo data arrays.")
     call treeIndexGroup%writeDataset(mergerTrees%treeNodeCount,"numberOfNodes","Number of nodes in each tree."                                   )
     call treeIndexGroup%writeDataset(mergerTrees%treeID       ,"treeIndex"    ,"Unique index of tree."                                           )
     call treeIndexGroup%close()
 
     ! Create groups for attributes.
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) genericGroup    =IO_HDF5_Open_Group(outputFile,"metaData"   ,"Generic metadata."                  )
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) cosmologyGroup  =IO_HDF5_Open_Group(outputFile,"cosmology"  ,"Cosmological parameters."           )
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) simulationGroup =IO_HDF5_Open_Group(outputFile,"simulation" ,"Simulation parameters."             )
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) groupFinderGroup=IO_HDF5_Open_Group(outputFile,"groupFinder","Group finder parameters."           )
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) treeBuilderGroup=IO_HDF5_Open_Group(outputFile,"treeBuilder","Tree building algorithm parameters.")
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) provenanceGroup =IO_HDF5_Open_Group(outputFile,"provenance" ,"Data provenance."                   )
+    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) genericGroup    =outputFile%openGroup("metaData"   ,"Generic metadata."                  )
+    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) cosmologyGroup  =outputFile%openGroup("cosmology"  ,"Cosmological parameters."           )
+    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) simulationGroup =outputFile%openGroup("simulation" ,"Simulation parameters."             )
+    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) groupFinderGroup=outputFile%openGroup("groupFinder","Group finder parameters."           )
+    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) treeBuilderGroup=outputFile%openGroup("treeBuilder","Tree building algorithm parameters.")
+    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) provenanceGroup =outputFile%openGroup("provenance" ,"Data provenance."                   )
     
     ! Write attributes.
     do iAttribute=1,mergerTrees%metaDataCount
