@@ -262,7 +262,7 @@ contains
     type(hdf5Object) :: outputsGroup,thisDataset,massFunctionGroup
     
     ! Open the group for output time information.
-    outputsGroup=IO_HDF5_Open_Group(haloMassFunctionOutputFile,'Outputs','Group containing datasets relating to output times.')
+    outputsGroup=haloMassFunctionOutputFile%openGroup('Outputs','Group containing datasets relating to output times.')
     
     ! Write output time data.
     call outputsGroup%writeDataset(outputTimes            ,'outputTime'              ,'The time corresponding to each output.'                 &
@@ -284,7 +284,7 @@ contains
 
 
     ! Write mass function datasets.
-    massFunctionGroup=IO_HDF5_Open_Group(haloMassFunctionOutputFile,'haloMassFunctions','Group containing datasets relating to&
+    massFunctionGroup=haloMassFunctionOutputFile%openGroup('haloMassFunctions','Group containing datasets relating to&
          & halo mass functions.')
 
     ! Write the halo mass function data.

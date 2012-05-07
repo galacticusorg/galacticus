@@ -184,7 +184,7 @@ contains
     type(hdf5Object) :: thisDataset,powerSpectrumGroup
 
     ! Write power spectrum datasets.
-    powerSpectrumGroup=IO_HDF5_Open_Group(powerSpectrumOutputFile,'powerSpectrum','Group containing datasets relating to&
+    powerSpectrumGroup=powerSpectrumOutputFile%openGroup('powerSpectrum','Group containing datasets relating to&
          & the power spectrum.')
 
     ! Write the power spectrum data.
