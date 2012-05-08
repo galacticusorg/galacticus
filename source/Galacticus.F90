@@ -68,7 +68,6 @@ program Galacticus
   use Galacticus_Error
   use Galacticus_Tasks
   use Galacticus_HDF5
-  use Galacticus_Output_Open
   use ISO_Varying_String
   use Memory_Management
   use Input_Parameters
@@ -94,14 +93,8 @@ program Galacticus
   ! Open the parameter file.
   call Input_Parameters_File_Open(parameterFile,galacticusOutputFile,allowedParametersFile='Galacticus.parameters.xml')
 
-  ! Open the Galacticus output file.
-  call Galacticus_Output_Open_File
-
   ! Perform tasks, until all tasks are done.
   call Galacticus_Task_Do
-
-  ! Close the Galacticus output file.
-  call Galacticus_Output_Close_File
 
   ! Close the parameter file.
   call Input_Parameters_File_Close

@@ -72,6 +72,7 @@ contains
   !# </galacticusTask>
   logical function Galacticus_Task_Start()
     use Input_Parameters
+    use Galacticus_Output_Open
     implicit none
     logical, save :: doneStart=.false.
     integer       :: verbosityLevel
@@ -90,6 +91,9 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
        call Galacticus_Verbosity_Level_Set(verbosityLevel)
+       
+       ! Open the Galacticus output file.
+       call Galacticus_Output_Open_File
 
        call Galacticus_Display_Indent('Starting task set')
        doneStart=.true.
@@ -103,10 +107,15 @@ contains
   !#  <after>Galacticus_Task_Start</after>
   !# </galacticusTask>
   logical function Galacticus_Task_End()
+    use Galacticus_Output_Open
     implicit none
     logical, save :: doneEnd=.false.
 
     if (.not.doneEnd) then
+
+       ! Close the Galacticus output file.
+       call Galacticus_Output_Close_File
+
        call Galacticus_Display_Unindent('Finished task set')
        doneEnd=.true.
     end if
