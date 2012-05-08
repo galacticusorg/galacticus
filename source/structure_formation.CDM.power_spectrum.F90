@@ -96,14 +96,28 @@ contains
     use CDM_Primordial_Power_Spectrum
     use Numerical_Constants_Math
     use Cosmological_Parameters
+    use Galacticus_Error
+    use ISO_Varying_String
     implicit none
     double precision, intent(in) :: wavenumber
     double precision             :: mass,logMass
+    character(len=15)            :: label
+    type(varying_string)         :: message
 
     ! If this function is called not via the sigma(M) normalization routines, then ensure that sigma has been initialized so that
     ! we have the correct normalization.
     if (.not.normalizingSigma) then
        mass=(4.0d0*PI/3.0d0)*Omega_Matter()*Critical_Density()/waveNumber**3
+       if (mass <= 0.0d0) then
+          message="zero mass when trying to initialize power spectrum"//char(10)
+          write (label,'(e12.6)') waveNumber
+          message=message//"        waveNumber  : "//trim(label)//char(10)
+          write (label,'(e12.6)') Omega_Matter()
+          message=message//"      Omega_Matter(): "//trim(label)//char(10)
+          write (label,'(e12.6)') Critical_Density()
+          message=message//"  Critical_Density(): "//trim(label)
+          call Galacticus_Error_Report("Power_Spectrum_CDM",message)
+       end if
        logMass=dlog(mass)
        call Initialize_Sigma(logMass)
     end if

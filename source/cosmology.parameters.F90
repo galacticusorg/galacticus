@@ -230,6 +230,7 @@ contains
 
   double precision function H_0()
     !% Returns the value of $H_0$, reading it in first if necessary.
+    use Galacticus_Display
     implicit none
 
     !$omp critical (H_0_Initialization)
@@ -246,6 +247,9 @@ contains
        !@   <group>cosmology</group>
        !@ </inputParameter>
        call Get_Input_Parameter('H_0',H_0_Value,defaultValue=70.2d0)
+       ! Validate the input value.
+       if (H_0_Value <= 0.0d0) call Galacticus_Display_Message("WARNING: H_0<=0 - are you sure this is what you wanted?",verbosityWarn)
+       ! Record that H_0 is now set.
        H_0_Is_Set=.true.
     end if
     !$omp end critical (H_0_Initialization)
