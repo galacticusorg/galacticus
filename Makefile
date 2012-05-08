@@ -32,7 +32,7 @@ FCFLAGS += -g
 # A copy of the flags prior to any optimizations.
 FCFLAGS_NOOPT := $(FCFLAGS)
 # Optimization flags.
-#FCFLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
+FCFLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
 # For OpenMP compilation.
 FCFLAGS += -fopenmp
 
@@ -45,7 +45,7 @@ CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
 # Libraries:
-LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5 -lhdf5_fortran -lz -lstdc++ -lcrypt
+LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5_fortran -lhdf5 -lz -lstdc++ -lcrypt
 
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
