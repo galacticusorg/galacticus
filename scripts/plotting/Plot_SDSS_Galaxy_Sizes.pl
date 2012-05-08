@@ -86,7 +86,7 @@ my $chiSquared = 0.0;
 my $degreesOfFreedom = 0;
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot > /dev/null 2&>1");
+open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 

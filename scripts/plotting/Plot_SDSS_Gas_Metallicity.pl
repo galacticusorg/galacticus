@@ -71,7 +71,7 @@ $gasFraction    = ($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'})/($
 $gasMetallicity = where(12.0+log10(($dataSets->{'diskGasMetals'}+$dataSets->{'spheroidGasMetals'})/($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot > /dev/null 2&>1");
+open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 

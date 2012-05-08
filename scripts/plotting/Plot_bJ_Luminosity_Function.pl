@@ -95,7 +95,7 @@ my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot > /dev/null 2&>1");
+open($gnuPlot,"|gnuplot"); # 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
 print $gnuPlot "set title 'b\$_{\\rm J}\$-band Luminosity Function at \$z=0\$'\n";

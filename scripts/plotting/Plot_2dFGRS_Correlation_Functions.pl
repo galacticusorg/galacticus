@@ -60,7 +60,7 @@ $xml     = new XML::Simple;
 $data    = $xml->XMLin($galacticusPath."data/Correlation_Functions_2dFGRS_Norberg_2002.xml");
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot > /dev/null 2&>1");
+open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 

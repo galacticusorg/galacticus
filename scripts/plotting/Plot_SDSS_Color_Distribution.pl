@@ -14,6 +14,7 @@ require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Colors_Distribution.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -123,7 +124,7 @@ if ( $showFit == 1 ) {
 }
 
 # Make the plot.
-open(pHndl,"|gnuplot > /dev/null 2&>1");
+open(pHndl,"|gnuplot 1>/dev/null 2>&1");
 
 # Check which version of GnuPlot we're using.
 $gnuPlotVersionString = `gnuplot -V`;
