@@ -147,9 +147,8 @@ contains
     double precision, parameter              :: dynamicalFrictionMinimumRadius=0.1d0
     double precision                         :: rateScattering, rateGravitationalWaves, dynamicalFrictionAcceleration,&
          & densitySpheroid, densityDarkMatter, dynamicalFrictionXSpheroid, dynamicalFrictionXDarkMatter, coulombLogarithmSpheroid&
-         &, coulombLogarithmDarkMatter, rotationCurveTotal, densityStellar, stellarDensityFractionRemaining &
-         &,rateScatteringDynamicalFriction, rateScatteringStars, velocityDispersionSpheroid, velocityDispersionDarkMatter,&
-         & radiusHardBinary,rotationCurveGradient
+         & , coulombLogarithmDarkMatter, densityStellar, stellarDensityFractionRemaining ,rateScatteringDynamicalFriction,&
+         & rateScatteringStars, velocityDispersionSpheroid, velocityDispersionDarkMatter, radiusHardBinary,rotationCurveGradient
     character(len=24)                        :: message
 
     ! Return a zero separation growth rate if the black hole has non-positive radial position or either black hole (active or
@@ -355,13 +354,14 @@ contains
             &                          )
        if (rotationCurveGradient == 0.0d0) then
           call Galacticus_Display_Indent('dynamical friction calculation report')
-          write (message,'(a,e12.6)') '    V(r) = ',Galactic_Structure_Rotation_Curve         (thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
+          write (message,'(a,i12)  ') 'nodeIndex = ',thisNode%index()
+          write (message,'(a,e12.6)') '     V(r) = ',Galactic_Structure_Rotation_Curve         (thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
           call Galacticus_Display_Message(trim(message))
-          write (message,'(a,e12.6)') '       r = ',Tree_Node_Black_Hole_Radial_Position      (thisNode                                               )
+          write (message,'(a,e12.6)') '        r = ',Tree_Node_Black_Hole_Radial_Position      (thisNode                                               )
           call Galacticus_Display_Message(trim(message))
-          write (message,'(a,e12.6)') 'dV(r)/dr = ',Galactic_Structure_Rotation_Curve_Gradient(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
+          write (message,'(a,e12.6)') ' dV(r)/dr = ',Galactic_Structure_Rotation_Curve_Gradient(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
           call Galacticus_Display_Message(trim(message))
-          write (message,'(a,e12.6)') '  a_{df} = ',dynamicalFrictionAcceleration
+          write (message,'(a,e12.6)') '   a_{df} = ',dynamicalFrictionAcceleration
           call Galacticus_Display_Message(trim(message))
           call Galacticus_Display_Unindent('done')
           call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate_Standard','rotation curve gradient is zero')

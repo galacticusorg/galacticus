@@ -71,8 +71,8 @@ module Hot_Halo_Density_Profile
   implicit none
   private
   public :: Hot_Halo_Density, Hot_Halo_Density_Log_Slope, Hot_Halo_Enclosed_Mass, Hot_Halo_Profile_Density_Task,&
-       & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task, Hot_Halo_Profile_Rotation_Normalization
-
+       & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task, Hot_Halo_Profile_Rotation_Normalization,&
+       & Hot_Halo_Profile_Rotation_Curve_Gradient_Task
   ! Flag to indicate if this module has been initialized.  
   logical              :: hotHaloDensityInitialized=.false.
 
@@ -215,7 +215,7 @@ contains
   !#  <unitName>Hot_Halo_Profile_Rotation_Curve_Task</unitName>
   !# </rotationCurveTask>
   subroutine Hot_Halo_Profile_Rotation_Curve_Task(thisNode,radius,massType,componentType,componentVelocity)
-    !% Computes the rotation curve at a given radius for a dark matter profile.
+    !% Computes the rotation curve at a given radius for the hot halo density profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
@@ -235,6 +235,35 @@ contains
     end if
     return
   end subroutine Hot_Halo_Profile_Rotation_Curve_Task
+
+  !# <rotationCurveGradientTask>
+  !#  <unitName>Hot_Halo_Profile_Rotation_Curve_Gradient_Task</unitName>
+  !# </rotationCurveGradientTask>
+  subroutine Hot_Halo_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,massType,componentType,componentRotationCurveGradient)
+    !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentRotationCurveGradient
+    double precision                         :: componentMass,componentDensity
+
+    ! Set to zero by default.
+    componentRotationCurveGradient=0.0d0
+
+    ! Compute if a spheroid is present.
+    if (radius > 0.0d0) then
+       call Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,componentMass)
+       if (componentMass > 0.0d0) then
+          componentDensity=Hot_Halo_Density(thisNode,radius)
+          componentRotationCurveGradient=gravitationalConstantGalacticus*(-componentMass/radius**2+4.0d0*Pi*radius*componentDensity)
+       end if
+    end if
+    return
+  end subroutine Hot_Halo_Profile_Rotation_Curve_Gradient_Task
 
   !# <densityTask>
   !#  <unitName>Hot_Halo_Profile_Density_Task</unitName>
