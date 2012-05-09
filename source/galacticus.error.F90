@@ -96,12 +96,18 @@ contains
 
   subroutine Galacticus_Error_Report_Char(unitName,message)
     !% Display an error message (optionally reporting the unit name in which the error originated) and stop.
+    !$ use OMP_Lib
     implicit none
     character(len=*), intent(in), optional :: unitName,message
     integer                                :: error
 
     if (present(unitName)) write (0,'(a,a,a)') 'Fatal error in ',trim(unitName),'():'
     if (present(message )) write (0,'(a)'    ) trim(message)
+    !$ if (omp_in_parallel()) then
+    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
+    !$ else
+    !$    write (0,*) " => Error occurred in master thread"
+    !$ end if
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
@@ -111,13 +117,17 @@ contains
 
   subroutine Galacticus_Error_Handler_Register()
     !% Register signal handlers.
+    use FGSL
     implicit none
-    
+    type(fgsl_error_handler_t) :: galacticusGslErrorHandler,standardGslErrorHandler
+  
     call Signal( 2,Galacticus_Signal_Handler_SIGINT )
     call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)
     call Signal(15,Galacticus_Signal_Handler_SIGINT )
-    return
+    galacticusGslErrorHandler=FGSL_Error_Handler_Init(Galacticus_GSL_Error_Handler)
+    standardGslErrorHandler  =FGSL_Set_Error_Handler (galacticusGslErrorHandler   )
+   return
   end subroutine Galacticus_Error_Handler_Register
   
   subroutine Galacticus_Signal_Handler_SIGINT()
@@ -176,5 +186,31 @@ contains
     call Abort()
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
+
+  subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
+    !% Handle errors from the GSL library, by flushing all data and then aborting.
+    !$ use OMP_Lib
+    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    type     (c_ptr                         ), value :: reason, file
+    integer  (c_int                         ), value :: line, errorNumber
+    character(kind=FGSL_Char,len=FGSL_StrMax)        :: message
+    integer                                          :: error
+
+    message=FGSL_StrError(errorNumber)
+    write (0,*) 'Galacticus experienced an error in the GSL library - will try to flush data before exiting.'
+    write (0,*) ' => Error occurred in ',trim(FGSL_Name(file  )),' at line ',line
+    write (0,*) ' => Reason was: '      ,trim(FGSL_Name(reason))
+    !$ if (omp_in_parallel()) then
+    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
+    !$ else
+    !$    write (0,*) " => Error occurred in master thread"
+    !$ end if
+    call Flush(0)
+    call H5Close_F(error)
+    call H5Close_C()
+    call Abort()
+    return
+  end subroutine Galacticus_GSL_Error_Handler
 
 end module Galacticus_Error
