@@ -12,7 +12,7 @@ use DateTime;
 require Galacticus::HDF5;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "^agnLuminosity:[^:]+:[^:]+:z[\\d\\.]+\$" => \&AGNLuminosities::Get_AGN_Luminosity
+			       "^agnLuminosity:[^:]+:[^:]+:z[\\d\\.]+(:alpha[0-9\\-\\+\\.]+)??\$" => \&AGNLuminosities::Get_AGN_Luminosity
     );
 
 # AGN SED data.
@@ -147,12 +147,15 @@ sub Get_AGN_Luminosity {
     }
     
     # Determine the filter, frame and redshift for which the luminosity is required.
-    if ( $dataSetName =~ m/^agnLuminosity:([^:]+):([^:]+):z([\d\.]+)$/ ) {
+    if ( $dataSetName =~ m/^agnLuminosity:([^:]+):([^:]+):z([\d\.]+)(:alpha[0-9\-\+\.]+)??$/ ) {
 	# Extract the name of the line and redshift.
 	my $filterName = $1;
 	my $frame      = $2;
 	my $redshift   = $3;
-	
+	my $alpha      = $4;
+	$alpha =~ s/:alpha//
+	    if ( defined($alpha) );
+
 	# Get the AGN bolometric luminosities (in units of Solar luminosities).
 	&HDF5::Get_Dataset($model,['blackHoleAccretionRate','blackHoleRadiativeEfficiency']);
 	my $dataSets = $model->{'dataSets'};
@@ -202,11 +205,22 @@ sub Get_AGN_Luminosity {
 	    } elsif ( $i == nelem($jointWavelengths)-1 ) {
 		$deltaWavelength = $jointWavelengths((-1))-$jointWavelengths((-2));
 	    } else {
-		$deltaWavelength = $jointWavelengths(($i))-$jointWavelengths(($i-1));
+		$deltaWavelength = $jointWavelengths(($i+1))-$jointWavelengths(($i-1));
 	    }
 	    $deltaWavelengths = $deltaWavelengths->append($deltaWavelength/2.0);
 	}
 	
+	# If an alpha parameter has been specified, then we're being asked for a broad-band luminosity, defined assuming a
+	# particular spectral shape for the AGN spectrum (f_ν∝ν^α) to convert from photon counts to a luminosity. In this case,
+	# compute the spectral shape correction factor using this spectrum and include factors to convert from the "AB-magnitude
+	# system luminosity zero point" luminosity computed below, to a broad band luminosity in Watts.
+	my $spectralShapeCorrection = pdl 1.0;
+	if ( defined($alpha) ) {
+	    my $photonIntegral = sum($jointResponse*$deltaWavelengths/$jointWavelengths**(1.0+$alpha));
+	    my $energyIntegral = sum($jointResponse*$deltaWavelengths/$jointWavelengths**(2.0+$alpha));
+	    $spectralShapeCorrection = ($energyIntegral/$photonIntegral)*$luminosityAB*$speedOfLight/$angstroms;
+	}
+
 	# Integrate SEDs under the filter.
 	my $luminosityAGN = pdl zeroes(nelem($luminositiesBolometric));
 	my $sedWavelengths = $wavelengths->copy();
@@ -220,10 +234,16 @@ sub Get_AGN_Luminosity {
 		 sum($jointSED         *$jointResponse*$deltaWavelengths/$jointWavelengths)
 		/sum($luminosityABSolar*$jointResponse*$deltaWavelengths/$jointWavelengths);
 	}
+	$luminosityAGN *= $spectralShapeCorrection;
 
 	# Interpolate to get luminosity for each node.
 	(my $luminositiesFiltered, $interpolateError) = interpolate($bolometricLuminosity,$luminositiesBolometric,$luminosityAGN);
-	my $outOfRange = which(($bolometricLuminosity < $luminositiesBolometric((0))) | ($bolometricLuminosity > $luminositiesBolometric((-1))));
+	my $outOfRange = 
+	    which(
+		($bolometricLuminosity < $luminositiesBolometric(( 0)))
+		|
+		($bolometricLuminosity > $luminositiesBolometric((-1)))
+	    );
 	$luminositiesFiltered->index($outOfRange) .= 0.0;
 	$dataSets->{$dataSetName} = $luminositiesFiltered;
     } else {
