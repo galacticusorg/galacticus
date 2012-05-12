@@ -172,6 +172,7 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     include 'galactic_structure.radius_solver.tasks.modules.inc'
+    include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
     type(treeNode),                    intent(inout), pointer :: thisNode
     integer,                           parameter              :: iterationMaximum=100
