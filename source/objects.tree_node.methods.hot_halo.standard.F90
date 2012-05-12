@@ -869,7 +869,7 @@ contains
 
        ! Get the rate of change of abundances.
        call Tree_Node_Hot_Halo_Abundances_Standard(thisNode,abundancesWork)
-       abundancesWork=massRate*abundancesWork/Tree_Node_Hot_Halo_Mass(thisNode)
+       abundancesWork=massRateLimited*abundancesWork/Tree_Node_Hot_Halo_Mass(thisNode)
        call Tree_Node_Hot_Halo_Abundances_Rate_Adjust_Standard(thisNode,interrupt,interruptProcedurePassed,-abundancesWork)
 
        ! Return our local copy of the interrupt procedure.
