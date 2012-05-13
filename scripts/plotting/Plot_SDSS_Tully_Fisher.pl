@@ -76,7 +76,7 @@ $weightSelected    = $weight   ->index($selection);
 
 # Read the XML data file.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/SDSS_Tully_Fisher.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/tullyFisherRelation/Tully_Fisher_SDSS_Pizagno_2007.xml");
 $columns = $data->{'tullyFisher'}->{'columns'};
 $x       = pdl @{$columns->{'magnitude'}->{'data'}};
 $x       = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});

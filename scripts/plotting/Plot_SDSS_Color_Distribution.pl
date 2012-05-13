@@ -43,7 +43,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/Galaxy_Colors_SDSS_Weinmann_2006.xml");
+$data = $xml->XMLin("data/observations/galaxyColors/Galaxy_Colors_SDSS_Weinmann_2006.xml");
 $columns = $data->{'galaxyColors'}->{'columns'};
 $magnitude = pdl @{$columns->{'magnitude'}->{'data'}};
 $color = pdl @{$columns->{'color'}->{'data'}};

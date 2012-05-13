@@ -215,7 +215,7 @@ sub Load_Dust_Atlas {
 	if ( exists($dataSet->{'dustAtlasFile'}) ) {
 	    $dustFile = $dataSet->{'dustAtlasFile'};
 	} else {
-	    $dustFile = "data/dust_atlas/attenuations_MilkyWay_dustHeightRatio1.0.xml";
+	    $dustFile = "data/dust/atlasFerrara2000/attenuations_MilkyWay_dustHeightRatio1.0.xml";
 	}
 	
         # Read the dust file.

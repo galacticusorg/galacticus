@@ -131,7 +131,7 @@ contains
        ! Get the name of the file containing stellar data.
        !@ <inputParameter>
        !@   <name>stellarPropertiesFile</name>
-       !@   <defaultValue>data/Stellar\_Properties\_Compilation.xml</defaultValue>
+       !@   <defaultValue>data/stellarAstrophysics/Stellar\_Properties\_Compilation.xml</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).
@@ -140,7 +140,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPropertiesFile',stellarPropertiesFile,defaultValue=char(Galacticus_Input_Path())//'data&
-            &/Stellar_Properties_Compilation.xml')
+            &/stellarAstrophysics/Stellar_Properties_Compilation.xml')
 
        ! Allocate array to store number of entries in file for yield of each element.
        call Alloc_Array(elementYieldCount,[Atomic_Data_Atoms_Count()])

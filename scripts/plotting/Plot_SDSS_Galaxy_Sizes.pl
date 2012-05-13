@@ -45,7 +45,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 
 # Read tabulation of half-radii vs. disk/spheroid properties and extract to PDLs.
 my $xml                 = new XML::Simple;
-my $halfRadiiData       = $xml->XMLin($galacticusPath."data/Half_Radii_Exponential_Hernquist.xml");
+my $halfRadiiData       = $xml->XMLin($galacticusPath."data/galacticStructure/Half_Radii_Exponential_Hernquist.xml");
 my $spheroidRadii       = pdl @{$halfRadiiData->{'spheroidRadius'}->{'data'}};
 my $spheroidMasses      = pdl @{$halfRadiiData->{'spheroidMass'}->{'data'}};
 my $spheroidRadiiIndex  = pdl 0..nelem($spheroidRadii )-1;
@@ -93,7 +93,7 @@ print gnuPlot "set output \"tmp.ps\"\n";
 # Read the XML data file.
 my @tmpFiles;
 undef(@tmpFiles);
-my $data = $xml->XMLin($galacticusPath."data/SDSS_Galaxy_Sizes_Shen_2003.xml");
+my $data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Galaxy_Sizes_SDSS_Shen_2003.xml");
 foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $columns = $dataSet->{'columns'};
     my $x = pdl @{$columns->{'radius'}->{'data'}};

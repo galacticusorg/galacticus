@@ -78,7 +78,7 @@ print gnuPlot "set output \"tmp.ps\"\n";
 # Read the XML data file.
 undef(@tmpFiles);
 $xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/SDSS_Gas_Phase_Metallicities.xml");
+$data = $xml->XMLin($galacticusPath."data/observations/abundances/Gas_Phase_Metallicities_SDSS_Tremonti_2004.xml");
 $iDataset = 0;
 foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
     ++$iDataset;

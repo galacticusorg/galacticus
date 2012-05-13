@@ -91,9 +91,9 @@ module Atomic_Data
 
   ! Abundance pattern information.
   integer,          parameter                                   :: abundancePatternCount=1
-  character(len=*), parameter, dimension(abundancePatternCount) :: abundancePatternFiles=           &
-       &                                                            ["data/Solar_Composition.xml"], & 
-       &                                                           abundancePatternNames=           &
+  character(len=*), parameter, dimension(abundancePatternCount) :: abundancePatternFiles=                      &
+       &                                                            ["data/abundances/Solar_Composition.xml"], & 
+       &                                                           abundancePatternNames=                      &
        &                                                            ["solar"]
 
   ! Mass normalization options.
@@ -214,7 +214,7 @@ contains
 
        ! Read in the atomic data.
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(Galacticus_Input_Path())//"data/Atomic_Data.xml",iostat=ioErr)
+       doc => parseFile(char(Galacticus_Input_Path())//"data/abundances/Atomic_Data.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Atomic_Data_Initialize','Unable to parse data file')
 
        ! Get list of all element elements.

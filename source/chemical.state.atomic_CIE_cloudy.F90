@@ -72,8 +72,8 @@ module Chemical_States_Atomic_CIE_Cloudy
   logical                     :: chemicalStateInitialized=.false.
 
   ! File names for the cooling function and chemical state data.
-  character(len=50)           :: coolingFunctionFile='data/cooling_function_Atomic_CIE_Cloudy.xml'
-  character(len=50)           :: chemicalStateFile='data/chemical_state_Atomic_CIE_Cloudy.xml'
+  character(len=55)           :: coolingFunctionFile='data/cooling/cooling_function_Atomic_CIE_Cloudy.xml'
+  character(len=55)           :: chemicalStateFile='data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml'
 
   ! Maximum tabulated metallicity.
   double precision, parameter :: metallicityMaximumDefault=30.0d0 ! Thirty times Solar.

@@ -86,7 +86,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $y      = pdl [];
     $yError = pdl [];
     $xml = new XML::Simple;
-    $data = $xml->XMLin($galacticusPath."data/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
+    $data = $xml->XMLin($galacticusPath."data/observations/blackHoles/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
     foreach $parameter ( @{$data->{'cosmology'}->{'parameter'}} ) {
 	$cosmology{$parameter->{'name'}} = $parameter->{'value'};
     }

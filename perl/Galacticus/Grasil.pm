@@ -180,7 +180,7 @@ sub Get_Flux {
 	    &Grasil::Extract_Star_Formation_History($dataSet,$outputIndex,$mergerTreeIndex,$nodeIndex,$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".dat");
 
 	    # Generate a parameter file for Grasil.
-	    open(iHndl,"data/grasilBaseParameters.txt");
+	    open(iHndl,"data/grasil/grasilBaseParameters.txt");
 	    open(oHndl,">".$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".par");
 	    my $inInclinations = 0;
 	    $inclinations = pdl [];

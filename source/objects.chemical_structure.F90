@@ -148,7 +148,7 @@ contains
     ! Check if the chemical database is initialized.
     if (.not.chemicalDatabaseInitialized) then
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(Galacticus_Input_Path())//'data/Chemical_Database.cml',iostat=ioErr)
+       doc => parseFile(char(Galacticus_Input_Path())//'data/abundances/Chemical_Database.cml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Chemical_Structure_Initialize','Unable to find chemical database file')
        ! Get a list of all chemicals.
        chemicalList => getElementsByTagname(doc,"chemical")

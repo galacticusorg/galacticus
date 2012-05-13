@@ -67,7 +67,7 @@ $degreesOfFreedom = 0;
 # Read the XML data file.
 undef(@tmpFiles);
 $xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/Disk_Sizes_Dejong_2000.xml");
+$data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Disk_Sizes_Dejong_2000.xml");
 my $i = -1;
 my @leafFiles;
 my @plotFiles;

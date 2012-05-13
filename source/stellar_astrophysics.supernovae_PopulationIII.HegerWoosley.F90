@@ -99,7 +99,7 @@ contains
        ! Read in pair instability supernova energies.
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing yields.
-       doc => parseFile('data/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
+       doc => parseFile('data/stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Supernovae_Population_III_HegerWoosley_Initialize','Unable to parse supernovae file')
 
        ! Get the mass and energy elements.

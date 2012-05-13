@@ -477,7 +477,7 @@ contains
        recycledFractionIndex(imfSelected)=size(recycledFractionTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName=char(Galacticus_Input_Path())//'data/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'.xml'
+       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'.xml'
        makeFile=.false.
        if (File_Exists(fileName)) then
           ! Open the XML file containing energy input.
@@ -835,10 +835,10 @@ contains
           select case (iElement)
           case (1)
              ! Total metallicity.
-             fileName=char(Galacticus_Input_Path())//'data/Stellar_Metal_Yield_'//imfNames(imfSelected)//'.xml'
+             fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Metal_Yield_'//imfNames(imfSelected)//'.xml'
           case (2:)
              ! Individual element.
-             fileName=char(Galacticus_Input_Path())//'data/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'.xml'
+             fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'.xml'
           end select
           makeFile=.false.
           if (File_Exists(fileName)) then
@@ -1258,7 +1258,7 @@ contains
        energyInputIndex(imfSelected)=size(energyInputTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName=char(Galacticus_Input_Path())//'data/Stellar_Energy_Input_'//imfNames(imfSelected)//'.xml'
+       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Energy_Input_'//imfNames(imfSelected)//'.xml'
        makeFile=.false.
        if (File_Exists(fileName)) then
            ! Open the XML file containing energy input.

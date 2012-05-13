@@ -143,7 +143,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'metallicity'} = $logMetallicity;
 	
 	# Run Cloudy.
-	open(cloudyPipe,"|".$galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe 1> /dev/null");
+	open(cloudyPipe,"|".$galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe"); # 1> /dev/null");
 	print cloudyPipe "print off\n";
 	print cloudyPipe "background, z=0\n";            # Use a very low level incident continuum.
 	print cloudyPipe "cosmic rays background\n";     # Include cosmic ray background ionization rate.
@@ -165,7 +165,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	print cloudyPipe "punch cooling \"".$coolingTempFile."\"\n";
 	print cloudyPipe "punch overview \"".$overviewTempFile."\"\n";
 	close(cloudyPipe);
-
+	exit;
 	# Extract the cooling rate.
 	open(coolHandle,$coolingTempFile);
 	$headerLine = <coolHandle>;

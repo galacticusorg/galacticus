@@ -113,7 +113,7 @@ contains
        ! Get the name of the file from which to read stellar tracks.
        !@ <inputParameter>
        !@   <name>stellarTracksFile</name>
-       !@   <defaultValue>data/Stellar\_Tracks\_Padova.hdf5</defaultValue>
+       !@   <defaultValue>data/stellarAstrophysics/Stellar\_Tracks\_Padova.hdf5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the HDF5 file from which to read stellar tracks.
@@ -121,7 +121,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue=char(Galacticus_Input_Path())//'data/Stellar_Tracks_Padova.hdf5')
+       call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue=char(Galacticus_Input_Path())//'data/stellarAstrophysics/Stellar_Tracks_Padova.hdf5')
        
        ! Open the HDF5 file.
        !$omp critical(HDF5_Access)

@@ -44,7 +44,7 @@ $summedWeights = zeroes($rootBinCount,$outputCount-1);
 
 # Read data from the Millennium Simulation.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/progenitor_mass_function_Millennium_Simulation.xml");
+$data = $xml->XMLin("data/darkMatter/Progenitor_Mass_Function_Millennium_Simulation.xml");
 foreach $massFunction ( @{$data->{'massFunction'}} ) {
     $label = $massFunction->{'rootMass'}.":".$massFunction->{'redshift'};
     @{${$millenniumData{$label}}{'Mass'}} = @{$massFunction->{'massRatio'}};
