@@ -507,8 +507,8 @@ contains
           write (0,'(1x,a)'           ) 'position component -> properties:'
           call Tree_Node_Position(thisNode,position)
           call Tree_Node_Velocity(thisNode,velocity)
-          write (0,'(2x,a50,1x,e12.6)') 'position:',position
-          write (0,'(2x,a50,1x,e12.6)') 'velocity:',velocity
+          write (0,'(2x,a50,3(1x,e12.6))') 'position:',position
+          write (0,'(2x,a50,3(1x,e12.6))') 'velocity:',velocity
        else
           write (0,'(1x,a)'           ) 'position component -> nonexistant'
        end if

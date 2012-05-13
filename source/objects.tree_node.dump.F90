@@ -78,10 +78,10 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    write (0,'(a,i6,a)'   ) 'Dumping data for node [',thisNode%index(),']'
-    write (0,'(1x,a20,i6)') 'parent node: ',thisNode%parentNode%index()
-    write (0,'(1x,a20,i6)') 'sibling node: ',thisNode%siblingNode%index()
-    write (0,'(1x,a20,i6)') 'child node: ',thisNode%childNode%index()
+    write (0,'(a,i10,a)'   ) 'Dumping data for node [',thisNode%index(),']'
+    write (0,'(1x,a20,i10)') 'parent node: ',thisNode%parentNode%index()
+    write (0,'(1x,a20,i10)') 'sibling node: ',thisNode%siblingNode%index()
+    write (0,'(1x,a20,i10)') 'child node: ',thisNode%childNode%index()
     !# <include directive="nodeDumpTask" type="code" action="subroutine">
     !#  <subroutineArgs>thisNode</subroutineArgs>
     include 'objects.tree_node.dump.inc'
