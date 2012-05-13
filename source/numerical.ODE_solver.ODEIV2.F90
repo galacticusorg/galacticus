@@ -146,6 +146,12 @@ contains
        select case (status)
        case (FGSL_Success)
           ! Successful completion of the step - do nothing except resetting failure count.
+       case (FGSL_Failure)
+          ! Generic failure - most likely a stepsize underflow.
+          message='ODE integration failed with status '
+          message=message//status//' [generic failure]'//char(10)
+          message=message//' => most likely a stepsize underflow'
+          call Galacticus_Error_Report('ODEIV2_Solve',message)
        case (odeSolverInterrupt)
           ! The evolution was interrupted. Reset the end time of the evolution and continue.
           x1Internal=interruptedAtX
