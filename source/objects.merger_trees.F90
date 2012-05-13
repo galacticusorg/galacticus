@@ -163,8 +163,9 @@ module Merger_Trees
 #endif
 
   ! Module global pointer to the node being processed.
+  integer(kind=kind_int8)                     :: activeTreeIndex
   type(treeNode),   pointer                   :: activeNode
-  !$omp threadprivate(activeNode)
+  !$omp threadprivate(activeNode,activeTreeIndex)
 
   ! Variables to track interrupt events.
   logical                                          :: firstInterruptFound
@@ -186,6 +187,9 @@ module Merger_Trees
        type(treeNode), intent(inout), pointer :: thisNode
      end subroutine Node_Mergers_Template
   end interface
+
+  ! Pointer to an error handler for failures in the ODE solver.
+  procedure(), pointer :: Galacticus_ODE_Error_Handler => Tree_Node_ODEs_Error_Handler
 
 contains
 
@@ -524,7 +528,8 @@ contains
     call Map_Properties_To_ODE_Array(thisNode,propertyScales,labelScale)
 
     ! Assign module global pointer to this node.
-    activeNode => thisNode
+    activeTreeIndex=  thisTree%index
+    activeNode     => thisNode
 
     ! Reset interrupt variables.
     firstInterruptFound     =  .false.
@@ -555,7 +560,8 @@ contains
          &                   parameterPointer                         , &
          &                   odeToleranceAbsolute,odeToleranceRelative, &
          &                   propertyScales                           , &
-         &                   reset=odeReset                             &
+         &                   reset=odeReset                           , &
+         &                   errorHandler=Galacticus_ODE_Error_Handler  &
 #ifdef PROFILE
          &                  ,Error_Analyzer=My_Error_Analyzer           &
 #endif
@@ -900,6 +906,22 @@ contains
 
     return
   end subroutine Tree_Node_Compute_Derivatives
+
+  subroutine Tree_Node_ODEs_Error_Handler()
+    !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
+    use Tree_Nodes_Dump
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
+    implicit none
+    type(varying_string) :: message
+    
+    message="ODE solver failed in tree #"
+    message=message//activeTreeIndex
+    call Galacticus_Display_Message(message)
+    call Node_Dump(activeNode)
+    return
+  end subroutine Tree_Node_ODEs_Error_Handler
   
 #ifdef PROFILE
   subroutine Tree_Node_Evolve_Error_Analyzer_Dummy(currentPropertyValue,currentPropertyError,timeStep,stepStatus)

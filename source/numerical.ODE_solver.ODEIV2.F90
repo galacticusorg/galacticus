@@ -73,7 +73,7 @@ module ODEIV2_Solver
 contains
   
   subroutine ODEIV2_Solve(odeDriver,odeSystem,x0,x1,yCount,y,odeFunction,parameterPointer,toleranceAbsolute,toleranceRelative&
-       &,yScale,Error_Analyzer,reset)
+       &,yScale,errorHandler,Error_Analyzer,reset)
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
@@ -88,7 +88,7 @@ contains
     type(fodeiv2_driver),     intent(inout)           :: odeDriver
     type(fodeiv2_system),     intent(inout)           :: odeSystem
     logical,                  intent(inout), optional :: reset
-    procedure(),              pointer,       optional :: Error_Analyzer
+    procedure(),              pointer,       optional :: errorHandler,Error_Analyzer
     integer(kind=4),          external                :: odeFunction
     integer,                  parameter               :: genericFailureCountMaximum=10
     double precision,         parameter               :: yScaleUniform=1.0d0, dydtScaleUniform=0.0d0
@@ -157,6 +157,7 @@ contains
           x1Internal=interruptedAtX
        case default
           ! Some other error condition.
+          if (present(errorHandler)) call errorHandler()
           message='ODE integration failed with status '
           message=message//status
           call Galacticus_Error_Report('ODEIV2_Solve',message)
