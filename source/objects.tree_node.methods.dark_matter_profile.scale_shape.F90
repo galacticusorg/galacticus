@@ -71,7 +71,7 @@ module Tree_Node_Methods_Dark_Matter_Profile_Scale_Shapes
        & Galacticus_Output_Tree_Profile_ScaleShape, Galacticus_Output_Tree_Profile_ScaleShape_Property_Count,&
        & Galacticus_Output_Tree_Profile_ScaleShape_Names, Tree_Node_Methods_Profile_ScaleShape_Dump,&
        & Tree_Node_Dark_Matter_Profile_ScaleShape_Promote, Tree_Node_Methods_Profile_ScaleShape_Merger_Tree_Output,&
-       & Profile_ScaleShape_Scale_Set
+       & Profile_ScaleShape_Scale_Set, Tree_Node_Methods_Profile_Scale_Shape_Plausibility
   
   ! The index used as a reference for this component.
   integer            :: componentIndex=-1
@@ -101,7 +101,7 @@ module Tree_Node_Methods_Dark_Matter_Profile_Scale_Shapes
   logical          :: methodSelected=.false.
 
   ! Parameters of the method.
-  double precision :: darkMatterProfileMinimumConcentration
+  double precision :: darkMatterProfileMinimumConcentration,darkMatterProfileMaximumConcentration
 
   ! Flag indicating whether scale radius and shape data should be output when full merger trees are output.
   logical          :: mergerTreeStructureOutputDarkMatterProfileProperties
@@ -150,6 +150,17 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('darkMatterProfileMinimumConcentration',darkMatterProfileMinimumConcentration,defaultValue=4.0d0)
        !@ <inputParameter>
+       !@   <name>darkMatterProfileMaximumConcentration</name>
+       !@   <defaultValue>100</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The maximum concentration allowed for dark matter profiles.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('darkMatterProfileMaximumConcentration',darkMatterProfileMaximumConcentration,defaultValue=100.0d0)
+       !@ <inputParameter>
        !@   <name>mergerTreeStructureOutputDarkMatterProfileProperties</name>
        !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
@@ -185,15 +196,26 @@ contains
  
   double precision function Tree_Node_Dark_Matter_Profile_Scale_ScaleShape(thisNode,instance)
     !% Return the node dark matter profile scale length.
+    use Dark_Matter_Halo_Scales
     implicit none
     integer,        optional, intent(in   ) :: instance
     type(treeNode), pointer,  intent(inout) :: thisNode
     integer                                 :: thisIndex
-    
+    double precision                        :: scaleLengthMaximum,scaleLengthMinimum
+
     ! Ensure the spin has been initialized.
     call Tree_Node_Methods_Profile_ScaleShape_Initialize_ScaleShape(thisNode)
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
-    Tree_Node_Dark_Matter_Profile_Scale_ScaleShape=thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyValue)
+    scaleLengthMaximum=Dark_Matter_Halo_Virial_Radius(thisNode)/darkMatterProfileMinimumConcentration
+    scaleLengthMinimum=Dark_Matter_Halo_Virial_Radius(thisNode)/darkMatterProfileMaximumConcentration
+    Tree_Node_Dark_Matter_Profile_Scale_ScaleShape=                                                 &
+         & min(                                                                                     &
+         &     scaleLengthMaximum                                                                 , &
+         &     max(                                                                                 &
+         &         scaleLengthMinimum                                                             , &
+         &         thisNode%components(thisIndex)%instance(1)%properties(scaleIndex,propertyValue)  &
+         &        )                                                                                 &
+         &    )
     return
   end function Tree_Node_Dark_Matter_Profile_Scale_ScaleShape
 
@@ -216,14 +238,21 @@ contains
 
   subroutine Tree_Node_Dark_Matter_Profile_Scale_Rate_Compute_ScaleShape(thisNode,interrupt,interruptProcedure)
     !% Compute the rate of change of the scale radius.
+    use Dark_Matter_Halo_Scales  
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
     procedure(),    pointer, intent(inout) :: interruptProcedure
     integer                                :: thisIndex
-    double precision                       :: growthRate
+    double precision                       :: growthRate,concentration
 
     thisIndex=Tree_Node_Profile_ScaleShape_Index(thisNode)
+    ! Find the concentration of this halo.
+    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    ! Find the growth rate and limit to ensure minimum and maximum concentrations are not exceeded.
+    if (concentration <= darkMatterProfileMinimumConcentration) growthRate=min(growthRate,Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)/darkMatterProfileMinimumConcentration)
+    if (concentration >= darkMatterProfileMaximumConcentration) growthRate=max(growthRate,Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)/darkMatterProfileMaximumConcentration)
+    ! Adjust the growth rate.
     growthRate=Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate_ScaleShape(thisNode)
     call Tree_Node_Dark_Matter_Profile_Scale_Rate_Adjust_ScaleShape(thisNode,interrupt,interruptProcedure,growthRate)
     return
@@ -325,7 +354,24 @@ contains
     end if
     return
   end subroutine Tree_Node_Methods_Profile_ScaleShape_Initialize_ScaleShape
-  
+
+  !# <radiusSolverPlausibility>
+  !#  <unitName>Tree_Node_Methods_Profile_Scale_Shape_Plausibility</unitName>
+  !# </radiusSolverPlausibility>
+  subroutine Tree_Node_Methods_Profile_Scale_Shape_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
+    !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    logical,                 intent(inout) :: galaxyIsPhysicallyPlausible
+
+    ! Return immediately if our method is not selected.
+    if (.not.methodSelected) return
+    ! Determine the plausibility of the current disk.
+    if (Tree_Node_Dark_Matter_Profile_Scale(thisNode) <= 0.0d0) galaxyIsPhysicallyPlausible=.false.
+    return
+  end subroutine Tree_Node_Methods_Profile_Scale_Shape_Plausibility
+
   !# <mergerTreeInitializeTask>
   !#  <unitName>Tree_Node_Methods_Profile_ScaleShape_Initialize_Rates</unitName>
   !# </mergerTreeInitializeTask>
