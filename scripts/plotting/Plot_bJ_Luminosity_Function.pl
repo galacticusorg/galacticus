@@ -50,7 +50,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/bJ_Luminosity_Function_2dFGRS.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/bJ_Luminosity_Function_2dFGRS_Norberg_2002.xml");
 $columns = $data->{'luminosityFunction'}->{'columns'};
 $xBins   = pdl @{$columns->{'magnitude'}->{'data'}};
 $x       = pdl @{$columns->{'magnitude'}->{'data'}};

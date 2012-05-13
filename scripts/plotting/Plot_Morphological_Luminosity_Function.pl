@@ -62,7 +62,7 @@ $dataSets  = $dataSet->{'dataSets'};
 
 # Read the XML data file.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/Morphological_Luminosity_Functions_2MASS_Devereux_2009.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/Morphological_Luminosity_Functions_2MASS_Devereux_2009.xml");
 
 # Estimate bulge-to-total ratio ranges for each morphological class.
 foreach $morphology ( @{$data->{'morphology'}} ) {

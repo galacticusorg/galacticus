@@ -48,7 +48,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/HI_Mass_Function_Zwaan_2005.xml");
+$data = $xml->XMLin($galacticusPath."data/observations/massFunctionsHI/HI_Mass_Function_Zwaan_2005.xml");
 $columns = $data->{'massFunction'}->{'columns'};
 $xBins = pdl @{$columns->{'mass'}->{'data'}};
 $x = pdl @{$columns->{'mass'}->{'data'}};

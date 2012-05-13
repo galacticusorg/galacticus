@@ -51,7 +51,7 @@ sub Get_AGN_Luminosity {
 	    unless ( -e "aux/AGN_Spectrum/agn_spectrum.x" );
 
 	# Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
-	unless ( -e "data/AGN_SEDs.hdf5" ) {
+	unless ( -e "data/blackHoles/AGN_SEDs.hdf5" ) {
 	    my $luminosityBolometricMinimum = pdl  6.0;
 	    my $luminosityBolometricMaximum = pdl 28.0;
 	    my $luminosityBolometricCount   = 200;
@@ -93,7 +93,7 @@ sub Get_AGN_Luminosity {
 	    }
 
 	    # Store the data to file.
-	    my $hdfFile = new PDL::IO::HDF5(">data/AGN_SEDs.hdf5");
+	    my $hdfFile = new PDL::IO::HDF5(">data/blackHoles/AGN_SEDs.hdf5");
 	    my $wavelengthDataSet = new PDL::IO::HDF5::Dataset(
 		name    => "wavelength",
 		parent  => $hdfFile,
@@ -137,13 +137,13 @@ sub Get_AGN_Luminosity {
 		);
 	} else {
 	    # Read the AGN SEDs from file.
-	    my $hdfFile             = new PDL::IO::HDF5("data/AGN_SEDs.hdf5");
+	    my $hdfFile             = new PDL::IO::HDF5("data/blackHoles/AGN_SEDs.hdf5");
 	    $wavelengths            = $hdfFile->dataset('wavelength'          )->get();
 	    $luminositiesBolometric = $hdfFile->dataset('bolometricLuminosity')->get();
 	    $SEDs                   = $hdfFile->dataset('SED'                 )->get();
 	}
-	die("Get_AGN_Luminosity(): failed to created data/AGN_SEDs.hdf5")
-	    unless ( -e "data/AGN_SEDs.hdf5" );
+	die("Get_AGN_Luminosity(): failed to created data/blackHoles/AGN_SEDs.hdf5")
+	    unless ( -e "data/blackHoles/AGN_SEDs.hdf5" );
     }
     
     # Determine the filter, frame and redshift for which the luminosity is required.

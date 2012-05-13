@@ -48,7 +48,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml       = new XML::Simple;
-$data      = $xml->XMLin($galacticusPath."data/Stellar_Mass_Function_Li_White_2009.xml");
+$data      = $xml->XMLin($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.xml");
 $columns   = $data->{'stellarMassFunction'}->{'columns'};
 $xBins     = pdl @{$columns->{'stellarMass' }->{'datum'}};
 $x         = pdl @{$columns->{'stellarMass' }->{'datum'}};

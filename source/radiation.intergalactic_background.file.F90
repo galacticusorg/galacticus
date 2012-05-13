@@ -129,7 +129,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('radiationIGBFileName',radiationIGBFileName,defaultValue=char(Galacticus_Input_Path())//"data/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml")
+       call Get_Input_Parameter('radiationIGBFileName',radiationIGBFileName,defaultValue=char(Galacticus_Input_Path())//"data/radiation/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml")
 
        !$omp critical (FoX_DOM_Access)
        ! Parse the XML file.

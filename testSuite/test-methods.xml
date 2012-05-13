@@ -73,7 +73,7 @@
   <parameters>
     <parameter>
       <name>chemicalStateFile</name>
-      <value>data/chemical_state_Atomic_CIE_Cloudy.xml</value>
+      <value>data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml</value>
     </parameter>
     <parameter>
       <name>chemicalStateMethod</name>

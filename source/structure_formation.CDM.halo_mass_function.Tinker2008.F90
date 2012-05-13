@@ -100,7 +100,7 @@ contains
        
        ! Read the data file which gives fitting parameters as a function of halo overdensity.
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(Galacticus_Input_Path())//"data/Halo_Mass_Function_Parameters_Tinker_2008.xml",iostat=ioErr)
+       doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Halo_Mass_Function_Tinker2008_Initialize','Unable to find data file')
        columnsElement    => item(getElementsByTagname(doc           ,"columns"      ),0)
        columnElement     => item(getElementsByTagname(columnsElement,"overdensity"  ),0)
