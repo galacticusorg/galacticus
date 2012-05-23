@@ -146,50 +146,51 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Cosmology_Functions_Initialization) 
     ! Initialize if necessary.
     if (.not.cosmologyInitialized) then
-       ! Get the disk star formation feedback method parameter.
-       !@ <inputParameter>
-       !@   <name>cosmologyMethod</name>
-       !@   <defaultValue>matter-lambda</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for cosmology calculations.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('cosmologyMethod',cosmologyMethod,defaultValue='matter-lambda')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="cosmologyMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get</subroutineArgs>
-       include 'cosmology_functions.inc'
-       !# </include>
-       if     (                                                                &
-            &  .not.(                                                          &
-            &             associated(Expansion_Factor_Is_Valid_Get           ) &
-            &        .and.associated(Cosmic_Time_Is_Valid_Get                ) &
-            &        .and.associated(Cosmology_Age_Get                       ) &
-            &        .and.associated(Expansion_Factor_Get                    ) &
-            &        .and.associated(Hubble_Parameter_Get                    ) &
-            &        .and.associated(Early_Time_Density_Scaling_Get          ) &
-            &        .and.associated(Omega_Matter_Total_Get                  ) &
-            &        .and.associated(Omega_Dark_Energy_Get                   ) &
-            &        .and.associated(Expansion_Rate_Get                      ) &
-            &        .and.associated(Epoch_of_Matter_Dark_Energy_Equality_Get) &
-            &        .and.associated(Epoch_of_Matter_Domination_Get          ) & 
-            &        .and.associated(Epoch_of_Matter_Curvature_Equality_Get  ) &
-            &        .and.associated(CMB_Temperature_Get                     ) &
-            &        .and.associated(Comoving_Distance_Get                   ) &
-            &        .and.associated(Time_From_Comoving_Distance_Get         ) &
-            &       )                                                          &
-            & )                                                                &
-            & call Galacticus_Error_Report('Cosmology_Functions','method '//char(cosmologyMethod)//' is unrecognized')
-       cosmologyInitialized=.true.
+       !$omp critical(Cosmology_Functions_Initialization) 
+       if (.not.cosmologyInitialized) then
+          ! Get the disk star formation feedback method parameter.
+          !@ <inputParameter>
+          !@   <name>cosmologyMethod</name>
+          !@   <defaultValue>matter-lambda</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for cosmology calculations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('cosmologyMethod',cosmologyMethod,defaultValue='matter-lambda')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="cosmologyMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get</subroutineArgs>
+          include 'cosmology_functions.inc'
+          !# </include>
+          if     (                                                                &
+               &  .not.(                                                          &
+               &             associated(Expansion_Factor_Is_Valid_Get           ) &
+               &        .and.associated(Cosmic_Time_Is_Valid_Get                ) &
+               &        .and.associated(Cosmology_Age_Get                       ) &
+               &        .and.associated(Expansion_Factor_Get                    ) &
+               &        .and.associated(Hubble_Parameter_Get                    ) &
+               &        .and.associated(Early_Time_Density_Scaling_Get          ) &
+               &        .and.associated(Omega_Matter_Total_Get                  ) &
+               &        .and.associated(Omega_Dark_Energy_Get                   ) &
+               &        .and.associated(Expansion_Rate_Get                      ) &
+               &        .and.associated(Epoch_of_Matter_Dark_Energy_Equality_Get) &
+               &        .and.associated(Epoch_of_Matter_Domination_Get          ) & 
+               &        .and.associated(Epoch_of_Matter_Curvature_Equality_Get  ) &
+               &        .and.associated(CMB_Temperature_Get                     ) &
+               &        .and.associated(Comoving_Distance_Get                   ) &
+               &        .and.associated(Time_From_Comoving_Distance_Get         ) &
+               &       )                                                          &
+               & )                                                                &
+               & call Galacticus_Error_Report('Cosmology_Functions','method '//char(cosmologyMethod)//' is unrecognized')
+          cosmologyInitialized=.true.
+       end if
+       !$omp end critical(Cosmology_Functions_Initialization) 
     end if
-    !$omp end critical(Cosmology_Functions_Initialization) 
-
     return
   end subroutine Cosmology_Functions_Initialize
 

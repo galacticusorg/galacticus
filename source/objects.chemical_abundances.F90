@@ -156,7 +156,7 @@ contains
     type(chemicalStructure) :: thisChemical
 
     ! Check if this module has been initialized already.    
-    !$omp critical (Chemical_Abundances_Module_Initalize)
+    !$omp critical (Chemical_Abundances_Module_Initialize)
     if (.not.chemicalAbundancesInitialized) then
 
        ! Determine how many elements we are required to track.
@@ -191,7 +191,7 @@ contains
        ! Flag that this module is now initialized.
        chemicalAbundancesInitialized=.true.
     end if
-    !$omp end critical (Chemical_Abundances_Module_Initalize)
+    !$omp end critical (Chemical_Abundances_Module_Initialize)
 
     return
   end subroutine Chemical_Abundances_Initialize

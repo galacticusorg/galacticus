@@ -102,32 +102,34 @@ contains
     use Input_Parameters
     implicit none
 
-    !$omp critical(Cooling_Time_Initialization) 
     ! Initialize if necessary.
     if (.not.coolingTimeInitialized) then
-       ! Get the cooling time method parameter.
-       !@ <inputParameter>
-       !@   <name>coolingTimeMethod</name>
-       !@   <defaultValue>simple</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be use for computing cooling times.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingTimeMethod',coolingTimeMethod,defaultValue='simple')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="coolingTimeMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>coolingTimeMethod,Cooling_Time_Get,Cooling_Time_Density_Log_Slope_Get,Cooling_Time_Temperature_Log_Slope_Get</subroutineArgs>
-       include 'cooling.cooling_time.inc'
-       !# </include>
-       if (.not.(associated(Cooling_Time_Get).and.associated(Cooling_Time_Density_Log_Slope_Get) &
-            & .and.associated(Cooling_Time_Temperature_Log_Slope_Get))) call&
-            & Galacticus_Error_Report('Cooling_Time','method ' //char(coolingTimeMethod)//' is unrecognized')
-       coolingTimeInitialized=.true.
+       !$omp critical(Cooling_Time_Initialization) 
+       if (.not.coolingTimeInitialized) then
+          ! Get the cooling time method parameter.
+          !@ <inputParameter>
+          !@   <name>coolingTimeMethod</name>
+          !@   <defaultValue>simple</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be use for computing cooling times.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('coolingTimeMethod',coolingTimeMethod,defaultValue='simple')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="coolingTimeMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>coolingTimeMethod,Cooling_Time_Get,Cooling_Time_Density_Log_Slope_Get,Cooling_Time_Temperature_Log_Slope_Get</subroutineArgs>
+          include 'cooling.cooling_time.inc'
+          !# </include>
+          if (.not.(associated(Cooling_Time_Get).and.associated(Cooling_Time_Density_Log_Slope_Get) &
+               & .and.associated(Cooling_Time_Temperature_Log_Slope_Get))) call&
+               & Galacticus_Error_Report('Cooling_Time','method ' //char(coolingTimeMethod)//' is unrecognized')
+          coolingTimeInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Time_Initialization) 
     end if
-    !$omp end critical(Cooling_Time_Initialization) 
     return
   end subroutine Cooling_Time_Initialize
 

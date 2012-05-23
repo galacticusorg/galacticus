@@ -206,51 +206,53 @@ contains
     type(varying_string) :: imfSelectionMethod
 
     ! Initialize the IMF subsystem if necessary.
-    !$omp critical(IMF_Initialize)
     if (.not.imfInitialized) then
-       ! Register all available IMFs.
-       !# <include directive="imfRegister" type="code" action="subroutine">
-       !#  <subroutineArgs>imfAvailableCount</subroutineArgs>
-       include 'star_formation.IMF.register.inc'
-       !# </include>
-
-       ! Get a list of IMF names and descriptors.
-       allocate(imfNames      (imfAvailableCount))
-       allocate(imfDescriptors(imfAvailableCount))
-       call Memory_Usage_Record(sizeof(imfNames)+sizeof(imfDescriptors))
-       !# <include directive="imfRegisterName" type="code" action="subroutine">
-       !#  <subroutineArgs>imfNames,imfDescriptors</subroutineArgs>
-       include 'star_formation.IMF.register_names.inc'
-       !# </include>
-
-       ! Register the IMF selection method.
-       !@ <inputParameter>
-       !@   <name>imfSelectionMethod</name>
-       !@   <defaultValue>fixed</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for selecting which \gls{imf} to use.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfSelectionMethod',imfSelectionMethod,defaultValue='fixed')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="imfSelectionMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>imfSelectionMethod,IMF_Select_Do,imfNames</subroutineArgs>
-       include 'star_formation.IMF.select.inc'
-       !# </include>
-       if (.not.associated(IMF_Select_Do)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
-            &,'method '//char(imfSelectionMethod)//' is unrecognized')
-
-       ! Get a count of the number of individual elements that must be tracked.
-       elementCount=Abundances_Property_Count()
-
-       ! Flag that the module is now initialized.
-       imfInitialized=.true.
+       !$omp critical(IMF_Initialize)
+       if (.not.imfInitialized) then
+          ! Register all available IMFs.
+          !# <include directive="imfRegister" type="code" action="subroutine">
+          !#  <subroutineArgs>imfAvailableCount</subroutineArgs>
+          include 'star_formation.IMF.register.inc'
+          !# </include>
+          
+          ! Get a list of IMF names and descriptors.
+          allocate(imfNames      (imfAvailableCount))
+          allocate(imfDescriptors(imfAvailableCount))
+          call Memory_Usage_Record(sizeof(imfNames)+sizeof(imfDescriptors))
+          !# <include directive="imfRegisterName" type="code" action="subroutine">
+          !#  <subroutineArgs>imfNames,imfDescriptors</subroutineArgs>
+          include 'star_formation.IMF.register_names.inc'
+          !# </include>
+          
+          ! Register the IMF selection method.
+          !@ <inputParameter>
+          !@   <name>imfSelectionMethod</name>
+          !@   <defaultValue>fixed</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for selecting which \gls{imf} to use.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfSelectionMethod',imfSelectionMethod,defaultValue='fixed')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="imfSelectionMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>imfSelectionMethod,IMF_Select_Do,imfNames</subroutineArgs>
+          include 'star_formation.IMF.select.inc'
+          !# </include>
+          if (.not.associated(IMF_Select_Do)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
+               &,'method '//char(imfSelectionMethod)//' is unrecognized')
+          
+          ! Get a count of the number of individual elements that must be tracked.
+          elementCount=Abundances_Property_Count()
+          
+          ! Flag that the module is now initialized.
+          imfInitialized=.true.
+       end if
+       !$omp end critical(IMF_Initialize)
     end if
-    !$omp end critical(IMF_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize
 

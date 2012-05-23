@@ -119,36 +119,37 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Chabrier_Initialize)
     if (.not.imfChabrierInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfChabrierRecycledInstantaneous</name>
-       !@   <defaultValue>0.46 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the Chabrier \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfChabrierRecycledInstantaneous',imfChabrierRecycledInstantaneous,defaultValue=0.46d0)
-       !@ <inputParameter>
-       !@   <name>imfChabrierYieldInstantaneous</name>
-       !@   <defaultValue>0.035 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the Chabrier \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfChabrierYieldInstantaneous'   ,imfChabrierYieldInstantaneous   ,defaultValue=0.035d0)
-
-       imfChabrierInitialized=.true.
+       !$omp critical (IMF_Chabrier_Initialize)
+       if (.not.imfChabrierInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfChabrierRecycledInstantaneous</name>
+          !@   <defaultValue>0.46 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the Chabrier \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierRecycledInstantaneous',imfChabrierRecycledInstantaneous,defaultValue=0.46d0)
+          !@ <inputParameter>
+          !@   <name>imfChabrierYieldInstantaneous</name>
+          !@   <defaultValue>0.035 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the Chabrier \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierYieldInstantaneous'   ,imfChabrierYieldInstantaneous   ,defaultValue=0.035d0)
+          imfChabrierInitialized=.true.
+       end if
+       !$omp end critical (IMF_Chabrier_Initialize)
     end if
-    !$omp end critical (IMF_Chabrier_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Chabrier
 

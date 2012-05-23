@@ -96,31 +96,33 @@ contains
     use Input_Parameters
     implicit none
 
-    !$omp critical(Cooling_Radius_Initialization) 
     ! Initialize if necessary.
     if (.not.coolingRadiusInitialized) then
-       ! Get the cooling radius method parameter.
-       !@ <inputParameter>
-       !@   <name>coolingRadiusMethod</name>
-       !@   <defaultValue>simple</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of the cooling radius.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRadiusMethod',coolingRadiusMethod,defaultValue='simple')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="coolingRadiusMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get</subroutineArgs>
-       include 'cooling.cooling_radius.inc'
-       !# </include>
-       if (.not.(associated(Cooling_Radius_Get).and.associated(Cooling_Radius_Growth_Rate_Get))) call&
-            & Galacticus_Error_Report('Cooling_Radius','method ' //char(coolingRadiusMethod)//' is unrecognized')
-       coolingRadiusInitialized=.true.
+       !$omp critical(Cooling_Radius_Initialization) 
+       if (.not.coolingRadiusInitialized) then
+          ! Get the cooling radius method parameter.
+          !@ <inputParameter>
+          !@   <name>coolingRadiusMethod</name>
+          !@   <defaultValue>simple</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of the cooling radius.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('coolingRadiusMethod',coolingRadiusMethod,defaultValue='simple')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="coolingRadiusMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get</subroutineArgs>
+          include 'cooling.cooling_radius.inc'
+          !# </include>
+          if (.not.(associated(Cooling_Radius_Get).and.associated(Cooling_Radius_Growth_Rate_Get))) call&
+               & Galacticus_Error_Report('Cooling_Radius','method ' //char(coolingRadiusMethod)//' is unrecognized')
+          coolingRadiusInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Radius_Initialization) 
     end if
-    !$omp end critical(Cooling_Radius_Initialization) 
     return
   end subroutine Cooling_Radius_Initialize
 

@@ -82,23 +82,25 @@ contains
     !% Returns the value of $\Omega_{\rm b}$, reading it in first if necessary.
     implicit none
 
-    !$omp critical (Omega_b_Initialization)
     if (.not.Omega_b_Is_Set) then
-       !@ <inputParameter>
-       !@   <name>Omega_b</name>
-       !@   <defaultValue>0.0455 \citep{komatsu_seven-year_2010}</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The density of baryons in the Universe in units of the critical density.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('Omega_b',Omega_b_Value,defaultValue=0.0455d0)
-       Omega_b_Is_Set=.true.
+       !$omp critical (Omega_b_Initialization)
+       if (.not.Omega_b_Is_Set) then
+          !@ <inputParameter>
+          !@   <name>Omega_b</name>
+          !@   <defaultValue>0.0455 \citep{komatsu_seven-year_2010}</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The density of baryons in the Universe in units of the critical density.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('Omega_b',Omega_b_Value,defaultValue=0.0455d0)
+          Omega_b_Is_Set=.true.
+       end if
+       !$omp end critical (Omega_b_Initialization)
     end if
-    !$omp end critical (Omega_b_Initialization)
 
     Omega_b=Omega_b_Value
     return
@@ -109,27 +111,29 @@ contains
     use Galacticus_Error
     implicit none
 
-    !$omp critical (Omega_Matter_Initialization)
     if (.not.Omega_Matter_Is_Set) then
-
-       ! Check for deprecated parameter name.
-       if (Input_Parameter_Is_Present('Omega_0')) call Galacticus_Error_Report('Omega_Matter','use of "Omega_0" in parameter file is deprecated - use "Omega_Matter" instead')
-
-       !@ <inputParameter>
-       !@   <name>Omega_Matter</name>
-       !@   <defaultValue>0.2725 \citep{komatsu_seven-year_2010}</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The density of matter in the Universe in units of the critical density.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('Omega_Matter',Omega_Matter_Value,defaultValue=0.2725d0)
-       Omega_Matter_Is_Set=.true.
+       !$omp critical (Omega_Matter_Initialization)
+       if (.not.Omega_Matter_Is_Set) then
+          
+          ! Check for deprecated parameter name.
+          if (Input_Parameter_Is_Present('Omega_0')) call Galacticus_Error_Report('Omega_Matter','use of "Omega_0" in parameter file is deprecated - use "Omega_Matter" instead')
+          
+          !@ <inputParameter>
+          !@   <name>Omega_Matter</name>
+          !@   <defaultValue>0.2725 \citep{komatsu_seven-year_2010}</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The density of matter in the Universe in units of the critical density.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('Omega_Matter',Omega_Matter_Value,defaultValue=0.2725d0)
+          Omega_Matter_Is_Set=.true.
+       end if
+       !$omp end critical (Omega_Matter_Initialization)
     end if
-    !$omp end critical (Omega_Matter_Initialization)
 
     Omega_Matter=Omega_Matter_Value
     return
@@ -139,23 +143,25 @@ contains
     !% Returns the value of $\Omega_{\rm b}$, reading it in first if necessary.
     implicit none
 
-    !$omp critical (Omega_DE_Initialization)
     if (.not.Omega_DE_Is_Set) then
-       !@ <inputParameter>
-       !@   <name>Omega_DE</name>
-       !@   <defaultValue>0.7275 \citep{komatsu_seven-year_2010}</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The density of dark energy in the Universe in units of the critical density.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('Omega_DE',Omega_DE_Value,defaultValue=0.7275d0)
-       Omega_DE_Is_Set=.true.
+       !$omp critical (Omega_DE_Initialization)
+       if (.not.Omega_DE_Is_Set) then
+          !@ <inputParameter>
+          !@   <name>Omega_DE</name>
+          !@   <defaultValue>0.7275 \citep{komatsu_seven-year_2010}</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The density of dark energy in the Universe in units of the critical density.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('Omega_DE',Omega_DE_Value,defaultValue=0.7275d0)
+          Omega_DE_Is_Set=.true.
+       end if
+       !$omp end critical (Omega_DE_Initialization)
     end if
-    !$omp end critical (Omega_DE_Initialization)
 
     Omega_DE=Omega_DE_Value
     return
@@ -165,23 +171,25 @@ contains
     !% Returns the value of $T_{\rm CMB}$, reading it in first if necessary.
     implicit none
 
-    !$omp critical (T_CMB_Initialization)
     if (.not.T_CMB_Is_Set) then
-       !@ <inputParameter>
-       !@   <name>T_CMB</name>
-       !@   <defaultValue>2.72548 \citep{fixsen_temperature_2009}</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The present day temperature of the \gls{cmb} in units of Kelvin.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('T_CMB',T_CMB_Value,defaultValue=2.72548d0)
-       T_CMB_Is_Set=.true.
+       !$omp critical (T_CMB_Initialization)
+       if (.not.T_CMB_Is_Set) then
+          !@ <inputParameter>
+          !@   <name>T_CMB</name>
+          !@   <defaultValue>2.72548 \citep{fixsen_temperature_2009}</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The present day temperature of the \gls{cmb} in units of Kelvin.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('T_CMB',T_CMB_Value,defaultValue=2.72548d0)
+          T_CMB_Is_Set=.true.
+       end if
+       !$omp end critical (T_CMB_Initialization)
     end if
-    !$omp end critical (T_CMB_Initialization)
 
     T_CMB=T_CMB_Value
     return
@@ -193,13 +201,15 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
 
-    !$omp critical (Omega_Radiation_Initialization)
     if (.not.Omega_Radiation_Is_Set) then
-       Omega_Radiation_Value=radiationConstant*(T_CMB()**4)*megaParsec**3/massSolar/speedLight**2/Critical_Density()
-       Omega_Radiation_Is_Set=.true.
+       !$omp critical (Omega_Radiation_Initialization)
+       if (.not.Omega_Radiation_Is_Set) then
+          Omega_Radiation_Value=radiationConstant*(T_CMB()**4)*megaParsec**3/massSolar/speedLight**2/Critical_Density()
+          Omega_Radiation_Is_Set=.true.
+       end if
+       !$omp end critical (Omega_Radiation_Initialization)
     end if
-    !$omp end critical (Omega_Radiation_Initialization)
-
+    
     Omega_Radiation=Omega_Radiation_Value
     return
   end function Omega_Radiation
@@ -208,12 +218,14 @@ contains
     !% Returns the value of $\Omega_{\rm K}$, computing it first if necessary.
     implicit none
 
-    !$omp critical (Omega_K_Initialization)
     if (.not.Omega_K_Is_Set) then
-       Omega_K_Value=1.0d0-Omega_Matter()-Omega_DE()
-       Omega_K_Is_Set=.true.
+       !$omp critical (Omega_K_Initialization)
+       if (.not.Omega_K_Is_Set) then
+          Omega_K_Value=1.0d0-Omega_Matter()-Omega_DE()
+          Omega_K_Is_Set=.true.
+       end if
+       !$omp end critical (Omega_K_Initialization)
     end if
-    !$omp end critical (Omega_K_Initialization)
 
     Omega_K=Omega_K_Value
     return
@@ -233,26 +245,28 @@ contains
     use Galacticus_Display
     implicit none
 
-    !$omp critical (H_0_Initialization)
     if (.not.H_0_Is_Set) then
-       !@ <inputParameter>
-       !@   <name>H_0</name>
-       !@   <defaultValue>70.2 \citep{komatsu_seven-year_2010}</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The present day value of the Hubble parameter in units of km/s/Mpc.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('H_0',H_0_Value,defaultValue=70.2d0)
-       ! Validate the input value.
-       if (H_0_Value <= 0.0d0) call Galacticus_Display_Message("WARNING: H_0<=0 - are you sure this is what you wanted?",verbosityWarn)
-       ! Record that H_0 is now set.
-       H_0_Is_Set=.true.
+       !$omp critical (H_0_Initialization)
+       if (.not.H_0_Is_Set) then
+          !@ <inputParameter>
+          !@   <name>H_0</name>
+          !@   <defaultValue>70.2 \citep{komatsu_seven-year_2010}</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The present day value of the Hubble parameter in units of km/s/Mpc.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('H_0',H_0_Value,defaultValue=70.2d0)
+          ! Validate the input value.
+          if (H_0_Value <= 0.0d0) call Galacticus_Display_Message("WARNING: H_0<=0 - are you sure this is what you wanted?",verbosityWarn)
+          ! Record that H_0 is now set.
+          H_0_Is_Set=.true.
+       end if
+       !$omp end critical (H_0_Initialization)
     end if
-    !$omp end critical (H_0_Initialization)
 
     H_0=H_0_Value
     return
@@ -264,12 +278,14 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
 
-    !$omp critical (H_0_invGyr_Initialization)
     if (.not.H_0_invGyr_Is_Set) then
-       H_0_invGyr_Value=H_0()*gigaYear*kilo/megaParsec
-       H_0_invGyr_Is_Set=.true.
+       !$omp critical (H_0_invGyr_Initialization)
+       if (.not.H_0_invGyr_Is_Set) then
+          H_0_invGyr_Value=H_0()*gigaYear*kilo/megaParsec
+          H_0_invGyr_Is_Set=.true.
+       end if
+       !$omp end critical (H_0_invGyr_Initialization)
     end if
-    !$omp end critical (H_0_invGyr_Initialization)
 
     H_0_invGyr=H_0_invGyr_Value
     return
@@ -281,11 +297,14 @@ contains
     use Numerical_Constants_Physical
     implicit none
 
-    !$omp critical (Critical_Density_Initialization)
     if (.not.Critical_Density_Is_Set) then
-       Critical_Density_Value=3.0d0*(H_0()**2)/8.0d0/Pi/gravitationalConstantGalacticus
+       !$omp critical (Critical_Density_Initialization)
+       if (.not.Critical_Density_Is_Set) then
+          Critical_Density_Value=3.0d0*(H_0()**2)/8.0d0/Pi/gravitationalConstantGalacticus
+          Critical_Density_Is_Set=.true.
+       end if
+       !$omp end critical (Critical_Density_Initialization)
     end if
-    !$omp end critical (Critical_Density_Initialization)
 
     Critical_Density=Critical_Density_Value
     return

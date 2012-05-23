@@ -95,33 +95,34 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Initialization) 
     ! Initialize if necessary.
     if (.not.hotHaloCoredIsothermalCoreRadiiInitialized) then
-       ! Get the spheroid star formation timescale method parameter.
-       !@ <inputParameter>
-       !@   <name>hotHaloCoredIsothermalCoreRadiiMethod</name>
-       !@   <defaultValue>virialRadiusFraction</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing the core radii of cored isothermal hot halo profiles.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloCoredIsothermalCoreRadiiMethod',hotHaloCoredIsothermalCoreRadiiMethod,defaultValue='virialRadiusFraction')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="hotHaloCoredIsothermalCoreRadiiMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>hotHaloCoredIsothermalCoreRadiiMethod,Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get</subroutineArgs>
-       include 'hot_halo.density_profile.cored_isothermal.core_radius.inc'
-       !# </include>
-       if (.not.associated(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get)) call&
-            & Galacticus_Error_Report('Hot_Halo_Density_Cored_Isothermal_Core_Radii' ,'method ' &
-            &//char(hotHaloCoredIsothermalCoreRadiiMethod)//' is unrecognized')
-       hotHaloCoredIsothermalCoreRadiiInitialized=.true.
+       !$omp critical(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Initialization) 
+       if (.not.hotHaloCoredIsothermalCoreRadiiInitialized) then
+          ! Get the spheroid star formation timescale method parameter.
+          !@ <inputParameter>
+          !@   <name>hotHaloCoredIsothermalCoreRadiiMethod</name>
+          !@   <defaultValue>virialRadiusFraction</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing the core radii of cored isothermal hot halo profiles.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('hotHaloCoredIsothermalCoreRadiiMethod',hotHaloCoredIsothermalCoreRadiiMethod,defaultValue='virialRadiusFraction')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="hotHaloCoredIsothermalCoreRadiiMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>hotHaloCoredIsothermalCoreRadiiMethod,Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get</subroutineArgs>
+          include 'hot_halo.density_profile.cored_isothermal.core_radius.inc'
+          !# </include>
+          if (.not.associated(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get)) call&
+               & Galacticus_Error_Report('Hot_Halo_Density_Cored_Isothermal_Core_Radii' ,'method ' &
+               &//char(hotHaloCoredIsothermalCoreRadiiMethod)//' is unrecognized')
+          hotHaloCoredIsothermalCoreRadiiInitialized=.true.
+       end if
+       !$omp end critical(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Initialization) 
     end if
-    !$omp end critical(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Initialization) 
-
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radii_Initialize
 

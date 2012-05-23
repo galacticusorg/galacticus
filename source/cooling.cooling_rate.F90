@@ -99,31 +99,33 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    !$omp critical(Cooling_Rate_Initialization) 
     ! Initialize if necessary.
     if (.not.coolingRateInitialized) then
-       ! Get the cooling rate method parameter.
-       !@ <inputParameter>
-       !@   <name>coolingRateMethod</name>
-       !@   <defaultValue>White-Frenk1991</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used when computing the cooling rate.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateMethod',coolingRateMethod,defaultValue='White-Frenk1991')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="coolingRateMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>coolingRateMethod,Cooling_Rate_Get</subroutineArgs>
-       include 'cooling.cooling_rate.inc'
-       !# </include>
-       if (.not.associated(Cooling_Rate_Get)) call Galacticus_Error_Report('Cooling_Rate','method ' &
-            &//char(coolingRateMethod)//' is unrecognized')
-       coolingRateInitialized=.true.
+       !$omp critical(Cooling_Rate_Initialization) 
+       if (.not.coolingRateInitialized) then
+          ! Get the cooling rate method parameter.
+          !@ <inputParameter>
+          !@   <name>coolingRateMethod</name>
+          !@   <defaultValue>White-Frenk1991</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used when computing the cooling rate.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('coolingRateMethod',coolingRateMethod,defaultValue='White-Frenk1991')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="coolingRateMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>coolingRateMethod,Cooling_Rate_Get</subroutineArgs>
+          include 'cooling.cooling_rate.inc'
+          !# </include>
+          if (.not.associated(Cooling_Rate_Get)) call Galacticus_Error_Report('Cooling_Rate','method ' &
+               &//char(coolingRateMethod)//' is unrecognized')
+          coolingRateInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Rate_Initialization)
     end if
-    !$omp end critical(Cooling_Rate_Initialization) 
 
     ! Get the cooling rate using the selected method.
     Cooling_Rate=Cooling_Rate_Get(thisNode)

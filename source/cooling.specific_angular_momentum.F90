@@ -95,31 +95,33 @@ contains
     use Input_Parameters
     implicit none
 
-    !$omp critical(Cooling_Specific_Angular_Momentum_Initialization) 
     ! Initialize if necessary.
     if (.not.coolingAngularMomentumInitialized) then
-       ! Get the cooling radius method parameter.
-       !@ <inputParameter>
-       !@   <name>coolingSpecificAngularMomentumMethod</name>
-       !@   <defaultValue>constantRotation</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of the specific angular momentum of cooling gas.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingSpecificAngularMomentumMethod',coolingSpecificAngularMomentumMethod,defaultValue='constantRotation')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="coolingSpecificAngularMomentumMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>coolingSpecificAngularMomentumMethod,Cooling_Specific_Angular_Momentum_Get</subroutineArgs>
-       include 'cooling.specific_angular_momentum.inc'
-       !# </include>
-       if (.not.associated(Cooling_Specific_Angular_Momentum_Get)) call&
-            & Galacticus_Error_Report('Cooling_Specific_Angular_Momentum','method ' //char(coolingSpecificAngularMomentumMethod)//' is unrecognized')
-       coolingAngularMomentumInitialized=.true.
+       !$omp critical(Cooling_Specific_Angular_Momentum_Initialization) 
+       if (.not.coolingAngularMomentumInitialized) then
+          ! Get the cooling radius method parameter.
+          !@ <inputParameter>
+          !@   <name>coolingSpecificAngularMomentumMethod</name>
+          !@   <defaultValue>constantRotation</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of the specific angular momentum of cooling gas.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('coolingSpecificAngularMomentumMethod',coolingSpecificAngularMomentumMethod,defaultValue='constantRotation')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="coolingSpecificAngularMomentumMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>coolingSpecificAngularMomentumMethod,Cooling_Specific_Angular_Momentum_Get</subroutineArgs>
+          include 'cooling.specific_angular_momentum.inc'
+          !# </include>
+          if (.not.associated(Cooling_Specific_Angular_Momentum_Get)) call&
+               & Galacticus_Error_Report('Cooling_Specific_Angular_Momentum','method ' //char(coolingSpecificAngularMomentumMethod)//' is unrecognized')
+          coolingAngularMomentumInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Specific_Angular_Momentum_Initialization) 
     end if
-    !$omp end critical(Cooling_Specific_Angular_Momentum_Initialization) 
     return
   end subroutine Cooling_Specific_Angular_Momentum_Initialize
 

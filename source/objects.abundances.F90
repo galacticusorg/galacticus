@@ -175,38 +175,38 @@ contains
     integer :: iElement
 
     ! Check if this module has been initialized already.    
-    !$omp critical (Abundances_Module_Initalize)
     if (.not.abundancesInitialized) then
-
-       ! Determine how many elements we are required to track.
-       elementsCount=Get_Input_Parameter_Array_Size('elementsToTrack')
-       ! Number of properties to track is one greater, as we always track total metallicity.
-       propertyCount=elementsCount+1
-       ! If tracking elements, read names of which ones to track.
-       if (elementsCount > 0) then
-          call Alloc_Array(elementsToTrack,[elementsCount])
-          call Alloc_Array(elementsIndices,[elementsCount])
-          !@ <inputParameter>
-          !@   <name>elementsToTrack</name>
-          !@   <defaultValue></defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The names of the elements to be tracked.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1..*</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('elementsToTrack',elementsToTrack)
-          ! Validate the input names by looking them up in the list of atomic names.
-          do iElement=1,elementsCount
-             elementsIndices(iElement)=Atom_Lookup(shortLabel=elementsToTrack(iElement))
-          end do
+       !$omp critical (Abundances_Module_Initialize)
+       if (.not.abundancesInitialized) then
+          ! Determine how many elements we are required to track.
+          elementsCount=Get_Input_Parameter_Array_Size('elementsToTrack')
+          ! Number of properties to track is one greater, as we always track total metallicity.
+          propertyCount=elementsCount+1
+          ! If tracking elements, read names of which ones to track.
+          if (elementsCount > 0) then
+             call Alloc_Array(elementsToTrack,[elementsCount])
+             call Alloc_Array(elementsIndices,[elementsCount])
+             !@ <inputParameter>
+             !@   <name>elementsToTrack</name>
+             !@   <defaultValue></defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The names of the elements to be tracked.
+             !@   </description>
+             !@   <type>string</type>
+             !@   <cardinality>1..*</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('elementsToTrack',elementsToTrack)
+             ! Validate the input names by looking them up in the list of atomic names.
+             do iElement=1,elementsCount
+                elementsIndices(iElement)=Atom_Lookup(shortLabel=elementsToTrack(iElement))
+             end do
+          end if
+          ! Flag that this module is now initialized.
+          abundancesInitialized=.true.
        end if
-       ! Flag that this module is now initialized.
-       abundancesInitialized=.true.
+       !$omp end critical (Abundances_Module_Initialize)
     end if
-    !$omp end critical (Abundances_Module_Initalize)
-
     return
   end subroutine Abundances_Initialize
 

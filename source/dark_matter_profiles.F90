@@ -117,43 +117,44 @@ contains
     include 'dark_matter_profiles.modules.inc'
     !# </include>
     implicit none
-
-    !$omp critical(Dark_Matter_Profile_Initialization) 
+    
     ! Initialize if necessary.
     if (.not.darkMatterProfileInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>darkMatterProfileMethod</name>
-       !@   <defaultValue>NFW</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of dark matter halo density profiles.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterProfileMethod',darkMatterProfileMethod,defaultValue='NFW')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="darkMatterProfileMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get</subroutineArgs>
-       include 'dark_matter_profiles.inc'
-       !# </include>
-       if (.not.(     associated(Dark_Matter_Profile_Density_Get                              )   &
-            &    .and.associated(Dark_Matter_Profile_Energy_Get                               )   & 
-            &    .and.associated(Dark_Matter_Profile_Energy_Growth_Rate_Get                   )   & 
-            &    .and.associated(Dark_Matter_Profile_Rotation_Normalization_Get               )   &
-            &    .and.associated(Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get)   &
-            &    .and.associated(Dark_Matter_Profile_Circular_Velocity_Get                    )   &
-            &    .and.associated(Dark_Matter_Profile_Potential_Get                            )   &
-            &    .and.associated(Dark_Matter_Profile_Enclosed_Mass_Get                        )   &
-            &    .and.associated(Dark_Matter_Profile_kSpace_Get                               )   &
-            &    .and.associated(Dark_Matter_Profile_Freefall_Radius_Get                      )   &
-            &    .and.associated(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get        ))) &
-            & call Galacticus_Error_Report('Dark_Matter_Profile','method ' //char(darkMatterProfileMethod)//' is unrecognized')
-       darkMatterProfileInitialized=.true.
+       !$omp critical(Dark_Matter_Profile_Initialization) 
+       if (.not.darkMatterProfileInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>darkMatterProfileMethod</name>
+          !@   <defaultValue>NFW</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of dark matter halo density profiles.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkMatterProfileMethod',darkMatterProfileMethod,defaultValue='NFW')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="darkMatterProfileMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get</subroutineArgs>
+          include 'dark_matter_profiles.inc'
+          !# </include>
+          if (.not.(     associated(Dark_Matter_Profile_Density_Get                              )   &
+               &    .and.associated(Dark_Matter_Profile_Energy_Get                               )   & 
+               &    .and.associated(Dark_Matter_Profile_Energy_Growth_Rate_Get                   )   & 
+               &    .and.associated(Dark_Matter_Profile_Rotation_Normalization_Get               )   &
+               &    .and.associated(Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get)   &
+               &    .and.associated(Dark_Matter_Profile_Circular_Velocity_Get                    )   &
+               &    .and.associated(Dark_Matter_Profile_Potential_Get                            )   &
+               &    .and.associated(Dark_Matter_Profile_Enclosed_Mass_Get                        )   &
+               &    .and.associated(Dark_Matter_Profile_kSpace_Get                               )   &
+               &    .and.associated(Dark_Matter_Profile_Freefall_Radius_Get                      )   &
+               &    .and.associated(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get        ))) &
+               & call Galacticus_Error_Report('Dark_Matter_Profile','method ' //char(darkMatterProfileMethod)//' is unrecognized')
+          darkMatterProfileInitialized=.true.
+       end if
+       !$omp end critical(Dark_Matter_Profile_Initialization) 
     end if
-    !$omp end critical(Dark_Matter_Profile_Initialization) 
-
     return
   end subroutine Dark_Matter_Profile_Initialize
 

@@ -1776,7 +1776,7 @@ contains
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, parameter              :: scaleMassRelative  =1.0d-3
-    double precision, parameter              :: scaleRadiusRelative=1.0d-3
+    double precision, parameter              :: scaleRadiusRelative=1.0d+0
     integer                                  :: thisIndex
     double precision                         :: massVirial,radiusVirial,velocityVirial
 

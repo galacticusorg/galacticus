@@ -99,31 +99,33 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    !$omp critical(Galactic_Structure_Radii_Initialization) 
     ! Initialize if necessary.
     if (.not.galacticStructureRadiusSolverInitialized) then
-       ! Get the galactic structure radii solver method parameter.
-       !@ <inputParameter>
-       !@   <name>galacticStructureRadiusSolverMethod</name>
-       !@   <defaultValue>adiabatic</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects the method to be used for solving for galactic structure.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('galacticStructureRadiusSolverMethod',galacticStructureRadiusSolverMethod,defaultValue='adiabatic')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="galacticStructureRadiusSolverMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</subroutineArgs>
-       include 'galactic_structure.radius_solver.inc'
-       !# </include>
-       if (.not.associated(Galactic_Structure_Radii_Solve_Do)) &
-            & call Galacticus_Error_Report('Galactic_Structure_Radii','method '//char(galacticStructureRadiusSolverMethod)//' is unrecognized')
-       galacticStructureRadiusSolverInitialized=.true.
+       !$omp critical(Galactic_Structure_Radii_Initialization) 
+       if (.not.galacticStructureRadiusSolverInitialized) then
+          ! Get the galactic structure radii solver method parameter.
+          !@ <inputParameter>
+          !@   <name>galacticStructureRadiusSolverMethod</name>
+          !@   <defaultValue>adiabatic</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Selects the method to be used for solving for galactic structure.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('galacticStructureRadiusSolverMethod',galacticStructureRadiusSolverMethod,defaultValue='adiabatic')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="galacticStructureRadiusSolverMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</subroutineArgs>
+          include 'galactic_structure.radius_solver.inc'
+          !# </include>
+          if (.not.associated(Galactic_Structure_Radii_Solve_Do)) &
+               & call Galacticus_Error_Report('Galactic_Structure_Radii','method '//char(galacticStructureRadiusSolverMethod)//' is unrecognized')
+          galacticStructureRadiusSolverInitialized=.true.
+       end if
+       !$omp end critical(Galactic_Structure_Radii_Initialization) 
     end if
-    !$omp end critical(Galactic_Structure_Radii_Initialization) 
 
     ! Call the routine to solve for the radii.
     call Galactic_Structure_Radii_Solve_Do(thisNode)
