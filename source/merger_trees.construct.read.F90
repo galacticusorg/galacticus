@@ -154,6 +154,9 @@ module Merger_Tree_Read
   ! Option controlling fatality of missing host node condition.
   logical                                            :: mergerTreeReadMissingHostsAreFatal
 
+  ! Option controlling whether tree indices should always be set to the corresponding node index.
+  logical                                            :: mergerTreeReadTreeIndexToRootNodeIndex
+
   ! Buffer to hold additional merger trees.
   type(mergerTree),        allocatable, dimension(:) :: mergerTreesQueued
 
@@ -410,6 +413,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadMissingHostsAreFatal',mergerTreeReadMissingHostsAreFatal,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadTreeIndexToRootNodeIndex</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>false</defaultValue>
+       !@   <description>
+       !@     Specifies whether tree indices should always be set to the index of their root node.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadTreeIndexToRootNodeIndex',mergerTreeReadTreeIndexToRootNodeIndex,defaultValue=.false.)
 
        ! Validate input parameters.
        if (mergerTreeReadPresetMergerNodes.and..not.mergerTreeReadPresetMergerTimes) call Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting of merger target nodes requires that merger times also be preset")
@@ -1435,7 +1449,7 @@ contains
              nodeList(iIsolatedNode)%node%parentNode  => null()
              if (iNode == primaryRootIndex) then
                 thisTree                     %baseNode    => nodeList(iIsolatedNode)%node
-                thisTree                     %index       =  nodes(iNode)%nodeIndex
+                if (mergerTreeReadTreeIndexToRootNodeIndex) thisTree%index = nodes(iNode)%nodeIndex
                 thisTree                     %volumeWeight=  treeVolumeWeightCurrent
              else
                 iExtraTree=iExtraTree+1
