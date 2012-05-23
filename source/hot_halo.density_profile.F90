@@ -106,39 +106,41 @@ contains
     use Galacticus_Error
     implicit none
 
-    !$omp critical(Hot_Halo_Density_Initialization) 
-    ! Initialize if necessary.
+    ! Initialize if necessary. 
     if (.not.hotHaloDensityInitialized) then
-       ! Get the cooling time available method parameter.
-       !@ <inputParameter>
-       !@   <name>hotHaloDensityMethod</name>
-       !@   <defaultValue>coredIsothermal</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of the hot halo density profile.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='coredIsothermal')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="hotHaloDensityMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get</subroutineArgs>
-       include 'hot_halo.density_profile.inc'
-       !# </include>
-       if     (.not.(     associated(Hot_Halo_Density_Get                       )                    &
-            &        .and.associated(Hot_Halo_Density_Log_Slope_Get             )                    &
-            &        .and.associated(Hot_Halo_Enclosed_Mass_Get                 )                    &
-            &        .and.associated(Hot_Halo_Profile_Rotation_Normalization_Get)                    &
-            &       )                                                                                &
-            & )                                                                                      &
-            & call Galacticus_Error_Report(                                                          &
-            &                               'Hot_Halo_Density_Initialize'                            &
-            &                              ,'method '//char(hotHaloDensityMethod)//' is unrecognized'&
-            &                             )
-       hotHaloDensityInitialized=.true.
+       !$omp critical(Hot_Halo_Density_Initialization) 
+       if (.not.hotHaloDensityInitialized) then
+          ! Get the cooling time available method parameter.
+          !@ <inputParameter>
+          !@   <name>hotHaloDensityMethod</name>
+          !@   <defaultValue>coredIsothermal</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of the hot halo density profile.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='coredIsothermal')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="hotHaloDensityMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get</subroutineArgs>
+          include 'hot_halo.density_profile.inc'
+          !# </include>
+          if     (.not.(     associated(Hot_Halo_Density_Get                       )                    &
+               &        .and.associated(Hot_Halo_Density_Log_Slope_Get             )                    &
+               &        .and.associated(Hot_Halo_Enclosed_Mass_Get                 )                    &
+               &        .and.associated(Hot_Halo_Profile_Rotation_Normalization_Get)                    &
+               &       )                                                                                &
+               & )                                                                                      &
+               & call Galacticus_Error_Report(                                                          &
+               &                               'Hot_Halo_Density_Initialize'                            &
+               &                              ,'method '//char(hotHaloDensityMethod)//' is unrecognized'&
+               &                             )
+          hotHaloDensityInitialized=.true.
+       end if
+       !$omp end critical(Hot_Halo_Density_Initialization) 
     end if
-    !$omp end critical(Hot_Halo_Density_Initialization) 
     return
   end subroutine Hot_Halo_Density_Initialize
 

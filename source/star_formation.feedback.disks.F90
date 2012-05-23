@@ -96,33 +96,34 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Star_Formation_Feedback_Disks_Initialization) 
     ! Initialize if necessary.
     if (.not.starFormationFeedbackDisksInitialized) then
-       ! Get the disk star formation feedback method parameter.
-       !@ <inputParameter>
-       !@   <name>starFormationFeedbackDisksMethod</name>
-       !@   <defaultValue>powerLaw</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of \gls{sne} feedback in disks.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFeedbackDisksMethod',starFormationFeedbackDisksMethod,defaultValue='powerLaw')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="starFormationFeedbackDisksMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get</subroutineArgs>
-       include 'star_formation.feedbacks.disks.inc'
-       !# </include>
-       if (.not.associated(Star_Formation_Feedback_Disk_Outflow_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Feedback_Disks'&
-            &,'method ' //char(starFormationFeedbackDisksMethod)//' is unrecognized')
-       starFormationFeedbackDisksInitialized=.true.
+       !$omp critical(Star_Formation_Feedback_Disks_Initialization) 
+       if (.not.starFormationFeedbackDisksInitialized) then
+          ! Get the disk star formation feedback method parameter.
+          !@ <inputParameter>
+          !@   <name>starFormationFeedbackDisksMethod</name>
+          !@   <defaultValue>powerLaw</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of \gls{sne} feedback in disks.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationFeedbackDisksMethod',starFormationFeedbackDisksMethod,defaultValue='powerLaw')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="starFormationFeedbackDisksMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get</subroutineArgs>
+          include 'star_formation.feedbacks.disks.inc'
+          !# </include>
+          if (.not.associated(Star_Formation_Feedback_Disk_Outflow_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Feedback_Disks'&
+               &,'method ' //char(starFormationFeedbackDisksMethod)//' is unrecognized')
+          starFormationFeedbackDisksInitialized=.true.
+       end if
+       !$omp end critical(Star_Formation_Feedback_Disks_Initialization) 
     end if
-    !$omp end critical(Star_Formation_Feedback_Disks_Initialization) 
-
     return
   end subroutine Star_Formation_Feedback_Disks_Initialize
 

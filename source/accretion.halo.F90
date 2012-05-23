@@ -122,40 +122,41 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(accretionHalosInitialize)
     if (.not.accretionHalosInitialized) then
-       ! Do the binary black hole merger method parameter.
-       !@ <inputParameter>
-       !@   <name>accretionHalosMethod</name>
-       !@   <defaultValue>simple</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Selects which method should be used for accretion onto halos.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('accretionHalosMethod',accretionHalosMethod,defaultValue='simple')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="accretionHalosMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get</subroutineArgs>
-       include 'accretion.halos.inc'
-       !# </include>
-       if     (.not.(     associated(Halo_Baryonic_Accretion_Rate_Get           ) &
-            &        .and.associated(Halo_Baryonic_Accreted_Mass_Get            ) &
-            &        .and.associated(Halo_Baryonic_Failed_Accretion_Rate_Get    ) &
-            &        .and.associated(Halo_Baryonic_Failed_Accreted_Mass_Get     ) &
-            &        .and.associated(Halo_Baryonic_Accretion_Rate_Abundances_Get) &
-            &        .and.associated(Halo_Baryonic_Accreted_Abundances_Get      ) &
-            &        .and.associated(Halo_Baryonic_Accretion_Rate_Chemicals_Get ) &
-            &        .and.associated(Halo_Baryonic_Accreted_Chemicals_Get       ) &
-            &       )                                                             &
-            & ) call Galacticus_Error_Report('Accretion_Halos_Initialize','method ' //char(accretionHalosMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       accretionHalosInitialized=.true.
+       !$omp critical(accretionHalosInitialize)
+       if (.not.accretionHalosInitialized) then
+          ! Get the halo accretion method parameter.
+          !@ <inputParameter>
+          !@   <name>accretionHalosMethod</name>
+          !@   <defaultValue>simple</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Selects which method should be used for accretion onto halos.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('accretionHalosMethod',accretionHalosMethod,defaultValue='simple')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="accretionHalosMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get</subroutineArgs>
+          include 'accretion.halos.inc'
+          !# </include>
+          if     (.not.(     associated(Halo_Baryonic_Accretion_Rate_Get           ) &
+               &        .and.associated(Halo_Baryonic_Accreted_Mass_Get            ) &
+               &        .and.associated(Halo_Baryonic_Failed_Accretion_Rate_Get    ) &
+               &        .and.associated(Halo_Baryonic_Failed_Accreted_Mass_Get     ) &
+               &        .and.associated(Halo_Baryonic_Accretion_Rate_Abundances_Get) &
+               &        .and.associated(Halo_Baryonic_Accreted_Abundances_Get      ) &
+               &        .and.associated(Halo_Baryonic_Accretion_Rate_Chemicals_Get ) &
+               &        .and.associated(Halo_Baryonic_Accreted_Chemicals_Get       ) &
+               &       )                                                             &
+               & ) call Galacticus_Error_Report('Accretion_Halos_Initialize','method ' //char(accretionHalosMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          accretionHalosInitialized=.true.
+       end if
+       !$omp end critical(accretionHalosInitialize)
     end if
-    !$omp end critical(accretionHalosInitialize)
-
     return
   end subroutine Accretion_Halos_Initialize
   

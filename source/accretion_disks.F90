@@ -90,33 +90,34 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(accretionDisksInitialize)
     if (.not.accretionDisksInitialized) then
-       ! Do the binary black hole merger method parameter.
-       !@ <inputParameter>
-       !@   <name>accretionDisksMethod</name>
-       !@   <defaultValue>switched</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Selects which accretion disk method should be used.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('accretionDisksMethod',accretionDisksMethod,defaultValue='switched')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="accretionDisksMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get</subroutineArgs>
-       include 'accretion_disks.inc'
-       !# </include>
-       if (.not.(associated(Accretion_Disk_Radiative_Efficiency_Get).and.associated(Black_Hole_Spin_Up_Rate_Get) &
-            & .and.associated(Accretion_Disk_Jet_Power_Get))) call&
-            & Galacticus_Error_Report('Accretion_Disks_Initialize','method ' //char(accretionDisksMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       accretionDisksInitialized=.true.
+       !$omp critical(accretionDisksInitialize)
+       if (.not.accretionDisksInitialized) then
+          ! Do the binary black hole merger method parameter.
+          !@ <inputParameter>
+          !@   <name>accretionDisksMethod</name>
+          !@   <defaultValue>switched</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Selects which accretion disk method should be used.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('accretionDisksMethod',accretionDisksMethod,defaultValue='switched')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="accretionDisksMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get</subroutineArgs>
+          include 'accretion_disks.inc'
+          !# </include>
+          if (.not.(associated(Accretion_Disk_Radiative_Efficiency_Get).and.associated(Black_Hole_Spin_Up_Rate_Get) &
+               & .and.associated(Accretion_Disk_Jet_Power_Get))) call&
+               & Galacticus_Error_Report('Accretion_Disks_Initialize','method ' //char(accretionDisksMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          accretionDisksInitialized=.true.
+       end if
+       !$omp end critical(accretionDisksInitialize)
     end if
-    !$omp end critical(accretionDisksInitialize)
-
     return
   end subroutine Accretion_Disks_Initialize
   

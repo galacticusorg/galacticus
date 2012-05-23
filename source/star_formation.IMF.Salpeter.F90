@@ -118,39 +118,41 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Salpeter_Initialize)
     if (.not.imfSalpeterInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfSalpeterRecycledInstantaneous</name>
-       !@   <defaultValue>0.39</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the Salpeter \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfSalpeterRecycledInstantaneous',imfSalpeterRecycledInstantaneous,defaultValue=0.39d0)
-       !@ <inputParameter>
-       !@   <name>imfSalpeterYieldInstantaneous</name>
-       !@   <defaultValue>0.02</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the Salpeter \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfSalpeterYieldInstantaneous'   ,imfSalpeterYieldInstantaneous   ,defaultValue=0.02d0)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfSalpeterInitialized=.true.
+       !$omp critical (IMF_Salpeter_Initialize)
+       if (.not.imfSalpeterInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfSalpeterRecycledInstantaneous</name>
+          !@   <defaultValue>0.39</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the Salpeter \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfSalpeterRecycledInstantaneous',imfSalpeterRecycledInstantaneous,defaultValue=0.39d0)
+          !@ <inputParameter>
+          !@   <name>imfSalpeterYieldInstantaneous</name>
+          !@   <defaultValue>0.02</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the Salpeter \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfSalpeterYieldInstantaneous'   ,imfSalpeterYieldInstantaneous   ,defaultValue=0.02d0)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfSalpeterInitialized=.true.
+       end if
+       !$omp end critical (IMF_Salpeter_Initialize)
     end if
-    !$omp end critical (IMF_Salpeter_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Salpeter
 

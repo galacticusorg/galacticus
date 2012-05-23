@@ -112,33 +112,35 @@ contains
     !# </include>
     implicit none
     
-    !$omp critical(Chemical_State_Initialization) 
     ! Initialize if necessary.
     if (.not.chemicalStateInitialized) then
-       ! Get the chemical state method parameter.
-       !@ <inputParameter>
-       !@   <name>chemicalStateMethod</name>
-       !@   <defaultValue>atomicCIECloudy</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing the chemical state.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('chemicalStateMethod',chemicalStateMethod,defaultValue='atomicCIECloudy')
-
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="chemicalStateMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>chemicalStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Chemical_Densities_Get</subroutineArgs>
-       include 'atomic.chemical_state.inc'
-       !# </include>
-       if (.not.(associated(Electron_Density_Get).and.associated(Electron_Density_Temperature_Log_Slope_Get) &
-            & .and.associated(Electron_Density_Density_Log_Slope_Get).and.associated(Chemical_Densities_Get))) call&
-            & Galacticus_Error_Report('Chemical_State_Initialize','method '//char(chemicalStateMethod)//' is unrecognized')
-       chemicalStateInitialized=.true.
+       !$omp critical(Chemical_State_Initialization) 
+       if (.not.chemicalStateInitialized) then
+          ! Get the chemical state method parameter.
+          !@ <inputParameter>
+          !@   <name>chemicalStateMethod</name>
+          !@   <defaultValue>atomicCIECloudy</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing the chemical state.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('chemicalStateMethod',chemicalStateMethod,defaultValue='atomicCIECloudy')
+          
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="chemicalStateMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>chemicalStateMethod,Electron_Density_Get,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Chemical_Densities_Get</subroutineArgs>
+          include 'atomic.chemical_state.inc'
+          !# </include>
+          if (.not.(associated(Electron_Density_Get).and.associated(Electron_Density_Temperature_Log_Slope_Get) &
+               & .and.associated(Electron_Density_Density_Log_Slope_Get).and.associated(Chemical_Densities_Get))) call&
+               & Galacticus_Error_Report('Chemical_State_Initialize','method '//char(chemicalStateMethod)//' is unrecognized')
+          chemicalStateInitialized=.true.
+       end if
+       !$omp end critical(Chemical_State_Initialization) 
     end if
-    !$omp end critical(Chemical_State_Initialization) 
     return
   end subroutine Chemical_State_Initialize
 

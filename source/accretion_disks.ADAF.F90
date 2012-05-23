@@ -144,142 +144,144 @@ contains
     double precision     :: adafAdiabaticIndexDefault
     type(varying_string) :: adafRadiativeEfficiencyTypeText
 
-    !$omp critical(adafInitalize)
     if (.not.adafInitialized) then
-       !@ <inputParameter>
-       !@   <name>adafRadiativeEfficiencyType</name>
-       !@   <defaultValue>pureADAF</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
-       !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
-       !@     stable circular orbit.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("adafRadiativeEfficiencyType",adafRadiativeEfficiencyTypeText,defaultValue="fixed")
-       select case (char(adafRadiativeEfficiencyTypeText))
-       case ("fixed")
-          adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeFixed
-       case ("thinDisk")
-          adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeThinDisk
-       case default
-          call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafRadiativeEfficiencyType')
-       end select
-       !@ <inputParameter>
-       !@   <name>adafRadiativeEfficiency</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies the radiative efficiency of an ADAF (i.e. the fraction of $\dot{M}\clight^2$ that is emitted in radiation).
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("adafRadiativeEfficiency",adafRadiativeEfficiency,defaultValue=0.01d0)
-       !@ <inputParameter>
-       !@   <name>adafEnergyOption</name>
-       !@   <defaultValue>pureADAF</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
-       !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
-       !@     stable circular orbit.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("adafEnergyOption",adafEnergyOption,defaultValue="pureADAF")
-       select case (char(adafEnergyOption))
-       case ("pureADAF")
-          adafEnergy=adafEnergy1
-       case ("ISCO")
-          adafEnergy=adafEnergyIsco
-       case default
-          call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafEnergyType')
-       end select
-       !@ <inputParameter>
-       !@   <name>adafFieldEnhanceType</name>
-       !@   <defaultValue>exponential</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Controls how the field enhancing shear is determined. {\tt exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
-       !@    to be used, while {\tt linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
-       !@    to achieve a sensible spin-up function in each case.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("adafFieldEnhanceType",adafFieldEnhanceType,defaultValue="exponential")
-       select case (char(adafFieldEnhanceType))
-       case ("exponential")
-          adafFieldEnhance         =adafFieldEnhanceExponential
-          adafAdiabaticIndexDefault=1.444d0
-       case ("linear")
-          adafFieldEnhance         =adafFieldEnhanceLinear
-          adafAdiabaticIndexDefault=1.333d0
-       case default
-          call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafFieldEnhanceType')
-       end select
-       !@ <inputParameter>
-       !@   <name>adafAdiabaticIndex</name>
-       !@   <defaultValue>1.444 (for exponential form of field-enhancing shear) or 1.333 (for linear form)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies the effective adiabatic index of gas in an ADAF.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("adafAdiabaticIndex",adafAdiabaticIndex,defaultValue=1.444d0)
-       adafThermalPressureFraction=(8.0d0-6.0d0*adafAdiabaticIndex)/3.0d0/(1.0d0-adafAdiabaticIndex)
-       !@ <inputParameter>
-       !@   <name>adafViscosityOption</name>
-       !@   <defaultValue>fit</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Controls how the viscosity parameter $\alpha$ in an ADAF is determined. {\tt fit} will cause $\alpha$ to be computed
-       !@    using the fitting function of \cite{benson_maximum_2009}; {\tt fixed} will cause $\alpha=${\tt [adafViscosityFixedAlpha]}
-       !@    to be used.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("adafViscosityOption",adafViscosityOption,defaultValue="fit")
-       select case (char(adafViscosityOption))
-       case ("fixed")
-          adafViscosity=adafViscosityFixed
+       !$omp critical(adafInitalize)
+       if (.not.adafInitialized) then
           !@ <inputParameter>
-          !@   <name>adafViscosityFixedAlpha</name>
-          !@   <defaultValue>0.1</defaultValue>
+          !@   <name>adafRadiativeEfficiencyType</name>
+          !@   <defaultValue>pureADAF</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The value for the viscosity parameter $\alpha$ in an ADAF to be used if {\tt [adafViscosityOption]}$=${\tt fixed}.
+          !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
+          !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
+          !@     stable circular orbit.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("adafRadiativeEfficiencyType",adafRadiativeEfficiencyTypeText,defaultValue="fixed")
+          select case (char(adafRadiativeEfficiencyTypeText))
+          case ("fixed")
+             adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeFixed
+          case ("thinDisk")
+             adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeThinDisk
+          case default
+             call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafRadiativeEfficiencyType')
+          end select
+          !@ <inputParameter>
+          !@   <name>adafRadiativeEfficiency</name>
+          !@   <defaultValue>0.01</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies the radiative efficiency of an ADAF (i.e. the fraction of $\dot{M}\clight^2$ that is emitted in radiation).
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter("adafViscosityFixedAlpha",adafViscosityFixedAlpha,defaultValue=0.1d0)
-       case ("fit")
-          adafViscosity=adafViscosityFit
-       case default
-          call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafViscosityOption')
-       end select
-       !@ <inputParameter>
-       !@   <name>adafJetEfficiencyMaximum</name>
-       !@   <defaultValue>2</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The maximum efficiency allowed for ADAF-driven jets (in units of the accretion power).
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("adafJetEfficiencyMaximum",adafJetEfficiencyMaximum,defaultValue=2.0d0)
-       adafInitialized=.true.
+          call Get_Input_Parameter("adafRadiativeEfficiency",adafRadiativeEfficiency,defaultValue=0.01d0)
+          !@ <inputParameter>
+          !@   <name>adafEnergyOption</name>
+          !@   <defaultValue>pureADAF</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
+          !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
+          !@     stable circular orbit.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("adafEnergyOption",adafEnergyOption,defaultValue="pureADAF")
+          select case (char(adafEnergyOption))
+          case ("pureADAF")
+             adafEnergy=adafEnergy1
+          case ("ISCO")
+             adafEnergy=adafEnergyIsco
+          case default
+             call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafEnergyType')
+          end select
+          !@ <inputParameter>
+          !@   <name>adafFieldEnhanceType</name>
+          !@   <defaultValue>exponential</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Controls how the field enhancing shear is determined. {\tt exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
+          !@    to be used, while {\tt linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
+          !@    to achieve a sensible spin-up function in each case.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("adafFieldEnhanceType",adafFieldEnhanceType,defaultValue="exponential")
+          select case (char(adafFieldEnhanceType))
+          case ("exponential")
+             adafFieldEnhance         =adafFieldEnhanceExponential
+             adafAdiabaticIndexDefault=1.444d0
+          case ("linear")
+             adafFieldEnhance         =adafFieldEnhanceLinear
+             adafAdiabaticIndexDefault=1.333d0
+          case default
+             call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafFieldEnhanceType')
+          end select
+          !@ <inputParameter>
+          !@   <name>adafAdiabaticIndex</name>
+          !@   <defaultValue>1.444 (for exponential form of field-enhancing shear) or 1.333 (for linear form)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies the effective adiabatic index of gas in an ADAF.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("adafAdiabaticIndex",adafAdiabaticIndex,defaultValue=1.444d0)
+          adafThermalPressureFraction=(8.0d0-6.0d0*adafAdiabaticIndex)/3.0d0/(1.0d0-adafAdiabaticIndex)
+          !@ <inputParameter>
+          !@   <name>adafViscosityOption</name>
+          !@   <defaultValue>fit</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Controls how the viscosity parameter $\alpha$ in an ADAF is determined. {\tt fit} will cause $\alpha$ to be computed
+          !@    using the fitting function of \cite{benson_maximum_2009}; {\tt fixed} will cause $\alpha=${\tt [adafViscosityFixedAlpha]}
+          !@    to be used.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("adafViscosityOption",adafViscosityOption,defaultValue="fit")
+          select case (char(adafViscosityOption))
+          case ("fixed")
+             adafViscosity=adafViscosityFixed
+             !@ <inputParameter>
+             !@   <name>adafViscosityFixedAlpha</name>
+             !@   <defaultValue>0.1</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@    The value for the viscosity parameter $\alpha$ in an ADAF to be used if {\tt [adafViscosityOption]}$=${\tt fixed}.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter("adafViscosityFixedAlpha",adafViscosityFixedAlpha,defaultValue=0.1d0)
+          case ("fit")
+             adafViscosity=adafViscosityFit
+          case default
+             call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafViscosityOption')
+          end select
+          !@ <inputParameter>
+          !@   <name>adafJetEfficiencyMaximum</name>
+          !@   <defaultValue>2</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The maximum efficiency allowed for ADAF-driven jets (in units of the accretion power).
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("adafJetEfficiencyMaximum",adafJetEfficiencyMaximum,defaultValue=2.0d0)
+          adafInitialized=.true.
+       end if
+       !$omp end critical(adafInitalize)
     end if
-    !$omp end critical(adafInitalize)
     return
   end subroutine Accretion_Disks_ADAF_Get_Parameters
 
