@@ -83,6 +83,9 @@ module Modified_Press_Schechter_Branching
   ! Precomputed numerical factors.
   double precision, parameter  :: sqrtTwoOverPi=dsqrt(2.0d0/Pi)
 
+  ! Branching probability integrand integration tolerance.
+  double precision, parameter  :: branchingProbabilityIntegrandToleraceRelative=1.0d-3
+
 contains
   
   !# <treeBranchingMethod>
@@ -200,7 +203,7 @@ contains
 
     Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum&
          &,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
-         &,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)
+         &,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
   end function Modified_Press_Schechter_Branch_Mass_Root
@@ -247,7 +250,7 @@ contains
        massMinimum=massResolution
        massMaximum=0.5d0*parentHaloMass
        Modified_Press_Schechter_Branching_Probability=Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
-            &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3&
+            &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=branchingProbabilityIntegrandToleraceRelative&
             &,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else
