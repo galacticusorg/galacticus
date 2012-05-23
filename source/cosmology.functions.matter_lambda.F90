@@ -80,7 +80,8 @@ module Cosmology_Functions_Matter_Lambda
   logical                                     :: collapsingUniverse=.false.
   integer                                     :: iTableTurnaround
   double precision                            :: tCosmologicalMax,tCosmologicalTurnaround,aExpansionMax
-
+  !$omp threadprivate(collapsingUniverse,iTableTurnaround,aExpansionMax,tCosmologicalMax,tCosmologicalTurnaround)
+  
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter                 :: dominateFactor=100.0d0
 
@@ -97,6 +98,9 @@ module Cosmology_Functions_Matter_Lambda
   type(fgsl_interp_accel)                     :: interpolationAccelerator,interpolationAcceleratorInverse
   logical                                     :: resetInterpolation       =.true.
   logical                                     :: resetInterpolationInverse=.true.
+  !$omp threadprivate(ageTableInitialized,ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum,ageTableTime)
+  !$omp threadprivate(ageTableExpansionFactor,interpolationObject,interpolationObjectInverse,interpolationAccelerator)
+  !$omp threadprivate(interpolationAcceleratorInverse,resetInterpolation,resetInterpolationInverse)
 
   ! Variables to hold table of distance vs. cosmic time.
   logical                                     :: distanceTableInitialized=.false.
@@ -107,14 +111,15 @@ module Cosmology_Functions_Matter_Lambda
   type(fgsl_interp)                           :: interpolationObjectDistance      ,interpolationObjectDistanceInverse
   type(fgsl_interp_accel)                     :: interpolationAcceleratorDistance ,interpolationAcceleratorDistanceInverse
   logical                                     :: resetInterpolationDistance=.true.,resetInterpolationDistanceInverse=.true.
-
   ! Variables used in the ODE solver.
+  
   type(fgsl_odeiv_step)                       :: odeStepper
   type(fgsl_odeiv_control)                    :: odeController
   type(fgsl_odeiv_evolve)                     :: odeEvolver
   type(fgsl_odeiv_system)                     :: odeSystem
   logical                                     :: odeReset=.true. ! Ensure ODE variables will be reset on first call.
-  
+  !$omp threadprivate (odeStepper,odeController,odeEvolver,odeSystem,odeReset)
+
 contains
 
   !# <cosmologyMethod>
@@ -211,7 +216,7 @@ contains
           ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
           call Early_Time_Density_Scaling_Matter_Lambda(dominateFactor,densityPower,aDominant,Omega_Dominant)       
           ! Find the corresponding time.
-          timeMaximum(1)=1.0/H_0_invGyr()/dsqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
+          timeMaximum(1)=1.0d0/H_0_invGyr()/dsqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
           ! Solve Friedmann equation to get time at turnaround.
           odeReset=.true.
           call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,aDominant,aExpansionMax*(1.0d0-1.0d-4),1,timeMaximum&
@@ -265,7 +270,6 @@ contains
     logical                                :: collapsingPhaseActual
 
     ! Initialize the module if necessary.
-    !$omp critical(Cosmology_Functions_Initialize)
     ! Validate the input.
     if (.not.Expansion_Factor_Is_Valid_Matter_Lambda(aExpansion)) call Galacticus_Error_Report('Cosmology_Age_Matter_Lambda'&
          &,'expansion factor is invalid')
@@ -298,14 +302,11 @@ contains
           call Make_Expansion_Factor_Table
        end do
     end if
-    !$omp end critical(Cosmology_Functions_Initialize)
 
     ! Interpolate to get cosmic time.
-    !$omp critical(Cosmology_Functions_Interpolate)
     Cosmology_Age_Matter_Lambda=Interpolate(ageTableNumberPoints,ageTableExpansionFactor&
          &,ageTableTime,interpolationObject,interpolationAccelerator&
          &,aExpansion,reset=resetInterpolation)
-    !$omp end critical(Cosmology_Functions_Interpolate)
     if (collapsingPhaseActual) Cosmology_Age_Matter_Lambda=tCosmologicalMax-Cosmology_Age_Matter_Lambda
 
     return
@@ -323,7 +324,6 @@ contains
     ! Quit on invalid input.
     if (tCosmological<0.0d0) call Galacticus_Error_Report('Expansion_Factor','cosmological time must be positive')
 
-    !$omp critical(Cosmology_Functions_Initialize)
     ! Check if we need to recompute our table.
     if (ageTableInitialized) then
        remakeTable=(tCosmological<ageTableTime(1).or.tCosmological>ageTableTime(ageTableNumberPoints))
@@ -331,7 +331,6 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) call Make_Expansion_Factor_Table(tCosmological)
-    !$omp end critical(Cosmology_Functions_Initialize)
 
     ! Quit on invalid input.
     if (collapsingUniverse.and.tCosmological>tCosmologicalMax) call Galacticus_Error_Report('Expansion_Factor','cosmological time&
@@ -347,10 +346,8 @@ contains
     else
        tEffective=tCosmological
     end if
-    !$omp critical(Cosmology_Functions_Interpolate)
     Expansion_Factor_Matter_Lambda=Interpolate(ageTableNumberPoints,ageTableTime,ageTableExpansionFactor,interpolationObjectInverse&
          &,interpolationAcceleratorInverse,tEffective,reset=resetInterpolationInverse)
-    !$omp end critical(Cosmology_Functions_Interpolate)
     return
   end function Expansion_Factor_Matter_Lambda
   
@@ -369,7 +366,6 @@ contains
     double precision                            :: densityPower,aDominant,Omega_Dominant,tDominant,time,aExpansion(1)
     type(c_ptr)                                 :: parameterPointer
 
-    !$omp critical(Cosmology_Functions_Interpolate)
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call Early_Time_Density_Scaling_Matter_Lambda(dominateFactor,densityPower,aDominant,Omega_Dominant)
 
@@ -456,7 +452,6 @@ contains
     resetInterpolationInverse=.true.
     ! Flag that the table is now initialized.
     ageTableInitialized=.true.
-    !$omp end critical(Cosmology_Functions_Interpolate)
     return
   end subroutine Make_Expansion_Factor_Table
   
