@@ -88,36 +88,38 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Satellite_Merging_Timescales_Initialization) 
     ! Initialize if necessary.
     if (.not.satelliteMergeTimescaleInitialized) then
-
-       ! Get the satellite merging timescale method.
-       !@ <inputParameter>
-       !@   <name>satelliteMergingMethod</name>
-       !@   <defaultValue>Jiang2008</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used to compute satellite merging timescales.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="satelliteMergingMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>satelliteMergingMethod,Satellite_Time_Until_Merging_Get</subroutineArgs>
-       include 'satellite.merging.timescale.inc'
-       !# </include>
-       if (.not.associated(Satellite_Time_Until_Merging_Get))                                           &
-            & call Galacticus_Error_Report(                                                             &
-            &                              'Tree_Node_Methods_Satellite_Orbit_Initialize'             , &
-            &                              'method '//char(satelliteMergingMethod)//' is unrecognized'  &
-            &                             )
-       ! Record that this module is now initialized.
-       satelliteMergeTimescaleInitialized=.true.
+       !$omp critical(Satellite_Merging_Timescales_Initialization) 
+       if (.not.satelliteMergeTimescaleInitialized) then
+          
+          ! Get the satellite merging timescale method.
+          !@ <inputParameter>
+          !@   <name>satelliteMergingMethod</name>
+          !@   <defaultValue>Jiang2008</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used to compute satellite merging timescales.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="satelliteMergingMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>satelliteMergingMethod,Satellite_Time_Until_Merging_Get</subroutineArgs>
+          include 'satellite.merging.timescale.inc'
+          !# </include>
+          if (.not.associated(Satellite_Time_Until_Merging_Get))                                           &
+               & call Galacticus_Error_Report(                                                             &
+               &                              'Tree_Node_Methods_Satellite_Orbit_Initialize'             , &
+               &                              'method '//char(satelliteMergingMethod)//' is unrecognized'  &
+               &                             )
+          ! Record that this module is now initialized.
+          satelliteMergeTimescaleInitialized=.true.
+       end if
+       !$omp end critical(Satellite_Merging_Timescales_Initialization) 
     end if
-    !$omp end critical(Satellite_Merging_Timescales_Initialization) 
     return
   end subroutine Satellite_Merging_Timescales_Initialize
 

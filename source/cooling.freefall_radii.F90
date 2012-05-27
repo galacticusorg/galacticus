@@ -96,31 +96,33 @@ contains
     use Input_Parameters
     implicit none
 
-    !$omp critical(Freefall_Radius_Initialization) 
     ! Initialize if necessary.
     if (.not.freefallRadiusInitialized) then
-       ! Get the cooling radius method parameter.
-       !@ <inputParameter>
-       !@   <name>freefallRadiusMethod</name>
-       !@   <defaultValue>darkMatterHalo</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of the freefall radius in cooling calculations.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('freefallRadiusMethod',freefallRadiusMethod,defaultValue='darkMatterHalo')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="freefallRadiusMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get</subroutineArgs>
-       include 'cooling.freefall_radius.inc'
-       !# </include>
-       if (.not.(associated(Freefall_Radius_Get).and.associated(Freefall_Radius_Growth_Rate_Get))) call&
-            & Galacticus_Error_Report('Freefall_Radius','method ' //char(freefallRadiusMethod)//' is unrecognized')
-       freefallRadiusInitialized=.true.
+       !$omp critical(Freefall_Radius_Initialization) 
+       if (.not.freefallRadiusInitialized) then
+          ! Get the cooling radius method parameter.
+          !@ <inputParameter>
+          !@   <name>freefallRadiusMethod</name>
+          !@   <defaultValue>darkMatterHalo</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of the freefall radius in cooling calculations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('freefallRadiusMethod',freefallRadiusMethod,defaultValue='darkMatterHalo')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="freefallRadiusMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get</subroutineArgs>
+          include 'cooling.freefall_radius.inc'
+          !# </include>
+          if (.not.(associated(Freefall_Radius_Get).and.associated(Freefall_Radius_Growth_Rate_Get))) call&
+               & Galacticus_Error_Report('Freefall_Radius','method ' //char(freefallRadiusMethod)//' is unrecognized')
+          freefallRadiusInitialized=.true.
+       end if
+       !$omp end critical(Freefall_Radius_Initialization) 
     end if
-    !$omp end critical(Freefall_Radius_Initialization) 
     return
   end subroutine Freefall_Radius_Initialize
 

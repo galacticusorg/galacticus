@@ -93,32 +93,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Supernovae_Population_III_Initialization) 
     ! Initialize if necessary.
     if (.not.supernovaePopIIIInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>supernovaePopIIIMethod</name>
-       !@   <defaultValue>Heger-Woosley2002</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The method to use for computing properties of Population III supernovae.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('supernovaePopIIIMethod',supernovaePopIIIMethod,defaultValue='Heger-Woosley2002')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="supernovaePopIIIMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get</subroutineArgs>
-       include 'stellar_astrophysics.supernovae_type_PopIII.inc'
-       !# </include>
-       if (.not.associated(SNePopIII_Cumulative_Energy_Get)) call Galacticus_Error_Report('Supernovae_Population_III_Initialize'&
-            &,'method '//char(supernovaePopIIIMethod)//' is unrecognized')
-       supernovaePopIIIInitialized=.true.
+       !$omp critical(Supernovae_Population_III_Initialization) 
+       if (.not.supernovaePopIIIInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>supernovaePopIIIMethod</name>
+          !@   <defaultValue>Heger-Woosley2002</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The method to use for computing properties of Population III supernovae.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('supernovaePopIIIMethod',supernovaePopIIIMethod,defaultValue='Heger-Woosley2002')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="supernovaePopIIIMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get</subroutineArgs>
+          include 'stellar_astrophysics.supernovae_type_PopIII.inc'
+          !# </include>
+          if (.not.associated(SNePopIII_Cumulative_Energy_Get)) call Galacticus_Error_Report('Supernovae_Population_III_Initialize'&
+               &,'method '//char(supernovaePopIIIMethod)//' is unrecognized')
+          supernovaePopIIIInitialized=.true.
+       end if
+       !$omp end critical(Supernovae_Population_III_Initialization) 
     end if
-    !$omp end critical(Supernovae_Population_III_Initialization) 
-
     return
   end subroutine Supernovae_Population_III_Initialize
 

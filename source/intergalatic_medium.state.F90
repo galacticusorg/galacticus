@@ -93,35 +93,37 @@ contains
     implicit none
     type(varying_string) :: intergalaticMediumStateMethod
     
-    !$omp critical(Intergalactic_Medium_State_Initialization) 
     ! Initialize if necessary.
     if (.not.igmStateInitialized) then
-       ! Get the cooling function method parameter.
-       !@ <inputParameter>
-       !@   <name>intergalaticMediumStateMethod</name>
-       !@   <defaultValue>RecFast</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing the state of the intergalactic medium.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('intergalaticMediumStateMethod',intergalaticMediumStateMethod,defaultValue='RecFast')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="intergalaticMediumStateMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>intergalaticMediumStateMethod,Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get</subroutineArgs>
-       include 'intergalactic_medium.state.inc'
-       !# </include>
-       if (.not.(associated(Intergalactic_Medium_Electron_Fraction_Get).and.associated(Intergalactic_Medium_Temperature_Get))) call&
-            & Galacticus_Error_Report('Intergalactic_Medium_State_Initialize','method ' //char(intergalaticMediumStateMethod)//' is unrecognized')
-
-       igmStateInitialized=.true.
+       !$omp critical(Intergalactic_Medium_State_Initialization) 
+       if (.not.igmStateInitialized) then
+          ! Get the cooling function method parameter.
+          !@ <inputParameter>
+          !@   <name>intergalaticMediumStateMethod</name>
+          !@   <defaultValue>RecFast</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing the state of the intergalactic medium.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('intergalaticMediumStateMethod',intergalaticMediumStateMethod,defaultValue='RecFast')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="intergalaticMediumStateMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>intergalaticMediumStateMethod,Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get</subroutineArgs>
+          include 'intergalactic_medium.state.inc'
+          !# </include>
+          if (.not.(associated(Intergalactic_Medium_Electron_Fraction_Get).and.associated(Intergalactic_Medium_Temperature_Get))) call&
+               & Galacticus_Error_Report('Intergalactic_Medium_State_Initialize','method ' //char(intergalaticMediumStateMethod)//' is unrecognized')
+          
+          igmStateInitialized=.true.
+       end if
+       !$omp end critical(Intergalactic_Medium_State_Initialization) 
     end if
-    !$omp end critical(Intergalactic_Medium_State_Initialization) 
     return
   end subroutine Intergalactic_Medium_State_Initialize
-
+  
   double precision function Intergalactic_Medium_Electron_Fraction(time)
     !% Return the electron fraction in the intergalactic medium at the specified {\tt time}.
     implicit none

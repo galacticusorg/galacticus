@@ -94,31 +94,33 @@ contains
     double precision, intent(out)            :: satelliteMass,hostMass,satelliteSpheroidMass,hostSpheroidMass,hostSpheroidMassPreMerger&
          &,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass,remnantSpheroidGasMass
     
-    !$omp critical(satelliteMergingRemnantProgenitorPropertiesInitialize)
     if (.not.satelliteMergingRemnantProgenitorPropertiesInitialized) then
-       ! Get the progenitor properties method parameter.
-       !@ <inputParameter>
-       !@   <name>satelliteMergingRemnantProgenitorPropertiesMethod</name>
-       !@   <defaultValue>standard</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing progenitor properties in merger remnant calculations.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteMergingRemnantProgenitorPropertiesMethod',satelliteMergingRemnantProgenitorPropertiesMethod,defaultValue='standard')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="satelliteMergingRemnantProgenitorPropertiesMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>satelliteMergingRemnantProgenitorPropertiesMethod,Satellite_Merging_Remnant_Progenitor_Properties_Get</subroutineArgs>
-       include 'satellites.merging.remnant_sizes.progenitor_properties.inc'
-       !# </include>
-       if (.not.associated(Satellite_Merging_Remnant_Progenitor_Properties_Get)) call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties','method ' &
-            &//char(satelliteMergingRemnantProgenitorPropertiesMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       satelliteMergingRemnantProgenitorPropertiesInitialized=.true.
+       !$omp critical(satelliteMergingRemnantProgenitorPropertiesInitialize)
+       if (.not.satelliteMergingRemnantProgenitorPropertiesInitialized) then
+          ! Get the progenitor properties method parameter.
+          !@ <inputParameter>
+          !@   <name>satelliteMergingRemnantProgenitorPropertiesMethod</name>
+          !@   <defaultValue>standard</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing progenitor properties in merger remnant calculations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('satelliteMergingRemnantProgenitorPropertiesMethod',satelliteMergingRemnantProgenitorPropertiesMethod,defaultValue='standard')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="satelliteMergingRemnantProgenitorPropertiesMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>satelliteMergingRemnantProgenitorPropertiesMethod,Satellite_Merging_Remnant_Progenitor_Properties_Get</subroutineArgs>
+          include 'satellites.merging.remnant_sizes.progenitor_properties.inc'
+          !# </include>
+          if (.not.associated(Satellite_Merging_Remnant_Progenitor_Properties_Get)) call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties','method ' &
+               &//char(satelliteMergingRemnantProgenitorPropertiesMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          satelliteMergingRemnantProgenitorPropertiesInitialized=.true.
+       end if
+       !$omp end critical(satelliteMergingRemnantProgenitorPropertiesInitialize)
     end if
-    !$omp end critical(satelliteMergingRemnantProgenitorPropertiesInitialize)
 
     ! Call the subroutine to perform the calculations.
     call Satellite_Merging_Remnant_Progenitor_Properties_Get(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass&

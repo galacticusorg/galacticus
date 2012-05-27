@@ -98,32 +98,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Stellar_Feedback_Initialization) 
     ! Initialize if necessary.
     if (.not.stellarFeedbackInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>stellarFeedbackMethod</name>
-       !@   <defaultValue>standard</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The method to use for computing aspects of stellar feedback.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarFeedbackMethod',stellarFeedbackMethod,defaultValue='standard')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarFeedbackMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get</subroutineArgs>
-       include 'stellar_astrophysics.feedback.inc'
-       !# </include>
-       if (.not.associated(Stellar_Feedback_Cumulative_Energy_Input_Get)) call Galacticus_Error_Report('Stellar_Feedback_Initialize'&
-            &,'method '//char(stellarFeedbackMethod)//' is unrecognized')
-       stellarFeedbackInitialized=.true.
+       !$omp critical(Stellar_Feedback_Initialization) 
+       if (.not.stellarFeedbackInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>stellarFeedbackMethod</name>
+          !@   <defaultValue>standard</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The method to use for computing aspects of stellar feedback.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarFeedbackMethod',stellarFeedbackMethod,defaultValue='standard')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="stellarFeedbackMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get</subroutineArgs>
+          include 'stellar_astrophysics.feedback.inc'
+          !# </include>
+          if (.not.associated(Stellar_Feedback_Cumulative_Energy_Input_Get)) call Galacticus_Error_Report('Stellar_Feedback_Initialize'&
+               &,'method '//char(stellarFeedbackMethod)//' is unrecognized')
+          stellarFeedbackInitialized=.true.
+       end if
+       !$omp end critical(Stellar_Feedback_Initialization) 
     end if
-    !$omp end critical(Stellar_Feedback_Initialization) 
-
     return
   end subroutine Stellar_Feedback_Initialize
 

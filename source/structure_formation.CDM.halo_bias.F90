@@ -95,32 +95,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(haloBiasInitialize)
     if (.not.haloBiasInitialized) then
-       ! Get the halo bias method parameter.
-       !@ <inputParameter>
-       !@   <name>darkMatterHaloBiasMethod</name>
-       !@   <defaultValue>Tinker2010</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Selects which dark matter halo bias method to use.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterHaloBiasMethod',darkMatterHaloBiasMethod,defaultValue='Tinker2010')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="darkMatterHaloBiasMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get</subroutineArgs>
-       include 'structure_formation.CDM.halo_bias.inc'
-       !# </include>
-       if (.not.associated(Dark_Matter_Halo_Bias_Get)) call&
-            & Galacticus_Error_Report('Dark_Matter_Halo_Bias_Initialize','method '//char(darkMatterHaloBiasMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       haloBiasInitialized=.true.
+       !$omp critical(haloBiasInitialize)
+       if (.not.haloBiasInitialized) then
+          ! Get the halo bias method parameter.
+          !@ <inputParameter>
+          !@   <name>darkMatterHaloBiasMethod</name>
+          !@   <defaultValue>Tinker2010</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Selects which dark matter halo bias method to use.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkMatterHaloBiasMethod',darkMatterHaloBiasMethod,defaultValue='Tinker2010')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="darkMatterHaloBiasMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get</subroutineArgs>
+          include 'structure_formation.CDM.halo_bias.inc'
+          !# </include>
+          if (.not.associated(Dark_Matter_Halo_Bias_Get)) call&
+               & Galacticus_Error_Report('Dark_Matter_Halo_Bias_Initialize','method '//char(darkMatterHaloBiasMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          haloBiasInitialized=.true.
+       end if
+       !$omp end critical(haloBiasInitialize)
     end if
-    !$omp end critical(haloBiasInitialize)
-
     return
   end subroutine Dark_Matter_Halo_Bias_Initialize
   

@@ -164,34 +164,36 @@ contains
     implicit none
  
     ! Initialize if necessary.
-    !$omp critical(Tree_Branching_Initialization) 
     if (.not.treeBranchingInitialized) then
-       ! Get the tree branching method parameter.
-       !@ <inputParameter>
-       !@   <name>treeBranchingMethod</name>
-       !@   <defaultValue>modifiedPress-Schechter</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing merger tree branching probabilities when building merger trees.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modifiedPress-Schechter')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="treeBranchingMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>treeBranchingMethod,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</subroutineArgs>
-       include 'merger_trees.branching_probability.inc'
-       !# </include>
-       if (       .not.associated(Tree_Branching_Probability_Function )  &
-            & .or..not.associated(Tree_Subresolution_Fraction_Function)  &
-            & .or..not.associated(Tree_Branch_Mass_Function           )  &
-            & .or..not.associated(Tree_Maximum_Step_Function          )) &
-            & call Galacticus_Error_Report('Tree_Branching_Initialize','method '//char(treeBranchingMethod)//' is unrecognized')
-       
-       treeBranchingInitialized=.true.
+       !$omp critical(Tree_Branching_Initialization) 
+       if (.not.treeBranchingInitialized) then
+          ! Get the tree branching method parameter.
+          !@ <inputParameter>
+          !@   <name>treeBranchingMethod</name>
+          !@   <defaultValue>modifiedPress-Schechter</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing merger tree branching probabilities when building merger trees.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modifiedPress-Schechter')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="treeBranchingMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>treeBranchingMethod,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</subroutineArgs>
+          include 'merger_trees.branching_probability.inc'
+          !# </include>
+          if (       .not.associated(Tree_Branching_Probability_Function )  &
+               & .or..not.associated(Tree_Subresolution_Fraction_Function)  &
+               & .or..not.associated(Tree_Branch_Mass_Function           )  &
+               & .or..not.associated(Tree_Maximum_Step_Function          )) &
+               & call Galacticus_Error_Report('Tree_Branching_Initialize','method '//char(treeBranchingMethod)//' is unrecognized')
+          
+          treeBranchingInitialized=.true.
+       end if
+       !$omp end critical(Tree_Branching_Initialization)
     end if
-    !$omp end critical(Tree_Branching_Initialization)
     return
   end subroutine Tree_Branching_Initialize
   

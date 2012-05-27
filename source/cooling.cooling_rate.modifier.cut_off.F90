@@ -90,46 +90,48 @@ contains
     double precision, intent(inout)          :: coolingRate
     double precision                         :: virialVelocity
     
-    !$omp critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
     if (.not.moduleInitialized) then
-       !@ <inputParameter>
-       !@   <name>coolingCutOffFormationNode</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("coolingCutOffFormationNode",coolingCutOffFormationNode,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>coolingCutOffVelocity</name>
-       !@   <defaultValue>0.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("coolingCutOffVelocity",coolingCutOffVelocity,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingCutOffRedshift</name>
-       !@   <defaultValue>0.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("coolingCutOffRedshift",coolingCutOffRedshift,defaultValue=0.0d0)
-       coolingCutOffTime=Cosmology_Age(Expansion_Factor_from_Redshift(coolingCutOffRedshift))
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
+       !$omp critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
+       if (.not.moduleInitialized) then
+          !@ <inputParameter>
+          !@   <name>coolingCutOffFormationNode</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("coolingCutOffFormationNode",coolingCutOffFormationNode,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>coolingCutOffVelocity</name>
+          !@   <defaultValue>0.0</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("coolingCutOffVelocity",coolingCutOffVelocity,defaultValue=0.0d0)
+          !@ <inputParameter>
+          !@   <name>coolingCutOffRedshift</name>
+          !@   <defaultValue>0.0</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("coolingCutOffRedshift",coolingCutOffRedshift,defaultValue=0.0d0)
+          coolingCutOffTime=Cosmology_Age(Expansion_Factor_from_Redshift(coolingCutOffRedshift))
+          ! Record that the module is now initialized.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
     end if
-    !$omp end critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
 
     ! Return immediately if cut-off is non-positive.
     if (coolingCutOffVelocity <= 0.0d0) return

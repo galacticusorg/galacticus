@@ -156,43 +156,44 @@ contains
     type(chemicalStructure) :: thisChemical
 
     ! Check if this module has been initialized already.    
-    !$omp critical (Chemical_Abundances_Module_Initialize)
     if (.not.chemicalAbundancesInitialized) then
-
-       ! Determine how many elements we are required to track.
-       chemicalsCount=Get_Input_Parameter_Array_Size('chemicalsToTrack')
-       ! Number of properties to track is the same as the number of chemicals.
-       propertyCount=chemicalsCount
-       ! If tracking chemicals, read names of which ones to track.
-       if (chemicalsCount > 0) then
-          allocate(chemicalsToTrack(chemicalsCount))
-          call Alloc_Array(chemicalsIndices,[chemicalsCount])
-          call Alloc_Array(chemicalsCharges,[chemicalsCount])
-          call Alloc_Array(chemicalsMasses ,[chemicalsCount])
-          !@ <inputParameter>
-          !@   <name>chemicalsToTrack</name>
-          !@   <defaultValue></defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The names of the chemicals to be tracked.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1..*</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('chemicalsToTrack',chemicalsToTrack)
-          ! Validate the input names by looking them up in the list of chemical names.
-          do iChemical=1,chemicalsCount
-             chemicalsIndices(iChemical)=Chemical_Database_Get_Index(char(chemicalsToTrack(iChemical)))
-             call thisChemical%retrieve(char(chemicalsToTrack(iChemical)))
-             chemicalsCharges(iChemical)=dble(thisChemical%charge())
-             chemicalsMasses (iChemical)=     thisChemical%mass  ()
-          end do
+       !$omp critical (Chemical_Abundances_Module_Initialize)
+       if (.not.chemicalAbundancesInitialized) then
+          
+          ! Determine how many elements we are required to track.
+          chemicalsCount=Get_Input_Parameter_Array_Size('chemicalsToTrack')
+          ! Number of properties to track is the same as the number of chemicals.
+          propertyCount=chemicalsCount
+          ! If tracking chemicals, read names of which ones to track.
+          if (chemicalsCount > 0) then
+             allocate(chemicalsToTrack(chemicalsCount))
+             call Alloc_Array(chemicalsIndices,[chemicalsCount])
+             call Alloc_Array(chemicalsCharges,[chemicalsCount])
+             call Alloc_Array(chemicalsMasses ,[chemicalsCount])
+             !@ <inputParameter>
+             !@   <name>chemicalsToTrack</name>
+             !@   <defaultValue></defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The names of the chemicals to be tracked.
+             !@   </description>
+             !@   <type>string</type>
+             !@   <cardinality>1..*</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('chemicalsToTrack',chemicalsToTrack)
+             ! Validate the input names by looking them up in the list of chemical names.
+             do iChemical=1,chemicalsCount
+                chemicalsIndices(iChemical)=Chemical_Database_Get_Index(char(chemicalsToTrack(iChemical)))
+                call thisChemical%retrieve(char(chemicalsToTrack(iChemical)))
+                chemicalsCharges(iChemical)=dble(thisChemical%charge())
+                chemicalsMasses (iChemical)=     thisChemical%mass  ()
+             end do
+          end if
+          ! Flag that this module is now initialized.
+          chemicalAbundancesInitialized=.true.
        end if
-       ! Flag that this module is now initialized.
-       chemicalAbundancesInitialized=.true.
+       !$omp end critical (Chemical_Abundances_Module_Initialize)
     end if
-    !$omp end critical (Chemical_Abundances_Module_Initialize)
-
     return
   end subroutine Chemical_Abundances_Initialize
 

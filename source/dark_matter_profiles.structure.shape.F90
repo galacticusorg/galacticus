@@ -94,33 +94,34 @@ contains
     include 'dark_matter_profiles.structure.shape.modules.inc'
     !# </include>
     implicit none
-
-    !$omp critical(Dark_Matter_Shapes_Initialization) 
+    
     ! Initialize if necessary.
     if (.not.darkMatterShapeInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>darkMatterShapeMethod</name>
-       !@   <defaultValue>Gao2008</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of dark matter halo density profile shapes.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterShapeMethod',darkMatterShapeMethod,defaultValue='Gao2008')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="darkMatterShapeMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get</subroutineArgs>
-       include 'dark_matter_profiles.structure.shape.inc'
-       !# </include>
-       if (.not.associated(Dark_Matter_Profile_Shape_Get)) &
-            & call Galacticus_Error_Report('Dark_Matter_Shapes_Initialize','method ' //char(darkMatterShapeMethod)//' is unrecognized')
-       darkMatterShapeInitialized=.true.
+       !$omp critical(Dark_Matter_Shapes_Initialization) 
+       if (.not.darkMatterShapeInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>darkMatterShapeMethod</name>
+          !@   <defaultValue>Gao2008</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of dark matter halo density profile shapes.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkMatterShapeMethod',darkMatterShapeMethod,defaultValue='Gao2008')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="darkMatterShapeMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get</subroutineArgs>
+          include 'dark_matter_profiles.structure.shape.inc'
+          !# </include>
+          if (.not.associated(Dark_Matter_Profile_Shape_Get)) &
+               & call Galacticus_Error_Report('Dark_Matter_Shapes_Initialize','method ' //char(darkMatterShapeMethod)//' is unrecognized')
+          darkMatterShapeInitialized=.true.
+       end if
+       !$omp end critical(Dark_Matter_Shapes_Initialization) 
     end if
-    !$omp end critical(Dark_Matter_Shapes_Initialization) 
-
     return
   end subroutine Dark_Matter_Shapes_Initialize
 

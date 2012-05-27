@@ -90,24 +90,26 @@ contains
     integer                      :: hierarchyDepth
 
     ! Check if module is initialized.
-    !$omp critical (Merger_Tree_Prune_Hierarchy_Initialize)
     if (.not.pruneHierarchyModuleInitialized) then
-       ! Get parameter specifying if pruning is required.
-       !@ <inputParameter>
-       !@   <name>mergerTreePruneHierarchyAtDepth</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The depth in the hierarchy at which to prune merger trees. (Zero indicates to not prune.)
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreePruneHierarchyAtDepth',mergerTreePruneHierarchyAtDepth,defaultValue=0)
-       ! Flag that module is initialized.
-       pruneHierarchyModuleInitialized=.true.
+       !$omp critical (Merger_Tree_Prune_Hierarchy_Initialize)
+       if (.not.pruneHierarchyModuleInitialized) then
+          ! Get parameter specifying if pruning is required.
+          !@ <inputParameter>
+          !@   <name>mergerTreePruneHierarchyAtDepth</name>
+          !@   <defaultValue>0</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The depth in the hierarchy at which to prune merger trees. (Zero indicates to not prune.)
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreePruneHierarchyAtDepth',mergerTreePruneHierarchyAtDepth,defaultValue=0)
+          ! Flag that module is initialized.
+          pruneHierarchyModuleInitialized=.true.
+       end if
+       !$omp end critical (Merger_Tree_Prune_Hierarchy_Initialize)
     end if
-    !$omp end critical (Merger_Tree_Prune_Hierarchy_Initialize)
 
     ! Prune tree if necessary.
     if (mergerTreePruneHierarchyAtDepth > 0) then

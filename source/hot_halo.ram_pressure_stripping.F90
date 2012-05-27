@@ -90,31 +90,33 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    !$omp critical(Hot_Halo_Ram_Pressure_Stripping_Initialization) 
     ! Initialize if necessary.
     if (.not.hotHaloRamPressureStrippingInitialized) then
-       ! Get the cooling rate method parameter.
-       !@ <inputParameter>
-       !@   <name>hotHaloRamPressureStrippingMethod</name>
-       !@   <defaultValue>virialRadius</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used when computing ram pressure stripping of hot halos.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloRamPressureStrippingMethod',hotHaloRamPressureStrippingMethod,defaultValue='virialRadius')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="hotHaloRamPressureStrippingMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Radius_Get</subroutineArgs>
-       include 'hot_halo.ram_pressure_stripping.inc'
-       !# </include>
-       if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Radius_Get)) call Galacticus_Error_Report('Hot_Halo_Ram_Pressure_Stripping_Radius','method ' &
-            &//char(hotHaloRamPressureStrippingMethod)//' is unrecognized')
-       hotHaloRamPressureStrippingInitialized=.true.
+       !$omp critical(Hot_Halo_Ram_Pressure_Stripping_Initialization) 
+       if (.not.hotHaloRamPressureStrippingInitialized) then
+          ! Get the cooling rate method parameter.
+          !@ <inputParameter>
+          !@   <name>hotHaloRamPressureStrippingMethod</name>
+          !@   <defaultValue>virialRadius</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used when computing ram pressure stripping of hot halos.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('hotHaloRamPressureStrippingMethod',hotHaloRamPressureStrippingMethod,defaultValue='virialRadius')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="hotHaloRamPressureStrippingMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Radius_Get</subroutineArgs>
+          include 'hot_halo.ram_pressure_stripping.inc'
+          !# </include>
+          if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Radius_Get)) call Galacticus_Error_Report('Hot_Halo_Ram_Pressure_Stripping_Radius','method ' &
+               &//char(hotHaloRamPressureStrippingMethod)//' is unrecognized')
+          hotHaloRamPressureStrippingInitialized=.true.
+       end if
+       !$omp end critical(Hot_Halo_Ram_Pressure_Stripping_Initialization) 
     end if
-    !$omp end critical(Hot_Halo_Ram_Pressure_Stripping_Initialization) 
 
     ! Get the cooling rate using the selected method.
     Hot_Halo_Ram_Pressure_Stripping_Radius=Hot_Halo_Ram_Pressure_Stripping_Radius_Get(thisNode)

@@ -96,32 +96,34 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Star_Formation_Expulsive_Feedback_Disks_Initialization) 
     ! Initialize if necessary.
     if (.not.starFormationExpulsiveFeedbackDisksInitialized) then
-       ! Get the disk star formation expulsive feedback method parameter.
-       !@ <inputParameter>
-       !@   <name>starFormationExpulsiveFeedbackDisksMethod</name>
-       !@   <defaultValue>null</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in disks.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationExpulsiveFeedbackDisksMethod',starFormationExpulsiveFeedbackDisksMethod,defaultValue='null')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="starFormationExpulsiveFeedbackDisksMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>starFormationExpulsiveFeedbackDisksMethod,Star_Formation_Expulsive_Feedback_Disk_Rate_Get</subroutineArgs>
-       include 'star_formation.feedback_expulsive.disks.inc'
-       !# </include>
-       if (.not.associated(Star_Formation_Expulsive_Feedback_Disk_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Expulsive_Feedback_Disks'&
-            &,'method ' //char(starFormationExpulsiveFeedbackDisksMethod)//' is unrecognized')
-       starFormationExpulsiveFeedbackDisksInitialized=.true.
+       !$omp critical(Star_Formation_Expulsive_Feedback_Disks_Initialization) 
+       if (.not.starFormationExpulsiveFeedbackDisksInitialized) then
+          ! Get the disk star formation expulsive feedback method parameter.
+          !@ <inputParameter>
+          !@   <name>starFormationExpulsiveFeedbackDisksMethod</name>
+          !@   <defaultValue>null</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in disks.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationExpulsiveFeedbackDisksMethod',starFormationExpulsiveFeedbackDisksMethod,defaultValue='null')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="starFormationExpulsiveFeedbackDisksMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>starFormationExpulsiveFeedbackDisksMethod,Star_Formation_Expulsive_Feedback_Disk_Rate_Get</subroutineArgs>
+          include 'star_formation.feedback_expulsive.disks.inc'
+          !# </include>
+          if (.not.associated(Star_Formation_Expulsive_Feedback_Disk_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Expulsive_Feedback_Disks'&
+               &,'method ' //char(starFormationExpulsiveFeedbackDisksMethod)//' is unrecognized')
+          starFormationExpulsiveFeedbackDisksInitialized=.true.
+       end if
+       !$omp end critical(Star_Formation_Expulsive_Feedback_Disks_Initialization) 
     end if
-    !$omp end critical(Star_Formation_Expulsive_Feedback_Disks_Initialization) 
 
     return
   end subroutine Star_Formation_Expulsive_Feedback_Disks_Initialize

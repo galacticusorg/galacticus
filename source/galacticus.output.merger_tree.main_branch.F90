@@ -85,25 +85,27 @@ contains
     implicit none
 
     ! Initialize if necessary.
-    !$omp critical(Galacticus_Output_Tree_Main_Branch_Initalization)
     if (.not.mainBranchOutputIsInitialized) then
-       ! Read parameter controlling whether or not this module should output.       
-       !@ <inputParameter>
-       !@   <name>outputMainBranchStatus</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Controls whether or not the main branch status of each node will be output.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('outputMainBranchStatus',outputMainBranchStatus,defaultValue=.false.)
-       ! Flag that the module is now initialized.
-       mainBranchOutputIsInitialized=.true.
+       !$omp critical(Galacticus_Output_Tree_Main_Branch_Initalization)
+       if (.not.mainBranchOutputIsInitialized) then
+          ! Read parameter controlling whether or not this module should output.       
+          !@ <inputParameter>
+          !@   <name>outputMainBranchStatus</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Controls whether or not the main branch status of each node will be output.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('outputMainBranchStatus',outputMainBranchStatus,defaultValue=.false.)
+          ! Flag that the module is now initialized.
+          mainBranchOutputIsInitialized=.true.
+       end if
+       !$omp end critical(Galacticus_Output_Tree_Main_Branch_Initalization)
     end if
-    !$omp end critical(Galacticus_Output_Tree_Main_Branch_Initalization)
 
     return
   end subroutine Galacticus_Output_Tree_Main_Branch_Initalize

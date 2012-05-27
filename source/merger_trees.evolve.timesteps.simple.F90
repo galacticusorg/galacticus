@@ -89,38 +89,40 @@ contains
     type(treeNode),   intent(inout), pointer :: thisNode
     procedure(),      intent(inout), pointer :: End_Of_Timestep_Task
     double precision, intent(inout)          :: timeStep
-    logical,                                  intent(in)             :: report
+    logical,          intent(in   )          :: report
     double precision                         :: time,expansionFactor,expansionTimescale,ourTimeStep
 
-    !$omp critical (timestepSimpleInitialize)
     if (.not.timestepSimpleInitialized) then
-       !@ <inputParameter>
-       !@   <name>timestepSimpleRelative</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum allowed relative change in time for a single step in the evolution of a node.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('timestepSimpleRelative',timestepSimpleRelative,defaultValue=0.1d0)
-       !@ <inputParameter>
-       !@   <name>timestepSimpleAbsolute</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('timestepSimpleAbsolute',timestepSimpleAbsolute,defaultValue=1.0d0)
-       timestepSimpleInitialized=.true.
+       !$omp critical (timestepSimpleInitialize)
+       if (.not.timestepSimpleInitialized) then
+          !@ <inputParameter>
+          !@   <name>timestepSimpleRelative</name>
+          !@   <defaultValue>0.1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum allowed relative change in time for a single step in the evolution of a node.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('timestepSimpleRelative',timestepSimpleRelative,defaultValue=0.1d0)
+          !@ <inputParameter>
+          !@   <name>timestepSimpleAbsolute</name>
+          !@   <defaultValue>1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('timestepSimpleAbsolute',timestepSimpleAbsolute,defaultValue=1.0d0)
+          timestepSimpleInitialized=.true.
+       end if
+       !$omp end critical (timestepSimpleInitialize)
     end if
-    !$omp end critical (timestepSimpleInitialize)
 
     ! Get current cosmic time.
     time=Tree_Node_Time(thisNode)

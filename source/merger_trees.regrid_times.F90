@@ -117,126 +117,128 @@ contains
     integer(kind=kind_int8)                            :: nodeIndex,firstNewNode
 
     ! Check if module is initialized.
-    !$omp critical (Merger_Tree_Regrid_Time_Initialize)
     if (.not.regridTimeModuleInitialized) then
-       ! Get parameter specifying if regridding is required.
-       !@ <inputParameter>
-       !@   <name>mergerTreeRegridTimes</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to regrid merger tree times.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeRegridTimes',mergerTreeRegridTimes,defaultValue=.false.)
-       if (mergerTreeRegridTimes) then
+       !$omp critical (Merger_Tree_Regrid_Time_Initialize)
+       if (.not.regridTimeModuleInitialized) then
+          ! Get parameter specifying if regridding is required.
           !@ <inputParameter>
-          !@   <name>mergerTreeRegridDumpTrees</name>
+          !@   <name>mergerTreeRegridTimes</name>
           !@   <defaultValue>false</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     Specifies whether or not to dump merger trees as they are regridded.
+          !@     Specifies whether or not to regrid merger tree times.
           !@   </description>
           !@   <type>boolean</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeRegridDumpTrees',mergerTreeRegridDumpTrees,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeRegridCount</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Number of points in time to use when regridding merger trees.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeRegridCount',mergerTreeRegridCount,defaultValue=100)
-          !@ <inputParameter>
-          !@   <name>mergerTreeRegridStartExpansionFactor</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Starting expansion factor to use when regridding merger trees.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          if (mergerTreeRegridCount < 2) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','mergerTreeRegridCount > 2 is required')
-          call Get_Input_Parameter('mergerTreeRegridStartExpansionFactor',mergerTreeRegridStartExpansionFactor,defaultValue=0.1d0)
-          !@ <inputParameter>
-          !@   <name>mergerTreeRegridEndExpansionFactor</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Ending expansion factor to use when regridding merger trees.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeRegridEndExpansionFactor',mergerTreeRegridEndExpansionFactor,defaultValue=1.0d0)
-          !@ <inputParameter>
-          !@   <name>mergerTreeRegridSpacing</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Type of spacing to use in merger tree regridding (linear or logarithmic).
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeRegridSpacing',mergerTreeRegridSpacingAsText,defaultValue='logarithmic')
-          select case (char(mergerTreeRegridSpacingAsText))
-          case ("linear")
-             mergerTreeRegridSpacing=mergerTreeRegridSpacingLinear
-          case ("logarithmic")
-             mergerTreeRegridSpacing=mergerTreeRegridSpacingLogarithmic
-          case ("log critical density")
-             mergerTreeRegridSpacing=mergerTreeRegridSpacingLogCriticalOverdensity
-          case default
-             call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unrecognized spacing type: '//mergerTreeRegridSpacingAsText)
-          end select
+          call Get_Input_Parameter('mergerTreeRegridTimes',mergerTreeRegridTimes,defaultValue=.false.)
+          if (mergerTreeRegridTimes) then
+             !@ <inputParameter>
+             !@   <name>mergerTreeRegridDumpTrees</name>
+             !@   <defaultValue>false</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Specifies whether or not to dump merger trees as they are regridded.
+             !@   </description>
+             !@   <type>boolean</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeRegridDumpTrees',mergerTreeRegridDumpTrees,defaultValue=.false.)
+             !@ <inputParameter>
+             !@   <name>mergerTreeRegridCount</name>
+             !@   <defaultValue>false</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Number of points in time to use when regridding merger trees.
+             !@   </description>
+             !@   <type>integer</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeRegridCount',mergerTreeRegridCount,defaultValue=100)
+             !@ <inputParameter>
+             !@   <name>mergerTreeRegridStartExpansionFactor</name>
+             !@   <defaultValue>false</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Starting expansion factor to use when regridding merger trees.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             if (mergerTreeRegridCount < 2) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','mergerTreeRegridCount > 2 is required')
+             call Get_Input_Parameter('mergerTreeRegridStartExpansionFactor',mergerTreeRegridStartExpansionFactor,defaultValue=0.1d0)
+             !@ <inputParameter>
+             !@   <name>mergerTreeRegridEndExpansionFactor</name>
+             !@   <defaultValue>false</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Ending expansion factor to use when regridding merger trees.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeRegridEndExpansionFactor',mergerTreeRegridEndExpansionFactor,defaultValue=1.0d0)
+             !@ <inputParameter>
+             !@   <name>mergerTreeRegridSpacing</name>
+             !@   <defaultValue>false</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Type of spacing to use in merger tree regridding (linear or logarithmic).
+             !@   </description>
+             !@   <type>integer</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeRegridSpacing',mergerTreeRegridSpacingAsText,defaultValue='logarithmic')
+             select case (char(mergerTreeRegridSpacingAsText))
+             case ("linear")
+                mergerTreeRegridSpacing=mergerTreeRegridSpacingLinear
+             case ("logarithmic")
+                mergerTreeRegridSpacing=mergerTreeRegridSpacingLogarithmic
+             case ("log critical density")
+                mergerTreeRegridSpacing=mergerTreeRegridSpacingLogCriticalOverdensity
+             case default
+                call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unrecognized spacing type: '//mergerTreeRegridSpacingAsText)
+             end select
+             
+             ! Construct array of grid expansion factors.
+             call Alloc_Array(mergerTreeRegridTimeGrid,[mergerTreeRegridCount])
+             select case (mergerTreeRegridSpacing)
+             case (mergerTreeRegridSpacingLinear                )
+                mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
+                     &,mergerTreeRegridCount,rangeTypeLinear     )
+                ! Convert expansion factors to time.
+                do iTime=1,mergerTreeRegridCount
+                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+                end do
+             case (mergerTreeRegridSpacingLogarithmic           )
+                mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
+                     &,mergerTreeRegridCount,rangeTypeLogarithmic)
+                ! Convert expansion factors to time.
+                do iTime=1,mergerTreeRegridCount
+                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+                end do
+             case (mergerTreeRegridSpacingLogCriticalOverdensity)
+                ! Build a logarithmic grid in critical overdensity.
+                mergerTreeRegridTimeGrid&
+                     & =Make_Range(                                                                                        &
+                     &              Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridStartExpansionFactor)) &
+                     &             ,Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridEndExpansionFactor  )) &
+                     &             ,mergerTreeRegridCount                                                                  &
+                     &             ,rangeTypeLogarithmic                                                                   &
+                     &            )
+                ! Convert critical overdensity to time.
+                do iTime=1,mergerTreeRegridCount
+                   mergerTreeRegridTimeGrid(iTime)=Time_of_Collapse(mergerTreeRegridTimeGrid(iTime))
+                end do
+             end select
+             
+          end if
           
-          ! Construct array of grid expansion factors.
-          call Alloc_Array(mergerTreeRegridTimeGrid,[mergerTreeRegridCount])
-          select case (mergerTreeRegridSpacing)
-          case (mergerTreeRegridSpacingLinear                )
-             mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
-                  &,mergerTreeRegridCount,rangeTypeLinear     )
-             ! Convert expansion factors to time.
-             do iTime=1,mergerTreeRegridCount
-                mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
-             end do
-          case (mergerTreeRegridSpacingLogarithmic           )
-             mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
-                  &,mergerTreeRegridCount,rangeTypeLogarithmic)
-             ! Convert expansion factors to time.
-             do iTime=1,mergerTreeRegridCount
-                mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
-             end do
-          case (mergerTreeRegridSpacingLogCriticalOverdensity)
-             ! Build a logarithmic grid in critical overdensity.
-             mergerTreeRegridTimeGrid&
-                  & =Make_Range(                                                                                        &
-                  &              Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridStartExpansionFactor)) &
-                  &             ,Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridEndExpansionFactor  )) &
-                  &             ,mergerTreeRegridCount                                                                  &
-                  &             ,rangeTypeLogarithmic                                                                   &
-                  &            )
-             ! Convert critical overdensity to time.
-             do iTime=1,mergerTreeRegridCount
-                mergerTreeRegridTimeGrid(iTime)=Time_of_Collapse(mergerTreeRegridTimeGrid(iTime))
-             end do
-          end select
-
+          ! Flag that module is initialized.
+          regridTimeModuleInitialized=.true.
        end if
-
-       ! Flag that module is initialized.
-       regridTimeModuleInitialized=.true.
+       !$omp end critical (Merger_Tree_Regrid_Time_Initialize)
     end if
-    !$omp end critical (Merger_Tree_Regrid_Time_Initialize)
 
     ! Prune tree if necessary.
     if (mergerTreeRegridTimes) then

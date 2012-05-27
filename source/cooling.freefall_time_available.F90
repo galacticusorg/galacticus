@@ -96,31 +96,33 @@ contains
     use Input_Parameters
     implicit none
 
-    !$omp critical(Cooling_Freefall_Time_Available_Initialization) 
     ! Initialize if necessary.
     if (.not.freefallTimeAvailableInitialized) then
-       ! Get the cooling time available method parameter.
-       !@ <inputParameter>
-       !@   <name>freefallTimeAvailableMethod</name>
-       !@   <defaultValue>haloFormation</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used when computing the time available for freefall in cooling calculations.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('freefallTimeAvailableMethod',freefallTimeAvailableMethod,defaultValue='haloFormation')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="freefallTimeAvailableMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>freefallTimeAvailableMethod,Cooling_Freefall_Time_Available_Get,Cooling_Freefall_Time_Available_Increase_Rate_Get</subroutineArgs>
-       include 'cooling.freefall_time_available.inc'
-       !# </include>
-       if (.not.(associated(Cooling_Freefall_Time_Available_Get).and.associated(Cooling_Freefall_Time_Available_Increase_Rate_Get))) call&
-            & Galacticus_Error_Report('Cooling_Freefall_Time_Available','method ' //char(freefallTimeAvailableMethod)//' is unrecognized')
-       freefallTimeAvailableInitialized=.true.
+       !$omp critical(Cooling_Freefall_Time_Available_Initialization) 
+       if (.not.freefallTimeAvailableInitialized) then
+          ! Get the cooling time available method parameter.
+          !@ <inputParameter>
+          !@   <name>freefallTimeAvailableMethod</name>
+          !@   <defaultValue>haloFormation</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used when computing the time available for freefall in cooling calculations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('freefallTimeAvailableMethod',freefallTimeAvailableMethod,defaultValue='haloFormation')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="freefallTimeAvailableMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>freefallTimeAvailableMethod,Cooling_Freefall_Time_Available_Get,Cooling_Freefall_Time_Available_Increase_Rate_Get</subroutineArgs>
+          include 'cooling.freefall_time_available.inc'
+          !# </include>
+          if (.not.(associated(Cooling_Freefall_Time_Available_Get).and.associated(Cooling_Freefall_Time_Available_Increase_Rate_Get))) call&
+               & Galacticus_Error_Report('Cooling_Freefall_Time_Available','method ' //char(freefallTimeAvailableMethod)//' is unrecognized')
+          freefallTimeAvailableInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Freefall_Time_Available_Initialization) 
     end if
-    !$omp end critical(Cooling_Freefall_Time_Available_Initialization) 
     return
   end subroutine Cooling_Freefall_Time_Available_Initialize
 

@@ -88,31 +88,33 @@ contains
     use Stellar_Population_Properties_Luminosities
     implicit none
 
-    !$omp critical(Galacticus_Output_Tree_Half_Light_Initialize)
     if (.not.outputHalfLightDataInitialized) then
-       !@ <inputParameter>
-       !@   <name>outputHalfLightData</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not half-light radius data (i.e. radius and mass) should be included in the output.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('outputHalfLightData',outputHalfLightData,defaultValue=.false.)
-
-       ! Get the number of luminosities in use.
-       if (outputHalfLightData) then
-          luminositiesCount=Stellar_Population_Luminosities_Count()
-          halfLightPropertyCount=2*luminositiesCount
+       !$omp critical(Galacticus_Output_Tree_Half_Light_Initialize)
+       if (.not.outputHalfLightDataInitialized) then
+          !@ <inputParameter>
+          !@   <name>outputHalfLightData</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not half-light radius data (i.e. radius and mass) should be included in the output.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('outputHalfLightData',outputHalfLightData,defaultValue=.false.)
+          
+          ! Get the number of luminosities in use.
+          if (outputHalfLightData) then
+             luminositiesCount=Stellar_Population_Luminosities_Count()
+             halfLightPropertyCount=2*luminositiesCount
+          end if
+          
+          ! Flag that module is now initialized.
+          outputHalfLightDataInitialized=.true.
        end if
-
-       ! Flag that module is now initialized.
-       outputHalfLightDataInitialized=.true.
+       !$omp end critical(Galacticus_Output_Tree_Half_Light_Initialize)
     end if
-    !$omp end critical(Galacticus_Output_Tree_Half_Light_Initialize)
     return
   end subroutine Galacticus_Output_Tree_Half_Light_Initialize
 

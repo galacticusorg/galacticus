@@ -90,35 +90,37 @@ contains
     implicit none
     integer :: coolingFunctionsCount,coolingFunctionsMatched
     
-    !$omp critical(Cooling_Function_Initialization) 
     ! Initialize if necessary.
     if (.not.coolingFunctionInitialized) then
-       ! Get the cooling function method parameter.
-       !@ <inputParameter>
-       !@   <name>coolingFunctionMethods</name>
-       !@   <defaultValue>atomicCIECloudy</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The names of the methods to be used for computing the cooling function.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1..*</cardinality>
-       !@ </inputParameter>
-       coolingFunctionsCount=max(1,Get_Input_Parameter_Array_Size('coolingFunctionMethods'))
-       allocate(coolingFunctionMethods(coolingFunctionsCount))
-       call Memory_Usage_Record(sizeof(coolingFunctionMethods))
-       call Get_Input_Parameter('coolingFunctionMethods',coolingFunctionMethods,defaultValue=['atomicCIECloudy'])
-
-       ! Include file that makes calls to all available method initialization routines.
-       coolingFunctionsMatched=0
-       !# <include directive="coolingFunctionMethods" type="code" action="subroutine">
-       !#  <subroutineArgs>coolingFunctionMethods,coolingFunctionsMatched</subroutineArgs>
-       include 'cooling.cooling_function.inc'
-       !# </include>
-       if (coolingFunctionsMatched /= coolingFunctionsCount) call Galacticus_Error_Report('Cooling_Function_Initialize','number of cooling functions matched does not equal number specified - check that entries in [coolingFunctionMethods] are correct')
-       coolingFunctionInitialized=.true.
+       !$omp critical(Cooling_Function_Initialization) 
+       if (.not.coolingFunctionInitialized) then
+          ! Get the cooling function method parameter.
+          !@ <inputParameter>
+          !@   <name>coolingFunctionMethods</name>
+          !@   <defaultValue>atomicCIECloudy</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The names of the methods to be used for computing the cooling function.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1..*</cardinality>
+          !@ </inputParameter>
+          coolingFunctionsCount=max(1,Get_Input_Parameter_Array_Size('coolingFunctionMethods'))
+          allocate(coolingFunctionMethods(coolingFunctionsCount))
+          call Memory_Usage_Record(sizeof(coolingFunctionMethods))
+          call Get_Input_Parameter('coolingFunctionMethods',coolingFunctionMethods,defaultValue=['atomicCIECloudy'])
+          
+          ! Include file that makes calls to all available method initialization routines.
+          coolingFunctionsMatched=0
+          !# <include directive="coolingFunctionMethods" type="code" action="subroutine">
+          !#  <subroutineArgs>coolingFunctionMethods,coolingFunctionsMatched</subroutineArgs>
+          include 'cooling.cooling_function.inc'
+          !# </include>
+          if (coolingFunctionsMatched /= coolingFunctionsCount) call Galacticus_Error_Report('Cooling_Function_Initialize','number of cooling functions matched does not equal number specified - check that entries in [coolingFunctionMethods] are correct')
+          coolingFunctionInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Function_Initialization) 
     end if
-    !$omp end critical(Cooling_Function_Initialization) 
     return
   end subroutine Cooling_Function_Initialize
 

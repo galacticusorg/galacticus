@@ -234,18 +234,20 @@ contains
     double precision                                 :: rateCoefficient,rate
 
     ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
     if (.not.reactionInitialized) then
-       ! Find the chemicals in this reaction.
-       atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
-       atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
-       electronChemicalIndex            =Chemicals_Index("Electron"            )
-       ! This reaction is active if all species were found.
-       reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0 .and. electronChemicalIndex > 0
-       ! Flag that the reaction is now initialized.
-       reactionInitialized=.true.
+       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
+       if (.not.reactionInitialized) then
+          ! Find the chemicals in this reaction.
+          atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
+          atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
+          electronChemicalIndex            =Chemicals_Index("Electron"            )
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0 .and. electronChemicalIndex > 0
+          ! Flag that the reaction is now initialized.
+          reactionInitialized=.true.
+       end if
+       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
     end if
-    !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
 
     ! Do calculation if this reaction is active.
     if (reactionActive) then

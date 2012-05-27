@@ -89,24 +89,26 @@ contains
     double precision             :: progenitorMass
 
     ! Check if module is initialized.
-    !$omp critical (Merger_Tree_Monotonic_Mass_Growth_Initialize)
     if (.not.monotonicGrowthModuleInitialized) then
-       ! Get parameter specifying if monotonic growth should be enforced.
-       !@ <inputParameter>
-       !@   <name>mergerTreeEnforceMonotonicGrowth</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not enforce monotonic mass growth along the branches of merger trees.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeEnforceMonotonicGrowth',mergerTreeEnforceMonotonicGrowth,defaultValue=.false.)
-       ! Flag that module is initialized.
-       monotonicGrowthModuleInitialized=.true.
+       !$omp critical (Merger_Tree_Monotonic_Mass_Growth_Initialize)
+       if (.not.monotonicGrowthModuleInitialized) then
+          ! Get parameter specifying if monotonic growth should be enforced.
+          !@ <inputParameter>
+          !@   <name>mergerTreeEnforceMonotonicGrowth</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not enforce monotonic mass growth along the branches of merger trees.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeEnforceMonotonicGrowth',mergerTreeEnforceMonotonicGrowth,defaultValue=.false.)
+          ! Flag that module is initialized.
+          monotonicGrowthModuleInitialized=.true.
+       end if
+       !$omp end critical (Merger_Tree_Monotonic_Mass_Growth_Initialize)
     end if
-    !$omp end critical (Merger_Tree_Monotonic_Mass_Growth_Initialize)
 
     ! Enforce monotonic growth if necessary.
     if (mergerTreeEnforceMonotonicGrowth) then

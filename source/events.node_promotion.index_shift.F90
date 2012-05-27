@@ -90,24 +90,26 @@ contains
     type(treeNode), pointer                :: parentNode
 
     ! Ensure that the module is initialized.
-    !$omp critical (Node_Promotion_Index_Shift_Initialize)
     if (.not.indexShiftInitialized) then
-       !@ <inputParameter>
-       !@   <name>nodePromotionIndexShift</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not the index of a node should be shifted to its parent node prior to promotion.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('nodePromotionIndexShift',nodePromotionIndexShift,defaultValue=.false.)
-       ! Flag that the module is now initialized.
-       indexShiftInitialized=.true.
+       !$omp critical (Node_Promotion_Index_Shift_Initialize)
+       if (.not.indexShiftInitialized) then
+          !@ <inputParameter>
+          !@   <name>nodePromotionIndexShift</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies whether or not the index of a node should be shifted to its parent node prior to promotion.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('nodePromotionIndexShift',nodePromotionIndexShift,defaultValue=.false.)
+          ! Flag that the module is now initialized.
+          indexShiftInitialized=.true.
+       end if
+       !$omp end critical (Node_Promotion_Index_Shift_Initialize)
     end if
-    !$omp end critical (Node_Promotion_Index_Shift_Initialize)
-    
+
     ! Check if we are to perform an index shift.
     if (nodePromotionIndexShift) then
        ! Get the parent node.

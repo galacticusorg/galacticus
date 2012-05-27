@@ -383,31 +383,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Critical_Overdensity_for_Collapse_Mass_Scaling_Initialize)
     if (.not.massScalingInitialized) then
-       ! Get the critical overdensity mass scaling method parameter.
-       !@ <inputParameter>
-       !@   <name>criticalOverdensityMassScalingMethod</name>
-       !@   <defaultValue>null</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for scaling critical overdensities for halo collapse with mass.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('criticalOverdensityMassScalingMethod',criticalOverdensityMassScalingMethod,defaultValue='null')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="criticalOverdensityMassScalingMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get</subroutineArgs>
-       include 'structure_formation.CDM.critical_overdensity.mass_scaling.inc'
-       !# </include>
-       if (.not.associated(Critical_Overdensity_Mass_Scaling_Get)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
-            &//char(criticalOverdensityMassScalingMethod)//' is unrecognized')
-       ! Flag that mass scaling has been initialized.
-       massScalingInitialized=.true.
+       !$omp critical(Critical_Overdensity_for_Collapse_Mass_Scaling_Initialize)
+       if (.not.massScalingInitialized) then
+          ! Get the critical overdensity mass scaling method parameter.
+          !@ <inputParameter>
+          !@   <name>criticalOverdensityMassScalingMethod</name>
+          !@   <defaultValue>null</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for scaling critical overdensities for halo collapse with mass.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('criticalOverdensityMassScalingMethod',criticalOverdensityMassScalingMethod,defaultValue='null')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="criticalOverdensityMassScalingMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get</subroutineArgs>
+          include 'structure_formation.CDM.critical_overdensity.mass_scaling.inc'
+          !# </include>
+          if (.not.associated(Critical_Overdensity_Mass_Scaling_Get)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
+               &//char(criticalOverdensityMassScalingMethod)//' is unrecognized')
+          ! Flag that mass scaling has been initialized.
+          massScalingInitialized=.true.
+       end if
+       !$omp end critical(Critical_Overdensity_for_Collapse_Mass_Scaling_Initialize)
     end if
-    !$omp end critical(Critical_Overdensity_for_Collapse_Mass_Scaling_Initialize)
     return
   end subroutine Critical_Overdensity_Mass_Scaling_Initialize
 

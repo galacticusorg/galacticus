@@ -104,63 +104,65 @@ contains
     use Cosmology_Functions
     implicit none
 
-    !$omp critical(Galacticus_Output_Tree_Density_Contrast_Initialize)
     if (.not.outputDensityContrastDataInitialized) then
-       !@ <inputParameter>
-       !@   <name>outputDensityContrastData</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not density contrast data (i.e. radius and mass at a given density contrast) should be included in the output.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('outputDensityContrastData',outputDensityContrastData,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>outputDensityContrastDataDarkOnly</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not density contrast data should be computed using the dark matter component alone.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('outputDensityContrastDataDarkOnly',outputDensityContrastDataDarkOnly,defaultValue=.false.)
-       select case (outputDensityContrastDataDarkOnly)
-       case (.true.)
-          massTypeSelected=massTypeDark
-          referenceDensity=(Omega_Matter()-Omega_b())*Critical_Density()
-       case (.false.)
-          massTypeSelected=massTypeAll
-          referenceDensity= Omega_Matter()           *Critical_Density()
-       end select
-
-       ! Read density contrast values if necessary.
-       if (outputDensityContrastData) then
-          densityContrastCount=Get_Input_Parameter_Array_Size('outputDensityContrastValues')
-          densityContrastPropertyCount=2*densityContrastCount
-          call Alloc_Array(outputDensityContrastValues,[densityContrastCount])
+       !$omp critical(Galacticus_Output_Tree_Density_Contrast_Initialize)
+       if (.not.outputDensityContrastDataInitialized) then
           !@ <inputParameter>
-          !@   <name>outputDensityContrastValues</name>
+          !@   <name>outputDensityContrastData</name>
+          !@   <defaultValue>false</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     A list of density contrasts at which to output data.
+          !@     Specifies whether or not density contrast data (i.e. radius and mass at a given density contrast) should be included in the output.
           !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1..*</cardinality>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('outputDensityContrastValues',outputDensityContrastValues)
+          call Get_Input_Parameter('outputDensityContrastData',outputDensityContrastData,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>outputDensityContrastDataDarkOnly</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not density contrast data should be computed using the dark matter component alone.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('outputDensityContrastDataDarkOnly',outputDensityContrastDataDarkOnly,defaultValue=.false.)
+          select case (outputDensityContrastDataDarkOnly)
+          case (.true.)
+             massTypeSelected=massTypeDark
+             referenceDensity=(Omega_Matter()-Omega_b())*Critical_Density()
+          case (.false.)
+             massTypeSelected=massTypeAll
+             referenceDensity= Omega_Matter()           *Critical_Density()
+          end select
+          
+          ! Read density contrast values if necessary.
+          if (outputDensityContrastData) then
+             densityContrastCount=Get_Input_Parameter_Array_Size('outputDensityContrastValues')
+             densityContrastPropertyCount=2*densityContrastCount
+             call Alloc_Array(outputDensityContrastValues,[densityContrastCount])
+             !@ <inputParameter>
+             !@   <name>outputDensityContrastValues</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     A list of density contrasts at which to output data.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1..*</cardinality>
+             !@   <group>output</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('outputDensityContrastValues',outputDensityContrastValues)
+          end if
+          
+          ! Flag that module is now initialized.
+          outputDensityContrastDataInitialized=.true.
        end if
-
-       ! Flag that module is now initialized.
-       outputDensityContrastDataInitialized=.true.
+       !$omp end critical(Galacticus_Output_Tree_Density_Contrast_Initialize)
     end if
-    !$omp end critical(Galacticus_Output_Tree_Density_Contrast_Initialize)
     return
   end subroutine Galacticus_Output_Tree_Density_Contrast_Initialize
 

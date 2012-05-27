@@ -135,91 +135,93 @@ contains
     double precision, dimension(:), allocatable :: massPoints
     logical                                     :: pieceWiseImfIsDefined
 
-    !$omp critical (IMF_PiecewisePowerLaw_Initialize)
     if (.not.imfPiecewisePowerLawInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfPiecewisePowerLawRecycledInstantaneous</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>0.39</defaultValue>
-       !@   <description>
-       !@     The recycled fraction for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfPiecewisePowerLawRecycledInstantaneous',imfPiecewisePowerLawRecycledInstantaneous,defaultValue=0.39d0)
-       !@ <inputParameter>
-       !@   <name>imfPiecewisePowerLawYieldInstantaneous</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>0.02</defaultValue>
-       !@   <description>
-       !@     The yield for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfPiecewisePowerLawYieldInstantaneous'   ,imfPiecewisePowerLawYieldInstantaneous   ,defaultValue=0.02d0)
-
-       ! Get the number of intervals and allocate arrays appropriately.
-       imfPieceCount=Get_Input_Parameter_Array_Size('imfPiecewisePowerLawMassPoints')-1
-       if (imfPieceCount == -1 ) then
-          pieceWiseImfIsDefined=.false.
-          imfPieceCount        =1
-       else
-          pieceWiseImfIsDefined=.true.
-          if (imfPieceCount < 1) call Galacticus_Error_Report('Star_Formation_IMF_Initialize_PiecewisePowerLaw','at least 2 mass points are required to define the IMF')
-       end if
-       call Alloc_Array(massLower       ,[imfPieceCount])
-       call Alloc_Array(massUpper       ,[imfPieceCount])
-       call Alloc_Array(massExponent    ,[imfPieceCount])
-       call Alloc_Array(imfNormalization,[imfPieceCount])
-       allocate(massPoints(imfPieceCount+1))
-       
-       if (pieceWiseImfIsDefined) then
-          ! Read the mass intervals.
+       !$omp critical (IMF_PiecewisePowerLaw_Initialize)
+       if (.not.imfPiecewisePowerLawInitialized) then
           !@ <inputParameter>
-          !@   <name>imfPiecewisePowerLawMassPoints</name>
+          !@   <name>imfPiecewisePowerLawRecycledInstantaneous</name>
           !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>0.1, 125</defaultValue>
+          !@   <defaultValue>0.39</defaultValue>
           !@   <description>
-          !@     The mass points used to define a piecewise power-law initial mass function.
+          !@     The recycled fraction for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
           !@   </description>
           !@   <type>real</type>
-          !@   <cardinality>1..*</cardinality>
+          !@   <cardinality>1</cardinality>
           !@   <group>initialMassFunction</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('imfPiecewisePowerLawMassPoints',massPoints )
+          call Get_Input_Parameter('imfPiecewisePowerLawRecycledInstantaneous',imfPiecewisePowerLawRecycledInstantaneous,defaultValue=0.39d0)
           !@ <inputParameter>
-          !@   <name>imfPiecewisePowerLawExponents</name>
+          !@   <name>imfPiecewisePowerLawYieldInstantaneous</name>
           !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>-2.35</defaultValue>
+          !@   <defaultValue>0.02</defaultValue>
           !@   <description>
-          !@     The exponents used to define a piecewise power-law initial mass function.
+          !@     The yield for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
           !@   </description>
           !@   <type>real</type>
-          !@   <cardinality>1..*</cardinality>
+          !@   <cardinality>1</cardinality>
           !@   <group>initialMassFunction</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('imfPiecewisePowerLawExponents' ,massExponent)
-       else
-          ! Set defaults (a Salpeter IMF).
-          massPoints  =[0.1d0,125.0d0]
-          massExponent=[-2.35d0]
+          call Get_Input_Parameter('imfPiecewisePowerLawYieldInstantaneous'   ,imfPiecewisePowerLawYieldInstantaneous   ,defaultValue=0.02d0)
+          
+          ! Get the number of intervals and allocate arrays appropriately.
+          imfPieceCount=Get_Input_Parameter_Array_Size('imfPiecewisePowerLawMassPoints')-1
+          if (imfPieceCount == -1 ) then
+             pieceWiseImfIsDefined=.false.
+             imfPieceCount        =1
+          else
+             pieceWiseImfIsDefined=.true.
+             if (imfPieceCount < 1) call Galacticus_Error_Report('Star_Formation_IMF_Initialize_PiecewisePowerLaw','at least 2 mass points are required to define the IMF')
+          end if
+          call Alloc_Array(massLower       ,[imfPieceCount])
+          call Alloc_Array(massUpper       ,[imfPieceCount])
+          call Alloc_Array(massExponent    ,[imfPieceCount])
+          call Alloc_Array(imfNormalization,[imfPieceCount])
+          allocate(massPoints(imfPieceCount+1))
+          
+          if (pieceWiseImfIsDefined) then
+             ! Read the mass intervals.
+             !@ <inputParameter>
+             !@   <name>imfPiecewisePowerLawMassPoints</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <defaultValue>0.1, 125</defaultValue>
+             !@   <description>
+             !@     The mass points used to define a piecewise power-law initial mass function.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1..*</cardinality>
+             !@   <group>initialMassFunction</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('imfPiecewisePowerLawMassPoints',massPoints )
+             !@ <inputParameter>
+             !@   <name>imfPiecewisePowerLawExponents</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <defaultValue>-2.35</defaultValue>
+             !@   <description>
+             !@     The exponents used to define a piecewise power-law initial mass function.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1..*</cardinality>
+             !@   <group>initialMassFunction</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('imfPiecewisePowerLawExponents' ,massExponent)
+          else
+             ! Set defaults (a Salpeter IMF).
+             massPoints  =[0.1d0,125.0d0]
+             massExponent=[-2.35d0]
+          end if
+          
+          ! Extract lower and upper limits of the mass ranges.
+          massLower=massPoints(1:imfPieceCount  )
+          massUpper=massPoints(2:imfPieceCount+1)
+          deallocate(massPoints)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfPiecewisePowerLawInitialized=.true.
        end if
-
-       ! Extract lower and upper limits of the mass ranges.
-       massLower=massPoints(1:imfPieceCount  )
-       massUpper=massPoints(2:imfPieceCount+1)
-       deallocate(massPoints)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfPiecewisePowerLawInitialized=.true.
+       !$omp end critical (IMF_PiecewisePowerLaw_Initialize)
     end if
-    !$omp end critical (IMF_PiecewisePowerLaw_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_PiecewisePowerLaw
 

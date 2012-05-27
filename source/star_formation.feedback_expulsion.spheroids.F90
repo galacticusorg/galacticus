@@ -96,33 +96,34 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization) 
     ! Initialize if necessary.
     if (.not.starFormationExpulsiveFeedbackSpheroidsInitialized) then
-       ! Get the spheroid star formation expulsive feedback method parameter.
-       !@ <inputParameter>
-       !@   <name>starFormationExpulsiveFeedbackSpheroidsMethod</name>
-       !@   <defaultValue>null</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in spheroids.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationExpulsiveFeedbackSpheroidsMethod',starFormationExpulsiveFeedbackSpheroidsMethod,defaultValue='null')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="starFormationExpulsiveFeedbackSpheroidsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>starFormationExpulsiveFeedbackSpheroidsMethod,Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get</subroutineArgs>
-       include 'star_formation.feedback_expulsive.spheroids.inc'
-       !# </include>
-       if (.not.associated(Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Expulsive_Feedback_Spheroids'&
-            &,'method ' //char(starFormationExpulsiveFeedbackSpheroidsMethod)//' is unrecognized')
-       starFormationExpulsiveFeedbackSpheroidsInitialized=.true.
+       !$omp critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization) 
+       if (.not.starFormationExpulsiveFeedbackSpheroidsInitialized) then
+          ! Get the spheroid star formation expulsive feedback method parameter.
+          !@ <inputParameter>
+          !@   <name>starFormationExpulsiveFeedbackSpheroidsMethod</name>
+          !@   <defaultValue>null</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in spheroids.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationExpulsiveFeedbackSpheroidsMethod',starFormationExpulsiveFeedbackSpheroidsMethod,defaultValue='null')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="starFormationExpulsiveFeedbackSpheroidsMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>starFormationExpulsiveFeedbackSpheroidsMethod,Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get</subroutineArgs>
+          include 'star_formation.feedback_expulsive.spheroids.inc'
+          !# </include>
+          if (.not.associated(Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Expulsive_Feedback_Spheroids'&
+               &,'method ' //char(starFormationExpulsiveFeedbackSpheroidsMethod)//' is unrecognized')
+          starFormationExpulsiveFeedbackSpheroidsInitialized=.true.
+       end if
+       !$omp end critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization) 
     end if
-    !$omp end critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization) 
-
     return
   end subroutine Star_Formation_Expulsive_Feedback_Spheroids_Initialize
 

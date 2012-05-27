@@ -85,29 +85,31 @@ contains
     use Tree_Nodes
     implicit none
 
-    !$omp critical(Galacticus_Output_Tree_Descendents_Initialize)
     if (.not.outputDescendentsInitialized) then
-       !@ <inputParameter>
-       !@   <name>outputDescendentIndices</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not descendent indices (i.e. index of the node at the next output) should be included in the output.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('outputDescendentIndices',outputDescendentIndices,defaultValue=.false.)
-
-       ! Ensure that the Satellite_Time_Of_Merging property is gettable.
-       if (outputDescendentIndices.and..not.associated(Tree_Node_Satellite_Time_Of_Merging)) &
-            & call Galacticus_Error_Report('Galacticus_Output_Tree_Descendents_Initialize','the Satellite_Time_Of_Merging property must be gettable to output descendent indices')
-
-       ! Flag that module is now initialized.
-       outputDescendentsInitialized=.true.
+       !$omp critical(Galacticus_Output_Tree_Descendents_Initialize)
+       if (.not.outputDescendentsInitialized) then
+          !@ <inputParameter>
+          !@   <name>outputDescendentIndices</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not descendent indices (i.e. index of the node at the next output) should be included in the output.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('outputDescendentIndices',outputDescendentIndices,defaultValue=.false.)
+          
+          ! Ensure that the Satellite_Time_Of_Merging property is gettable.
+          if (outputDescendentIndices.and..not.associated(Tree_Node_Satellite_Time_Of_Merging)) &
+               & call Galacticus_Error_Report('Galacticus_Output_Tree_Descendents_Initialize','the Satellite_Time_Of_Merging property must be gettable to output descendent indices')
+          
+          ! Flag that module is now initialized.
+          outputDescendentsInitialized=.true.
+       end if
+       !$omp end critical(Galacticus_Output_Tree_Descendents_Initialize)
     end if
-    !$omp end critical(Galacticus_Output_Tree_Descendents_Initialize)
     return
   end subroutine Galacticus_Output_Tree_Descendents_Initialize
 

@@ -92,31 +92,33 @@ contains
     implicit none
     double precision, intent(in) :: massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2
 
-    !$omp critical(blackHoleBinaryRecoilVelocityInitialize)
     if (.not.blackHoleBinaryRecoilVelocityInitialized) then
-       ! Get the binary black hole recoil velocity method parameter.
-       !@ <inputParameter>
-       !@   <name>blackHoleBinaryRecoilVelocityMethod</name>
-       !@   <defaultValue>null</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing the recoil velocity of black hole binaries.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('blackHoleBinaryRecoilVelocityMethod',blackHoleBinaryRecoilVelocityMethod,defaultValue='null')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get</subroutineArgs>
-       include 'black_holes.binaries.recoil_velocity.inc'
-       !# </include>
-       if (.not.associated(Black_Hole_Binary_Recoil_Velocity_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Recoil_Velocity','method ' &
-            &//char(blackHoleBinaryRecoilVelocityMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       blackHoleBinaryRecoilVelocityInitialized=.true.
+       !$omp critical(blackHoleBinaryRecoilVelocityInitialize)
+       if (.not.blackHoleBinaryRecoilVelocityInitialized) then
+          ! Get the binary black hole recoil velocity method parameter.
+          !@ <inputParameter>
+          !@   <name>blackHoleBinaryRecoilVelocityMethod</name>
+          !@   <defaultValue>null</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing the recoil velocity of black hole binaries.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('blackHoleBinaryRecoilVelocityMethod',blackHoleBinaryRecoilVelocityMethod,defaultValue='null')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get</subroutineArgs>
+          include 'black_holes.binaries.recoil_velocity.inc'
+          !# </include>
+          if (.not.associated(Black_Hole_Binary_Recoil_Velocity_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Recoil_Velocity','method ' &
+               &//char(blackHoleBinaryRecoilVelocityMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          blackHoleBinaryRecoilVelocityInitialized=.true.
+       end if
+       !$omp end critical(blackHoleBinaryRecoilVelocityInitialize)
     end if
-    !$omp end critical(blackHoleBinaryRecoilVelocityInitialize)
 
     ! Call the routine to do the calculation.
     Black_Hole_Binary_Recoil_Velocity=Black_Hole_Binary_Recoil_Velocity_Get(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)

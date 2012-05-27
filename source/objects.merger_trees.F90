@@ -289,31 +289,32 @@ contains
     include 'objects.tree_node.create.definitions.inc'
     !# </include>
     
-    !$omp critical (Tree_Node_Create_Initialize)
     if (.not.treeNodeCreateInitialized) then
-       
-       ! Read all parameters needed by methods.
-       !# <include directive="treeNodeCreateInitialize" type="optionNames">
-       include 'objects.tree_node.create.parameters.inc'
-       !# </include>
-       
-       ! Initialize rate adjust and compute pointers to dummy implementations.
-       !# <include directive="treeNodeMethodsPointer" type="initializeMethods">
-       include 'objects.tree_node.initializeMethods.inc'
-       !# </include>
-       
-       ! Call all routines to initialize tree node create.
-       !# <include directive="treeNodeCreateInitialize" type="code" action="subroutine">
-       !#  <subroutineArgs>componentTypesCount</subroutineArgs>
-       include 'objects.tree_node.create.initialize.inc'
-       !# </include>
-       
-       ! Flag that tree node methods are now initialized.
-       treeNodeCreateInitialized=.true.
-       
+       !$omp critical (Tree_Node_Create_Initialize)
+       if (.not.treeNodeCreateInitialized) then
+          
+          ! Read all parameters needed by methods.
+          !# <include directive="treeNodeCreateInitialize" type="optionNames">
+          include 'objects.tree_node.create.parameters.inc'
+          !# </include>
+          
+          ! Initialize rate adjust and compute pointers to dummy implementations.
+          !# <include directive="treeNodeMethodsPointer" type="initializeMethods">
+          include 'objects.tree_node.initializeMethods.inc'
+          !# </include>
+          
+          ! Call all routines to initialize tree node create.
+          !# <include directive="treeNodeCreateInitialize" type="code" action="subroutine">
+          !#  <subroutineArgs>componentTypesCount</subroutineArgs>
+          include 'objects.tree_node.create.initialize.inc'
+          !# </include>
+          
+          ! Flag that tree node methods are now initialized.
+          treeNodeCreateInitialized=.true.
+          
+       end if
+       !$omp end critical (Tree_Node_Create_Initialize)
     end if
-    !$omp end critical (Tree_Node_Create_Initialize)
-
     return
   end subroutine Tree_Node_Create_Initialize
 

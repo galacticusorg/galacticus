@@ -92,31 +92,33 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    !$omp critical(blackHoleBinarySeparationGrowthRateInitialize)
     if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
-       ! Get the binary black hole separation growth rate method parameter.
-       !@ <inputParameter>
-       !@   <name>blackHoleBinarySeparationGrowthRateMethod</name>
-       !@   <defaultValue>null</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing the separation growth rate of black hole binaries.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('blackHoleBinarySeparationGrowthRateMethod',blackHoleBinarySeparationGrowthRateMethod,defaultValue='null')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="blackHoleBinarySeparationGrowthRateMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get</subroutineArgs>
-       include 'black_holes.binaries.separation_growth_rate.inc'
-       !# </include>
-       if (.not.associated(Black_Hole_Binary_Separation_Growth_Rate_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate','method ' &
-            &//char(blackHoleBinarySeparationGrowthRateMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       blackHoleBinarySeparationGrowthRateInitialized=.true.
+       !$omp critical(blackHoleBinarySeparationGrowthRateInitialize)
+       if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
+          ! Get the binary black hole separation growth rate method parameter.
+          !@ <inputParameter>
+          !@   <name>blackHoleBinarySeparationGrowthRateMethod</name>
+          !@   <defaultValue>null</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing the separation growth rate of black hole binaries.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('blackHoleBinarySeparationGrowthRateMethod',blackHoleBinarySeparationGrowthRateMethod,defaultValue='null')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="blackHoleBinarySeparationGrowthRateMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get</subroutineArgs>
+          include 'black_holes.binaries.separation_growth_rate.inc'
+          !# </include>
+          if (.not.associated(Black_Hole_Binary_Separation_Growth_Rate_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate','method ' &
+               &//char(blackHoleBinarySeparationGrowthRateMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          blackHoleBinarySeparationGrowthRateInitialized=.true.
+       end if
+       !$omp end critical(blackHoleBinarySeparationGrowthRateInitialize)
     end if
-    !$omp end critical(blackHoleBinarySeparationGrowthRateInitialize)
 
     ! Call the routine to do the calculation.
     Black_Hole_Binary_Separation_Growth_Rate=Black_Hole_Binary_Separation_Growth_Rate_Get(thisNode)

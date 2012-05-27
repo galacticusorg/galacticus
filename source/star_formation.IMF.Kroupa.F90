@@ -119,39 +119,41 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Kroupa_Initialize)
     if (.not.imfKroupaInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfKroupaRecycledInstantaneous</name>
-       !@   <defaultValue>0.30 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the Kroupa \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfKroupaRecycledInstantaneous',imfKroupaRecycledInstantaneous,defaultValue=0.30d0)
-       !@ <inputParameter>
-       !@   <name>imfKroupaYieldInstantaneous</name>
-       !@   <defaultValue>0.023 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the Kroupa \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfKroupaYieldInstantaneous'   ,imfKroupaYieldInstantaneous   ,defaultValue=0.023d0)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfKroupaInitialized=.true.
+       !$omp critical (IMF_Kroupa_Initialize)
+       if (.not.imfKroupaInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfKroupaRecycledInstantaneous</name>
+          !@   <defaultValue>0.30 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the Kroupa \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfKroupaRecycledInstantaneous',imfKroupaRecycledInstantaneous,defaultValue=0.30d0)
+          !@ <inputParameter>
+          !@   <name>imfKroupaYieldInstantaneous</name>
+          !@   <defaultValue>0.023 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the Kroupa \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfKroupaYieldInstantaneous'   ,imfKroupaYieldInstantaneous   ,defaultValue=0.023d0)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfKroupaInitialized=.true.
+       end if
+       !$omp end critical (IMF_Kroupa_Initialize)
     end if
-    !$omp end critical (IMF_Kroupa_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Kroupa
 

@@ -100,32 +100,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Supernovae_Type_Ia_Initialization) 
     ! Initialize if necessary.
     if (.not.supernovaeIaInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>supernovaeIaMethod</name>
-       !@   <defaultValue>Nagashima</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The method to use for computing properties of Type Ia supernovae.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('supernovaeIaMethod',supernovaeIaMethod,defaultValue='Nagashima')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="supernovaeIaMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get</subroutineArgs>
-       include 'stellar_astrophysics.supernovae_type_Ia.inc'
-       !# </include>
-       if (.not.(associated(SNeIa_Cumulative_Number_Get).and.associated(SNeIa_Cumulative_Yield_Get))) call Galacticus_Error_Report('Supernovae_Type_Ia_Initialize'&
-            &,'method '//char(supernovaeIaMethod)//' is unrecognized')
-       supernovaeIaInitialized=.true.
+       !$omp critical(Supernovae_Type_Ia_Initialization) 
+       if (.not.supernovaeIaInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>supernovaeIaMethod</name>
+          !@   <defaultValue>Nagashima</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The method to use for computing properties of Type Ia supernovae.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('supernovaeIaMethod',supernovaeIaMethod,defaultValue='Nagashima')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="supernovaeIaMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get</subroutineArgs>
+          include 'stellar_astrophysics.supernovae_type_Ia.inc'
+          !# </include>
+          if (.not.(associated(SNeIa_Cumulative_Number_Get).and.associated(SNeIa_Cumulative_Yield_Get))) call Galacticus_Error_Report('Supernovae_Type_Ia_Initialize'&
+               &,'method '//char(supernovaeIaMethod)//' is unrecognized')
+          supernovaeIaInitialized=.true.
+       end if
+       !$omp end critical(Supernovae_Type_Ia_Initialization) 
     end if
-    !$omp end critical(Supernovae_Type_Ia_Initialization) 
-
     return
   end subroutine Supernovae_Type_Ia_Initialize
 

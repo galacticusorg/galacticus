@@ -96,31 +96,33 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    !$omp critical(Halo_Spin_Distribution_Initialization) 
     ! Initialize if necessary.
     if (.not.haloSpinDistributionInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>haloSpinDistributionMethod</name>
-       !@   <defaultValue>Bett2007</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be use for computing halo spin distributions.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('haloSpinDistributionMethod',haloSpinDistributionMethod,defaultValue='Bett2007')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="haloSpinDistributionMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>haloSpinDistributionMethod,Halo_Spin_Sample_Get</subroutineArgs>
-       include 'dark_matter_halos.spins.distributions.inc'
-       !# </include>
-       if (.not.associated(Halo_Spin_Sample_Get)) call Galacticus_Error_Report('Halo_Spin_Distribution','method ' &
-            &//char(haloSpinDistributionMethod)//' is unrecognized')
-       haloSpinDistributionInitialized=.true.
+       !$omp critical(Halo_Spin_Distribution_Initialization) 
+       if (.not.haloSpinDistributionInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>haloSpinDistributionMethod</name>
+          !@   <defaultValue>Bett2007</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be use for computing halo spin distributions.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('haloSpinDistributionMethod',haloSpinDistributionMethod,defaultValue='Bett2007')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="haloSpinDistributionMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>haloSpinDistributionMethod,Halo_Spin_Sample_Get</subroutineArgs>
+          include 'dark_matter_halos.spins.distributions.inc'
+          !# </include>
+          if (.not.associated(Halo_Spin_Sample_Get)) call Galacticus_Error_Report('Halo_Spin_Distribution','method ' &
+               &//char(haloSpinDistributionMethod)//' is unrecognized')
+          haloSpinDistributionInitialized=.true.
+       end if
+       !$omp end critical(Halo_Spin_Distribution_Initialization) 
     end if
-    !$omp end critical(Halo_Spin_Distribution_Initialization) 
 
     ! Get the cooling rate using the selected method.
     Halo_Spin_Distribution_Sample=Halo_Spin_Sample_Get(thisNode)

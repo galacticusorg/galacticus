@@ -116,37 +116,39 @@ contains
     type(varying_string)                                    :: vMessage
 
     ! Check if this routine is initialized.
-    !$omp critical(Merger_Tree_Evolve_To_Initialize)
     if (.not.mergerTreeEvolveToInitialized) then
-       ! Read parameters.
-       !@ <inputParameter>
-       !@   <name>allTreesExistAtFinalTime</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
-       !@     then trees which finish before a given output time will be ignored.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('allTreesExistAtFinalTime',allTreesExistAtFinalTime,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreesDumpStructure</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\sc dot} file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreesDumpStructure',mergerTreesDumpStructure,defaultValue=.false.)
-  
-       ! Flag that this routine is now initialized.
-       mergerTreeEvolveToInitialized=.true.
+       !$omp critical(Merger_Tree_Evolve_To_Initialize)
+       if (.not.mergerTreeEvolveToInitialized) then
+          ! Read parameters.
+          !@ <inputParameter>
+          !@   <name>allTreesExistAtFinalTime</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
+          !@     then trees which finish before a given output time will be ignored.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('allTreesExistAtFinalTime',allTreesExistAtFinalTime,defaultValue=.true.)
+          !@ <inputParameter>
+          !@   <name>mergerTreesDumpStructure</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\sc dot} file.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreesDumpStructure',mergerTreesDumpStructure,defaultValue=.false.)
+          
+          ! Flag that this routine is now initialized.
+          mergerTreeEvolveToInitialized=.true.
+       end if
+       !$omp end critical(Merger_Tree_Evolve_To_Initialize)
     end if
-    !$omp end critical(Merger_Tree_Evolve_To_Initialize)
 
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     !# <include directive="mergerTreeEvolveThreadInitialize" type="code" action="subroutine">

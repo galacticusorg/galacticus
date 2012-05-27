@@ -116,42 +116,44 @@ contains
     integer                             :: iTree
 
     ! Initialize the task if necessary.
-    !$omp critical (Tasks_Evolve_Tree_Initialize)
     if (.not.treeEvolveInitialized) then
-
-       ! Get parameters controlling which trees will be processed.
-       !@ <inputParameter>
-       !@   <name>treeEvolveWorkerCount</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of workers that will work on this calculation.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('treeEvolveWorkerCount',treeEvolveWorkerCount,defaultValue=1)
-       !@ <inputParameter>
-       !@   <name>treeEvolveWorkerNumber</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of this worker.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
-
-       ! Flag that this task is now initialized.
-       treeEvolveInitialized=.true.
+       !$omp critical (Tasks_Evolve_Tree_Initialize)
+       if (.not.treeEvolveInitialized) then
+          
+          ! Get parameters controlling which trees will be processed.
+          !@ <inputParameter>
+          !@   <name>treeEvolveWorkerCount</name>
+          !@   <defaultValue>1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The number of workers that will work on this calculation.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveWorkerCount',treeEvolveWorkerCount,defaultValue=1)
+          !@ <inputParameter>
+          !@   <name>treeEvolveWorkerNumber</name>
+          !@   <defaultValue>1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The number of this worker.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
+          
+          ! Flag that this task is now initialized.
+          treeEvolveInitialized=.true.
+       end if
+       !$omp end critical (Tasks_Evolve_Tree_Initialize)
     end if
-    !$omp end critical (Tasks_Evolve_Tree_Initialize)
-
+    
     ! Begin looping through available trees.
     finished=.false.
     iTree=0
-
+    
     !$omp parallel copyin(finished)
     do while (.not.finished)
        ! Increment the tree number.

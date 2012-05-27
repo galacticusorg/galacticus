@@ -94,32 +94,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Stellar_Winds_Initialization) 
     ! Initialize if necessary.
     if (.not.stellarWindsInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>stellarWindsMethod</name>
-       !@   <defaultValue>standard</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The method to use for computing aspects of stellar winds.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarWindsMethod',stellarWindsMethod,defaultValue='Leitherer1992')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarWindsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get</subroutineArgs>
-       include 'stellar_astrophysics.winds.inc'
-       !# </include>
-       if (.not.(associated(Stellar_Winds_Mass_Loss_Rate_Get).or.associated(Stellar_Winds_Terminal_Velocity_Get))) call&
-            & Galacticus_Error_Report('Stellar_Winds_Initialize','method '//char(stellarWindsMethod)//' is unrecognized')
-       stellarWindsInitialized=.true.
+       !$omp critical(Stellar_Winds_Initialization) 
+       if (.not.stellarWindsInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>stellarWindsMethod</name>
+          !@   <defaultValue>standard</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The method to use for computing aspects of stellar winds.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarWindsMethod',stellarWindsMethod,defaultValue='Leitherer1992')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="stellarWindsMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get</subroutineArgs>
+          include 'stellar_astrophysics.winds.inc'
+          !# </include>
+          if (.not.(associated(Stellar_Winds_Mass_Loss_Rate_Get).or.associated(Stellar_Winds_Terminal_Velocity_Get))) call&
+               & Galacticus_Error_Report('Stellar_Winds_Initialize','method '//char(stellarWindsMethod)//' is unrecognized')
+          stellarWindsInitialized=.true.
+       end if
+       !$omp end critical(Stellar_Winds_Initialization) 
     end if
-    !$omp end critical(Stellar_Winds_Initialization) 
-
     return
   end subroutine Stellar_Winds_Initialize
 
