@@ -90,41 +90,43 @@ contains
     !# </include>
     implicit none
     
-    !$omp critical(Stellar_Population_Spectrum_Postprocess_Initialization) 
     ! Initialize if necessary.
     if (.not.stellarPopulationSpectraPostprocessInitialized) then
-       ! Get the stellar population postprocessing methods parameter.
-       !@ <inputParameter>
-       !@   <name>stellarPopulationSpectraPostprocessMethods</name>
-       !@   <defaultValue>Meiksin2006</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of methods to be used for post-processing of stellar population spectra.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       ! Determine how many filters are to be applied.
-       methodCount=Get_Input_Parameter_Array_Size('stellarPopulationSpectraPostprocessMethods')
-       ! Allocate methods array and read method names.
-       if (methodCount > 0) then
-          allocate(stellarPopulationSpectraPostprocessMethods(methodCount))
-          call Memory_Usage_Record(sizeof(stellarPopulationSpectraPostprocessMethods))
-          call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethods',stellarPopulationSpectraPostprocessMethods)
-       else
-          methodCount=1
-          allocate(stellarPopulationSpectraPostprocessMethods(methodCount))
-          call Memory_Usage_Record(sizeof(stellarPopulationSpectraPostprocessMethods))
-          call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethods',stellarPopulationSpectraPostprocessMethods,defaultValue=['Meiksin2006'])
+       !$omp critical(Stellar_Population_Spectrum_Postprocess_Initialization) 
+       if (.not.stellarPopulationSpectraPostprocessInitialized) then
+          ! Get the stellar population postprocessing methods parameter.
+          !@ <inputParameter>
+          !@   <name>stellarPopulationSpectraPostprocessMethods</name>
+          !@   <defaultValue>Meiksin2006</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of methods to be used for post-processing of stellar population spectra.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          ! Determine how many filters are to be applied.
+          methodCount=Get_Input_Parameter_Array_Size('stellarPopulationSpectraPostprocessMethods')
+          ! Allocate methods array and read method names.
+          if (methodCount > 0) then
+             allocate(stellarPopulationSpectraPostprocessMethods(methodCount))
+             call Memory_Usage_Record(sizeof(stellarPopulationSpectraPostprocessMethods))
+             call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethods',stellarPopulationSpectraPostprocessMethods)
+          else
+             methodCount=1
+             allocate(stellarPopulationSpectraPostprocessMethods(methodCount))
+             call Memory_Usage_Record(sizeof(stellarPopulationSpectraPostprocessMethods))
+             call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethods',stellarPopulationSpectraPostprocessMethods,defaultValue=['Meiksin2006'])
+          end if
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="code" action="subroutine">
+          !#  <subroutineArgs>stellarPopulationSpectraPostprocessMethods</subroutineArgs>
+          include 'stellar_populations.spectra.postprocess.initialize.inc'
+          !# </include>
+          stellarPopulationSpectraPostprocessInitialized=.true.
        end if
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarPopulationSpectraPostprocessMethods</subroutineArgs>
-       include 'stellar_populations.spectra.postprocess.initialize.inc'
-       !# </include>
-       stellarPopulationSpectraPostprocessInitialized=.true.
+       !$omp end critical(Stellar_Population_Spectrum_Postprocess_Initialization) 
     end if
-    !$omp end critical(Stellar_Population_Spectrum_Postprocess_Initialization) 
     return
   end subroutine Stellar_Population_Spectrum_Postprocess_Initialize
 

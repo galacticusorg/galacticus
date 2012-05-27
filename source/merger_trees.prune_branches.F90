@@ -92,35 +92,37 @@ contains
     logical                      :: didPruning
 
     ! Check if module is initialized.
-    !$omp critical (Merger_Tree_Prune_Branches_Initialize)
     if (.not.pruneBranchesModuleInitialized) then
-       ! Get parameter specifying if pruning is required.
-       !@ <inputParameter>
-       !@   <name>mergerTreePruneBranches</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to prune merger trees prior to evolution.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreePruneBranches',mergerTreePruneBranches,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreePruningMassThreshold</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Threshold mass below which merger tree branches should be pruned.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreePruningMassThreshold',mergerTreePruningMassThreshold,defaultValue=0.0d0)
-       ! Flag that module is initialized.
-       pruneBranchesModuleInitialized=.true.
+       !$omp critical (Merger_Tree_Prune_Branches_Initialize)
+       if (.not.pruneBranchesModuleInitialized) then
+          ! Get parameter specifying if pruning is required.
+          !@ <inputParameter>
+          !@   <name>mergerTreePruneBranches</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to prune merger trees prior to evolution.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreePruneBranches',mergerTreePruneBranches,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>mergerTreePruningMassThreshold</name>
+          !@   <defaultValue>0</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Threshold mass below which merger tree branches should be pruned.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreePruningMassThreshold',mergerTreePruningMassThreshold,defaultValue=0.0d0)
+          ! Flag that module is initialized.
+          pruneBranchesModuleInitialized=.true.
+       end if
+       !$omp end critical (Merger_Tree_Prune_Branches_Initialize)
     end if
-    !$omp end critical (Merger_Tree_Prune_Branches_Initialize)
 
     ! Prune tree if necessary.
     if (mergerTreePruneBranches) then

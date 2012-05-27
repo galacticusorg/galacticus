@@ -326,42 +326,44 @@ contains
     call Accretion_Disks_ADAF_Get_Parameters
 
     ! Tabulate the jet power as a function of spin.
-    !$omp critical(ADAF_Jet_Power_Tabulate)
     if (.not.jetPowerFunctionTabulated) then
-       call Alloc_Array(jetPowerSpinParameterTable,[jetPowerTableCount])
-       call Alloc_Array(jetPowerTable             ,[jetPowerTableCount])
-       jetPowerSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,jetPowerTableCount,rangeType&
-            &=rangeTypeLogarithmic)
-       do iSpin=1,jetPowerTableCount
- 
-          ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
-          blackHoleSpin=1.0d0-jetPowerSpinParameterTable(iSpin)
-          
-          ! Determine the ADAF viscosity.
-          select case (adafViscosity)
-          case (adafViscosityFixed)
-             adafViscosityAlpha=adafViscosityFixedAlpha
-          case (adafViscosityFit)
-             adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
-          end select
-          
-          ! Compute jet launch radii.
-          radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
-          radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
-
-          ! Compute the jet power.
-          jetPowerTable(iSpin)= min(                                                                     &
-               &                    (                                                                    &
-               &                      ADAF_BH_Jet_Power  (radiusStatic,blackHoleSpin,adafViscosityAlpha) &
-               &                     +ADAF_Disk_Jet_Power(radiusIsco  ,blackHoleSpin,adafViscosityAlpha) &
-               &                    ),                                                                   &
-               &                    adafJetEfficiencyMaximum                                             &
-               &                   )                                                                     &
-               &               *(speedLight/kilo)**2
-       end do
-       jetPowerFunctionTabulated=.true.
+       !$omp critical(ADAF_Jet_Power_Interpolate)
+       if (.not.jetPowerFunctionTabulated) then
+          call Alloc_Array(jetPowerSpinParameterTable,[jetPowerTableCount])
+          call Alloc_Array(jetPowerTable             ,[jetPowerTableCount])
+          jetPowerSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,jetPowerTableCount,rangeType&
+               &=rangeTypeLogarithmic)
+          do iSpin=1,jetPowerTableCount
+             
+             ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
+             blackHoleSpin=1.0d0-jetPowerSpinParameterTable(iSpin)
+             
+             ! Determine the ADAF viscosity.
+             select case (adafViscosity)
+             case (adafViscosityFixed)
+                adafViscosityAlpha=adafViscosityFixedAlpha
+             case (adafViscosityFit)
+                adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
+             end select
+             
+             ! Compute jet launch radii.
+             radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
+             radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
+             
+             ! Compute the jet power.
+             jetPowerTable(iSpin)= min(                                                                     &
+                  &                    (                                                                    &
+                  &                      ADAF_BH_Jet_Power  (radiusStatic,blackHoleSpin,adafViscosityAlpha) &
+                  &                     +ADAF_Disk_Jet_Power(radiusIsco  ,blackHoleSpin,adafViscosityAlpha) &
+                  &                    ),                                                                   &
+                  &                    adafJetEfficiencyMaximum                                             &
+                  &                   )                                                                     &
+                  &               *(speedLight/kilo)**2
+          end do
+          jetPowerFunctionTabulated=.true.
+       end if
+       !$omp end critical(ADAF_Jet_Power_Interpolate)
     end if
-    !$omp end critical(ADAF_Jet_Power_Tabulate)
 
     ! Get the black hole spin.
     blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
@@ -399,45 +401,47 @@ contains
     call Accretion_Disks_ADAF_Get_Parameters
     
     ! Tabulate the spin up rate as a function of spin parameter.
-    !$omp critical(spinUpFunctionTabulate)
     if (.not.spinUpFunctionTabulated) then
-       call Alloc_Array(spinUpSpinParameterTable,[spinUpTableCount])
-       call Alloc_Array(spinUpTable             ,[spinUpTableCount])
-       spinUpSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,spinUpTableCount,rangeType&
-            &=rangeTypeLogarithmic)
-       do iSpin=1,spinUpTableCount
- 
-          ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
-          blackHoleSpin=1.0d0-spinUpSpinParameterTable(iSpin)
-          
-          ! Determine the ADAF energy.
-          select case (adafEnergy)
-          case (adafEnergy1)
-             adafEnergyValue=1.0d0
-          case (adafEnergyIsco)
-             adafEnergyValue=Black_Hole_ISCO_Specific_Energy(blackHoleSpin,orbitPrograde)
-          end select
-          
-          ! Determine the ADAF viscosity.
-          select case (adafViscosity)
-          case (adafViscosityFixed)
-             adafViscosityAlpha=adafViscosityFixedAlpha
-          case (adafViscosityFit)
-             adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
-          end select
-          
-          ! Compute the spin up rate including braking term due to jets.
-          radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
-          radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
-
-          ! Compute the rate of spin up to mass rate of change ratio.
-          spinUpTable(iSpin)=ADAF_Angular_Momentum(radiusIsco,blackHoleSpin,adafViscosityAlpha)-2.0d0*blackHoleSpin&
-               &*adafEnergyValue-Black_Hole_Rotational_Energy_Spin_Down(blackHoleSpin)*(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin&
-               &,adafViscosityAlpha)+ADAF_Disk_Jet_Power_From_Black_Hole(radiusIsco,blackHoleSpin,adafViscosityAlpha))
-       end do
-       spinUpFunctionTabulated=.true.
+       !$omp critical(ADAF_Spin_Up_Rate_Interpolate)
+       if (.not.spinUpFunctionTabulated) then
+          call Alloc_Array(spinUpSpinParameterTable,[spinUpTableCount])
+          call Alloc_Array(spinUpTable             ,[spinUpTableCount])
+          spinUpSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,spinUpTableCount,rangeType&
+               &=rangeTypeLogarithmic)
+          do iSpin=1,spinUpTableCount
+             
+             ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
+             blackHoleSpin=1.0d0-spinUpSpinParameterTable(iSpin)
+             
+             ! Determine the ADAF energy.
+             select case (adafEnergy)
+             case (adafEnergy1)
+                adafEnergyValue=1.0d0
+             case (adafEnergyIsco)
+                adafEnergyValue=Black_Hole_ISCO_Specific_Energy(blackHoleSpin,orbitPrograde)
+             end select
+             
+             ! Determine the ADAF viscosity.
+             select case (adafViscosity)
+             case (adafViscosityFixed)
+                adafViscosityAlpha=adafViscosityFixedAlpha
+             case (adafViscosityFit)
+                adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
+             end select
+             
+             ! Compute the spin up rate including braking term due to jets.
+             radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
+             radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
+             
+             ! Compute the rate of spin up to mass rate of change ratio.
+             spinUpTable(iSpin)=ADAF_Angular_Momentum(radiusIsco,blackHoleSpin,adafViscosityAlpha)-2.0d0*blackHoleSpin&
+                  &*adafEnergyValue-Black_Hole_Rotational_Energy_Spin_Down(blackHoleSpin)*(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin&
+                  &,adafViscosityAlpha)+ADAF_Disk_Jet_Power_From_Black_Hole(radiusIsco,blackHoleSpin,adafViscosityAlpha))
+          end do
+          spinUpFunctionTabulated=.true.
+       end if
+       !$omp end critical(ADAF_Spin_Up_Rate_Interpolate)
     end if
-    !$omp end critical(spinUpFunctionTabulate)
 
     ! Get the black hole spin.
     blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)

@@ -96,32 +96,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Dark_Matter_Mass_Accretion_Initialization) 
     ! Initialize if necessary.
     if (.not.darkMatterAccretionHistoryInitialized) then
-       ! Get the mass accretion history method parameter.
-       !@ <inputParameter>
-       !@   <name>darkMatterAccretionHistoryMethod</name>
-       !@   <defaultValue>Wechsler2002</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of dark matter halo mass accretion histories.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterAccretionHistoryMethod',darkMatterAccretionHistoryMethod,defaultValue='Wechsler2002')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="darkMatterAccretionHistoryMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get</subroutineArgs>
-       include 'dark_matter_halos.mass_accretion_history.inc'
-       !# </include>
-       if (.not.associated(Dark_Matter_Halo_Mass_Accretion_Time_Get)) &
-            & call Galacticus_Error_Report('Dark_Matter_Mass_Accretion_Initialize','method ' //char(darkMatterAccretionHistoryMethod)//' is unrecognized')
-       darkMatterAccretionHistoryInitialized=.true.
+       !$omp critical(Dark_Matter_Mass_Accretion_Initialization) 
+       if (.not.darkMatterAccretionHistoryInitialized) then
+          ! Get the mass accretion history method parameter.
+          !@ <inputParameter>
+          !@   <name>darkMatterAccretionHistoryMethod</name>
+          !@   <defaultValue>Wechsler2002</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of dark matter halo mass accretion histories.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkMatterAccretionHistoryMethod',darkMatterAccretionHistoryMethod,defaultValue='Wechsler2002')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="darkMatterAccretionHistoryMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get</subroutineArgs>
+          include 'dark_matter_halos.mass_accretion_history.inc'
+          !# </include>
+          if (.not.associated(Dark_Matter_Halo_Mass_Accretion_Time_Get)) &
+               & call Galacticus_Error_Report('Dark_Matter_Mass_Accretion_Initialize','method ' //char(darkMatterAccretionHistoryMethod)//' is unrecognized')
+          darkMatterAccretionHistoryInitialized=.true.
+       end if
+       !$omp end critical(Dark_Matter_Mass_Accretion_Initialization) 
     end if
-    !$omp end critical(Dark_Matter_Mass_Accretion_Initialization) 
-
     return
   end subroutine Dark_Matter_Mass_Accretion_Initialize
 

@@ -143,16 +143,18 @@ contains
     !% Ensure that the cooling data file has been read in.
     implicit none
     
-    !$omp critical (Cooling_Function_CIE_File_Initialize)
     if (.not.coolingFunctionInitialized) then
-       
-       ! Call routine to read in the tabulated data.
-       call Cooling_Function_CIE_File_Read(coolingFunctionFile)
-       
-       ! Flag that cooling function is now initialized.
-       coolingFunctionInitialized=.true.
+       !$omp critical (Cooling_Function_CIE_File_Initialize)
+       if (.not.coolingFunctionInitialized) then
+          
+          ! Call routine to read in the tabulated data.
+          call Cooling_Function_CIE_File_Read(coolingFunctionFile)
+          
+          ! Flag that cooling function is now initialized.
+          coolingFunctionInitialized=.true.
+       end if
+       !$omp end critical (Cooling_Function_CIE_File_Initialize)
     end if
-    !$omp end critical (Cooling_Function_CIE_File_Initialize)
     return
   end subroutine Cooling_Function_CIE_File_Read_Initialize
 

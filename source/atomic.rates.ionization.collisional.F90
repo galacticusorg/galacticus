@@ -94,32 +94,34 @@ contains
     !# </include>
     implicit none
     
-    !$omp critical(Atomic_Rate_Ionization_Collisional_Initialization) 
     ! Initialize if necessary.
     if (.not.ionizationRateInitialized) then
-       ! Get the ionization state method parameter.
-       !@ <inputParameter>
-       !@   <name>atomicCollisionalIonizationMethod</name>
-       !@   <defaultValue>Verner</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing atomic collisional ionization rates.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('atomicCollisionalIonizationMethod',atomicCollisionalIonizationMethod,defaultValue='Verner')
-
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="atomicCollisionalIonizationMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>atomicCollisionalIonizationMethod,Atomic_Rate_Ionization_Collisional_Get</subroutineArgs>
-       include 'atomic.rates.ionization.collisional.inc'
-       !# </include>
-       if (.not.associated(Atomic_Rate_Ionization_Collisional_Get)) call&
-            & Galacticus_Error_Report('Atomic_Rate_Ionization_Collisional_Initialize','method '//char(atomicCollisionalIonizationMethod)//' is unrecognized')
-       ionizationRateInitialized=.true.
+       !$omp critical(Atomic_Rate_Ionization_Collisional_Initialization) 
+       if (.not.ionizationRateInitialized) then
+          ! Get the ionization state method parameter.
+          !@ <inputParameter>
+          !@   <name>atomicCollisionalIonizationMethod</name>
+          !@   <defaultValue>Verner</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing atomic collisional ionization rates.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('atomicCollisionalIonizationMethod',atomicCollisionalIonizationMethod,defaultValue='Verner')
+          
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="atomicCollisionalIonizationMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>atomicCollisionalIonizationMethod,Atomic_Rate_Ionization_Collisional_Get</subroutineArgs>
+          include 'atomic.rates.ionization.collisional.inc'
+          !# </include>
+          if (.not.associated(Atomic_Rate_Ionization_Collisional_Get)) call&
+               & Galacticus_Error_Report('Atomic_Rate_Ionization_Collisional_Initialize','method '//char(atomicCollisionalIonizationMethod)//' is unrecognized')
+          ionizationRateInitialized=.true.
+       end if
+       !$omp end critical(Atomic_Rate_Ionization_Collisional_Initialization) 
     end if
-    !$omp end critical(Atomic_Rate_Ionization_Collisional_Initialization) 
     return
   end subroutine Atomic_Rate_Ionization_Collisional_Initialize
 

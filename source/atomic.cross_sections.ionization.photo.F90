@@ -94,32 +94,34 @@ contains
     !# </include>
     implicit none
     
-    !$omp critical(Atomic_Cross_Section_Ionization_Photo_Initialization) 
     ! Initialize if necessary.
     if (.not.ionizationCrossSectionInitialized) then
-       ! Get the ionization state method parameter.
-       !@ <inputParameter>
-       !@   <name>atomicPhotoIonizationMethod</name>
-       !@   <defaultValue>Verner</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing atomic photo ionization rates.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('atomicPhotoIonizationMethod',atomicPhotoIonizationMethod,defaultValue='Verner')
-
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="atomicPhotoIonizationMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>atomicPhotoIonizationMethod,Atomic_Cross_Section_Ionization_Photo_Get</subroutineArgs>
-       include 'atomic.cross_sections.ionization.photo.inc'
-       !# </include>
-       if (.not.associated(Atomic_Cross_Section_Ionization_Photo_Get)) call&
-            & Galacticus_Error_Report('Atomic_Cross_Section_Ionization_Photo_Initialize','method '//char(atomicPhotoIonizationMethod)//' is unrecognized')
-       ionizationCrossSectionInitialized=.true.
+       !$omp critical(Atomic_Cross_Section_Ionization_Photo_Initialization)  
+       if (.not.ionizationCrossSectionInitialized) then
+          ! Get the ionization state method parameter.
+          !@ <inputParameter>
+          !@   <name>atomicPhotoIonizationMethod</name>
+          !@   <defaultValue>Verner</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing atomic photo ionization rates.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('atomicPhotoIonizationMethod',atomicPhotoIonizationMethod,defaultValue='Verner')
+          
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="atomicPhotoIonizationMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>atomicPhotoIonizationMethod,Atomic_Cross_Section_Ionization_Photo_Get</subroutineArgs>
+          include 'atomic.cross_sections.ionization.photo.inc'
+          !# </include>
+          if (.not.associated(Atomic_Cross_Section_Ionization_Photo_Get)) call&
+               & Galacticus_Error_Report('Atomic_Cross_Section_Ionization_Photo_Initialize','method '//char(atomicPhotoIonizationMethod)//' is unrecognized')
+          ionizationCrossSectionInitialized=.true.
+       end if
+       !$omp end critical(Atomic_Cross_Section_Ionization_Photo_Initialization) 
     end if
-    !$omp end critical(Atomic_Cross_Section_Ionization_Photo_Initialization) 
     return
   end subroutine Atomic_Cross_Section_Ionization_Photo_Initialize
 

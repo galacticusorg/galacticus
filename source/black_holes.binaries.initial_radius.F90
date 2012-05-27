@@ -90,31 +90,33 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode,hostNode
 
-    !$omp critical(blackHoleBinaryInitialRadiiInitialize)
     if (.not.blackHoleBinaryInitialRadiiInitialized) then
-       ! Get the binary black hole initial radii method parameter.
-       !@ <inputParameter>
-       !@   <name>blackHoleBinaryInitialRadiiMethod</name>
-       !@   <defaultValue>spheroidRadiusFraction</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing the initial separation of black hole binaries.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('blackHoleBinaryInitialRadiiMethod',blackHoleBinaryInitialRadiiMethod,defaultValue='spheroidRadiusFraction')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="blackHoleBinaryInitialRadiiMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get</subroutineArgs>
-       include 'black_holes.binaries.initial_radius.inc'
-       !# </include>
-       if (.not.associated(Black_Hole_Binary_Initial_Radius_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Initial_Radius','method ' &
-            &//char(blackHoleBinaryInitialRadiiMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       blackHoleBinaryInitialRadiiInitialized=.true.
+       !$omp critical(blackHoleBinaryInitialRadiiInitialize)
+       if (.not.blackHoleBinaryInitialRadiiInitialized) then
+          ! Get the binary black hole initial radii method parameter.
+          !@ <inputParameter>
+          !@   <name>blackHoleBinaryInitialRadiiMethod</name>
+          !@   <defaultValue>spheroidRadiusFraction</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing the initial separation of black hole binaries.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('blackHoleBinaryInitialRadiiMethod',blackHoleBinaryInitialRadiiMethod,defaultValue='spheroidRadiusFraction')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="blackHoleBinaryInitialRadiiMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get</subroutineArgs>
+          include 'black_holes.binaries.initial_radius.inc'
+          !# </include>
+          if (.not.associated(Black_Hole_Binary_Initial_Radius_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Initial_Radius','method ' &
+               &//char(blackHoleBinaryInitialRadiiMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          blackHoleBinaryInitialRadiiInitialized=.true.
+       end if
+       !$omp end critical(blackHoleBinaryInitialRadiiInitialize)
     end if
-    !$omp end critical(blackHoleBinaryInitialRadiiInitialize)
 
     ! Call the routine to do the calculation.
     Black_Hole_Binary_Initial_Radius=Black_Hole_Binary_Initial_Radius_Get(thisNode,hostNode)

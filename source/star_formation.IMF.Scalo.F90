@@ -119,39 +119,41 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Scalo_Initialize)
     if (.not.imfScaloInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfScaloRecycledInstantaneous</name>
-       !@   <defaultValue>0.24 (computed internally)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the Scalo \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfScaloRecycledInstantaneous',imfScaloRecycledInstantaneous,defaultValue=0.24d0)
-       !@ <inputParameter>
-       !@   <name>imfScaloYieldInstantaneous</name>
-       !@   <defaultValue>0.086 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the Scalo \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfScaloYieldInstantaneous'   ,imfScaloYieldInstantaneous   ,defaultValue=0.0086d0)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfScaloInitialized=.true.
+       !$omp critical (IMF_Scalo_Initialize)
+       if (.not.imfScaloInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfScaloRecycledInstantaneous</name>
+          !@   <defaultValue>0.24 (computed internally)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the Scalo \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfScaloRecycledInstantaneous',imfScaloRecycledInstantaneous,defaultValue=0.24d0)
+          !@ <inputParameter>
+          !@   <name>imfScaloYieldInstantaneous</name>
+          !@   <defaultValue>0.086 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the Scalo \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfScaloYieldInstantaneous'   ,imfScaloYieldInstantaneous   ,defaultValue=0.0086d0)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfScaloInitialized=.true.
+       end if
+       !$omp end critical (IMF_Scalo_Initialize)
     end if
-    !$omp end critical (IMF_Scalo_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Scalo
 

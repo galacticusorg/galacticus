@@ -96,40 +96,42 @@ contains
     double precision                                                 :: timeUntilMerging,timeStepAllowed,mergeTargetTimeMinimum,mergeTargetTimeOffsetMaximum
 
     ! Initialize the module.
-    !$omp critical (Merger_Tree_Timestep_Satellite_Initialize)
     if (.not.mergerTimestepsInitialized) then
-       ! Check that the merge time property exists.
-       limitTimesteps=associated(Tree_Node_Satellite_Merge_Time)
-
-       ! Get parameters controlling time maximum allowed time difference between galaxies at merging.
-       !@ <inputParameter>
-       !@   <name>mergeTargetTimeOffsetMaximumAbsolute</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergeTargetTimeOffsetMaximumAbsolute',mergeTargetTimeOffsetMaximumAbsolute,defaultValue=0.010d0)
-       !@ <inputParameter>
-       !@   <name>mergeTargetTimeOffsetMaximumRelative</name>
-       !@   <defaultValue>0.001</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@      The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergeTargetTimeOffsetMaximumRelative',mergeTargetTimeOffsetMaximumRelative,defaultValue=0.001d0)
-       ! Flag that the module is initialized.
-       mergerTimestepsInitialized=.true.
-    end if 
-    !$omp end critical (Merger_Tree_Timestep_Satellite_Initialize)
+       !$omp critical (Merger_Tree_Timestep_Satellite_Initialize)
+       if (.not.mergerTimestepsInitialized) then
+          ! Check that the merge time property exists.
+          limitTimesteps=associated(Tree_Node_Satellite_Merge_Time)
+          
+          ! Get parameters controlling time maximum allowed time difference between galaxies at merging.
+          !@ <inputParameter>
+          !@   <name>mergeTargetTimeOffsetMaximumAbsolute</name>
+          !@   <defaultValue>0.01</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergeTargetTimeOffsetMaximumAbsolute',mergeTargetTimeOffsetMaximumAbsolute,defaultValue=0.010d0)
+          !@ <inputParameter>
+          !@   <name>mergeTargetTimeOffsetMaximumRelative</name>
+          !@   <defaultValue>0.001</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@      The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>timeStepping</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergeTargetTimeOffsetMaximumRelative',mergeTargetTimeOffsetMaximumRelative,defaultValue=0.001d0)
+          ! Flag that the module is initialized.
+          mergerTimestepsInitialized=.true.
+       end if
+       !$omp end critical (Merger_Tree_Timestep_Satellite_Initialize)
+    end if
 
     ! Exit if we are not limiting timesteps.
     if (.not.limitTimesteps) return

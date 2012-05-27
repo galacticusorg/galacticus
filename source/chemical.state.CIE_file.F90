@@ -149,19 +149,21 @@ contains
     !% Ensure that the cooling data file has been read in.
     implicit none
 
-    !$omp critical (Chemical_State_CIE_File_Initialize)
     if (.not.chemicalStateInitialized) then
-
-       ! Call routine to read in the tabulated data.
-       call Chemical_State_CIE_File_Read(chemicalStateFile)
-
-       ! Get chemical indices.
-       call Chemical_State_CIE_Chemicals_Initialize
-
-       ! Flag that chemical state is now initialized.
-       chemicalStateInitialized=.true.
+       !$omp critical (Chemical_State_CIE_File_Initialize)
+       if (.not.chemicalStateInitialized) then
+          
+          ! Call routine to read in the tabulated data.
+          call Chemical_State_CIE_File_Read(chemicalStateFile)
+          
+          ! Get chemical indices.
+          call Chemical_State_CIE_Chemicals_Initialize
+          
+          ! Flag that chemical state is now initialized.
+          chemicalStateInitialized=.true.
+       end if
+       !$omp end critical (Chemical_State_CIE_File_Initialize)
     end if
-    !$omp end critical (Chemical_State_CIE_File_Initialize)
     return
   end subroutine Chemical_State_CIE_File_Read_Initialize
  
@@ -170,28 +172,29 @@ contains
     use Chemical_Abundances_Structure
     implicit none
     
-    !$omp critical (Chemical_State_CIE_File_Chemicals_Initialize)
     if (.not.chemicalStateChemicalsInitialized) then
-       
-       ! Get chemical indices.
-       electronChemicalIndex               =Chemicals_Index("Electron"            )
-       if (gotHydrogenAtomic) then
-          atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
-       else
-          atomicHydrogenChemicalIndex      =-1
+       !$omp critical (Chemical_State_CIE_File_Chemicals_Initialize)
+       if (.not.chemicalStateChemicalsInitialized) then
+          
+          ! Get chemical indices.
+          electronChemicalIndex               =Chemicals_Index("Electron"            )
+          if (gotHydrogenAtomic) then
+             atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
+          else
+             atomicHydrogenChemicalIndex      =-1
+          end if
+          if (gotHydrogenCation) then
+             atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
+          else
+             atomicHydrogenCationChemicalIndex=-1
+          end if
+          
+          ! Flag that chemical state chemical indices are now initialized.
+          chemicalStateChemicalsInitialized=.true.
+          
        end if
-       if (gotHydrogenCation) then
-          atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
-       else
-          atomicHydrogenCationChemicalIndex=-1
-       end if
-
-       ! Flag that chemical state chemical indices are now initialized.
-       chemicalStateChemicalsInitialized=.true.
-       
+       !$omp end critical (Chemical_State_CIE_File_Chemicals_Initialize)
     end if
-    !$omp end critical (Chemical_State_CIE_File_Chemicals_Initialize)
-
     return
   end subroutine Chemical_State_CIE_Chemicals_Initialize
 

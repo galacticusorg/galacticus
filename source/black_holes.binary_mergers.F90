@@ -91,31 +91,33 @@ contains
     double precision, intent(in)  :: blackHoleMassA,blackHoleMassB,blackHoleSpinA,blackHoleSpinB
     double precision, intent(out) :: blackHoleMassFinal,blackHoleSpinFinal
 
-    !$omp critical(blackHoleBinaryMergersInitialize)
     if (.not.blackHoleBinaryMergersInitialized) then
-       ! Do the binary black hole merger method parameter.
-       !@ <inputParameter>
-       !@   <name>blackHoleBinaryMergersMethod</name>
-       !@   <defaultValue>Rezzolla2008</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing the effects of black hole binary mergers.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('blackHoleBinaryMergersMethod',blackHoleBinaryMergersMethod,defaultValue='Rezzolla2008')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="blackHoleBinaryMergersMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>blackHoleBinaryMergersMethod,Black_Hole_Binary_Merger_Do</subroutineArgs>
-       include 'black_holes.binary_mergers.inc'
-       !# </include>
-       if (.not.associated(Black_Hole_Binary_Merger_Do)) call Galacticus_Error_Report('Black_Hole_Binary_Merger','method ' &
-            &//char(blackHoleBinaryMergersMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       blackHoleBinaryMergersInitialized=.true.
+       !$omp critical(blackHoleBinaryMergersInitialize)
+       if (.not.blackHoleBinaryMergersInitialized) then
+          ! Do the binary black hole merger method parameter.
+          !@ <inputParameter>
+          !@   <name>blackHoleBinaryMergersMethod</name>
+          !@   <defaultValue>Rezzolla2008</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing the effects of black hole binary mergers.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('blackHoleBinaryMergersMethod',blackHoleBinaryMergersMethod,defaultValue='Rezzolla2008')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="blackHoleBinaryMergersMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>blackHoleBinaryMergersMethod,Black_Hole_Binary_Merger_Do</subroutineArgs>
+          include 'black_holes.binary_mergers.inc'
+          !# </include>
+          if (.not.associated(Black_Hole_Binary_Merger_Do)) call Galacticus_Error_Report('Black_Hole_Binary_Merger','method ' &
+               &//char(blackHoleBinaryMergersMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          blackHoleBinaryMergersInitialized=.true.
+       end if
+       !$omp end critical(blackHoleBinaryMergersInitialize)
     end if
-    !$omp end critical(blackHoleBinaryMergersInitialize)
 
     ! Call the routine to do the calculation.
     call Black_Hole_Binary_Merger_Do(blackHoleMassA,blackHoleMassB,blackHoleSpinA,blackHoleSpinB,blackHoleMassFinal&

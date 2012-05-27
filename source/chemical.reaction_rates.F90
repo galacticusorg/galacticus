@@ -88,33 +88,35 @@ contains
     implicit none
     integer :: chemicalReactionRatesCount
     
-    !$omp critical(Chemical_Reaction_Rates_Initialization) 
     ! Initialize if necessary.
     if (.not.chemicalReactionRateInitialized) then
-       ! Get the chemical reaction rates method parameter.
-       !@ <inputParameter>
-       !@   <name>chemicalReactionRateMethods</name>
-       !@   <defaultValue>hydrogenNetwork</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The names of the methods to be used for computing chemical reaction rates.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1..*</cardinality>
-       !@ </inputParameter>
-       chemicalReactionRatesCount=max(1,Get_Input_Parameter_Array_Size('chemicalReactionRatesMethods'))
-       allocate(chemicalReactionRateMethods(chemicalReactionRatesCount))
-       call Memory_Usage_Record(sizeof(chemicalReactionRateMethods))
-       call Get_Input_Parameter('chemicalReactionRateMethods',chemicalReactionRateMethods,defaultValue=['null'])
-
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="chemicalReactionRates" type="code" action="subroutine">
-       !#  <subroutineArgs>chemicalReactionRateMethods</subroutineArgs>
-       include 'chemical.reaction_rates.inc'
-       !# </include>
-       chemicalReactionRateInitialized=.true.
+       !$omp critical(Chemical_Reaction_Rates_Initialization) 
+       if (.not.chemicalReactionRateInitialized) then
+          ! Get the chemical reaction rates method parameter.
+          !@ <inputParameter>
+          !@   <name>chemicalReactionRateMethods</name>
+          !@   <defaultValue>hydrogenNetwork</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The names of the methods to be used for computing chemical reaction rates.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1..*</cardinality>
+          !@ </inputParameter>
+          chemicalReactionRatesCount=max(1,Get_Input_Parameter_Array_Size('chemicalReactionRatesMethods'))
+          allocate(chemicalReactionRateMethods(chemicalReactionRatesCount))
+          call Memory_Usage_Record(sizeof(chemicalReactionRateMethods))
+          call Get_Input_Parameter('chemicalReactionRateMethods',chemicalReactionRateMethods,defaultValue=['null'])
+          
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="chemicalReactionRates" type="code" action="subroutine">
+          !#  <subroutineArgs>chemicalReactionRateMethods</subroutineArgs>
+          include 'chemical.reaction_rates.inc'
+          !# </include>
+          chemicalReactionRateInitialized=.true.
+       end if
+       !$omp end critical(Chemical_Reaction_Rates_Initialization) 
     end if
-    !$omp end critical(Chemical_Reaction_Rates_Initialization) 
     return
   end subroutine Chemical_Reaction_Rates_Initialize
 

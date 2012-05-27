@@ -104,30 +104,32 @@ contains
     type(hdf5Object)                                   :: treeGroup,accretionDataset
 
     ! Check if module is initialized.
-    !$omp critical(accretionHistoryModuleInitialize)
     if (.not.accretionHistoryModuleInitialized) then
-       ! Get parameter specifying if output is required.
-       !@ <inputParameter>
-       !@   <name>massAccretionHistoryOutput</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to output mass accretion histories for the main branches of merger trees.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('massAccretionHistoryOutput',massAccretionHistoryOutput,defaultValue=.false.)
-       ! Create an output group if necessary.
-       !$omp critical (HDF5_Access)
-       if (massAccretionHistoryOutput) accretionGroup=galacticusOutputFile%openGroup('massAccretionHistories','Mass&
-            & accretion histories of main branches in merger trees.')
-       !$omp end critical (HDF5_Access)
-       ! Flag that module is initialized.
-       accretionHistoryModuleInitialized=.true.
+       !$omp critical(accretionHistoryModuleInitialize)
+       if (.not.accretionHistoryModuleInitialized) then
+          ! Get parameter specifying if output is required.
+          !@ <inputParameter>
+          !@   <name>massAccretionHistoryOutput</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to output mass accretion histories for the main branches of merger trees.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('massAccretionHistoryOutput',massAccretionHistoryOutput,defaultValue=.false.)
+          ! Create an output group if necessary.
+          !$omp critical (HDF5_Access)
+          if (massAccretionHistoryOutput) accretionGroup=galacticusOutputFile%openGroup('massAccretionHistories','Mass&
+               & accretion histories of main branches in merger trees.')
+          !$omp end critical (HDF5_Access)
+          ! Flag that module is initialized.
+          accretionHistoryModuleInitialized=.true.
+       end if
+       !$omp end critical(accretionHistoryModuleInitialize)
     end if
-    !$omp end critical(accretionHistoryModuleInitialize)
 
     ! Output the mass accretion history.
     if (massAccretionHistoryOutput) then

@@ -88,46 +88,47 @@ contains
     integer          :: iOutput
     double precision :: aExpansion
     
-    !$omp critical (Tasks_Evolve_Tree_Initialize)
     if (.not.outputsInitialized) then
-       ! Get a list of output redshifts - stored temporarily in the outputTimes array.
-       outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
-       call Alloc_Array(outputTimes,[outputCount])
-       !@ <inputParameter>
-       !@   <name>outputRedshifts</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1..*</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       if (outputCount == 1) then
-          ! If only one (or zero) output redshifts present, make redshift zero the default.
-          call Get_Input_Parameter('outputRedshifts',outputTimes,defaultValue=[0.0d0])
-       else
-          call Get_Input_Parameter('outputRedshifts',outputTimes                     )
+       !$omp critical (Tasks_Evolve_Tree_Initialize)
+       if (.not.outputsInitialized) then
+          ! Get a list of output redshifts - stored temporarily in the outputTimes array.
+          outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
+          call Alloc_Array(outputTimes,[outputCount])
+          !@ <inputParameter>
+          !@   <name>outputRedshifts</name>
+          !@   <defaultValue>0</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1..*</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          if (outputCount == 1) then
+             ! If only one (or zero) output redshifts present, make redshift zero the default.
+             call Get_Input_Parameter('outputRedshifts',outputTimes,defaultValue=[0.0d0])
+          else
+             call Get_Input_Parameter('outputRedshifts',outputTimes                     )
+          end if
+          
+          ! Convert redshifts to times.
+          do iOutput=1,outputCount
+             aExpansion=Expansion_Factor_from_Redshift(outputTimes(iOutput))
+             outputTimes(iOutput)=Cosmology_Age(aExpansion)
+          end do
+          
+          ! Sort the times.
+          call Sort_Do(outputTimes)
+          
+          ! Set history ranges to include these times.
+          call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
+          
+          ! Flag that this module is now initialized.
+          outputsInitialized=.true.
        end if
-       
-       ! Convert redshifts to times.
-       do iOutput=1,outputCount
-          aExpansion=Expansion_Factor_from_Redshift(outputTimes(iOutput))
-          outputTimes(iOutput)=Cosmology_Age(aExpansion)
-       end do
-       
-       ! Sort the times.
-       call Sort_Do(outputTimes)
-       
-       ! Set history ranges to include these times.
-       call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
-       
-       ! Flag that this module is now initialized.
-       outputsInitialized=.true.
+       !$omp end critical (Tasks_Evolve_Tree_Initialize)
     end if
-    !$omp end critical (Tasks_Evolve_Tree_Initialize)
-
     return
   end subroutine Output_Times_Initialize
   

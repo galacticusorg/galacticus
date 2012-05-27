@@ -78,15 +78,17 @@ contains
     use Galacticus_Error
     implicit none
 
-    !$omp critical(Dark_Matter_Halo_Spins_Initialize)
     if (.not.moduleInitialized) then
-       ! Ensure that the spin property is available.
-       if (.not.associated(Tree_Node_Spin)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Spin property must be gettable')
-       if (.not.associated(Tree_Node_Mass)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Mass property must be gettable')
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
+       !$omp critical(Dark_Matter_Halo_Spins_Initialize)
+       if (.not.moduleInitialized) then
+          ! Ensure that the spin property is available.
+          if (.not.associated(Tree_Node_Spin)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Spin property must be gettable')
+          if (.not.associated(Tree_Node_Mass)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Mass property must be gettable')
+          ! Record that the module is now initialized.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical(Dark_Matter_Halo_Spins_Initialize)
     end if
-    !$omp end critical(Dark_Matter_Halo_Spins_Initialize)
     return
   end subroutine Dark_Matter_Halo_Spins_Initialize
 

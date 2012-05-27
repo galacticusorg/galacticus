@@ -88,42 +88,44 @@ contains
     use Memory_Management
     implicit none
 
-    !$omp critical(Galacticus_Output_Tree_Mass_Profile_Initialize)
     if (.not.outputMassProfileDataInitialized) then
-       !@ <inputParameter>
-       !@   <name>outputMassProfileData</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not half-light radius data (i.e. radius and mass) should be included in the output.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('outputMassProfileData',outputMassProfileData,defaultValue=.false.)
-
-       ! Read radii if necessary.
-       if (outputMassProfileData) then
-          massProfilePropertyCount=Get_Input_Parameter_Array_Size('outputMassProfileRadii')
-          call Alloc_Array(outputMassProfileRadii,[massProfilePropertyCount])
+       !$omp critical(Galacticus_Output_Tree_Mass_Profile_Initialize)
+       if (.not.outputMassProfileDataInitialized) then
           !@ <inputParameter>
-          !@   <name>outputMassProfileRadii</name>
+          !@   <name>outputMassProfileData</name>
+          !@   <defaultValue>false</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     A list of radii at which to output the mass profile.
+          !@     Specifies whether or not half-light radius data (i.e. radius and mass) should be included in the output.
           !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1..*</cardinality>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('outputMassProfileRadii',outputMassProfileRadii)
+          call Get_Input_Parameter('outputMassProfileData',outputMassProfileData,defaultValue=.false.)
+          
+          ! Read radii if necessary.
+          if (outputMassProfileData) then
+             massProfilePropertyCount=Get_Input_Parameter_Array_Size('outputMassProfileRadii')
+             call Alloc_Array(outputMassProfileRadii,[massProfilePropertyCount])
+             !@ <inputParameter>
+             !@   <name>outputMassProfileRadii</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     A list of radii at which to output the mass profile.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1..*</cardinality>
+             !@   <group>output</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('outputMassProfileRadii',outputMassProfileRadii)
+          end if
+          
+          ! Flag that module is now initialized.
+          outputMassProfileDataInitialized=.true.
        end if
-
-       ! Flag that module is now initialized.
-       outputMassProfileDataInitialized=.true.
+       !$omp end critical(Galacticus_Output_Tree_Mass_Profile_Initialize)
     end if
-    !$omp end critical(Galacticus_Output_Tree_Mass_Profile_Initialize)
     return
   end subroutine Galacticus_Output_Tree_Mass_Profile_Initialize
 

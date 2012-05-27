@@ -106,31 +106,33 @@ contains
     integer,        intent(out)             :: gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo
     logical,        intent(out)             :: mergerIsMajor
 
-    !$omp critical(satelliteMergingMassMovementsInitialize)
     if (.not.satelliteMergingMassMovementsInitialized) then
-       ! Get the satellite merging mass movement method parameter.
-       !@ <inputParameter>
-       !@   <name>satelliteMergingMassMovementsMethod</name>
-       !@   <defaultValue>simple</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Selects the method to be used for deciding mass movements during satellite mergers.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteMergingMassMovementsMethod',satelliteMergingMassMovementsMethod,defaultValue='simple')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="satelliteMergingMassMovementsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get</subroutineArgs>
-       include 'satellites.merging.mass_movements.inc'
-       !# </include>
-       if (.not.associated(Satellite_Merging_Mass_Movement_Get)) call Galacticus_Error_Report('Satellite_Merging_Mass_Movement','method ' &
-            &//char(satelliteMergingMassMovementsMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       satelliteMergingMassMovementsInitialized=.true.
+       !$omp critical(satelliteMergingMassMovementsInitialize)
+       if (.not.satelliteMergingMassMovementsInitialized) then
+          ! Get the satellite merging mass movement method parameter.
+          !@ <inputParameter>
+          !@   <name>satelliteMergingMassMovementsMethod</name>
+          !@   <defaultValue>simple</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Selects the method to be used for deciding mass movements during satellite mergers.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('satelliteMergingMassMovementsMethod',satelliteMergingMassMovementsMethod,defaultValue='simple')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="satelliteMergingMassMovementsMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get</subroutineArgs>
+          include 'satellites.merging.mass_movements.inc'
+          !# </include>
+          if (.not.associated(Satellite_Merging_Mass_Movement_Get)) call Galacticus_Error_Report('Satellite_Merging_Mass_Movement','method ' &
+               &//char(satelliteMergingMassMovementsMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          satelliteMergingMassMovementsInitialized=.true.
+       end if
+       !$omp end critical(satelliteMergingMassMovementsInitialize)
     end if
-    !$omp end critical(satelliteMergingMassMovementsInitialize)
 
     ! Call the routine to get the descriptors.
     call Satellite_Merging_Mass_Movement_Get(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)

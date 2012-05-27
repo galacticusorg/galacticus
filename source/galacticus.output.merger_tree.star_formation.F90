@@ -137,34 +137,35 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Galacticus_Output_Star_Formation_Histories_Initialization) 
     ! Initialize if necessary.
     if (.not.starFormationHistoriesInitialized) then
-       ! Get the star formation history method parameter.
-       !@ <inputParameter>
-       !@   <name>starFormationHistoriesMethod</name>
-       !@   <defaultValue>null</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The method to use for computing and outputting star formation histories.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoriesMethod',starFormationHistoriesMethod,defaultValue='null')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="starFormationHistoriesMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>starFormationHistoriesMethod,Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do,Star_Formation_History_Record_Do,Star_Formation_History_Output_Do</subroutineArgs>
-       include 'galacticus.output.merger_tree.star_formation.inc'
-       !# </include>
-       if (.not.(associated(Star_Formation_History_Create_Do).and.associated(Star_Formation_History_Scales_Do).and.associated(Star_Formation_History_Record_Do).and.associated(Star_Formation_History_Output_Do))) &
-            & call Galacticus_Error_Report('Galacticus_Output_Star_Formation_Histories_Initialize'&
-            &,'method '//char(starFormationHistoriesMethod)//' is unrecognized')
-       starFormationHistoriesInitialized=.true.
+       !$omp critical(Galacticus_Output_Star_Formation_Histories_Initialization) 
+       if (.not.starFormationHistoriesInitialized) then
+          ! Get the star formation history method parameter.
+          !@ <inputParameter>
+          !@   <name>starFormationHistoriesMethod</name>
+          !@   <defaultValue>null</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The method to use for computing and outputting star formation histories.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationHistoriesMethod',starFormationHistoriesMethod,defaultValue='null')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="starFormationHistoriesMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>starFormationHistoriesMethod,Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do,Star_Formation_History_Record_Do,Star_Formation_History_Output_Do</subroutineArgs>
+          include 'galacticus.output.merger_tree.star_formation.inc'
+          !# </include>
+          if (.not.(associated(Star_Formation_History_Create_Do).and.associated(Star_Formation_History_Scales_Do).and.associated(Star_Formation_History_Record_Do).and.associated(Star_Formation_History_Output_Do))) &
+               & call Galacticus_Error_Report('Galacticus_Output_Star_Formation_Histories_Initialize'&
+               &,'method '//char(starFormationHistoriesMethod)//' is unrecognized')
+          starFormationHistoriesInitialized=.true.
+       end if
+       !$omp end critical(Galacticus_Output_Star_Formation_Histories_Initialization) 
     end if
-    !$omp end critical(Galacticus_Output_Star_Formation_Histories_Initialization) 
-
     return
   end subroutine Galacticus_Output_Star_Formation_Histories_Initialize
 

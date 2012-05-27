@@ -97,31 +97,33 @@ contains
     type(treeNode),   intent(inout), pointer  :: thisNode,hostNode
     logical,          intent(in)              :: acceptUnboundOrbits
     
-    !$omp critical(virialOrbitsInitialized)
     if (.not.virialOrbitsInitialized) then
-       ! Get the virial orbits method parameter.
-       !@ <inputParameter>
-       !@   <name>virialOrbitsMethod</name>
-       !@   <defaultValue>Benson2005</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects the method to be used for finding orbital parameters of satellites at virial radius crossing.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('virialOrbitsMethod',virialOrbitsMethod,defaultValue='Benson2005')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="virialOrbitsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>virialOrbitsMethod,Virial_Orbital_Parameters_Get</subroutineArgs>
-       include 'satellites.merging.virial_orbits.inc'
-       !# </include>
-       if (.not.associated(Virial_Orbital_Parameters_Get)) call Galacticus_Error_Report('Virial_Orbital_Parameters','method ' &
-            &//char(virialOrbitsMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       virialOrbitsInitialized=.true.
+       !$omp critical(virialOrbitsInitialized)
+       if (.not.virialOrbitsInitialized) then
+          ! Get the virial orbits method parameter.
+          !@ <inputParameter>
+          !@   <name>virialOrbitsMethod</name>
+          !@   <defaultValue>Benson2005</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Selects the method to be used for finding orbital parameters of satellites at virial radius crossing.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('virialOrbitsMethod',virialOrbitsMethod,defaultValue='Benson2005')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="virialOrbitsMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>virialOrbitsMethod,Virial_Orbital_Parameters_Get</subroutineArgs>
+          include 'satellites.merging.virial_orbits.inc'
+          !# </include>
+          if (.not.associated(Virial_Orbital_Parameters_Get)) call Galacticus_Error_Report('Virial_Orbital_Parameters','method ' &
+               &//char(virialOrbitsMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          virialOrbitsInitialized=.true.
+       end if
+       !$omp end critical(virialOrbitsInitialized)
     end if
-    !$omp end critical(virialOrbitsInitialized)
 
     ! Call the routine to get the orbital parameters.
     thisOrbit=Virial_Orbital_Parameters_Get(thisNode,hostNode,acceptUnboundOrbits)

@@ -112,41 +112,43 @@ contains
     type(hdf5Object)                                   :: treeGroup,nodeDataset
 
     ! Check if module is initialized.
-    !$omp critical(structureOutputModuleInitialize)
     if (.not.structureOutputModuleInitialized) then
-       ! Get parameter specifying if output is required.
-       !@ <inputParameter>
-       !@   <name>mergerTreeStructureOutput</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to output the structure of merger trees prior to evolution.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeStructureOutput',mergerTreeStructureOutput,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeStructureOutputVirialQuantities</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to output virial quantities (radius and velocity) when outputting the structure of merger trees prior to evolution.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeStructureOutputVirialQuantities',mergerTreeStructureOutputVirialQuantities,defaultValue=.false.)
-       ! Create an output group if necessary.
-       !$omp critical(HDF5_Access)
-       if (mergerTreeStructureOutput) structureGroup=galacticusOutputFile%openGroup('mergerTreeStructures','Pre-evolution structures of merger trees.')
-       !$omp end critical(HDF5_Access)
-       ! Flag that module is initialized.
-       structureOutputModuleInitialized=.true.
+       !$omp critical(structureOutputModuleInitialize)
+       if (.not.structureOutputModuleInitialized) then
+          ! Get parameter specifying if output is required.
+          !@ <inputParameter>
+          !@   <name>mergerTreeStructureOutput</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to output the structure of merger trees prior to evolution.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeStructureOutput',mergerTreeStructureOutput,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>mergerTreeStructureOutputVirialQuantities</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to output virial quantities (radius and velocity) when outputting the structure of merger trees prior to evolution.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeStructureOutputVirialQuantities',mergerTreeStructureOutputVirialQuantities,defaultValue=.false.)
+          ! Create an output group if necessary.
+          !$omp critical(HDF5_Access)
+          if (mergerTreeStructureOutput) structureGroup=galacticusOutputFile%openGroup('mergerTreeStructures','Pre-evolution structures of merger trees.')
+          !$omp end critical(HDF5_Access)
+          ! Flag that module is initialized.
+          structureOutputModuleInitialized=.true.
+       end if
+       !$omp end critical(structureOutputModuleInitialize)
     end if
-    !$omp end critical(structureOutputModuleInitialize)
 
     ! Output the tree structure history.
     if (mergerTreeStructureOutput) then

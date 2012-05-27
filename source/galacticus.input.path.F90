@@ -83,21 +83,23 @@ contains
     integer              :: pathLength,pathStatus
 
     ! Check if the path has been retrieved.
-    !$omp critical (Galacticus_Path_Initialize)
     if (.not.pathRetrieved) then
-       ! Get the status and path length.
-       call Get_Environment_Variable("GALACTICUS_ROOT_V091",length=pathLength,status=pathStatus) 
-       if (pathStatus == 0) then
-          ! Path is defined, retrieve it.
-          call Get_Path(pathLength)
-       else
-          ! No path is defined, default to current working directory.
-          galacticusInputPath="./"
+       !$omp critical (Galacticus_Path_Initialize)
+       if (.not.pathRetrieved) then
+          ! Get the status and path length.
+          call Get_Environment_Variable("GALACTICUS_ROOT_V091",length=pathLength,status=pathStatus) 
+          if (pathStatus == 0) then
+             ! Path is defined, retrieve it.
+             call Get_Path(pathLength)
+          else
+             ! No path is defined, default to current working directory.
+             galacticusInputPath="./"
+          end if
+          ! Flag that the path has been retrieved.
+          pathRetrieved=.true.
        end if
-       ! Flag that the path has been retrieved.
-       pathRetrieved=.true.
+       !$omp end critical (Galacticus_Path_Initialize)
     end if
-    !$omp end critical (Galacticus_Path_Initialize)
 
     ! Return the input path.
     Galacticus_Input_Path=char(galacticusInputPath)

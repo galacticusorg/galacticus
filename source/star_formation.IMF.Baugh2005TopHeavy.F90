@@ -118,39 +118,41 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Baugh2005TopHeavy_Initialize)
     if (.not.imfBaugh2005TopHeavyInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfBaugh2005TopHeavyRecycledInstantaneous</name>
-       !@   <defaultValue>0.91 \citep{baugh_can_2005}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfBaugh2005TopHeavyRecycledInstantaneous',imfBaugh2005TopHeavyRecycledInstantaneous,defaultValue=0.57d0)
-       !@ <inputParameter>
-       !@   <name>imfBaugh2005TopHeavyYieldInstantaneous</name>
-       !@   <defaultValue>0.15 \citep{baugh_can_2005}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfBaugh2005TopHeavyYieldInstantaneous'   ,imfBaugh2005TopHeavyYieldInstantaneous   ,defaultValue=0.044d0)
+       !$omp critical (IMF_Baugh2005TopHeavy_Initialize)
+       if (.not.imfBaugh2005TopHeavyInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfBaugh2005TopHeavyRecycledInstantaneous</name>
+          !@   <defaultValue>0.91 \citep{baugh_can_2005}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfBaugh2005TopHeavyRecycledInstantaneous',imfBaugh2005TopHeavyRecycledInstantaneous,defaultValue=0.57d0)
+          !@ <inputParameter>
+          !@   <name>imfBaugh2005TopHeavyYieldInstantaneous</name>
+          !@   <defaultValue>0.15 \citep{baugh_can_2005}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfBaugh2005TopHeavyYieldInstantaneous'   ,imfBaugh2005TopHeavyYieldInstantaneous   ,defaultValue=0.044d0)
 
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfBaugh2005TopHeavyInitialized=.true.
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfBaugh2005TopHeavyInitialized=.true.
+       end if
+       !$omp end critical (IMF_Baugh2005TopHeavy_Initialize)
     end if
-    !$omp end critical (IMF_Baugh2005TopHeavy_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Baugh2005TopHeavy
 

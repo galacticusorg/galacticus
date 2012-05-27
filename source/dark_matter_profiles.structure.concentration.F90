@@ -95,32 +95,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Dark_Matter_Concentrations_Initialization) 
     ! Initialize if necessary.
     if (.not.darkMatterConcentrationInitialized) then
-       ! Get the halo spin distribution method parameter.
-       !@ <inputParameter>
-       !@   <name>darkMatterConcentrationMethod</name>
-       !@   <defaultValue>Gao2008</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of dark matter halo density profile concentrations.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkMatterConcentrationMethod',darkMatterConcentrationMethod,defaultValue='Gao2008')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="darkMatterConcentrationMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get</subroutineArgs>
-       include 'dark_matter_profiles.structure.concentration.inc'
-       !# </include>
-       if (.not.associated(Dark_Matter_Profile_Concentration_Get)) &
-            & call Galacticus_Error_Report('Dark_Matter_Concentrations_Initialize','method ' //char(darkMatterConcentrationMethod)//' is unrecognized')
-       darkMatterConcentrationInitialized=.true.
+       !$omp critical(Dark_Matter_Concentrations_Initialization) 
+       if (.not.darkMatterConcentrationInitialized) then
+          ! Get the halo spin distribution method parameter.
+          !@ <inputParameter>
+          !@   <name>darkMatterConcentrationMethod</name>
+          !@   <defaultValue>Gao2008</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of dark matter halo density profile concentrations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkMatterConcentrationMethod',darkMatterConcentrationMethod,defaultValue='Gao2008')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="darkMatterConcentrationMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get</subroutineArgs>
+          include 'dark_matter_profiles.structure.concentration.inc'
+          !# </include>
+          if (.not.associated(Dark_Matter_Profile_Concentration_Get)) &
+               & call Galacticus_Error_Report('Dark_Matter_Concentrations_Initialize','method ' //char(darkMatterConcentrationMethod)//' is unrecognized')
+          darkMatterConcentrationInitialized=.true.
+       end if
+       !$omp end critical(Dark_Matter_Concentrations_Initialization) 
     end if
-    !$omp end critical(Dark_Matter_Concentrations_Initialization) 
-
     return
   end subroutine Dark_Matter_Concentrations_Initialize
 

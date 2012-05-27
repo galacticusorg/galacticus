@@ -94,31 +94,33 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     
-    !$omp critical(satelliteMergingRemnantSizeInitialize)
     if (.not.satelliteMergingRemnantSizeInitialized) then
-       ! Do the satellite merging remnant sizes method parameter.
-       !@ <inputParameter>
-       !@   <name>satelliteMergingRemnantSizeMethod</name>
-       !@   <defaultValue>Covington2008</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing merger remnant sizes.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteMergingRemnantSizeMethod',satelliteMergingRemnantSizeMethod,defaultValue='Covington2008')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="satelliteMergingRemnantSizeMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do</subroutineArgs>
-       include 'satellites.merging.remnant_sizes.inc'
-       !# </include>
-       if (.not.associated(Satellite_Merging_Remnant_Size_Do)) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size','method ' &
-            &//char(satelliteMergingRemnantSizeMethod)//' is unrecognized')
-       ! Flag that the module is now initialized.
-       satelliteMergingRemnantSizeInitialized=.true.
+       !$omp critical(satelliteMergingRemnantSizeInitialize)
+       if (.not.satelliteMergingRemnantSizeInitialized) then
+          ! Do the satellite merging remnant sizes method parameter.
+          !@ <inputParameter>
+          !@   <name>satelliteMergingRemnantSizeMethod</name>
+          !@   <defaultValue>Covington2008</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing merger remnant sizes.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('satelliteMergingRemnantSizeMethod',satelliteMergingRemnantSizeMethod,defaultValue='Covington2008')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="satelliteMergingRemnantSizeMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do</subroutineArgs>
+          include 'satellites.merging.remnant_sizes.inc'
+          !# </include>
+          if (.not.associated(Satellite_Merging_Remnant_Size_Do)) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size','method ' &
+               &//char(satelliteMergingRemnantSizeMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          satelliteMergingRemnantSizeInitialized=.true.
+       end if
+       !$omp end critical(satelliteMergingRemnantSizeInitialize)
     end if
-    !$omp end critical(satelliteMergingRemnantSizeInitialize)
 
     ! Call the routine to do the calculation.
     call Satellite_Merging_Remnant_Size_Do(thisNode)

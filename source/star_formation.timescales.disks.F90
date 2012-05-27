@@ -111,45 +111,46 @@ contains
     include 'star_formation.timescales.disks.cBinding.inc'
     !# </include>
 
-    !$omp critical(Star_Formation_Timescale_Disks_Initialization) 
     ! Initialize if necessary.
     if (.not.starFormationTimescaleDisksInitialized) then
-       ! Get the disk star formation timescale method parameter.
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleDisksMethod</name>
-       !@   <defaultValue>KMT09</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing star formation timescales in disks.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksMethod',starFormationTimescaleDisksMethod,defaultValue='KMT09')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="starFormationTimescaleDisksMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>
-       !#   <fortran>starFormationTimescaleDisksMethod,Star_Formation_Timescale_Disk_FGet</fortran>
-       !#   <c>char(starFormationTimescaleDisksMethod)//c_null_char,cFunctionPointer</c>
-       !#  </subroutineArgs>
-       include 'star_formation.timescales.disks.inc'
-       !# </include>
-       functionIsFortran=associated(Star_Formation_Timescale_Disk_FGet)
-       if (.not.functionIsFortran) then
-          ! Check if a C implementation was selected.
-          if (c_associated(cFunctionPointer)) then
-             ! One was, so transfer to the Fortran procedure pointer.
-             call c_f_procpointer(cFunctionPointer,Star_Formation_Timescale_Disk_CGet)
-          else
-             call Galacticus_Error_Report('Star_Formation_Timescale_Disks'&
-                  &,'method '//char(starFormationTimescaleDisksMethod)//' is unrecognized')
+       !$omp critical(Star_Formation_Timescale_Disks_Initialization) 
+       if (.not.starFormationTimescaleDisksInitialized) then
+          ! Get the disk star formation timescale method parameter.
+          !@ <inputParameter>
+          !@   <name>starFormationTimescaleDisksMethod</name>
+          !@   <defaultValue>KMT09</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing star formation timescales in disks.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationTimescaleDisksMethod',starFormationTimescaleDisksMethod,defaultValue='KMT09')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="starFormationTimescaleDisksMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>
+          !#   <fortran>starFormationTimescaleDisksMethod,Star_Formation_Timescale_Disk_FGet</fortran>
+          !#   <c>char(starFormationTimescaleDisksMethod)//c_null_char,cFunctionPointer</c>
+          !#  </subroutineArgs>
+          include 'star_formation.timescales.disks.inc'
+          !# </include>
+          functionIsFortran=associated(Star_Formation_Timescale_Disk_FGet)
+          if (.not.functionIsFortran) then
+             ! Check if a C implementation was selected.
+             if (c_associated(cFunctionPointer)) then
+                ! One was, so transfer to the Fortran procedure pointer.
+                call c_f_procpointer(cFunctionPointer,Star_Formation_Timescale_Disk_CGet)
+             else
+                call Galacticus_Error_Report('Star_Formation_Timescale_Disks'&
+                     &,'method '//char(starFormationTimescaleDisksMethod)//' is unrecognized')
+             end if
           end if
+          starFormationTimescaleDisksInitialized=.true.
        end if
-       starFormationTimescaleDisksInitialized=.true.
+       !$omp end critical(Star_Formation_Timescale_Disks_Initialization) 
     end if
-    !$omp end critical(Star_Formation_Timescale_Disks_Initialization) 
-    
     return
   end subroutine Star_Formation_Timescale_Disks_Initialize
 

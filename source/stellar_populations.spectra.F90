@@ -105,32 +105,34 @@ contains
     use Input_Parameters
     implicit none
     
-    !$omp critical(Stellar_Population_Spectrum_Initialization) 
     ! Initialize if necessary.
     if (.not.stellarPopulationSpectraInitialized) then
-       ! Get the cooling function method parameter.
-       !@ <inputParameter>
-       !@   <name>stellarPopulationSpectraMethod</name>
-       !@   <defaultValue>Conroy-White-Gunn2009</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of stellar population spectra.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy-White-Gunn2009')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarPopulationSpectraMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarPopulationSpectraMethod,Stellar_Population_Spectrum_Get,Stellar_Population_Spectrum_Tabulation_Get</subroutineArgs>
-       include 'stellar_populations.spectra.inc'
-       !# </include>
-       if (.not.(associated(Stellar_Population_Spectrum_Get).and.associated(Stellar_Population_Spectrum_Tabulation_Get))) call&
-            & Galacticus_Error_Report('Stellar_Population_Spectrum','method ' //char(stellarPopulationSpectraMethod)//' is&
-            & unrecognized')
-       stellarPopulationSpectraInitialized=.true.
+       !$omp critical(Stellar_Population_Spectrum_Initialization) 
+       if (.not.stellarPopulationSpectraInitialized) then
+          ! Get the cooling function method parameter.
+          !@ <inputParameter>
+          !@   <name>stellarPopulationSpectraMethod</name>
+          !@   <defaultValue>Conroy-White-Gunn2009</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of stellar population spectra.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy-White-Gunn2009')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="stellarPopulationSpectraMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>stellarPopulationSpectraMethod,Stellar_Population_Spectrum_Get,Stellar_Population_Spectrum_Tabulation_Get</subroutineArgs>
+          include 'stellar_populations.spectra.inc'
+          !# </include>
+          if (.not.(associated(Stellar_Population_Spectrum_Get).and.associated(Stellar_Population_Spectrum_Tabulation_Get))) call&
+               & Galacticus_Error_Report('Stellar_Population_Spectrum','method ' //char(stellarPopulationSpectraMethod)//' is&
+               & unrecognized')
+          stellarPopulationSpectraInitialized=.true.
+       end if
+       !$omp end critical(Stellar_Population_Spectrum_Initialization) 
     end if
-    !$omp end critical(Stellar_Population_Spectrum_Initialization) 
     return
   end subroutine Stellar_Population_Spectrum_Initialize
 

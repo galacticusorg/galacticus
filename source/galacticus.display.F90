@@ -119,23 +119,25 @@ contains
     !% Initialize the module by determining the requested verbosity level.
     implicit none
 
-    !$omp critical (Initialize_Display)
     if (.not.displayInitialized) then
-       ! For OpenMP runs, create an array of indentation levels.
-       maxThreads=1
-       !$ maxThreads=omp_get_max_threads()
-       ! Do not use Alloc_Array() routines here as they may trigger recursive calls to this module which can lead to unbreakable
-       ! parallel locks.
-       allocate(indentationLevel          (maxThreads))
-       allocate(indentationFormat         (maxThreads))
-       allocate(indentationFormatNoNewLine(maxThreads))
-       indentationLevel=0
-       indentationFormat='(a)'
-       indentationFormatNoNewLine='(a,$)'
-
-       displayInitialized=.true.
+       !$omp critical (Initialize_Display)
+       if (.not.displayInitialized) then
+          ! For OpenMP runs, create an array of indentation levels.
+          maxThreads=1
+          !$ maxThreads=omp_get_max_threads()
+          ! Do not use Alloc_Array() routines here as they may trigger recursive calls to this module which can lead to unbreakable
+          ! parallel locks.
+          allocate(indentationLevel          (maxThreads))
+          allocate(indentationFormat         (maxThreads))
+          allocate(indentationFormatNoNewLine(maxThreads))
+          indentationLevel=0
+          indentationFormat='(a)'
+          indentationFormatNoNewLine='(a,$)'
+          
+          displayInitialized=.true.
+       end if
+       !$omp end critical (Initialize_Display)
     end if
-    !$omp end critical (Initialize_Display)
     return
   end subroutine Initialize_Display
 

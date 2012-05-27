@@ -98,30 +98,32 @@ contains
     type(mergerTree), pointer    :: thisTree
     logical,          intent(in) :: skipTree
 
-    !$omp critical(Merger_Tree_Construct_Initialization) 
     ! Initialize if necessary.
     if (.not.mergerTreeConstructInitialized) then
-       !@ <inputParameter>
-       !@   <name>mergerTreeConstructMethod</name>
-       !@   <defaultValue>build</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects the method to be used constructing merger trees.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeConstructMethod',mergerTreeConstructMethod,defaultValue='build')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="mergerTreeConstructMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>mergerTreeConstructMethod,Merger_Tree_Construct</subroutineArgs>
-       include 'merger_trees.construct.inc'
-       !# </include>
-       if (.not.associated(Merger_Tree_Construct)) call Galacticus_Error_Report('Merger_Tree_Create','method '&
-            &//char(mergerTreeConstructMethod)//' is unrecognized')
-       mergerTreeConstructInitialized=.true.
+       !$omp critical(Merger_Tree_Construct_Initialization) 
+       if (.not.mergerTreeConstructInitialized) then
+          !@ <inputParameter>
+          !@   <name>mergerTreeConstructMethod</name>
+          !@   <defaultValue>build</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Selects the method to be used constructing merger trees.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeConstructMethod',mergerTreeConstructMethod,defaultValue='build')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="mergerTreeConstructMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>mergerTreeConstructMethod,Merger_Tree_Construct</subroutineArgs>
+          include 'merger_trees.construct.inc'
+          !# </include>
+          if (.not.associated(Merger_Tree_Construct)) call Galacticus_Error_Report('Merger_Tree_Create','method '&
+               &//char(mergerTreeConstructMethod)//' is unrecognized')
+          mergerTreeConstructInitialized=.true.
+       end if
+       !$omp end critical(Merger_Tree_Construct_Initialization)
     end if
-    !$omp end critical(Merger_Tree_Construct_Initialization)
 
     ! Create the object.
     allocate(thisTree)

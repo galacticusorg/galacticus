@@ -147,11 +147,11 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=1.0d-3)
-
+       
        ! Flag that this module is now initialized.
        moduleInitialized=.true.
     end if
-
+    
     if (allocated(luminosityTables)) then
        if (size(luminosityTables) < imfIndex) then
           call Move_Alloc(luminosityTables,luminosityTablesTemporary)

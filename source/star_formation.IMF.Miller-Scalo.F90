@@ -119,39 +119,41 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_MillerScalo_Initialize)
     if (.not.imfMillerScaloInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfMillerScaloRecycledInstantaneous</name>
-       !@   <defaultValue>0.52 (computed internally)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the MillerScalo \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfMillerScaloRecycledInstantaneous',imfMillerScaloRecycledInstantaneous,defaultValue=0.52d0)
-       !@ <inputParameter>
-       !@   <name>imfMillerScaloYieldInstantaneous</name>
-       !@   <defaultValue>0.026 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the MillerScalo \gls{imf} in the instantaneous recycling approximation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfMillerScaloYieldInstantaneous'   ,imfMillerScaloYieldInstantaneous   ,defaultValue=0.026d0)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfMillerScaloInitialized=.true.
+       !$omp critical (IMF_MillerScalo_Initialize)
+       if (.not.imfMillerScaloInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfMillerScaloRecycledInstantaneous</name>
+          !@   <defaultValue>0.52 (computed internally)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the MillerScalo \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfMillerScaloRecycledInstantaneous',imfMillerScaloRecycledInstantaneous,defaultValue=0.52d0)
+          !@ <inputParameter>
+          !@   <name>imfMillerScaloYieldInstantaneous</name>
+          !@   <defaultValue>0.026 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the MillerScalo \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfMillerScaloYieldInstantaneous'   ,imfMillerScaloYieldInstantaneous   ,defaultValue=0.026d0)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfMillerScaloInitialized=.true.
+       end if
+       !$omp end critical (IMF_MillerScalo_Initialize)
     end if
-    !$omp end critical (IMF_MillerScalo_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_MillerScalo
 

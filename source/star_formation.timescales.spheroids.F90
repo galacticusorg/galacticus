@@ -95,33 +95,34 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Star_Formation_Timescale_Spheroids_Initialization) 
     ! Initialize if necessary.
     if (.not.starFormationTimescaleSpheroidsInitialized) then
-       ! Get the spheroid star formation timescale method parameter.
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleSpheroidsMethod</name>
-       !@   <defaultValue>dynamicalTime</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing star formation timescales in spheroids.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleSpheroidsMethod',starFormationTimescaleSpheroidsMethod,defaultValue='dynamicalTime')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="starFormationTimescaleSpheroidsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>starFormationTimescaleSpheroidsMethod,Star_Formation_Timescale_Spheroid_Get</subroutineArgs>
-       include 'star_formation.timescales.spheroids.inc'
-       !# </include>
-       if (.not.associated(Star_Formation_Timescale_Spheroid_Get)) call Galacticus_Error_Report('Star_Formation_Timescale_Spheroids'&
-            &,'method ' //char(starFormationTimescaleSpheroidsMethod)//' is unrecognized')
-       starFormationTimescaleSpheroidsInitialized=.true.
+       !$omp critical(Star_Formation_Timescale_Spheroids_Initialization) 
+       if (.not.starFormationTimescaleSpheroidsInitialized) then
+          ! Get the spheroid star formation timescale method parameter.
+          !@ <inputParameter>
+          !@   <name>starFormationTimescaleSpheroidsMethod</name>
+          !@   <defaultValue>dynamicalTime</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing star formation timescales in spheroids.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationTimescaleSpheroidsMethod',starFormationTimescaleSpheroidsMethod,defaultValue='dynamicalTime')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="starFormationTimescaleSpheroidsMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>starFormationTimescaleSpheroidsMethod,Star_Formation_Timescale_Spheroid_Get</subroutineArgs>
+          include 'star_formation.timescales.spheroids.inc'
+          !# </include>
+          if (.not.associated(Star_Formation_Timescale_Spheroid_Get)) call Galacticus_Error_Report('Star_Formation_Timescale_Spheroids'&
+               &,'method ' //char(starFormationTimescaleSpheroidsMethod)//' is unrecognized')
+          starFormationTimescaleSpheroidsInitialized=.true.
+       end if
+       !$omp end critical(Star_Formation_Timescale_Spheroids_Initialization) 
     end if
-    !$omp end critical(Star_Formation_Timescale_Spheroids_Initialization) 
-
     return
   end subroutine Star_Formation_Timescale_Spheroids_Initialize
 

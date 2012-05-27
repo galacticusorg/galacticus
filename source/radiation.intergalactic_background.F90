@@ -109,29 +109,31 @@ contains
     implicit none
     type(varying_string) :: radiationIntergalacticBackgroundMethod
 
-    !$omp critical(Radiation_Initialize_Intergalactic_Background)
     if (.not.moduleInitialized) then
-       !@ <inputParameter>
-       !@   <name>radiationIntergalacticBackgroundMethod</name>
-       !@   <defaultValue>file</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of the intergalatic background radiation field.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('radiationIntergalacticBackgroundMethod',radiationIntergalacticBackgroundMethod,defaultValue='file')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="radiationIntergalacticBackgroundMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do</subroutineArgs>
-       include 'radiation.intergalactic_background.inc'
-       !# </include>
-       if (.not.(associated(Radiation_Set_Intergalactic_Background_Do).and.associated(Radiation_Flux_Intergalactic_Background_Do))) call&
-            & Galacticus_Error_Report('Radiation_Initialize_Intergalactic_Background','method ' //char(radiationIntergalacticBackgroundMethod)//' is unrecognized')
-       moduleInitialized=.true.
+       !$omp critical(Radiation_Initialize_Intergalactic_Background)
+       if (.not.moduleInitialized) then
+          !@ <inputParameter>
+          !@   <name>radiationIntergalacticBackgroundMethod</name>
+          !@   <defaultValue>file</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of the intergalatic background radiation field.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('radiationIntergalacticBackgroundMethod',radiationIntergalacticBackgroundMethod,defaultValue='file')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="radiationIntergalacticBackgroundMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do</subroutineArgs>
+          include 'radiation.intergalactic_background.inc'
+          !# </include>
+          if (.not.(associated(Radiation_Set_Intergalactic_Background_Do).and.associated(Radiation_Flux_Intergalactic_Background_Do))) call&
+               & Galacticus_Error_Report('Radiation_Initialize_Intergalactic_Background','method ' //char(radiationIntergalacticBackgroundMethod)//' is unrecognized')
+          moduleInitialized=.true.
+       end if
+       !$omp end critical(Radiation_Initialize_Intergalactic_Background)
     end if
-    !$omp end critical(Radiation_Initialize_Intergalactic_Background)
     return
   end subroutine Radiation_Initialize_Intergalactic_Background
 

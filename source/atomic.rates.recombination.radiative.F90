@@ -94,32 +94,34 @@ contains
     !# </include>
     implicit none
     
-    !$omp critical(Atomic_Rate_Recombination_Radiative_Initialization) 
     ! Initialize if necessary.
     if (.not.recombinationRateInitialized) then
-       ! Get the ionization state method parameter.
-       !@ <inputParameter>
-       !@   <name>atomicRadiativeRecombinationMethod</name>
-       !@   <defaultValue>Verner</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing atomic radiative recombination rates.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('atomicRadiativeRecombinationMethod',atomicRadiativeRecombinationMethod,defaultValue='Verner')
-
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="atomicRadiativeRecombinationMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>atomicRadiativeRecombinationMethod,Atomic_Rate_Recombination_Radiative_Get</subroutineArgs>
-       include 'atomic.rates.recombination.radiative.inc'
-       !# </include>
-       if (.not.associated(Atomic_Rate_Recombination_Radiative_Get)) call&
-            & Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Initialize','method '//char(atomicRadiativeRecombinationMethod)//' is unrecognized')
-       recombinationRateInitialized=.true.
+       !$omp critical(Atomic_Rate_Recombination_Radiative_Initialization) 
+       if (.not.recombinationRateInitialized) then
+          ! Get the ionization state method parameter.
+          !@ <inputParameter>
+          !@   <name>atomicRadiativeRecombinationMethod</name>
+          !@   <defaultValue>Verner</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing atomic radiative recombination rates.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('atomicRadiativeRecombinationMethod',atomicRadiativeRecombinationMethod,defaultValue='Verner')
+          
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="atomicRadiativeRecombinationMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>atomicRadiativeRecombinationMethod,Atomic_Rate_Recombination_Radiative_Get</subroutineArgs>
+          include 'atomic.rates.recombination.radiative.inc'
+          !# </include>
+          if (.not.associated(Atomic_Rate_Recombination_Radiative_Get)) call&
+               & Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Initialize','method '//char(atomicRadiativeRecombinationMethod)//' is unrecognized')
+          recombinationRateInitialized=.true.
+       end if
+       !$omp end critical(Atomic_Rate_Recombination_Radiative_Initialization) 
     end if
-    !$omp end critical(Atomic_Rate_Recombination_Radiative_Initialization) 
     return
   end subroutine Atomic_Rate_Recombination_Radiative_Initialize
 

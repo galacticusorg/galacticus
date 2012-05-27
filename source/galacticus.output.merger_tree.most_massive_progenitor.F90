@@ -83,24 +83,26 @@ contains
     use Input_Parameters
     implicit none
 
-    !$omp critical(Galacticus_Output_Most_Massive_Progenitor_Initialize)
     if (.not.moduleIsInitialized) then
-       !@ <inputParameter>
-       !@   <name>outputMostMassiveProgenitor</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not most massive progenitor status should be output.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('outputMostMassiveProgenitor',outputMostMassiveProgenitor,defaultValue=.false.)
-       ! Record that the module is initialized.
-       moduleIsInitialized=.true.
+       !$omp critical(Galacticus_Output_Most_Massive_Progenitor_Initialize)
+       if (.not.moduleIsInitialized) then
+          !@ <inputParameter>
+          !@   <name>outputMostMassiveProgenitor</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not most massive progenitor status should be output.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('outputMostMassiveProgenitor',outputMostMassiveProgenitor,defaultValue=.false.)
+          ! Record that the module is initialized.
+          moduleIsInitialized=.true.
+       end if
+       !$omp end critical(Galacticus_Output_Most_Massive_Progenitor_Initialize)
     end if
-    !$omp end critical(Galacticus_Output_Most_Massive_Progenitor_Initialize)
     return
   end subroutine Galacticus_Output_Most_Massive_Progenitor_Initialize
 
