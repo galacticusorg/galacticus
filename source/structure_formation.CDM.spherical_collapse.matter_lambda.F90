@@ -161,7 +161,8 @@ contains
     integer                                                           :: iTime
     type(c_ptr)                                                       :: parameterPointer
     double precision                                                  :: epsilonPerturbation,epsilonPerturbationMinimum &
-         &,epsilonPerturbationMaximum,aExpansionNow,normalization
+         &,epsilonPerturbationMaximum,aExpansionNow,normalization,eta,radiusMaximum,radiiRatio
+    double complex                                                    :: a,b,c,d,Delta
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
@@ -212,8 +213,26 @@ contains
           ! Critical linear overdensity.
           deltaTableDelta(iTime)=normalization*0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)/OmegaM
        case (calculationDeltaVirial)
-          ! Virial density contrast at collapse.
-          deltaTableDelta(iTime)=8.0d0/(Perturbation_Maximum_Radius(epsilonPerturbation)**3)
+          ! Compute the maximum radius of the perturbation.
+          radiusMaximum=Perturbation_Maximum_Radius(epsilonPerturbation)
+          ! Find the eta-factor (see Lahav et al. 1991) which measures the dark energy contribution to the energy of the
+          ! perturbation.
+          eta=2.0d0*(OmegaDE/OmegaM)*radiusMaximum**3
+          ! Handle the open universe case separately.
+          if (OmegaDE == 0.0d0) then
+             radiiRatio=0.5d0
+          else
+             ! Coefficients of the cubic energy equation.
+             a=cmplx(  2.0d0*eta ,0.0d0)
+             b=cmplx(  0.0d0     ,0.0d0)
+             c=cmplx(-(2.0d0+eta),0.0d0)
+             d=cmplx(  1.0d0     ,0.0d0)
+             ! Solve the cubic equation to get 
+             Delta=(sqrt(3.0d0)*sqrt(27.0d0*a**4*d**2+4.0d0*a**3*c**3)-9.0d0*a**2*d)**(1.0d0/3.0d0)
+             radiiRatio=real(cmplx(1.0d0,-sqrt(3.0d0))*c/2.0d0**(2.0d0/3.0d0)/3.0d0**(1.0d0/3.0d0)/Delta-cmplx(1.0d0,sqrt(3.0d0))&
+                  & *Delta /2.0d0/a /2.0d0**(1.0d0/3.0d0)/3.0d0**(2.0d0/3.0d0))
+          end if
+          deltaTableDelta(iTime)=1.0d0/(radiiRatio*Perturbation_Maximum_Radius(epsilonPerturbation))**3
        end select
     end do
     return

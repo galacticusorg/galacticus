@@ -156,6 +156,14 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.spherical_collapse.open.exe",         # Tests of spherical collapse calculations.
+	valgrind => 0
+    },
+    {
+	name     => "tests.spherical_collapse.flat.exe",         # .
+	valgrind => 0
+    },
+    {
 	name     => "tests.linear_growth.dark_energy.exe",       # Tests of linear growth factor.
 	valgrind => 0
     },
