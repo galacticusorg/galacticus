@@ -241,6 +241,14 @@ Selected with {\tt coolingRateMethod}$=${\tt Cole2000}, this method computes the
 \end{equation}
 where $\rho(r)$ is the density profile of the hot halo, and $r_{\rm infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}). The cooling rate is also set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}.
 
+\subsubsection{Simple}
+
+Selected with {\tt coolingRateMethod}$=${\tt simple}, this method computes the cooling rate using
+\begin{equation}
+\dot{M}_{\rm cool} = M_{\rm hot}/\tau_{\rm cool} ,
+\end{equation}
+where $\tau_{\rm cool}=${\tt [coolingRateSimpleTimescale]}.
+
 \subsubsection{White \& Frenk}
 
 Selected with {\tt coolingRateMethod}$=${\tt White-Frenk1991}, this method computes the cooling rate using the expression given by \cite{white_galaxy_1991}, namely
