@@ -97,12 +97,12 @@ contains
     lineNumberStop =lineCountTotal
 
     ! Set columns to read.
-    call mergerTrees%setProperty(propertyTypeTreeIndex      ,1)
-    call mergerTrees%setProperty(propertyTypeNodeIndex      ,2)
-    call mergerTrees%setProperty(propertyTypeHostIndex      ,3)
-    call mergerTrees%setProperty(propertyTypeDescendentIndex,4)
-    call mergerTrees%setProperty(propertyTypeNodeMass       ,5)
-    call mergerTrees%setProperty(propertyTypeRedshift       ,6)
+    call mergerTrees%setPropertyColumn(propertyTypeTreeIndex      ,1)
+    call mergerTrees%setPropertyColumn(propertyTypeNodeIndex      ,2)
+    call mergerTrees%setPropertyColumn(propertyTypeHostIndex      ,3)
+    call mergerTrees%setPropertyColumn(propertyTypeDescendentIndex,4)
+    call mergerTrees%setPropertyColumn(propertyTypeNodeMass       ,5)
+    call mergerTrees%setPropertyColumn(propertyTypeRedshift       ,6)
 
     ! Read in the data.
     call mergerTrees%readASCII(nodesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
