@@ -124,3 +124,7 @@ where {\tt metaDataType} is one of:
   call mergerTrees%export(outputFile,hdfChunkSize,hdfCompressionLevel)
 \end{verbatim}
 where {\tt outputFile} is the name of the file to which the trees should be exported, and {\tt hdfChunkSize} and {\tt hdfCompressionLevel} respectively give the chunk size and compression level to use when writing the file.
+
+\subsection{Exporting Trees from \glc}\index{merger trees!exporting}
+
+By setting {\tt [mergerTreesWrite]}$=${\tt true}, \glc\ will export each merger tree generated to the file specified by {\tt [mergerTreeExportFileName]}. Currently, node indices, masses and redshifts are exported. Export happens after any merger tree pre-evolution tasks (see \S\ref{sec:MergerTreePreEvolveTask}).

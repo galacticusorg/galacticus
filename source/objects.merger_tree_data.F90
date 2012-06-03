@@ -204,29 +204,85 @@ module Merger_Tree_Data_Structure
      integer                                              :: metaDataCount=0
      type(treeMetaData),      allocatable, dimension(:)   :: metaData
    contains
-     procedure                                            :: nodeCountSet             => Merger_Tree_Data_Structure_Set_Node_Count
-     procedure                                            :: particleCountSet         => Merger_Tree_Data_Structure_Set_Particle_Count
-     procedure                                            :: readASCII                => Merger_Tree_Data_Structure_Read_ASCII
-     procedure                                            :: readParticlesASCII       => Merger_Tree_Data_Structure_Read_Particles_ASCII
-     procedure                                            :: setProperty              => Merger_Tree_Data_Structure_Set_Property
-     procedure                                            :: setParticleProperty      => Merger_Tree_Data_Structure_Set_Particle_Property
-     procedure                                            :: setParticleMass          => Merger_Tree_Data_Structure_Set_Particle_Mass
-     procedure                                            :: setSelfContained         => Merger_Tree_Data_Structure_Set_Self_Contained
-     procedure                                            :: setIncludesHubbleFlow    => Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow
-     procedure                                            :: setPositionsArePeriodic  => Merger_Tree_Data_Structure_Set_Is_Periodic
-     procedure                                            :: setIncludesSubhaloMasses => Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
-     procedure                                            :: setUnits                 => Merger_Tree_Data_Structure_Set_Units
-     procedure                                            ::                             Merger_Tree_Data_Structure_Add_Metadata_Double
-     procedure                                            ::                             Merger_Tree_Data_Structure_Add_Metadata_Integer
-     procedure                                            ::                             Merger_Tree_Data_Structure_Add_Metadata_Text
-     generic                                              :: addMetadata              => Merger_Tree_Data_Structure_Add_Metadata_Double , &
-          &                                                                              Merger_Tree_Data_Structure_Add_Metadata_Integer, &
-          &                                                                              Merger_Tree_Data_Structure_Add_Metadata_Text
-     procedure                                            :: makeReferences           => Merger_Tree_Data_Structure_Make_References
-     procedure                                            :: export                   => Merger_Tree_Data_Structure_Export
+     procedure                                            :: reset                     => Merger_Tree_Data_Structure_Reset
+     procedure                                            :: treeCountSet              => Merger_Tree_Data_Structure_Set_Tree_Count
+     procedure                                            :: nodeCountSet              => Merger_Tree_Data_Structure_Set_Node_Count
+     procedure                                            :: particleCountSet          => Merger_Tree_Data_Structure_Set_Particle_Count
+     procedure                                            :: readASCII                 => Merger_Tree_Data_Structure_Read_ASCII
+     procedure                                            :: readParticlesASCII        => Merger_Tree_Data_Structure_Read_Particles_ASCII
+     procedure                                            ::                              Merger_Tree_Data_Structure_Set_Property_Integer8
+     procedure                                            ::                              Merger_Tree_Data_Structure_Set_Property_Double
+     generic                                              :: setProperty               => Merger_Tree_Data_Structure_Set_Property_Integer8, &
+          &                                                                               Merger_Tree_Data_Structure_Set_Property_Double
+     procedure                                            :: setPropertyColumn         => Merger_Tree_Data_Structure_Set_Property_Column
+     procedure                                            :: setParticlePropertyColumn => Merger_Tree_Data_Structure_Set_Particle_Property_Column
+     procedure                                            :: setParticleMass           => Merger_Tree_Data_Structure_Set_Particle_Mass
+     procedure                                            :: setSelfContained          => Merger_Tree_Data_Structure_Set_Self_Contained
+     procedure                                            :: setIncludesHubbleFlow     => Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow
+     procedure                                            :: setPositionsArePeriodic   => Merger_Tree_Data_Structure_Set_Is_Periodic
+     procedure                                            :: setIncludesSubhaloMasses  => Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
+     procedure                                            :: setUnits                  => Merger_Tree_Data_Structure_Set_Units
+     procedure                                            ::                              Merger_Tree_Data_Structure_Add_Metadata_Double
+     procedure                                            ::                              Merger_Tree_Data_Structure_Add_Metadata_Integer
+     procedure                                            ::                              Merger_Tree_Data_Structure_Add_Metadata_Text
+     generic                                              :: addMetadata               => Merger_Tree_Data_Structure_Add_Metadata_Double , &
+          &                                                                               Merger_Tree_Data_Structure_Add_Metadata_Integer, &
+          &                                                                               Merger_Tree_Data_Structure_Add_Metadata_Text
+     procedure                                            :: makeReferences            => Merger_Tree_Data_Structure_Make_References
+     procedure                                            :: export                    => Merger_Tree_Data_Structure_Export
   end type mergerTreeData
 
 contains
+
+  subroutine Merger_Tree_Data_Structure_Reset(mergerTrees)
+    !% Reset a merger tree data object.
+    use Memory_Management
+    implicit none
+    class(mergerTreeData), intent(inout) :: mergerTrees
+
+    ! No properties.
+    mergerTrees%hasTreeIndex               =.false.
+    mergerTrees%hasNodeIndex               =.false.
+    mergerTrees%hasDescendentIndex         =.false.
+    mergerTrees%hasHostIndex               =.false.
+    mergerTrees%hasRedshift                =.false.
+    mergerTrees%hasNodeMass                =.false.
+    mergerTrees%hasParticleCount           =.false.
+    mergerTrees%hasPositionX               =.false.
+    mergerTrees%hasPositionY               =.false.
+    mergerTrees%hasPositionZ               =.false.
+    mergerTrees%hasVelocityX               =.false.
+    mergerTrees%hasVelocityY               =.false.
+    mergerTrees%hasVelocityZ               =.false.
+    mergerTrees%hasSpinX                   =.false.
+    mergerTrees%hasSpinY                   =.false.
+    mergerTrees%hasSpinZ                   =.false.
+    mergerTrees%hasSpinMagnitude           =.false.
+    mergerTrees%hasAngularMomentumX        =.false.
+    mergerTrees%hasAngularMomentumY        =.false.
+    mergerTrees%hasAngularMomentumZ        =.false.
+    mergerTrees%hasAngularMomentumMagnitude=.false.
+    mergerTrees%hasHalfMassRadius          =.false.
+    mergerTrees%hasMostBoundParticleIndex  =.false.
+
+    ! Deallocate any previous data.
+    if (allocated(mergerTrees%treeBeginsAt          )) call Dealloc_Array(mergerTrees%treeBeginsAt          )
+    if (allocated(mergerTrees%treeNodeCount         )) call Dealloc_Array(mergerTrees%treeNodeCount         )
+    if (allocated(mergerTrees%treeID                )) call Dealloc_Array(mergerTrees%treeID                )
+    if (allocated(mergerTrees%treeIndex             )) call Dealloc_Array(mergerTrees%treeIndex             )
+    if (allocated(mergerTrees%nodeIndex             )) call Dealloc_Array(mergerTrees%nodeIndex             )
+    if (allocated(mergerTrees%mostBoundParticleIndex)) call Dealloc_Array(mergerTrees%mostBoundParticleIndex)
+    if (allocated(mergerTrees%descendentIndex       )) call Dealloc_Array(mergerTrees%descendentIndex       )
+    if (allocated(mergerTrees%hostIndex             )) call Dealloc_Array(mergerTrees%hostIndex             )
+    if (allocated(mergerTrees%redshift              )) call Dealloc_Array(mergerTrees%redshift              )
+    if (allocated(mergerTrees%nodeMass              )) call Dealloc_Array(mergerTrees%nodeMass              )
+    if (allocated(mergerTrees%particleCount         )) call Dealloc_Array(mergerTrees%particleCount         )
+    if (allocated(mergerTrees%position              )) call Dealloc_Array(mergerTrees%position              )
+    if (allocated(mergerTrees%velocity              )) call Dealloc_Array(mergerTrees%velocity              )
+    if (allocated(mergerTrees%spin                  )) call Dealloc_Array(mergerTrees%spin                  )
+    if (allocated(mergerTrees%halfMassRadius        )) call Dealloc_Array(mergerTrees%halfMassRadius        )
+    return
+  end subroutine Merger_Tree_Data_Structure_Reset
 
   subroutine Merger_Tree_Data_Structure_Make_References(mergerTrees,makeReferences)
     !% Specify whether or not to make merger tree dataset references.
@@ -338,6 +394,18 @@ contains
     if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType == dataTypeNull) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','no data was given')
     return
   end subroutine Merger_Tree_Data_Structure_Add_Metadata
+
+  subroutine Merger_Tree_Data_Structure_Set_Tree_Count(mergerTrees,treeCount)
+    !% Set the total number of trees in merger trees.
+    implicit none
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    integer,               intent(in)    :: treeCount
+
+    ! Set the number of trees.
+    mergerTrees%treeCount=treeCount
+
+    return
+  end subroutine Merger_Tree_Data_Structure_Set_Tree_Count
 
   subroutine Merger_Tree_Data_Structure_Set_Node_Count(mergerTrees,nodeCount)
     !% Set the total number of nodes in merger trees.
@@ -459,7 +527,7 @@ contains
     return
   end subroutine Merger_Tree_Data_Structure_Set_Units
 
-  subroutine Merger_Tree_Data_Structure_Set_Particle_Property(mergerTrees,propertyType,columnNumber)
+  subroutine Merger_Tree_Data_Structure_Set_Particle_Property_Column(mergerTrees,propertyType,columnNumber)
     !% Set column mapping from the input file.
     use Memory_Management
     implicit none
@@ -483,9 +551,9 @@ contains
     ! Store the property type.
     mergerTrees%particleColumnProperties(columnNumber)=propertyType
     return
-  end subroutine Merger_Tree_Data_Structure_Set_Particle_Property
+  end subroutine Merger_Tree_Data_Structure_Set_Particle_Property_Column
 
-  subroutine Merger_Tree_Data_Structure_Set_Property(mergerTrees,propertyType,columnNumber)
+  subroutine Merger_Tree_Data_Structure_Set_Property_Column(mergerTrees,propertyType,columnNumber)
     !% Set column mapping from the input file.
     use Memory_Management
     implicit none
@@ -509,8 +577,74 @@ contains
     ! Store the property type.
     mergerTrees%columnProperties(columnNumber)=propertyType
     return
-  end subroutine Merger_Tree_Data_Structure_Set_Property
+  end subroutine Merger_Tree_Data_Structure_Set_Property_Column
 
+  subroutine Merger_Tree_Data_Structure_Set_Property_Integer8(mergerTrees,propertyType,property)
+    !% Set a property in the merger trees.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class  (mergerTreeData), intent(inout)               :: mergerTrees
+    integer                , intent(in   )               :: propertyType
+    integer(kind=kind_int8), intent(in   ), dimension(:) :: property
+
+    ! Check the supplied arrays is of the correct size.
+    if (size(property) /= mergerTrees%nodeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Integer8','property array size is incorrect')
+
+    ! Assign to the relevant property.
+    select case (propertyType)
+    case (propertyTypeTreeIndex      )
+       mergerTrees%hasTreeIndex      =.true.
+       if (allocated(mergerTrees%treeIndex      )) call Dealloc_Array(mergerTrees%treeIndex      )
+       call Alloc_Array(mergerTrees%treeIndex      ,[size(property)])
+       mergerTrees%treeIndex      =property
+       call Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
+    case (propertyTypeNodeIndex      )
+       mergerTrees%hasNodeIndex      =.true.
+       if (allocated(mergerTrees%nodeIndex      )) call Dealloc_Array(mergerTrees%nodeIndex      )
+       call Alloc_Array(mergerTrees%nodeIndex      ,[size(property)])
+       mergerTrees%nodeIndex      =property
+    case (propertyTypeDescendentIndex)
+       mergerTrees%hasDescendentIndex=.true.
+       if (allocated(mergerTrees%descendentIndex)) call Dealloc_Array(mergerTrees%descendentIndex)
+       call Alloc_Array(mergerTrees%descendentIndex,[size(property)])
+       mergerTrees%descendentIndex=property
+    case default
+       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Integer8','unrecognized integer property')  
+    end select
+    return
+  end subroutine Merger_Tree_Data_Structure_Set_Property_Integer8
+
+  subroutine Merger_Tree_Data_Structure_Set_Property_Double(mergerTrees,propertyType,property)
+    !% Set a property in the merger trees.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class  (mergerTreeData), intent(inout)               :: mergerTrees
+    integer                , intent(in   )               :: propertyType
+    double precision       , intent(in   ), dimension(:) :: property
+
+    ! Check the supplied arrays is of the correct size.
+    if (size(property) /= mergerTrees%nodeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','property array size is incorrect')
+
+    ! Assign to the relevant property.
+    select case (propertyType)
+    case (propertyTypeRedshift       )
+       mergerTrees%hasRedshift       =.true.
+       if (allocated(mergerTrees%redshift       )) call Dealloc_Array(mergerTrees%redshift       )
+       call Alloc_Array(mergerTrees%redshift       ,[size(property)])
+       mergerTrees%redshift       =property
+    case (propertyTypeNodeMass       )
+       mergerTrees%hasNodeMass       =.true.
+       if (allocated(mergerTrees%nodeMass       )) call Dealloc_Array(mergerTrees%nodeMass       )
+       call Alloc_Array(mergerTrees%nodeMass       ,[size(property)])
+       mergerTrees%nodeMass       =property
+    case default
+       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','unrecognized integer property')  
+    end select
+    return
+  end subroutine Merger_Tree_Data_Structure_Set_Property_Double
+  
   subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator)
     !% Read in merger tree data from an ASCII file.
     use String_Handling
@@ -525,7 +659,7 @@ contains
     character(len=*),      intent(in),   optional     :: separator
     character(len=32),     allocatable,  dimension(:) :: inputColumns
     integer                                           :: lineNumberStartActual,lineNumberStopActual,columnsCount,lineNumber&
-         &,fileUnit,iColumn,iNode,iTree
+         &,fileUnit,iColumn,iNode
     logical                                           :: gotFirstDataLine
     character(len=1024)                               :: inputLine
     type(varying_string)                              :: message
@@ -746,7 +880,22 @@ contains
     ! Deallocate workspace.
     if (allocated(inputColumns)) call Dealloc_Array(inputColumns)
 
+    ! Set tree indices.
+    call Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
+    return
+  end subroutine Merger_Tree_Data_Structure_Read_ASCII
+
+  subroutine Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
+    !% Set the merger tree index arrays.
+    use Memory_Management
+    implicit none
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    integer                              :: iTree,iNode
+
     ! Allocate arrays for tree start and stop indices and reference ID.
+    if (allocated(mergerTrees%treeBeginsAt )) call Dealloc_Array(mergerTrees%treeBeginsAt )
+    if (allocated(mergerTrees%treeNodeCount)) call Dealloc_Array(mergerTrees%treeNodeCount)
+    if (allocated(mergerTrees%treeID       )) call Dealloc_Array(mergerTrees%treeID       )
     call Alloc_Array(mergerTrees%treeBeginsAt ,[mergerTrees%treeCount])
     call Alloc_Array(mergerTrees%treeNodeCount,[mergerTrees%treeCount])
     call Alloc_Array(mergerTrees%treeID       ,[mergerTrees%treeCount])
@@ -765,8 +914,8 @@ contains
     end do
     mergerTrees%treeNodeCount(mergerTrees%treeCount)=mergerTrees%nodeCount-mergerTrees%treeBeginsAt(mergerTrees%treeCount)
     return
-  end subroutine Merger_Tree_Data_Structure_Read_ASCII
-
+  end subroutine Merger_Tree_Data_Structure_Set_Tree_Indices
+  
   subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator)
     !% Read in particle data from an ASCII file.
     use String_Handling
@@ -903,7 +1052,7 @@ contains
     return
   end subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII
 
-  subroutine Merger_Tree_Data_Structure_Export(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel)
+  subroutine Merger_Tree_Data_Structure_Export(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to an HDF5 file.
     use HDF5
     use IO_HDF5
@@ -911,16 +1060,23 @@ contains
     use String_Handling
     use Memory_Management
     implicit none
-    integer,                 intent(in)    :: hdfChunkSize,hdfCompressionLevel
-    class(mergerTreeData),   intent(inout) :: mergerTrees
-    character(len=*),        intent(in)    :: outputFileName
-    integer(kind=HSIZE_T) ,  dimension(2)  :: hyperslabStart,hyperslabCount
-    type(hdf5Object),        pointer       :: attributeGroup
-    type(hdf5Object),        target        :: outputFile,haloTrees,treesGroup,treeGroup,treeDataset,treeIndexGroup,unitsGroup&
-         &,genericGroup,cosmologyGroup,simulationGroup,groupFinderGroup,treeBuilderGroup,provenanceGroup,particlesGroup
-    integer                                :: iTree,iProperty,integerAttribute,iAttribute,iNode,iParticle
-    logical                                :: foundParticleData
-    type(varying_string)                   :: groupName
+    integer                  , intent(in   )           :: hdfChunkSize,hdfCompressionLevel
+    class    (mergerTreeData), intent(inout)           :: mergerTrees
+    character(len=*         ), intent(in   )           :: outputFileName
+    logical                  , intent(in   ), optional :: append
+    integer  (kind=HSIZE_T  ), dimension(2)            :: hyperslabStart,hyperslabCount
+    type     (hdf5Object    ), pointer                 :: attributeGroup
+    type     (hdf5Object    ), target                  :: outputFile,haloTrees,treesGroup,treeGroup,treeDataset,treeIndexGroup&
+         &,unitsGroup ,genericGroup,cosmologyGroup,simulationGroup,groupFinderGroup,treeBuilderGroup,provenanceGroup&
+         &,particlesGroup
+integer, allocatable, dimension(:) :: firstNode,numberOfNodes
+    integer                                            :: iTree,iProperty,integerAttribute,iAttribute,iNode,iParticle
+    logical                                            :: foundParticleData,appendActual
+    type     (varying_string)                          :: groupName
+
+    ! Determine if we are to append to an existing file.
+    appendActual=.false.
+    if (present(append)) appendActual=append
 
     ! Validate the merger tree.
     if (.not.mergerTrees%hasTreeIndex      ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'treeIndex'"      )
@@ -932,7 +1088,7 @@ contains
     ! If we have the particle mass, set the masses of any subhalos (which have zero mass by default) based on particle count.
     if (mergerTrees%hasParticleCount) then
        where (mergerTrees%nodeMass <= 0.0d0)
-          mergerTrees%nodeMass = dble(mergerTrees%particleCount)*mergerTrees%particleMass
+          mergerTrees%nodeMass=dble(mergerTrees%particleCount)*mergerTrees%particleMass
        end where
     end if
 
@@ -973,27 +1129,28 @@ contains
     end if
 
     ! Open the output file.
-    call outputFile%openFile(outputFileName,overWrite=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    !$omp critical (HDF5_Access)
+    call outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Create a group for the datasets.
     haloTrees=outputFile%openGroup("haloTrees","Stores all data for merger trees.")
 
     ! Write the data.
-    if (mergerTrees%hasNodeIndex               ) call haloTrees%writeDataset(mergerTrees%nodeIndex               ,"nodeIndex"      ,"The index of each node."                )
-    if (mergerTrees%hasDescendentIndex         ) call haloTrees%writeDataset(mergerTrees%descendentIndex         ,"descendentIndex","The index of each descendent node."     )
-    if (mergerTrees%hasHostIndex               ) call haloTrees%writeDataset(mergerTrees%hostIndex               ,"hostIndex"      ,"The index of each host node."           )
-    if (mergerTrees%hasNodeMass                ) call haloTrees%writeDataset(mergerTrees%nodeMass                ,"nodeMass"       ,"The mass of each node."                 )
-    if (mergerTrees%hasRedshift                ) call haloTrees%writeDataset(mergerTrees%redshift                ,"redshift"       ,"The redshift of each node."             )
-    if (mergerTrees%hasPositionX               ) call haloTrees%writeDataset(mergerTrees%position                ,"position"       ,"The position of each node."             )
-    if (mergerTrees%hasVelocityX               ) call haloTrees%writeDataset(mergerTrees%velocity                ,"velocity"       ,"The velocity of each node."             )
-    if (mergerTrees%hasSpinX                   ) call haloTrees%writeDataset(mergerTrees%spin                    ,"spin"           ,"The spin of each node."                 )
-    if (mergerTrees%hasAngularMomentumX        ) call haloTrees%writeDataset(mergerTrees%angularMomentum         ,"angularMomentum","The angular momentum spin of each node.")
-    if (mergerTrees%hasSpinMagnitude           ) call haloTrees%writeDataset(mergerTrees%spinMagnitude           ,"spin"           ,"The spin of each node."                 )
-    if (mergerTrees%hasAngularMomentumMagnitude) call haloTrees%writeDataset(mergerTrees%angularMomentumMagnitude,"angularMomentum","The angular momentum spin of each node.")
-    if (mergerTrees%hasHalfMassRadius          ) call haloTrees%writeDataset(mergerTrees%halfMassRadius          ,"halfMassRadius" ,"The half mass radius of each node."     )
+    if (mergerTrees%hasNodeIndex               ) call haloTrees%writeDataset(mergerTrees%nodeIndex               ,"nodeIndex"      ,"The index of each node."                ,appendTo=.true.)
+    if (mergerTrees%hasDescendentIndex         ) call haloTrees%writeDataset(mergerTrees%descendentIndex         ,"descendentIndex","The index of each descendent node."     ,appendTo=.true.)
+    if (mergerTrees%hasHostIndex               ) call haloTrees%writeDataset(mergerTrees%hostIndex               ,"hostIndex"      ,"The index of each host node."           ,appendTo=.true.)
+    if (mergerTrees%hasNodeMass                ) call haloTrees%writeDataset(mergerTrees%nodeMass                ,"nodeMass"       ,"The mass of each node."                 ,appendTo=.true.)
+    if (mergerTrees%hasRedshift                ) call haloTrees%writeDataset(mergerTrees%redshift                ,"redshift"       ,"The redshift of each node."             ,appendTo=.true.)
+    if (mergerTrees%hasPositionX               ) call haloTrees%writeDataset(mergerTrees%position                ,"position"       ,"The position of each node."             ,appendTo=.true.)
+    if (mergerTrees%hasVelocityX               ) call haloTrees%writeDataset(mergerTrees%velocity                ,"velocity"       ,"The velocity of each node."             ,appendTo=.true.)
+    if (mergerTrees%hasSpinX                   ) call haloTrees%writeDataset(mergerTrees%spin                    ,"spin"           ,"The spin of each node."                 ,appendTo=.true.)
+    if (mergerTrees%hasAngularMomentumX        ) call haloTrees%writeDataset(mergerTrees%angularMomentum         ,"angularMomentum","The angular momentum spin of each node.",appendTo=.true.)
+    if (mergerTrees%hasSpinMagnitude           ) call haloTrees%writeDataset(mergerTrees%spinMagnitude           ,"spin"           ,"The spin of each node."                 ,appendTo=.true.)
+    if (mergerTrees%hasAngularMomentumMagnitude) call haloTrees%writeDataset(mergerTrees%angularMomentumMagnitude,"angularMomentum","The angular momentum spin of each node.",appendTo=.true.)
+    if (mergerTrees%hasHalfMassRadius          ) call haloTrees%writeDataset(mergerTrees%halfMassRadius          ,"halfMassRadius" ,"The half mass radius of each node."     ,appendTo=.true.)
     if (mergerTrees%hasMostBoundParticleIndex) then
-       call haloTrees%writeDataset(mergerTrees%particleReferenceStart,"particleIndexStart","The starting index of particle data for each node.")
-       call haloTrees%writeDataset(mergerTrees%particleReferenceCount,"particleIndexCount","The number of particle data for each node."        )
+       call haloTrees%writeDataset(mergerTrees%particleReferenceStart,"particleIndexStart","The starting index of particle data for each node.",appendTo=.true.)
+       call haloTrees%writeDataset(mergerTrees%particleReferenceCount,"particleIndexCount","The number of particle data for each node."        ,appendTo=.true.)
     end if
 
     ! Begin creating individual merger tree datasets if requested.
@@ -1050,124 +1207,137 @@ contains
        particlesGroup=outputFile%openGroup("particles","Data for a particles.")
 
        ! Write datasets.
-       if (mergerTrees%hasParticleIndex    ) call particlesGroup%writeDataset(mergerTrees%particleIndex   ,"particleID","The ID of each particle."      )
-       if (mergerTrees%hasParticleRedshift ) call particlesGroup%writeDataset(mergerTrees%particleRedshift,"redshift"  ,"The redshift of each particle.")
-       if (mergerTrees%hasParticlePositionX) call particlesGroup%writeDataset(mergerTrees%particlePosition,"position"  ,"The position of each particle.")
-       if (mergerTrees%hasParticleVelocityX) call particlesGroup%writeDataset(mergerTrees%particleVelocity,"velocity"  ,"The velocity of each particle.")
+       if (mergerTrees%hasParticleIndex    ) call particlesGroup%writeDataset(mergerTrees%particleIndex   ,"particleID","The ID of each particle."      ,appendTo=.true.)
+       if (mergerTrees%hasParticleRedshift ) call particlesGroup%writeDataset(mergerTrees%particleRedshift,"redshift"  ,"The redshift of each particle.",appendTo=.true.)
+       if (mergerTrees%hasParticlePositionX) call particlesGroup%writeDataset(mergerTrees%particlePosition,"position"  ,"The position of each particle.",appendTo=.true.)
+       if (mergerTrees%hasParticleVelocityX) call particlesGroup%writeDataset(mergerTrees%particleVelocity,"velocity"  ,"The velocity of each particle.",appendTo=.true.)
 
        ! Close the particles group.
        call particlesGroup%close()
     end if
 
-    ! Set tree metadata.
-    ! Determine if trees have subhalos.
-    if (mergerTrees%hasHostIndex) then
-       ! A host index is included. If any node is not its own host, then it's a subhalo.
-       if (any(mergerTrees%nodeIndex /= mergerTrees%hostIndex)) then
+    ! Create datasets giving positions of merger trees within the node arrays.
+    treeIndexGroup=outputFile%openGroup("treeIndex","Locations of merger trees within the halo data arrays.")
+    if (appendActual) then
+       call treeIndexGroup%readDataset("firstNode"    ,firstNode    )
+       call treeIndexGroup%readDataset("numberOfNodes",numberOfNodes)
+       mergerTrees%treeBeginsAt=mergerTrees%treeBeginsAt+firstNode(size(firstNode))+numberOfNodes(size(numberOfNodes))
+       call Dealloc_Array(firstNode    )
+       call Dealloc_Array(numberOfNodes)
+    end if
+    call treeIndexGroup%writeDataset(mergerTrees%treeBeginsAt ,"firstNode"    ,"Position of the first node in each tree in the halo data arrays.",appendTo=.true.)
+    call treeIndexGroup%writeDataset(mergerTrees%treeNodeCount,"numberOfNodes","Number of nodes in each tree."                                   ,appendTo=.true.)
+    call treeIndexGroup%writeDataset(mergerTrees%treeID       ,"treeIndex"    ,"Unique index of tree."                                           ,appendTo=.true.)
+    call treeIndexGroup%close()
+       
+    ! Only write remaining data if we are not appending to an existing file.
+    if (.not.appendActual) then
+       
+       ! Set tree metadata.
+       ! Determine if trees have subhalos.
+       if (mergerTrees%hasHostIndex) then
+          ! A host index is included. If any node is not its own host, then it's a subhalo.
+          if (any(mergerTrees%nodeIndex /= mergerTrees%hostIndex)) then
+             integerAttribute=1
+          else
+             integerAttribute=0
+          end if
+       else
+          ! No host index is included - assume no nodes are subhalos.
+          integerAttribute=0
+       end if
+       call haloTrees%writeAttribute(integerAttribute,"treesHaveSubhalos")
+       ! Determine if trees are self-contained.
+       if (mergerTrees%areSelfContained) then
           integerAttribute=1
        else
           integerAttribute=0
        end if
-    else
-       ! No host index is included - assume no nodes are subhalos.
-       integerAttribute=0
-    end if
-    call haloTrees%writeAttribute(integerAttribute,"treesHaveSubhalos")
-    ! Determine if trees are self-contained.
-    if (mergerTrees%areSelfContained) then
-       integerAttribute=1
-    else
-       integerAttribute=0
-    end if
-    call haloTrees%writeAttribute(integerAttribute,"treesAreSelfContained")
-    ! Determine if velocities include the Hubble flow.
-    if (mergerTrees%includesHubbleFlow) then
-       integerAttribute=1
-    else
-       integerAttribute=0
-    end if
-    call haloTrees%writeAttribute(integerAttribute,"velocitiesIncludeHubbleFlow")
-    ! Determine if positions are periodic.
-    if (mergerTrees%isPeriodic) then
-       integerAttribute=1
-    else
-       integerAttribute=0
-    end if
-    call haloTrees%writeAttribute(integerAttribute,"positionsArePeriodic")
-    ! Determine if halo masses include subhalo contributions.
-    if (mergerTrees%includesSubhaloMasses) then
-       integerAttribute=1
-    else
-       integerAttribute=0
-    end if
-    call haloTrees%writeAttribute(integerAttribute,"haloMassesIncludeSubhalos")
-
-    ! Close the group for datasets.
-    call haloTrees%close()
-
-    ! Store units.
-    unitsGroup=outputFile%openGroup("units","The units system used.")
-    if (mergerTrees%unitsSet(unitsMass    )) call Store_Unit_Attributes(unitsMass    ,"mass"    ,mergerTrees,unitsGroup)
-    if (mergerTrees%unitsSet(unitsLength  )) call Store_Unit_Attributes(unitsLength  ,"length"  ,mergerTrees,unitsGroup)
-    if (mergerTrees%unitsSet(unitsTime    )) call Store_Unit_Attributes(unitsTime    ,"time"    ,mergerTrees,unitsGroup)
-    if (mergerTrees%unitsSet(unitsVelocity)) call Store_Unit_Attributes(unitsVelocity,"velocity",mergerTrees,unitsGroup)
-
-    ! Create datasets giving positions of merger trees within the node arrays.
-    treeIndexGroup=outputFile%openGroup("treeIndex","Locations of merger trees within the halo data arrays.")
-    call treeIndexGroup%writeDataset(mergerTrees%treeBeginsAt ,"firstNode"    ,"Position of the first node in each tree in the halo data arrays.")
-    call treeIndexGroup%writeDataset(mergerTrees%treeNodeCount,"numberOfNodes","Number of nodes in each tree."                                   )
-    call treeIndexGroup%writeDataset(mergerTrees%treeID       ,"treeIndex"    ,"Unique index of tree."                                           )
-    call treeIndexGroup%close()
-
-    ! Create groups for attributes.
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) genericGroup    =outputFile%openGroup("metaData"   ,"Generic metadata."                  )
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) cosmologyGroup  =outputFile%openGroup("cosmology"  ,"Cosmological parameters."           )
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) simulationGroup =outputFile%openGroup("simulation" ,"Simulation parameters."             )
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) groupFinderGroup=outputFile%openGroup("groupFinder","Group finder parameters."           )
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) treeBuilderGroup=outputFile%openGroup("treeBuilder","Tree building algorithm parameters.")
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) provenanceGroup =outputFile%openGroup("provenance" ,"Data provenance."                   )
-    
-    ! Write attributes.
-    do iAttribute=1,mergerTrees%metaDataCount
+       call haloTrees%writeAttribute(integerAttribute,"treesAreSelfContained")
+       ! Determine if velocities include the Hubble flow.
+       if (mergerTrees%includesHubbleFlow) then
+          integerAttribute=1
+       else
+          integerAttribute=0
+       end if
+       call haloTrees%writeAttribute(integerAttribute,"velocitiesIncludeHubbleFlow")
+       ! Determine if positions are periodic.
+       if (mergerTrees%isPeriodic) then
+          integerAttribute=1
+       else
+          integerAttribute=0
+       end if
+       call haloTrees%writeAttribute(integerAttribute,"positionsArePeriodic")
+       ! Determine if halo masses include subhalo contributions.
+       if (mergerTrees%includesSubhaloMasses) then
+          integerAttribute=1
+       else
+          integerAttribute=0
+       end if
+       call haloTrees%writeAttribute(integerAttribute,"haloMassesIncludeSubhalos")
        
-       ! Determine which group to write to.
-       select case (mergerTrees%metaData(iAttribute)%metadataType)
-       case (metaDataGeneric    )
-          attributeGroup => genericGroup
-       case (metaDataCosmology  )
-          attributeGroup => cosmologyGroup
-       case (metaDataSimulation )
-          attributeGroup => simulationGroup
-       case (metaDataGroupFinder)
-          attributeGroup => groupFinderGroup
-       case (metaDataTreeBuilder)
-          attributeGroup => treeBuilderGroup
-       case (metaDataProvenance )
-          attributeGroup => provenanceGroup
-       end select
+       ! Close the group for datasets.
+       call haloTrees%close()
+       
+       ! Store units.
+       unitsGroup=outputFile%openGroup("units","The units system used.")
+       if (mergerTrees%unitsSet(unitsMass    )) call Store_Unit_Attributes(unitsMass    ,"mass"    ,mergerTrees,unitsGroup)
+       if (mergerTrees%unitsSet(unitsLength  )) call Store_Unit_Attributes(unitsLength  ,"length"  ,mergerTrees,unitsGroup)
+       if (mergerTrees%unitsSet(unitsTime    )) call Store_Unit_Attributes(unitsTime    ,"time"    ,mergerTrees,unitsGroup)
+       if (mergerTrees%unitsSet(unitsVelocity)) call Store_Unit_Attributes(unitsVelocity,"velocity",mergerTrees,unitsGroup)
+       
+       ! Create groups for attributes.
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) genericGroup    =outputFile%openGroup("metaData"   ,"Generic metadata."                  )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) cosmologyGroup  =outputFile%openGroup("cosmology"  ,"Cosmological parameters."           )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) simulationGroup =outputFile%openGroup("simulation" ,"Simulation parameters."             )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) groupFinderGroup=outputFile%openGroup("groupFinder","Group finder parameters."           )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) treeBuilderGroup=outputFile%openGroup("treeBuilder","Tree building algorithm parameters.")
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) provenanceGroup =outputFile%openGroup("provenance" ,"Data provenance."                   )
+       
+       ! Write attributes.
+       do iAttribute=1,mergerTrees%metaDataCount
+          
+          ! Determine which group to write to.
+          select case (mergerTrees%metaData(iAttribute)%metadataType)
+          case (metaDataGeneric    )
+             attributeGroup => genericGroup
+          case (metaDataCosmology  )
+             attributeGroup => cosmologyGroup
+          case (metaDataSimulation )
+             attributeGroup => simulationGroup
+          case (metaDataGroupFinder)
+             attributeGroup => groupFinderGroup
+          case (metaDataTreeBuilder)
+             attributeGroup => treeBuilderGroup
+          case (metaDataProvenance )
+             attributeGroup => provenanceGroup
+          end select
+          
+          ! Determine what data type to write.
+          select case (mergerTrees%metaData(iAttribute)%dataType)
+          case (dataTypeInteger)
+             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%integerAttribute,char(mergerTrees%metaData(iAttribute)%label))
+          case (dataTypeDouble )
+             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%doubleAttribute ,char(mergerTrees%metaData(iAttribute)%label))
+          case (dataTypeText   )
+             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
+          end select
+          
+       end do
+       
+       ! Close attribute groups.
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) call genericGroup    %close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) call cosmologyGroup  %close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) call simulationGroup %close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) call groupFinderGroup%close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) call treeBuilderGroup%close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) call provenanceGroup %close()
 
-       ! Determine what data type to write.
-       select case (mergerTrees%metaData(iAttribute)%dataType)
-       case (dataTypeInteger)
-          call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%integerAttribute,char(mergerTrees%metaData(iAttribute)%label))
-       case (dataTypeDouble )
-          call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%doubleAttribute ,char(mergerTrees%metaData(iAttribute)%label))
-       case (dataTypeText   )
-          call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
-       end select
-
-    end do
-
-    ! Close attribute groups.
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) call genericGroup    %close()
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) call cosmologyGroup  %close()
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) call simulationGroup %close()
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) call groupFinderGroup%close()
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) call treeBuilderGroup%close()
-    if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) call provenanceGroup %close()
+    end if
 
     ! Close the output file.
     call outputFile%close()
+    !$omp end critical (HDF5_Access)
 
     return
   end subroutine Merger_Tree_Data_Structure_Export
