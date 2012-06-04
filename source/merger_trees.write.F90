@@ -104,7 +104,7 @@ contains
     type   (treeNode      ), pointer                   :: thisNode
     integer                                            :: nodeCount
     type   (mergerTreeData)                            :: mergerTrees
-    type   (varyingString )                            :: mergerTreeExportFileName
+    type   (varying_string)                            :: mergerTreeExportFileName
 
     ! Check if module is initialized.
     if (.not.moduleInitialized) then
