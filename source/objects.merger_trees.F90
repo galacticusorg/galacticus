@@ -469,7 +469,7 @@ contains
     !$omp threadprivate(ode2System,ode2Driver,odeReset)
     type(c_ptr)                                                     :: parameterPointer
 #ifdef PROFILE
-    procedure(),                                            pointer :: My_Error_Analyzer
+    type(c_funptr)                                                  :: Error_Analyzer
 #endif
 
     ! Initialize.
@@ -541,16 +541,17 @@ contains
     startTimeThisNode=Tree_Node_Time(thisNode)
 #ifdef PROFILE
     if (profileOdeEvolver) then
-       My_Error_Analyzer => Tree_Node_Evolve_Error_Analyzer
+       Error_Analyzer=c_funloc(Tree_Node_Evolve_Error_Analyzer)
     else
-       My_Error_Analyzer => Tree_Node_Evolve_Error_Analyzer_Dummy
+       Error_Analyzer=C_NULL_FUNPTR
     end if
 #endif
-    if (nProperties /= nPropertiesPrevious) then
+!! AJB HACK - think we need to reset every time, otherwise will keep stepsize and scalings for previous node, which might not be the same node
+!    if (nProperties /= nPropertiesPrevious) then
        if (nPropertiesPrevious > 0 .and. .not.odeReset) call ODEIV2_Solver_Free(ode2Driver,ode2System)
        odeReset=.true.
        nPropertiesPrevious=nProperties
-    end if
+!    end if
     if (startTimeThisNode /= endTime)                                   &
          & call ODEIV2_Solve(                                           &
          &                   ode2Driver,ode2System                    , &
@@ -560,12 +561,12 @@ contains
          &                   Tree_Node_ODEs                           , &
          &                   parameterPointer                         , &
          &                   odeToleranceAbsolute,odeToleranceRelative, &
+#ifdef PROFILE
+         &                   Error_Analyzer                           , &
+#endif
          &                   propertyScales                           , &
          &                   reset=odeReset                           , &
          &                   errorHandler=Galacticus_ODE_Error_Handler  &
-#ifdef PROFILE
-         &                  ,Error_Analyzer=My_Error_Analyzer           &
-#endif
          &                  )
 
     ! Extract values.
@@ -925,19 +926,7 @@ contains
   end subroutine Tree_Node_ODEs_Error_Handler
   
 #ifdef PROFILE
-  subroutine Tree_Node_Evolve_Error_Analyzer_Dummy(currentPropertyValue,currentPropertyError,timeStep,stepStatus)
-    !% Dummy profiler of ODE solver step sizes and errors.
-    use FGSL
-    implicit none
-    double precision,        intent(in), dimension(nProperties) :: currentPropertyValue
-    real(fgsl_double),       intent(in), dimension(nProperties) :: currentPropertyError
-    double precision,        intent(in)                         :: timeStep
-    integer,                 intent(in)                         :: stepStatus
-
-    return
-  end subroutine Tree_Node_Evolve_Error_Analyzer_Dummy
- 
-  subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus)
+  subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
     use FGSL
     use ISO_Varying_String
@@ -946,26 +935,28 @@ contains
     include 'objects.merger_trees.decode_property_identifiers.modules.inc'
     !# </include>
     implicit none
-    double precision,        intent(in), dimension(nProperties) :: currentPropertyValue
-    real(fgsl_double),       intent(in), dimension(nProperties) :: currentPropertyError
-    double precision,        intent(in)                         :: timeStep
-    integer,                 intent(in)                         :: stepStatus
-    double precision                                            :: scaledErrorMaximum,scaledError
-    integer                                                     :: iProperty,limitingProperty
-    logical                                                     :: matchedProperty
-    type(varying_string)                                        :: propertyName
+    real(c_double),   intent(in), dimension(nProperties) :: currentPropertyValue
+    real(c_double),   intent(in), dimension(nProperties) :: currentPropertyError
+    real(c_double),   intent(in), value                  :: timeStep
+    integer(c_int),   intent(in), value                  :: stepStatus
+    double precision                                     :: scaledErrorMaximum,scaledError,scale
+    integer                                              :: iProperty,limitingProperty
+    logical                                              :: matchedProperty
+    type(varying_string)                                 :: propertyName
+
+    ! If the step was not good, return immediately.
+    if (stepStatus /= FGSL_SUCCESS) return
 
     ! Find the property with the largest error (i.e. that which is limiting the step).
-    scaledErrorMaximum=0.0d0    
+    scaledErrorMaximum=0.0d0
     do iProperty=1,nProperties
-       scaledError=dabs(currentPropertyError(iProperty))/(odeToleranceAbsolute*propertyScales(iProperty)+odeToleranceRelative&
-            &*dabs(currentPropertyValue(iProperty)))
+       scale=odeToleranceAbsolute*propertyScales(iProperty)+odeToleranceRelative*dabs(currentPropertyValue(iProperty))
+       scaledError=dabs(currentPropertyError(iProperty))/scale
        if (scaledError > scaledErrorMaximum) then
           scaledErrorMaximum=scaledError
           limitingProperty=iProperty
        end if
     end do
-
     ! Decode the step limiting property.
     matchedProperty=.false.
     propertyName="unknown"
