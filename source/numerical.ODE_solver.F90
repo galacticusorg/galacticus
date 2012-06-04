@@ -95,9 +95,6 @@ contains
     integer(c_size_t)                                 :: odeNumber
     double precision                                  :: x,h,x1Internal
     logical                                           :: resetActual,forwardEvolve
-#ifdef PROFILE
-    real(fgsl_double),        dimension(yCount)       :: yError
-#endif
 
     ! Number of ODEs to solve.
     odeNumber=yCount
@@ -130,15 +127,6 @@ contains
     ! Evolve the system until the final time is reached.
     do while ((forwardEvolve.and.x<x1Internal).or.(.not.forwardEvolve.and.x>x1Internal))
        status=FGSL_ODEiv_Evolve_Apply(odeEvolver,odeController,odeStepper,odeSystem,x,x1Internal,h,y)
-
-#ifdef PROFILE
-       ! If profiling is being performed, extract errors and send them to the specified error analysis function.
-       if (present(Error_Analyzer) .and. x /= x0) then
-          call FGSL_ODEiv_Evolve_Error(odeEvolver,yError)
-          call Error_Analyzer(y,yError,h,status)
-       end if
-#endif
-
        select case (status)
        case (FGSL_Success)
           ! Successful completion of the step - do nothing.
