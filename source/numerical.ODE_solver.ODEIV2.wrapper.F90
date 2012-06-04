@@ -18,9 +18,6 @@ module fodeiv2
        fodeiv2_driver_alloc_y_new, fodeiv2_driver_alloc_yp_new, &
        fodeiv2_driver_alloc_scaled_new, fodeiv2_driver_set_hmin, &
        fodeiv2_driver_set_hmax, fodeiv2_driver_set_nmax, fodeiv2_driver_status
-#ifdef PROFILE
-  public :: fodeiv2_driver_error
-#endif
 
   ! Specify an explicit dependence on the bivar.o object file.
   !: ./work/build/numerical.ODE_solver.ODEIV2.utils.o
@@ -191,21 +188,21 @@ module fodeiv2
        import 
        type(c_ptr), value :: s
      end subroutine gsl_odeiv2_evolve_free
-     function gsl_odeiv2_driver_apply(d, t, t1, y) bind(c)
+     function gsl_odeiv2_driver_apply(d, t, t1, y &
+#ifdef PROFILE
+          &                           , sa        &
+#endif
+          &                          ) bind(c)
        import
        type(c_ptr), value :: d
        real(c_double) :: t
        real(c_double), value :: t1
        real(c_double), dimension(*), intent(inout) :: y
+#ifdef PROFILE
+       type(c_funptr), value :: sa
+#endif
        integer(c_int) :: gsl_odeiv2_driver_apply
      end function gsl_odeiv2_driver_apply
-#ifdef PROFILE
-     subroutine gsl_odeiv2_driver_error(d, yerr) bind(c)
-       import
-       type(c_ptr), value :: d
-       real(c_double), dimension(*), intent(inout) :: yerr
-     end subroutine gsl_odeiv2_driver_error
-#endif
      function gsl_odeiv2_driver_reset(d) bind(c)
        import 
        type(c_ptr), value :: d
@@ -469,21 +466,22 @@ contains
     if (.not. c_associated(s%odeiv2_system)) &
          fodeiv2_system_status = .false.
   end function fodeiv2_system_status
-  function fodeiv2_driver_apply(d, t, t1, y)
+  function fodeiv2_driver_apply(d, t, t1, y &
+#ifdef PROFILE
+       &                        ,sa         &
+#endif
+       &                       )
     type(fodeiv2_driver), intent(in) :: d
     real(fgsl_double), intent(inout) :: t
     real(fgsl_double), intent(in)    :: t1
     real(fgsl_double), intent(inout) :: y(:)
+#ifdef PROFILE
+    type(c_funptr), intent(in)       :: sa
+#endif
     integer(fgsl_int) :: fodeiv2_driver_apply
+
     fodeiv2_driver_apply = gsl_odeiv2_driver_apply(d%odeiv2_driver, t, t1, y)
   end function fodeiv2_driver_apply
-#ifdef PROFILE
-  subroutine fodeiv2_driver_error(d, yerr)
-    type(fodeiv2_driver), intent(inout) :: d
-    real(fgsl_double), intent(inout) :: yerr(:)
-    call gsl_odeiv2_driver_error(d%odeiv2_driver,yerr)
-  end subroutine fodeiv2_driver_error
-#endif
   function fodeiv2_driver_reset(d)
     type(fodeiv2_driver), intent(inout) :: d
     integer(fgsl_int) :: fodeiv2_driver_reset
