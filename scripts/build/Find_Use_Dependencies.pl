@@ -134,6 +134,9 @@ foreach $srcdir ( @sourcedirs ) {
 		$active = 1;
 		open(infile,$fullname) or die "Can't open input file: $fullname";
 		while (my $line = <infile>) {
+		    if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
+			$libraryDependencies{$1} = 1;	
+		    }
 		    if ( $line =~ m/^\s*\#include\s+<([a-zA-Z0-9_]+)\.h>/ ) {
 			my $includeFile = $1;
 			$libraryDependencies{$includeLibararies{lc($includeFile)}} = 1
