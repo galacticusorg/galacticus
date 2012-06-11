@@ -230,7 +230,7 @@
   <parameters>
     <parameter>
       <name>stellarPopulationSpectraFile</name>
-      <value>data/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5</value>
+      <value>data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5</value>
     </parameter>
     <parameter>
       <name>stellarPopulationSpectraMethod</name>

@@ -1,19 +1,19 @@
-*** Makefile.orig	2011-12-19 08:34:01.000000000 -0800
---- Makefile	2011-12-19 08:35:36.611926144 -0800
+*** aux/FSPS_v2.3/src/Makefile.orig	2012-06-11 10:31:05.000000000 -0700
+--- aux/FSPS_v2.3/src/Makefile	2012-06-11 10:31:25.000000000 -0700
 ***************
 *** 47,53 ****
   PROGS = simple lesssimple autosps 
   
   COMMON = sps_vars.o nrtype.o sps_utils.o nr.o nrutil.o compsp.o	 \
-! ssp_gen.o getmags.o ran.o locate.o qromb.o polint.o trapzd.o tridag.o \
+! ssp_gen.o getmags.o ran.o locate.o qromb.o polint.o trapzd.o \
   sps_setup.o pz_convol.o get_tuniv.o imf.o imf_weight.o add_dust.o getspec.o \
-  add_bs.o mod_hb.o add_remnants.o getindx.o velbroad.o mod_agb.o \
+  add_bs.o mod_hb.o add_remnants.o getindx.o velbroad.o mod_gb.o \
   write_isochrone.o sfhstat.o linterp.o
 --- 47,53 ----
   PROGS = simple lesssimple autosps 
   
   COMMON = sps_vars.o nrtype.o sps_utils.o nr.o nrutil.o compsp.o	 \
-! ssp_gen.o getmags.o ran.o locate.o qromb.o polint.o galacticus_IMF.o trapzd.o tridag.o \
+! ssp_gen.o getmags.o ran.o locate.o qromb.o polint.o galacticus_IMF.o trapzd.o \
   sps_setup.o pz_convol.o get_tuniv.o imf.o imf_weight.o add_dust.o getspec.o \
-  add_bs.o mod_hb.o add_remnants.o getindx.o velbroad.o mod_agb.o \
+  add_bs.o mod_hb.o add_remnants.o getindx.o velbroad.o mod_gb.o \
   write_isochrone.o sfhstat.o linterp.o
