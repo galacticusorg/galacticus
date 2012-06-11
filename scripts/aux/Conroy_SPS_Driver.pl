@@ -78,10 +78,13 @@ if ( $makeFile == 1 ) {
     
     # Patch the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.3/src/galacticus_IMF.f90" ) {
- 	foreach my $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch" ) {
- 	    copy($galacticusPath."aux/FSPS_v2.3_Galacticus_Modifications/".$file,$galacticusPath."aux/FSPS_v2.3/src/".$file);
+ 	foreach my $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch", "qromb.f90.patch" ) {
+	    my $todir = $galacticusPath."aux/FSPS_v2.3/src/";
+	    $todir .= "nr/"
+		if ( $file eq "qromb.f90.patch" );
+ 	    copy($galacticusPath."aux/FSPS_v2.3_Galacticus_Modifications/".$file,$todir.$file);
  	    if ( $file =~ m/\.patch$/ ) {
-		system("cd ".$galacticusPath."aux/FSPS_v2.3/src; patch < $file");
+		system("cd ".$todir."; patch < $file");
 		die("Conroy_SPS_Driver.pl: unable to patch file: ".$file) unless ( $? == 0 );
 	    }
  	    print "$file\n";
