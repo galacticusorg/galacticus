@@ -117,7 +117,8 @@ The {\tt runFile} is an XML file with the following structure:
    <wallTime>48:00:00</wallTime>
    <memory>3gb</memory>
    <ompThreads>8</ompThreads>
-   <queue>stanard</queue>
+   <queue>standard</queue>
+   <maxJobsInQueue>10</maxJobsInQueue>
    <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
    <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
  </pbs>                                                                                                             
@@ -180,6 +181,7 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt memory}] A limit on the memory allowed for each model (optional);
 \item[{\tt ompThreads}] The number of OpenMP threads to use for each model (optional). This is used to request an appropriate number of processors per node;
 \item[{\tt queue}] The name of the queue to submit the jobs to (optional);
+\item[{\tt maxJobsInQueue}] The maximum number of jobs to place in the queue. Additional jobs will be held and submitted once the number of jobs in the queue drops below this value (optional);
 \item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
 \item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
 \end{description}

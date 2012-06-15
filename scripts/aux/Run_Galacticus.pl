@@ -153,7 +153,7 @@ if ( $launchMethod eq "condor" ) {
 # Wait for PBS models to finish.
 if ( $launchMethod eq "pbs" ) {
     print "Waiting for PBS jobs to finish...\n";
-    while ( scalar(keys %pbsJobs) > 0 ) {
+    while ( scalar(keys %pbsJobs) > 0 || scalar(@{$modelsToRun->{'pbs'}->{'modelQueue'}}) > 0 ) {
 	# Report on number of jobs remaining.
 	# Find all PBS jobs that are running.
 	my %runningPBSJobs;
@@ -177,7 +177,29 @@ if ( $launchMethod eq "pbs" ) {
 		delete($pbsJobs{$jobID});
 	    }
 	}
-	sleep 60;
+	# If there are jobs remaining to be submitted, and not too many are already queued, launch one.
+	my $maxJobsInQueue = -1;
+	$maxJobsInQueue = $modelsToRun->{'pbs'}->{'maxJobsInQueue'} if ( exists($modelsToRun->{'pbs'}->{'maxJobsInQueue'}) );
+	if ( scalar(@{$modelsToRun->{'pbs'}->{'modelQueue'}}) > 0 && scalar(keys %pbsJobs) < $maxJobsInQueue || $maxJobsInQueue < 0 ) {
+	    my $pbsJob = shift(@{$modelsToRun->{'pbs'}->{'modelQueue'}});
+	    my $pbsScript = $pbsJob->{'script'};
+	    my $galacticusOutputDirectory = $pbsJob->{'outputDirectory'};
+	    print "Submitting script: ".$pbsScript."\n";
+	    open(pHndl,"qsub ".$pbsScript."|");
+	    my $jobID = "";
+	    while ( my $line = <pHndl> ) {
+		if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
+	    }
+	    close(pHndl);	    
+	    # Add job number to active job hash
+	    unless ( $jobID eq "" ) {
+		$pbsJobs{$jobID}->{'directory'} = $galacticusOutputDirectory;
+		@{$pbsJobs{$jobID}->{'temporaryFiles'}} = [$pbsScript];
+	    }
+	    sleep 10;
+	} else {
+	    sleep 60;
+	}
     }
 }
 
@@ -192,6 +214,9 @@ sub Launch_Models {
 
     # Initialize a model counter.
     my $modelCounter = -1;
+
+    # Create empty PBS model queue.
+    @{$modelsToRun->{'pbs'}->{'modelQueue'}} = ();
 
     # Loop through all model sets.
     my $iModelSet = -1;
@@ -394,7 +419,8 @@ sub Launch_Models {
 			    chomp($pwd);
 			}
 			print oHndl "#PBS -o ".$pwd."/".$galacticusOutputDirectory."/galacticus.log\n";
-			print oHndl "#PBS -q ".$modelsToRun->{'pbs'}->{'queue'}."\n";
+			print oHndl "#PBS -q ".$modelsToRun->{'pbs'}->{'queue'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'queue'}) );
 			print oHndl "#PBS -V\n";
 			print oHndl "echo \$PBS_O_WORKDIR\n";
 			print oHndl "cd \$PBS_O_WORKDIR\n";
@@ -428,20 +454,15 @@ sub Launch_Models {
 			print oHndl "mv core* ".$galacticusOutputDirectory."/\n";
 			close(oHndl);
 			
-			# Submit the job - capture the job number?
-			open(pHndl,"qsub ".$pbsScript."|");
-			my $jobID = "";
-			while ( my $line = <pHndl> ) {
-			    if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
-			}
-			close(pHndl);
-			
-                        # Add job number to active job hash
-			unless ( $jobID eq "" ) {
-			    $pbsJobs{$jobID}->{'directory'} = $galacticusOutputDirectory;
-			    @{$pbsJobs{$jobID}->{'temporaryFiles'}} = [$pbsScript];
-			}
-			sleep 10;
+			# Enter the model in the queue to be run.
+			push(
+			     @{$modelsToRun->{'pbs'}->{'modelQueue'}},
+			     {
+				 script => $pbsScript,
+				 outputDirectory => $galacticusOutputDirectory
+				 }
+			     );
+
 		    }
 
 		}
