@@ -10,7 +10,6 @@ use File::Slurp qw( slurp );
 use File::Find;
 use Switch;
 use Term::ReadKey;
-use Net::DBus;
 
 # Run a suite of tests on the Galacticus code.
 # Andrew Benson (19-Aug-2010).
@@ -39,6 +38,7 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
 	case ( "kdewallet" ) {
 	    $appName          = "Galacticus";
 	    $folderName       = "glc-test-all";
+	    require Net::DBus;
 	    my $bus           = Net::DBus->find;
 	    my $walletService = $bus->get_service("org.kde.kwalletd");
 	    my $walletObject  = $walletService->get_object("/modules/kwalletd");
