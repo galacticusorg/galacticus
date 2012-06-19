@@ -228,6 +228,10 @@ where the {\tt showFit} argument can be 0 or 1 and, if set to 1, the script shou
 \end{verbatim}
 where {\tt chiSquared} and {\tt degreesOfFreedom} are the fitting results. All such data returned from fitting scripts will be collated by {\tt Galacticus\_Compute\_Fit.pl}, augmented with the weight value and the net goodness of fit determined. All of this information is then output to {\tt galacticusFits.xml} in the selected output directory.
 
+\subsubsection{Performing Other Analysis}
+
+If {\tt \textless doAnalysis \textgreater}$=${\tt yes} and {\tt \textless analysisFile\textgreater} is set to something other than an XML file it is assumed that this is an analysis script that should be run directly. The script will be executed with the output directory for the \glc\ model as the first and only argument.
+
 \subsection{Running Models in ``Embarrassingly Parallel'' Mode}
 
 While \glc\ is parallelized via OpenMP it is also possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:

@@ -484,8 +484,13 @@ sub Model_Finalize {
 	# Generate plots.
 	unless ( $modelsToRun->{'doAnalysis'} eq "no" ) {
 	    my $analysisScript = $galacticusPath."data/analyses/Galacticus_Compute_Fit_Analyses.xml";
-	    $analysisScript = $modelsToRun->{'analysisScript'} if ( exists($modelsToRun->{'analysisScript'}) );
-	    system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory." ".$analysisScript);
+	    $analysisScript = $modelsToRun->{'analysisScript'}
+	       if ( exists($modelsToRun->{'analysisScript'}) );
+	    if ( $analysisScript =~ m/\.xml$/ ) {
+		system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory." ".$analysisScript);
+	    } else {
+		system($analysisScript." ".$galacticusOutputDirectory);
+	    }
 	}
     } else {
 	# The run failed for some reason.
