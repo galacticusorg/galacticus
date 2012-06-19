@@ -2,11 +2,11 @@
 
 \section{Binaries}
 
-If you just want to run \glc, and don't want to modify the code in any way you can try using a standalone binary copy of \glc. This is often a good way to try out \glc\ without the overhead of installing libraries and tools required to compile \glc. Binaries can be found at the \href{http://www.ctcp.caltech.edu/galacticus/download.htm}{download page} and are currently available only for x86\_64 Linux. The binary is updated every night to reflect any updates to \glc.
+If you just want to run \glc, and don't want to modify the code in any way you can try using a standalone binary copy of \glc. This is often a good way to try out \glc\ without the overhead of installing libraries and tools required to compile \glc. Binaries can be found at the \href{https://sites.google.com/site/galacticusmodel/downloads}{download page} and are currently available only for x86\_64 Linux. The binary is updated every night to reflect any updates to \glc.
 
 \section{Installation Scripts}
 
-Installing all the tools required for \glc\ can take some time. To make this process easier we've developed some simple installation scripts for Ubuntu, Fedora and Red Hat flavors of Linux. You can find these at the \href{http://www.ctcp.caltech.edu/galacticus/download.htm}{download page}. These should be run as root and will attempt to install everything need to run \glc. We suggest that you look through the scripts to see what they're doing before running them---we make no guarantees that they won't install something that breaks other aspects of your system---use them at your own risk!
+Installing all the tools required for \glc\ can take some time. To make this process easier we've developed some simple installation scripts for Ubuntu, Fedora and Red Hat flavors of Linux. You can find these at the \href{https://sites.google.com/site/galacticusmodel/downloads}{download page}. These should be run as root and will attempt to install everything need to run \glc. We suggest that you look through the scripts to see what they're doing before running them---we make no guarantees that they won't install something that breaks other aspects of your system---use them at your own risk!
 
 \section{Required Libraries and Tools}
 
@@ -126,9 +126,9 @@ perl -MCPAN -e 'install Data::Dumper'
 In addition to the tools listed in \S\ref{sec:requirementsEssential} a typical install (allowing you to run typical analysis tasks for example) requires the following tools to be installed:
 
 \begin{description}
-\item [\href{http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files\footnote{This is a modified version of the  original \protect\href{http://search.cpan.org/~cerney/PDL-IO-HDF5-0.63/}{{\tt PDL::IO::HDF5}} module. It supports creation and automatic de-referencing of HDF5 region references and also supports reading of numerical attributes and 1-D attribute arrays.}. It is used by analysis scripts to extract data from \glc\ output files. Follow the following instructions (as root) to install this module:
+\item [\href{http://users.obs.carnegiescience.edu/abenson/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files\footnote{This is a modified version of the  original \protect\href{http://search.cpan.org/~cerney/PDL-IO-HDF5-0.63/}{{\tt PDL::IO::HDF5}} module. It supports creation and automatic de-referencing of HDF5 region references and also supports reading of numerical attributes and 1-D attribute arrays.}. It is used by analysis scripts to extract data from \glc\ output files. Follow the following instructions (as root) to install this module:
 \begin{verbatim}
- wget http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
+ wget http://users.obs.carnegiescience.edu/abenson/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
  tar xvfz PDL-IO-HDF5-0.6.tar.gz
  cd PDL-IO-HDF5-0.6
  perl Makefile.PL
@@ -436,7 +436,7 @@ perl -MCPAN -e 'install PDL::NiceSlice'
 
 ! Install PDL::IO::HDF5:
 
-wget http://www.ctcp.caltech.edu/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
+wget http://users.obs.carnegiescience.edu/abenson/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
 tar xvfz PDL-IO-HDF5-0.6.tar.gz
 cd PDL-IO-HDF5-0.6
 perl Makefile.PL
@@ -465,7 +465,7 @@ make install
 
 ! Install Galacticus:
 
-wget "http://www.ctcp.caltech.edu/galacticus/galacticus_v0.9.1.tar.bz2"
+wget "http://users.obs.carnegiescience.edu/abenson/galacticus/versions/galacticus_v0.9.1.tar.bz2"
 tar xvfj galacticus_v0.9.1.tar.bz2
 cd Galacticus/v0.9.1
 
