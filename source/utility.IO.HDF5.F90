@@ -519,10 +519,15 @@ contains
     !% Close an HDF5 object.
     use Galacticus_Display
     use Galacticus_Error
+    use String_Handling
     implicit none
-    class(hdf5Object),      intent(inout) :: thisObject
-    integer                               :: errorCode
-    type(varying_string)                  :: message
+    class(hdf5Object),   intent(inout)             :: thisObject
+    integer(hid_t)     , allocatable, dimension(:) :: openObjectIDs
+    integer(size_t)    , parameter                 :: objectNameSizeMaximum=1024
+    integer                                        :: errorCode
+    integer(size_t)                                :: openObjectCount,i,objectNameSize
+    type(varying_string)                           :: message
+    character(len=objectNameSizeMaximum)           :: objectName
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -537,6 +542,35 @@ contains
     ! Close the object.    
     select case (thisObject%hdf5ObjectType)
     case (hdf5ObjectTypeFile     )
+       ! Check for still-open objects.
+       call h5fget_obj_count_f(thisObject%objectID,H5F_OBJ_ALL_F,openObjectCount,errorCode)
+       if (errorCode /= 0) then
+          message="unable to count open objects in file object '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Close',message)
+       end if
+       if (openObjectCount > 1) then
+          message=""
+          message=message//openObjectCount//" open object(s) remain in file object '"//thisObject%objectName//"'"
+          call Galacticus_Display_Indent('Problem closing HDF5 file')
+          call Galacticus_Display_Message(message)
+          allocate(openObjectIDs(openObjectCount))
+          call h5fget_obj_ids_f(thisObject%objectID,H5F_OBJ_ALL_F,openObjectCount,openObjectIDs,errorCode)
+          if (errorCode /= 0) then
+             message="unable to get IDs of open objects in file object '"//thisObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Close',message)
+          end if
+          do i=1,openObjectCount
+             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode) 
+             if (errorCode /= 0) then
+                message="unable to get name of open object in file object '"//thisObject%objectName//"'"
+                call Galacticus_Error_Report('IO_HDF5_Close',message)
+             end if             
+             message="Object: "//trim(objectName)//" ["
+             message=message//openObjectIDs(i)//"]"
+             call Galacticus_Display_Message(message)
+          end do
+          call Galacticus_Display_Unindent('done')
+       end if
        call h5fclose_f(thisObject%objectID,errorCode)
        if (errorCode /= 0) then
           message="unable to close file object '"//thisObject%objectName//"'"
@@ -619,6 +653,7 @@ contains
     integer                                       :: errorCode,fileAccess
     logical                                       :: overWriteActual
     type(varying_string)                          :: message
+    integer(hid_t)                                :: accessList
 
     ! Initialize the HDF5 library.
     call IO_HDF5_Initialize
@@ -639,6 +674,18 @@ contains
        overWriteActual=.false.
     end if
 
+    ! Create an access list.
+    call h5pcreate_f(H5P_FILE_ACCESS_F,accessList,errorCode) 
+    if (errorCode /= 0) then
+       message="failed to create file access list HDF5 file '"//fileObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Open_File',message)
+    end if
+    call h5pset_fclose_degree_f(accessList,H5F_CLOSE_SEMI_F,errorCode) 
+    if (errorCode /= 0) then
+       message="failed to set close degree for HDF5 file '"//fileObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Open_File',message)
+    end if
+
     ! Check if the file exists.
     if (File_Exists(fileName).and..not.overWriteActual) then
        ! Determine access for file.
@@ -652,7 +699,7 @@ contains
           fileAccess=H5F_ACC_RDWR_F
        end if
        ! Attempt to open the file.
-       call h5fopen_f(fileName,fileAccess,fileObject%objectID,errorCode)
+       call h5fopen_f(fileName,fileAccess,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
           message="failed to open HDF5 file '"//fileObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Open_File',message)
@@ -666,7 +713,7 @@ contains
           end if
        end if
        ! Attempt to create the file.
-       call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,fileObject%objectID,errorCode)
+       call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
           message="failed to create HDF5 file '"//fileObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Open_File',message)
@@ -3039,6 +3086,9 @@ contains
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
 
+    ! Close the attribute unless this was an attribute object.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
+
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_Scalar
 
@@ -3141,6 +3191,9 @@ contains
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
+
+    ! Close the attribute unless this was an attribute object.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
 
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable
@@ -3247,6 +3300,9 @@ contains
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
+
+    ! Close the attribute unless this was an attribute object.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
 
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static
@@ -9840,6 +9896,9 @@ contains
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read(thisObject,datasetName,datasetValue,dataTypeSize)
 
+    ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
+
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable
 
@@ -9945,6 +10004,9 @@ contains
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read(thisObject,datasetName,datasetValue,dataTypeSize)
+
+    ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
 
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static
