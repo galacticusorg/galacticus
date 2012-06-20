@@ -108,10 +108,14 @@ contains
   !# </galacticusTask>
   logical function Galacticus_Task_End()
     use Galacticus_Output_Open
+    use Galacticus_Output_Merger_Tree
     implicit none
     logical, save :: doneEnd=.false.
 
     if (.not.doneEnd) then
+
+       ! Finalize outputs.
+       call Galacticus_Merger_Tree_Output_Finalize()
 
        ! Close the Galacticus output file.
        call Galacticus_Output_Close_File

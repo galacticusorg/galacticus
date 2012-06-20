@@ -73,7 +73,7 @@ module Input_Parameters
   use Galacticus_Versioning
   implicit none
   private
-  public :: Input_Parameters_File_Open, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
+  public :: Input_Parameters_File_Open, Close_Parameters_Group, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
        & Write_Parameter, Input_Parameter_Is_Present
 
   ! Include public specifiers for functions that will generate unique labels for modules.
@@ -1072,6 +1072,16 @@ contains
     end if
     return
   end subroutine Make_Parameters_Group
+
+  !# <hdfPreCloseTask>
+  !# <unitName>Close_Parameters_Group</unitName>
+  !# </hdfPreCloseTask>
+  subroutine Close_Parameters_Group() 
+   implicit none
+    
+    if (parametersGroup%isOpen()) call parametersGroup%close()
+    return
+  end subroutine Close_Parameters_Group
 
   subroutine Get_Input_Parameter_Double_C(parameterNameLength,parameterName,parameterValue,defaultValue) bind(c,name="Get_Input_Parameter_Double")
     !% C-bound wrapper function for getting {\tt double precision} parameter values.
