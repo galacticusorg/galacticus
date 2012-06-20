@@ -71,7 +71,7 @@ module Galacticus_Output_Merger_Tree
   use Kind_Numbers
   implicit none
   private
-  public :: Galacticus_Merger_Tree_Output
+  public :: Galacticus_Merger_Tree_Output, Galacticus_Merger_Tree_Output_Finalize
 
   ! Output groups.
   type outputGroup
@@ -130,7 +130,7 @@ contains
     logical,               intent(in),   optional :: isLastOutput
     type(treeNode),        pointer                :: thisNode
     integer(kind=HSIZE_T), dimension(1)           :: referenceStart,referenceLength
-    integer                                       :: integerProperty,doubleProperty,iProperty
+    integer                                       :: integerProperty,doubleProperty,iProperty,iGroup
     logical                                       :: nodePassesFilter
     type(hdf5Object)                              :: toDataset
 
@@ -261,11 +261,34 @@ contains
 
     ! Close down if this is the final output.
     if (present(isLastOutput)) then
-       if (isLastOutput) call Galacticus_Output_Close_File
+       if (isLastOutput) then
+          ! Close any open output groups.
+          do iGroup=1,size(outputGroups)
+             if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
+             if (outputGroups(iGroup)%hdf5Group    %isOpen()) call outputGroups(iGroup)%hdf5Group    %close()
+          end do
+          if (outputsGroup%isOpen()) call outputsGroup%close()
+          ! Close the file.
+          call Galacticus_Output_Close_File
+       end if
     end if
     !$omp end critical(Merger_Tree_Output)
     return
   end subroutine Galacticus_Merger_Tree_Output
+
+  subroutine Galacticus_Merger_Tree_Output_Finalize()
+    !% Finalize merger tree output by closing any open groups.
+    implicit none
+    integer :: iGroup
+    
+    ! Close any open output groups.
+    do iGroup=1,size(outputGroups)
+       if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
+       if (outputGroups(iGroup)%hdf5Group    %isOpen()) call outputGroups(iGroup)%hdf5Group    %close()
+    end do
+    if (outputsGroup%isOpen()) call outputsGroup%close()
+    return
+  end subroutine Galacticus_Merger_Tree_Output_Finalize
 
   subroutine Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
     !% Make an group in the \glc\ file in which to store {\tt thisTree}.
