@@ -8,8 +8,8 @@
 # correctly).
 #
 # FSPS stellar population synthesis code and associated file.
-rm -f data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5
-rm -rf aux/FSPS_v2.3
+system("rm -f data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5");
+system("rm -rf aux/FSPS_v2.3");
 
 # Simply run the models.
 system("cd ..; scripts/aux/Run_Galacticus.pl testSuite/test-methods.xml");
