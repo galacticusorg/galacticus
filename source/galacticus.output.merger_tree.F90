@@ -257,21 +257,23 @@ contains
 
     ! Increment the number of nodes written to this output group.
     outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
-    !$omp end critical(HDF5_Access)
 
     ! Close down if this is the final output.
     if (present(isLastOutput)) then
        if (isLastOutput) then
           ! Close any open output groups.
-          do iGroup=1,size(outputGroups)
-             if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
-             if (outputGroups(iGroup)%hdf5Group    %isOpen()) call outputGroups(iGroup)%hdf5Group    %close()
+          do iGroup=1,outputGroupsCount
+             if (outputGroups(iGroup)%opened) then
+                if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
+                if (outputGroups(iGroup)%hdf5Group    %isOpen()) call outputGroups(iGroup)%hdf5Group    %close()
+             end if
           end do
           if (outputsGroup%isOpen()) call outputsGroup%close()
           ! Close the file.
           call Galacticus_Output_Close_File
        end if
     end if
+    !$omp end critical(HDF5_Access)
     !$omp end critical(Merger_Tree_Output)
     return
   end subroutine Galacticus_Merger_Tree_Output
@@ -282,11 +284,15 @@ contains
     integer :: iGroup
     
     ! Close any open output groups.
-    do iGroup=1,size(outputGroups)
-       if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
-       if (outputGroups(iGroup)%hdf5Group    %isOpen()) call outputGroups(iGroup)%hdf5Group    %close()
+    !$omp critical(HDF5_Access)
+    do iGroup=1,outputGroupsCount
+       if (outputGroups(iGroup)%opened) then
+          if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
+          if (outputGroups(iGroup)%hdf5Group    %isOpen()) call outputGroups(iGroup)%hdf5Group    %close()
+       end if
     end do
     if (outputsGroup%isOpen()) call outputsGroup%close()
+    !$omp end critical(HDF5_Access)
     return
   end subroutine Galacticus_Merger_Tree_Output_Finalize
 
