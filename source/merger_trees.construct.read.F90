@@ -632,6 +632,7 @@ contains
              call Galacticus_Display_Message(message)
           end if
        end if
+       call cosmologicalParametersGroup%close()
 
        if (mergerTreeFile%hasGroup("treeIndex")) then
           treeIndexGroup=mergerTreeFile%openGroup("treeIndex")
@@ -767,8 +768,15 @@ contains
              !$omp critical(HDF5_Access)
              ! Close the halo trees group.
              if (haloTreesGroup%isOpen()) call haloTreesGroup%close()
-             ! Close the file.
-             if (mergerTreeFile%isOpen()) call mergerTreeFile%close()
+             ! Test if the merger tree file is still open.
+             if (mergerTreeFile%isOpen()) then
+                ! Close the particles group.
+                if (mergerTreeFile%hasGroup("particles")) then
+                   if (particlesGroup%isOpen()) call particlesGroup%close()
+                end if
+                ! Close the file.
+                call mergerTreeFile%close()
+             end if
              !$omp end critical(HDF5_Access)
              ! Flag that we do not have a tree.
              haveTree=.false.
