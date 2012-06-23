@@ -158,26 +158,27 @@ contains
     logical,        intent(out)             :: mergerIsMajor
     type(treeNode),                pointer  :: hostNode
     logical                                 :: triggersBurst
-    double precision                        :: satelliteMass,hostMass,hostGasMass
+    double precision                        :: satelliteMass,hostMass,hostGasMass,hostSpheroidMass
 
     ! Find the node to merge with.
     call thisNode%mergesWith(hostNode)
 
     ! Find the baryonic masses of the two galaxies.
     satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)
-    hostMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic)
-    hostGasMass  =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGaseous )
+    hostMass        =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic                            )
+    hostGasMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGaseous                             )
+    hostSpheroidMass=Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,component=componentSpheroid)
 
     ! Decide if the mass ratio is large enough to trigger a major merger.
     mergerIsMajor=satelliteMass >= majorMergerMassRatio*hostMass
 
     ! Determine if the merger will trigger a burst, in which case gas will be moved to the spheroid.
-    triggersBurst=mergerIsMajor                                      &
-         &         .or.                                              &
-         &        (                                                  &
-         &         satelliteMass > burstMassRatio          *hostMass &
-         &          .and.                                            &
-         &         hostGasMass   > burstCriticalGasFraction*hostMass &
+    triggersBurst=mergerIsMajor                                          &
+         &         .or.                                                  &
+         &        (                                                      &
+         &         hostSpheroidMass <  burstMassRatio          *hostMass &
+         &          .and.                                                &
+         &         hostGasMass      >= burstCriticalGasFraction*hostMass &
          &        )
 
     if (mergerIsMajor) then
