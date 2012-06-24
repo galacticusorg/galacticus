@@ -165,9 +165,9 @@ contains
 
     ! Find the baryonic masses of the two galaxies.
     satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)
-    hostMass        =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic                            )
-    hostGasMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGaseous                             )
-    hostSpheroidMass=Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,component=componentSpheroid)
+    hostMass        =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic                                    )
+    hostGasMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGaseous                                     )
+    hostSpheroidMass=Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,componentType=componentTypeSpheroid)
 
     ! Decide if the mass ratio is large enough to trigger a major merger.
     mergerIsMajor=satelliteMass >= majorMergerMassRatio*hostMass
