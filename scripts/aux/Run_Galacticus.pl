@@ -449,8 +449,14 @@ sub Launch_Models {
 			print oHndl $scratchPath
 			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
 			print oHndl "galacticus_".$modelCounter."_".$$.".hdf5 ".$galacticusOutputDirectory."/galacticus.hdf5\n";
-			print oHndl "mv ".$scratchPath."/* ".$galacticusOutputDirectory."/\n"
+			print oHndl "mv ";
+			print oHndl $scratchPath
 			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "/galacticus_".$modelCounter."_".$$.".state* ".$galacticusOutputDirectory."/\n";
+			print oHndl "mv ";
+			print oHndl $scratchPath
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "/galacticus_".$modelCounter."_".$$.".fgsl.state* ".$galacticusOutputDirectory."/\n";
 			print oHndl "mv core* ".$galacticusOutputDirectory."/\n";
 			close(oHndl);
 			
