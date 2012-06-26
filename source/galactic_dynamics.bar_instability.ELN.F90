@@ -152,9 +152,9 @@ contains
     stabilityThreshold=stabilityThresholdStellar*(1.0d0-gasFraction)+stabilityThresholdGaseous*gasFraction
 
     ! Compute the stability estimator for this node.
-    stabilityEstimator=velocityBoostFactor*Tree_Node_Disk_Velocity(thisNode)/dsqrt(gravitationalConstantGalacticus*diskMass&
-         &/Tree_Node_Disk_Radius(thisNode))
-    
+    stabilityEstimator=max(stabilityThreshold,velocityBoostFactor*Tree_Node_Disk_Velocity(thisNode)/dsqrt(gravitationalConstantGalacticus*diskMass&
+         &/Tree_Node_Disk_Radius(thisNode)))
+
     ! Check if the disk is bar unstable.
     if (stabilityEstimator < stabilityThreshold) then
        ! Disk is unstable, compute a timescale for depletion.

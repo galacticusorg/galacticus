@@ -146,6 +146,7 @@ contains
           ! Successful completion of the step - do nothing except resetting failure count.
        case (FGSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
+          if (present(errorHandler)) call errorHandler()
           message='ODE integration failed with status '
           message=message//status//' [generic failure]'//char(10)
           message=message//' => most likely a stepsize underflow'
