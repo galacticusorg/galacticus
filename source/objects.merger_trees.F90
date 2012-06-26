@@ -546,12 +546,9 @@ contains
        Error_Analyzer=C_NULL_FUNPTR
     end if
 #endif
-!! AJB HACK - think we need to reset every time, otherwise will keep stepsize and scalings for previous node, which might not be the same node
-!    if (nProperties /= nPropertiesPrevious) then
-       if (nPropertiesPrevious > 0 .and. .not.odeReset) call ODEIV2_Solver_Free(ode2Driver,ode2System)
-       odeReset=.true.
-       nPropertiesPrevious=nProperties
-!    end if
+    if (nPropertiesPrevious > 0 .and. .not.odeReset) call ODEIV2_Solver_Free(ode2Driver,ode2System)
+    odeReset=.true.
+    nPropertiesPrevious=nProperties
     if (startTimeThisNode /= endTime)                                   &
          & call ODEIV2_Solve(                                           &
          &                   ode2Driver,ode2System                    , &
