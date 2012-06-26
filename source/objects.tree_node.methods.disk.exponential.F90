@@ -187,8 +187,9 @@ module Tree_Node_Methods_Exponential_Disk
   double precision                            :: radiusHistory(2)
   !$omp threadprivate(radiusHistory,radiusSolverIteration)
 
-  ! The largest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk. 
-  double precision, parameter                 :: angularMomentumMaximum=10.0d0
+  ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk. 
+  double precision, parameter                 :: angularMomentumMaximum=1.0d1
+  double precision, parameter                 :: angularMomentumMinimum=1.0d-6
 
   ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
   ! rotation curves.
@@ -1645,6 +1646,7 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: galaxyIsPhysicallyPlausible
+    double precision                       :: angularMomentumScale
 
     ! Return immediately if our method is not selected.
     if (.not.methodSelected) return
@@ -1654,12 +1656,22 @@ contains
     else if (Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode) >= 0.0d0) then
        if (Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < 0.0d0) then
           galaxyIsPhysicallyPlausible=.false.
-       else if (Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) > angularMomentumMaximum&
-            &*(Tree_Node_Disk_Stellar_Mass_Exponential(thisNode)+Tree_Node_Disk_Gas_Mass_Exponential(thisNode))&
-            &*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode)) then
-          ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
-          ! virial radius of their halo.
-          galaxyIsPhysicallyPlausible=.false.
+       else
+          angularMomentumScale=(&
+               &                 Tree_Node_Disk_Stellar_Mass_Exponential(thisNode) &
+               &                +Tree_Node_Disk_Gas_Mass_Exponential    (thisNode) &
+               &               )                                                   &
+               &               * Dark_Matter_Halo_Virial_Radius         (thisNode) &
+               &               * Dark_Matter_Halo_Virial_Velocity       (thisNode)
+          if     (                                                                                                     &
+               &   Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) > angularMomentumMaximum*angularMomentumScale &
+               &  .or.                                                                                                 &
+               &   Tree_Node_Disk_Angular_Momentum_Exponential(thisNode) < angularMomentumMinimum*angularMomentumScale &
+               & ) then
+             ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
+             ! virial radius of their halo.
+             galaxyIsPhysicallyPlausible=.false.
+          end if
        end if
     end if
 
