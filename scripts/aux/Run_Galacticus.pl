@@ -274,11 +274,10 @@ sub Launch_Models {
 		    }
 		    case ( "pbs"    ) {
 			if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) ) {
-			    $parameters{'galacticusOutputFileName'} = $modelsToRun->{'pbs'}->{'scratchPath'}."/model_".$modelCounter."_".$$."/";
+			    $parameters{'galacticusOutputFileName'} = $modelsToRun->{'pbs'}->{'scratchPath'}."/model_".$modelCounter."_".$$."/galacticus_".$modelCounter."_".$$.".hdf5";
 			} else {
-			    $parameters{'galacticusOutputFileName'} = "";
+			    $parameters{'galacticusOutputFileName'} = $galacticusOutputFile;
 			}
-			$parameters{'galacticusOutputFileName'} .= "galacticus_".$modelCounter."_".$$.".hdf5";
 		    }
 		}
 
@@ -287,7 +286,7 @@ sub Launch_Models {
 		
 		# Set a state restore file.
 		(my $stateFile = $parameters{'galacticusOutputFileName'}) =~ s/\.hdf5//;
-		$parameters{'stateFileRoot'}      = $stateFile;
+		$parameters{'stateFileRoot'} = $stateFile;
 		
 		# Transfer parameters for this model from the array of model parameter hashes to the active hash.
 		foreach my $parameter ( keys(%{$parameterData}) ) {
@@ -395,7 +394,7 @@ sub Launch_Models {
 		    }
 		    case ( "pbs"    ) {
 			# Create the PBS submission script.
-			my $pbsScript = "pbs_run_".$modelCounter."_".$$.".sh";
+			my $pbsScript = $galacticusOutputDirectory."/pbs_run_".$modelCounter."_".$$.".sh";
 			open(oHndl,">".$pbsScript);
 			print oHndl "#!/bin/bash\n";
 			print oHndl "#PBS -N Galacticus_".$modelCounter."_".$$."\n";
