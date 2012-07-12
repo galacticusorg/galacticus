@@ -100,13 +100,16 @@ contains
     use Input_Parameters
     use Cosmology_Functions
     use Atomic_Data
+    use Galacticus_Error
     use Chemical_Abundances_Structure
+    use Intergalactic_Medium_State
     implicit none
     type(varying_string),                 intent(in)    :: accretionHalosMethod
     procedure(double precision), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get &
          &,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get
     procedure(),                 pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Abundances_Get &
          &,Halo_Baryonic_Accreted_Abundances_Get ,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get
+    double precision                                    :: reionizationSuppressionOpticalDepth
 
     if (accretionHalosMethod == 'simple') then
        ! Set pointers to our implementations of accretion functions.
@@ -124,19 +127,36 @@ contains
        chemicalsCount=Chemicals_Property_Count()
        ! Create a structure with zero abundances.
        call zeroAbundances%metallicitySet(0.0d0,adjustElements=adjustElementsReset,abundanceIndex=abundanceIndexSolar)
+
        ! Read parameters.
-       !@ <inputParameter>
-       !@   <name>reionizationSuppressionRedshift</name>
-       !@   <defaultValue>10.5</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The redshift below which baryonic accretion is suppressed.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue=10.5d0)
-       reionizationSuppressionTime=Cosmology_Age(Expansion_Factor_from_Redshift(reionizationSuppressionRedshift))
+       if (Input_Parameter_Is_Present("reionizationSuppressionOpticalDepth")) then
+          if (Input_Parameter_Is_Present("reionizationSuppressionRedshift")) call Galacticus_Error_Report("Accretion_Halos_Simple_Initialize","only one of [reionizationSuppressionOpticalDepth] and [reionizationSuppressionRedshift] should be specified")
+          !@ <inputParameter>
+          !@   <name>reionizationSuppressionOpticalDepth</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The optical depth to electron scattering below which baryonic accretion is suppressed.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("reionizationSuppressionOpticalDepth",reionizationSuppressionOpticalDepth)
+          reionizationSuppressionTime=Intergalactic_Medium_Electron_Scattering_Time(reionizationSuppressionOpticalDepth&
+               &,assumeFullyIonized=.true.)
+       else
+          !@ <inputParameter>
+          !@   <name>reionizationSuppressionRedshift</name>
+          !@   <defaultValue>10.5</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The redshift below which baryonic accretion is suppressed.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue=10.5d0)
+          reionizationSuppressionTime=Cosmology_Age(Expansion_Factor_from_Redshift(reionizationSuppressionRedshift))
+       end if
        !@ <inputParameter>
        !@   <name>reionizationSuppressionVelocity</name>
        !@   <defaultValue>35.0</defaultValue>
@@ -148,7 +168,6 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("reionizationSuppressionVelocity",reionizationSuppressionVelocity,defaultValue=35.0d0)
-
        ! Define the radiation structure.
        call radiation%define([radiationTypeCMB])
     end if

@@ -103,8 +103,8 @@ contains
        ! Ensure that the RecFast data file has been generated.
        
        ! Generate the name of the data file and an XML input parameter file.
-       recfastFile  =char(Galacticus_Input_Path())//'data/recFast'
-       parameterFile=char(Galacticus_Input_Path())//'data/recfast_parameters.xml'
+       recfastFile  =char(Galacticus_Input_Path())//'data/intergalacticMedium/recFast'
+       parameterFile=char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
        write (parameterLabel,'(f5.3)') Omega_Matter()
