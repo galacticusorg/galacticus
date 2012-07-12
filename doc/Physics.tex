@@ -581,6 +581,14 @@ where $\epsilon_{\rm iso}$ is the value of $\epsilon$ for an isolated disk and $
 
 The algorithm to be used when solving for galactic structure (specifically, finding radii of galactic components) is selected via the {\tt galacticStructureRadiusSolverMethod} parameter.
 
+\subsection{Linear}
+
+Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt linear} this method determines the sizes of galactic components by assuming that radius scales linearly with specific angular momentum such that
+\begin{equation}
+ r = r_{\rm vir} j/j_{\rm vir}
+\end{equation}
+where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for), $r$ is radius, $r_{\rm vir}$ is the virial radius of the \gls{node} and $j_{\rm vir}= r_{\rm vir} v_{\rm vir}$ with $v_{\rm vir}$ being the virial velocity of the \gls{node}.
+
 \subsection{Simple}
 
 Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt simple} this method determines the sizes of galactic components by assuming that their self-gravity is negligible (i.e. that the gravitational potential well is dominated by dark matter) and that, therefore, baryons do not modify the dark matter density profile. The radius of a given \gls{component} is then found by solving
