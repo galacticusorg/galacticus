@@ -922,6 +922,61 @@ The datasets should contain the following information:
 \end{description}
 \end{description}
 
+\subsubsection{Conditional Stellar Mass Functions}
+
+Additional methods for empirical conditional mass functions can be added using the {\tt conditionalStellarMassFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Behroozi2010} method is described by a directive:
+\begin{verbatim}
+  !# <conditionalStellarMassFunctionMethod>
+  !#  <unitName>Conditional_Stellar_Mass_Functions_Behroozi2010_Initialize</unitName>
+  !# </conditionalStellarMassFunctionMethod>
+\end{verbatim}
+Here, {\tt Conditional\_Stellar\_Mass\_Functions\_Behroozi2010\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(conditionalStellarMassFunctionMethod&
+       &,Cumulative_Conditional_Stellar_Mass_Function_Get,Cumulative_Conditional_Stellar_Mass_Function_Var_Get)
+    implicit none
+    type(varying_string),                 intent(in)    :: conditionalStellarMassFunctionMethod
+    procedure(double precision), pointer, intent(inout) :: Cumulative_Conditional_Stellar_Mass_Function_Get,Cumulative_Conditional_Stellar_Mass_Function_Var_Get
+    
+    if (conditionalStellarMassFunctionMethod == 'myMethod') then
+       Cumulative_Conditional_Stellar_Mass_Function_Get     => My_Cumulative_Conditional_Stellar_Mass_Function
+       Cumulative_Conditional_Stellar_Mass_Function_Var_Get => My_Cumulative_Conditional_Stellar_Mass_Function_Var
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt timePerTreeMethod} input parameter. The procedure pointer {\tt Galacticus\_Time\_Per\_Tree\_Get} must be set to point to a function which returns an estimate of the time taken (in seconds) to process a merger tree. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The functionw must have the form:
+\begin{verbatim}
+   double precision function My_Cumulative_Conditional_Stellar_Mass_Function(massHalo,massStellar)
+    implicit none
+    double precision, intent(in) :: massHalo,massStellar
+    .
+    .
+    .
+    return
+   end function My_Cumulative_Conditional_Stellar_Mass_Function_Var
+
+   double precision My_Cumulative_Conditional_Stellar_Mass_Function_Var My_Cumulative_Conditional_Stellar_Mass_Function(massHalo,massStellarLow,massStellarHigh)
+    implicit none
+    double precision, intent(in) :: massHalo,massStellarLow,massStellarHigh
+    .
+    .
+    .
+    return
+   end function My_Cumulative_Conditional_Stellar_Mass_Function_Var 
+\end{verbatim}
+The first function must return the number of galaxies of mass greater than {\tt massStellar} in halos of mass {\tt massHalo}. The second function should return the variance in the number of galaxies in the stellar mass range {\tt massStellarLow} to {\tt massStellarHigh} in halos of mass {\tt massHalo}
+
+Currently defined tree timing methods are:
+\begin{description}
+ \item [{\tt Behroozi2010}] This method uses the fitting function of \cite{behroozi_comprehensive_2010} to compute the conditional stellar mass function. To compute the variance in the mass function, this method assumes that the number of satellite galaxies follows a Poisson distribution, while central galaxies follow a \gls{Bernoulli distribution}.
+\end{description}
+
 \subsubsection{Cooling Rate}
 
 Additional methods for the cooling rate from the hot halo can be added using the {\tt coolingRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt White-Frenk1991} method is described by a directive:
@@ -969,6 +1024,7 @@ Currently defined cooling rate methods are:
  otherwise.
 \item [\hyperlink{cooling.cooling_rate.Cole2000.F90:cooling_rates_cole2000:cooling_rate_cole2000}{{\tt Cole2000}}] Implements the cooling rate algorithm from \cite{cole_hierarchical_2000}.
 \item [\hyperlink{cooling.cooling_rate.simple.F90:cooling_rates_simple:cooling_rate_simple}{{\tt simple}}] Implements a simple algorithm in which the cooling rate is determined from a fixed timescale.
+\item [\hyperlink{cooling.cooling_rate.simple_scaling.F90:cooling_rates_simple_scaling:cooling_rate_simple_scaling}{{\tt simpleScaling}}] Implements a simple algorithm in which the cooling rate is determined from a timescale which is a function of halo mass and redshift.
 \end{description}
 
 \subsubsection{Cooling Function}\label{sec:CoolingFunctionMethods}
@@ -2407,6 +2463,51 @@ Currently defined halo mass function methods are:
  \item [\hyperlink{structure_formation.CDM.halo_mass_function.Tinker2008.F90:halo_mass_function_tinker2008:halo_mass_function_tinker2008_tabulate}{{\tt Tinker2008}}] Implements the mass function described by \cite{tinker_towardhalo_2008}.
 \end{description}
 
+\subsubsection{Halo Mass Sampling Density Functions}
+
+Additional methods for halo mass sampling density functions can be added using the {\tt haloMassFunctionSamplingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt powerLaw} method is described by a directive:
+\begin{verbatim}
+ !# <haloMassFunctionSamplingMethod>
+ !#  <unitName>Merger_Trees_Mass_Function_Sampling_Power_Law_Initialize</unitName>
+ !# </haloMassFunctionSamplingMethod>
+\end{verbatim}
+Here, {\tt Merger\_Trees\_Mass\_Function\_Sampling\_Power\_Law\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: haloMassFunctionSamplingMethod
+    procedure(),          pointer, intent(inout) :: Merger_Tree_Construct_Mass_Function_Sampling_Get
+    
+    if (haloMassFunctionSamplingMethod == 'myMethod') Merger_Tree_Construct_Mass_Function_Sampling_Get => My_Mass_Function_Sampling
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt haloMassFunctionSamplingMethod} input parameter. The procedure pointer {\tt Merger\_Tree\_Construct\_Mass\_Function\_Sampling\_Get} must be set to point to a function which returns the sampling rate per unit decade of halo mass.
+
+The halo mass sampling density function must have the form:
+\begin{verbatim}
+ double precision function My_Mass_Function_Sampling(mass,time,massMinimum,massMaximum)
+    implicit none
+    double precision, intent(in) :: mass,time,massMinimum,massMaximum
+    .
+    .
+    .
+    return
+ end function My_Mass_Function_Sampling
+\end{verbatim}
+The function should return the halo mass sampling density function (the relative number of halos per decade of halo mass to sample) for halos of the given {\tt mass}. Halos are defined at the given {\tt time} and will be sampled in the mass range {\tt massMinimum} to {\tt massMaximum}.
+
+Currently defined halo mass sampling density function methods are:
+\begin{description}
+ \item [{\tt powerLaw}] The distribution of halo masses is such that the mass of the $i^{\rm th}$ halo is
+\begin{equation}
+ M_{\rm halo,i} = \exp\left[ \ln(M_{\rm halo,min}) + \ln\left({M_{\rm halo,max}/M_{\rm halo,min}}\right) x_i^{1+\alpha} \right].
+\end{equation}
+Here, $x_i$ is a number between 0 and 1 and $\alpha=${\tt mergerTreeBuildTreesHaloMassExponent} is an input parameter that controls the relative number of low and high mass tree produced. 
+\item [{\tt haloMassFunction}] The sampling density is set equal to the dark matter halo mass function, defined per decade of halo mass.
+\item [{\tt stellarMassFunction}] The sampling density is chosen to give optimally minimal errors on the model stellar mass function (see \S\ref{sec:OptimalSamplingStellarMassFunction} for full details).
+\end{description}
+
 \subsubsection{Halo Spin Distribution}
 
 Additional methods for the halo spin distribution can be added using the {\tt haloSpinDistributionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt lognormal} method is described by a directive:
@@ -3729,6 +3830,7 @@ The function must return the star formation timescale (in units of Gyr) for {\tt
 
 Currently defined star formation timescale methods are:
 \begin{description}
+ \item [\hyperlink{star_formation.timescales.disks.halo_scaling.F90:star_formation_timescale_disks_halo_Scaling}{{\tt haloScaling}}]  The timescale scales with halo virial velocity and redshift;
  \item [\hyperlink{star_formation.timescales.disks.fixed.F90:star_formation_timescale_disks_fixed}{{\tt fixed}}]  The timescale is a fixed quantity;
  \item [\hyperlink{star_formation.timescales.disks.dynamical_time.F90:star_formation_timescale_disks_dynamical_time:star_formation_timescale_disk_dynamical_time}{{\tt dynamicalTime}}]  The timescale is given by
 \begin{equation}
@@ -4229,6 +4331,50 @@ and should return the yield of the element identified by {\tt atomIndex} (as ret
 Currently defined type Ia supernovae methods are:
 \begin{description}
  \item [{\tt Nagashima}] Computes Type Ia properties using the methods described by \cite{nagashima_metal_2005}.
+\end{description}
+
+\subsubsection{Tree Timing}
+
+Additional methods for tree timing (i.e. the time taken to process a given merger tree) can be added using the {\tt timePerTreeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt file} method is described by a directive:
+\begin{verbatim}
+  !# <timePerTreeMethod>
+  !#  <unitName>Galacticus_Time_Per_Tree_File_Initialize</unitName>
+  !# </timePerTreeMethod>
+\end{verbatim}
+Here, {\tt Galacticus\_Time\_Per\_Tree\_File\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(timePerTreeMethod,Galacticus_Time_Per_Tree_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: timePerTreeMethod
+    procedure(),          pointer, intent(inout) :: Galacticus_Time_Per_Tree_Get
+    
+    if (timePerTreeMethod == 'myMethod') then
+       Galacticus_Time_Per_Tree_Get => My_Time_Per_Tree_Get
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt timePerTreeMethod} input parameter. The procedure pointer {\tt Galacticus\_Time\_Per\_Tree\_Get} must be set to point to a function which returns an estimate of the time taken (in seconds) to process a merger tree. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The function must have the form:
+\begin{verbatim}
+   double precision function Time_Per_Tree(treeRootMass)
+    implicit none
+    double precision, intent(in) :: treeRootMass
+    .
+    .
+    .
+    return
+   end function Time_Per_Tree 
+\end{verbatim}
+The function must return an estimate of the time taken (in seconds) to process a merger tree with the given {\tt treeRootMass}.
+
+Currently defined tree timing methods are:
+\begin{description}
+ \item [{\tt file}] This method reads coefficients of a simple fitting formula for the processing time from a file, specified via the {\tt [timePerTreeFitFileName]} parameter (see \S\ref{sec:TreeTimingFile}).
 \end{description}
 
 \subsubsection{Transfer Function}\label{sec:TransferFunctionMethod}

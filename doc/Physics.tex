@@ -249,6 +249,18 @@ Selected with {\tt coolingRateMethod}$=${\tt simple}, this method computes the c
 \end{equation}
 where $\tau_{\rm cool}=${\tt [coolingRateSimpleTimescale]}.
 
+\subsubsection{Simple Scaling}
+
+Selected with {\tt coolingRateMethod}$=${\tt simpleScaling}, this method computes the cooling rate using
+\begin{equation}
+\dot{M}_{\rm cool} = M_{\rm hot}/\tau_{\rm cool}(M_{\rm halo},z) ,
+\end{equation}
+where 
+\begin{equation}
+\tau_{\rm cool}=\tau_{\rm cool,0} (1+z)^{\beta_{\rm cool}} \exp \left({M_{\rm halo} \over M_{\rm transition}}\right),
+\end{equation}
+$\tau_{\rm cool,0}=${\tt [coolingRateSimpleScalingTimescale]}, $\beta_{\rm cool}=${\tt [coolingRateSimpleScalingTimescaleExponent]}, and $M_{\rm transition}=${\tt [coolingRateSimpleScalingTransitionMass]}.
+
 \subsubsection{White \& Frenk}
 
 Selected with {\tt coolingRateMethod}$=${\tt White-Frenk1991}, this method computes the cooling rate using the expression given by \cite{white_galaxy_1991}, namely
@@ -508,6 +520,30 @@ where $M_{\rm node,parent}$ is the mass of the parent \gls{node} in which the ha
 \tau = \tau_0 \left({\Delta_{\rm vir}(t) \over \Delta(t_0)}\right)^{-1/2} a^{3/2},
 \end{equation}
 where $\Delta_{\rm vir}(t)$ is the virial overdensity of halos at time $t$ and $a$ is the expansion factor. The fitting parameters, $\tau_0$ and $\zeta$ have values of 0.13~Gyr and 0.36 respectively as determined by \cite{van_den_bosch_mass_2005}. Note that  \cite{van_den_bosch_mass_2005} write this expression in a slightly different form since their $\Delta_{\rm vir}$ is defined relative to the critical density rather than the mean density as it is in \glc. In both cases, the timescale $\tau$ simply scales as $\langle \rho_{\rm vir} \rangle ^{-1/2}$ where $\langle \rho_{\rm vir} \rangle$ is the mean virial overdensity of halos.
+
+\subsection{Mass Sampling Density Function}\label{sec:MassSamplingDensityFunction}
+
+The method used to compute the halo mass density function is selected via the {\tt haloMassFunctionSamplingMethod} parameter.
+
+\subsubsection{Power Law}
+
+Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt powerLaw}, under this method the sampling density function is given by
+\begin{equation}
+\gamma(M) = \log_{10}(M/M_{\rm minimum})^{-\alpha/(1+\alpha)},
+\end{equation}
+The resulting distribution of halo masses is such that the mass of the $i^{\rm th}$ halo is
+\begin{equation}
+ M_{\rm halo,i} = \exp\left[ \ln(M_{\rm halo,min}) + \ln\left({M_{\rm halo,max}/M_{\rm halo,min}}\right) x_i^{1+\alpha} \right].
+\end{equation}
+Here, $x_i$ is a number between 0 and 1 and $\alpha=${\tt mergerTreeBuildTreesHaloMassExponent} is an input parameter that controls the relative number of low and high mass tree produced.
+
+\subsubsection{Halo Mass Function}
+
+Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt haloMassFunction}, this method sets the sampling density function equal to the halo mass function, $\gamma(M) = {\rm d} n(M)/{\rm d}\log M$, resulting in a sample of halos representative of a volume of space.
+
+\subsubsection{Stellar Mass Function}
+
+Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt stellarMassFunction}, in this case the sampling density is chosen to give optimally minimal errors on the model stellar mass function (see \S\ref{sec:OptimalSamplingStellarMassFunction} for full details).
 
 \subsection{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
 
@@ -886,11 +922,7 @@ Selected with {\tt mergerTreeConstructMethod}$=${\tt read}, this method reads me
 
 Selected with {\tt mergerTreeConstructMethod}$=${\tt build}, this method first creates a distribution of tree root halo masses and then builds a merger tree using the algorithm specified by the {\tt mergerTreeBuildMethod} parameter.
 
-If {\tt [mergerTreeBuildTreesHaloMassDistribution]}$=${\tt read}, then these masses will be read from a file specified by {\tt [mergerTreeBuildTreeMassesFile]}. Otherwise, the root halo masses are selected to range between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} with {\tt mergerTreeBuildTreesPerDecade} trees per decade of root halo mass on average. Trees are rooted at {\tt mergerTreeBuildTreesBaseRedshift} and tree building will begin with the {\tt mergerTreeBuildTreesBeginAtTree}$^{\rm th}$ tree\footnote{This will normally be set to 1 to begin with the first tree. Other values allow to begin on later trees for debugging purposes.}. The distribution of halo masses is such that the mass of the $i^{\rm th}$ halo is
-\begin{equation}
- M_{\rm halo,i} = \exp\left[ \ln(M_{\rm halo,min}) + \ln\left({M_{\rm halo,max}/M_{\rm halo,min}}\right) x_i^{1+\alpha} \right].
-\end{equation}
-Here, $x_i$ is a number between 0 and 1 and $\alpha=${\tt mergerTreeBuildTreesHaloMassExponent} is an input parameter that controls the relative number of low and high mass tree produced. The distribution of $x$ is determined by the input parameter {\tt mergerTreeBuildTreesHaloMassDistribution} with options:
+If {\tt [mergerTreeBuildTreesHaloMassDistribution]}$=${\tt read}, then these masses will be read from a file specified by {\tt [mergerTreeBuildTreeMassesFile]}. Otherwise, the root halo masses are selected to range between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} with {\tt mergerTreeBuildTreesPerDecade} trees per decade of root halo mass on average. Trees are rooted at {\tt mergerTreeBuildTreesBaseRedshift} and tree building will begin with the {\tt mergerTreeBuildTreesBeginAtTree}$^{\rm th}$ tree\footnote{This will normally be set to 1 to begin with the first tree. Other values allow to begin on later trees for debugging purposes.}. The root halo masses are drawn from the density function specified by the halo mass function sampling density method (see \S\ref{sec:MassSamplingDensityFunction}). The distribution of $x$ is determined by the input parameter {\tt mergerTreeBuildTreesHaloMassDistribution} with options:
 \begin{description}
  \item [{\tt uniform}] $x$ is distributed uniformly between 0 and 1;
  \item [{\tt quasi}] $x$ is distributed using a quasi-random sequence.
@@ -1008,6 +1040,14 @@ The methods for computing star formation timescales in disks and spheroids are s
 \subsection{Fixed}
 
 Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt fixed} this method assumes a fixed timescale for star formation {\tt [starFormationTimescaleDisksFixedTimescale]} (in Gyr).
+
+\subsection{Halo Scaling}
+
+Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt haloScaling} this method assumes a timescale for star formation of
+\begin{equation}
+ \tau_\star = \tau_{\rm \star,0} \left( {V_{\rm vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
+\end{equation}
+where $\tau_{\rm \star,0}=${\tt [starFormationTimescaleDisksHaloScalingTimescale]}, $\alpha_\star=${\tt [starFormationTimescaleDisksHaloScalingVirialVelocityExponent]}, and $\beta_\star=${\tt [starFormationTimescaleDisksHaloScalingRedshiftExponent]}.
 
 \subsection{Dynamical Time}
 
