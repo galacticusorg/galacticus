@@ -425,9 +425,6 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadTreeIndexToRootNodeIndex',mergerTreeReadTreeIndexToRootNodeIndex,defaultValue=.false.)
 
-       ! Validate input parameters.
-       if (mergerTreeReadPresetMergerNodes.and..not.mergerTreeReadPresetMergerTimes) call Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting of merger target nodes requires that merger times also be preset")
-
        ! Get array of output times.
        outputTimesCount=Galacticus_Output_Time_Count()
        call Alloc_Array(outputTimes,[outputTimesCount])
@@ -454,6 +451,21 @@ contains
           call haloTreesGroup%readAttribute("treesHaveSubhalos",treesHaveSubhalos,allowPseudoScalar=.true.)
        else
           treesHaveSubhalos=integerUnknown
+       end if
+
+       ! Validate input parameters.
+       if (mergerTreeReadPresetMergerNodes.and..not.mergerTreeReadPresetMergerTimes) then
+          message="presetting of merger target nodes requires that merger times also be preset;"//char(10)
+          message=message//" try setting [mergerTreeReadPresetMergerTimes]=true."//char(10)
+          if (treesHaveSubhalos /= integerTrue) then
+             message=message//" Note: presetting merger target nodes and merger times is usually only a good idea when subhalo information is present in the merger trees"
+             if (treesHaveSubhalos == integerFalse) then
+                message=message//" (which the current trees do not)"
+             else
+                message=message//" (subhalo presence in the current trees was not specified)"
+             end if
+          end if
+          call Galacticus_Error_Report("Merger_Tree_Read_Initialize",message)
        end if
 
        ! Perform sanity checks if subhalos are not included.
@@ -657,22 +669,23 @@ contains
 
        ! Check that half-mass radius information is present if required.
        if (mergerTreeReadPresetScaleRadii) then
-          if     (                                                                                                                                                           &
-               &  .not.(                                                                                                                                                     &
-               &        haloTreesGroup%hasDataset("halfMassRadius")                                                                                                          &
-               &         .or.                                                                                                                                                &
-               &        haloTreesGroup%hasDataset("scaleRadius"   )                                                                                                          &
-               &       )                                                                                                                                                     &
-               & ) call Galacticus_Error_Report(                                                                                                                             &
-               &                                "Merger_Tree_Read_Initialize",                                                                                               &
-               &                                "presetting scale radii requires that at least one of halfMassRadius or scaleRadius datasets be present in merger tree file" &
+          if     (                                                                                                                                                   &
+               &  .not.(                                                                                                                                             &
+               &        haloTreesGroup%hasDataset("halfMassRadius")                                                                                                  &
+               &         .or.                                                                                                                                        &
+               &        haloTreesGroup%hasDataset("scaleRadius"   )                                                                                                  &
+               &       )                                                                                                                                             &
+               & ) call Galacticus_Error_Report(                                                                                                                     &
+               &                                "Merger_Tree_Read_Initialize",                                                                                       &  
+               &                                "presetting scale radii requires that at least one of halfMassRadius or scaleRadius datasets be present in merger"// &
+               &                                "tree file; try setting"//char(10)//"  [mergerTreeReadPresetScaleRadii]=false"                                       &
                &                               )
        end if
 
        ! Check that angular momentum information is present if required.
        if (mergerTreeReadPresetSpins) then
           if (.not.haloTreesGroup%hasDataset("angularMomentum")) call&
-               & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting spins requires that the angularMomentum dataset be present in merger tree file")
+               & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting spins requires that the angularMomentum dataset be present in merger tree file; try setting"//char(10)//"  [mergerTreeReadPresetSpins]=false")
        end if
 
        ! Reset first node indices to Fortran array standard.
@@ -875,7 +888,7 @@ contains
                    ! Position and velocity methods are required.
                    if (.not.(associated(Tree_Node_Position_Set).and.associated(Tree_Node_Velocity_Set))) call&
                         & Galacticus_Error_Report('Merger_Tree_Read_Do','presetting positions or orbits requires a component that supports&
-                        & position and velocity setting')
+                        & position and velocity setting (e.g. set [treeNodeMethodPosition]=preset); alternatively setting [mergerTreeReadPresetPositions]=false and [mergerTreeReadPresetOrbits]=false will remove the need to store positions and velocities')
                 end if
                 if (mergerTreeReadPresetMergerTimes) then
                    ! Time of merging property is required.
@@ -895,7 +908,7 @@ contains
                 if (mergerTreeReadPresetOrbits     ) then
                    ! Orbit property is required.
                    if (.not.associated(Tree_Node_Satellite_Virial_Orbit_Set   )) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                        & 'presetting orbits requires a component that supports setting of orbits')
+                        & 'presetting orbits requires a component that supports setting of orbits (e.g. [treeNodeMethodSatelliteOrbit]=preset); alternatively, set [mergerTreeReadPresetOrbits]=false to prevent attempts to set orbits')
                 end if
 
                 ! Assign scale radii.
