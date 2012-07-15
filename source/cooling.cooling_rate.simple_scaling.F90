@@ -151,13 +151,14 @@ contains
     use Cosmology_Functions
     implicit none
     type(treeNode)  , intent(inout), pointer :: thisNode
-    double precision                         :: coolingRateTimescale,expansionFactor
-
-    expansionFactor            =Expansion_Factor(Tree_Node_Time(thisNode))
-    coolingRateTimeScale       = coolingRateSimpleScalingTimescale                                    &
-         &                      *exp(Tree_Node_Mass(thisNode)/coolingRateSimpleScalingTransitionMass) &
-         &                      /expansionFactor**coolingRateSimpleScalingTimescaleExponent
-    Cooling_Rate_Simple_Scaling=Tree_Node_Hot_Halo_Mass(thisNode)/coolingRateTimescale
+    double precision, parameter              :: massRatioMaximum=100.0d0
+    double precision                         :: coolingRate,expansionFactor
+    
+    expansionFactor=Expansion_Factor(Tree_Node_Time(thisNode))
+    coolingRate    = exp(-Tree_Node_Mass(thisNode)/coolingRateSimpleScalingTransitionMass) &
+         &          *expansionFactor**coolingRateSimpleScalingTimescaleExponent            &
+         &          /coolingRateSimpleScalingTimescale
+    Cooling_Rate_Simple_Scaling=Tree_Node_Hot_Halo_Mass(thisNode)*coolingRate
     return
   end function Cooling_Rate_Simple_Scaling
 
