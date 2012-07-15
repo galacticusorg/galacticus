@@ -26,16 +26,21 @@ sub Get_Host_Node_Mass {
     # Identify isolated nodes.
     $isolatedNodes = which($dataSets->{"nodeIsIsolated"} == 1);
 
-    # Loop over all isolated nodes.
+    # Build hash of isolated node identifiers.
+    my %hostMass;
     for($i=0;$i<nelem($isolatedNodes);++$i) {
-	# Find satellite nodes in the current isolated node.
-	$satelliteNodes = which(
-				$dataSets->{"nodeIsIsolated" } == 0                                                                &
-				$dataSets->{'mergerTreeIndex'} == $dataSets->{"mergerTreeIndex"}->index($isolatedNodes->index($i)) &
-				$dataSets->{"parentNode"     } == $dataSets->{"nodeIndex"      }->index($isolatedNodes->index($i))
-	    );
-	# Set the host node mass of these satellites to the node mass of their host.
-	$hostNodeMass->index($satelliteNodes) .= $dataSets->{"nodeMass"}->index($isolatedNodes->index($i));
+	my $key = $dataSets->{"mergerTreeIndex"}->index($isolatedNodes->index($i)).":".$dataSets->{"nodeIndex"}->index($isolatedNodes->index($i));
+	$hostMass{$key} = $dataSets->{"nodeMass"}->index($isolatedNodes->index($i));
+    }
+
+    # Loop over all nodes.
+    for($i=0;$i<nelem($hostNodeMass);++$i) {
+	unless ( $dataSets->{"nodeIsIsolated"}->index($i) == 1 ) {
+	    my $key = $dataSets->{"mergerTreeIndex"}->index($i).":".$dataSets->{"parentNode"}->index($i);
+	    die("Galacticus::HostNode - host node not found")
+		unless ( exists($hostMass{$key}) );
+	    $hostNodeMass->index($i) .= $hostMass{$key};
+	}
     }
 
     # Transfer to the output data structure.
