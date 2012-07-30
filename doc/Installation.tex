@@ -330,16 +330,15 @@ wget "ftp://ftp.gnu.org/gnu/gcc/gcc-4.7.0/gcc-4.7.0.tar.bz2''
 tar xvfj gcc-4.7.0.tar.bz2
 mkdir gcc-build
 cd gcc-build
-../gcc-4.7.0/configure --prefix=/your/install/path/gcc-trunk \
+../gcc-4.7.0/configure --prefix=/your/install/path \
  --enable-languages=c,c++,fortran --disable-multilib
 make
 make install
 
 ! Add to .cshrc (or equivalent):
 
-setenv PATH /your/install/path:$PATH                                                                                           
-setenv LD_LIBRARY_PATH /your/install/path/gcc-trunk/lib:/your/install/path/lib:\
-$LD_LIBRARY_PATH
+setenv PATH /your/install/path/bin:$PATH                                                                                           
+setenv LD_LIBRARY_PATH /your/install/path/lib:$LD_LIBRARY_PATH
 
 ! Install GSL:
 
