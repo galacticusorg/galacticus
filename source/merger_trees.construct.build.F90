@@ -71,7 +71,7 @@ module Merger_Tree_Build
 
   ! Variables giving the mass range and sampling frequency for mass function sampling.
   double precision     :: mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum,mergerTreeBuildTreesBaseRedshift &
-       &,mergerTreeBuildTreesBaseTime,mergerTreeBuildTreesHaloMassExponent
+       &,mergerTreeBuildTreesBaseTime
   integer              :: mergerTreeBuildTreesPerDecade,mergerTreeBuildTreesBeginAtTree
   type(varying_string) :: mergerTreeBuildTreesHaloMassDistribution,mergerTreeBuildTreeMassesFile
 
@@ -100,6 +100,7 @@ contains
   !# </mergerTreeConstructMethod>
   subroutine Merger_Tree_Build_Initialize(mergerTreeConstructMethod,Merger_Tree_Construct)
     !% Initializes the merger tree building module.
+    use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use Memory_Management
     use Cosmology_Functions
@@ -109,20 +110,31 @@ contains
     use Sort
     use Galacticus_Error
     use Numerical_Ranges
+    use Numerical_Integration
+    use Numerical_Interpolation
     use ISO_Varying_String
     use FoX_dom
     !# <include directive="mergerTreeBuildMethod" type="moduleUse">
     include 'merger_trees.build.modules.inc'
     !# </include>
     implicit none
-    type(varying_string),          intent(in)    :: mergerTreeConstructMethod
-    procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
-    type(Node),           pointer                :: doc,thisTree
-    type(NodeList),       pointer                :: rootMassList
-    integer                                      :: iTree,ioErr
-    type(fgsl_qrng)                              :: quasiSequenceObject
-    logical                                      :: quasiSequenceReset=.true.
-    double precision                             :: expansionFactor,massMinimum,massMaximum
+    type(varying_string),          intent(in)       :: mergerTreeConstructMethod
+    procedure(),          pointer, intent(inout)    :: Merger_Tree_Construct
+    type(Node),           pointer                   :: doc,thisTree
+    type(NodeList),       pointer                   :: rootMassList
+    integer,              parameter                 :: massFunctionSamplePerDecade=100
+    double precision,     parameter                 :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    double precision,     allocatable, dimension(:) :: massFunctionSampleLogMass,massFunctionSampleProbability,massFunctionSampleLogMassMonotonic
+    integer                                         :: iTree,ioErr,iSample,jSample,massFunctionSampleCount
+    type(fgsl_qrng)                                 :: quasiSequenceObject
+    logical                                         :: quasiSequenceReset=.true.
+    double precision                                :: expansionFactor,massMinimum,massMaximum,massFunctionSampleLogPrevious,probability
+    type(fgsl_function)                             :: integrandFunction
+    type(fgsl_integration_workspace)                :: integrationWorkspace
+    type(fgsl_interp)                               :: interpolationObject
+    type(fgsl_interp_accel)                         :: interpolationAccelerator
+    type(c_ptr)                                     :: parameterPointer
+    logical                                         :: integrandReset=.true.,interpolationReset=.true.
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'build') then
@@ -197,17 +209,6 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesHaloMassDistribution',mergerTreeBuildTreesHaloMassDistribution,defaultValue="uniform")
        !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesHaloMassExponent</name>
-       !@   <defaultValue>1</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\tt mergerTreeBuildTreesHaloMassExponent}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesHaloMassExponent',mergerTreeBuildTreesHaloMassExponent,defaultValue=1.0d0)
-       !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesProcessDescending</name>
        !@   <defaultValue>false</defaultValue>       
        !@   <attachedTo>module</attachedTo>
@@ -228,6 +229,10 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreeMassesFile',mergerTreeBuildTreeMassesFile,defaultValue='null')
+       
+       ! Find the cosmic time at which the trees are based.
+       expansionFactor=Expansion_Factor_from_Redshift(mergerTreeBuildTreesBaseRedshift)
+       mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)       
 
        ! Generate a randomly sampled set of halo masses.
        treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
@@ -257,8 +262,42 @@ contains
           case default
              call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
           end select
-          treeHaloMass=dexp((treeHaloMass**(1.0d0+mergerTreeBuildTreesHaloMassExponent))*dlog(mergerTreeBuildHaloMassMaximum&
-               &/mergerTreeBuildHaloMassMinimum)+dlog(mergerTreeBuildHaloMassMinimum))
+          ! Create a cumulative probability for sampling halo masses.
+          massFunctionSampleCount=int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(massFunctionSamplePerDecade))+1
+          call Alloc_Array(massFunctionSampleLogMass         ,[massFunctionSampleCount])
+          call Alloc_Array(massFunctionSampleLogMassMonotonic,[massFunctionSampleCount])
+          call Alloc_Array(massFunctionSampleProbability     ,[massFunctionSampleCount])
+          massFunctionSampleLogMass=Make_Range(log10(mergerTreeBuildHaloMassMinimum),log10(mergerTreeBuildHaloMassMaximum),massFunctionSampleCount,rangeType=rangeTypeLogarithmic)
+          massFunctionSampleLogPrevious=log10(mergerTreeBuildHaloMassMinimum)
+          jSample=0
+          do iSample=1,massFunctionSampleCount
+             probability=Integrate(massFunctionSampleLogPrevious&
+                  &,massFunctionSampleLogMass(iSample),Mass_Function_Sampling_Integrand,parameterPointer,integrandFunction &
+                  &,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative,reset=integrandReset)
+             if (iSample == 1 .or. probability > 0.0d0) then
+                jSample=jSample+1
+                massFunctionSampleProbability     (jSample)=probability
+                massFunctionSampleLogMassMonotonic(jSample)=massFunctionSampleLogMass(iSample)
+                if (jSample > 1) massFunctionSampleProbability(jSample)=massFunctionSampleProbability(jSample)+massFunctionSampleProbability(jSample-1)
+             end if
+             massFunctionSampleLogPrevious=massFunctionSampleLogMass(iSample)
+          end do
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+          massFunctionSampleCount=jSample
+          if (massFunctionSampleCount < 2) call Galacticus_Error_Report('Merger_Tree_Build_Initialize','tabulated mass function sampling density has fewer than 2 non-zero points')
+          ! Normalize the cumulative probability distribution.
+          massFunctionSampleProbability=massFunctionSampleProbability/massFunctionSampleProbability(massFunctionSampleCount)
+          ! Compute the corresponding halo masses by interpolation in the cumulative probability distribution function.
+          do iTree=1,treeCount
+             treeHaloMass(iTree)=Interpolate(massFunctionSampleCount,massFunctionSampleProbability(1:massFunctionSampleCount)&
+                  &,massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount),interpolationObject,interpolationAccelerator&
+                  &,treeHaloMass(iTree) ,reset=interpolationReset,extrapolationType=extrapolationTypeFixed)
+          end do
+          treeHaloMass=10.0d0**treeHaloMass
+          call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
+          call Dealloc_Array(massFunctionSampleLogMass         )
+          call Dealloc_Array(massFunctionSampleProbability     )
+          call Dealloc_Array(massFunctionSampleLogMassMonotonic)
        case ("read")
           ! Read masses from a file.
           !$omp critical (FoX_DOM_Access)
@@ -282,10 +321,7 @@ contains
        case default
           call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
        end select
-       
-       ! Find the cosmic time at which the trees are based.
-       expansionFactor=Expansion_Factor_from_Redshift(mergerTreeBuildTreesBaseRedshift)
-       mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)       
+
        ! Compute the weight (number of trees per unit volume) for each tree.
        do iTree=1,treeCount
           ! Get the minimum mass of the interval occupied by this tree.
@@ -334,6 +370,19 @@ contains
     return
   end subroutine Merger_Tree_Build_Initialize
 
+  function Mass_Function_Sampling_Integrand(logMass,parameterPointer) bind(c)
+    !% The integrand over the mass function sampling density function.
+    use, intrinsic :: ISO_C_Binding
+    use Merger_Trees_Mass_Function_Sampling
+    implicit none
+    real(c_double)        :: Mass_Function_Sampling_Integrand
+    real(c_double), value :: logMass
+    type(c_ptr),    value :: parameterPointer
+
+    Mass_Function_Sampling_Integrand=Merger_Tree_Construct_Mass_Function_Sampling(10.0d0**logMass,mergerTreeBuildTreesBaseTime,mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum)
+    return
+  end function Mass_Function_Sampling_Integrand
+  
   subroutine Merger_Tree_Build_Do(thisTree,skipTree)
     !% Build a merger tree.
     use Tree_Nodes
