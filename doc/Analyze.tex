@@ -442,7 +442,7 @@ The {\tt Galacticus::Grasil} module supports the {\tt selection} element of {\tt
 
 \glc\ contains modules which allow it to analyze and profile its own performance.
 
-\subsection{Tree Construction/Evolution Timing}\index{run time!tree construction}\index{run time!tree evolution}
+\subsection{Tree Construction/Evolution Timing}\label{sec:MetaTreeTimingProfiler}\index{run time!tree construction}\index{run time!tree evolution}
 
 The \hyperlink{galacticus.meta.tree_timing.F90:galacticus_meta_tree_timing}{{\tt Galacticus\_Meta\_Tree\_Timing}} module records the time taken to construct and evolve each merger tree. Setting {\tt [metaCollectTimingData]}$=${\tt true} will cause tree timing data to be recorded and output to the {\tt metaData/treeTiming} group. Three datasets are written to this group:
 \begin{description}
