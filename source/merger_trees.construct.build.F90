@@ -263,7 +263,7 @@ contains
              call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
           end select
           ! Create a cumulative probability for sampling halo masses.
-          massFunctionSampleCount=int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(massFunctionSamplePerDecade))+1
+          massFunctionSampleCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(massFunctionSamplePerDecade)))
           call Alloc_Array(massFunctionSampleLogMass         ,[massFunctionSampleCount])
           call Alloc_Array(massFunctionSampleLogMassMonotonic,[massFunctionSampleCount])
           call Alloc_Array(massFunctionSampleProbability     ,[massFunctionSampleCount])
