@@ -480,7 +480,11 @@ contains
 #endif
     integer(fgsl_int) :: fodeiv2_driver_apply
 
-    fodeiv2_driver_apply = gsl_odeiv2_driver_apply(d%odeiv2_driver, t, t1, y)
+    fodeiv2_driver_apply = gsl_odeiv2_driver_apply(d%odeiv2_driver, t, t1, y &
+#ifdef PROFILE
+         & ,sa &
+#endif
+         & )
   end function fodeiv2_driver_apply
   function fodeiv2_driver_reset(d)
     type(fodeiv2_driver), intent(inout) :: d
