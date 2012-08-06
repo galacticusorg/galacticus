@@ -658,7 +658,7 @@ contains
     integer                                           :: thisIndex
     double precision                                  :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass &
          &,massOutflowRate,diskMass,angularMomentumOutflowRate,transferRate,barInstabilityTimescale,gasMass,energyInputRate&
-         &,diskDynamicalTime,massOutflowRateToHotHalo,massOutflowRateFromHalo,outflowToHotHaloFraction
+         &,diskDynamicalTime,massOutflowRateToHotHalo,massOutflowRateFromHalo,outflowToHotHaloFraction,angularMomentum
     type(abundancesStructure), save                   :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
     type(history)                                     :: historyTransferRate
@@ -725,14 +725,15 @@ contains
           
           ! Compute the angular momentum outflow rate.
           if (diskMass > 0.0d0) then
-             angularMomentumOutflowRate=Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)*(massOutflowRate/diskMass)
+             angularMomentum           =Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)
+             angularMomentumOutflowRate=angularMomentum*(massOutflowRate/diskMass)
+             angularMomentumOutflowRate=min(angularMomentumOutflowRate,angularMomentum/diskOutflowTimescaleMinimum/diskDynamicalTime)
           else
              angularMomentumOutflowRate=0.0d0
           end if
           if (gasMass  > 0.0d0) then
              call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundancesValue)
              call Abundances_Mass_To_Mass_Fraction(abundancesValue,gasMass)
-             abundancesOutflowRate=massOutflowRate*abundancesValue
           else
              abundancesOutflowRate=0.0d0
           end if
