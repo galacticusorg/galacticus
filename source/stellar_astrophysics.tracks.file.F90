@@ -109,7 +109,7 @@ contains
        ! Set up procedure pointers.
        Stellar_Luminosity_Get            => Stellar_Luminosity_File
        Stellar_Effective_Temperature_Get => Stellar_Effective_Temperature_File
-       
+
        ! Get the name of the file from which to read stellar tracks.
        !@ <inputParameter>
        !@   <name>stellarTracksFile</name>
@@ -122,13 +122,13 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue=char(Galacticus_Input_Path())//'data/stellarAstrophysics/Stellar_Tracks_Padova.hdf5')
-       
+
        ! Open the HDF5 file.
        !$omp critical(HDF5_Access)
        call stellarTracks%openFile(char(stellarTracksFile),readOnly=.true.)
-       
+
        ! Check that this file has the correct format.
-       call stellarTracks%readAttribute('fileFormat',fileFormatVersion)
+       call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Stellar_Tracks_Initialize_File','format of stellar tracks file is out of date')
 
        ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
@@ -156,8 +156,10 @@ contains
                    ageDataset=massGroup%openDataset('age')
                    ageCountMaximum=max(ageCountMaximum,int(ageDataset%size(1)))
                    call ageDataset%close()
+                   call massGroup%close()
                 end if
              end do
+             call metallicityGroup%close()
           end if
        end do
 
@@ -170,41 +172,43 @@ contains
        call Alloc_Array(stellarTrackLuminosities    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
        call Alloc_Array(stellarTrackTemperatures    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
 
-        ! Read in all data.
-        do stellarTrackMetallicityCount=1,metallicityCountMaximum
-           ! Open the metallicity group.
-           groupName="metallicity"
-           groupName=groupName//stellarTrackMetallicityCount
-           metallicityGroup=stellarTracks%openGroup(char(groupName))
-           ! Get the metallicity.
-           call metallicityGroup%readDatasetStatic('metallicity', stellarTrackLogMetallicities(stellarTrackMetallicityCount:stellarTrackMetallicityCount))
-           ! Count how many masses are tabulated at this metallicity.
-           initialMassCount=0
-           foundMassGroup=.true.
-           do while (foundMassGroup)
-              groupName="mass"
-              groupName=groupName//(initialMassCount+1)
-              foundMassGroup=metallicityGroup%hasGroup(char(groupName))
-              if (foundMassGroup) initialMassCount=initialMassCount+1                
-           end do
-           stellarTrackInitialMassCount(stellarTrackMetallicityCount)=initialMassCount
-           ! Loop through all tabulated masses.
-           do initialMassCount=1,stellarTrackInitialMassCount(stellarTrackMetallicityCount)
-              ! Open the mass group.
-              groupName="mass"
-              groupName=groupName//initialMassCount
-              massGroup=metallicityGroup%openGroup(char(groupName))
-              ! Get initial mass.
-              call massGroup%readDatasetStatic('mass',stellarTrackInitialMasses(initialMassCount:initialMassCount,stellarTrackMetallicityCount))
-              ! Read tracks.
-              ageDataset=massGroup%openDataset('age')
-              stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount)=int(ageDataset%size(1))
-              call ageDataset%close()
-              call massGroup%readDatasetStatic('age'                 ,stellarTrackAges        (1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
-              call massGroup%readDatasetStatic('luminosity'          ,stellarTrackLuminosities(1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
-              call massGroup%readDatasetStatic('effectiveTemperature',stellarTrackTemperatures(1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
-           end do
-        end do
+       ! Read in all data.
+       do stellarTrackMetallicityCount=1,metallicityCountMaximum
+          ! Open the metallicity group.
+          groupName="metallicity"
+          groupName=groupName//stellarTrackMetallicityCount
+          metallicityGroup=stellarTracks%openGroup(char(groupName))
+          ! Get the metallicity.
+          call metallicityGroup%readDatasetStatic('metallicity', stellarTrackLogMetallicities(stellarTrackMetallicityCount:stellarTrackMetallicityCount))
+          ! Count how many masses are tabulated at this metallicity.
+          initialMassCount=0
+          foundMassGroup=.true.
+          do while (foundMassGroup)
+             groupName="mass"
+             groupName=groupName//(initialMassCount+1)
+             foundMassGroup=metallicityGroup%hasGroup(char(groupName))
+             if (foundMassGroup) initialMassCount=initialMassCount+1                
+          end do
+          stellarTrackInitialMassCount(stellarTrackMetallicityCount)=initialMassCount
+          ! Loop through all tabulated masses.
+          do initialMassCount=1,stellarTrackInitialMassCount(stellarTrackMetallicityCount)
+             ! Open the mass group.
+             groupName="mass"
+             groupName=groupName//initialMassCount
+             massGroup=metallicityGroup%openGroup(char(groupName))
+             ! Get initial mass.
+             call massGroup%readDatasetStatic('mass',stellarTrackInitialMasses(initialMassCount:initialMassCount,stellarTrackMetallicityCount))
+             ! Read tracks.
+             ageDataset=massGroup%openDataset('age')
+             stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount)=int(ageDataset%size(1))
+             call ageDataset%close()
+             call massGroup%readDatasetStatic('age'                 ,stellarTrackAges        (1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
+             call massGroup%readDatasetStatic('luminosity'          ,stellarTrackLuminosities(1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
+             call massGroup%readDatasetStatic('effectiveTemperature',stellarTrackTemperatures(1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
+             call massGroup%close()
+          end do
+          call metallicityGroup%close()
+       end do
        ! Convert metallicities to logarithmic scale.
        stellarTrackLogMetallicities=dlog(stellarTrackLogMetallicities)
        stellarTrackMetallicityCount=metallicityCountMaximum
@@ -235,8 +239,8 @@ contains
        Stellar_Luminosity_File=0.0d0
     else
        Stellar_Luminosity_File=Stellar_Tracks_Interpolation_Do(interpolationIndicesMetallicity,interpolationIndicesMass &
-         &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
-         &,stellarTrackLuminosities)
+            &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
+            &,stellarTrackLuminosities)
     end if
 
     return
@@ -260,8 +264,8 @@ contains
        Stellar_Effective_Temperature_File=0.0d0
     else
        Stellar_Effective_Temperature_File=Stellar_Tracks_Interpolation_Do(interpolationIndicesMetallicity,interpolationIndicesMass &
-         &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
-         &,stellarTrackTemperatures)
+            &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
+            &,stellarTrackTemperatures)
     end if
 
     return
@@ -341,7 +345,7 @@ contains
     ! Loop over metallicities.
     do iMetallicity=1,2
        jMetallicity=interpolationIndicesMetallicity(iMetallicity)
-       
+
        ! Interpolate in mass at each metallicity.
        if (initialMass < stellarTrackInitialMasses(1,jMetallicity)) then
           interpolationIndicesMass(iMetallicity,:)=[    1,    2]
@@ -358,13 +362,13 @@ contains
           call Interpolate_Done(interpolationAccelerator=interpolationAcceleratorMass,reset=interpolationResetMass)
           interpolationIndicesMass(iMetallicity,2)=interpolationIndicesMass(iMetallicity,1)+1
           interpolationFactorsMass(iMetallicity,:)=Interpolate_Linear_Generate_Factors(stellarTrackInitialMassCount(jMetallicity)&
-            &,stellarTrackInitialMasses(:,jMetallicity),interpolationIndicesMass(iMetallicity,1),initialMass)
+               &,stellarTrackInitialMasses(:,jMetallicity),interpolationIndicesMass(iMetallicity,1),initialMass)
        end if
 
        ! Loop over masses.
        do iMass=1,2
           jMass=interpolationIndicesMass(iMetallicity,iMass)
-          
+
           ! Interpolate in age at each mass.
           if (age < stellarTrackAges(1,jMass,jMetallicity)) then
              interpolationIndicesAge(iMetallicity,iMass,:)=[    1,    2]
