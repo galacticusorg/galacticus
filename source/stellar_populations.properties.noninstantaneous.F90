@@ -161,8 +161,7 @@ contains
     double precision,                         dimension(elementsCount) :: fuelMetallicity,stellarMetalsRateOfChange&
          &,fuelMetalsRateOfChange,metalReturnRate,metalYieldRate
     integer                                                            :: imfSelected,iHistory,iElement
-    double precision                                                   :: ageMinimum,ageMaximum,currentTime,recyclingRate&
-         &,historyFactors(2)
+    double precision                                                   :: ageMinimum,ageMaximum,currentTime,recyclingRate
     type(fgsl_interp_accel)                                            :: interpolationAccelerator
     logical                                                            :: interpolationReset
 
@@ -171,26 +170,13 @@ contains
 
     ! Get interpolating factors in stellar population history.
     interpolationReset=.true.
-    iHistory      =Interpolate_Locate                 (size(thisHistory%time),thisHistory%time,interpolationAccelerator,currentTime,interpolationReset)
-    historyFactors=Interpolate_Linear_Generate_Factors(size(thisHistory%time),thisHistory%time,iHistory                ,currentTime                   )
-    call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+    iHistory          =Interpolate_Locate(size(thisHistory%time),thisHistory%time,interpolationAccelerator,currentTime,interpolationReset)
 
-    ! Interpolate to get recycling rate.
-    recyclingRate  =Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,recycledRateIndex    ),iHistory,historyFactors)
-
-    ! Interpolate to get energy input rate.
-    energyInputRate=Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,energyInputRateIndex ),iHistory,historyFactors)
-
-    ! Compute element rates.
-    do iElement=1,elementsCount
-       ! Interpolate to get metal return rate.
-       metalReturnRate(iElement)=Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,returnedMetalRateBeginIndex&
-            &+iElement-1),iHistory,historyFactors)
-
-       ! Interpolate to get metal yield rate.
-       metalYieldRate (iElement)=Interpolate_Linear_Do(size(thisHistory%time),thisHistory%data(:,metalYieldRateBeginIndex   &
-            &+iElement-1),iHistory,historyFactors)
-    end do
+    ! Get recycling, energy input, metal recycling and metal yield rates.
+    recyclingRate  =thisHistory%data(iHistory,          recycledRateIndex                                            )
+    energyInputRate=thisHistory%data(iHistory,       energyInputRateIndex                                            )
+    metalReturnRate=thisHistory%data(iHistory,returnedMetalRateBeginIndex:returnedMetalRateBeginIndex+elementsCount-1)
+    metalYieldRate =thisHistory%data(iHistory,   metalYieldRateBeginIndex:   metalYieldRateBeginIndex+elementsCount-1)
 
     ! Get the metallicity of the fuel supply.
     call fuelAbundances%unpack(fuelMetallicity)
@@ -213,24 +199,13 @@ contains
          &*Stellar_Population_Luminosities_Get(imfSelected,currentTime,fuelAbundances)
 
     ! Set rates of change in the stellar populations properties future history.
-    do iHistory=1,size(thisHistory%time)
+    do iHistory=1,size(thisHistory%time)-1
        ! Find the age of the forming stellar population at the future time. We average over the time between successive timesteps
        ! to ensure that the rates will integrate to the correct values.
-       !
-       ! Minimum age is zero in the first timestep, and geometric mean of current and previous timestep otherwise.
-       if (iHistory == 1) then
-          ageMinimum=0.0d0
-       else
-          ageMinimum=max(dsqrt(thisHistory%time(iHistory)*thisHistory%time(iHistory-1))-currentTime,0.0d0)
-       end if
-       ! Maximum timestep is final time in final timestep, and geometric mean of current and next timestep otherwise.
-       if (iHistory == size(thisHistory%time)) then
-          ageMaximum=thisHistory%time(iHistory)-currentTime
-       else
-          ageMaximum=dsqrt(thisHistory%time(iHistory)*thisHistory%time(iHistory+1))-currentTime
-       end if
-       ! Check that it really is in the future.
-       if (ageMaximum >= 0.0d0) then
+       ageMinimum=max(thisHistory%time(iHistory  )-currentTime,0.0d0)
+       ageMaximum=max(thisHistory%time(iHistory+1)-currentTime,0.0d0)
+       ! Check that it really is in the future and that the timestep over which the contribution to be made is non-zero.
+       if (ageMaximum >= 0.0d0 .and. ageMaximum > ageMinimum) then
           ! Get the recycling rate.
           recyclingRate=IMF_Recycling_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)&
                &*starFormationRate
