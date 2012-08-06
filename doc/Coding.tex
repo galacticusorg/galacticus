@@ -11,9 +11,10 @@ To create a unique labelling function, use the {\tt uniqueLabel} directive. For 
  !# <uniqueLabel>
  !#  <function>Transfer_Function_CMBFast_Label</function>
  !#  <ignore>transferFunctionFile</ignore>
+ !#  <ignoreRegex>^imf.*</ignoreRegex>
  !# </uniqueLabel>
 \end{verbatim}
-This XML block specifies that the labelling function should be called {\tt Transfer\_Function\_CMBFast\_Label}. This function will be generated automatically during \glc\ build and will be available from the {\tt Input\_Parameters} module. The {\tt ignore} element specifies that the function should not encode the value of the {\tt transferFunctionFile} parameter in the label (in this case, the {\tt CMBFast} method sets the file name directly).
+This XML block specifies that the labelling function should be called {\tt Transfer\_Function\_CMBFast\_Label}. This function will be generated automatically during \glc\ build and will be available from the {\tt Input\_Parameters} module. The {\tt ignore} element specifies that the function should not encode the value of the {\tt transferFunctionFile} parameter in the label (in this case, the {\tt CMBFast} method sets the file name directly). Similarly, the {\tt ignoreRegex} element specifies that the function should not encode the value of any parameter which matches the regular expression provided (in this case, any parameter that begins with ``{\tt imf}''). Any number of {\tt ignore} and {\tt ignoreRegex} elements may be present.
 
 The function returns a {\tt type(varying\_string)} object with the encoded label. For the {\tt CMBFast} method this might be:
 \begin{verbatim}
