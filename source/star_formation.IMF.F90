@@ -144,6 +144,14 @@ module Star_Formation_IMF
   ! Current file format used for stellar population properties.
   integer, parameter :: fileFormatCurrent=1
 
+  ! A unique label for output files.
+  type(varying_string) :: imfUniqueLabel
+
+  ! Options controlling instantaneous stellar evolution approximations.
+  logical          :: starFormationImfInstantaneousApproximation
+  double precision :: starFormationImfInstantaneousApproximationMassLongLived
+  double precision :: starFormationImfInstantaneousApproximationEffectiveAge
+
 contains
 
   integer function IMF_Select(starFormationRate,fuelAbundances,component)
@@ -244,10 +252,62 @@ contains
           !# </include>
           if (.not.associated(IMF_Select_Do)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
                &,'method '//char(imfSelectionMethod)//' is unrecognized')
-          
+
+          ! Get options controlling the instantaneous stellar evolution approximation.
+          !@ <inputParameter>
+          !@   <name>starFormationImfInstantaneousApproximation</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Option controlling whether stellar evolution should follow the instantaneous approximation.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationImfInstantaneousApproximation',starFormationImfInstantaneousApproximation,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>starFormationImfInstantaneousApproximationMassLongLived</name>
+          !@   <defaultValue>$1M_\odot$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationImfInstantaneousApproximationMassLongLived',starFormationImfInstantaneousApproximationMassLongLived,defaultValue=1.0d0)
+          !@ <inputParameter>
+          !@   <name>starFormationImfInstantaneousApproximationEffectiveAge</name>
+          !@   <defaultValue>$13.8$Gyr</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationImfInstantaneousApproximationEffectiveAge',starFormationImfInstantaneousApproximationEffectiveAge,defaultValue=13.8d0)
+
           ! Get a count of the number of individual elements that must be tracked.
           elementCount=Abundances_Property_Count()
           
+          ! Get a unique label for IMF files. Ignore all parameters that define the choice of IMF and element since we will write
+          ! these to separate files anyway.
+          !# <uniqueLabel>
+          !#  <function>Star_Formation_IMF_Label</function>
+          !#  <ignore>elementsToTrack</ignore>
+          !#  <ignore>imfSelectionMethod</ignore>
+          !#  <ignore>imfPiecewisePowerLawExponents</ignore>
+          !#  <ignore>imfPiecewisePowerLawMassPoints</ignore>
+          !#  <ignoreRegex>^imfSelection.*</ignoreRegex>
+          !#  <ignoreRegex>^imf.*RecycledInstantaneous$</ignoreRegex>
+          !#  <ignoreRegex>^imf.*YieldInstantaneous$</ignoreRegex>
+          !# </uniqueLabel>
+          imfUniqueLabel=Star_Formation_IMF_Label(includeVersion=.true.,asHash=.true.)
+
           ! Flag that the module is now initialized.
           imfInitialized=.true.
        end if
@@ -387,6 +447,7 @@ contains
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Ranges
+    use Numerical_Constants_Astronomical
     use Stellar_Astrophysics
     use Memory_Management
     use Galacticus_Display
@@ -418,7 +479,7 @@ contains
     type(fgsl_integration_workspace)                         :: integrationWorkspace
     integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
          &,metallicityIndex,iRecycledFraction,ioErr,fileFormat
-    double precision                                         :: minimumMass,maximumMass
+    double precision                                         :: minimumMass,maximumMass,recycledFractionMaximum,recycledFractionMinimum
     character(len=20)                                        :: progressMessage,parameterValue
     type(xmlf_t)                                             :: recycledFractionDoc
     type(varying_string)                                     :: fileName
@@ -479,7 +540,7 @@ contains
        recycledFractionIndex(imfSelected)=size(recycledFractionTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'.xml'
+       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
        makeFile=.false.
        if (File_Exists(fileName)) then
           ! Open the XML file containing energy input.
@@ -613,7 +674,12 @@ contains
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
              call Galacticus_Display_Message(progressMessage,verbosityDebug)
              do iMetallicity=1,recycledFractionTableMetallicityCount
-                metallicity=recycledFractionTableMetallicity(iMetallicity)
+                ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
+                if (starFormationImfInstantaneousApproximation) then
+                   metallicity=metallicitySolar
+                else
+                   metallicity=recycledFractionTableMetallicity(iMetallicity)
+                end if
                 ! Update the counter.
                 call Galacticus_Display_Counter(                                                                                &
                      &                           int(                                                                           &
@@ -667,12 +733,17 @@ contains
        metallicityFactors=[1.0d0,0.0d0]
        if (present(ageMaximum)) then
           ! Get average recycling rate between ageMinimum and ageMaximum.
-          recycleRate(1)=(Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge,recycledFractionTable(: &
+          if (ageMinimum > 0.0d0) then
+             recycledFractionMinimum=Interpolate(recycledFractionTableAgeCount&
+                  &,recycledFractionTableAge ,recycledFractionTable(: ,metallicityIndex,tableIndex),interpolationAgeObject&
+                  &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+          else
+             recycledFractionMinimum=0.0d0
+          end if
+          recycledFractionMaximum=Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge,recycledFractionTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset &
-               &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)-Interpolate(recycledFractionTableAgeCount&
-               &,recycledFractionTableAge ,recycledFractionTable(: ,metallicityIndex,tableIndex),interpolationAgeObject&
-               &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum&
-               &-ageMinimum)
+               &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+          recycleRate(1)=(recycledFractionMaximum-recycledFractionMinimum)/(ageMaximum-ageMinimum)
        else
           ! Get instantaneous recycling rate at ageMinimum.
           recycleRate(1)=Interpolate_Derivative(recycledFractionTableAgeCount,recycledFractionTableAge,recycledFractionTable(: &
@@ -689,12 +760,18 @@ contains
        do iMetallicity=0,1
           if (present(ageMaximum)) then
              ! Get average recycling rate between ageMinimum and ageMaximum.
-             recycleRate(iMetallicity+1)=(Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge&
+             if (ageMinimum > 0.0d0) then
+                recycledFractionMinimum=Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge ,recycledFractionTable(:,metallicityIndex&
+                     &+iMetallicity,tableIndex),interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset&
+                     &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+             else
+                recycledFractionMinimum=0.0d0
+             end if
+             recycledFractionMaximum=Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge&
                   &,recycledFractionTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
-                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)&
-                  &-Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge ,recycledFractionTable(:,metallicityIndex&
-                  &+iMetallicity,tableIndex),interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset&
-                  &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum-ageMinimum)
+                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+             
+             recycleRate(iMetallicity+1)=(recycledFractionMaximum-recycledFractionMinimum)/(ageMaximum-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
              recycleRate(iMetallicity+1)=Interpolate_Derivative(recycledFractionTableAgeCount,recycledFractionTableAge&
@@ -710,6 +787,22 @@ contains
     return
   end function IMF_Recycling_Rate_NonInstantaneous
 
+  logical function Star_Is_Evolved(initialMass,metallicity,age)
+    !% Returns true if the specified star is evolved by the given {\tt age}.
+    use Stellar_Astrophysics
+    implicit none
+    double precision, intent(in) :: initialMass,metallicity,age
+
+    if (starFormationImfInstantaneousApproximation) then
+       ! Instantaneous calculation - star is evolved if it is more massive that the specified mass of long-lived stars.
+       Star_Is_Evolved=(initialMass > starFormationImfInstantaneousApproximationMassLongLived)
+    else
+       ! Standard calculation - star is evolved if its lifeltime is less than the supplied age.
+       Star_Is_Evolved=(Star_Lifetime(initialMass,metallicity) < age)
+    end if
+    return
+  end function Star_Is_Evolved
+
   function Recycled_Fraction_Integrand(initialMass,parameterPointer) bind(c)
     !% Integrand used in evaluating recycled fractions.
     use, intrinsic :: ISO_C_Binding
@@ -719,7 +812,7 @@ contains
     real(c_double), value :: initialMass
     type(c_ptr),    value :: parameterPointer
 
-    if (Star_Lifetime(initialMass,metallicity) <= lifetime) then
+    if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
        Recycled_Fraction_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*Star_Ejected_Mass(initialMass,metallicity)
     else
        Recycled_Fraction_Integrand=0.0d0
@@ -734,20 +827,21 @@ contains
     !% given {\tt age} (in Gyr). The metal yield is computed on a grid of age and metallicity. This is stored to file and will be
     !% read back in on subsequent runs. This is useful as computation of the table is relatively slow.
     use, intrinsic :: ISO_C_Binding
-     use Abundances_Structure
-     use Numerical_Integration
-     use Numerical_Interpolation
-     use Numerical_Ranges
-     use Stellar_Astrophysics
-     use Memory_Management
-     use Galacticus_Display
-     use File_Utilities
-     use FoX_wxml
-     use FoX_dom
-     use ISO_Varying_String
-     use Galacticus_Error
-     use Dates_and_Times
-     use Galacticus_Input_Paths
+    use Abundances_Structure
+    use Numerical_Integration
+    use Numerical_Interpolation
+    use Numerical_Ranges
+    use Numerical_Constants_Astronomical
+    use Stellar_Astrophysics
+    use Memory_Management
+    use Galacticus_Display
+    use File_Utilities
+    use FoX_wxml
+    use FoX_dom
+    use ISO_Varying_String
+    use Galacticus_Error
+    use Dates_and_Times
+    use Galacticus_Input_Paths
      implicit none
      double precision,          intent(in)                      :: starFormationRate,ageMinimum
      double precision,          intent(in),  optional           :: ageMaximum
@@ -770,7 +864,7 @@ contains
      type(fgsl_integration_workspace)                           :: integrationWorkspace
      integer                                                    :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
           &,metallicityIndex,iMetalYield,ioErr,abundanceIndexActual,iElement,fileFormat
-     double precision                                           :: minimumMass,maximumMass
+     double precision                                           :: minimumMass,maximumMass,yieldMinimum,yieldMaximum
      character(len=20)                                          :: progressMessage,parameterValue
      type(xmlf_t)                                               :: metalYieldDoc
      type(varying_string)                                       :: fileName
@@ -837,10 +931,10 @@ contains
           select case (iElement)
           case (1)
              ! Total metallicity.
-             fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Metal_Yield_'//imfNames(imfSelected)//'.xml'
+             fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Metal_Yield_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
           case (2:)
              ! Individual element.
-             fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'.xml'
+             fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
           end select
           makeFile=.false.
           if (File_Exists(fileName)) then
@@ -1004,7 +1098,12 @@ contains
                 write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
                 call Galacticus_Display_Message(progressMessage,verbosityDebug)
                 do iMetallicity=1,metalYieldTableMetallicityCount
-                   metallicity=metalYieldTableMetallicity(iMetallicity)
+                   ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
+                   if (starFormationImfInstantaneousApproximation) then
+                      metallicity=metallicitySolar
+                   else
+                      metallicity=metalYieldTableMetallicity(iMetallicity)
+                   end if
                    ! Update the counter.
                    call Galacticus_Display_Counter(                                                                    &
                         &                           int(                                                               &
@@ -1077,12 +1176,17 @@ contains
         metallicityFactors=[1.0d0,0.0d0]
         if (present(ageMaximum)) then
            ! Get average recycling rate between ageMinimum and ageMaximum.
-           metalYieldRate(1)=(Interpolate(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: ,metallicityIndex &
+           if (ageMinimum > 0.0d0) then
+              yieldMinimum=Interpolate(metalYieldTableAgeCount,metalYieldTableAge &
+                   &,metalYieldTable(: ,metallicityIndex,abundanceIndexActual,tableIndex) ,interpolationAgeObject&
+                   &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+           else
+              yieldMinimum=0.0d0
+           end if
+           yieldMaximum=Interpolate(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: ,metallicityIndex &
                 &,abundanceIndexActual,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset &
-                &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear) -Interpolate(metalYieldTableAgeCount,metalYieldTableAge &
-                &,metalYieldTable(: ,metallicityIndex,abundanceIndexActual,tableIndex) ,interpolationAgeObject&
-                &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum&
-                &-ageMinimum)
+                &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)           
+           metalYieldRate(1)=(yieldMaximum-yieldMinimum)/(ageMaximum-ageMinimum)
         else
            ! Get instantaneous recycling rate at ageMinimum.
            metalYieldRate(1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: &
@@ -1099,12 +1203,17 @@ contains
         do iMetallicity=0,1
           if (present(ageMaximum)) then
              ! Get average recycling rate between ageMinimum and ageMaximum.
-             metalYieldRate(iMetallicity+1)=(Interpolate(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
+             if (ageMinimum > 0.0d0) then
+                yieldMinimum=Interpolate(metalYieldTableAgeCount ,metalYieldTableAge,metalYieldTable(:,metallicityIndex+iMetallicity&
+                     &,abundanceIndexActual,tableIndex) ,interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset &
+                     &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+             else
+                yieldMinimum=0.0d0
+             end if
+             yieldMaximum=Interpolate(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
                   &,metallicityIndex+iMetallicity,abundanceIndexActual,tableIndex),interpolationAgeObject &
-                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear) &
-                  &-Interpolate(metalYieldTableAgeCount ,metalYieldTableAge,metalYieldTable(:,metallicityIndex+iMetallicity&
-                  &,abundanceIndexActual,tableIndex) ,interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset &
-                  &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum -ageMinimum)
+                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)             
+             metalYieldRate(iMetallicity+1)=(yieldMaximum-yieldMinimum)/(ageMaximum-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
              metalYieldRate(iMetallicity+1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
@@ -1129,10 +1238,10 @@ contains
     real(c_double)        :: Metal_Yield_Integrand
     real(c_double), value :: initialMass
     type(c_ptr),    value :: parameterPointer
-    real(c_double)        :: yieldMass
+    real(c_double)        :: yieldMass,sneiaLifetime
 
     ! Include yields from isolated stars.
-    if (Star_Lifetime(initialMass,metallicity) <= lifetime) then
+    if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
        select case (atomIndexGlobal)
        case (0)
           ! Total metallicity required.
@@ -1147,12 +1256,19 @@ contains
     end if
     
     ! Include yield from Type Ia supernovae.
+    if (starFormationImfInstantaneousApproximation) then
+       ! In the instantaneous stellar evolution approximation use the effective age to compute the SNeIa yield.
+       sneiaLifetime=starFormationImfInstantaneousApproximationEffectiveAge
+    else
+       ! In the standard calculation simply use the current age.
+       sneiaLifetime=lifetime
+    end if
     select case (atomIndexGlobal)
     case (0)
        ! Total metallicity required.
-       yieldMass=SNeIa_Cumulative_Yield(initialMass,lifetime,metallicity                )
+       yieldMass=SNeIa_Cumulative_Yield(initialMass,sneiaLifetime,metallicity                )
     case default
-       yieldMass=SNeIa_Cumulative_Yield(initialMass,lifetime,metallicity,atomIndexGlobal)
+       yieldMass=SNeIa_Cumulative_Yield(initialMass,sneiaLifetime,metallicity,atomIndexGlobal)
     end select
     Metal_Yield_Integrand=Metal_Yield_Integrand+IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
     return
@@ -1168,6 +1284,7 @@ contains
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Ranges
+    use Numerical_Constants_Astronomical
     use Stellar_Astrophysics
     use Memory_Management
     use Galacticus_Display
@@ -1199,7 +1316,7 @@ contains
     type(fgsl_integration_workspace)                         :: integrationWorkspace
     integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
          &,metallicityIndex,iEnergyInput,ioErr,fileFormat
-    double precision                                         :: minimumMass,maximumMass
+    double precision                                         :: minimumMass,maximumMass,energyInputMinimum,energyInputMaximum
     character(len=20)                                        :: progressMessage,parameterValue
     type(xmlf_t)                                             :: energyInputDoc
     type(varying_string)                                     :: fileName
@@ -1260,7 +1377,7 @@ contains
        energyInputIndex(imfSelected)=size(energyInputTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Energy_Input_'//imfNames(imfSelected)//'.xml'
+       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Energy_Input_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
        makeFile=.false.
        if (File_Exists(fileName)) then
            ! Open the XML file containing energy input.
@@ -1389,19 +1506,24 @@ contains
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
              call Galacticus_Display_Message(progressMessage,verbosityDebug)
              do iMetallicity=1,energyInputTableMetallicityCount
-                metallicity=energyInputTableMetallicity(iMetallicity)
-                   ! Update the counter.
-                   call Galacticus_Display_Counter(                                                                      &
-                        &                           int(                                                                 &
-                        &                                100.0d0                                                         &
-                        &                               *dble( energyInputTableMetallicityCount*iAge                     &
-                        &                                     +                                 iMetallicity             &
-                        &                                    )                                                           &
-                        &                               /dble(energyInputTableMetallicityCount*energyInputTableAgeCount) &
-                        &                              )                                                                 &
-                        &                          ,.false.                                                              &
-                        &                          ,verbosityWorking                                                     &
-                        &                         )
+                ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
+                if (starFormationImfInstantaneousApproximation) then
+                   metallicity=metallicitySolar
+                else
+                   metallicity=energyInputTableMetallicity(iMetallicity)
+                end if
+                ! Update the counter.
+                call Galacticus_Display_Counter(                                                                      &
+                     &                           int(                                                                 &
+                     &                                100.0d0                                                         &
+                     &                               *dble( energyInputTableMetallicityCount*iAge                     &
+                     &                                     +                                 iMetallicity             &
+                     &                                    )                                                           &
+                     &                               /dble(energyInputTableMetallicityCount*energyInputTableAgeCount) &
+                     &                              )                                                                 &
+                     &                          ,.false.                                                              &
+                     &                          ,verbosityWorking                                                     &
+                     &                         )
                 ! Find the minimum and maximum masses to integrate over for this IMF.
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
@@ -1464,12 +1586,18 @@ contains
        do iMetallicity=0,1
           if (present(ageMaximum)) then
              ! Get average recycling rate between ageMinimum and ageMaximum.
-             energyInputRate(iMetallicity+1)=(Interpolate(energyInputTableAgeCount,energyInputTableAge ,energyInputTable(: &
+             if (ageMinimum > 0.0d0) then
+                energyInputMinimum=Interpolate(energyInputTableAgeCount&
+                     &,energyInputTableAge ,energyInputTable(: ,metallicityIndex +iMetallicity,tableIndex),interpolationAgeObject&
+                     &,interpolationAgeAccelerator ,ageMinimum ,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+             else
+                energyInputMinimum=0.0d0
+             end if
+             energyInputMaximum=Interpolate(energyInputTableAgeCount,energyInputTableAge ,energyInputTable(: &
                   &,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject ,interpolationAgeAccelerator,ageMaximum &
-                  &,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear) -Interpolate(energyInputTableAgeCount&
-                  &,energyInputTableAge ,energyInputTable(: ,metallicityIndex +iMetallicity,tableIndex),interpolationAgeObject&
-                  &,interpolationAgeAccelerator ,ageMinimum ,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum&
-                  &-ageMinimum)
+                  &,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+
+             energyInputRate(iMetallicity+1)=(energyInputMaximum-energyInputMinimum)/(ageMaximum-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
              energyInputRate(iMetallicity+1)=Interpolate_Derivative(energyInputTableAgeCount,energyInputTableAge &
@@ -1493,9 +1621,23 @@ contains
     real(c_double)        :: Cumulative_Energy_Integrand
     real(c_double), value :: initialMass
     type(c_ptr),    value :: parameterPointer
+    real(c_double)        :: energyLifetime
 
+    if (starFormationImfInstantaneousApproximation) then
+       ! In the instantaneous stellar evolution approximation, assume stars more massive than the long-lived star cut off
+       ! contribute to the energy input (with an age equal to the specified effective age), while less massive stars contribute
+       ! nothing.
+       if (initialMass > starFormationImfInstantaneousApproximationMassLongLived) then
+          energyLifetime=starFormationImfInstantaneousApproximationEffectiveAge
+       else
+          energyLifetime=0.0d0
+       end if
+    else
+       ! In the standard calculation, simply use the current lifetime.
+       energyLifetime=lifetime
+    end if
     Cumulative_Energy_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*Stellar_Feedback_Cumulative_Energy_Input(initialMass&
-         &,lifetime,metallicity)
+         &,energyLifetime,metallicity)
     return
   end function Cumulative_Energy_Integrand
   

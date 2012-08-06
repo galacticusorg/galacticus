@@ -280,3 +280,30 @@ Each of the merger tree files created can then be run through \glc\ in the usual
 where the {\tt geometry.xml} file will have been automatically created within the {\tt \textless lightconeDirectory\textgreater} directory.
 
 Selecting the lightcone filter automatically causes lightcone coordinate information (i.e. the position and velocity of each galaxy in a coordinate system with axes aligned along the line of sight of the lightcone and parallel to the two edges of the square field of view) to be output (see \S\ref{sec:OutputLightcone}). The redshift of each galaxy is also output.
+
+\section{Using the Instantaneous Recycling Approximation}\index{recycling!instantaneous}\index{instantaneous recycling approximation}
+
+Choosing {\tt [stellarPopulationPropertiesMethod]}$=${\tt instantaneous} will cause \glc\ to use the instantaneous recycling approximation for all calculations of stellar populations. The recyling rate and yield to use are set by the {\tt [imfNAMERecycledInstantaneous]} and {\tt [imfNAMEYieldInstantaneous]} parameters respectively, where {\tt NAME} is the name of the appropriate \gls{imf}.
+
+Setting {\tt [stellarPopulationPropertiesMethod]}$=${\tt noninstantaneous} causes \glc\ to use a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and \gls{sne} rates. However, it is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
+\begin{verbatim}
+<parameter>
+  <!-- Force the calculation of recycling, yields etc. to   -->
+  <!-- be done assuming instantaneous recycling             -->
+  <name>starFormationImfInstantaneousApproximation</name>
+  <value>true</value>
+</parameter>
+<parameter>
+  <!-- Set the mass of stars which should be used as the    -->
+  <!-- dividing line between long-lived and instantaneously -->
+  <!-- evolving in this approximation.                      -->
+  <name>starFormationImfInstantaneousApproximationMassLongLived</name>
+  <value>1.0</value>
+</parameter>
+<parameter>
+  <!-- Set the effective age of populations to use in this -->
+  <!-- approximation when computing SNe numbers.           -->
+  <name>starFormationImfInstantaneousApproximationEffectiveAge</name>
+  <value>13.8</value>
+</parameter>
+\end{verbatim}
