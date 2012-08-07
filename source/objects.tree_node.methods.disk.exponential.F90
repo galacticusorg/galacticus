@@ -734,6 +734,7 @@ contains
           if (gasMass  > 0.0d0) then
              call Tree_Node_Disk_Gas_Abundances_Exponential(thisNode,abundancesValue)
              call Abundances_Mass_To_Mass_Fraction(abundancesValue,gasMass)
+             abundancesOutflowRate=massOutflowRate*abundancesValue
           else
              abundancesOutflowRate=0.0d0
           end if
