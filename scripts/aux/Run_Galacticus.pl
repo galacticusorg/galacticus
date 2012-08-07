@@ -179,8 +179,10 @@ if ( $launchMethod eq "pbs" ) {
 	}
 	# If there are jobs remaining to be submitted, and not too many are already queued, launch one.
 	my $maxJobsInQueue = -1;
-	$maxJobsInQueue = $modelsToRun->{'pbs'}->{'maxJobsInQueue'} if ( exists($modelsToRun->{'pbs'}->{'maxJobsInQueue'}) );
-	if ( scalar(@{$modelsToRun->{'pbs'}->{'modelQueue'}}) > 0 && scalar(keys %pbsJobs) < $maxJobsInQueue || $maxJobsInQueue < 0 ) {
+	$maxJobsInQueue = $modelsToRun->{'pbs'}->{'maxJobsInQueue'}
+	   if ( exists($modelsToRun->{'pbs'}->{'maxJobsInQueue'}) );
+	if ( scalar(@{$modelsToRun->{'pbs'}->{'modelQueue'}}) > 0 && ( scalar(keys %pbsJobs) < $maxJobsInQueue || $maxJobsInQueue < 0 ) ) {
+
 	    my $pbsJob = shift(@{$modelsToRun->{'pbs'}->{'modelQueue'}});
 	    my $pbsScript = $pbsJob->{'script'};
 	    my $galacticusOutputDirectory = $pbsJob->{'outputDirectory'};
