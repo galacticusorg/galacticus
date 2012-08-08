@@ -9,12 +9,20 @@ use PDL::NiceSlice;
 # Andrew Benson (23-Jun-2012)
 
 # Run full model and a restored state model.
-system("export OMP_NUM_THREADS=1; Galacticus.exe testSuite/parameters/state/store.xml"   );
-system("export OMP_NUM_THREADS=1; Galacticus.exe testSuite/parameters/state/retrieve.xml");
+system("export OMP_NUM_THREADS=1; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"   );
+die("FAIL: failed to run store model")
+    unless ( $? == 0 );
+system("export OMP_NUM_THREADS=1; cd ..; Galacticus.exe testSuite/parameters/state/retrieve.xml");
+die("FAIL: failed to run retrieve model")
+    unless ( $? == 0 );
 
 # Open both output files.
-my $store    = new PDL::IO::HDF5("testSuite/outputs/stateStore.hdf5"   );
-my $retrieve = new PDL::IO::HDF5("testSuite/outputs/stateRetrieve.hdf5");
+die("FAIL: stateStore.hdf5 file is missing")
+    unless ( -e "outputs/stateRetrieve.hdf5" );
+die("FAIL: stateRetrieve.hdf5 file is missing")
+    unless ( -e "outputs/stateStore.hdf5" );
+my $store    = new PDL::IO::HDF5("outputs/stateStore.hdf5"   );
+my $retrieve = new PDL::IO::HDF5("outputs/stateRetrieve.hdf5");
 
 # Get data groups.
 my $storeData    = $store   ->group('Outputs')->group('Output1')->group('nodeData');
@@ -38,7 +46,7 @@ foreach my $dataset ( @datasets ) {
     my $storeDataset    = $storeData   ->dataset($dataset)->get()->(-$storeTreeSize:-1);
     my $retrieveDataset = $retrieveData->dataset($dataset)->get();
     my $equal = all($storeDataset == $retrieveDataset);
-    print "FAIL: dataset '".$dataset."' chanegd after state retrieve\n"
+    print "FAIL: dataset '".$dataset."' changed after state retrieve\n"
 	unless ( $equal == 1 );
 }
 
