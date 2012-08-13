@@ -140,7 +140,9 @@ sub GnuPlot2ODG {
 sub GnuPlot2PDF {
     # Get the name of the GnuPlot-generated EPS file.
     my $gnuplotEpsFile = shift;
-
+    # Extract any remaining options.
+    my (%options) = @_ if ( $#_ >= 1 );
+    
     # Get the root name.
     (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
 
@@ -180,9 +182,12 @@ sub GnuPlot2PDF {
     move($gnuplotRoot.".tex.swapped",$gnuplotRoot.".tex");
 
     # Create a wrapper file for the LaTeX.
+    my $fontSize = "10";
+    $fontSize = $options{'fontSize'}
+        if ( exists($options{'fontSize'}) );
     my $wrapper = "gnuplotWrapper".$$;
     open(wHndl,">".$folderName.$wrapper.".tex");
-    print wHndl "\\documentclass[10pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
+    print wHndl "\\documentclass[".$fontSize."pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
     close(wHndl);
     &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile."; cd ".$folderName."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf","/dev/null");
     move($folderName.$wrapper."-crop.pdf",$gnuplotPdfFile);
