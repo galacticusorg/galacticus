@@ -73,15 +73,19 @@ contains
   !# <criticalOverdensityMassScalingMethod>
   !#  <unitName>Critical_Overdensity_Mass_Scaling_Null_Initialize</unitName>
   !# </criticalOverdensityMassScalingMethod>
-  subroutine Critical_Overdensity_Mass_Scaling_Null_Initialize(criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get)
+  subroutine Critical_Overdensity_Mass_Scaling_Null_Initialize(criticalOverdensityMassScalingMethod&
+       &,Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get)
     !% Initializes the ``null'' critical overdensity mass scaling method.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: criticalOverdensityMassScalingMethod
-    procedure(double precision), pointer, intent(inout) :: Critical_Overdensity_Mass_Scaling_Get
+    procedure(double precision), pointer, intent(inout) :: Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get
     
-    if (criticalOverdensityMassScalingMethod == 'null') Critical_Overdensity_Mass_Scaling_Get => Critical_Overdensity_Mass_Scaling_Null
+    if (criticalOverdensityMassScalingMethod == 'null') then
+       Critical_Overdensity_Mass_Scaling_Get          => Critical_Overdensity_Mass_Scaling_Null
+       Critical_Overdensity_Mass_Scaling_Gradient_Get => Critical_Overdensity_Mass_Scaling_Gradient_Null
+    end if
     return
   end subroutine Critical_Overdensity_Mass_Scaling_Null_Initialize
 
@@ -93,5 +97,14 @@ contains
     Critical_Overdensity_Mass_Scaling_Null=1.0d0
     return
   end function Critical_Overdensity_Mass_Scaling_Null
+  
+  double precision function Critical_Overdensity_Mass_Scaling_Gradient_Null(mass)
+    !% Returns the gradient of a mass scaling for critical overdensities that is always unity.
+    implicit none
+    double precision, intent(in) :: mass
+
+    Critical_Overdensity_Mass_Scaling_Gradient_Null=0.0d0
+    return
+  end function Critical_Overdensity_Mass_Scaling_Gradient_Null
   
 end module Critical_Overdensity_Mass_Scalings_Null

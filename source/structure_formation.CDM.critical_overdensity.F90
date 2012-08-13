@@ -69,10 +69,13 @@ module Critical_Overdensity
   implicit none
   private
   public :: Critical_Overdensity_for_Collapse, Critical_Overdensity_for_Collapse_Time_Gradient, Time_of_Collapse,&
-       & Critical_Overdensity_State_Retrieve, Critical_Overdensity_Collapsing_Mass
+       & Critical_Overdensity_State_Retrieve, Critical_Overdensity_Collapsing_Mass, Critical_Overdensity_Mass_Scaling,&
+       & Critical_Overdensity_Mass_Scaling_Gradient
 
   ! Flag to indicate if this module and tables have been initialized.
-  logical                                        :: deltaCriticalInitialized=.false., massScalingInitialized=.false., tablesInitialized=.false.
+  logical                                        :: deltaCriticalInitialized=.false., &
+       & massScalingInitialized=.false., tablesInitialized=.false.
+  !$omp threadprivate(tablesInitialized)
 
   ! Variables to hold the tabulated critical overdensity data.
   integer                                        :: deltaCritTableNumberPoints
@@ -81,12 +84,17 @@ module Critical_Overdensity
   type(fgsl_interp)                              :: interpolationObject,reverseInterpolationObject
   type(fgsl_interp_accel)                        :: interpolationAccelerator,reverseInterpolationAccelerator
   logical                                        :: resetInterpolation,reverseResetInterpolation
+  !$omp threadprivate(deltaCritTableNumberPoints,deltaCritTableTime,deltaCritTableDeltaCrit,deltaCritReverseTableTime)
+  !$omp threadprivate(deltaCritReverseTableDeltaCrit,interpolationObject,reverseInterpolationObject)
+  !$omp threadprivate(interpolationAccelerator,reverseInterpolationAccelerator)
+  !$omp threadprivate(resetInterpolation,reverseResetInterpolation)
 
   ! Name of critical overdensity method used.
   type(varying_string)                           :: criticalOverdensityMethod,criticalOverdensityMassScalingMethod
 
   ! Global variable used in root finding.
   double precision                               :: collapseTime
+  !$omp threadprivate(collapseTime)
 
   ! Pointer to the subroutine that tabulates the critical overdensity and template interface for that subroutine.
   procedure(Critical_Overdensity_Tabulate_Template), pointer :: Critical_Overdensity_Tabulate => null()
@@ -99,7 +107,8 @@ module Critical_Overdensity
   end interface
 
   ! Pointer to the mass scaling function.
-  procedure(Critical_Overdensity_Mass_Scaling_Template), pointer :: Critical_Overdensity_Mass_Scaling_Get => null()
+  procedure(Critical_Overdensity_Mass_Scaling_Template), pointer :: Critical_Overdensity_Mass_Scaling_Get          => null()
+  procedure(Critical_Overdensity_Mass_Scaling_Template), pointer :: Critical_Overdensity_Mass_Scaling_Gradient_Get => null()
   abstract interface
      double precision function Critical_Overdensity_Mass_Scaling_Template(mass)
        double precision,                            intent(in)    :: mass
@@ -121,25 +130,30 @@ contains
     double precision, intent(in) :: time
 
     if (.not.deltaCriticalInitialized) then
-       ! Get the critical overdensity method parameter.
-       !@ <inputParameter>
-       !@   <name>criticalOverdensityMethod</name>
-       !@   <defaultValue>sphericalTopHat</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for critical overdensities for halo collapse.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('criticalOverdensityMethod',criticalOverdensityMethod,defaultValue='sphericalTopHat')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="criticalOverdensityMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>criticalOverdensityMethod,Critical_Overdensity_Tabulate</subroutineArgs>
-       include 'structure_formation.CDM.critical_overdensity.inc'
-       !# </include>
-       if (.not.associated(Critical_Overdensity_Tabulate)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
-            &//char(criticalOverdensityMethod)//' is unrecognized')
+       !$omp critical (Critical_Overdensity_Initialize)
+       if (.not.deltaCriticalInitialized) then
+          ! Get the critical overdensity method parameter.
+          !@ <inputParameter>
+          !@   <name>criticalOverdensityMethod</name>
+          !@   <defaultValue>sphericalTopHat</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for critical overdensities for halo collapse.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('criticalOverdensityMethod',criticalOverdensityMethod,defaultValue='sphericalTopHat')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="criticalOverdensityMethod" type="code" action="subroutine">
+          !#  <subroutineArgs>criticalOverdensityMethod,Critical_Overdensity_Tabulate</subroutineArgs>
+          include 'structure_formation.CDM.critical_overdensity.inc'
+          !# </include>
+          if (.not.associated(Critical_Overdensity_Tabulate)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
+               &//char(criticalOverdensityMethod)//' is unrecognized')
+          deltaCriticalInitialized=.true.
+       end if
+       !$omp end critical (Critical_Overdensity_Initialize)
     end if
     ! Call routine to initialize the critical overdensity table.
     call Critical_Overdensity_Tabulate(time,deltaCritTableNumberPoints,deltaCritTableTime,deltaCritTableDeltaCrit)
@@ -152,8 +166,7 @@ contains
     deltaCritReverseTableTime     =Array_Reverse(deltaCritTableTime     )
     deltaCritReverseTableDeltaCrit=Array_Reverse(deltaCritTableDeltaCrit)
     ! Flag that the module and tables are now initialized.
-    deltaCriticalInitialized=.true.
-    tablesInitialized       =.true.
+    tablesInitialized=.true.
     return
   end subroutine Critical_Overdensity_Initialize
 
@@ -237,8 +250,7 @@ contains
     end if
 
     ! Check if we need to recompute our table.
-    !$omp critical(Critical_Overdensity_for_Collapse_Interp)
-    if (deltaCriticalInitialized.and.tablesInitialized) then
+    if (tablesInitialized) then
        remakeTable=(time<deltaCritTableTime(1).or.time>deltaCritTableTime(deltaCritTableNumberPoints))
     else
        remakeTable=.true.
@@ -248,13 +260,11 @@ contains
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.
        reverseResetInterpolation=.true.
-       deltaCriticalInitialized=.true.
     end if
 
     ! Interpolate to get the critical overdensity for collapse.
     Critical_Overdensity_for_Collapse=Interpolate(deltaCritTableNumberPoints,deltaCritTableTime,deltaCritTableDeltaCrit&
          &,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
-    !$omp end critical(Critical_Overdensity_for_Collapse_Interp)
 
     ! Scale by a mass dependent factor if necessary.
     if (present(mass)) Critical_Overdensity_for_Collapse=Critical_Overdensity_for_Collapse*Critical_Overdensity_Mass_Scaling(mass)
@@ -293,8 +303,7 @@ contains
     end if
 
     ! Check if we need to recompute our table.
-    !$omp critical(Critical_Overdensity_for_Collapse_Interp)
-    if (deltaCriticalInitialized.and.tablesInitialized) then
+    if (tablesInitialized) then
        remakeTable=(time<deltaCritTableTime(1).or.time>deltaCritTableTime(deltaCritTableNumberPoints))
     else
        remakeTable=.true.
@@ -304,13 +313,11 @@ contains
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.
        reverseResetInterpolation=.true.
-       deltaCriticalInitialized=.true.
     end if
 
     ! Interpolate to get the derivative.
     Critical_Overdensity_for_Collapse_Time_Gradient=Interpolate_Derivative(deltaCritTableNumberPoints,deltaCritTableTime&
          &,deltaCritTableDeltaCrit ,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
-    !$omp end critical(Critical_Overdensity_for_Collapse_Interp)
 
     ! Scale by a mass dependent factor if necessary.
     if (present(mass)) Critical_Overdensity_for_Collapse_Time_Gradient=Critical_Overdensity_for_Collapse_Time_Gradient*Critical_Overdensity_Mass_Scaling(mass)
@@ -334,8 +341,7 @@ contains
     end if
 
     ! Check if we need to recompute our table.
-    !$omp critical(Critical_Overdensity_for_Collapse_Interp)
-    do while (.not.deltaCriticalInitialized.or.criticalOverdensityActual>deltaCritTableDeltaCrit(1).or.criticalOverdensityActual&
+    do while (criticalOverdensityActual>deltaCritTableDeltaCrit(1).or.criticalOverdensityActual&
          &<deltaCritTableDeltaCrit(deltaCritTableNumberPoints))
        if (.not.(deltaCriticalInitialized.and.tablesInitialized)) then
           time=Cosmology_Age(1.0d0)
@@ -350,13 +356,11 @@ contains
        call Interpolate_Done(reverseInterpolationObject,reverseInterpolationAccelerator,reverseResetInterpolation)
        reverseResetInterpolation=.true.
        resetInterpolation=.true.
-       deltaCriticalInitialized=.true.
     end do
     
     ! Interpolate to get the expansion factor.
     Time_of_Collapse=Interpolate(deltaCritTableNumberPoints,deltaCritReverseTableDeltaCrit,deltaCritReverseTableTime &
          &,reverseInterpolationObject,reverseInterpolationAccelerator,criticalOverdensityActual,reset=reverseResetInterpolation)
-    !$omp end critical(Critical_Overdensity_for_Collapse_Interp)
 
     return
   end function Time_of_Collapse
@@ -373,6 +377,19 @@ contains
     Critical_Overdensity_Mass_Scaling=Critical_Overdensity_Mass_Scaling_Get(mass)
     return
   end function Critical_Overdensity_Mass_Scaling
+
+  double precision function Critical_Overdensity_Mass_Scaling_Gradient(mass)
+    !% Return the gradient with mass of a multiplicative, mass-dependent factor by which the critical overdensity should be scaled.
+    implicit none
+    double precision, intent(in) :: mass
+
+    ! Ensure the mass scaling method is initialized.
+    call Critical_Overdensity_Mass_Scaling_Initialize    
+    
+    ! Perform the calculation.
+    Critical_Overdensity_Mass_Scaling_Gradient=Critical_Overdensity_Mass_Scaling_Gradient_Get(mass)
+    return
+  end function Critical_Overdensity_Mass_Scaling_Gradient
 
   subroutine Critical_Overdensity_Mass_Scaling_Initialize
     !% Initializes the critical overdensity mass scaling method.
@@ -400,10 +417,10 @@ contains
           call Get_Input_Parameter('criticalOverdensityMassScalingMethod',criticalOverdensityMassScalingMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="criticalOverdensityMassScalingMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get</subroutineArgs>
+          !#  <subroutineArgs>criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get</subroutineArgs>
           include 'structure_formation.CDM.critical_overdensity.mass_scaling.inc'
           !# </include>
-          if (.not.associated(Critical_Overdensity_Mass_Scaling_Get)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
+          if (.not.(associated(Critical_Overdensity_Mass_Scaling_Get).and.associated(Critical_Overdensity_Mass_Scaling_Gradient_Get))) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
                &//char(criticalOverdensityMassScalingMethod)//' is unrecognized')
           ! Flag that mass scaling has been initialized.
           massScalingInitialized=.true.
