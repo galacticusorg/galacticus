@@ -69,15 +69,19 @@ module Merger_Tree_Build_Cole2000
   private
   public :: Merger_Tree_Build_Cole2000_Initialize, Merger_Tree_Build_Cole2000_Snapshot, Merger_Tree_Build_Cole2000_State_Store,&
        & Merger_Tree_Build_Cole2000_State_Retrieve
-  
+
   ! Variables controlling merger tree accuracy.
   double precision :: mergerTreeBuildCole2000MergeProbability,mergerTreeBuildCole2000AccretionLimit&
-       &,mergerTreeBuildCole2000MassResolution
+       &,mergerTreeBuildCole2000MassResolution,mergerTreeBuildCole2000HighestRedshift,mergerTreeBuildCole2000EarliestTime
 
   ! Random number sequence variables
   type(fgsl_rng)   :: pseudoSequenceObject,clonedPseudoSequenceObject
   logical          :: reset=.true.,resetSnapshot
   !$omp threadprivate(pseudoSequenceObject,reset,clonedPseudoSequenceObject,resetSnapshot)
+
+  ! Variables used in integrands.
+  double precision :: currentTime
+  !$omp threadprivate(currentTime)
 
 contains
 
@@ -88,6 +92,7 @@ contains
     !% Initializes the \cite{cole_hierarchical_2000} merger tree building module.
     use Input_Parameters
     use ISO_Varying_String
+    use Cosmology_Functions
     implicit none
     type(varying_string),          intent(in)    :: mergerTreeBuildMethod
     procedure(),          pointer, intent(inout) :: Merger_Tree_Build
@@ -133,12 +138,26 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildCole2000MassResolution'  ,mergerTreeBuildCole2000MassResolution  ,defaultValue&
             &=5.0d9 )
+       !@ <inputParameter>
+       !@   <name>mergerTreeBuildCole2000HighestRedshift</name>
+       !@   <defaultValue>$10^5$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The highest redshift to which merger trees will be built in the \cite{cole_hierarchical_2000} method.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeBuildCole2000HighestRedshift'  ,mergerTreeBuildCole2000HighestRedshift  ,defaultValue&
+            &=1.0d5 )
+       mergerTreeBuildCole2000EarliestTime=Cosmology_Age(Expansion_Factor_From_Redshift(mergerTreeBuildCole2000HighestRedshift))
     end if
     return
   end subroutine Merger_Tree_Build_Cole2000_Initialize
 
   subroutine Merger_Tree_Build_Do_Cole2000(thisTree)
     !% Build a merger tree.
+    use Halo_Mass_Function
     use Tree_Nodes
     use Critical_Overdensity
     use Merger_Tree_Branching
@@ -148,8 +167,8 @@ contains
     type(mergerTree),       intent(inout) :: thisTree
     type(treeNode),         pointer       :: thisNode,newNode1,newNode2
     integer(kind=kind_int8)               :: nodeIndex
-    double precision                      :: branchingProbability,accretionFraction,deltaCritical,collapseTime,uniformRandom &
-         &,deltaW ,nodeMass1,nodeMass2,time,deltaCritical1,deltaCritical2,baseNodeTime
+    double precision                      :: branchingProbability,accretionFraction,meanAccretionFraction,deltaCritical&
+         &,collapseTime,uniformRandom ,deltaW ,nodeMass1,nodeMass2,time,deltaCritical1,deltaCritical2,baseNodeTime
     logical                               :: doBranch
 
     nodeIndex=1                   ! Initialize the node index counter to unity.
@@ -160,15 +179,21 @@ contains
     call Tree_Node_Time_Set(thisNode,deltaCritical)
     ! Begin tree build loop.
     do while (associated(thisNode))
+
        ! If halo is above the resolution limit, then evolve it.
-       if (Tree_Node_Mass(thisNode)>mergerTreeBuildCole2000MassResolution) then
+       if     (                                                                                                                                     &
+            &                                                                     Tree_Node_Mass(thisNode)  > mergerTreeBuildCole2000MassResolution &
+            &  .and.                                                                                                                                &
+            &   Time_of_Collapse(criticalOverdensity=Tree_Node_Time(thisNode),mass=Tree_Node_Mass(thisNode)) > mergerTreeBuildCole2000EarliestTime  &
+            & ) then
+
           ! Find branching probability.
           branchingProbability=Tree_Branching_Probability(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode)&
                &,mergerTreeBuildCole2000MassResolution)
           ! Find accretion rate.
           accretionFraction=Tree_Subresolution_Fraction(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode)&
                &,mergerTreeBuildCole2000MassResolution)
-
+          
           ! A negative accretion fraction indicates that the node is so close to the resolution limit that
           ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
           ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
@@ -178,12 +203,13 @@ contains
           end if
 
           ! Finding maximum allowed step in w.
-          deltaW=min(mergerTreeBuildCole2000AccretionLimit/accretionFraction,Tree_Maximum_Step(Tree_Node_Mass(thisNode)&
-               &,Tree_Node_Time(thisNode),mergerTreeBuildCole2000MassResolution))
+          deltaW=Tree_Maximum_Step(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode),mergerTreeBuildCole2000MassResolution)
+          if (accretionFraction    > 0.0d0) deltaW=min(deltaW,mergerTreeBuildCole2000AccretionLimit  /accretionFraction   )
           if (branchingProbability > 0.0d0) deltaW=min(deltaW,mergerTreeBuildCole2000MergeProbability/branchingProbability)
           ! Scale values to the determined timestep.
           branchingProbability=branchingProbability*deltaW
           accretionFraction   =accretionFraction   *deltaW
+
           ! Decide if a branching occurs.
           if (branchingProbability > 0.0d0) then
              uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
@@ -203,6 +229,7 @@ contains
              branchingProbability=uniformRandom/deltaW
              nodeMass1=Tree_Branch_Mass(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode),mergerTreeBuildCole2000MassResolution&
                   &,branchingProbability)
+             
              ! Compute the time corresponding to this branching event.
              time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=Tree_Node_Mass(thisNode))
              ! Set properties of first new node.
@@ -308,5 +335,5 @@ contains
     if (.not.reset) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
     return
   end subroutine Merger_Tree_Build_Cole2000_State_Retrieve
-  
+
 end module Merger_Tree_Build_Cole2000
