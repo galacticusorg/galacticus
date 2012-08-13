@@ -1723,13 +1723,16 @@ Additional methods for the mass scaling of the critical linear theory overdensit
 \end{verbatim}
 Here, {\tt Critical\_Overdensity\_Mass\_Scaling\_WDM\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get)
+  subroutine Method_Initialize(criticalOverdensityMassScalingMethod, &
+   & Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get)
     implicit none
     type(varying_string),          intent(in)    :: criticalOverdensityMassScalingMethod
-    procedure(),          pointer, intent(inout) :: Critical_Overdensity_Mass_Scaling_Get
+    procedure(),          pointer, intent(inout) :: Critical_Overdensity_Mass_Scaling_Get, &
+   &                                                Critical_Overdensity_Mass_Scaling_Gradient_Get
     
     if (criticalOverdensityMassScalingMethod == 'myMethod') then
-       Critical_Overdensity_Mass_Scaling_Get => My_Do_Tabulate
+       Critical_Overdensity_Mass_Scaling_Get          => My_Do_Tabulate
+       Critical_Overdensity_Mass_Scaling_Gradient_Get => My_Do_Gradient_Tabulate
        .
        .
        .
@@ -1737,20 +1740,20 @@ Here, {\tt Critical\_Overdensity\_Mass\_Scaling\_WDM\_Initialize} is the name of
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt criticalOverdensityMassScalingMethod} input parameter. The procedure pointer {\tt Critical\_Overdensity\_Mass\_Scaling\_Get} must be set to point to a subroutine which tabulates the critical overdensity mass scaling as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt criticalOverdensityMassScalingMethod} input parameter. The procedure pointers {\tt Critical\_Overdensity\_Mass\_Scaling\_Get} and {\tt Critical\_Overdensity\_Mass\_Scaling\_Gradient\_Get} must be set to point to functions which return the critical overdensity mass scaling and its gradient as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The mass scaling function must have the form:
 \begin{verbatim}
-   subroutine Critical_Overdensity_Mass_Scaling_Get(mass)
+   double precision function Critical_Overdensity_Mass_Scaling_Get(mass)
     implicit none
     double precision, intent(in) :: mass
     .
     .
     .
     return
-   end subroutine Critical_Overdensity_Mass_Scaling_Get
+   end function Critical_Overdensity_Mass_Scaling_Get
 \end{verbatim}
-The function should return the factor by which the critical overdensity for collapse at the given {\tt mass} scale (given in units of $M_{\odot}$) differs from that for the case $M\rightarrow\infty$.
+The function should return the factor by which the critical overdensity for collapse at the given {\tt mass} scale (given in units of $M_{\odot}$) differs from that for the case $M\rightarrow\infty$. The mass scaling gradient function should have the same form, but should return the derivative of the scaling with respect to mass.
 
 Currently defined critical overdensity mass scaling methods are:
 \begin{description}
