@@ -67,7 +67,8 @@ module String_Handling
   implicit none
   private
   public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
-       & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript, String_Levenshtein_Distance
+       & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript, String_Levenshtein_Distance,&
+       & String_Join
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -381,5 +382,21 @@ contains
           String_Levenshtein_Distance=d(m,n)
     return
   end function String_Levenshtein_Distance
+
+  function String_Join(strings,separator)
+    !% Joins an array of strings into one long string with the given separator.
+    implicit none
+    type     (varying_string)                           :: String_Join
+    type     (varying_string), intent(in), dimension(:) :: strings
+    character(len=*         ), intent(in)               :: separator
+    integer                                             :: i
+
+    String_Join=""
+    do i=1,size(strings)
+       String_Join=String_Join//strings(i)
+       if (i < size(strings)) String_Join=String_Join//separator
+    end do
+    return
+  end function String_Join
 
 end module String_Handling
