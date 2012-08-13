@@ -80,8 +80,8 @@ contains
     !% Initializes the ``Sheth-Tormen mass function'' module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: haloMassFunctionMethod
-    procedure(),          pointer, intent(inout) :: Halo_Mass_Function_Tabulate
+    type     (varying_string  ),          intent(in   ) :: haloMassFunctionMethod
+    procedure(                ), pointer, intent(inout) :: Halo_Mass_Function_Tabulate
     
     if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Tabulate => Halo_Mass_Function_Sheth_Tormen_Tabulate
     return

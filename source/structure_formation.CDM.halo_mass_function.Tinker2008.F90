@@ -88,16 +88,16 @@ contains
     use Galacticus_Input_Paths
     use Memory_Management
     implicit none
-    type(varying_string),          intent(in)    :: haloMassFunctionMethod
-    procedure(),          pointer, intent(inout) :: Halo_Mass_Function_Tabulate
-    type(Node),           pointer                :: doc,columnsElement,columnElement,datum
-    type(NodeList),       pointer                :: deltaList,normalizationList,parameterAList,parameterBList,parameterCList
-    integer                                      :: iDatum,ioErr
-    double precision                             :: datumValue
+    type     (varying_string  ),          intent(in   ) :: haloMassFunctionMethod
+    procedure(                ), pointer, intent(inout) :: Halo_Mass_Function_Tabulate
+    type     (Node            ), pointer                :: doc,columnsElement,columnElement,datum
+    type     (NodeList        ), pointer                :: deltaList,normalizationList,parameterAList,parameterBList,parameterCList
+    integer                                             :: iDatum,ioErr
+    double precision                                    :: datumValue
 
     if (haloMassFunctionMethod == 'Tinker2008') then
        Halo_Mass_Function_Tabulate => Halo_Mass_Function_Tinker2008_Tabulate
-       
+
        ! Read the data file which gives fitting parameters as a function of halo overdensity.
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml",iostat=ioErr)
@@ -197,7 +197,7 @@ contains
     
     ! Extrapolate to higher redshift using redshift scalings given by Tinker et al. (2008; eqns. 5-8).
     normalization=normalization0*expansionFactor**0.14d0
-    a=a0*expansionFactor**0.06
+    a=a0*expansionFactor**0.06d0
     alphaDelta=10.0d0**(-(0.75d0/dlog10(Delta/75.0d0))**1.2d0)
     b=b0*expansionFactor**alphaDelta
     c=c0
