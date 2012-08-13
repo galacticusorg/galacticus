@@ -67,6 +67,9 @@ module Hot_Halo_Density_Profile_Cored_Isothermal
   private
   public :: Hot_Halo_Density_Cored_Isothermal
 
+  ! Record of whether an active component can supply the hot halo mass property.
+  logical :: hotHaloActive
+
 contains
 
   !# <hotHaloDensityMethod>
@@ -77,6 +80,7 @@ contains
     !% Initialize the cored isothermal hot halo density profile module.
     use ISO_Varying_String
     use Input_Parameters
+    use Tree_Nodes
     implicit none
     type(varying_string),                 intent(in)    :: hotHaloDensityMethod
     procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
@@ -87,6 +91,8 @@ contains
        Hot_Halo_Density_Log_Slope_Get              => Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get
        Hot_Halo_Enclosed_Mass_Get                  => Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
        Hot_Halo_Profile_Rotation_Normalization_Get => Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get
+       ! Detect whether there is an active component which can provide a hot gas mass.
+       hotHaloActive=associated(Tree_Node_Hot_Halo_Mass)
     end if
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal
@@ -164,6 +170,12 @@ contains
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
     double precision                         :: hotGasMass,outerRadius,coreRadius
+
+    ! Return immediately with zero mass if no active component can supply a hot halo mass.
+    if (.not.hotHaloActive) then
+       Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=0.0d0
+       return
+    end if
 
     hotGasMass =Tree_Node_Hot_Halo_Mass                      (thisNode)
     if (hotGasMass <= 0.0d0) then
