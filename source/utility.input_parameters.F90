@@ -228,6 +228,7 @@ contains
     !% Close the parameter file (actually just destroy the internal record of it and clean up memory).
     implicit none
 
+    call Close_Parameters_Group()
     call destroy(parameterDoc)
     return
   end subroutine Input_Parameters_File_Close
@@ -1077,12 +1078,14 @@ contains
   !# <unitName>Close_Parameters_Group</unitName>
   !# </hdfPreCloseTask>
   subroutine Close_Parameters_Group() 
-   implicit none
+    implicit none
     
+    !$omp critical (HDF5_Access)
     if (parametersGroup%isOpen()) call parametersGroup%close()
+    !$omp end critical (HDF5_Access)
     return
   end subroutine Close_Parameters_Group
-
+  
   subroutine Get_Input_Parameter_Double_C(parameterNameLength,parameterName,parameterValue,defaultValue) bind(c,name="Get_Input_Parameter_Double")
     !% C-bound wrapper function for getting {\tt double precision} parameter values.
     use ISO_Varying_String
