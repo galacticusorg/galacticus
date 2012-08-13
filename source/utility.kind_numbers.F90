@@ -66,6 +66,11 @@ module Kind_Numbers
   public
   
   ! Integer kinds.
-  integer, parameter :: kind_int4=SELECTED_INT_KIND( 9)
-  integer, parameter :: kind_int8=SELECTED_INT_KIND(18)
+  integer, parameter :: kind_int4=SELECTED_INT_KIND ( 9     )
+  integer, parameter :: kind_int8=SELECTED_INT_KIND (18     )
+
+  ! Float kinds.
+  integer, parameter :: kind_dble=SELECTED_REAL_KIND(15, 307)
+  integer, parameter :: kind_quad=SELECTED_REAL_KIND(33,4931)
+
 end module Kind_Numbers
