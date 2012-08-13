@@ -992,6 +992,7 @@ Selected with {\tt mergerTreeBuildMethod}$=${\tt Cole2000}, this method uses the
  \item [{\tt mergerTreeBuildCole2000MergeProbability}] The maximum probability for a binary merger allowed in a single timestep. This allows the probability to be kept small, such the the probability for multiple mergers within a single timestep is small.
  \item [{\tt mergerTreeBuildCole2000AccretionLimit}] The maximum fractional change in mass due to sub-esolution accretion allowed in any given timestep when building the tree.
  \item [{\tt mergerTreeBuildCole2000MassResolution}] The minimum halo mass (in $M_\odot$) that the algorithm will follow. Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
+ \item [{\tt mergerTreeBuildCole2000HighestRedshift}] The highest redshift to which the tree should be built. Any branch reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
 \end{description}
 
 \subsection{Smooth Accretion}\label{sec:SmoothAccretion}
