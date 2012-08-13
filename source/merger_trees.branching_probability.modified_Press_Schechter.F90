@@ -97,7 +97,7 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: treeBranchingMethod
+    type(varying_string),                 intent(in)    :: treeBranchingMethod
     procedure(double precision), pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass&
          &,Tree_Maximum_Step
     
@@ -175,8 +175,13 @@ contains
     double precision,        parameter  :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
     type(c_ptr)                         :: parameterPointer
 
+    ! Initialize global variables.
+    parentHaloMass        =haloMass
+    parentSigma           =sigma_CDM(haloMass)
+    parentDelta           =deltaCritical
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
+    call Compute_Common_Factors
 
     ! Check the sign of the root function at half the halo mass.
     if (Modified_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass,parameterPointer) >= 0.0d0) then
@@ -283,13 +288,12 @@ contains
     if (resolutionSigmaOverParentSigma > 1.0d0) then
        hyperGeometricFactor=Hypergeometric_2F1([1.5d0,0.5d0-0.5d0*modifiedPressSchechterGamma1],[1.5d0-0.5d0&
             &*modifiedPressSchechterGamma1],1.0d0/resolutionSigmaOverParentSigma**2)
-       
        Modified_Press_Schechter_Subresolution_Fraction=sqrtTwoOverPi*(modificationG0Gamma2Factor/parentSigma) &
             &*(resolutionSigmaOverParentSigma**(modifiedPressSchechterGamma1-1.0d0))/(1.0d0-modifiedPressSchechterGamma1)&
             &*hyperGeometricFactor
-       else
-          Modified_Press_Schechter_Subresolution_Fraction=-1.0d0
-       end if
+    else
+       Modified_Press_Schechter_Subresolution_Fraction=-1.0d0
+    end if
     return
   end function Modified_Press_Schechter_Subresolution_Fraction
 
@@ -306,25 +310,6 @@ contains
     Branching_Probability_Integrand=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     return
   end function Branching_Probability_Integrand
-  
-  function Subresolution_Fraction_Integrand(childHaloMass,parameterPointer) bind(c)
-    !% Integrand for the subresolution fraction.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    real(c_double)          :: Subresolution_Fraction_Integrand
-    real(c_double), value   :: childHaloMass
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: childSigma,childAlpha
-
-    if (childHaloMass>0.0d0) then
-       call sigma_CDM_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
-       Subresolution_Fraction_Integrand=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*(childHaloMass&
-            &/parentHaloMass)
-    else
-       Subresolution_Fraction_Integrand=0.0d0
-    end if
-    return
-  end function Subresolution_Fraction_Integrand
   
   double precision function Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     !% Progenitor mass function from Press-Schechter.
