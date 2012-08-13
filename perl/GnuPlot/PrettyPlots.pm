@@ -193,7 +193,7 @@ our %colorPairSequences = (
         ,"thistle"
     ],
     slideSequence => [
-	 "yellowGreen", "thistle", "orange"
+	 "yellowGreen", "thistle", "orange", "lightGoldenrod"
     ]
     );
 
