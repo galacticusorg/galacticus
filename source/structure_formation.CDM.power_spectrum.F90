@@ -81,12 +81,15 @@ module CDM_Power_Spectrum
 
   ! Variables to hold the tabulated sigma(M) data.
   integer                                        :: sigmaTableNPoints=-1
-  double precision,    allocatable, dimension(:) :: sigmaTableLogMass, sigmaTable, sigmaTableLogMassReverse, sigmaTableReverse
+  double precision,    allocatable, dimension(:) :: sigmaTableLogMass, sigmaTable,sigmaTableReversed
   double precision                               :: sigmaTableLogMassMinimum=dlog(1.0d6), sigmaTableLogMassMaximum=dlog(1.0d15)
   integer,             parameter                 :: sigmaTableNPointsPerDecade=10
-  type(fgsl_interp)                              :: interpolationObject      ,interpolationObjectReverse
-  type(fgsl_interp_accel)                        :: interpolationAccelerator ,interpolationAcceleratorReverse
-  logical                                        :: resetInterpolation=.true.,resetInterpolationReverse=.true.
+  type(fgsl_interp)                              :: interpolationObject
+  type(fgsl_interp_accel)                        :: interpolationAccelerator
+  logical                                        :: resetInterpolation=.true.
+
+  ! Smoothing mass scale used in computing variance.
+  double precision                               :: smoothingMass
 
 contains
 
@@ -136,17 +139,33 @@ contains
     use Numerical_Interpolation
     implicit none
     double precision, intent(in) :: sigma
-    double precision             :: logMass
+    integer                      :: iMass
+    double precision             :: logMass,h
     
     ! Ensure that the sigma(M) tabulation exists.
     call Initialize_Sigma(sigmaTableLogMassMinimum)
 
-    ! Interpolate in tabulated function and return result.
-    !$omp critical(Sigma_CDM_Interpolate)
-    logMass=Interpolate(sigmaTableNPoints,sigmaTableReverse,sigmaTableLogMassReverse,interpolationObjectReverse&
-         &,interpolationAcceleratorReverse,sigma ,interpolationType=FGSL_Interp_CSpline,reset=resetInterpolationReverse)
-    !$omp end critical(Sigma_CDM_Interpolate)
+    ! If the requested sigma is below the lowest value tabulated, attempt to tabulate to higher mass (lower sigma).
+    do while (sigma < sigmaTable(sigmaTableNPoints))
+       call Initialize_Sigma(sigmaTableLogMass(sigmaTableNPoints)+1.0d0)
+    end do
+
+    ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
+    if (sigma > sigmaTable(1)) then
+       Mass_from_Sigma=exp(sigmaTableLogMass(1))
+       return
+    end if
+
+    ! Find the largest mass corresponding to this sigma.
+    iMass=sigmaTableNPoints
+    do while (iMass > 1 .and. sigmaTable(iMass-1) < sigma)
+       iMass=iMass-1
+    end do
+
+    h=(sigma-sigmaTable(iMass))/(sigmaTable(iMass-1)-sigmaTable(iMass))
+    logMass=sigmaTableLogMass(iMass)*(1.0d0-h)+sigmaTableLogMass(iMass-1)*h
     Mass_from_Sigma=exp(logMass)
+
     return
   end function Mass_from_Sigma
 
@@ -250,7 +269,7 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('sigma_8',sigma_8_Value,defaultValue=0.807d0)
           massNormalization=(4.0d0*PI/3.0d0)*Omega_Matter()*Critical_Density()*(radiusNormalization/Little_H_0())**3
-          sigmaNormalization=sigma_8_Value/sigma_CDM_Integral(massNormalization)
+          sigmaNormalization=sigma_8_Value/sigma_CDM_Integral(massNormalization,useTopHat=.true.)
           sigmaNormalized=.true.
        end if
        ! Find suitable range of masses to tabulate.
@@ -258,29 +277,27 @@ contains
        sigmaTableLogMassMaximum=max(sigmaTableLogMassMaximum,logMass+ln10)
        sigmaTableNPoints=int((sigmaTableLogMassMaximum-sigmaTableLogMassMinimum)*dble(sigmaTableNPointsPerDecade)/ln10)
        ! Allocate arrays.
-       if (allocated(sigmaTableLogMass       )) call Dealloc_Array(sigmaTableLogMass       )
-       if (allocated(sigmaTable              )) call Dealloc_Array(sigmaTable              )
-       if (allocated(sigmaTableLogMassReverse)) call Dealloc_Array(sigmaTableLogMassReverse)
-       if (allocated(sigmaTableReverse       )) call Dealloc_Array(sigmaTableReverse       )
-       call Alloc_Array(sigmaTableLogMass       ,[sigmaTableNPoints])
-       call Alloc_Array(sigmaTable              ,[sigmaTableNPoints])
-       call Alloc_Array(sigmaTableLogMassReverse,[sigmaTableNPoints])
-       call Alloc_Array(sigmaTableReverse       ,[sigmaTableNPoints])
+       if (allocated(sigmaTableLogMass )) call Dealloc_Array(sigmaTableLogMass )
+       if (allocated(sigmaTable        )) call Dealloc_Array(sigmaTable        )
+       if (allocated(sigmaTableReversed)) call Dealloc_Array(sigmaTableReversed)
+       call Alloc_Array(sigmaTableLogMass ,[sigmaTableNPoints])
+       call Alloc_Array(sigmaTable        ,[sigmaTableNPoints])
+       call Alloc_Array(sigmaTableReversed,[sigmaTableNPoints])
        ! Generate a range of mass values to tabulate.
        sigmaTableLogMass=Make_Range(sigmaTableLogMassMinimum,sigmaTableLogMassMaximum,sigmaTableNPoints,rangeTypeLinear)
        ! Compute sigma(M) at each tabulated point.
        do iMass=1,sigmaTableNPoints
           mass=dexp(sigmaTableLogMass(iMass))
-          sigmaTable(iMass)=sigma_CDM_Integral(mass)*sigmaNormalization
+          sigmaTable(iMass)=sigma_CDM_Integral(mass,useTopHat=.false.)*sigmaNormalization
+          ! Enforce monotonicity.
+          if (iMass > 1) then
+             if (sigmaTable(iMass) > sigmaTable(iMass-1)) sigmaTable(iMass)=sigmaTable(iMass-1)
+          end if
+          sigmaTableReversed(sigmaTableNPoints+1-iMass)=sigmaTable(iMass)
        end do
-       ! Construct the reversed arrays.
-       sigmaTableLogMassReverse=Array_Reverse(sigmaTableLogMass)
-       sigmaTableReverse       =Array_Reverse(sigmaTable       )
        ! Reset the interpolators.
        call Interpolate_Done(interpolationObject       ,interpolationAccelerator       ,resetInterpolation       )
-       call Interpolate_Done(interpolationObjectReverse,interpolationAcceleratorReverse,resetInterpolationReverse)
-       resetInterpolation       =.true.
-       resetInterpolationReverse=.true.
+       resetInterpolation=.true.
        ! Flag that this module is now initialized.
        sigmaInitialized=.true.
     end if
@@ -288,26 +305,31 @@ contains
     return
   end subroutine Initialize_Sigma
 
-  double precision function sigma_CDM_Integral(mass)
-    !% Compute the root-variance of mass in (real space) top-hat spheres enclosing the given {\tt mass} from the power spectrum.
+  double precision function sigma_CDM_Integral(mass,useTopHat)
+    !% Compute the root-variance of mass in spheres enclosing the given {\tt mass} from the power spectrum.
     use Numerical_Constants_Math
     use Numerical_Integration
     use Cosmological_Parameters
     implicit none
     double precision,                 intent(in) :: mass
-    double precision,                 target     :: topHatRadius
-    double precision                             :: wavenumberMinimum,wavenumberMaximum
+    logical,                          intent(in) :: useTopHat
+    double precision                             :: wavenumberMinimum,wavenumberMaximum,topHatRadius
     type(c_ptr)                                  :: parameterPointer
     type(fgsl_function)                          :: integrandFunction
     type(fgsl_integration_workspace)             :: integrationWorkspace
 
-    parameterPointer=c_loc(topHatRadius)
+    smoothingMass=mass
     topHatRadius=((3.0d0/4.0d0/Pi)*mass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
     wavenumberMinimum=0.0d0/topHatRadius
     wavenumberMaximum=1.0d3/topHatRadius
     normalizingSigma=.true.
-    sigma_CDM_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,sigma_CDM_Integrand,parameterPointer,integrandFunction&
-         &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)/2.0d0/Pi**2
+    if (useTopHat) then
+       sigma_CDM_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,sigma_CDM_Integrand_TopHat,parameterPointer&
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-12)/2.0d0/Pi**2
+    else
+       sigma_CDM_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,sigma_CDM_Integrand,parameterPointer&
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-12)/2.0d0/Pi**2
+    end if
     call Integrate_Done(integrandFunction,integrationWorkspace)
     normalizingSigma=.false.
     sigma_CDM_Integral=dsqrt(sigma_CDM_Integral)
@@ -316,44 +338,31 @@ contains
 
   function sigma_CDM_Integrand(wavenumber,parameterPointer) bind(c)
     !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+    use Power_Spectrum_Window_Functions
     implicit none
     real(c_double)          :: sigma_CDM_Integrand
     real(c_double), value   :: wavenumber
     type(c_ptr),    value   :: parameterPointer
-    real(c_double), pointer :: topHatRadius
 
-    ! Extract integrand parameters.
-    call c_f_pointer(parameterPointer,topHatRadius)
     ! Return power spectrum multiplied by window function and volume element in k-space. We don't include factors of 4 Pi here
     ! since this is unnormalized anyway.
-    sigma_CDM_Integrand=Power_Spectrum_CDM(wavenumber)*(Window_Function_RealSpaceTopHat(wavenumber,topHatRadius)*wavenumber)**2
+    sigma_CDM_Integrand=Power_Spectrum_CDM(wavenumber)*(Power_Spectrum_Window_Function(wavenumber,smoothingMass)*wavenumber)**2
     return
   end function sigma_CDM_Integrand
 
-  double precision function Window_Function_RealSpaceTopHat(wavenumber,topHatRadius)
-    !% Top hat in real space window function Fourier transformed into $k$-space.
+  function sigma_CDM_Integrand_TopHat(wavenumber,parameterPointer) bind(c)
+    !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+    use Power_Spectrum_Window_Functions_Top_Hat
     implicit none
-    double precision, intent(in) :: wavenumber,topHatRadius
-    double precision, parameter  :: xSeriesMaximum=1.0d-3
-    double precision             :: x,xSquared
+    real(c_double)          :: sigma_CDM_Integrand_TopHat
+    real(c_double), value   :: wavenumber
+    type(c_ptr),    value   :: parameterPointer
 
-    x=wavenumber*topHatRadius
-    if      (x <= 0.0d0) then
-       Window_Function_RealSpaceTopHat=0.0d0
-    else if (x <= xSeriesMaximum) then 
-       ! Use a series expansion of the window function for small x.
-       xSquared=x**2
-       Window_Function_RealSpaceTopHat=1.0d0 &
-            & +xSquared*(-1.0d0/   10.0d0    &
-            & +xSquared*(+1.0d0/  280.0d0    &
-            & +xSquared*(-1.0d0/15120d0      &
-            &           )))
-    else
-       ! For larger x, use the full expression.
-       Window_Function_RealSpaceTopHat=3.0d0*(dsin(x)-x*dcos(x))/(x**3)
-    end if
+    ! Return power spectrum multiplied by window function and volume element in k-space. We don't include factors of 4 Pi here
+    ! since this is unnormalized anyway.
+    sigma_CDM_Integrand_TopHat=Power_Spectrum_CDM(wavenumber)*(Power_Spectrum_Window_Function_Top_Hat(wavenumber,smoothingMass)*wavenumber)**2
     return
-  end function Window_Function_RealSpaceTopHat
+  end function sigma_CDM_Integrand_TopHat
 
   !# <galacticusStateStoreTask>
   !#  <unitName>CDM_Power_Spectrum_State_Store</unitName>

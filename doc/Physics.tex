@@ -71,6 +71,49 @@ where
 \end{equation}
 where $n_{\rm s}=${\tt powerSpectrumIndex} is the power spectrum index at wavenumber $k_{\rm ref}=${\tt powerSpectrumReferenceWavenumber} and $\d n / \d \ln k=${\tt powerSpectrumRunning} describes the running of this index with wavenumber.
 
+\subsection{Power Spectrum Variance Window Function}\index{power spectrum!variance}\index{power spectrum!window function}
+
+The functional form of the window function used in computing the variance of the power spectrum is selected via the {\tt powerSpectrumWindowFunctionMethod} parameter. Note that when computing the normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is \emph{always} used (as per the definition of $\sigma_8$).
+
+\subsubsection{Top-hat}
+
+Selected via {\tt powerSpectrumWindowFunctionMethod}$=${\tt topHat}, this method implements a top-hat window function in real-space:
+\begin{equation}
+ W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
+\end{equation}
+where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
+
+\subsubsection{Sharp in $k$-space}
+
+Selected via {\tt powerSpectrumWindowFunctionMethod}$=${\tt kSpaceSharp}, this method implements a top-hat window function in $k$-space:
+\begin{equation}
+ W(k) = \left\{ \begin{array}{ll} 1 & \hbox{if } k < k_{\rm s} \\ 0 & \hbox{if } k > k_{\rm s}, \end{array} \right.
+\end{equation}
+where if {\tt [powerSpectrumWindowFunctionSharpKSpaceNormalization]}$=${\tt natural} then $k_{\rm s} = (6 \Pi^2 \bar{\rho} / M)^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$. Otherwise, {\tt [powerSpectrumWindowFunctionSharpKSpaceNormalization]} must be set to a numerical value, $\alpha$, in which case $k_{\rm s} = \alpha / R_{\rm th}$ with $R_{\rm th}=3M/4\pi\bar{\rho}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
+
+\subsubsection{Hybrid of Top-hat and Sharp in $k$-space}
+
+Selected via {\tt powerSpectrumWindowFunctionMethod}$=${\tt topHatKSpaceSharpHybrid}, this method implements a convolution of a top-hat window function and sharp $k$-space window function in $k$-space:
+\begin{equation}
+ W(k) = W_{\rm th}(k) W_{\rm s}(k),
+\end{equation}
+where
+\begin{equation}
+ W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
+\end{equation}
+where $x = k R_{\rm th}$, and
+\begin{equation}
+ W_{\rm s}(k) = \left\{ \begin{array}{ll} 1 & \hbox{if } k < k_{\rm s} \\ 0 & \hbox{if } k > k_{\rm s}, \end{array} \right.
+\end{equation}
+where $k{\rm s} = \alpha / R_{\rm s}$ if {\tt [powerSpectrumWindowFunctionSharpKSpaceNormalization]} is assigned a numerical value. Alternatively, if {\tt [powerSpectrumWindowFunctionSharpKSpaceNormalization]}$=${\tt natural} then the value of $\alpha$ is chosen such that $k_{\rm s} = (6 \Pi^2 \bar{\rho}/M)^{1/3}$ if $R_{\rm s}=3M/4\pi\bar{\rho}$.
+
+The radii, $R_{\rm th}$ and $R_{\rm s}$, are chosen such that:
+\begin{eqnarray}
+R_{\rm th}^2 + R_{\rm s}^2 &=& (3M/4\pi\bar{\rho})^{2/3} \\
+R_{\rm s} &=& \beta R_{\rm th},
+\end{eqnarray}
+where $\beta=${\tt [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
+
 \subsection{Transfer Function}\label{sec:TransferFunction}\index{transfer function}
 
 The functional form of the cold dark matter transfer function is selected via the {\tt transferFunctionMethod} parameter. The power spectrum is computed from the specified transfer function and the primordial power spectrum (see \S\ref{sec:PrimordialPowerSpectrum}) and normalized to a value of $\sigma_8$ specified by {\tt [sigma\_8]}.

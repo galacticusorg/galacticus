@@ -3262,6 +3262,52 @@ Currently defined population III supernovae methods are:
  \item [{\tt Heger-Woosley2002}] Computes the energy input from the pair-instability results of \cite{heger_nucleosynthetic_2002}.
 \end{description}
 
+\subsubsection{Power Spectrum Variance Window Function}
+
+Additional methods for the window function used to compute variance from the power spectrum can be added using the {\tt powerSpectrumWindowFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt topHat} method is described by a directive:
+\begin{verbatim}
+  !# <powerSpectrumWindowFunctionMethod>
+  !#  <unitName>Power_Spectrum_Window_Functions_Top_Hat_Initialize</unitName>
+  !# </powerSpectrumWindowFunctionMethod>
+\end{verbatim}
+Here, {\tt Power\_Spectrum\_Window\_Functions\_Top\_Hat\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get)
+    implicit none
+    type     (varying_string  ),          intent(in   ) :: powerSpectrumWindowFunctionMethod
+    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Window_Function_Get
+    
+    if (powerSpectrumWindowFunctionMethod == 'myMethod') then
+       Power_Spectrum_Window_Function_Get => My_Method_Do
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt powerSpectrumWindowFunctionMethod} input parameter. The procedure pointer {\tt Power\_Spectrum\_Window\_Function\_Get} must be set to point to a function which returns the window function for a given wavenumber and mass. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The window function function must have the form:
+\begin{verbatim}
+   subroutine Power_Spectrum_Window_Function(wavenumber,smoothingMass)
+    implicit none
+    double precision,                            intent(in)    :: wavenumber,smoothingMass
+     .
+    .
+    .
+    return
+   end subroutine Power_Spectrum_Window_Function
+\end{verbatim}
+The function should return the window function for the specified {\tt wavenumber} (given in Mpc$^{-1}$) and the given {\tt smoothingMass} (given in $M_\odot$).
+
+Currently defined power spectrum variance window function methods are:
+\begin{description}
+ \item [{\tt topHat}] The window function is a top-hat in real-space.
+ \item [{\tt kSpaceSharp}] The window function is a top-hat in $k$-space.
+ \item [{\tt topHatKSpaceSharpHybrid}] A convolution of top-hat in real space and top-hat in $k$-space window functions.
+\end{description}
+
 \subsubsection{Primordial Power Spectrum}
 
 Additional methods for the primordial power spectrum can be added using the {\tt powerSpectrumMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt powerLaw} method is described by a directive:
