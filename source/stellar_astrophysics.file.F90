@@ -77,13 +77,11 @@ module Stellar_Astrophysics_File
   ! Variables that store information about number of elements and number of yields for each element.
   integer,          allocatable, dimension(:)   :: elementYieldCount,atomIndexMap
 
-  ! Interpolator objects for element yields.
-  type(interp2dIrregularObject), allocatable, dimension(:) :: elementYieldInterpolationWorkspace
-  logical,                       allocatable, dimension(:) :: elementYieldResetInterpolation
-  !$omp threadprivate(elementYieldInterpolationWorkspace,elementYieldResetInterpolation)
+  ! Number of elements being tracked.
+  integer                                       :: elementCount
 
   ! Current file format version for intergalactic background radiation files.
-  integer                      , parameter                 :: fileFormatVersionCurrent=1
+  integer                      , parameter      :: fileFormatVersionCurrent=1
   
 contains
 
@@ -116,7 +114,7 @@ contains
     type(NodeList),              pointer                :: starList,propertyList
     type(varying_string)                                :: stellarPropertiesFile
     integer                                             :: ioErr,iStar,lifetimeCount,ejectedMassCount,metalYieldCount,iElement &
-         &,elementCount,elementYieldCountMaximum,mapToIndex,fileFormatVersion
+         &,elementYieldCountMaximum,mapToIndex,fileFormatVersion
     double precision                                    :: initialMass,metallicity
     logical                                             :: starHasElements
 
@@ -221,12 +219,6 @@ contains
        call Alloc_Array(elementYield              ,[elementYieldCountMaximum,elementCount])
        call Alloc_Array(elementYieldMass          ,[elementYieldCountMaximum,elementCount])
        call Alloc_Array(elementYieldMetallicity   ,[elementYieldCountMaximum,elementCount])
-
-       ! Allocate interpolator objects for element yields.
-       allocate(elementYieldInterpolationWorkspace(elementCount))
-       call Memory_Usage_Record(sizeof(elementYieldInterpolationWorkspace))
-       call Alloc_Array(elementYieldResetInterpolation    ,[elementCount])
-       elementYieldResetInterpolation=.true.
 
        ! Loop over stars to process their properties.
        lifetimeCount    =0
@@ -353,15 +345,26 @@ contains
 
   double precision function Star_Metal_Yield_Mass_File(initialMass,metallicity,atomIndex)
     !% Return the mass of metals yielded by a star of given {\tt initialMass} and {\tt metallicity}.
+    use Memory_Management
     implicit none
-    double precision,              intent(in)           :: initialMass,metallicity
-    integer,                       intent(in), optional :: atomIndex
-    type(interp2dIrregularObject), save                 :: interpolationWorkspace
-    logical,                       save                 :: resetInterpolation=.true.
+    double precision,              intent(in)                      :: initialMass,metallicity
+    integer,                       intent(in), optional            :: atomIndex
+    type(interp2dIrregularObject), save                            :: interpolationWorkspace
+    logical,                       save                            :: resetInterpolation=.true.
     !$omp threadprivate(interpolationWorkspace,resetInterpolation)
-    integer                                             :: elementIndex
+    type(interp2dIrregularObject), save, allocatable, dimension(:) :: elementYieldInterpolationWorkspace
+    logical,                       save, allocatable, dimension(:) :: elementYieldResetInterpolation
+    !$omp threadprivate(elementYieldInterpolationWorkspace,elementYieldResetInterpolation)
+    integer                                                        :: elementIndex
 
     if (present(atomIndex)) then
+       ! Allocate interpolator objects for element yields if not already allocated.
+       if (.not.allocated(elementYieldInterpolationWorkspace)) then
+          allocate(elementYieldInterpolationWorkspace(elementCount))
+          call Memory_Usage_Record(sizeof(elementYieldInterpolationWorkspace))
+          call Alloc_Array(elementYieldResetInterpolation,[elementCount])
+          elementYieldResetInterpolation=.true.
+       end if
        ! Compute the element mass yield.
        elementIndex=atomIndexMap(atomIndex)
        Star_Metal_Yield_Mass_File=max(Interpolate_2D_Irregular(elementYieldMass(1:elementYieldCount(atomIndex),elementIndex)&
