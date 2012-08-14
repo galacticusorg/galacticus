@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 use File::Find;
 use XML::Simple;
 use Data::Dumper;
@@ -8,100 +10,97 @@ use Text::Table;
 # Sort models by goodness of fit.
 # Andrew Benson (2-June-2010)
 
+# Initialize data structures.
+our %parameters;
+my  %results;
+
 # Set default list of model directories to scan.
-$parameters{'modelDirectories'} = "projects/parameterSearch/models/model0013";
+$parameters{'modelDirectories'} = ".";
 
 # Set default list of parameters to show.
-$parameters{'parametersToShow' } = "starFormationDiskEfficiency";
+$parameters{'parametersToShow' } = "";
+
+# Get the name of the file containing the list of fits to sort on.
+die("Usage: Sort_Models.pl <fits> [options]")
+    unless ( scalar(@ARGV) >= 1 );
+my $fitsFile = $ARGV[0];
 
 # Set default fit value on which to sort.
-$parameters{'sortOn'} = [
-			 {
-			     name => "Volume averaged star formation rate history.",
-			     weight => 10.0
-			     },
-			 {
-			     name => "Li and White (2009) stellar mass function",
-			     weight => 0.25
-			     },
-			 {
-			     name => "Feoli & Mancini (2009) black hole vs. bulge mass relation",
-			     weight =>0.001
-			     },
-			 {
-			     name => "Pizagno et al. (2007) SDSS Tully-Fisher relation",
-			     weight => 0.001
-			     },
-			 {
-			     name => "Dejong & Lacey (2000) disk scale length distributions",
-			     weight => 0.075
-			     },
-			 {
-			     name => "Weinmann et al. (2006) SDSS galaxy colors",
-			     weight => 0.033
-			     },
-			 ];
+my $fitsXML = new XML::Simple;
+$parameters{'sortOn'} = $fitsXML->XMLin($fitsFile, KeyAttr => "", ForceArray => [ "analysis" ]);
 
 # Set default sort methods.
 $parameters{'useReducedChi2'} = 1;
 $parameters{'sortOnRating'}   = 1;
 
+# Set default verbosity.
+$parameters{'quiet'} = 0;
+
 # Parse command line parameters.
-for($iParameter=0;$iParameter<=$#ARGV;++$iParameter) {
-    $parameter = $ARGV[$iParameter];
+for(my $iParameter=1;$iParameter<scalar(@ARGV);++$iParameter) {
+    my $parameter = $ARGV[$iParameter];
     if ( $parameter =~ m/\"/ ) {
 	do {
 	    ++$iParameter;
 	    $parameter .= $ARGV[$iParameter];
 	} until ( $parameter =~ m/\"$/ );
     }
-    if ( $parameter =~ m/(\S+)=(.*)/ ) {
-	$parameterName  = $1;
-	$parameterValue = $2;
+    if ( $parameter =~ m/\-\-(\S+)=(.*)/ ) {
+	my $parameterName  = $1;
+	my $parameterValue = $2;
 	$parameters{$parameterName} = $parameterValue;
     }
 }
 
 # Specify directory containing models.
-@modelDirectories = split(/,/,$parameters{'modelDirectories'});
+my @modelDirectories = split(/,/,$parameters{'modelDirectories'});
 
 # Specify list of parameters to include in the output.
-@parametersToShow = split(/,/,$parameters{'parametersToShow'});
+my @parametersToShow = split(/,/,$parameters{'parametersToShow'});
 
 # Specify minimum date/time to include. (Applies only to archived models.)
+my $timeMinimum = 0;
 if ( exists($parameters{'modelsRunAfter'}) ) {
     $timeMinimum = str2time($parameters{'modelsRunAfter'});
-    print "Sort includes models run after: ".$parameters{'modelsRunAfter'}."\n";
-} else {
-    $timeMinimum = 0;
+    print "Sort includes models run after: ".$parameters{'modelsRunAfter'}."\n"
+	unless ( $parameters{'quiet'} == 1 );
 }
 
 # Specify value on which to sort - this will be treated as a regular expression
-$sortOn = $parameters{'sortOn'};
-print "Sorting on fit:\n";
-print Dumper($parameters{'sortOn'});
+unless ( $parameters{'quiet'} == 1 ) {
+    print "Sorting on fit:\n";
+    my $table = Text::Table->new();
+    foreach my $fit ( @{$parameters{'sortOn'}->{'analysis'}} ) {
+	my @rowData = ( $fit->{'name'}, "[weight: ".$fit->{'weight'}."]" );
+	$table->add(@rowData);
+    }
+    print $table;
+}
 
 # Specify whether or not to use reduced chi^2 for sort.
-$useReducedChi2 = $parameters{'useReducedChi2'};
-if ( $useReducedChi2 ) {
-    print "Sorting using: reduced chi^2\n";
-} else {
-    print "Sorting using: chi^2\n";
+unless ( $parameters{'quiet'} == 1 ) {
+    if ( $parameters{'useReducedChi2'} ) {
+	print "Sorting using: reduced chi^2\n";
+    } else {
+	print "Sorting using: chi^2\n";
+    }
 }
 
 # Specify whether or not to sort on rating.
-$sortOnRating = $parameters{'sortOnRating'};
-if ( $sortOnRating ) {
-    print "Sorting using: ratings then chi^2\n";
-} else {
-    print "Sorting using: chi^2\n";
+unless ( $parameters{'quiet'} == 1 ) {
+    if ( $parameters{'sortOnRating'} ) {
+	print "Sorting using: ratings then chi^2\n";
+    } else {
+	print "Sorting using: chi^2\n";
+    }
 }
 
 # Scan for model directories.
 find(\&processFile, @modelDirectories);
 
 # Create header.
-$table = Text::Table->new();
+my $table = Text::Table->new();
+my @rowData;
 undef(@rowData);
 $rowData[0] = "Model";
 $rowData[1] = "Rating";
@@ -111,8 +110,8 @@ $table->add(@rowData);
 
 # Output sorted list of models.
 sub sortOrder {
-    $result = 0;
-    if ( $sortOnRating == 1 ) {
+    my $result = 0;
+    if ( $parameters{'sortOnRating'} == 1 ) {
 	if ( $results{$a}->{'rating'} eq "undefined" ) {
 	    if ( $results{$b}->{'rating'} eq "undefined" ) {
 		$result = 0;
@@ -148,121 +147,68 @@ sub sortOrder {
     }
     return $result;
 }
-foreach $value ( sort sortOrder keys %results ) {
+foreach my $value ( sort sortOrder keys %results ) {
     undef(@rowData);
     $rowData[0] = $value;
     $rowData[1] = $results{$value}->{'rating'};
     $rowData[2] = $results{$value}->{'chiSquared'};
-    foreach $parameter ( @parametersToShow ) {
+    foreach my $parameter ( @parametersToShow ) {
 	push(@rowData,$results{$value}->{'parameters'}->{$parameter});
     }
     $table->add(@rowData);
 }
-print "\n";
+print "\n"
+    unless ( $parameters{'quiet'} == 1 );
 print $table;
 
 exit;
 
 sub processFile {
 
-    $fileName = $_;
+    my $fileName = $_;
     chomp($fileName);
 
-    # Extract fit value.
-    if ( $fileName =~ m/^galacticusFits\.xml(\.bz2)??/ ) {
-	$fitFile = "galacticusFits.xml";
-	if ( -e $fitFile.".bz2" ) {
-	    system("bunzip2 ".$fitFile.".bz2");
-	    $reCompressFits = 1;
-	} else {
-	    $reCompressFits = 0;
-	}
-	if ( -e $fitFile ) {
-	    $xml = new XML::Simple;
-	    $data = $xml->XMLin($fitFile,ForceArray => 1);
-	    foreach $fit ( @{$data->{'galacticusFit'}} ) {
-		foreach my $sortOn ( @{$parameters{'sortOn'}} ) {
-		    if ( ${$fit->{'name'}}[0] eq $sortOn->{'name'} ) {
-		       $modelName = $File::Find::dir;
-		       unless ( ${$fit->{'chiSquared'}}[0] eq "nan" ) {
-		          my $chiSquared = ${$fit->{'chiSquared'}}[0];
-			  if ( $useReducedChi2== 1 ) {
-			      $chiSquared /= ${$fit->{'degreesOfFreedom'}}[0];
-	                  }
-	                  $results{$modelName}->{'chiSquared'} += $chiSquared*$sortOn->{'weight'};
-	               }
-	               $results{$modelName}->{'rating'} = ${${$fit->{'rating'}}[0]->{'value'}}[0];
-		    }
-		}
-	    }
-	    system("bzip2 ".$fitFile) if ( $reCompressFits == 1 );
-	}
-	if ( $results{$modelName}->{'chiSquared'} eq "" ) {$results{$modelName}->{'chiSquared'} = "undefined"};
-	if ( $results{$modelName}->{'rating'}     eq "" ) {$results{$modelName}->{'rating'}     = "undefined"};
-    }
-
-    # Extract any parameters.
-    if ( $fileName =~ m/^newParameters\.xml(\.bz2)??/ ) {
-	# Include parameters that must be shown.
-	$modelName = $File::Find::dir;	
-	if ( $#parametersToShow >= 0 ) {
-	    if ( -e "newParameters.xml.bz2" ) {
-		system("bunzip2 newParameters.xml.bz2");
-		$reCompressParameters = 1;
-	    } else {
-		$reCompressParameters = 0;
-	    }
-	    $xml = new XML::Simple;
-	    $data = $xml->XMLin("newParameters.xml");
-	    foreach $parameter ( @parametersToShow ) {
-		$results{$modelName}->{'parameters'}->{$parameter} = $data->{'parameter'}->{$parameter}->{'value'};
-	    }
-	}
-	if ( $results{$modelName}->{'chiSquared'} eq "" ) {$results{$modelName}->{'chiSquared'} = "undefined"};
-	if ( $results{$modelName}->{'rating'}     eq "" ) {$results{$modelName}->{'rating'}     = "undefined"};
-    }
-
-    # Extract fit value.
-    if ( $fileName =~ m/^[\d\.]+\.xml(\.bz2)??/ ) {
-	($fitFile = $fileName) =~ s/\.bz2$//;
-	if ( -e $fitFile.".bz2" ) {
-	    system("bunzip2 ".$fitFile.".bz2");
-	    $reCompressFits = 1;
-	} else {
-	    $reCompressFits = 0;
-	}
-	if ( -e $fitFile ) {
-	    $xml = new XML::Simple;
-	    $dataFit = $xml->XMLin($fitFile,ForceArray => 1);
-	    $xml = new XML::Simple;
-	    $data    = $xml->XMLin($fitFile);
-            # Check the date.
-	    $time = str2time($data->{'version'}->{'runTime'});
-	    if ( $time >= $timeMinimum ) {
-		$modelName = $fitFile;
-		# Extract fit results.
-		foreach $fit ( @{${$dataFit->{'galacticusFits'}}[0]->{'galacticusFit'}} ) {
-		    if ( ${$fit->{'name'}}[0] =~ m/$sortOn/ ) {
-			unless ( ${$fit->{'chiSquared'}}[0] eq "nan" ) {
-			    $results{$modelName}->{'chiSquared'} = ${$fit->{'chiSquared'}}[0];
-			    if ( $useReducedChi2== 1 ) {
-				$results{$modelName}->{'chiSquared'} /= ${$fit->{'degreesOfFreedom'}}[0];
-			    }
-			}
-			$results{$modelName}->{'rating'} = ${${$fit->{'rating'}}[0]->{'value'}}[0];
-		    }
-		}
-		# Extract any parameters.
-		if ( $#parametersToShow >= 0 ) {
-		    foreach $parameter ( @parametersToShow ) {
-			$results{$modelName}->{'parameters'}->{$parameter} =$data->{'parameters'}->{'parameter'}->{$parameter}->{'value'};
-		    }
-		}
-		system("bzip2 ".$fitFile) if ( $reCompressFits == 1 );
-		if ( $results{$modelName}->{'chiSquared'} eq "" ) {$results{$modelName}->{'chiSquared'} = "undefined"};
-		if ( $results{$modelName}->{'rating'}     eq "" ) {$results{$modelName}->{'rating'}     = "undefined"};
-	    }
-	}
-    }
+     # Extract fit value.
+     if ( $fileName =~ m/^galacticusFits\.xml(\.bz2)??/ ) {
+	 # Find the model directory.
+	 my $modelName = $File::Find::dir;	
+	 print "Processing: ".$modelName."\n"
+	     unless ( $parameters{'quiet'} == 1 );
+	 my $fitFile = "galacticusFits.xml";
+	 system("bunzip2 ".$fitFile.".bz2")
+	     if ( -e $fitFile.".bz2" );
+	 if ( -e $fitFile ) {
+	     my $xml = new XML::Simple;
+	     my $data = $xml->XMLin($fitFile, KeyAttr => "", ForceArray => [ "galacticusFit" ]);
+	     foreach my $fit ( @{$data->{'galacticusFit'}} ) {
+		 foreach my $sortOn ( @{$parameters{'sortOn'}->{'analysis'}} ) {
+		     if ( $fit->{'name'} eq $sortOn->{'name'} ) {
+			 unless ( $fit->{'chiSquared'} eq "nan" ) {
+			     my $chiSquared = $fit->{'chiSquared'};
+			     $chiSquared /= $fit->{'degreesOfFreedom'}
+			        if ( $parameters{'useReducedChi2'} == 1 );
+			     $results{$modelName}->{'chiSquared'} += $chiSquared*$sortOn->{'weight'};
+			 }
+			 $results{$modelName}->{'rating'} = $fit->{'rating'}->{'value'};
+		     }
+		 }
+	     }
+	 }
+	 $results{$modelName}->{'chiSquared'} = "undefined"
+	     unless ( defined($results{$modelName}->{'chiSquared'}) );
+	 $results{$modelName}->{'rating'}     = "undefined"
+	     unless ( defined($results{$modelName}->{'rating'    }) );
+	 
+	 # Include parameters that must be shown.
+	 if ( scalar(@parametersToShow) > 0 ) {
+	     system("bunzip2 newParameters.xml.bz2")
+		 if ( -e "newParameters.xml.bz2" );
+	     my $xml = new XML::Simple;
+	     my $data = $xml->XMLin("newParameters.xml");
+	     foreach my $parameter ( @parametersToShow ) {
+		 $results{$modelName}->{'parameters'}->{$parameter} = $data->{'parameter'}->{$parameter}->{'value'};
+	     }
+	 }
+     }
 }
 
