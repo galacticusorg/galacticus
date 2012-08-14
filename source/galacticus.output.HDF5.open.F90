@@ -122,7 +122,7 @@ contains
        hdf5ChunkSize=chunksize
        !@ <inputParameter>
        !@   <name>hdf5CompressionLevel</name>
-       !@   <defaultValue>9</defaultValue>
+       !@   <defaultValue>-1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The compression level used for outputting HDF5 datasets.
@@ -131,7 +131,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>output</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('hdf5CompressionLevel',hdf5CompressionLevel,defaultValue=9)
+       call Get_Input_Parameter('hdf5CompressionLevel',hdf5CompressionLevel,defaultValue=-1)
 
        ! Set default chunking and compression levels.
        call IO_HDF5_Set_Defaults(hdf5ChunkSize,hdf5CompressionLevel)

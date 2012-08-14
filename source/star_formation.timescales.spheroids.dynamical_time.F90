@@ -89,7 +89,7 @@ contains
        ! Get parameters of for the timescale calculation.
        !@ <inputParameter>
        !@   <name>starFormationSpheroidEfficiency</name>
-       !@   <defaultValue>0.015</defaultValue>
+       !@   <defaultValue>0.004</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The efficiency of star formation in spheroids for the dynamical time method.
@@ -98,10 +98,10 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>starFormation</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('starFormationSpheroidEfficiency'      ,starFormationSpheroidEfficiency      ,defaultValue=0.015d0)
+       call Get_Input_Parameter('starFormationSpheroidEfficiency'      ,starFormationSpheroidEfficiency      ,defaultValue=0.004d0)
        !@ <inputParameter>
        !@   <name>starFormationSpheroidVelocityExponent</name>
-       !@   <defaultValue>0</defaultValue>
+       !@   <defaultValue>4</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The velocity exponent for star formation in spheroids for the dynamical time method.
@@ -110,7 +110,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>starFormation</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('starFormationSpheroidVelocityExponent',starFormationSpheroidVelocityExponent,defaultValue=0.0d0)
+       call Get_Input_Parameter('starFormationSpheroidVelocityExponent',starFormationSpheroidVelocityExponent,defaultValue=4.0d0)
        !@ <inputParameter>
        !@   <name>starFormationSpheroidMinimumTimescale</name>
        !@   <defaultValue>$10^{-3}$ Gyr</defaultValue>

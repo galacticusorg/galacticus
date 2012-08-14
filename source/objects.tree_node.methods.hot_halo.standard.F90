@@ -299,7 +299,7 @@ contains
        ! Determine whether satellite nodes will be starved of gas.
        !@ <inputParameter>
        !@   <name>starveSatellites</name>
-       !@   <defaultValue>true</defaultValue>
+       !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.
@@ -307,12 +307,12 @@ contains
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('starveSatellites',starveSatellites,defaultValue=.true.)
+       call Get_Input_Parameter('starveSatellites',starveSatellites,defaultValue=.false.)
 
        ! Determine whether stripped material should be tracked.
        !@ <inputParameter>
        !@   <name>hotHaloTrackStrippedGas</name>
-       !@   <defaultValue>false</defaultValue>
+       !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies whether or not gas stripped from the hot halo should be tracked.
@@ -320,7 +320,7 @@ contains
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloTrackStrippedGas',hotHaloTrackStrippedGas,defaultValue=.false.)
+       call Get_Input_Parameter('hotHaloTrackStrippedGas',hotHaloTrackStrippedGas,defaultValue=.true.)
 
        ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
        !@ <inputParameter>
@@ -374,7 +374,7 @@ contains
        ! Determine whether excess heating of the halo will drive an outflow.
        !@ <inputParameter>
        !@   <name>hotHaloExcessHeatDrivesOutflow</name>
-       !@   <defaultValue>false</defaultValue>
+       !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.
@@ -382,7 +382,7 @@ contains
        !@   <type>integer</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloExcessHeatDrivesOutflow',hotHaloExcessHeatDrivesOutflow,defaultValue=.false.)
+       call Get_Input_Parameter('hotHaloExcessHeatDrivesOutflow',hotHaloExcessHeatDrivesOutflow,defaultValue=.true.)
 
        ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
        !@ <inputParameter>

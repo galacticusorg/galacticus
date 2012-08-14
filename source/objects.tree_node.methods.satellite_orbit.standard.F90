@@ -166,7 +166,7 @@ contains
        ! Determine if satellite orbits are to be stored.
        !@ <inputParameter>
        !@   <name>satelliteOrbitStoreOrbitalParameters</name>
-       !@   <defaultValue>false</defaultValue>
+       !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
@@ -175,7 +175,7 @@ contains
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('satelliteOrbitStoreOrbitalParameters',satelliteOrbitStoreOrbitalParameters,defaultValue=.false.)
+       call Get_Input_Parameter('satelliteOrbitStoreOrbitalParameters',satelliteOrbitStoreOrbitalParameters,defaultValue=.true.)
        ! Add two data properties if this information is to be stored.
        if (satelliteOrbitStoreOrbitalParameters) dataCount=dataCount+4
 

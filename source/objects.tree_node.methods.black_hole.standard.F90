@@ -197,7 +197,7 @@ contains
        ! Get accretion rate enhancement factors.
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionEnhancementSpheroid</name>
-       !@   <defaultValue>3</defaultValue>
+       !@   <defaultValue>420</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.
@@ -207,10 +207,10 @@ contains
        !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("bondiHoyleAccretionEnhancementSpheroid",bondiHoyleAccretionEnhancementSpheroid,defaultValue&
-            &=3.0d0)
+            &=420.0d0)
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionEnhancementHotHalo</name>
-       !@   <defaultValue>11.4486</defaultValue>
+       !@   <defaultValue>1.5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.
@@ -219,7 +219,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
-       call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=11.4486d0)
+       call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=1.5d0)
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionHotModeOnly</name>
        !@   <defaultValue>true</defaultValue>
@@ -231,7 +231,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
-       call Get_Input_Parameter("bondiHoyleAccretionHotModeOnly",bondiHoyleAccretionHotModeOnly,defaultValue=.false.)
+       call Get_Input_Parameter("bondiHoyleAccretionHotModeOnly",bondiHoyleAccretionHotModeOnly,defaultValue=.true.)
 
        ! Get temperature of accreting gas.
        !@ <inputParameter>
@@ -251,7 +251,7 @@ contains
        ! Get temperature of accreting gas.
        !@ <inputParameter>
        !@   <name>blackHoleWindEfficiency</name>
-       !@   <defaultValue>$2.2157\times 10^{-3}$</defaultValue>
+       !@   <defaultValue>$2.4\times 10^{-3}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The efficiency of the black hole-driven wind: $L_{\rm wind} = \epsilon_{\rm wind} \dot{M}_\bullet \clight^2$.
@@ -260,7 +260,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
-       call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=2.2157d-3)
+       call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=2.4d-3)
 
        ! Options controlling AGN feedback.
        !@ <inputParameter>

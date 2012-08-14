@@ -160,7 +160,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("accretionDiskSwitchedScaleAdafRadiativeEfficiency",accretionDiskSwitchedScaleAdafRadiativeEfficiency,defaultValue=.false.)
+       call Get_Input_Parameter("accretionDiskSwitchedScaleAdafRadiativeEfficiency",accretionDiskSwitchedScaleAdafRadiativeEfficiency,defaultValue=.true.)
     end if
     return
   end subroutine Accretion_Disks_Switched_Initialize

@@ -97,7 +97,7 @@ contains
           ! Get the cooling rate method parameter.
           !@ <inputParameter>
           !@   <name>hotHaloRamPressureStrippingMethod</name>
-          !@   <defaultValue>virialRadius</defaultValue>
+          !@   <defaultValue>Font2008</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The name of the method to be used when computing ram pressure stripping of hot halos.
