@@ -341,16 +341,13 @@ contains
     end if
 
     ! Check if we need to recompute our table.
+    if (.not.tablesInitialized) call Critical_Overdensity_Initialize(Cosmology_Age(1.0d0))
     do while (criticalOverdensityActual>deltaCritTableDeltaCrit(1).or.criticalOverdensityActual&
          &<deltaCritTableDeltaCrit(deltaCritTableNumberPoints))
-       if (.not.(deltaCriticalInitialized.and.tablesInitialized)) then
-          time=Cosmology_Age(1.0d0)
+       if (criticalOverdensityActual>deltaCritTableDeltaCrit(1)) then
+          time=0.5d0*deltaCritTableTime(1)
        else
-          if (criticalOverdensityActual>deltaCritTableDeltaCrit(1)) then
-             time=0.5d0*deltaCritTableTime(1)
-          else
-             time=2.0d0*deltaCritTableTime(deltaCritTableNumberPoints)
-          end if
+          time=2.0d0*deltaCritTableTime(deltaCritTableNumberPoints)
        end if
        call Critical_Overdensity_Initialize(time)
        call Interpolate_Done(reverseInterpolationObject,reverseInterpolationAccelerator,reverseResetInterpolation)
