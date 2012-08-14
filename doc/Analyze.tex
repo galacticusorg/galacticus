@@ -367,15 +367,28 @@ The given model directories will be searched for files matching the name of the 
 
 When the {\tt Run\_Galacticus.pl} script (see \S\ref{sec:RunningGrids}) script is used to run grids of models and perform analysis on them it can be useful to be able to sort the resulting models on the basis of a goodness of fit measure. The {\tt scripts/aux/Sort\_Models.pl} provides this functionality. It will search one or more directories for \glc\ models and output an order list of models found, sorted by a goodness of fit measure. To run the script use:
 \begin{verbatim}
- ./scripts/aux/Sort_Models.pl [option=....] [option=...] ...
+ ./scripts/aux/Sort_Models.pl <fits> [option=....] [option=...] ...
 \end{verbatim}
-Allowed options are:
+The single required argument, {\tt fits}, specifies the name of an {\tt XML} file which defines the fit-measures to use. This file should have the structure:
+\begin{verbatim}
+ <sorting>
+  <analysis>
+   <name>Volume averaged star formation rate history.</name>
+   <weight>1.0</weight>
+  </analysis>
+  <analysis>
+   <name>Li and White (2009) stellar mass function</name>
+   <weight>1.0e-3</weight>
+  </analysis>
+ </sorting>
+\end{verbatim}
+Each {\tt analysis} element must specify the {\tt name} of the fit-measure and the {\tt weight} to be assigned to it when constructing the net goodness of fit measure. Additional allowed options are:
 \begin{description}
  \item [{\tt modelDirectories}] [default={\tt models}] A comma-separated list of directories to be searched for models;
  \item [{\tt parametersToShow}] [default={\tt starFormationDiskEfficiency}] A comma-separated list of model parameter values to be included in the output;
- \item [{\tt sortOn}] [default=\verb@^net$@] A Perl regex to match the name of the fit-measure on which the sort should be performed;
  \item [{\tt useReducedChi2}] [default=1] Sort using $\chi^2$ if set to 0, or reduced $\chi^2$ if set to 1;
  \item [{\tt sortOnRating}] [default=1] Sort on the rating given to each model (see \S\ref{sec:ModelRating}) first, then on the $\chi^2$ value.
+ \item [{\tt quiet}] [default=0] If set to $0$ the script will output various useful information in addition to the sorted models. If set to $1$ all output except for the sorted model list is suppressed.
 \end{description}
 
 \subsection{Model Archiving}\label{sec:ModelArchiving}
