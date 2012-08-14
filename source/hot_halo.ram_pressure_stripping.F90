@@ -105,7 +105,7 @@ contains
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloRamPressureStrippingMethod',hotHaloRamPressureStrippingMethod,defaultValue='virialRadius')
+          call Get_Input_Parameter('hotHaloRamPressureStrippingMethod',hotHaloRamPressureStrippingMethod,defaultValue='Font2008')
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="hotHaloRamPressureStrippingMethod" type="code" action="subroutine">
           !#  <subroutineArgs>hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Radius_Get</subroutineArgs>
