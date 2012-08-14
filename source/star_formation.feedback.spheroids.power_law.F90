@@ -90,7 +90,7 @@ contains
        ! Get parameters of for the feedback calculation.
        !@ <inputParameter>
        !@   <name>spheroidOutflowVelocity</name>
-       !@   <defaultValue>250</defaultValue>
+       !@   <defaultValue>300km s$^{-1}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The velocity scale at which the \gls{sne}-driven outflow rate equals the star formation rate in spheroids.
@@ -99,7 +99,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>starFormation</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowVelocity',spheroidOutflowVelocity,defaultValue=250.0d0)
+       call Get_Input_Parameter('spheroidOutflowVelocity',spheroidOutflowVelocity,defaultValue=300.0d0)
        !@ <inputParameter>
        !@   <name>spheroidOutflowExponent</name>
        !@   <defaultValue>2</defaultValue>

@@ -262,11 +262,25 @@
   </parameter>
   <parameter>
     <name>starveSatellites</name>
-    <value>true</value>
+    <value>false</value>
   </parameter>
   <parameter>
     <name>zeroCoolingRateAboveVelocity</name>
     <value>10000</value>
+  </parameter>
+
+  <!-- Ram pressure stripping options -->
+  <parameter>
+    <name>hotHaloRamPressureStrippingMethod</name>
+    <value>Font2008</value>
+  </parameter>
+  <parameter>
+    <name>hotHaloOutflowStrippingEfficiency</name>
+    <value>0.1</value>
+  </parameter>
+  <parameter>
+    <name>hotHaloTrackStrippedGas</name>
+    <value>true</value>
   </parameter>
 
   <!-- Galactic structure solver options -->
@@ -298,7 +312,7 @@
   </parameter>
   <parameter>
     <name>stabilityThresholdStellar</name>
-    <value>0.9</value>
+    <value>0.7</value>
   </parameter>
 
   <!-- Star formation rate options -->
@@ -320,11 +334,11 @@
   </parameter>
   <parameter>
     <name>starFormationSpheroidEfficiency</name>
-    <value>0.015</value>
+    <value>0.004</value>
   </parameter>
   <parameter>
     <name>starFormationSpheroidVelocityExponent</name>
-    <value>0.0</value>
+    <value>4.0</value>
   </parameter>
   <parameter>
     <name>starFormationSpheroidMinimumTimescale</name>
@@ -357,6 +371,16 @@
     <value>0.035</value>
   </parameter>
 
+  <!-- AGN feedback options -->
+  <parameter>
+    <name>hotHaloExcessHeatDrivesOutflow</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
+    <name>blackHoleHeatsHotHalo</name>
+    <value>true</value>
+  </parameter>
+
   <!-- Supernovae feedback options -->
   <parameter>
     <name>starFormationFeedbackDisksMethod</name>
@@ -372,7 +396,7 @@
   </parameter>
   <parameter>
     <name>spheroidOutflowVelocity</name>
-    <value>250.0</value>
+    <value>300.0</value>
   </parameter>
   <parameter>
     <name>diskOutflowExponent</name>
@@ -387,6 +411,14 @@
   <parameter>
     <name>accretionDisksMethod</name>
     <value>switched</value>
+  </parameter>
+  <parameter>
+    <name>adafRadiativeEfficiencyType</name>
+    <value>thinDisk</value>
+  </parameter>
+  <parameter>
+    <name>accretionDiskSwitchedScaleAdafRadiativeEfficiency</name>
+    <value>true</value>
   </parameter>
   <parameter>
     <name>accretionRateThinDiskMaximum</name>
@@ -424,19 +456,29 @@
   </parameter>
   <parameter>
     <name>blackHoleWindEfficiency</name>
-    <value>0.0022157</value>
+    <value>0.0024</value>
   </parameter>
   <parameter>
     <name>bondiHoyleAccretionEnhancementHotHalo</name>
-    <value>11.4486</value>
+    <value>1.5</value>
   </parameter>
   <parameter>
     <name>bondiHoyleAccretionEnhancementSpheroid</name>
-    <value>3</value>
+    <value>420.0</value>
   </parameter>
   <parameter>
     <name>bondiHoyleAccretionTemperatureSpheroid</name>
     <value>100</value>
+  </parameter>
+  <parameter>
+    <name>bondiHoyleAccretionHotModeOnly</name>
+    <value>true</value>
+  </parameter>
+
+  <!-- Satellite orbit options -->
+  <parameter>
+    <name>satelliteOrbitStoreOrbitalParameters</name>
+    <value>true</value>
   </parameter>
 
   <!-- Galaxy merger options -->
@@ -450,7 +492,7 @@
   </parameter>
   <parameter>
     <name>mergingTimescaleMultiplier</name>
-    <value>0.9</value>
+    <value>1.0</value>
   </parameter>
   <parameter>
     <name>satelliteMergingMassMovementsMethod</name>
@@ -511,6 +553,12 @@
   <parameter>
     <name>timestepSimpleRelative</name>
     <value>0.1</value>
+  </parameter>
+
+  <!-- Output options -->
+  <parameter>
+    <name>mergerTreeOutputReferences</name>
+    <value>false</value>
   </parameter>
 
 </parameters>

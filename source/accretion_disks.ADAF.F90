@@ -149,7 +149,7 @@ contains
        if (.not.adafInitialized) then
           !@ <inputParameter>
           !@   <name>adafRadiativeEfficiencyType</name>
-          !@   <defaultValue>pureADAF</defaultValue>
+          !@   <defaultValue>thinDisk</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
@@ -159,7 +159,7 @@ contains
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter("adafRadiativeEfficiencyType",adafRadiativeEfficiencyTypeText,defaultValue="fixed")
+          call Get_Input_Parameter("adafRadiativeEfficiencyType",adafRadiativeEfficiencyTypeText,defaultValue="thinDisk")
           select case (char(adafRadiativeEfficiencyTypeText))
           case ("fixed")
              adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeFixed
