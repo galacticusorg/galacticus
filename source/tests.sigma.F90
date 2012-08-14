@@ -95,7 +95,7 @@ program Tests_Sigma
      sigma        (iMass)=sigma_CDM      (mass (iMass))
      massFromSigma(iMass)=Mass_from_Sigma(sigma(iMass))
   end do
-  call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-6) 
+  call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-3) 
 
   ! Compute the mass corresponding to 8Mpc/h.
   radius8=8.0d0/Little_H_0()
