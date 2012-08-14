@@ -325,10 +325,10 @@ contains
     normalizingSigma=.true.
     if (useTopHat) then
        sigma_CDM_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,sigma_CDM_Integrand_TopHat,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-12)/2.0d0/Pi**2
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-10)/2.0d0/Pi**2
     else
        sigma_CDM_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,sigma_CDM_Integrand,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-12)/2.0d0/Pi**2
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-10)/2.0d0/Pi**2
     end if
     call Integrate_Done(integrandFunction,integrationWorkspace)
     normalizingSigma=.false.
