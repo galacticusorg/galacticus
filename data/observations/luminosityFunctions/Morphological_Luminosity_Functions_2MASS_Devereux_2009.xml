@@ -80,6 +80,11 @@
       <datum>-22.25</datum>
       <datum>-21.75</datum>
       <datum>-21.25</datum>
+      <datum>-20.75</datum>
+      <datum>-20.25</datum>
+      <datum>-19.75</datum>
+      <datum>-19.25</datum>
+      <datum>-18.75</datum>
     </magnitude>
     <luminosityFunction>
       <hubble>100</hubble>
@@ -94,6 +99,11 @@
       <datum>0.000398107170553497</datum>
       <datum>0.00038904514499428</datum>
       <datum>0.000776247116628692</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
     </luminosityFunction>
     <luminosityFunctionError>
       <hubble>100</hubble>
@@ -108,134 +118,18 @@
       <datum>7.34378e-05</datum>
       <datum>0.000125957</datum>
       <datum>0.000269441</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
     </luminosityFunctionError>
   </morphology>
   <morphology>
     <class>Lenticular</class>
     <magnitude>
+      <datum>-24.75</datum>
       <datum>-24.25</datum>
-      <datum>-23.75</datum>
-      <datum>-23.25</datum>
-      <datum>-22.75</datum>
-      <datum>-22.25</datum>
-      <datum>-21.75</datum>
-      <datum>-21.25</datum>
-      <datum>-20.75</datum>
-    </magnitude>
-    <luminosityFunction>
-      <hubble>100</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <description>Galaxy luminosity function</description>
-      <units>Mpc^-3 magnitude^-1</units>
-      <datum>0.000281838293126446</datum>
-      <datum>0.00038904514499428</datum>
-      <datum>0.00144543977074593</datum>
-      <datum>0.00177827941003892</datum>
-      <datum>0.00186208713666287</datum>
-      <datum>0.00251188643150958</datum>
-      <datum>0.00173780082874938</datum>
-      <datum>0.000794328234724281</datum>
-    </luminosityFunction>
-    <luminosityFunctionError>
-      <hubble>100</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <description>Error on galaxy luminosity function</description>
-      <units>Mpc^-3 magnitude^-1</units>
-      <datum>7.15762e-05</datum>
-      <datum>8.07672e-05</datum>
-      <datum>9.98673e-05</datum>
-      <datum>8.19e-05</datum>
-      <datum>0.000128654</datum>
-      <datum>0.000289351</datum>
-      <datum>0.000320568</datum>
-      <datum>0.000406698</datum>
-    </luminosityFunctionError>
-  </morphology>
-  <morphology>
-    <class>Sa-Sab</class>
-    <magnitude>
-      <datum>-24.25</datum>
-      <datum>-23.75</datum>
-      <datum>-23.25</datum>
-      <datum>-22.75</datum>
-      <datum>-22.25</datum>
-      <datum>-21.75</datum>
-      <datum>-21.25</datum>
-      <datum>-20.75</datum>
-    </magnitude>
-    <luminosityFunction>
-      <hubble>100</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <description>Galaxy luminosity function</description>
-      <units>Mpc^-3 magnitude^-1</units>
-      <datum>8.70963589956081e-05</datum>
-      <datum>0.000549540873857625</datum>
-      <datum>0.00107151930523761</datum>
-      <datum>0.00158489319246111</datum>
-      <datum>0.00173780082874938</datum>
-      <datum>0.00204173794466953</datum>
-      <datum>0.001</datum>
-      <datum>0.000831763771102671</datum>
-    </luminosityFunction>
-    <luminosityFunctionError>
-      <hubble>100</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <description>Error on galaxy luminosity function</description>
-      <units>Mpc^-3 magnitude^-1</units>
-      <datum>4.25263e-05</datum>
-      <datum>8.86714e-05</datum>
-      <datum>9.87255e-05</datum>
-      <datum>7.29935e-05</datum>
-      <datum>0.000120067</datum>
-      <datum>0.000235194</datum>
-      <datum>0.000253962</datum>
-      <datum>0.000505423</datum>
-    </luminosityFunctionError>
-  </morphology>
-  <morphology>
-    <class>Sb-Sbc</class>
-    <magnitude>
-      <datum>-24.25</datum>
-      <datum>-23.75</datum>
-      <datum>-23.25</datum>
-      <datum>-22.75</datum>
-      <datum>-22.25</datum>
-      <datum>-21.75</datum>
-      <datum>-21.25</datum>
-      <datum>-20.75</datum>
-    </magnitude>
-    <luminosityFunction>
-      <hubble>100</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <description>Galaxy luminosity function</description>
-      <units>Mpc^-3 magnitude^-1</units>
-      <datum>0.000371535229097172</datum>
-      <datum>0.00072443596007499</datum>
-      <datum>0.00125892541179417</datum>
-      <datum>0.00162181009735893</datum>
-      <datum>0.00251188643150958</datum>
-      <datum>0.00177827941003892</datum>
-      <datum>0.00125892541179417</datum>
-      <datum>0.00123026877081238</datum>
-    </luminosityFunction>
-    <luminosityFunctionError>
-      <hubble>100</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <description>Error on galaxy luminosity function</description>
-      <units>Mpc^-3 magnitude^-1</units>
-      <datum>7.71321e-05</datum>
-      <datum>0.000100164</datum>
-      <datum>8.69808e-05</datum>
-      <datum>7.46937e-05</datum>
-      <datum>0.000115687</datum>
-      <datum>0.000245874</datum>
-      <datum>0.000290519</datum>
-      <datum>0.000571579</datum>
-    </luminosityFunctionError>
-  </morphology>
-  <morphology>
-    <class>Sc-Scd</class>
-    <magnitude>
       <datum>-23.75</datum>
       <datum>-23.25</datum>
       <datum>-22.75</datum>
@@ -245,12 +139,184 @@
       <datum>-20.75</datum>
       <datum>-20.25</datum>
       <datum>-19.75</datum>
+      <datum>-19.25</datum>
+      <datum>-18.75</datum>
     </magnitude>
     <luminosityFunction>
       <hubble>100</hubble>
       <hubbleExponent>3</hubbleExponent>
       <description>Galaxy luminosity function</description>
       <units>Mpc^-3 magnitude^-1</units>
+      <datum>0.0</datum>
+      <datum>0.000281838293126446</datum>
+      <datum>0.00038904514499428</datum>
+      <datum>0.00144543977074593</datum>
+      <datum>0.00177827941003892</datum>
+      <datum>0.00186208713666287</datum>
+      <datum>0.00251188643150958</datum>
+      <datum>0.00173780082874938</datum>
+      <datum>0.000794328234724281</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+    </luminosityFunction>
+    <luminosityFunctionError>
+      <hubble>100</hubble>
+      <hubbleExponent>3</hubbleExponent>
+      <description>Error on galaxy luminosity function</description>
+      <units>Mpc^-3 magnitude^-1</units>
+      <datum>0.0</datum>
+      <datum>7.15762e-05</datum>
+      <datum>8.07672e-05</datum>
+      <datum>9.98673e-05</datum>
+      <datum>8.19e-05</datum>
+      <datum>0.000128654</datum>
+      <datum>0.000289351</datum>
+      <datum>0.000320568</datum>
+      <datum>0.000406698</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+    </luminosityFunctionError>
+  </morphology>
+  <morphology>
+    <class>Sa-Sab</class>
+    <magnitude>
+      <datum>-24.75</datum>
+      <datum>-24.25</datum>
+      <datum>-23.75</datum>
+      <datum>-23.25</datum>
+      <datum>-22.75</datum>
+      <datum>-22.25</datum>
+      <datum>-21.75</datum>
+      <datum>-21.25</datum>
+      <datum>-20.75</datum>
+      <datum>-20.25</datum>
+      <datum>-19.75</datum>
+      <datum>-19.25</datum>
+      <datum>-18.75</datum>
+    </magnitude>
+    <luminosityFunction>
+      <hubble>100</hubble>
+      <hubbleExponent>3</hubbleExponent>
+      <description>Galaxy luminosity function</description>
+      <units>Mpc^-3 magnitude^-1</units>
+      <datum>0.0</datum>
+      <datum>8.70963589956081e-05</datum>
+      <datum>0.000549540873857625</datum>
+      <datum>0.00107151930523761</datum>
+      <datum>0.00158489319246111</datum>
+      <datum>0.00173780082874938</datum>
+      <datum>0.00204173794466953</datum>
+      <datum>0.001</datum>
+      <datum>0.000831763771102671</datum>
+      <datum>0.0</datum> 
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+    </luminosityFunction>
+    <luminosityFunctionError>
+      <hubble>100</hubble>
+      <hubbleExponent>3</hubbleExponent>
+      <description>Error on galaxy luminosity function</description>
+      <units>Mpc^-3 magnitude^-1</units>
+      <datum>0.0</datum>
+      <datum>4.25263e-05</datum>
+      <datum>8.86714e-05</datum>
+      <datum>9.87255e-05</datum>
+      <datum>7.29935e-05</datum>
+      <datum>0.000120067</datum>
+      <datum>0.000235194</datum>
+      <datum>0.000253962</datum>
+      <datum>0.000505423</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+    </luminosityFunctionError>
+  </morphology>
+  <morphology>
+    <class>Sb-Sbc</class>
+    <magnitude>
+      <datum>-24.75</datum>
+      <datum>-24.25</datum>
+      <datum>-23.75</datum>
+      <datum>-23.25</datum>
+      <datum>-22.75</datum>
+      <datum>-22.25</datum>
+      <datum>-21.75</datum>
+      <datum>-21.25</datum>
+      <datum>-20.75</datum>
+      <datum>-20.25</datum>
+      <datum>-19.75</datum>
+      <datum>-19.25</datum>
+      <datum>-18.75</datum>
+    </magnitude>
+    <luminosityFunction>
+      <hubble>100</hubble>
+      <hubbleExponent>3</hubbleExponent>
+      <description>Galaxy luminosity function</description>
+      <units>Mpc^-3 magnitude^-1</units>
+      <datum>0.0</datum>
+      <datum>0.000371535229097172</datum>
+      <datum>0.00072443596007499</datum>
+      <datum>0.00125892541179417</datum>
+      <datum>0.00162181009735893</datum>
+      <datum>0.00251188643150958</datum>
+      <datum>0.00177827941003892</datum>
+      <datum>0.00125892541179417</datum>
+      <datum>0.00123026877081238</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+    </luminosityFunction>
+    <luminosityFunctionError>
+      <hubble>100</hubble>
+      <hubbleExponent>3</hubbleExponent>
+      <description>Error on galaxy luminosity function</description>
+      <units>Mpc^-3 magnitude^-1</units>
+      <datum>0.0</datum>
+      <datum>7.71321e-05</datum>
+      <datum>0.000100164</datum>
+      <datum>8.69808e-05</datum>
+      <datum>7.46937e-05</datum>
+      <datum>0.000115687</datum>
+      <datum>0.000245874</datum>
+      <datum>0.000290519</datum>
+      <datum>0.000571579</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
+    </luminosityFunctionError>
+  </morphology>
+  <morphology>
+    <class>Sc-Scd</class>
+    <magnitude>
+      <datum>-24.75</datum>
+      <datum>-24.25</datum>
+      <datum>-23.75</datum>
+      <datum>-23.25</datum>
+      <datum>-22.75</datum>
+      <datum>-22.25</datum>
+      <datum>-21.75</datum>
+      <datum>-21.25</datum>
+      <datum>-20.75</datum>
+      <datum>-20.25</datum>
+      <datum>-19.75</datum>
+      <datum>-19.25</datum>
+      <datum>-18.75</datum>
+    </magnitude>
+    <luminosityFunction>
+      <hubble>100</hubble>
+      <hubbleExponent>3</hubbleExponent>
+      <description>Galaxy luminosity function</description>
+      <units>Mpc^-3 magnitude^-1</units>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
       <datum>0.000301995172040202</datum>
       <datum>0.000691830970918936</datum>
       <datum>0.000977237220955811</datum>
@@ -260,12 +326,16 @@
       <datum>0.00371535229097172</datum>
       <datum>0.00501187233627272</datum>
       <datum>0.00977237220955811</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
     </luminosityFunction>
     <luminosityFunctionError>
       <hubble>100</hubble>
       <hubbleExponent>3</hubbleExponent>
       <description>Error on galaxy luminosity function</description>
       <units>Mpc^-3 magnitude^-1</units>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
       <datum>7.66953e-05</datum>
       <datum>9.5656e-05</datum>
       <datum>0.000112571</datum>
@@ -275,6 +345,8 @@
       <datum>0.0011163</datum>
       <datum>0.00256609</datum>
       <datum>0.00500348</datum>
+      <datum>0.0</datum>
+      <datum>0.0</datum>
     </luminosityFunctionError>
   </morphology>
 </morphologicalLuminosityFunctions>
