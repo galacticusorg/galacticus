@@ -1474,6 +1474,14 @@ contains
                 thisTree                     %volumeWeight=  treeVolumeWeightCurrent
              else
                 iExtraTree=iExtraTree+1
+                ! Catch attempts to queue the root node of the tree.
+                if (nodes(iNode)%nodeIndex == thisTree%index .and. .not.mergerTreeReadTreeIndexToRootNodeIndex) then
+                   message=         "the root node of a tree is being placed on the tree queue,"       //char(10)
+                   message=message//"but [mergerTreeReadTreeIndexToRootNodeIndex]=false."              //char(10)
+                   message=message//"This will result in duplicated tree indices."                     //char(10)
+                   message=message//"Recommendation: set [mergerTreeReadTreeIndexToRootNodeIndex]=true"//char(10)
+                   call Galacticus_Error_Report('Build_Isolated_Parent_Pointers',message)
+                end if
                 mergerTreesQueued(iExtraTree)%baseNode    => nodeList(iIsolatedNode)%node
                 mergerTreesQueued(iExtraTree)%index       =  nodes(iNode)%nodeIndex
                 mergerTreesQueued(iExtraTree)%volumeWeight=  treeVolumeWeightCurrent
