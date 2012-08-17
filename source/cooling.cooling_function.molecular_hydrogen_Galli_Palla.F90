@@ -155,8 +155,8 @@ contains
     type(radiationStructure),          intent(in)  :: radiation
     double precision,                  intent(out) :: coolingFunction
 
-    ! Check if this cooling function has been selected.
-    if (functionSelected) then
+    ! Check if this cooling function has been selected and the hydrogen density is positive.
+    if (functionSelected.and.numberDensityHydrogen > 0.0d0) then
 
        ! H - H_2 cooling function.
        coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,chemicalDensities)
@@ -197,8 +197,8 @@ contains
     double precision                               :: coolingFunction,numberDensityCriticalOverNumberDensityHydrogen&
          &,coolingFunctionLocalThermodynamicEquilibrium ,coolingFunctionLowDensityLimit
 
-    ! Check if this cooling function has been selected.
-    if (functionSelected) then
+    ! Check if this cooling function has been selected and the hydrogen density is positive.
+    if (functionSelected.and.numberDensityHydrogen > 0.0d0) then
 
        ! H - H_2 cooling function.
        coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,chemicalDensities)
@@ -260,8 +260,8 @@ contains
          &,temperatureThousand,coolingFunctionRotationalTemperatureGradient,coolingFunctionVibrationalTemperatureGradient&
          &,coolingFunctionLocalThermodynamicEquilibriumTemperatureGradient,logarithmic10Temperature
 
-    ! Check if this cooling function has been selected.
-    if (functionSelected) then
+    ! Check if this cooling function has been selected and the hydrogen density is positive.
+    if (functionSelected.and.numberDensityHydrogen > 0.0d0) then
        ! H - H_2 cooling function.
        coolingFunction=Cooling_Function_GP_H_H2(numberDensityHydrogen,temperature,chemicalDensities)
        call Number_Density_Critical_Over_Number_Density_Hydrogen(numberDensityHydrogen,temperature &
