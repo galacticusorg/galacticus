@@ -671,8 +671,8 @@ contains
        ! Chemical abundances.
        thisNode         %components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd  ,propertyDerivative) &
             & = thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd  ,propertyDerivative) & 
-            &  *thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd  ,propertyValue     ) &
-            &  +(gasMassRate/gasMass)
+            &  +thisNode%components(thisIndex)%instance(1)%properties(hotChemicalsIndex:hotChemicalsIndexEnd  ,propertyValue     ) &
+            &  *(gasMassRate/gasMass)
     end if
   
     return
@@ -771,7 +771,7 @@ contains
   subroutine Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,interrupt,interruptProcedure,massRate)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
     use Dark_Matter_Halo_Spins
-    use Cooling_Radii
+    use Cooling_Infall_Radii
     use Dark_Matter_Profiles
     use Cooling_Specific_Angular_Momenta
     implicit none
@@ -781,7 +781,7 @@ contains
     double precision,          intent(in)    :: massRate
     procedure(),      pointer                :: interruptProcedurePassed
     type(treeNode),   pointer                :: coolingFromNode
-    double precision                         :: angularMomentumCoolingRate
+    double precision                         :: angularMomentumCoolingRate,infallRadius
 
     ! Ignore zero rates.
     if (massRate /= 0.0d0 .and. Tree_Node_Hot_Halo_Mass(thisNode) > 0.0d0 .and. Tree_Node_Hot_Halo_Angular_Momentum(thisNode) > 0.0d0) then
@@ -796,15 +796,17 @@ contains
             &,interruptProcedurePassed,massRate)
 
        ! Find the node to use for cooling calculations.
+
        select case (hotHaloCoolingFromNode)
        case (currentNode  )
           coolingFromNode => thisNode
        case (formationNode)
           coolingFromNode => thisNode%formationNode
        end select
-       angularMomentumCoolingRate=massRate*Cooling_Specific_Angular_Momentum(coolingFromNode)
+       infallRadius=Infall_Radius(thisNode)
+       angularMomentumCoolingRate=massRate*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
        if (.not.gotAngularMomentumCoolingRate) then
-          angularMomentumHeatingRateRemaining=coolingRate*Cooling_Specific_Angular_Momentum(coolingFromNode)
+          angularMomentumHeatingRateRemaining=coolingRate*Cooling_Specific_Angular_Momentum(thisNode,infallRadius)
           gotAngularMomentumCoolingRate=.true.
        end if
        if (massRate < 0.0d0) then
@@ -2401,16 +2403,10 @@ contains
           call Tree_Node_Hot_Halo_Reset_Standard(thisNode)
           ! Get and store the cooling rate.
           call Get_Cooling_Rate(thisNode)
-          select case (hotHaloCoolingFromNode)
-          case (currentNode  )
-             coolingFromNode => thisNode
-          case (formationNode)
-             coolingFromNode => thisNode%formationNode
-          end select
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=coolingRate
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(coolingFromNode)
+          doubleBuffer(doubleBufferCount,doubleProperty)=Cooling_Radius(thisNode)
        end if
     end if
     return

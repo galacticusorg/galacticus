@@ -160,15 +160,15 @@ contains
     return
   end subroutine Cooling_Specific_AM_Constant_Rotation_Reset
 
-  double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode)
+  double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode,radius)
     !% Return the specific angular momentum of cooling gas in the constant rotation model.
     use Tree_Nodes
-    use Cooling_Infall_Radii
     use Dark_Matter_Profiles
     use Hot_Halo_Density_Profile
     use Numerical_Constants_Physical
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
     double precision                         :: meanSpecificAngularMomentum,rotationNormalization
 
     ! Check if node differs from previous one for which we performed calculations.
@@ -202,13 +202,12 @@ contains
        end select
 
        ! Compute the specific angular momentum of the cooling gas.
-       coolingSpecificAngularMomentumStored= Infall_Radius(thisNode)     &
-            &                               *rotationNormalization       &
+       coolingSpecificAngularMomentumStored= rotationNormalization       &
             &                               *meanSpecificAngularMomentum
     end if
 
     ! Return the computed value.
-    Cooling_Specific_Angular_Momentum_Constant_Rotation=coolingSpecificAngularMomentumStored
+    Cooling_Specific_Angular_Momentum_Constant_Rotation=radius*coolingSpecificAngularMomentumStored
     return
   end function Cooling_Specific_Angular_Momentum_Constant_Rotation
   
