@@ -96,13 +96,12 @@ contains
 
   double precision function Cooling_Time_Available_Halo_Formation(thisNode)
     !% Compute the time available for cooling using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
-    !% assumed to be the time since the halo formation event. This function expects that the node passed in will be a formation
-    !% node, such that its parent node gives the active node to which it is attached.
+    !% assumed to be the time since the halo formation event.
     use Tree_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    Cooling_Time_Available_Halo_Formation=Tree_Node_Time(thisNode%parentNode)-Tree_Node_Time(thisNode)
+    Cooling_Time_Available_Halo_Formation=Tree_Node_Time(thisNode)-Tree_Node_Formation_Time(thisNode)
     return
   end function Cooling_Time_Available_Halo_Formation
   
