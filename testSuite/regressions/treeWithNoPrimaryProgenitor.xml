@@ -117,4 +117,16 @@
     <name>sigma_8</name>
     <value>0.93</value>
   </parameter>
+  <parameter>
+    <name>hotHaloRamPressureStrippingMethod</name>
+    <value>virialRadius</value>
+  </parameter>
+  <parameter>
+    <name>hotHaloTrackStrippedGas</name>
+    <value>false</value>
+  </parameter>
+  <parameter>
+    <name>satelliteOrbitStoreOrbitalParameters</name>
+    <value>false</value>
+  </parameter>
 </parameters>

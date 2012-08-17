@@ -109,6 +109,18 @@
       </value>
       <value>read
       <parameter>
+	<name>hotHaloRamPressureStrippingMethod</name>
+	<value>virialRadius</value>
+      </parameter>
+      <parameter>
+	<name>hotHaloTrackStrippedGas</name>
+	<value>false</value>
+      </parameter>
+      <parameter>
+	<name>satelliteOrbitStoreOrbitalParameters</name>
+	<value>false</value>
+      </parameter>
+      <parameter>
 	<name>mergerTreeReadPresetOrbits</name>
 	<value>false</value>
 	<value>true
@@ -139,6 +151,10 @@
 	</value>
       </parameter>
       </value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeReadTreeIndexToRootNodeIndex</name>
+      <value>true</value>
     </parameter>
     <parameter>
       <name>allTreesExistAtFinalTime</name>
@@ -333,7 +349,7 @@
       <value>AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron</value>
     </parameter>
     <parameter>
-      <name>coolingFunctionMethod</name>
+      <name>coolingFunctionMethods</name>
       <value>atomicCIECloudy CMBCompton molecularHydrogenGalliPalla</value>
     </parameter>
     <parameter>
