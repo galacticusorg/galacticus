@@ -102,7 +102,7 @@ contains
     end if
 
     ! Return the input path.
-    Galacticus_Input_Path=char(galacticusInputPath)
+    Galacticus_Input_Path=trim(char(galacticusInputPath))
     return
   end function Galacticus_Input_Path
   
