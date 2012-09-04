@@ -80,6 +80,12 @@ module Transfer_Function_Eisenstein_Hu
   ! Neutrino properties.
   double precision            :: effectiveNumberNeutrinos,summedNeutrinoMasses
 
+  ! Warm dark matter cut-off scale.
+  double precision            :: transferFunctionWdmCutOffScale
+  double precision            :: transferFunctionWdmEpsilon
+  double precision            :: transferFunctionWdmEta
+  double precision            :: transferFunctionWdmNu
+
 contains
   
   !# <transferFunctionMethod>
@@ -116,13 +122,59 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('summedNeutrinoMasses'    ,summedNeutrinoMasses    ,defaultValue=0.00d0)
+       !@ <inputParameter>
+       !@   <name>transferFunctionWdmCutOffScale</name>
+       !@   <defaultValue>0</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The cut-off scale in the transfer function due to warm dark matter.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('transferFunctionWdmCutOffScale',transferFunctionWdmCutOffScale,defaultValue=0.00d0)
+       !@ <inputParameter>
+       !@   <name>transferFunctionWdmEpsilon</name>
+       !@   <defaultValue>0.361 \citep{barkana_constraints_2001}</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('transferFunctionWdmEpsilon',transferFunctionWdmEpsilon,defaultValue=0.361d0)
+       !@ <inputParameter>
+       !@   <name>transferFunctionWdmEta</name>
+       !@   <defaultValue>5.0 \citep{barkana_constraints_2001}</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('transferFunctionWdmEta',transferFunctionWdmEta,defaultValue=5.0d0)
+       !@ <inputParameter>
+       !@   <name>transferFunctionWdmNu</name>
+       !@   <defaultValue>1.2 \citep{barkana_constraints_2001}</defaultValue>       
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('transferFunctionWdmNu',transferFunctionWdmNu,defaultValue=1.200d0)
     end if
     return
   end subroutine Transfer_Function_Eisenstein_Hu_Initialize
 
   subroutine Transfer_Function_Eisenstein_Hu_Make(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
        &,transferFunctionLogT)
-    !% Build a transfer function using the \cite{eisenstein_power_1999} fitting formula.
+    !% Build a transfer function using the \cite{eisenstein_power_1999} fitting formula. Includes a modification for warm dark
+    !% matter using the fitting function of \citeauthor{bode_halo_2001}~(\citeyear{bode_halo_2001}; as re-expressed by
+    !% \citealt{barkana_constraints_2001}) to impose a cut-off below a specified {\tt [transferFunctionWdmCutOffScale]}.
     use Memory_Management
     use Cosmological_Parameters
     use Numerical_Ranges
@@ -197,6 +249,8 @@ contains
           Bk=1.0d0
        end if
        transferFunctionLogT(iWavenumber)=dlog(Tsup*Bk)
+       if (transferFunctionWdmCutOffScale > 0.0d0) transferFunctionLogT(iWavenumber)=transferFunctionLogT(iWavenumber)+log((1.0d0&
+            &+(transferFunctionWdmEpsilon*wavenumber*transferFunctionWdmCutOffScale)**(2.0d0*transferFunctionWdmNu))**(-transferFunctionWdmEta/transferFunctionWdmNu))
     end do
     return
   end subroutine Transfer_Function_Eisenstein_Hu_Make

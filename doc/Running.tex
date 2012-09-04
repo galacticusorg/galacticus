@@ -261,6 +261,43 @@ where {\tt model1} etc. are the names of the various output files and {\tt model
 
 The \glc\ code base can be used for other calculations. Some examples of such usage (and which are sufficiently useful in their own right) are included and are detailed in this section.
 
+\subsection{{\tt Excursion\_Sets}}\index{excursion sets}
+
+The {\tt Excursion\_Sets} code will generate an HDF5 output file which contains a variety of measures related to excursion sets in the Press-Schechter formalism. The code is built and run as follows:
+\begin{verbatim}
+make Excursion_Sets.exe
+Excursion_Sets.exe <parameterFile> <outputFile>
+\end{verbatim}
+where {\tt parameterFile} is a file of parameters in \glc's usual XML format and {\tt outputFile} is the name of the file to which the excursion set data will be written. The output file has the following structure:
+\begin{verbatim}
++-> barrier                  [dataset]
+|
++-> firstCrossingProbability [dataset]
+|
++-> firstCrossingRate        [dataset]
+|
++-> haloMass                 [dataset]
+|
++-> haloMassFunction         [dataset]
+|
++-> powerSpectrum            [dataset]
+|
++-> variance                 [dataset]
+|
++-> wavenumber               [dataset]
+\end{verbatim}
+These datasets contain the following information:
+\begin{description}
+ \item [{\tt haloMass}] Halo mass [${\rm M}_\odot$];
+ \item [{\tt wavenumber}] Wavenumber corresponding to this halo mass [Mpc$^{-1}$];
+ \item [{\tt powerSpectrum}] Power spectrum at this wavenumber [Mpc$^3$];
+ \item [{\tt variance}] The variance, $S(M)\equiv\sigma^2(M)$, at this halo mass;
+ \item [{\tt barrier}] The excursion set barrier, $B(S)$;
+ \item [{\tt firstCrossingProbability}] The probability of first crossing this barrier between $S$ and $S+{\rm d}S$;
+ \item [{\tt firstCrossingRate}] The rate of first crossing of the barrier per unit time [Gyr$^{-1}$] for all pairs of halo mass;
+ \item [{\tt haloMassFunction}] The halo mass function [${\rm M}^{-1}_\odot$~Mpc$^{-3}$].
+\end{description}
+
 \subsection{{\tt Halo\_Mass\_Functions}}
 
 The {\tt Halo\_Mass\_Functions} code will generate an HDF5 output file which contains a variety of measures of the dark matter halo mass function tabulated as a function of mass and at a variety of redshifts. The code is built and run as follows:
