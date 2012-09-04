@@ -80,8 +80,8 @@ contains
     !% Initializes the ``Press-Schechter mass functon'' module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: haloMassFunctionMethod
-    procedure(),          pointer, intent(inout) :: Halo_Mass_Function_Tabulate
+    type     (varying_string  ),          intent(in   ) :: haloMassFunctionMethod
+    procedure(                ), pointer, intent(inout) :: Halo_Mass_Function_Tabulate
     
     if (haloMassFunctionMethod == 'Press-Schechter') Halo_Mass_Function_Tabulate => Halo_Mass_Function_Press_Schechter_Tabulate
     return
@@ -96,12 +96,13 @@ contains
     use CDM_Power_Spectrum
     use Critical_Overdensity
     use Cosmological_Parameters
+    use Excursion_Sets_First_Crossings
     implicit none
     double precision,                            intent(in)    :: time,logMass
     double precision, allocatable, dimension(:), intent(inout) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
     integer,                                     intent(out)   :: haloMassFunctionNumberPoints
     integer                                                    :: iMass
-    double precision                                           :: mass,nu,alpha
+    double precision                                           :: mass,alpha,variance
 
     ! Determine range of masss required.
     logMassMinimum=min(logMassMinimum,logMass-ln10)
@@ -120,11 +121,11 @@ contains
     ! Tabulate the function.
     haloMassFunctionLogMass=Make_Range(logMassMinimum,logMassMaximum,haloMassFunctionNumberPoints,rangeTypeLinear)
     do iMass=1,haloMassFunctionNumberPoints
-       mass=dexp(haloMassFunctionLogMass(iMass))
-       nu=Critical_Overdensity_for_Collapse(time=time,mass=mass)/sigma_CDM(mass)
-       alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
-       haloMassFunctionLogAbundance(iMass)=(Omega_Matter()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0/Pi)*nu&
-            &*dexp(-0.5d0*nu**2)
+       mass    =dexp(haloMassFunctionLogMass(iMass))
+       alpha   =dabs(sigma_CDM_Logarithmic_Derivative(mass))
+       variance=sigma_CDM(mass)**2
+       haloMassFunctionLogAbundance(iMass)=2.0d0*(Omega_Matter()*Critical_Density()/mass**2)*alpha*variance&
+            &*Excursion_Sets_First_Crossing_Probability(variance,time)
     end do
     where (haloMassFunctionLogAbundance > 0.0d0)
        haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)

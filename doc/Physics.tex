@@ -124,7 +124,11 @@ Selected with {\tt transferFunctionMethod}$=${\tt BBKS}, this method uses the fi
 
 \subsubsection{Eisenstein \& Hu}
 
-Selected with {\tt transferFunctionMethod}$=${\tt Eisenstein-Hu1999}, this method uses the fitting function of \cite{eisenstein_power_1999} to compute the \gls{cdm} transfer function. It requires that the effective number of neutrino species be specified via the {\tt effectiveNumberNeutrinos} parameter and summed mass of all neutrino species (in eV) be specified via the {\tt summedNeutrinoMasses} parameter.
+Selected with {\tt transferFunctionMethod}$=${\tt Eisenstein-Hu1999}, this method uses the fitting function of \cite{eisenstein_power_1999} to compute the \gls{cdm} transfer function. It requires that the effective number of neutrino species be specified via the {\tt effectiveNumberNeutrinos} parameter and summed mass of all neutrino species (in eV) be specified via the {\tt summedNeutrinoMasses} parameter. Additionally, the transfer function can be modified to model warm dark matter using the fitting function given by \cite{barkana_constraints_2001}:
+\begin{equation}
+T(k) \rightarrow T(k) (1+[\epsilon k R_{\rm c}^0]^{2\nu})^{-\eta/\nu},
+\end{equation}
+where $R_{\rm c}^0=${\tt [transferFunctionWdmCutOffScale]}, $\epsilon=${\tt [transferFunctionWdmEpsilon]}, $\eta=${\tt [transferFunctionWdmEta]}, $\nu=${\tt [transferFunctionWdmNu]}.
 
 \subsubsection{{\sc CMBFast}}\label{sec:TransferFunction:CMBFast}
 
@@ -142,7 +146,7 @@ The function describing the amplitude of linear perturbations is selected via th
 
 Selected with {\tt linearGrowthMethod}$=${\tt simple}, this method calculates the growth of linear perturbations using standard perturbation theory in a Universe consisting of matter and a cosmological constant. Perturbations in the baryons are treated just as for dark matter (i.e. pressure forces are ignored), while perturbations in the radiation are assumed not to grow.
 
-\subsection{Critical Overdensity}\index{density!critical}
+\subsection{Critical Overdensity}\label{sec:criticalOverdensityMethod}\index{density!critical}
 
 The method used to compute the critical linear overdensity at which overdense regions virialize is selected via the {\tt criticalOverdensityMethod} parameter.
 
@@ -216,7 +220,11 @@ Selected with {\tt haloMassFunctionMethod}$=${\tt Press-Schechter} this method u
 
 \subsubsection{Sheth-Tormen}
 
-Selected with {\tt haloMassFunctionMethod}$=${\tt Sheth-Tormen} this method uses the functional form proposed by \cite{sheth_ellipsoidal_2001} to compute the halo mass function.
+Selected with {\tt haloMassFunctionMethod}$=${\tt Sheth-Tormen} this method uses the functional form proposed by \cite{sheth_ellipsoidal_2001} to compute the halo mass function. Specifically,
+\begin{equation}
+n(M,t) = 2 {\Omega_{\rm M} \rho_{\rm crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
+\end{equation}
+where $\alpha = {\rm d}\ln\sigma/{\rm d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution for variance $S(M)=\sigma^2(M)$, computed using the selected {\tt excursionSetFirstCrossingMethod} (see \S\ref{sec:excursionSetFirstCrossingMethod}).
 
 \subsubsection{Tinker}
 
@@ -619,6 +627,221 @@ for stability, where $V_{\rm peak}$ is the peak velocity in the rotation curve (
  t_{\rm bar} = t_{\rm disk} {\epsilon_{\rm c} - \epsilon_{\rm iso} \over \epsilon_{\rm c} - \epsilon},
 \end{equation}
 where $\epsilon_{\rm iso}$ is the value of $\epsilon$ for an isolated disk and $t_{\rm disk}$ is the disk dynamical time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to a dynamical time for highly unstable disks.
+
+\section{Excursion Set Barrier}
+
+The functional form of the excursion set barrier is selected via the {\tt excursionSetBarrierMethod} parameter.
+
+\subsection{Linear Barrier}
+
+Selected with {\tt excursionSetBarrierMethod}$=${\tt linear} this method assumes a barrier:
+\begin{equation}
+B(S) = B_0 + B_1 S,
+\end{equation}
+where $B_0=${\tt [excursionSetBarrierConstantCoefficient]}, and $B_0=${\tt [excursionSetBarrierLinearCoefficient]}.
+
+\subsection{Quadratic Barrier}
+
+Selected with {\tt excursionSetBarrierMethod}$=${\tt quadratic} this method assumes a barrier:
+\begin{equation}
+B(S) = B_0 + B_1 S + B_2 S^2,
+\end{equation}
+where $B_0=${\tt [excursionSetBarrierConstantCoefficient]},  $B_0=${\tt [excursionSetBarrierLinearCoefficient]}, and $B_2=${\tt [excursionSetBarrierQuadraticCoefficient]}.
+
+\subsection{Critical Overdensity Barrier}
+
+Selected with {\tt excursionSetBarrierMethod}$=${\tt criticalOverdensity} this method assumes a barrier equal to the critical linear theory overdensity for halo collpase (see \S\ref{sec:criticalOverdensityMethod}).
+
+\section{Excursion Set Barrier First Crossing Distribution}
+
+The algorithm to be used when solving the excursion set barrier first crossing distribution problem is selected via the {\tt excursionSetFirstCrossingMethod} parameter.
+
+\subsection{Linear Barrier}
+
+Selected with {\tt excursionSetFirstCrossingMethod}$=${\tt linearBarrier} this method assumes the solution for a linear barrier. Specifically, the first crossing distribution is
+\begin{equation}
+ f(S,t) = B(0,t) \exp(- B(S,t)^2/2S)/S/\sqrt{2 pi S},
+\end{equation}
+where $B(S,t)$ is the (assumed-to-be-linear-in-$S$) barrier at time $t$ and variance $S$. The first crossing rate is computed using a finite difference approximation between two closely-spaced times. The non-crossing rate is zero.
+
+\subsection{Farahi}
+
+Selected with {\tt excursionSetFirstCrossingMethod}$=${\tt Farahi} this method solves the barrier first crossing problem using the method of Farahi (see \citealt{benson_dark_2012}), which proceeds by finding the solution to the integral equation:
+\begin{equation}
+  1 =  \int_0^S f(S^\prime){\rm d}S^\prime + \int_{-\infty}^{B(S)} P(\delta,S) {\rm d} \delta,
+ \label{eq:OldExcursionMethod}
+\end{equation}
+where $P(\delta,S) {\rm d} \delta$ is the probability for a trajectory to lie between $\delta$ and $\delta + {\rm d} \delta$ at variance $S$. In the absence of a barrier, $P(\delta,S)$ would be equal to $P_0(\delta,S)$ which is simply a Gaussian distribution with variance $S$:
+\begin{equation}
+  P_0(\delta,S) = \frac{1}{\sqrt{2 \pi S}} \exp\left(-{\delta^2 \over 2 S}\right).
+  \label{eq:Gaussian}
+\end{equation}
+Since the barrier absorbs any random walks which cross is at smaller $S$, the actual $P(\delta,S)$ must therefore be given by:
+\begin{equation}
+   P(\delta,S) = P_0(\delta,S) - \int_{0}^{S} f(S^\prime) P_0[\delta - B(S^\prime),S - S^\prime]{\rm d}S^\prime .
+ \label{eq:Displaced}
+\end{equation}
+In the second term on the right hand side of eqn.~(\ref{eq:Displaced}) represents the $P_0[\delta - B(S^\prime),S - S^\prime]$ term represents the distribution of random trajectories orginating from the point $(S,B(S))$. The integral therefore gives the fraction of trajectories which crossed the barrier at $S<S^\prime$ and which can now be found at $(S,\delta)$.
+
+Using this result, we can rewrite eqn.~(\ref{eq:OldExcursionMethod}):
+\begin{equation}
+  1 = \int_0^S f(S^\prime){\rm d}S^\prime + \int_{-\infty}^{B(S)} \left[ P_0(\delta,S) -  \int_{0}^{S} f(S^\prime) P_0(\delta - B(S^\prime),S - S^\prime){\rm d}S^\prime )\right] {\rm d} \delta ,
+\end{equation}
+in general and, for the Gaussian distribution of eqn.~(\ref{eq:Gaussian}):
+\begin{equation}
+  1 =  \int_0^S f(S^\prime){\rm d}S^\prime + \int_{-\infty}^{B(S)} \left[ \frac{1}{\sqrt{2 \pi S}} \exp\left(-\frac{\delta^2}{2 S}\right) -  \int_{0}^{S} f(S^\prime) \frac{1}{\sqrt{2 \pi (S-S^\prime)}} \exp\left(-\frac{[\delta - B(S^\prime)]^2}{2 (S-S^\prime)}\right){\rm d}S^\prime \right] {\rm d} \delta .
+\end{equation}
+The integral over ${\rm d}\delta$ can be carried out analytically to give:
+\begin{equation}
+ 1 =  \int_0^S f(S^\prime){\rm d}S^\prime+  \hbox{erf}\left[\frac{B(S)}{\sqrt{2S}}\right]  -  \int_{0}^{S}  f(S^\prime)  \hbox{erf}\left[\frac{B(S) - B(S^\prime)}{\sqrt{2 (S-S^\prime)}}\right] {\rm d}S^{\prime\prime}.
+\label{eq:NewExcursionMethod}
+\end{equation}
+We now discretize eqn.~(\ref{eq:NewExcursionMethod}). Specifically, we divide the $S$ space into $N$ intervals defined by the points:
+\begin{equation}
+  S_i = \left\{ \begin{array}{ll}
+                 0 & \hbox{if } i=0 \\
+                 \sum_0^{i-1} \Delta S_i & \hbox{if } i > 1.
+                \end{array}
+        \right.
+\end{equation}
+Note that $f(0)=0$ by definition, so $f(S_0)=0$ always. We choose $\Delta S_i = S_{\rm max}/N$ (i.e. uniform spacing in $S$) when computing first crossing distributions, and $\Delta S_i \propto S_i$ (i.e. uniform spacing in $\log(S)$) when computing first crossing rates.
+
+Discretizing the integrals in eqn.~(\ref{eq:NewExcursionMethod}) gives:
+\begin{equation} \label{eq:Des1}
+ \int_0^{S_j} f(S^\prime)\d S^\prime = \sum_{i=0}^{j-1} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i
+\end{equation}
+and:
+\begin{equation} \label{eq:Des2}
+ \int_{0}^{S_j}  f(S^\prime)  \hbox{erf}\left[\frac{B(S) - B(S^\prime)}{\sqrt{2 (S-S^\prime)}}\right] \d S^\prime = \sum_{i=0}^{j-1} \frac{1}{2} \left(f(S_i)  \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] + f(S_{i+1})  \hbox{erf}\left[\frac{B(S_j) - B(S_{i+1})}{\sqrt{2 (S_j-S_{i+1})}}\right] \right) \Delta S_i.
+\end{equation}
+We can now rewrite eqn.~(\ref{eq:NewExcursionMethod}) in discretized form:
+\begin{equation} \label{eq:DesFinal1}
+ 1 = \sum_{i=0}^{j-1} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i  +  \hbox{erf}\left[\frac{B(S_j)}{\sqrt{2S_j}}\right] - \frac{1}{2} \sum_{i=0}^{j-1} \left( f(S_i)  \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] + f(S_{i+1})  \hbox{erf}\left[\frac{B(S_j) - B(S_{i+1})}{\sqrt{2 (S_j-S_{i+1})}}\right]  \right)  \Delta S_i.
+\end{equation}
+Solving eqn.~(\ref{eq:DesFinal1}) for $f(S_j)$:
+\begin{eqnarray} \label{eq:DesFinal11}
+ \left( \frac{1}{2} - \frac{1}{2} \hbox{erf}\left[\frac{B(S_j) - B(S_j)}{\sqrt{2 (S_j-S_j)}}\right] \right) \Delta S_{j-1} f(S_j) &=& 1 - \sum_{i=0}^{j-2} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i - \frac{f(S_{j-1})}{2} \Delta S_{j-1} -  \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\}   \nonumber\\
+& & + \frac{1}{2} \sum_{i=0}^{j-2} \left( f(S_i)  \hbox{erf}\left\{\frac{[B(S_j) - B(S_i)]}{\sqrt{2 (S_j-S_i)}}\right\} + f(S_{i+1})  \hbox{erf}\left\{\frac{[B(S_j) - B(S_{i+1})]}{\sqrt{2 (S_j-S_{i+1})}}\right\} \right)\Delta S_i  \nonumber \\
+ & & + \frac{1}{2} f(S_{j-1})  \hbox{erf}\left\{\frac{[B(S_j) - B(S_{j-1})]}{\sqrt{2 (S_j-S_{j-1})}}\right\} \Delta S_{j-1}.
+\end{eqnarray}
+For all barriers that we consider:
+\begin{equation} 
+\hbox{erf}\left[\frac{B(S_j) - B(S_j)}{\sqrt{2 (S_j-S_j)}}\right] = 0.
+\end{equation}
+We can then simplify eqn.~(\ref{eq:DesFinal11}):
+\begin{eqnarray} \label{eq:DesFinal2}
+   f(S_j) &=& {2 \over \Delta S_{j-1}}\left[1 - \sum_{i=0}^{j-2} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i - \frac{f(S_{j-1})}{2} \Delta S_{j-1} -  \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\} \right.  \nonumber\\
+& & + \frac{1}{2} \sum_{i=0}^{j-2} \left( f(S_i)  \hbox{erf}\left\{\frac{[B(S_j) - B(S_i)]}{\sqrt{2 (S_j-S_i)}}\right\} + f(S_{i+1})  \hbox{erf}\left\{\frac{[B(S_j) - B(S_{i+1})]}{\sqrt{2 (S_j-S_{i+1})}}\right\} \right)\Delta S_i  \nonumber \\
+ & & \left. + \frac{1}{2} f(S_{j-1})  \hbox{erf}\left\{\frac{[B(S_j) - B(S_{j-1})]}{\sqrt{2 (S_j-S_{j-1})}}\right\} \Delta S_{j-1}\right].
+\end{eqnarray}
+Consolidating terms in the summations:
+\begin{equation} \label{eq:DesFinal2a}
+   f(S_j) = {2 \over \Delta S_{j-1}}\left[1 -  \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\} - \sum_{i=0}^{j-1} \left\{ 1-\hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] \right\} f(S_i) {\Delta S_{i-1} + \Delta S_i \over 2} \right].
+\end{equation}
+In the case of constant $\Delta S_i(=\Delta S)$ this can be simplified further:
+\begin{equation} \label{eq:DesFinal3}
+   f(S_j) = {2 \over \Delta S}\left[1 - \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\}\right] - 2 \sum_{i=0}^{j-1} \left\{1- \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] \right\} f(S_i).
+\end{equation}
+
+In either case (i.e. eqns.~\ref{eq:DesFinal2a} and \ref{eq:DesFinal3}) solution proceeds recursively: $f(S_0)=0$ by definition, $f(S_1)$ depends only on the known barrier and $f(S_0)$, $f(S_j)$ depends only on the known barrier and $f(S_{<j})$.
+
+The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of the progenitor in the $(\delta,S)$ plane, plus a small shift in time. The non-crossing rate is computed directly by integrating over the first crossing rate distribution.
+
+\subsection{Zhang \& Hui (2006)}
+
+Selected with {\tt excursionSetFirstCrossingMethod}$=${\tt ZhangHui2006} this method solves the barrier first crossing problem using the method of \cite{zhang_random_2006}. First crossing (and non-crossing) rates are not supported by this method.
+
+\subsection{Zhang \& Hui (2006) Higher Order}
+
+Selected with {\tt excursionSetFirstCrossingMethod}$=${\tt ZhangHui2006HighOrder} this method solves the barrier first crossing problem using a higher-order extension of the method of \cite{zhang_random_2006}. First crossing (and non-crossing) rates are not supported by this method.
+
+In this method we discretize the first-crossing distribution function, and use a \href{http://en.wikipedia.org/wiki/Newton%E2%80%93Cotes_formulas#Closed_Newton.E2.80.93Cotes_formulae}{closed Newton-Cotes method} to perform integrations. First, we mesh the $S$ space using uniform spacing in $S$:
+\begin{equation}
+  S_i = i \times \Delta S , i = 0, 1, \dots, N, \Delta S = \frac{S}{N}.
+\end{equation}
+Then we discretize the integral equation by \href{http://en.wikipedia.org/wiki/Boole%27s_rule}{Boole's rule}. The integral equation becomes a set of linear algebraic equations:
+\begin{eqnarray}
+ f(S_i)  &=&  g_1(S_i)  +  \frac{ \Delta S}{90}  \sum_{j=0:4}^{i-4}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\nonumber\\
+ &&\qquad \left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})  \right\}.
+\end{eqnarray}
+Since $g_2(S, S^\prime)$ approaches infinity when $S$ approaches $S^\prime$, one needs to define $g_2(S_i, S_i)$ carefully when $j = i$. We can rewrite the equation:
+\begin{eqnarray}
+       f(S_i)  &=&  g_1(S_i)  +  \frac{ 4 \Delta S}{90}  \sum_{j=0:4}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\nonumber\\
+       &&\qquad \left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})  \right\} \nonumber\\ 
+       &&\qquad {}     + \frac{ 4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4})  + 32 f(S_{i-3}) + 12 f(S_{i-2}) + 32 f(S_{i-1}) + 7 f(S_i)  \Big).
+\end{eqnarray}
+For $ \bar{g}_2(S_i)$ we have:
+\begin{equation}
+  \bar{g}_2(S_i) = \frac{1}{\delta S} \int_{S - \delta S}^S g_2(S,S^\prime){\rm d}S^\prime.
+\end{equation}
+In the above, $\delta S$ depends on the range of the previous integral part. Generally, $\delta S$ is equal to $4 \Delta S$. The above equation can be solved for $f(S_i)$, giving:
+\begin{eqnarray}
+       f(S_i)  &=&  \left( g_1(S_i)  +  \frac{ 4 \Delta S}{90}  \sum_{j=0:4}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j)  + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
+       &&\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\ 
+       &&\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S }{90} \Big( 7 f(S_{i-4})  + 32 f(S_{i-3}) + 12 f(S_{i-2})  + 32 f(S_{i-1})   \Big) \right) \nonumber\\
+       &&\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S}{90}  \right)^{-1}.
+\end{eqnarray}
+Not all of the $i$'s are divisible by $4$. So, for the first $m^{\rm th}$ spaces, we need to calculate the integral part, separately, where $m$ is the remainder of $i$ by the modulus of $4$. It is a good approximation to calculate the first part linearly. Consequently, the final formula for the general problem is: 
+\begin{eqnarray}
+       f(S_i)  &=&  \left( g_1(S_i) + \frac{ \Delta S}{2}  \sum_{j=0}^{m-1}   \Big( f(S_j) g_2(S_i, S_j) + f(S_{j+1}) g_2(S_i, S_{j+1})   \Big) \right.\nonumber\\
+       &&\qquad \left. {}     +  \frac{ 4 \Delta S}{90}  \sum_{\frac{j-m}{4}=0}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j)  + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
+       &&\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3})  + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\ 
+       &&\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4}) + 32 f(S_{i-3}) + 12 f(S_{i-2}) + 32 f(S_{i-1})   \Big) \right) \nonumber\\
+       &&\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S }{90}  \right)^{-1}.
+\end{eqnarray}
+Finally, we can solve the first-crossing distribution function, giving:
+\begin{eqnarray}
+       f(S_0)  &=&  g_1(S_0) = 0  \\
+       f(S_1)  &=&  g_1(S_1) \left( 1 -  \frac{\bar{g}_2(S_1) \Delta S}{2}  \right)^{-1}   \\
+       f(S_2)  &=&  \Big( g_1(S_2) + \frac{ \Delta S}{2} 2 \bar{g}_2(S_2) f(S_1) \Big) \left( 1 -  \frac{ \bar{g}_2(S_2) \Delta S}{2}  \right)^{-1}   \\
+       f(S_3)  &=&  \Big( g_1(S_2) + \frac{ \Delta S}{2} 2 \bar{g}_2(S_3) (f(S_1) + f(S_2)) \Big) \left( 1 -  \frac{ \bar{g}_2(S_3) \Delta S}{2}  \right)^{-1}   \\
+       f(S_i)  &=&  \left( g_1(S_i) + \frac{ \Delta S}{2}  \sum_{j=0}^{m-1}   \Big( f(S_j) g_2(S_i, S_j) + f(S_{j+1}) g_2(S_i, S_{j+1})   \Big) \right.\nonumber\\
+       &&\qquad \left. {}     +  \frac{ 4 \Delta S}{90}  \sum_{\frac{j-m}{4}=0}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
+       &&\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\ 
+       &&\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4}) + 32 f(S_{i-3})+ 12 f(S_{i-2}) + 32 f(S_{i-1})  \Big) \right) \nonumber\\
+       &&\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S}{90}  \right)^{-1},
+\end{eqnarray}
+where $\bar{g}_2(S_1)$ is defined as:
+\begin{eqnarray}
+      \bar{g}_2(S_1) &=& \frac{1}{\Delta S} \int_{0}^{S_1} g_2(S,S^\prime){\rm d}S^\prime     \hbox{ if } i = 1 \\
+      \bar{g}_2(S_2) &=& \frac{1}{2 \Delta S} \int_{0}^{S_2} g_2(S,S^\prime){\rm d}S^\prime     \hbox{ if } i = 0 \\
+      \bar{g}_2(S_3) &=& \frac{1}{3 \Delta S} \int_{0}^{S_3} g_2(S,S^\prime){\rm d}S^\prime     \hbox{ if } i = 0 \\
+      \bar{g}_2(S_i) &=& \frac{1}{4 \Delta S} \int_{S_i - 4 \Delta S}^{S_i} g_2(S,S^\prime){\rm d}S^\prime      \hbox{ if } i > 3.
+\end{eqnarray}
+The error term for this method of discretization is:
+\begin{equation}
+  \epsilon = \frac{(\delta S)^7}{1935360} f^{(6)}(\xi),
+\end{equation}
+where $f^{(6)}(\xi)$ is the absolute maximum of the sixth derivative in the range of $[S_i , S_i + \delta S]$. For this problem, $\delta S = 4 \Delta S$, so:
+\begin{equation}
+  \epsilon \leq \frac{(\Delta S)^7}{118.125} f^{(6)}(\xi).
+\end{equation}
+Since there are $N/4$ intervals, the maximum deviation from the real value of the function is:
+\begin{equation}
+  \epsilon \leq \sum_{i=1}{\frac{N}{4}}\frac{(\Delta S)^7}{118.125} f^{(6)}(\xi _i) \nonumber\\
+    \leq  N4\frac{(\Delta S)^7}{472.5} f^{(6)}(\xi),
+\end{equation}
+where $f^{(6)}(\xi)$ is the absolute maximum of the sixth derivative in the domain, $[0 , S]$.
+
+\section{Excursion Set Barrier Remapping}
+
+Remappins of the excursion set barrier are selected via the {\tt excursionSetBarrierRemapMethods} (for calculations of first crossing distributions) and {\tt excursionSetBarrierRatesRemapMethods} (for calculations of first crossing rate distributions) parameters. The parameters may specify multiple remappings---these will be applied to the barrier in order.
+
+\subsection{Null Remapping}
+
+Selected with {\tt excursionSetBarrier(Rates)RemapMethods}$=${\tt null} this method leaves the barrier unmodified.
+
+\subsection{Scale Remapping}
+
+Selected with {\tt excursionSetBarrier(Rates)RemapMethods}$=${\tt scale} this method multiplies the barrier by {\tt [excursionSetBarrierRemapScalingFactor]}.
+
+\subsection{Sheth-Mo-Tormen Remapping}
+
+Selected with {\tt excursionSetBarrier(Rates)RemapMethods}$=${\tt Sheth-Mo-Tormen} this method remaps the barrier according to the algorithm of \cite{sheth_ellipsoidal_2001}:
+\begin{equation}
+ B(S) \rightarrow \sqrt{A} B(S) \left(1 + b \left[ {S \over A B^2(S)}\right]^c\right),
+\end{equation}
+where $A=0.707$, $b=0.5$, and $c=0.6$.
 
 \section{Galactic Structure}\index{galactic structure}
 
@@ -1023,6 +1246,38 @@ The method to be used for computing branching probabilities in merger trees is s
 \subsection{Modified Press-Schechter}
 
 Selected with {\tt treeBranchingMethod}$=${\tt modifiedPress-Schechter}, this method uses the algorithm of \cite{parkinson_generating_2008} to compute branching ratios. The parameters $G_0$, $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\tt modifiedPressSchechterG0}, {\tt modifiedPressSchechterGamma1} and {\tt modifiedPressSchechterGamma2} respectively. Additionally, the parameter {\tt modifiedPressSchechterFirstOrderAccuracy} limits the step in $\delta_{\rm crit}$ so that it never exceeds {\tt modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures the the first order expansion of the merging rate that is assumed is accurate.
+
+\subsection{Generalized Press-Schechter}
+
+Selected with {\tt treeBranchingMethod}$=${\tt generalizedPress-Schechter}, this method computes branching probabilities from solutions to the excursion set barrier first crossing rate problem (using the selected {\tt excursionSetFirstCrossingMethod}; see \S\ref{sec:excursionSetFirstCrossingMethod}). Specifically, the branching probability per unit time is:
+\begin{equation}
+ {\d f \over \d t} = {{\rm d} t \over {\rm d}\omega} \int_{M_{\rm min}}^{M/2} {M \over M^\prime} {\d f \over \d t} {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime,
+\end{equation}
+where $\omega = \delta_{\rm c,0}/D(t)$. The rate of accretion of mass in halos below the resolution limit of the merger tree is
+\begin{equation}
+ {\d R \over \d t} =  {{\rm d} t \over {\rm d}\omega} \int_0^{M_{\rm min}} {\d f \over \d t} {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+\end{equation}
+In the above, $G[\omega,\sigma(M),\sigma(M^\prime)]$ is a modification to the merger rate as computed by the selected {\tt treeBranchingModifierMethod} (see \S\ref{sec:treeBranchingModifierMethod}). If {\tt [generalizedPressSchechterSmoothAccretion]}$=${\tt true} then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
+\begin{equation}
+ {\d R_{\rm s} \over \d t} =  {{\rm d} t \over {\rm d}\omega} G[\omega,\sigma_{\rm max},\sigma(M^\prime)] {\d \stackrel{\sim}{f} \over \d t},
+\end{equation}
+where $\sigma_{\rm max}$ is the peak value of $\sigma(M)$ (for the lowest mass halos) and $\d \stackrel{\sim}{f}/\d t$ is the rate at which excursion set trajectories \emph{fail} to cross the barrier on any mass scale.
+
+\section{Merger Tree Branching Modifier}\index{merger trees!branching}
+
+The method to be used for modifying branching probabilities in merger trees is specified by the {\tt treeBranchingModifierMethod} parameter.
+
+\subsection{Null}
+
+Selected with {\tt treeBranchingModifierMethod}$=${\tt null}, this method makes no change to the branching probability.
+
+\subsection{Parkinson, Cole \& Helly (2008)}
+
+Selected with {\tt treeBranchingModifierMethod}$=${\tt Parkinson-Cole-Helly2008}, this method modifies branching probabilities according to the prescription of \cite{parkinson_generating_2008}. Specifically, the branching probability is multiplied by:
+\begin{equation}
+ G(\delta_{\rm p},\sigma_{\rm c},\sigma_{\rm p}) = G_0 \left({\sigma_{\rm p}\over\sigma_{\rm p}}\right)^{\gamma_1} \left({\delta_{\rm p}\over\sigma_{\rm p}}\right)^{\gamma_2}
+\end{equation}
+where $\delta_{\rm p}$ is the current critical overdensity for collapse for the parent halo, and $\sigma_{\rm c}$ and $\sigma_{\rm p}$ are the root-variance of the smooth mass-density field on scales corresponding to the masses of child and parent halos respectively. The parameters of the fit can be adjusted via input parameters: $G_0=${\tt [modifiedPressSchechterG0]}, $\gamma_1=${\tt [modifiedPressSchechterGamma1]}, and $\gamma_2=${\tt [modifiedPressSchechterGamma2]}.
 
 \section{Merger Tree Building}\index{merger trees!building}
 

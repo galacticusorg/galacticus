@@ -617,6 +617,51 @@ Currently defined radiative recombination rate methods are:
  \item [{\tt Verner}]  Computes the rate coefficient of radiative recombination using the compilation of results from Dima Verner as originally encapsulated in \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{{\tt rrfit.f}}.
 \end{description}
 
+\subsubsection{Bar Instabilities}
+
+Additional methods for bar instabilities in disks can be added using the {\tt barInstabilityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt ELN} method is described by a directive:
+\begin{verbatim}
+ !# <barInstabilityMethod>
+ !#  <unitName>Galactic_Dynamics_Bar_Instabilities_ELN_Initialize</unitName>
+ !# </barInstabilityMethod>
+\end{verbatim}
+Here, {\tt Galactic\_Dynamics\_Bar\_Instabilities\_ELN\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(barInstabilityMethod,Bar_Instability_Timescale_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: barInstabilityMethod
+    procedure(),          pointer, intent(inout) :: Bar_Instability_Timescale_Get
+    
+    if (barInstabilityMethod == 'myMethod') then
+       Bar_Instability_Timescale_Get => My_Bar_Instability_Timescale_Get
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt barInstabilityMethod} input parameter. The procedure pointer {\tt Bar\_Instability\_Timescale\_Get} must be set to point to a function which returns the timescale on which the bar instability depletes material from the disk to the pseudo-bulge. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The bar instability timesacale function must have the form:
+\begin{verbatim}
+  double precision function My_Bar_Instability_Timescale(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+  end function My_Bar_Instability_Timescale
+\end{verbatim}
+The function should compute and return the timescale (in Gyr) for the bar instability in the disk in {\tt thisNode} to transfer material from the disk to the pseudo-bulge. If no instability is present, a negative timescale should be returned.
+
+Currently defined bar instability methods are:
+\begin{description}
+ \item [{\tt null}] A null method in which disks are never bar unstable;
+ \item [{\tt ELN}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982}.
+\end{description}
+
 \subsubsection{Black Hole Binaries: Initial Separation}
 
 Additional methods for black hole binary initial separation calculations can be added using the {\tt blackHoleBinaryInitialRadiiMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt spheroidRadiusFraction} method is described by a directive:
@@ -2110,49 +2155,215 @@ Currently defined halo mass loss rate methods are:
  \item [{\tt vanDenBosch2005}] Uses the algorithm of \cite{van_den_bosch_mass_2005} to compute the mass loss rate.
 \end{description}
 
-\subsubsection{Bar Instabilities}
+\subsubsection{Excursion Set Barrier}\label{sec:excursionSetBarrierMethod}
 
-Additional methods for bar instabilities in disks can be added using the {\tt barInstabilityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt ELN} method is described by a directive:
+Additional methods for the excursion set barrier can be added using the {\tt excursionSetBarrierMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt linear} method is described by a directive:
 \begin{verbatim}
- !# <barInstabilityMethod>
- !#  <unitName>Galactic_Dynamics_Bar_Instabilities_ELN_Initialize</unitName>
- !# </barInstabilityMethod>
+ !# <excursionSetBarrierMethod>
+ !#  <unitName>Excursion_Sets_Barriers_Linear_Initialize</unitName>
+ !# </excursionSetBarrierMethod>
 \end{verbatim}
-Here, {\tt Galactic\_Dynamics\_Bar\_Instabilities\_ELN\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+Here, {\tt Excursion\_Sets\_Barriers\_Linear\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(barInstabilityMethod,Bar_Instability_Timescale_Get)
+  subroutine Method_Initialize(excursionSetBarrierMethodExcursion_Sets_Barrier_Get,Excursion
+_Sets_Barrier_Gradient_Get,barrierName)
     implicit none
-    type(varying_string),          intent(in)    :: barInstabilityMethod
-    procedure(),          pointer, intent(inout) :: Bar_Instability_Timescale_Get
-    
-    if (barInstabilityMethod == 'myMethod') then
-       Bar_Instability_Timescale_Get => My_Bar_Instability_Timescale_Get
-       .
-       .
-       .
+    type     (varying_string  ),         intent(in   ) :: excursionSetBarrierMethod
+    procedure(double precision),pointer, intent(inout) :: Excursion_Sets_Barrier_Get,Excursion_Sets_Barrier_Gradient
+_Get
+    type(varying_string),                intent(inout) :: barrierName
+
+    if (excursionSetBarrierMethod == 'myMethod') then
+      Excursion_Sets_Barrier_Get          => My_Barrier
+      Excursion_Sets_Barrier_Gradient_Get => My_Barrier_Gradient
+      barrierName=barrierName//":myLabel"
     end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt barInstabilityMethod} input parameter. The procedure pointer {\tt Bar\_Instability\_Timescale\_Get} must be set to point to a function which returns the timescale on which the bar instability depletes material from the disk to the pseudo-bulge. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt excursionSetBarrierMethod} input parameter. The procedure pointers {\tt Excursion\_Sets\_Barrier\_Get}, and {\tt Excursion\_Sets\_Barrier\_Gradient\_Get} must be set to point functions which return the barrier and its gradient respectively, as described below. The initialization subroutine should also append a descriptive label to the {\tt barrierName} argument. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The bar instability timesacale function must have the form:
+The barrier and barrier gradient functions must have the form:
 \begin{verbatim}
-  double precision function My_Bar_Instability_Timescale(thisNode)
+ double precision function Excursion_Sets_Barrier(variance,time)
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    double precision, intent(in) :: variance,time
     .
     .
     .
     return
-  end function My_Bar_Instability_Timescale
+ end function Excursion_Sets_Barrier
 \end{verbatim}
-The function should compute and return the timescale (in Gyr) for the bar instability in the disk in {\tt thisNode} to transfer material from the disk to the pseudo-bulge. If no instability is present, a negative timescale should be returned.
+The barrier function must return the barrier at the specified {\tt variance} and {\tt time}, while the barrier gradient function should return the derivative with respect to variance of the same barrier.
 
-Currently defined bar instability methods are:
+Currently defined excursion set barrier methods are:
 \begin{description}
- \item [{\tt null}] A null method in which disks are never bar unstable;
- \item [{\tt ELN}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982}.
+ \item [{\tt linear}] A linear ($1^{\rm st}$-order polynomial) barrier;
+  \item [{\tt quadratic}] A quadratic ($2^{\rm nd}$-order polynomial);
+  \item [{\tt criticalOverdensity}] A barrier equal to the critical overdensity for halo collapse.
+\end{description}
+
+\subsubsection{Excursion Set Barrier First Crossing Distribution}\label{sec:excursionSetFirstCrossingMethod}
+
+Additional methods for the excursion set barrier first crossing distribution can be added using the {\tt excursionSetFirstCrossingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt linearBarrier} method is described by a directive:
+\begin{verbatim}
+ !# <excursionSetFirstCrossingMethod>
+ !#  <unitName>Excursion_Sets_First_Crossing_Linear_Barrier_Initialize</unitName>
+ !# </excursionSetFirstCrossingMethod>
+\end{verbatim}
+Here, {\tt Excursion\_Sets\_First\_Crossing\_Linear\_Barrier\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(excursionSetFirstCrossingMethod,Excursion_Sets_First_Crossing_Probability_Get&
+         &,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get)
+    implicit none
+    type     (varying_string  ),         intent(in   ) :: excursionSetFirstCrossingMethod
+    procedure(double precision),pointer, intent(inout) :: Excursion_Sets_First_Crossing_Probability_Get&
+         &,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get
+    
+    if (excursionSetFirstCrossingMethod == 'myMethod') then
+       Excursion_Sets_First_Crossing_Probability_Get => My_First_Crossing_Probability
+       Excursion_Sets_First_Crossing_Rate_Get        => My_First_Crossing_Rate
+       Excursion_Sets_Non_Crossing_Rate_Get          => My_Non_Crossing_Rate
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt excursionSetFirstCrossingMethod} input parameter. The procedure pointers {\tt Excursion\_Sets\_First\_Crossing\_Probability\_Get}, {\tt Excursion\_Sets\_First\_Crossing\_Rate\_Get}, and {\tt Excursion\_Sets\_Non\_Crossing\_Rate\_Get} must be set to point functions which return the first crossing probability, first crossing probability rate and noncrossing rate as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The first crossing probability function must have the form:
+\begin{verbatim}
+ double precision function Excursion_Sets_First_Crossing_Probability(variance,time)
+    implicit none
+    double precision, intent(in) :: variance,time
+    .
+    .
+    .
+    return
+ end function Excursion_Sets_First_Crossing_Probability
+\end{verbatim}
+The function must return the first crossing probability per unit variance at the specified {\tt variance} and {\tt time}.
+
+The first crossing probability rate function must have the form:
+\begin{verbatim}
+ double precision function Excursion_Sets_First_Crossing_Rate(variance,varianceProgenitor,time)
+    implicit none
+    double precision, intent(in) :: variance,varianceProgenitor,time
+    .
+    .
+    .
+    return
+ end function Excursion_Sets_First_Crossing_Rate
+\end{verbatim}
+The function must return the rate of first crossing per unit variance at the specified {\tt variance} and {\tt time} for a progenitor of the specified {\tt varianceProgenitor}.
+
+The non-crossing probability rate function must have the form:
+\begin{verbatim}
+ double precision function Excursion_Sets_First_Non_Crossing_Rate(variance,time)
+    implicit none
+    double precision, intent(in) :: variance,time
+    .
+    .
+    .
+    return
+ end function Excursion_Sets_First_Non_Crossing_Rate
+\end{verbatim}
+The function must return the rate of trajectories which never cross the barrier at the specified {\tt variance} and {\tt time}..
+
+Currently defined excursion set barrier first crossing methods are:
+\begin{description}
+ \item [{\tt linearBarrier}] Assumes the solution for a linear barrier;
+ \item [{\tt Farahi}] Solves the first crossing problem using the methodology of \cite{benson_dark_2012};
+ \item [{\tt ZhangHui2006}] Solves the first crossing problem using the methodology of \cite{zhang_random_2006};
+ \item [{\tt ZhangHui2006HighOrder}] Solves the first crossing problem using a higher order extension of the methodology of \cite{zhang_random_2006}.
+\end{description}
+
+\subsubsection{Excursion Set Barrier Remapping}\label{sec:excursionSetBarrierRemapInitialize}
+
+Additional methods for the excursion set barrier can be added using the {\tt excursionSetBarrierRemapInitialize} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt scale} method is described by a directive:
+\begin{verbatim}
+ !# <excursionSetBarrierRemapInitialize>
+ !#  <unitName>Excursion_Sets_Barriers_Remap_Scale_Initialize</unitName>
+ !# </excursionSetBarrierRemapInitialize>
+\end{verbatim}
+Here, {\tt Excursion\_Sets\_Barriers\_Remap\_Scale\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(excursionSetBarrierRemapMethods,barrierName, &
+  & ratesCalculation,matchedCount)
+    implicit none
+    type(varying_string), intent(in   ), dimension(:) :: excursionSetBarrierRemapMethods
+    type(varying_string), intent(inout)               :: barrierName
+    logical             , intent(in   )               :: ratesCalculation
+    integer             , intent(inout)               :: matchedCount
+
+    if (any(excursionSetBarrierRemapMethods == 'myMethod')) then
+       position=-1
+       do i=1,size(excursionSetBarrierRemapMethods)
+          if (excursionSetBarrierRemapMethods(i) == 'myMethod') then
+             position=i
+             exit
+          end if
+       end do
+       if (ratesCalculation) then
+          methodRatesPosition=position
+       else
+          methodPosition     =position
+       end if
+       matchedCount=matchedCount+1
+       barrierName=barrierName//":myLabel"
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt excursionSetBarrierRemapMethods} input parameter. The initialization subroutine should identify the position of the matched method in the {\tt excursionSetBarrierRemapMethods()} array and record that it is active for standard barrier calculations ({\tt ratesCalculation}$=${\tt false}) or for barriers used in crossing rate calculations ({\tt ratesCalculation}$=${\tt true}). It should also increment the {\tt matchedCount} argument (to allow checking that all specified barriers were matched) and append a descriptive label to the{\tt barrierName} argument. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The method must provide a subroutine to compute remapping of the barrier as follows:
+\begin{verbatim}
+  !# <excursionSetBarrierRemap>
+  !#  <unitName>Method_Barrier_Remap</unitName>
+  !# </excursionSetBarrierRemap>
+  subroutine Method_Barrier_Remap(barrier,variance,time,ratesCalculation,iRemap)
+    implicit none
+    double precision, intent(inout) :: barrier
+    double precision, intent(in   ) :: variance,time
+    logical         , intent(in   ) :: ratesCalculation
+    integer         , intent(in   ) :: iRemap
+
+    if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) then
+     ! Do remapping.
+     .
+     .
+     .
+    end if
+    return
+  end subroutine Method_Barrier_Remap
+\end{verbatim}
+and a subroutine to compute remapping of the barrier gradient as follows:
+\begin{verbatim}
+  !# <excursionSetBarrierRemapGradient>
+  !#  <unitName>Method_Barrier_Gradient_Remap</unitName>
+  !# </excursionSetBarrierRemapGradient>
+  subroutine Method_Barrier_Gradient_Remap(barrier,barrierGradient,variance,time,ratesCalculation,iRemap)
+    implicit none
+    double precision, intent(inout) :: barrier,barrierGradient
+    double precision, intent(in   ) :: variance,time
+    logical         , intent(in   ) :: ratesCalculation
+    integer         , intent(in   ) :: iRemap
+
+    if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) then
+     ! Do remapping.
+     .
+     .
+     .
+    end if
+    return
+  end subroutine Method_Barrier_Gradient_Remap
+\end{verbatim}
+
+Currently defined excursion set barrier remapping methods are:
+\begin{description}
+ \item [{\tt null}] A null method which leaves the barrier unchanged;
+ \item [{\tt scale}] Scales the barrier by a multiplicative factor;
+ \item [{\tt Sheth-Mo-Tormen}] Remaps the barrier according to the algorithm of \cite{sheth_ellipsoidal_2001}.
 \end{description}
 
 \subsubsection{Galactic Component Radii Solver}\label{sec:galactic_radii_solvers}
@@ -3063,6 +3274,7 @@ probability, {\tt probability}.
 Currently defined merger tree branching methods are:
 \begin{description}
  \item [{\tt modifiedPress-Schechter}] Branching probabilities are computed using the method of \cite{parkinson_generating_2008}. Progenitor mass functions generated using \glc's implementation of this algorithm (and the \cite{cole_hierarchical_2000} merger tree building algorithm) are shown in Fig.~\ref{fig:PCH_Progenitor_MFs}.
+ \item [{\tt generalizedPress-Schechter}] Branching probabilities are computed using excursion set barrier first crossing rates (computed using the selected {\tt excursionSetFirstCrossingMethod}; see \S\ref{sec:excursionSetFirstCrossingMethod}), modified by the selected {\tt treeBranchingModifierMethod} (see \S\ref{sec:treeBranchingModifierMethod}).
 \end{description}
 
 \begin{figure}
@@ -3072,6 +3284,49 @@ Currently defined merger tree branching methods are:
  \caption{Progenitor mass functions at redshifts $z=0.5$, 1, 2 and 4 (bottom to top) for halos of mass $10^{12\pm0.151}$, $10^{13.5\pm0.151}$ and $10^{15\pm0.151}h^{-1}M_\odot$ (left to right) are shown. Green lines are measured from the Millennium Simulation, while red lines are computed using \glc's merger tree building routines (with the \cite{parkinson_generating_2008} branching algorithm and the \cite{cole_hierarchical_2000} tree building algorithm).}
  \label{fig:PCH_Progenitor_MFs}
 \end{figure}
+
+\subsubsection{Merger Tree Branching Modifiers}\label{sec:treeBranchingModifierMethod}
+
+Additional methods for merger tree branching probability modifiers can be added using the {\tt treeBranchingModifierMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt null} method is described by a directive:
+\begin{verbatim}
+ !# <treeBranchingModifierMethod>
+ !#  <unitName>Merger_Tree_Branching_Modifiers_Null_Initialize</unitName>
+ !# </treeBranchingModifierMethod>
+\end{verbatim}
+Here, {\tt Merger\_Tree\_Branching\_Modifiers\_Null\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+ subroutine Method_Initialize(treeBranchingModifierMethod,Merger_Tree_Branching_Modifier_Get)
+    type     (varying_string  ),          intent(in   ) :: treeBranchingModifierMethod
+    procedure(double precision), pointer, intent(inout) :: Merger_Tree_Branching_Modifier_Get
+    
+    if (treeBranchingModifierMethod == 'myMethod') then
+       Merger_Tree_Branching_Modifier_Get => My_Get
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt treeBranchingModifierMethod} input parameter. The procedure pointer {\tt Merger\_Tree\_Branching\_Modifier\_Get} must build and return the modifier to the branching probability as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The branching probability modifier function should have the interface:
+\begin{verbatim}
+  subroutine Merger_Tree_Branching_Modifier_Get(parentDelta,childSigma,parentSigma)
+    double precision, intent(in) :: parentDelta,childSigma,parentSigma
+    .
+    .
+    .
+    return
+  end subroutine Merger_Tree_Branching_Modifier_Get
+\end{verbatim}
+and should return the multiplicative modifier to the branching probability for the given {\tt parentDelta}, {\tt childSigma} and {\tt parentSigma}.
+
+Currently defined merger tree branching probability modifier methods are:
+\begin{description}
+ \item [{\tt null}] Makes no modification;
+ \item [{\tt Parkinson-Cole-Helly2008}] Modifies branching rates according to the algorithm of \cite{parkinson_generating_2008}.
+\end{description}
 
 \subsubsection{Merger Tree Building}\label{sec:MergerTreeBuildMethod}
 
