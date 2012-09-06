@@ -97,13 +97,13 @@ contains
        ! Get the barrier first crossing probability method parameter.
        !@ <inputParameter>
        !@   <name>excursionSetFirstCrossingMethod</name>
-       !@   <defaultValue>linear barrier</defaultValue>
+       !@   <defaultValue>linearBarrier</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for calculations of first crossing distributions for excursion sets.
        !@   </description>
        !@ </inputParameter>
-       call Get_Input_Parameter('excursionSetFirstCrossingMethod',excursionSetFirstCrossingMethod,defaultValue='linear barrier')
+       call Get_Input_Parameter('excursionSetFirstCrossingMethod',excursionSetFirstCrossingMethod,defaultValue='linearBarrier')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="excursionSetFirstCrossingMethod" type="code" action="subroutine">
        !#  <subroutineArgs>excursionSetFirstCrossingMethod,Excursion_Sets_First_Crossing_Probability_Get,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get</subroutineArgs>
