@@ -847,6 +847,14 @@ where $A=0.707$, $b=0.5$, and $c=0.6$.
 
 The algorithm to be used when solving for galactic structure (specifically, finding radii of galactic components) is selected via the {\tt galacticStructureRadiusSolverMethod} parameter.
 
+\subsection{Fixed}
+
+Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt fixed} this method determines the sizes of galactic components by assuming that radius equals
+\begin{equation}
+ r = f_{\rm r} \lambda r_{\rm vir}
+\end{equation}
+where $r_{\rm vir}$ is the virial radius of the \gls{node}, $\lambda$ is its spin parameter and $f_{\rm r}=${\tt [galacticStructureRadiiFixedFactor]} is a parameter.
+
 \subsection{Linear}
 
 Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt linear} this method determines the sizes of galactic components by assuming that radius scales linearly with specific angular momentum such that
