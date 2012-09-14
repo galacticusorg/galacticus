@@ -61,7 +61,8 @@ sub Select_Output {
     my $foundMatch = 0;
     for(my $i=0;$i<nelem($outputs->{'expansionFactor'});++$i) {
 	if ( abs($outputs->{'expansionFactor'}->index($i)-$expansionFactor) < $tolerance ) {
-	    $dataBlock->{'output'} = $outputs->{'outputNumber'}->index($i);
+	    $dataBlock->{'output'     } = $outputs->{'outputNumber'}->index($i);
+	    $dataBlock->{'outputIndex'} =                                   $i ;
 	    $foundMatch = 1;
 	}
     }
