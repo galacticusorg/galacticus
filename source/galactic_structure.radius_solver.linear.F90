@@ -108,11 +108,7 @@ contains
     thisNode%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
 
-    !# <include directive="radiusSolverTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</subroutineArgs>
-    !#  <subroutineAction>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</subroutineAction>
     include 'galactic_structure.radius_solver.tasks.inc'
-    !# </include>
 
     return
   end subroutine Galactic_Structure_Radii_Solve_Linear
