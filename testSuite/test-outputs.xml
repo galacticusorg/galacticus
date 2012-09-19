@@ -23,4 +23,10 @@
       <value>200 500</value>
     </parameter>
   </parameters>
+  <parameters>
+    <parameter>
+      <name>massAccretionHistoryOutput</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
 </parameterGrid>

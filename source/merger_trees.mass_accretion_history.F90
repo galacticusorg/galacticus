@@ -63,18 +63,19 @@
 
 module Merger_Tree_Mass_Accretion_History
   !% Outputs mass accretion histories of merger trees.
+  use IO_HDF5
   implicit none
   private
-  public :: Merger_Tree_Mass_Accretion_History_Output
+  public :: Merger_Tree_Mass_Accretion_History_Output, Merger_Tree_Mass_Accretion_History_Close
   
   ! Flag indicating if module is initialized.
-  logical :: accretionHistoryModuleInitialized=.false.
+  logical          :: accretionHistoryModuleInitialized=.false.
   
   ! Flag indicating if output is required.
-  logical :: massAccretionHistoryOutput
+  logical          :: massAccretionHistoryOutput
 
-  ! HDF5 group index.
-  integer :: accretionGroupID
+  ! Accretion group object.
+  type(hdf5Object) :: accretionGroup
   
 contains
 
@@ -87,7 +88,6 @@ contains
     use Tree_Nodes
     use Input_Parameters
     use Memory_Management
-    use IO_HDF5
     use Galacticus_HDF5
     use ISO_Varying_String
     use String_Handling
@@ -98,7 +98,6 @@ contains
     type(treeNode),          pointer                   :: thisNode
     integer(kind=kind_int8), allocatable, dimension(:) :: accretionHistoryNodeIndex
     double precision,        allocatable, dimension(:) :: accretionHistoryNodeMass,accretionHistoryNodeTime
-    type(hdf5Object),        save                      :: accretionGroup
     integer(kind=kind_int8)                            :: accretionHistoryCount
     type(varying_string)                               :: groupName
     type(hdf5Object)                                   :: treeGroup,accretionDataset
@@ -177,4 +176,15 @@ contains
     return
   end subroutine Merger_Tree_Mass_Accretion_History_Output
   
+  !# <hdfPreCloseTask>
+  !#   <unitName>Merger_Tree_Mass_Accretion_History_Close</unitName>
+  !# </hdfPreCloseTask>
+  subroutine Merger_Tree_Mass_Accretion_History_Close()
+    !% Close the mass accretion history group before closing the HDF5 file.
+    implicit none
+
+    if (massAccretionHistoryOutput) call accretionGroup%close()
+    return
+  end subroutine Merger_Tree_Mass_Accretion_History_Close
+ 
 end module Merger_Tree_Mass_Accretion_History
