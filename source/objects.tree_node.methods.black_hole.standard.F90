@@ -404,10 +404,6 @@ contains
     use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
     use Cosmological_Parameters
-
-!! AJB HACK
-use dark_matter_halo_scales
-
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -484,10 +480,7 @@ use dark_matter_halo_scales
           call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
          
        end if
-       
-!! AJB HACK
-if (thisnode%isprimaryprogenitorof(213744_kind_int8)) write (404,*) tree_node_time(thisnode),Tree_Node_Spheroid_Radius(thisNode),Tree_Node_Spheroid_angular_momentum(thisNode),Tree_Node_Spheroid_Gas_Mass(thisNode),Tree_Node_Spheroid_stellar_Mass(thisNode),dark_matter_halo_virial_velocity(thisNOde),dark_matter_halo_virial_radius(thisnode)
-
+      
        ! Add energy to the spheroid component.
        if (blackHoleWindEfficiency > 0.0d0) then
           spheroidGasMass=Tree_Node_Spheroid_Gas_Mass(thisNode)
