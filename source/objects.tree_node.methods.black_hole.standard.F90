@@ -404,6 +404,10 @@ contains
     use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
     use Cosmological_Parameters
+
+!! AJB HACK
+use dark_matter_halo_scales
+
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -415,7 +419,7 @@ contains
          &/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
     integer                                  :: iInstance,instanceCount,thisIndex
     double precision                         :: restMassAccretionRate,massAccretionRate,radiativeEfficiency,energyInputRate &
-         &,spheroidDensity,spheroidGasMass,spheroidRadius,criticalDensity,windFraction,spheroidDensityOverCriticalDensity&
+         &,spheroidDensityRadius2,spheroidGasMass,spheroidRadius,criticalDensityRadius2,windFraction,spheroidDensityOverCriticalDensity&
          &,heatingRate,couplingEfficiency,jetEfficiency
 
     ! Get a local copy of the interrupt procedure.
@@ -481,17 +485,21 @@ contains
          
        end if
        
+!! AJB HACK
+if (thisnode%isprimaryprogenitorof(213744_kind_int8)) write (404,*) tree_node_time(thisnode),Tree_Node_Spheroid_Radius(thisNode),Tree_Node_Spheroid_angular_momentum(thisNode),Tree_Node_Spheroid_Gas_Mass(thisNode),Tree_Node_Spheroid_stellar_Mass(thisNode),dark_matter_halo_virial_velocity(thisNOde),dark_matter_halo_virial_radius(thisnode)
+
        ! Add energy to the spheroid component.
        if (blackHoleWindEfficiency > 0.0d0) then
           spheroidGasMass=Tree_Node_Spheroid_Gas_Mass(thisNode)
           if (spheroidGasMass > 0.0d0) then
              spheroidRadius=Tree_Node_Spheroid_Radius(thisNode)
              if (spheroidRadius > 0.0d0) then
-                spheroidDensity=3.0d0*spheroidGasMass/4.0d0/Pi/spheroidRadius**3
-                criticalDensity=criticalDensityNormalization*blackHoleWindEfficiency*restMassAccretionRate/spheroidRadius**2
+                ! Compute spheroid and critical densities (multiplied by r^2 to avoid floating overflow problems).
+                spheroidDensityRadius2=3.0d0*spheroidGasMass/4.0d0/Pi/spheroidRadius
+                criticalDensityRadius2=criticalDensityNormalization*blackHoleWindEfficiency*restMassAccretionRate
                 
                 ! Construct an interpolating factor such that the energy input from the wind drops to zero below half of the critical density.
-                spheroidDensityOverCriticalDensity=spheroidDensity/criticalDensity-0.5d0
+                spheroidDensityOverCriticalDensity=spheroidDensityRadius2/criticalDensityRadius2-0.5d0
                 if (spheroidDensityOverCriticalDensity <= 0.0d0) then
                    ! No energy input below half of critical density.
                    windFraction=0.0d0
