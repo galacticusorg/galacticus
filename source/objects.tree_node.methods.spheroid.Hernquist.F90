@@ -1593,7 +1593,7 @@ contains
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
     if (.not.thisNode%componentExists(componentIndex)) return
 
-    call Hernquist_Spheroid_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,componentMass)
+    call Hernquist_Spheroid_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,componentMass)
     if (componentMass <= 0.0d0) return
     componentPotential=-gravitationalConstantGalacticus              &
          &             *componentMass                                &
