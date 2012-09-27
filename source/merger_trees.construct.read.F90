@@ -764,15 +764,17 @@ contains
           nextTreeToRead=nextTreeToRead+1
           ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
           ! that contain 1 or fewer nodes and these are unprocessable.
-          do while ( (       mergerTreeReadBeginAt            > 0                     &
-               &       .and. mergerTreeIndex(nextTreeToRead) /= mergerTreeReadBeginAt &
-               &     )                                                                &
-               &     .or. mergerTreeNodeCount(nextTreeToRead) <= 1                    &
-               &   )
-             nextTreeToRead=nextTreeToRead+1
-             ! If the end of the list has been reached, exit.
-             if (nextTreeToRead > size(mergerTreeFirstNodeIndex)) exit
-          end do
+          if (nextTreeToRead <= size(mergerTreeFirstNodeIndex)) then
+             do while ( (       mergerTreeReadBeginAt            > 0                     &
+                  &       .and. mergerTreeIndex(nextTreeToRead) /= mergerTreeReadBeginAt &
+                  &     )                                                                &
+                  &     .or. mergerTreeNodeCount(nextTreeToRead) <= 1                    &
+                  &   )
+                nextTreeToRead=nextTreeToRead+1
+                ! If the end of the list has been reached, exit.
+                if (nextTreeToRead > size(mergerTreeFirstNodeIndex)) exit
+             end do
+          end if
 
           ! Flag that we've now found the first merger tree to process.
           mergerTreeReadBeginAt=-1
