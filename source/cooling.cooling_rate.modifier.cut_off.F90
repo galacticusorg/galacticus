@@ -73,6 +73,9 @@ module Cooling_Rates_Modifier_Cut_Off
   ! Parameters controlling the time and velocity scale at which cooling is cut off.
   double precision :: coolingCutOffVelocity,coolingCutOffRedshift,coolingCutOffTime
   logical          :: coolingCutOffFormationNode
+  integer          :: coolingCutOffWhen
+  integer          :: coolingCutOffWhenBefore=0
+  integer          :: coolingCutOffWhenAfter =1
 
 contains
 
@@ -85,10 +88,13 @@ contains
     use Cosmology_Functions
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
+    use ISO_Varying_String
+    use Galacticus_Error
     implicit none
-    type(treeNode)  , intent(inout), pointer :: thisNode
-    double precision, intent(inout)          :: coolingRate
-    double precision                         :: virialVelocity
+    type(treeNode)      , intent(inout), pointer :: thisNode
+    double precision    , intent(inout)          :: coolingRate
+    double precision                             :: virialVelocity
+    type(varying_string)                         :: coolingCutOffWhenText
     
     if (.not.moduleInitialized) then
        !$omp critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
@@ -127,12 +133,31 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter("coolingCutOffRedshift",coolingCutOffRedshift,defaultValue=0.0d0)
           coolingCutOffTime=Cosmology_Age(Expansion_Factor_from_Redshift(coolingCutOffRedshift))
+          !@ <inputParameter>
+          !@   <name>coolingCutOffWhen</name>
+          !@   <defaultValue>after</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies whether cooling is cut off before or after {\tt [coolingCutOffRedshift]}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("coolingCutOffWhen",coolingCutOffWhenText,defaultValue='after')
+          select case (char(coolingCutOffWhenText))
+          case ("before")
+             coolingCutOffWhen=coolingCutOffWhenBefore
+          case ("after" )
+             coolingCutOffWhen=coolingCutOffWhenAfter
+          case default
+             call Galacticus_Error_Report('Cooling_Rate_Modifier_Cut_Off','[coolingCutOffWhen] must be either "before" or "after"')
+          end select
           ! Record that the module is now initialized.
           moduleInitialized=.true.
        end if
        !$omp end critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
     end if
-
+    
     ! Return immediately if cut-off is non-positive.
     if (coolingCutOffVelocity <= 0.0d0) return
 
@@ -143,10 +168,14 @@ contains
     case (.true. )
        virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode%formationNode)
     end select
-    if     (                                                  &
-         &  Tree_Node_Time(thisNode) >= coolingCutOffTime     &
-         &   .and.                                            &
-         &  virialVelocity           <= coolingCutOffVelocity &
+    if     (                                                                                                    &
+         &  (                                                                                                   &
+         &   (Tree_Node_Time(thisNode) >= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenAfter ) &
+         &    .or.                                                                                              &
+         &   (Tree_Node_Time(thisNode) <= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenBefore) &
+         &  )                                                                                                   &
+         &   .and.                                                                                              &
+         &  virialVelocity             <= coolingCutOffVelocity                                                 &
          & ) coolingRate=0.0d0
     return
   end subroutine Cooling_Rate_Modifier_Cut_Off
