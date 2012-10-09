@@ -4898,7 +4898,7 @@ The subroutine should modify the {\tt coolingRate} as necessary.
 
 Currently defined cooling rate modifier tasks are:
 \begin{description}
-\item [\hyperlink{cooling.cooling_rate.modifier.cut_off.F90:cooling_rates_modifier_cut_off:cooling_rate_modifier_cut_off}{``cut-off''}] The cooling rate is set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}. In other halos the cooling rate is not modified.
+\item [\hyperlink{cooling.cooling_rate.modifier.cut_off.F90:cooling_rates_modifier_cut_off:cooling_rate_modifier_cut_off}{``cut-off''}] The cooling rate is set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below/above {\tt [coolingCutOffRedshift]} for {\tt [coolingCutOffWhen]}$=${\tt after/before}. In other halos the cooling rate is not modified.
 \end{description}
 
 \subsubsection{Decode Property Identifier Tasks}\label{sec:DecodePropertyIndentifierTask}

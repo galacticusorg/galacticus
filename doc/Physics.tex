@@ -320,6 +320,14 @@ Selected with {\tt coolingRateMethod}$=${\tt White-Frenk1991}, this method compu
 \end{equation}
 where $r_{\rm infall}$ is the infall radius (see \S\ref{sec:CoolingInfallRadius}) in the hot halo and $\rho(r)$ is the density profile of the hot halo.
 
+\subsection{Cooling Rate Modifier}\label{sec:CoolingRateModifier}\index{cooling!rate modifier}
+
+Algorithms that modify the rate of cooling of gas are specified via the {\tt coolingRateModifierMethod} directive.
+
+\subsubsection{Cut-Off}
+
+This method sets the cooling rate to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below/above {\tt [coolingCutOffRedshift]} for {\tt [coolingCutOffWhen]}$=${\tt after/before}. In other halos the cooling rate is not modified.
+
 \subsection{Cooling Radius}\label{sec:CoolingRadius}\index{cooling radius}\index{cooling!radius}
 
 The algorithm used to compute the cooling radius is selected via the {\tt coolingRadiusMethod} parameter.
