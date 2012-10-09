@@ -131,7 +131,20 @@ sub GnuPlot2ODG {
     close(iHndl);
 
     # Convert to ODG.
-    system("java -jar /usr/local/bin/svg2office-1.2.2.jar ".$gnuplotRoot.".svg");
+    my @svg2officeLocations = ( "/usr/bin", "/usr/local/bin", $ENV{'HOME'}."/bin" );
+    push(
+	@svg2officeLocations,
+	$ENV{'GALACTICUS_ROOT_V091'}."../Tools/bin"
+	)
+	if ( exists($ENV{'GALACTICUS_ROOT_V091'}) );
+    my $svg2office;
+    foreach my $location ( @svg2officeLocations ) {
+	$svg2office = $location."/svg2office-1.2.2.jar"
+	    if ( -e $location."/svg2office-1.2.2.jar" );
+    }
+    die("GnuPlot::LaTeX.pm: svg2office-1.2.2.jar not found")
+	unless ( defined($svg2office) );
+    system("java -jar ".$svg2office." ".$gnuplotRoot.".svg");
 
     # Remove the PDF and SVG files.
     unlink($gnuplotRoot.".pdf",$gnuplotRoot.".svg",$gnuplotRoot."_percent.svg");
