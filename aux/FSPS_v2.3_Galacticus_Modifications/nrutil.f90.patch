@@ -1,0 +1,150 @@
+*** nrutil.f90.orig	2012-10-10 15:18:11.000000000 -0700
+--- nrutil.f90	2012-10-10 15:24:29.000000000 -0700
+***************
+*** 8,18 ****
+  	INTEGER(I4B), PARAMETER :: NPAR_POLY=8
+  	INTEGER(I4B), PARAMETER :: NPAR_POLYTERM=8
+  	INTERFACE array_copy
+! 		MODULE PROCEDURE array_copy_r, array_copy_d, array_copy_i
+  	END INTERFACE
+  	INTERFACE swap
+! 		MODULE PROCEDURE swap_i,swap_r,swap_rv,swap_c, &
+! 			swap_cv,swap_cm,swap_z,swap_zv,swap_zm, &
+  			masked_swap_rs,masked_swap_rv,masked_swap_rm
+  	END INTERFACE
+  	INTERFACE reallocate
+--- 8,25 ----
+  	INTEGER(I4B), PARAMETER :: NPAR_POLY=8
+  	INTEGER(I4B), PARAMETER :: NPAR_POLYTERM=8
+  	INTERFACE array_copy
+! 		MODULE PROCEDURE &
+! #ifndef ALLREAL8
+! &array_copy_r, &
+! #endif
+! &array_copy_d, array_copy_i
+  	END INTERFACE
+  	INTERFACE swap
+! 		MODULE PROCEDURE swap_i,swap_r,swap_rv, &
+! #ifndef ALLREAL8
+! &swap_c, swap_cv, swap_cm,&
+! #endif
+! &swap_z,swap_zv,swap_zm, &
+  			masked_swap_rs,masked_swap_rv,masked_swap_rm
+  	END INTERFACE
+  	INTERFACE reallocate
+***************
+*** 29,60 ****
+  		MODULE PROCEDURE assert_eq2,assert_eq3,assert_eq4,assert_eqn
+  	END INTERFACE
+  	INTERFACE arth
+! 		MODULE PROCEDURE arth_r, arth_d, arth_i
+  	END INTERFACE
+  	INTERFACE geop
+! 		MODULE PROCEDURE geop_r, geop_d, geop_i, geop_c, geop_dv
+  	END INTERFACE
+  	INTERFACE cumsum
+  		MODULE PROCEDURE cumsum_r,cumsum_i
+  	END INTERFACE
+  	INTERFACE poly
+! 		MODULE PROCEDURE poly_rr,poly_rrv,poly_dd,poly_ddv,&
+! 			poly_rc,poly_cc,poly_msk_rrv,poly_msk_ddv
+  	END INTERFACE
+  	INTERFACE poly_term
+  		MODULE PROCEDURE poly_term_rr,poly_term_cc
+  	END INTERFACE
+  	INTERFACE outerprod
+! 		MODULE PROCEDURE outerprod_r,outerprod_d
+  	END INTERFACE
+  	INTERFACE outerdiff
+! 		MODULE PROCEDURE outerdiff_r,outerdiff_d,outerdiff_i
+  	END INTERFACE
+  	INTERFACE scatter_add
+! 		MODULE PROCEDURE scatter_add_r,scatter_add_d
+  	END INTERFACE
+  	INTERFACE scatter_max
+! 		MODULE PROCEDURE scatter_max_r,scatter_max_d
+  	END INTERFACE
+  	INTERFACE diagadd
+  		MODULE PROCEDURE diagadd_rv,diagadd_r
+--- 36,95 ----
+  		MODULE PROCEDURE assert_eq2,assert_eq3,assert_eq4,assert_eqn
+  	END INTERFACE
+  	INTERFACE arth
+! 		MODULE PROCEDURE &
+! #ifndef ALLREAL8
+! &arth_r,&
+! #endif
+! & arth_d, arth_i
+  	END INTERFACE
+  	INTERFACE geop
+! 		MODULE PROCEDURE &
+! #ifndef ALLREAL8
+! &geop_r,&
+! #endif
+! & geop_d, geop_i, geop_c, geop_dv
+  	END INTERFACE
+  	INTERFACE cumsum
+  		MODULE PROCEDURE cumsum_r,cumsum_i
+  	END INTERFACE
+  	INTERFACE poly
+! 		MODULE PROCEDURE poly_dd,poly_ddv,&
+! 			poly_rc,poly_cc&
+! #ifndef ALLREAL8
+! &,poly_rr,poly_rrv,poly_msk_rrv&
+! #endif
+! &,poly_msk_ddv
+  	END INTERFACE
+  	INTERFACE poly_term
+  		MODULE PROCEDURE poly_term_rr,poly_term_cc
+  	END INTERFACE
+  	INTERFACE outerprod
+! 		MODULE PROCEDURE &
+! #ifndef ALLREAL8
+! &outerprod_r,&
+! #endif
+! &outerprod_d
+  	END INTERFACE
+  	INTERFACE outerdiff
+! 		MODULE PROCEDURE &
+! #ifndef ALLREAL8
+! &outerdiff_r,&
+! #endif
+! &outerdiff_d,outerdiff_i
+  	END INTERFACE
+  	INTERFACE scatter_add
+! 		MODULE PROCEDURE &
+! #ifndef ALLREAL8
+! &scatter_add_r,&
+! #endif
+! &scatter_add_d
+  	END INTERFACE
+  	INTERFACE scatter_max
+! 		MODULE PROCEDURE &
+! #ifndef ALLREAL8
+! &scatter_max_r,&
+! #endif
+! &scatter_max_d
+  	END INTERFACE
+  	INTERFACE diagadd
+  		MODULE PROCEDURE diagadd_rv,diagadd_r
+***************
+*** 63,69 ****
+  		MODULE PROCEDURE diagmult_rv,diagmult_r
+  	END INTERFACE
+  	INTERFACE get_diag
+! 		MODULE PROCEDURE get_diag_rv, get_diag_dv
+  	END INTERFACE
+  	INTERFACE put_diag
+  		MODULE PROCEDURE put_diag_rv, put_diag_r
+--- 98,108 ----
+  		MODULE PROCEDURE diagmult_rv,diagmult_r
+  	END INTERFACE
+  	INTERFACE get_diag
+! 		MODULE PROCEDURE &
+! #ifndef ALLREAL8
+! &get_diag_rv,&
+! #endif
+! & get_diag_dv
+  	END INTERFACE
+  	INTERFACE put_diag
+  		MODULE PROCEDURE put_diag_rv, put_diag_r

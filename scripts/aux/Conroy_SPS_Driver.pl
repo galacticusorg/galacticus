@@ -78,10 +78,10 @@ if ( $makeFile == 1 ) {
     
     # Patch the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.3/src/galacticus_IMF.f90" ) {
- 	foreach my $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch", "qromb.f90.patch" ) {
+ 	foreach my $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch", "qromb.f90.patch", "nr.f90.patch", "nrutil.f90.patch" ) {
 	    my $todir = $galacticusPath."aux/FSPS_v2.3/src/";
 	    $todir .= "nr/"
-		if ( $file eq "qromb.f90.patch" );
+		if ( $file eq "qromb.f90.patch" || $file eq "nr.f90.patch" || $file eq "nrutil.f90.patch" );
  	    copy($galacticusPath."aux/FSPS_v2.3_Galacticus_Modifications/".$file,$todir.$file);
  	    if ( $file =~ m/\.patch$/ ) {
 		system("cd ".$todir."; patch < $file");
