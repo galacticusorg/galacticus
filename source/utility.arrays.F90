@@ -65,7 +65,7 @@ module Array_Utilities
   !% Contains routines which implement useful operations on arrays.
   implicit none
   private
-  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic
+  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic, Array_Which, Array_Index
 
   interface Array_Reverse
      !% Interface to generic routines which reverse the direction of an array.
@@ -83,6 +83,14 @@ module Array_Utilities
      module procedure Array_Is_Monotonic_Integer8
      module procedure Array_Is_Monotonic_Double
   end interface
+
+  interface Array_Index
+     !% Interface to generic routines which return a subset of an array given indices into the array.
+     module procedure Array_Index_Integer8
+     module procedure Array_Index_Integer
+     module procedure Array_Index_Double
+     module procedure Array_Index_Double_2D
+  end interface Array_Index
 
   ! Types of direction for monotonic arrays.
   integer, parameter, public :: directionDecreasing=-1
@@ -216,6 +224,83 @@ contains
     Array_Is_Monotonic_Double=.true.
     return
   end function Array_Is_Monotonic_Double
+
+  subroutine Array_Which(mask,indices)
+    !% Return an array of indices for which {\tt mask} is true.
+    use Galacticus_Error
+    implicit none
+    logical, intent(in)  :: mask(:)
+    integer, intent(out) :: indices(:)
+    integer              :: index,matchCount
+    
+    matchCount=0
+    indices   =0
+    do index=1,size(mask)
+       if (mask(index)) then
+          matchCount=matchCount+1
+          if (matchCount > size(indices)) call Galacticus_Error_Report('Array_Which','indices array is too small')
+          indices(matchCount)=index
+       end if
+    end do
+    return
+  end subroutine Array_Which
+  
+  function Array_Index_Double(array,indices) result (arraySubset)
+    !% Return a subset of a double precision array given a set of indices into the array.
+    implicit none
+    double precision, dimension(:),            intent(in) :: array
+    integer,          dimension(:),            intent(in) :: indices
+    double precision, dimension(size(indices))            :: arraySubset
+    integer                                               :: i
+
+    forall(i=1:size(indices))
+       arraySubset(i)=array(indices(i))
+    end forall
+    return
+  end function Array_Index_Double
+
+  function Array_Index_Integer(array,indices) result (arraySubset)
+    !% Return a subset of an integer array given a set of indices into the array.
+    implicit none
+    integer, dimension(:),            intent(in) :: array
+    integer, dimension(:),            intent(in) :: indices
+    integer, dimension(size(indices))            :: arraySubset
+    integer                                      :: i
+
+    forall(i=1:size(indices))
+       arraySubset(i)=array(indices(i))
+    end forall
+    return
+  end function Array_Index_Integer
+
+  function Array_Index_Integer8(array,indices) result (arraySubset)
+    !% Return a subset of an integer array given a set of indices into the array.
+    use Kind_Numbers
+    implicit none
+    integer(kind=kind_int8), dimension(:),            intent(in) :: array
+    integer,                 dimension(:),            intent(in) :: indices
+    integer(kind=kind_int8), dimension(size(indices))            :: arraySubset
+    integer                                                      :: i
+
+    forall(i=1:size(indices))
+       arraySubset(i)=array(indices(i))
+    end forall
+    return
+  end function Array_Index_Integer8
+
+  function Array_Index_Double_2D(array,indices) result (arraySubset)
+    !% Return a subset of a 2D double precision array given a set of indices into the array.
+    implicit none
+    double precision, dimension(:,:),                            intent(in) :: array
+    integer,          dimension(:),                              intent(in) :: indices
+    double precision, dimension(size(array,dim=1),size(indices))            :: arraySubset
+    integer                                                                 :: i
+
+    forall(i=1:size(indices))
+       arraySubset(:,i)=array(:,indices(i))
+    end forall
+    return
+  end function Array_Index_Double_2D
 
   logical function Array_Is_Monotonic_Integer8(array,direction,allowEqual)
     !% Checks if an integer array is monotonic.
