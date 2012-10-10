@@ -171,6 +171,7 @@ contains
     ! Get interpolating factors in stellar population history.
     interpolationReset=.true.
     iHistory          =Interpolate_Locate(size(thisHistory%time),thisHistory%time,interpolationAccelerator,currentTime,interpolationReset)
+    call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
 
     ! Get recycling, energy input, metal recycling and metal yield rates.
     recyclingRate  =thisHistory%data(iHistory,          recycledRateIndex                                            )
