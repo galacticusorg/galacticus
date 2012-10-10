@@ -727,7 +727,8 @@ contains
           if (diskMass > 0.0d0) then
              angularMomentum           =Tree_Node_Disk_Angular_Momentum_Exponential(thisNode)
              angularMomentumOutflowRate=angularMomentum*(massOutflowRate/diskMass)
-             angularMomentumOutflowRate=min(angularMomentumOutflowRate,angularMomentum/diskOutflowTimescaleMinimum/diskDynamicalTime)
+             angularMomentumOutflowRate=sign(min(abs(angularMomentumOutflowRate),abs(angularMomentum/diskOutflowTimescaleMinimum &
+                  &/diskDynamicalTime)),angularMomentumOutflowRate)
           else
              angularMomentumOutflowRate=0.0d0
           end if
