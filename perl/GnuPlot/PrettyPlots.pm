@@ -121,6 +121,7 @@ our %colors = (
     LightGoldenrod       => "#EEDD82",
     Goldenrod            => "#DAA520",
     DarkGoldenrod        => "#B8860B",
+    Green                => "#00FF00",
     # Browns
     RosyBrown            => "#BC8F8F",
     IndianRed            => "#CD5C5C",
@@ -169,6 +170,7 @@ our %colors = (
 
 # Sets of color pairs suitable for plotting points with a light middle and darker border.
 our %colorPairs = (
+    greenRed       => [$colors{'Green'        },$colors{'Red'           }],
     redYellow      => [$colors{'Red'          },$colors{'Yellow'        }],
     blackGray      => [$colors{'SlateGray'    },$colors{'Black'         }],
     blueCyan       => [$colors{'Blue'         },$colors{'Cyan'          }],
@@ -367,11 +369,68 @@ sub Prepare_Dataset {
 		    foreach my $level ( 'lower', 'upper' ) {
 			${$plot}->{$phase}->{'data'} .= "set boxwidth 0.9 relative\n";
 			${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0\n";
-			${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
-			for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
-			    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
+			# If the "shading" option is specified we make
+			# the bar color vary with height and add some
+			# highlighting toward the center of the bar.
+			if ( exists($options{'shading'}) && $options{'shading'} == 1 ) {
+			    # Number of steps to take in shading.
+			    my $stepCount = 64;
+			    # Maximum y-value of bars.
+			    my $maximumY  = maximum($y);
+			    $maximumY .= 1.0 
+				if ( $maximumY > 1.0 );
+			    # Extract the RGB components of the start and end colors.
+			    my $colorStart = ${$options{'color'}}[0];
+			    my $redStart   = hex(substr($colorStart,1,2));
+			    my $greenStart = hex(substr($colorStart,3,2));
+			    my $blueStart  = hex(substr($colorStart,5,2));
+			    my $colorEnd   = ${$options{'color'}}[1];
+			    my $redEnd     = hex(substr($colorEnd  ,1,2));
+			    my $greenEnd   = hex(substr($colorEnd  ,3,2));
+			    my $blueEnd    = hex(substr($colorEnd  ,5,2));
+			    # Loop through steps.
+			    for(my $i=$stepCount;$i>=1;--$i) {
+				# Compute the fractional step.
+				my $fraction = $i/$stepCount;
+				# Specify number of box "radii" for highlighting.
+				my $rCount   = 32;
+				# Loop through radii steps.
+				for(my $j=0;$j<$rCount;++$j) {
+				    # Determine the width of the box to draw for this step.
+				    my $boxWidth = 0.9*cos($j/$rCount*3.1415927/2.0);
+				    ${$plot}->{$phase}->{'data'} .= "set boxwidth ".$boxWidth." relative\n";
+				    # Compute the fraction of gray to mix in to the color, then mix it.
+				    my $grayFraction = 0.7*$j/$rCount;
+				    my $red      = int(($redStart  *(1.0-$fraction)+$redEnd  *$fraction)*(1.0-$grayFraction)+255.0*$grayFraction); 
+				    my $green    = int(($greenStart*(1.0-$fraction)+$greenEnd*$fraction)*(1.0-$grayFraction)+255.0*$grayFraction); 
+				    my $blue     = int(($blueStart *(1.0-$fraction)+$blueEnd *$fraction)*(1.0-$grayFraction)+255.0*$grayFraction);  
+				    # Set the color for the boxes.
+				    my $color = " lc rgbcolor \"#".sprintf("%2.2X%2.2X%2.2X",$red,$green,$blue)."\"";
+				    # Plot the boxes.
+				    ${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$color.$lineWeight{$level}."\n";
+				    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
+					# Maximum height allowed on this step.
+					my $yHeightMaximum = $maximumY*$fraction;
+					# Compute the height of the bar, with a little rounding.
+					my $yHeight = $y->index($iPoint)+(-0.02+0.02*sin($j/$rCount*3.1415927/2.0))*$maximumY;
+					# Limit the height of the bar to be within range.
+					$yHeight = 0.0
+					    if ( $yHeight < 0.0 );
+					$yHeight = $yHeightMaximum
+					    if ( $yHeight > $yHeightMaximum );
+					# Plot the bar.
+					${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$yHeight."\n";
+				    }
+				    ${$plot}->{$phase}->{'data'} .= $endPoint;
+				}
+			    }
+			} else {
+			    ${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+			    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
+				${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
+			    }
+			    ${$plot}->{$phase}->{'data'} .= $endPoint;
 			}
-			${$plot}->{$phase}->{'data'} .= $endPoint;
 		    }
 		}
 	    }
@@ -504,14 +563,18 @@ sub Prepare_Dataset {
 sub Plot_Datasets {
     my $gnuPlot = shift;
     my $plot    = shift;
-    print $gnuPlot "set multiplot\n";
+    # Extract any remaining options.
+    my (%options) = @_ if ( $#_ >= 1 );
+    print $gnuPlot "set multiplot\n"
+	unless ( exists($options{'multiPlot'}) && $options{'multiPlot'} == 1 );
     foreach my $phase ( 'keyLower', 'keyUpper' ) {
 	print $gnuPlot ${$plot}->{$phase}->{'command'}."\n";
 	print $gnuPlot ${$plot}->{$phase}->{'data'   };
 	# Switch off borders and tics after the first plot.
-	print $gnuPlot "unset border; unset xtics; unset ytics; unset x2tics; unset y2tics\n" if ( $phase eq "keyLower" );
+	print $gnuPlot "unset label; unset border; unset xtics; unset ytics; unset x2tics; unset y2tics; set xlabel ''; set ylabel ''\n" if ( $phase eq "keyLower" );
     }
     print $gnuPlot ${$plot}->{'data'}->{'data'};
-    print $gnuPlot "unset multiplot\n";
+    print $gnuPlot "unset multiplot\n"
+	unless ( exists($options{'multiPlot'}) && $options{'multiPlot'} == 1 );
     undef(${$plot});
 }
