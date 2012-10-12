@@ -232,11 +232,15 @@ contains
     use Galactic_Structure_Rotation_Curves
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
+    use Galacticus_Error
+    use ISO_Varying_String
+    use String_Handling
     implicit none
     type(treeNode),                    pointer, intent(inout) :: thisNode
     double precision,                           intent(in)    :: specificAngularMomentum
     procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
     procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
+    type(varying_string)                                      :: message
     double precision                                          :: radius,velocity,virialRadius,angularMomentumC&
          &,angularMomentumCPrimed ,radiusInitial,haloMassInitial,darkMatterMassFinal,darkMatterVelocitySquared&
          &,baryonicVelocitySquared,radiusNew ,specificAngularMomentumPrimed
@@ -263,9 +267,8 @@ contains
 
     else
        ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
-
        if (specificAngularMomentum <= 0.0d0) return
-       
+
        ! Get current radius of the component.
        radius=Radius_Get(thisNode)
 
@@ -318,6 +321,13 @@ contains
 
        ! Set radius to new radius.
        radius=radiusNew
+
+       ! Catch unphysical states.
+       if (radius <= 0.0d0) then
+          message='radius has reached zero for node '
+          message=message//thisNode%index()
+          call Galacticus_Error_Report('Galactic_Structure_Radii_Adiabatic::Solve_For_Radius',message)
+       end if
 
     end if
 
