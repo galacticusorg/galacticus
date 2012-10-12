@@ -2225,13 +2225,16 @@ contains
     return
   end subroutine Validate_Isolated_Halos
 
-  subroutine Dump_Tree(nodes,highlightNodes)
+  subroutine Dump_Tree(nodes,highlightNodes,branchRoot)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\sc dot}.
     implicit none
-    type(nodeData),          intent(in), dimension(:)           :: nodes
+    type(nodeData),          intent(in), dimension(:), target   :: nodes
     integer(kind=kind_int8), intent(in), dimension(:), optional :: highlightNodes
+    integer(kind=kind_int8), intent(in),               optional :: branchRoot
+    type(nodeData)         , pointer                            :: thisNode
     integer                                                     :: iNode,fileUnit
-    character(len=20)                                           :: color,style
+    character(len=20)                                           :: color,style,z
+    logical                                                     :: outputNode
 
     ! Open an output file and write the GraphViz opening.
     open(newunit=fileUnit,file='mergerTreeConstructReadTree.gv',status='unknown',form='formatted')
@@ -2239,30 +2242,46 @@ contains
 
     ! Loop over all nodes.
     do iNode=1,size(nodes)
-       ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
+       ! Determine if node is in the branch to be output.
+       if (present(branchRoot)) then
+          outputNode=.false.
+          thisNode => nodes(iNode)
+          do while (associated(thisNode%descendentNode))
+             if (thisNode%nodeIndex == branchRoot) then
+                outputNode=.true.
+                exit
+             end if
+             thisNode => thisNode%descendentNode
+          end do
+       else
+          outputNode=.true.
+       end if
+       if (outputNode) then
+          ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
        ! index plus the time, separated by a colon.
-       ! Determine node color.
-       if (present(highlightNodes)) then
-          if (any(highlightNodes == nodes(iNode)%nodeIndex)) then
-             color='green'
-             style='filled'
+          ! Determine node color.
+          if (present(highlightNodes)) then
+             if (any(highlightNodes == nodes(iNode)%nodeIndex)) then
+                color='green'
+                style='filled'
+             else
+                color='black'
+                style='solid'
+             end if
           else
              color='black'
              style='solid'
           end if
-       else
-          color='black'
-          style='solid'
+          if (nodes(iNode)%isSubhalo) then
+             write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
+             ! If a host node is given, add a link to it as a red line.
+             if (associated(nodes(iNode)%hostNode)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%hostNode%nodeIndex,'" [color=red];'
+          else
+             write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
+          endif
+          ! Make a link to the descendent node using a black line.
+          if (associated(nodes(iNode)%descendentNode)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendentNode%nodeIndex,'" ;'
        end if
-       if (nodes(iNode)%isSubhalo) then
-          write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),'];'
-          ! If a host node is given, add a link to it as a red line.
-          if (associated(nodes(iNode)%hostNode)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%hostNode%nodeIndex,'" [color=red];'
-       else
-          write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),'];'
-       endif
-       ! Make a link to the descendent node using a black line.
-       if (associated(nodes(iNode)%descendentNode)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendentNode%nodeIndex,'" ;'
     end do
 
     ! Close the file.
