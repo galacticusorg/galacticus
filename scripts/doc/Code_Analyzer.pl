@@ -58,7 +58,7 @@ $typeBoundRegex = "^\\s*(procedure|generic)\\s*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z
 %intrinsicDeclarations = (
     integer   => { variables => 3, regEx => "^\\s*integer\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     real      => { variables => 3, regEx => "^\\s*real\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    double    => { variables => 3, regEx => "^\\s*double\\s+precision\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    double    => { variables => 3, regEx => "^\\s*double\\s+precision\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:=\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     logical   => { variables => 3, regEx => "^\\s*logical\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     character => { variables => 5, regEx => "^\\s*character\\s*(\\((\\s*(len|kind)\\s*=\\s*[a-z0-9_,\\+\\-\\*\\(\\)]+\\s*)+\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     procedure => { variables => 3, regEx => "^\\s*procedure\\s*(\\(\\s*[a-z0-9_]*\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)]+)\\s*\$" }
@@ -135,10 +135,10 @@ sub processFile {
 		# Open the file.
 		open($fileHandle,$fileNames[0]);
 		seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
-
+		
 		# Process until end of file is reached.
 	      LINE: until ( eof($fileHandle) ) {
-
+		  
 		  # Specify that line has yet to be processed.
 		  $lineProcessed = 0;
 
