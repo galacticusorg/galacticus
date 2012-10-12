@@ -1356,7 +1356,14 @@ contains
        case default
           call Galacticus_Error_Report('Hernquist_Spheroid_Satellite_Merging','unrecognized movesTo descriptor')
        end select
-   
+
+       ! If the entire host disk/spheroid (gas plus stars) was moved to the spheroid/disk, ensure that the
+       ! corresponding angular momentum is precisely zero.
+       if (Tree_Node_Disk_Stellar_Mass    (hostNode)+Tree_Node_Disk_Gas_Mass    (hostNode) == 0.0d0) &
+            & call Tree_Node_Disk_Angular_Momentum_Set    (hostNode,0.0d0)
+       if (Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode) == 0.0d0) &
+            & call Tree_Node_Spheroid_Angular_Momentum_Set(hostNode,0.0d0)
+
        ! Get specific angular momentum of the spheroid material.
        spheroidMass=Tree_Node_Spheroid_Gas_Mass_Hernquist(thisNode)+Tree_Node_Spheroid_Stellar_Mass_Hernquist(thisNode)
        if (spheroidMass > 0.0d0) then
@@ -1459,7 +1466,6 @@ contains
                &+Tree_Node_Spheroid_Stellar_Mass(hostNode))
           call Tree_Node_Spheroid_Angular_Momentum_Set_Hernquist(hostNode,angularMomentum)
        end if
-
     end if
     return
   end subroutine Hernquist_Spheroid_Satellite_Merging
