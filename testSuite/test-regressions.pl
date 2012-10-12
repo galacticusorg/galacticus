@@ -23,10 +23,17 @@ sub runRegressions {
     $fileName = $_;
     chomp($fileName);
 
-    # Test if this is a script to run.
+    # Test if this is a parameter fil to run.
     if ( $fileName =~ m/\.xml$/ ) {
 	print "\n\n:--> Running regression test case: ".$fileName."\n";
 	system("cd ../..; Galacticus.exe testSuite/".$File::Find::dir."/".$fileName);       
+	print "FAILED: regression test case: ".$fileName."\n" unless ( $? == 0 );
+    }
+
+    # Test if this is a script to run.
+    if ( $fileName =~ m/\.pl$/ ) {
+	print "\n\n:--> Running regression test case: ".$fileName."\n";
+	system("cd ../..; testSuite/".$File::Find::dir."/".$fileName);       
 	print "FAILED: regression test case: ".$fileName."\n" unless ( $? == 0 );
     }
 }
