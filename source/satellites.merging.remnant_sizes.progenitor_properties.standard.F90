@@ -248,6 +248,7 @@ contains
 
     ! Compute the mass of the host spheroid before the merger.
     hostSpheroidMassPreMerger=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
+    if (hostRadius <= 0.0d0) hostSpheroidMassPreMerger=0.0d0
     return
   end subroutine Satellite_Merging_Remnant_Progenitor_Properties_Standard
 
