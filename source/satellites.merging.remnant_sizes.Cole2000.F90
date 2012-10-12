@@ -134,7 +134,6 @@ contains
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
          &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
-
     if (satelliteSpheroidMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
        remnantRadius                 =remnantNoChangeValue
        remnantCircularVelocity       =remnantNoChangeValue
@@ -190,10 +189,18 @@ contains
        end if
        if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','error condition detected')
        ! Check if host has finite mass.
-       if (hostSpheroidMass > 0.0d0) then
+       if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
           ! Find the contribution of dark matter to the masses enclosed within the galaxy radii.
-          hostDarkMatterBoost     =1.0d0+Galactic_Structure_Enclosed_Mass(hostNode,hostRadius     ,massType=massTypeDark)/hostSpheroidMass
-          satelliteDarkMatterBoost=1.0d0+Galactic_Structure_Enclosed_Mass(thisNode,satelliteRadius,massType=massTypeDark)/satelliteSpheroidMass
+          if (hostSpheroidMass      > 0.0d0) then
+             hostDarkMatterBoost     =1.0d0+Galactic_Structure_Enclosed_Mass(hostNode,hostRadius     ,massType=massTypeDark)/hostSpheroidMass
+          else
+             hostDarkMatterBoost     =1.0d0
+          end if
+          if (satelliteSpheroidMass > 0.0d0) then
+             satelliteDarkMatterBoost=1.0d0+Galactic_Structure_Enclosed_Mass(thisNode,satelliteRadius,massType=massTypeDark)/satelliteSpheroidMass
+          else
+             satelliteDarkMatterBoost=1.0d0
+          end if
           ! Scale masses to account for dark matter.
           hostSpheroidMassTotal     =hostSpheroidMass     *hostDarkMatterBoost
           satelliteSpheroidMassTotal=satelliteSpheroidMass*satelliteDarkMatterBoost
@@ -207,13 +214,16 @@ contains
                & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal*hostSpheroidMassTotal   /(satelliteRadius+hostRadius) &
                &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
           remnantRadius=(satelliteSpheroidMassTotal+hostSpheroidMassTotal)**2/progenitorsEnergy
+          
+          ! Also compute the specific angular momentum at the half-mass radius.
+          remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
+          remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
        else
-          remnantRadius=satelliteRadius
-       end if
-       
-       ! Also compute the specific angular momentum at the half-mass radius.
-       remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
-       remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
+          ! Remnant has zero mass - don't do anything.
+          remnantRadius                 =remnantNoChangeValue
+          remnantCircularVelocity       =remnantNoChangeValue
+          remnantSpecificAngularMomentum=remnantNoChangeValue
+       end if       
     end if
     return
   end subroutine Satellite_Merging_Remnant_Size_Cole2000
