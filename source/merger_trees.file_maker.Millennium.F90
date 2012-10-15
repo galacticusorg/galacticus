@@ -111,6 +111,7 @@ contains
     call                     mergerTrees%setPropertyColumn(propertyTypeNodeIndex             , 2)
     call                     mergerTrees%setPropertyColumn(propertyTypeDescendentIndex       , 3)
     call                     mergerTrees%setPropertyColumn(propertyTypeHostIndex             , 4)
+    call                     mergerTrees%setPropertyColumn(propertyTypeSnapshot              , 5)
     call                     mergerTrees%setPropertyColumn(propertyTypeRedshift              , 6)
     call                     mergerTrees%setPropertyColumn(propertyTypeNodeMass              , 7)
     call                     mergerTrees%setPropertyColumn(propertyTypeParticleCount         , 8)
@@ -144,12 +145,13 @@ contains
        ! Set columns to read.
        call mergerTrees%setParticlePropertyColumn(propertyTypeParticleIndex,1)
        call mergerTrees%setParticlePropertyColumn(propertyTypeRedshift     ,2)
-       call mergerTrees%setParticlePropertyColumn(propertyTypePositionX    ,3)
-       call mergerTrees%setParticlePropertyColumn(propertyTypePositionY    ,4)
-       call mergerTrees%setParticlePropertyColumn(propertyTypePositionZ    ,5)
-       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityX    ,6)
-       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityY    ,7)
-       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityZ    ,8)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeSnapshot     ,3)
+       call mergerTrees%setParticlePropertyColumn(propertyTypePositionX    ,4)
+       call mergerTrees%setParticlePropertyColumn(propertyTypePositionY    ,5)
+       call mergerTrees%setParticlePropertyColumn(propertyTypePositionZ    ,6)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityX    ,7)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityY    ,8)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityZ    ,9)
        
        ! Read in the data.
        call mergerTrees%readParticlesASCII(particlesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
@@ -183,9 +185,9 @@ contains
     call mergerTrees%setIncludesSubhaloMasses(.false.)
 
     ! Specify units system used.
-    call mergerTrees%setUnits(unitsMass    ,unitsInSI=1.0d10*massSolar,hubbleExponent=-1,scaleFactorExponent=0)
-    call mergerTrees%setUnits(unitsLength  ,unitsInSI=megaParsec      ,hubbleExponent=-1,scaleFactorExponent=1)
-    call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo            ,hubbleExponent= 0,scaleFactorExponent=0)
+    call mergerTrees%setUnits(unitsMass    ,unitsInSI=1.0d10*massSolar,hubbleExponent=-1,scaleFactorExponent=0,name="1e10 Msolar/h" )
+    call mergerTrees%setUnits(unitsLength  ,unitsInSI=megaParsec      ,hubbleExponent=-1,scaleFactorExponent=1,name="comoving Mpc/h")
+    call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo            ,hubbleExponent= 0,scaleFactorExponent=0,name="km/s"          )
 
     ! Set cosmology metadata.
     call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,0.250d0                            )

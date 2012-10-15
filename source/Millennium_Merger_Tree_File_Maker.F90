@@ -71,25 +71,26 @@ program Millennium_Merger_Tree_File_Maker
   use Memory_Management
   implicit none
   integer              :: hdfChunkSize=1024, hdfCompressionLevel=9, generation
-  character(len=1024)  :: nodesFile,particlesFile,outputFile
+  character(len=1024)  :: nodesFile,particlesFile,outputFile,outputFormat
   type(mergerTreeData) :: mergerTrees
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Millennium_Merger_Tree_File_Maker.size')
 
   ! Get the name of the input and output files.
-  if (Command_Argument_Count() < 4 .or. Command_Argument_Count() > 6) stop "Usage: Merger_Tree_File_Maker.exe <nodesFile> <particlesFile> <outputFile> <generation> [<hdfChunkSize> [hdfCompressionLevel]]"
+  if (Command_Argument_Count() < 5 .or. Command_Argument_Count() > 7) stop "Usage: Merger_Tree_File_Maker.exe <nodesFile> <particlesFile> <outputFile> <outputFormat> <generation> [<hdfChunkSize> [hdfCompressionLevel]]"
   call Get_Argument(1,nodesFile     )
   call Get_Argument(2,particlesFile )
   call Get_Argument(3,outputFile    )
-  call Get_Argument(4,generation    )
-  if (Command_Argument_Count() >= 5) call Get_Argument(5,hdfChunkSize       )
-  if (Command_Argument_Count() == 6) call Get_Argument(6,hdfCompressionLevel)
+  call Get_Argument(4,outputFormat  )
+  call Get_Argument(5,generation    )
+  if (Command_Argument_Count() >= 6) call Get_Argument(6,hdfChunkSize       )
+  if (Command_Argument_Count() == 7) call Get_Argument(7,hdfCompressionLevel)
 
   ! Process file.
   call Merger_Trees_Millennium_Process(nodesFile,particlesFile,mergerTrees,generation)
 
   ! Output HDF5 file.
-  call mergerTrees%export(outputFile,hdfChunkSize,hdfCompressionLevel)
+  call mergerTrees%export(outputFile,outputFormat,hdfChunkSize,hdfCompressionLevel)
 
 end program Millennium_Merger_Tree_File_Maker
