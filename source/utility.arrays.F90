@@ -288,17 +288,34 @@ contains
     return
   end function Array_Index_Integer8
 
-  function Array_Index_Double_2D(array,indices) result (arraySubset)
+  function Array_Index_Double_2D(array,indices,indexOn) result (arraySubset)
     !% Return a subset of a 2D double precision array given a set of indices into the array.
+    use Galacticus_Error
     implicit none
     double precision, dimension(:,:),                            intent(in) :: array
     integer,          dimension(:),                              intent(in) :: indices
-    double precision, dimension(size(array,dim=1),size(indices))            :: arraySubset
-    integer                                                                 :: i
+    integer,          optional,                                  intent(in) :: indexOn
+!    double precision, dimension(size(array,dim=1),size(indices))            :: arraySubset
+    double precision, dimension(:,:), allocatable :: arraySubset
+    integer                                                                 :: i,indexOnActual
 
-    forall(i=1:size(indices))
-       arraySubset(:,i)=array(:,indices(i))
-    end forall
+    indexOnActual=2
+    if (present(indexOn)) then
+       if (indexOn < 1 .or. indexOn > 2) call Galacticus_Error_Report('Array_Index_Double_2D','1≤indexOn≤2')
+       indexOnActual=indexOn
+    end if
+    select case (indexOn)
+    case (1)
+       allocate(arraySubset(size(indices),size(array,dim=2)))
+       forall(i=1:size(indices))
+          arraySubset(i,:)=array(indices(i),:)
+       end forall
+    case (2)
+       allocate(arraySubset(size(array,dim=1),size(indices)))
+       forall(i=1:size(indices))
+          arraySubset(:,i)=array(:,indices(i))
+       end forall
+    end select
     return
   end function Array_Index_Double_2D
 
