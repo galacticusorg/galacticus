@@ -411,9 +411,10 @@ Currently defined accretion disk methods are:
  \item [{\tt switched}] Select either {\tt Shakura-Sunyaev} or {\tt ADAF} accretion disks based on the accretion rate:
  \begin{eqnarray}
   \dot{m}_{\rm minimum} < \dot{M}_{\bullet, 0}/\dot{M}_{\rm Eddington} < \dot{m}_{\rm maximum} &\rightarrow& \hbox{ Shakura-Sunyaev} \nonumber \\
-  \hbox{otherwise } &\rightarrow& \hbox{ ADAG},
+  \hbox{otherwise } &\rightarrow& \hbox{ ADAF},
  \end{eqnarray}
  where $\dot{m}_{\rm minimum}$={\tt accretionRateThinDiskMinimum} and $\dot{m}_{\rm maximum}$={\tt accretionRateThinDiskMaximum} are input parameters.
+ \item [{\tt eddingtonLimited}] Assumes no specific disk structure, instead setting the radiative efficiency to a fixed number and the jet power to a fixed fraction of the Eddington luminosity.
 \end{description}
 
 \subsubsection{Accretion Onto Halos}
