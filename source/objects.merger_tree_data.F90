@@ -669,8 +669,8 @@ contains
             & .and..not.mergerTrees%hasPositionZ        &
             &) call Dealloc_Array(mergerTrees%position)
        mergerTrees%hasPositionX=.true.
-       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[size(property),3])
-       mergerTrees%position(:,1)=property
+       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[3,size(property)])
+       mergerTrees%position(1,:)=property
     case (propertyTypePositionY      )
        if (                                             &
             & allocated(mergerTrees%position)           &
@@ -679,8 +679,8 @@ contains
             & .and..not.mergerTrees%hasPositionZ        &
             &) call Dealloc_Array(mergerTrees%position)
        mergerTrees%hasPositionY=.true.
-       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[size(property),3])
-       mergerTrees%position(:,2)=property
+       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[3,size(property)])
+       mergerTrees%position(2,:)=property
     case (propertyTypePositionZ      )
        if (                                             &
             & allocated(mergerTrees%position)           &
@@ -689,8 +689,8 @@ contains
             & .and..not.mergerTrees%hasPositionZ        &
             &) call Dealloc_Array(mergerTrees%position)
        mergerTrees%hasPositionZ=.true.
-       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[size(property),3])
-       mergerTrees%position(:,3)=property
+       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[3,size(property)])
+       mergerTrees%position(3,:)=property
     case (propertyTypeVelocityX      )
        if (                                             &
             & allocated(mergerTrees%velocity)           &
@@ -699,8 +699,8 @@ contains
             & .and..not.mergerTrees%hasVelocityZ        &
             &) call Dealloc_Array(mergerTrees%velocity)
        mergerTrees%hasVelocityX=.true.
-       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[size(property),3])
-       mergerTrees%velocity(:,1)=property
+       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[3,size(property)])
+       mergerTrees%velocity(1,:)=property
     case (propertyTypeVelocityY      )
        if (                                             &
             & allocated(mergerTrees%velocity)           &
@@ -709,8 +709,8 @@ contains
             & .and..not.mergerTrees%hasVelocityZ        &
             &) call Dealloc_Array(mergerTrees%velocity)
        mergerTrees%hasVelocityY=.true.
-       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[size(property),3])
-       mergerTrees%velocity(:,2)=property
+       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[3,size(property)])
+       mergerTrees%velocity(2,:)=property
     case (propertyTypeVelocityZ      )
        if (                                             &
             & allocated(mergerTrees%velocity)           &
@@ -719,8 +719,8 @@ contains
             & .and..not.mergerTrees%hasVelocityZ        &
             &) call Dealloc_Array(mergerTrees%velocity)
        mergerTrees%hasVelocityZ=.true.
-       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[size(property),3])
-       mergerTrees%velocity(:,3)=property
+       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[3,size(property)])
+       mergerTrees%velocity(3,:)=property
     case default
        call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','unrecognized double property')  
     end select
@@ -1499,12 +1499,12 @@ contains
           call thisDataset%close()
        end if
        if (mergerTrees%hasPositionX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%position                ,thisSnapshotIndices,indexOn=1),"Center"         ,"The position of each halo center."      ,datasetReturned=thisDataset,appendTo=.true.)
+          call haloTrees%writeDataset(Array_Index(transpose(mergerTrees%position)    ,thisSnapshotIndices,indexOn=1),"Center"         ,"The position of each halo center."      ,datasetReturned=thisDataset,appendTo=.true.)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
        if (mergerTrees%hasVelocityX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity                ,thisSnapshotIndices,indexOn=1),"Velocity"       ,"The velocity of each halo."             ,datasetReturned=thisDataset,appendTo=.true.)
+          call haloTrees%writeDataset(Array_Index(transpose(mergerTrees%velocity)   ,thisSnapshotIndices,indexOn=1),"Velocity"       ,"The velocity of each halo."             ,datasetReturned=thisDataset,appendTo=.true.)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
