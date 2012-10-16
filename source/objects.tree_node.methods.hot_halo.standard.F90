@@ -368,7 +368,7 @@ contains
        case ("formationNode")
           hotHaloCoolingFromNode=formationNode
        case default
-          call Galacticus_Error_Report('Tree_Node_Methods_Hot_Halo_Initialize','hotHaloCoolingFromNode must be one of "current node" or "formation node"')
+          call Galacticus_Error_Report('Tree_Node_Methods_Hot_Halo_Initialize','hotHaloCoolingFromNode must be one of "currentNode" or "formationNode"')
        end select
 
        ! Determine whether excess heating of the halo will drive an outflow.
