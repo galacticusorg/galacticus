@@ -247,8 +247,10 @@ contains
        do while (Half_Mass_Radius_Root_Cole2000(radiusMaximum,parameterPointer) <= 0.0d0)
           radiusMaximum=2.0d0*radiusMaximum
        end do
+       !$omp critical (Cole2000_Remnant_Size_Root_Find)
        hostRadius        =  Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root_Cole2000,parameterPointer,rootFunction&
             &,rootFunctionSolver,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+       !$omp end critical (Cole2000_Remnant_Size_Root_Find)
     else
        hostRadius=0.0d0
     end if
