@@ -51,6 +51,10 @@ Selected with {\tt accretionDisksMethod}$=${\tt switched}, this method allows fo
 \end{itemize}
 Both {\tt accretionRateThinDiskMinimum} and {\tt accretionRateThinDiskMaximum} are adjustable input parameters. If {\tt [accretionDiskSwitchedScaleAdafRadiativeEfficiency]} is set to {\tt true} then the radiative effiency of the ADAF component is reduced by a factor $\dot{M}/>${\tt [accretionRateThinDiskMinimum]}$\dot{M}_{\rm Eddington}$ when $\dot{M}/\dot{M}_{\rm Eddington}>${\tt [accretionRateThinDiskMinimum]}.
 
+\subsection{Eddington-limited Disks}
+
+Selected with {\tt accretionDisksMethod}$=${\tt eddingtonLimited}, this method does not assume any physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction {\tt [accretionDiskJetPowerEddington]} of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of {\tt [accretionDiskRadiativeEfficiencyEddington]}. Since no physical model for the disk is assumed, the black hole spin up rate is always set to zero.
+
 \section{Cold Dark Matter Structure Formation}\index{structure formation}\index{cold dark matter}
 
 A variety of functions are used to describe structure formation in \gls{cdm} dominated universes. These are described below.
