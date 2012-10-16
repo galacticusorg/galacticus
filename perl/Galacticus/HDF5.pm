@@ -30,6 +30,13 @@ sub Open_File {
     }
 }
 
+sub Get_UUID {
+    my $dataBlock = shift;
+    &Open_File($dataBlock);
+    my @uuid = $dataBlock->{'hdf5File'}->attrGet("UUID");
+    $dataBlock->{'uuid'} = $uuid[0];
+}
+
 sub Get_Times {
     my $dataBlock       = shift;
     my $outputNumbers   = pdl [];
