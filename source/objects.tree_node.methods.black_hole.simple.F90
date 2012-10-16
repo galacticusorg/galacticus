@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -92,8 +92,8 @@ module Tree_Node_Methods_Black_Hole_Simple
   double precision :: blackHoleSeedMass
 
   ! Feedback parameters.
-  double precision :: blackHoleToSpheroidStellarGrowthRatio,blackHoleWindEfficiency,blackHoleHeatingEfficiency
-  logical          :: blackHoleHeatsHotHalo
+  double precision :: blackHoleToSpheroidStellarGrowthRatio,blackHoleWindEfficiency,blackHoleHeatingEfficiency,blackHoleJetEfficiency
+  logical          :: blackHoleHeatsHotHalo,blackHoleAccretesFromHotHalo
 
   ! Output options.
   logical          :: blackHoleOutputAccretion
@@ -182,6 +182,19 @@ contains
        call Get_Input_Parameter("blackHoleHeatsHotHalo",blackHoleHeatsHotHalo,defaultValue=.true.)
        if (blackHoleHeatsHotHalo) then
           !@ <inputParameter>
+          !@   <name>blackHoleAccretesFromHotHalo</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Controls whether the black hole additionally grows via accretion from the hot halo. If it does,
+          !@     this accretion rate is used to determine AGN feedback power.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>blackHoles</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter("blackHoleAccretesFromHotHalo",blackHoleAccretesFromHotHalo,defaultValue=.false.)
+          !@ <inputParameter>
           !@   <name>blackHoleHeatingEfficiency</name>
           !@   <defaultValue>$10^{-3}$</defaultValue>
           !@   <attachedTo>module</attachedTo>
@@ -193,11 +206,24 @@ contains
           !@   <group>blackHoles</group>
           !@ </inputParameter>
           call Get_Input_Parameter("blackHoleHeatingEfficiency",blackHoleHeatingEfficiency,defaultValue=1.0d-3)
+          !@ <inputParameter>
+          !@   <name>blackHoleJetEfficiency</name>
+          !@   <defaultValue>$10^{-3}$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The efficiency with which accretion power onto a black hole is converted into jets.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>blackHoles</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter("blackHoleJetEfficiency",blackHoleJetEfficiency,defaultValue=1.0d-3)
        else
           blackHoleHeatingEfficiency=0.0d0
+          blackHoleJetEfficiency    =0.0d0
        end if
 
-       ! Get options controlling output.
+       ! Get options controlling winds.
        !@ <inputParameter>
        !@   <name>blackHoleWindEfficiency</name>
        !@   <defaultValue>$2.2157\times 10^{-3}$</defaultValue>
@@ -277,7 +303,9 @@ contains
   subroutine Tree_Node_Black_Hole_Mass_Rate_Compute_Simple(thisNode,interrupt,interruptProcedure)
     !% Compute the black hole node mass rate of change.
     use Accretion_Disks
+    use Black_Hole_Fundamentals
     use Cooling_Radii
+    use Cooling_Rates
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
@@ -291,7 +319,7 @@ contains
     double precision, parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
     double precision, parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
     double precision                         :: restMassAccretionRate,massAccretionRate,energyInputRate,heatingRate&
-         &,couplingEfficiency,coolingRadiusFractional,x
+         &,couplingEfficiency,coolingRadiusFractional,x,eddingtonAccretionRate,coolingRate
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedurePassed => interruptProcedure
@@ -303,7 +331,8 @@ contains
     if (restMassAccretionRate <= 0.0d0) return
 
     ! Find the rate of increase in mass of the black hole.
-    massAccretionRate=restMassAccretionRate*(1.0d0-blackHoleHeatingEfficiency-blackHoleWindEfficiency)
+    massAccretionRate=restMassAccretionRate*(1.0d0-blackHoleWindEfficiency)
+    if (.not.blackHoleAccretesFromHotHalo) massAccretionRate=massAccretionRate-restMassAccretionRate*blackHoleHeatingEfficiency
 
     ! If no black hole component currently exists and we have some accretion then interrupt and create a black hole.
     if (.not.thisNode%componentExists(componentIndex)) then    
@@ -333,8 +362,29 @@ contains
           couplingEfficiency=x**2*(2.0d0*x-3.0d0)+1.0d0
        end if
 
-       ! Compute the heating rate.
-       heatingRate=couplingEfficiency*blackHoleHeatingEfficiency*restMassAccretionRate*(speedLight/kilo)**2
+       ! Determine the accretion rate for radio-mode feedback.
+       select case (blackHoleAccretesFromHotHalo)
+       case (.true.)
+          ! Compute the Eddington accretion rate.
+          eddingtonAccretionRate=Black_Hole_Eddington_Accretion_Rate(thisNode)
+          ! Check for positive Eddington accretion rate.
+          if (eddingtonAccretionRate > 0.0d0) then
+             ! Compute accretion rate from hot halo, assuming a fixed fraction of the Eddington luminosity.
+             heatingRate=couplingEfficiency*blackHoleHeatingEfficiency*eddingtonAccretionRate*(speedLight/kilo)**2
+             ! Compute the cooling power of the halo, estimated simply as the mass cooling rate scaled by
+             ! the square of the halo virial velocity.
+             coolingRate=Cooling_Rate(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+             ! Limit the heating rate to the total cooling power of the halo.
+             heatingRate=min(heatingRate,coolingRate)
+             ! Compute the mass accretion rate.
+             massAccretionRate=(heatingRate/(speedLight/kilo)**2)*(1.0d0-blackHoleJetEfficiency)/blackHoleJetEfficiency
+             ! Add accreted mass to the black hole.
+             call Tree_Node_Black_Hole_Mass_Rate_Adjust_Simple(thisNode,interrupt,interruptProcedurePassed,massAccretionRate)
+          end if
+       case (.false.)
+          ! Compute the heating rate using the rest-mass accretion rate.
+          heatingRate=couplingEfficiency*blackHoleHeatingEfficiency*restMassAccretionRate*(speedLight/kilo)**2
+      end select
 
        ! Pipe this power to the hot halo.
        call Tree_Node_Hot_Halo_Heat_Input(thisNode,interrupt,interruptProcedurePassed,heatingRate)
