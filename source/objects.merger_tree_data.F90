@@ -1310,12 +1310,10 @@ contains
        ! Set tree metadata.
        ! Determine if trees have subhalos.
        if (mergerTrees%hasHostIndex) then
-          ! A host index is included. If any node is not its own host, then it's a subhalo.
-          if (any(mergerTrees%nodeIndex /= mergerTrees%hostIndex)) then
-             integerAttribute=1
-          else
-             integerAttribute=0
-          end if
+          ! A host index is included, so potentially there could be subhalos. (A given tree may not actually
+          ! have any subhalos, but we take the presence of the host index to indicate that there could be
+          ! subhalos, in principle.)
+          integerAttribute=1
        else
           ! No host index is included - assume no nodes are subhalos.
           integerAttribute=0
