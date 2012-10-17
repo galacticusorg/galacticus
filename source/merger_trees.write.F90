@@ -198,6 +198,7 @@ contains
        call mergerTrees%addMetadata(metaDataCosmology ,'OmegaLambda'       ,Omega_DE    ()                 )
        call mergerTrees%addMetadata(metaDataCosmology ,'HubbleParam'       ,Little_H_0  ()                 )
        call mergerTrees%addMetadata(metaDataCosmology ,'sigma_8'           ,sigma_8     ()                 )
+       call mergerTrees%addMetadata(metaDataCosmology ,'powerSpectrumIndex',"not specified"                )
 
        ! Set provenance metadata.
        call mergerTrees%addMetadata(metaDataProvenance,'fileBuiltBy'       ,'Galacticus'                   )

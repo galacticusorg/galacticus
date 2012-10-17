@@ -6067,19 +6067,19 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_2D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_2D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 2-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
+    class(hdf5Object),     intent(inout), target         :: thisObject
     character(len=*),      intent(in),    optional       :: datasetName,commentText
     double precision,      intent(in),    dimension(:,:) :: datasetValue
     logical,               intent(in),    optional       :: appendTo
-    integer,               intent(in),    optional       :: chunkSize,compressionLevel
+    integer,               intent(in),    optional       :: appendDimension,chunkSize,compressionLevel
     type(hdf5Object),      intent(out),   optional       :: datasetReturned
     integer(kind=HSIZE_T),                dimension(2)   :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                              :: errorCode,datasetRank
+         &,hyperslabStart,hyperslabCount,newDatasetDimensionsFiltered
+    integer                                              :: errorCode,datasetRank,appendDimensionActual
     integer(kind=HID_T)                                  :: newDataspaceID,dataspaceID
     logical                                              :: preExisted,appendToActual
     type(hdf5Object)                                     :: datasetObject
@@ -6163,20 +6163,25 @@ contains
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
        end if
-       ! Ensure that all dimensions after the first are of the same size.
-       if (any(dataSetDimensions(2:2) /= newDatasetDimensions(2:2))) then
-          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions after first must be same as original dataset"
+       ! Determine the dimension for appending.
+       appendDimensionActual=1
+       if (present(appendDimension)) appendDimensionActual=appendDimension
+       ! Ensure that all dimensions other than the one being appended to are of the same size.
+       newDatasetDimensionsFiltered                       =newDatasetDimensions
+       newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
+       if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
+          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
        end if
        ! Set the hyperslab. 
-       hyperslabStart         =0
-       hyperslabStart      (1)=newDatasetDimensions(1)
-       hyperslabCount         =dataSetDimensions
-       newDatasetDimensions(1)=newDatasetDimensions(1)+datasetDimensions(1)
+       hyperslabStart                             =0
+       hyperslabStart      (appendDimensionActual)=newDatasetDimensions(appendDimensionActual)
+       hyperslabCount                             =dataSetDimensions
+       newDatasetDimensions(appendDimensionActual)=newDatasetDimensions(appendDimensionActual)+datasetDimensions(appendDimensionActual)
     else
-       newDatasetDimensions   =datasetDimensions
-       hyperslabStart         =0
-       hyperslabCount         =datasetDimensions
+       newDatasetDimensions                       =datasetDimensions
+       hyperslabStart                             =0
+       hyperslabCount                             =datasetDimensions
     end if
 
     ! Set extent of the dataset.
