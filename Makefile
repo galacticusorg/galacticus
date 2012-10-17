@@ -23,6 +23,8 @@ MODULETYPE ?= GCC-f95-on-LINUX
 
 # Fortran compiler flags:
 FCFLAGS += -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules
+# Fortran77 compiler flags:
+F77FLAGS = -g
 # Error checking flags
 FCFLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
 # Add bounds checking.
@@ -86,6 +88,10 @@ vpath %.cpp source
 ./work/build/%.o : %.cpp ./work/build/%.d ./work/build/%.fl Makefile
 	$(CPPCOMPILER) -c $< -o ./work/build/$*.o $(CPPFLAGS)
 
+# Object (*.o) files are built by compiling Fortran (*.f) source files.
+%.o : %.f %.d Makefile
+	$(FCCOMPILER) -c $< -o $*.o $(F77FLAGS)
+
 # Special rules required for building some sources (unfortunate, but necessary....)
 # bivar.F90 doesn't like to be compiled with any optimization:
 ./work/build/Bivar/bivar.o : ./source/Bivar/bivar.F90 Makefile
@@ -104,6 +110,9 @@ vpath %.cpp source
 	@echo ./work/build/$*.o > ./work/build/$*.d
 ./work/build/%.d : ./source/%.cpp
 	@echo ./work/build/$*.o > ./work/build/$*.d
+%.d : %.f
+	@echo $*.o > $*.d
+
 
 # Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps file, but this acts as a fallback rule.

@@ -1,0 +1,206 @@
+!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+!!
+!!
+!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
+!!
+!!    The California Institute of Technology shall allow RECIPIENT to use and
+!!    distribute this software subject to the terms of the included license
+!!    agreement with the understanding that:
+!!
+!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
+!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
+!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
+!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
+!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
+!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
+!!    USED.
+!!
+!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
+!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
+!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
+!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
+!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
+!!
+!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
+!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
+!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
+!!    USE OF THE SOFTWARE.
+!!
+!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
+!!    to provide technical support for the Software.
+!!
+!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
+!!    of Derivative Works, public display or redistribution of the Software
+!!    other than those specified in the included license and the requirement
+!!    that all copies of the Software released be marked with the language
+!!    provided in this notice.
+!!
+!!    This software is separately available under negotiable license terms
+!!    from:
+!!    California Institute of Technology
+!!    Office of Technology Transfer
+!!    1200 E. California Blvd.
+!!    Pasadena, California 91125
+!!    http://www.ott.caltech.edu
+
+!% Contains a program which wraps the {\tt dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+!% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\sc XSpec} to produce a table of X-ray absorption cross-sections in the
+!% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\sc XSpec} have been
+!% downloaded into the {\tt aux/XSpec} folder---usually this program will be run automatically as needed by the {\tt
+!% Galacticus::ISMCrossSections} module.
+
+! Add explicit dependencies on the XSpec files.
+!: aux/XSpec/dotbvabs.o aux/XSpec/gphoto.o aux/XSpec/j4save.o aux/XSpec/phfit2.o
+
+program XRay_Absorption_ISM_Wilms2000
+  !% Wraps the {\tt dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+  !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\sc XSpec} to produce a table of X-ray absorption cross-sections in the
+  !% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\sc XSpec} have
+  !% been downloaded into the {\tt aux/XSpec} folder---usually this program will be run automatically as needed by the {\tt
+  !% Galacticus::ISMColumnDensity} module.
+  use Numerical_Ranges
+  use Numerical_Constants_Units
+  use Numerical_Constants_Prefixes
+  use Dates_and_Times
+  use IO_HDF5
+  use Atomic_Cross_Sections_Compton
+  implicit none
+  integer         , parameter                                 :: energyCount       =1000
+  integer         , parameter                                 :: metallicityCount  = 100
+  double precision, parameter                                 :: energyMinimum     =0.01d0  ,energyMaximum     =20.0d0 ! keV
+  double precision, parameter                                 :: metallicityMinimum=1.0d-4,metallicityMaximum=0.1d0
+  ! The metallicity of the ISM computed consistently from Wilms et al. abundances and element weights.
+  double precision, parameter                                 :: metallicityIsm    =0.012000314d0
+  ! Electrons per hydrogen atom contributed by helium and metals for ISM metallicity.
+  double precision, parameter                                 :: electronsHelium   =0.195447444d0
+  double precision, parameter                                 :: electronsMetals   =0.008383587d0
+  double precision, dimension(0:energyCount                 ) :: energy
+  double precision, dimension(              metallicityCount) :: metallicity
+  real            , dimension(  energyCount                 ) :: photar,photer,siggas,siggrains,sigmol,sigavg
+  double precision, dimension(  energyCount,metallicityCount) :: crossSection
+  double precision, dimension(                            42) :: parameters
+  type(hdf5Object)                                            :: outputFile,myDataset
+  integer                                                     :: iMetallicity
+  double precision                                            :: electronNumber
+
+  ! Create array of energies.
+  energy(0            )=energyMinimum
+  energy(1:energyCount)=Make_Range(energyMinimum     ,energyMaximum     ,energyCount     ,rangeType=rangeTypeLogarithmic)
+  
+  ! Create array of metallicities.
+  metallicity          =Make_Range(metallicityMinimum,metallicityMaximum,metallicityCount,rangeType=rangeTypeLogarithmic)
+
+  ! Specify values of the parameters to be passed to the dotbvabs function. The default values from Wilms et al. (2000) are used.
+  parameters( 1   )=1.000d0 ! Hydrogen column density (units of 1e22 cm^-2).
+  parameters( 2   )=1.000d0 ! Helium abundance relative to Milky Way ISM.
+  parameters(19   )=0.200d0 ! Fraction of hydrogen in molecular form.
+  parameters(20   )=1.000d0 ! Density of dust (units of g/cm^3).
+  parameters(21   )=0.025d0 ! Minimum thickness of dust.
+  parameters(22   )=0.250d0 ! Maximum thickness of dust.
+  parameters(23   )=3.500d0 ! Power-law index of dust distribution.
+  parameters(42   )=0.000d0 ! Redshift.
+  ! Element depletion factors.
+  parameters(24:41)=[1.0d0,1.0d0,0.5d0,1.0d0,0.6d0,1.0d0,0.25d0,0.2d0,0.02d0,0.1d0,0.6d0,0.5d0,1.0d0,0.003d0,0.03d0,0.3d0,0.05d0&
+       &,0.04d0] 
+  
+  ! Loop over metallicities.
+  do iMetallicity=1,metallicityCount
+     ! Set the abundance scaling factors such that metal abundance is scaled by metallicity.
+     parameters(3:18)=metallicity(iMetallicity)/metallicityIsm
+     ! Call dotbvabs to compute the absorption cross-sections.
+     call dotbvabs(real(energy),energyCount,real(parameters),0,photar,photer,siggas,siggrains,sigmol,sigavg)
+     ! Store the cross sections.
+     crossSection(:,iMetallicity)=dble(siggas+siggrains+sigmol)*1.0d-18
+     ! Compute Compton scattering contribution.
+     electronNumber=1.0d0+electronsHelium+electronsMetals*metallicity(iMetallicity)/metallicityIsm
+     crossSection(:,iMetallicity)=crossSection(:,iMetallicity)+electronNumber*Atomic_Cross_Section_Compton(energy)
+  end do
+
+  ! Open the output file.
+  call outputFile%openFile('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024,compressionLevel=9)
+  ! Write energy table.
+  call outputFile%writeDataset(energy(1:energyCount),datasetName="energy",commentText="Photon energy in keV",datasetReturned=myDataset)
+  call myDataset %writeAttribute(kilo*electronVolt,"unitsInSI")
+  call myDataset %close()
+  ! Write metallicity table.
+  call outputFile%writeDataset(metallicity,datasetName="metallicity",commentText="Metallicity")
+  ! Write crossSection table.
+  call outputFile%writeDataset(crossSection,datasetName="crossSection",commentText="Absorption cross section in cm²",datasetReturned=myDataset)
+  call myDataset %writeAttribute(1.0d-4,"unitsInSI")
+  call myDataset %close()
+  ! Add meta-data.
+  call outputFile%writeAttribute("Created by Galacticus using dotbvabs function from XSpec","description")
+  call outputFile%writeAttribute(Formatted_Date_and_Time(),"timestamp")
+  call outputFile%writeAttribute("Wilms, Allen & McCray (2000; ApJ, 542, 914; http://adsabs.harvard.edu/abs/2000ApJ...542..914W)","source")
+  ! Close the output file.
+  call outputFile%close()
+end program XRay_Absorption_ISM_Wilms2000
+
+subroutine xwrite(msg,i)
+  !% Message display function required by {\tt dotbvabs}.
+  implicit none
+  character(len=*), intent(in) :: msg
+  integer         , intent(in) :: i
+  
+  write (0,*) msg
+  return
+end subroutine xwrite
+
+subroutine xermsg(a,b,c,i,j)
+  !% Error message function required by {\tt dotbvabs}.
+  use Galacticus_Error
+  implicit none
+  character(len=*), intent(in) :: a,b,c
+  integer         , intent(in) :: i,j
+  
+  write (0,*) a
+  write (0,*) b
+  write (0,*) c
+  call Galacticus_Error_Report('xermsg','error thrown by XSpec functions')
+  return
+end subroutine xermsg
+
+real function fgabnd(c)
+  !% Function to return the abundance (relative to hydrogen) of elements. Required by {\tt dotbvabs}.
+  use Galacticus_Error
+  implicit none
+  character(len=2), intent(in) :: c
+  
+  fgabnd=0.0
+  if (c == 'H ') fgabnd=12.00 ! H
+  if (c == 'He') fgabnd=10.99 ! He
+  if (c == 'C ') fgabnd= 8.38 ! C
+  if (c == 'N ') fgabnd= 7.88 ! N
+  if (c == 'O ') fgabnd= 8.69 ! O
+  if (c == 'Ne') fgabnd= 7.94 ! Ne
+  if (c == 'Na') fgabnd= 6.16 ! Na
+  if (c == 'Mg') fgabnd= 7.40 ! Mg
+  if (c == 'Al') fgabnd= 6.33 ! Al
+  if (c == 'Si') fgabnd= 7.27 ! Si
+  if (c == 'S ') fgabnd= 7.09 ! S
+  if (c == 'Cl') fgabnd= 5.12 ! Cl
+  if (c == 'Ar') fgabnd= 6.41 ! Ar
+  if (c == 'Ca') fgabnd= 6.20 ! Ca
+  if (c == 'Cr') fgabnd= 5.51 ! Cr
+  if (c == 'Fe') fgabnd= 7.43 ! Fe
+  if (c == 'Co') fgabnd= 4.92 ! Co
+  if (c == 'Ni') fgabnd= 6.05 ! Ni
+  if (fgabnd == 0.0) call Galacticus_Error_Report('fgabnd','unknown element')
+  fgabnd=10.0**(fgabnd-12.00)
+  return
+end function fgabnd
