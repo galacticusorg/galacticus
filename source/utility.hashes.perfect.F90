@@ -62,7 +62,7 @@
 !% Contains a module which implements a perfect hash algorithm for long integer keys.
 
 module Hashes_Perfect
-  !% Implements a perfact hash algorithm for long integer keys based on methods described by \cite{czech_perfect_1997}. The
+  !% Implements a perfact hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
   !% specific implementation follows the general structure of that given in a Dr. Dobbs
   !% \href{http://drdobbs.com/architecture-and-design/184404506}{article}.
   use Kind_Numbers
