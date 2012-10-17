@@ -7,12 +7,17 @@ use utf8;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
+use PDL::IO::Misc;
 use XML::Simple;
 use DateTime;
 require Galacticus::HDF5;
+require Galacticus::ColumnDensity;
+require Galacticus::ISMCrossSections;
 
-%HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "^agnLuminosity:[^:]+:[^:]+:z[\\d\\.]+(:alpha[0-9\\-\\+\\.]+)??\$" => \&AGNLuminosities::Get_AGN_Luminosity
+%HDF5::galacticusFunctions = 
+    (
+     %HDF5::galacticusFunctions,
+     "^agnLuminosity:[^:]+:[^:]+:z[\\d\\.]+(:noAbsorption)?(:alpha[0-9\\-\\+\\.]+)??\$" => \&AGNLuminosities::Get_AGN_Luminosity
     );
 
 # AGN SED data.
@@ -25,20 +30,23 @@ sub Get_AGN_Luminosity {
     my $dataSetName = $_[0];
 
     # Define constants.
-    my $speedOfLight      = pdl 2.99792458e+08; # m/s
-    my $angstroms         = pdl 1.00000000e-10; # m
-    my $luminositySolar   = pdl 3.83900000e+26; # W
-    my $luminosityAB      = pdl 4.46592015e+13; # W/Hz
-    my $massSolar         = pdl 1.98892000e+30; # kg
-    my $gigaYear          = pdl 3.15569260e+16; # s
-    my $luminosityABSolar = $luminosityAB/$luminositySolar;
+    my $speedOfLight        = pdl 2.99792458000e+08; # m/s
+    my $plancksConstant     = pdl 6.62606800000e-34; # J s.
+    my $electronVolt        = pdl 1.60217646000e-19; # J.
+    my $angstroms           = pdl 1.00000000000e-10; # m
+    my $luminositySolar     = pdl 3.83900000000e+26; # W
+    my $luminosityAB        = pdl 4.46592015000e+13; # W/Hz
+    my $massSolar           = pdl 1.98892000000e+30; # kg
+    my $gigaYear            = pdl 3.15569260000e+16; # s
+    my $kilo                = pdl 1.00000000000e+03;
+    my $luminosityABSolar   = $luminosityAB/$luminositySolar;
 
     # Ensure AGN SED data is loaded.
     unless ( defined($SEDs) ) {
 
 	# Download the AGN SED code.
 	unless ( -e "aux/AGN_Spectrum/agn_spectrum.c" ) {
-	    system("mkdir -p aux/AGN_Spectrum; wget https://www.cfa.harvard.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O aux/AGN_Spectrum/agn_spectrum.c");
+	    system("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate https://www.cfa.harvard.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O aux/AGN_Spectrum/agn_spectrum.c");
 	}
 	die("Get_AGN_Luminosity(): failed to download agn_spectrum.c")
 	    unless ( -e "aux/AGN_Spectrum/agn_spectrum.c" );
@@ -148,18 +156,25 @@ sub Get_AGN_Luminosity {
     }
     
     # Determine the filter, frame and redshift for which the luminosity is required.
-    if ( $dataSetName =~ m/^agnLuminosity:([^:]+):([^:]+):z([\d\.]+)(:alpha[0-9\-\+\.]+)??$/ ) {
+    if ( $dataSetName =~ m/^agnLuminosity:([^:]+):([^:]+):z([\d\.]+)(:noAbsorption)?(:alpha[0-9\-\+\.]+)??$/ ) {
 	# Extract the name of the line and redshift.
-	my $filterName = $1;
-	my $frame      = $2;
-	my $redshift   = $3;
-	my $alpha      = $4;
+	my $filterName   = $1;
+	my $frame        = $2;
+	my $redshift     = $3;
+	my $noAbsorption = $4;
+	my $alpha        = $5;
 	$alpha =~ s/:alpha//
 	    if ( defined($alpha) );
+	$noAbsorption = ""
+	    unless ( defined($noAbsorption) );
 
 	# Get the AGN bolometric luminosities (in units of Solar luminosities).
-	&HDF5::Get_Dataset($model,['blackHoleAccretionRate','blackHoleRadiativeEfficiency']);
+	&HDF5::Get_Dataset($model,['blackHoleAccretionRate','blackHoleRadiativeEfficiency', 'columnDensityDisk', 'columnDensitySpheroid', 'diskGasMass', 'diskGasMetals', 'spheroidGasMass', 'spheroidGasMetals' ]);
 	my $dataSets = $model->{'dataSets'};
+	my $columnDensityDisk     = $dataSets->{'columnDensityDisk'    };
+	my $columnDensitySpheroid = $dataSets->{'columnDensitySpheroid'};
+	my $metallicityDisk       = $dataSets->{'diskGasMetals'    }/$dataSets->{'diskGasMass'    };
+	my $metallicitySpheroid   = $dataSets->{'spheroidGasMetals'}/$dataSets->{'spheroidGasMass'};
 	my $bolometricLuminosity = 
 	     $dataSets->{'blackHoleRadiativeEfficiency'}
 	    *$dataSets->{'blackHoleAccretionRate'      }
@@ -222,35 +237,100 @@ sub Get_AGN_Luminosity {
 	    $spectralShapeCorrection = ($energyIntegral/$photonIntegral)*$luminosityAB*$speedOfLight/$angstroms;
 	}
 
-	# Integrate SEDs under the filter.
-	my $luminosityAGN = pdl zeroes(nelem($luminositiesBolometric));
+	# Get energies (in keV) corresponding to wavelengths.	
+	my $jointEnergies =
+	    $speedOfLight
+	    *$plancksConstant
+	    /$angstroms
+	    /$electronVolt
+	    /$kilo
+	    /$jointWavelengths;
+	
+	# Integrate SEDs under the filter.	
 	my $sedWavelengths = $wavelengths->copy();
 	$sedWavelengths *= (1.0+$redshift)
 	    if ( $frame eq "observed" );
-	for(my $i=0;$i<nelem($luminositiesBolometric);++$i) {
-	    # Interpolate the SED onto the joint wavelengths.
-	    (my $jointSED, my $interpolateError) = interpolate($jointWavelengths,$sedWavelengths,$SEDs(:,($i)));
-	    # Integrate the SED through the filter.
-	    $luminosityAGN(($i)) .= 
-		 sum($jointSED         *$jointResponse*$deltaWavelengths/$jointWavelengths)
-		/sum($luminosityABSolar*$jointResponse*$deltaWavelengths/$jointWavelengths);
+
+	# Get SEDs for the joint wavelengths at the model luminosities.
+	my $wavelengthSize = $SEDs->getdim(1);
+	(my $jointSED, $interpolateError) = interpolate($jointWavelengths(*1),$sedWavelengths(*$wavelengthSize)->xchg(0,1),$SEDs);
+	
+	# Determine cross-section model to use.
+	my $crossSectionModel = "Wilms2000";
+	$crossSectionModel = $model->{'agnLuminosities'}->{'crossSectionsModel'}
+	    if ( exists($model->{'agnLuminosities'}->{'crossSectionsModel'}) );
+
+	# Construct the AGN luminosities.
+	my $luminosityAGN = pdl zeroes(nelem($bolometricLuminosity));
+	my $inRange       = 
+	    intersect
+	    (
+	     which($bolometricLuminosity > $luminositiesBolometric(0)),
+	     which($bolometricLuminosity < $luminositiesBolometric(-1))
+	    );
+	$inRange = 
+	    intersect
+	    (
+	     $inRange,
+	     $model->{'selection'}
+	    )
+	    if ( exists($model->{'selection'}) );
+	my $nonZeroLuminosity  = $luminosityAGN        ->index($inRange);
+	$bolometricLuminosity  = $bolometricLuminosity ->index($inRange);
+	$columnDensityDisk     = $columnDensityDisk    ->index($inRange);
+	$columnDensitySpheroid = $columnDensitySpheroid->index($inRange);
+	$metallicityDisk       = $metallicityDisk      ->index($inRange);
+	$metallicitySpheroid   = $metallicitySpheroid  ->index($inRange);
+	my $jointSize          = $jointSED->getdim(1);
+	my $x                  = $luminositiesBolometric(*$jointSize)->xchg(0,1);
+	for (my $i=0;$i<nelem($nonZeroLuminosity);++$i) {
+	    (my $interpolatedSED, $interpolateError) = interpolate($bolometricLuminosity($i),$x,$jointSED);
+	    my $crossSectionsDisk                    = zeroes(nelem($jointWavelengths));
+	    my $crossSectionsSpheroid                = zeroes(nelem($jointWavelengths));
+	    unless ( $noAbsorption eq ":noAbsorption" ) {
+		my %options = 
+		    (
+		     model => $crossSectionModel
+		    );
+		$options{'metallicity'} = $metallicityDisk(($i))
+		    if ( 
+			exists($model->{'agnLuminosities'}->{'useMetallicity'}) &&
+			$model->{'agnLuminosities'}->{'useMetallicity'} == 1
+		    );
+		$crossSectionsDisk                  .=
+		    &ISMCrossSections::Cross_Sections
+		    (
+		     $jointEnergies,
+		     %options
+		    );
+		delete($options{'metallicity'});
+		$options{'metallicity'} = $metallicitySpheroid(($i))
+		    if ( 
+			exists($model->{'agnLuminosities'}->{'useMetallicity'}) &&
+			$model->{'agnLuminosities'}->{'useMetallicity'} == 1
+		    );
+		$crossSectionsSpheroid              .=
+		    &ISMCrossSections::Cross_Sections
+		    (
+		     $jointEnergies,
+		     %options
+		    );
+	    }
+	    my $absorption            = 
+		exp
+		(
+		 -$crossSectionsDisk    *$columnDensityDisk    (($i))
+		 -$crossSectionsSpheroid*$columnDensitySpheroid(($i))
+		);
+	    $nonZeroLuminosity(($i)) .= 
+		sum($interpolatedSED  *$jointResponse*$deltaWavelengths*$absorption/$jointWavelengths)/
+		sum($luminosityABSolar*$jointResponse*$deltaWavelengths            /$jointWavelengths);
 	}
 	$luminosityAGN *= $spectralShapeCorrection;
-
-	# Interpolate to get luminosity for each node.
-	(my $luminositiesFiltered, $interpolateError) = interpolate($bolometricLuminosity,$luminositiesBolometric,$luminosityAGN);
-	my $outOfRange = 
-	    which(
-		($bolometricLuminosity < $luminositiesBolometric(( 0)))
-		|
-		($bolometricLuminosity > $luminositiesBolometric((-1)))
-	    );
-	$luminositiesFiltered->index($outOfRange) .= 0.0;
-	$dataSets->{$dataSetName} = $luminositiesFiltered;
+	$dataSets->{$dataSetName} = $luminosityAGN;
     } else {
 	die("Get_AGN_Luminosity(): unable to parse data set: ".$dataSetName);
     }
-
 }
 
 1;
