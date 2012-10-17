@@ -112,6 +112,9 @@ vpath %.cpp source
 	@echo ./work/build/$*.o > ./work/build/$*.d
 %.d : %.f
 	@echo $*.o > $*.d
+%.d :
+	@mkdir -p `dirname $*.d`
+	@touch $*.d
 
 
 # Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
