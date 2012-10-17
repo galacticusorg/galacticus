@@ -1497,12 +1497,12 @@ contains
           call thisDataset%close()
        end if
        if (mergerTrees%hasPositionX               ) then
-          call haloTrees%writeDataset(Array_Index(transpose(mergerTrees%position)    ,thisSnapshotIndices,indexOn=1),"Center"         ,"The position of each halo center."      ,datasetReturned=thisDataset,appendTo=.true.)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,thisSnapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."      ,datasetReturned=thisDataset,appendTo=.true.,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
        if (mergerTrees%hasVelocityX               ) then
-          call haloTrees%writeDataset(Array_Index(transpose(mergerTrees%velocity)   ,thisSnapshotIndices,indexOn=1),"Velocity"       ,"The velocity of each halo."             ,datasetReturned=thisDataset,appendTo=.true.)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,thisSnapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."             ,datasetReturned=thisDataset,appendTo=.true.,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
@@ -1510,7 +1510,7 @@ contains
           call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                             ,appendTo=.true.)
        end if
        if (mergerTrees%hasAngularMomentumX        ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo.",datasetReturned=thisDataset,appendTo=.true.)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo.",datasetReturned=thisDataset,appendTo=.true.,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
@@ -1644,8 +1644,8 @@ contains
 
     ! Create groups for attributes.
     if (.not.appendActual) then
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) cosmologyGroup  =outputFile%openGroup("Cosmology"            ,"Cosmological parameters."           )
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) simulationGroup =outputFile%openGroup("SimulationProperties" ,"Simulation parameters."             )
+       cosmologyGroup  =outputFile%openGroup("Cosmology"            ,"Cosmological parameters."           )
+       simulationGroup =outputFile%openGroup("SimulationProperties" ,"Simulation parameters."             )
        
        ! Write attributes.
        do iAttribute=1,mergerTrees%metaDataCount
@@ -1686,8 +1686,8 @@ contains
        end do
        
        ! Close attribute groups.
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) call cosmologyGroup  %close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) call simulationGroup %close()
+       call cosmologyGroup  %close()
+       call simulationGroup %close()
     end if
 
     ! Close the output file.
