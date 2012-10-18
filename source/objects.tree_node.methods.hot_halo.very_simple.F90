@@ -195,7 +195,6 @@ contains
     logical,                 intent(inout) :: interrupt
     procedure(),    pointer, intent(inout) :: interruptProcedure
     procedure(),    pointer                :: interruptProcedurePassed
-    double precision                       :: massAccretionRate,failedMassAccretionRate
 
     ! Next compute the cooling rate in this halo.
     call Get_Cooling_Rate(thisNode)
@@ -375,7 +374,6 @@ contains
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    integer                                       :: iAbundance
     double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     if (methodSelected) then

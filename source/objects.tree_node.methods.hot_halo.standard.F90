@@ -913,8 +913,8 @@ contains
     logical,                   intent(inout) :: interrupt
     procedure(),      pointer, intent(inout) :: interruptProcedure
     double precision, parameter              :: outerRadiusOverVirialRadiusMinimum=1.0d-3
-    double precision                         :: ramPressureRadius,outerRadius,angularMomentumLossRate,densityAtOuterRadius&
-         &,outerRadiusGrowthRate,massLossRate
+    double precision                         :: ramPressureRadius,outerRadius,densityAtOuterRadius ,outerRadiusGrowthRate&
+         &,massLossRate
     integer                                  :: thisIndex
 
     ! Return immediately if no hot halo exists.
@@ -2330,7 +2330,6 @@ contains
     integer(kind=kind_int8), intent(inout)              :: integerBuffer(:,:)
     double precision,        intent(inout)              :: doubleBuffer(:,:)
     double precision,        dimension(abundancesCount) :: hotAbundanceMasses,outflowedAbundanceMasses
-    type(treeNode),                         pointer     :: coolingFromNode
     integer                                             :: iAbundance
 
     if (methodSelected) then

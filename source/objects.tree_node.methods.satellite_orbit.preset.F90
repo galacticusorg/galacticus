@@ -278,7 +278,6 @@ contains
     implicit none
     type(keplerOrbit),         intent(inout) :: thisOrbit
     type(treeNode),   pointer, intent(inout) :: thisNode
-    type(treeNode),   pointer                :: hostNode
     integer                                  :: thisIndex
 
     if (.not.thisNode%componentExists(componentIndex)) call Satellite_Orbit_Create_Preset(thisNode)
@@ -300,7 +299,6 @@ contains
     implicit none
     type(keplerOrbit)                        :: thisOrbit
     type(treeNode),   pointer, intent(inout) :: thisNode
-    type(treeNode),   pointer                :: hostNode
     integer                                  :: thisIndex
 
     if (thisNode%isSatellite().or..not.thisNode%isPrimaryProgenitor()) then

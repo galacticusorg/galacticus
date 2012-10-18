@@ -529,7 +529,7 @@ contains
     integer,              intent(in)                :: componentIndex
     class(treeNode),      intent(inout)             :: thisNode
     type(componentArray), allocatable, dimension(:) :: tempComponents
-    integer                                         :: previousSize,listIndex,timesCount,iHistory,iInstance
+    integer                                         :: previousSize,listIndex,iHistory,iInstance
 
     listIndex=thisNode%componentIndex(componentIndex)
     if (listIndex /= -1) then

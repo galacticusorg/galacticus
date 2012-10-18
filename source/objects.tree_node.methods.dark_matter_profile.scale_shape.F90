@@ -296,7 +296,7 @@ contains
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
     integer                                 :: thisIndex
-    double precision                        :: concentration,deltaTime
+    double precision                        :: concentration
 
     if (methodSelected) then
        if (.not.thisNode%componentExists(componentIndex)) then

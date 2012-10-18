@@ -69,7 +69,7 @@ contains
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
-    type(varying_string)                :: satelliteMergingMethod,message
+    type(varying_string)                :: message
 
     ! Check if this implementation is selected.
     if (componentOption == 'verySimple') then
@@ -197,7 +197,6 @@ contains
     type(treeNode),     pointer, intent(inout) :: thisNode
     type(treeNode),     pointer                :: hostNode
     logical                                    :: isNewSatellite
-    integer                                    :: thisIndex
     double precision                           :: mergeTime
     type(keplerOrbit)                          :: thisOrbit
 

@@ -2189,7 +2189,7 @@ contains
     integer(kind=kind_int8), intent(in),               optional :: branchRoot
     type(nodeData)         , pointer                            :: thisNode
     integer                                                     :: iNode,fileUnit
-    character(len=20)                                           :: color,style,z
+    character(len=20)                                           :: color,style
     logical                                                     :: outputNode
 
     ! Open an output file and write the GraphViz opening.

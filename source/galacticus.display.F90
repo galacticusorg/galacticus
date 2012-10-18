@@ -318,7 +318,6 @@ contains
     !% Clears a percentage counter.
     implicit none
     integer, intent(in), optional :: verbosity
-    logical                       :: showMessage
     
     !$omp critical(Galacticus_Message_Lock)
     call Galacticus_Display_Counter_Clear_Lockless(verbosity)
