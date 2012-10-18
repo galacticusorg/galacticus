@@ -112,7 +112,7 @@ contains
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, save                   :: fractionalErrorMaximum=0.0d0
     integer                                  :: thisIndex
-    double precision                         :: specificAngularMomentum,fractionalError,diskMass
+    double precision                         :: fractionalError,diskMass
     character(len=20)                        :: valueString
     type(varying_string)                     :: message
 

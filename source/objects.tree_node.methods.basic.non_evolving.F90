@@ -224,7 +224,6 @@ contains
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     type(treeNode), pointer                :: parentNode
-    integer                                :: thisIndex,parentIndex
 
     if (methodSelected) then
        parentNode => thisNode%parentNode

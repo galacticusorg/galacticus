@@ -70,7 +70,7 @@ contains
     type(treeNode),                    intent(inout), pointer :: thisNode
     procedure(Structure_Get_Template),                pointer :: Radius_Get => null(), Velocity_Get => null()
     procedure(Structure_Set_Template),                pointer :: Radius_Set => null(), Velocity_Set => null()
-    logical                                                   :: componentActive,galaxyIsPhysicallyPlausible
+    logical                                                   :: componentActive
     double precision                                          :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. In this fixed solver, we don't act on this.

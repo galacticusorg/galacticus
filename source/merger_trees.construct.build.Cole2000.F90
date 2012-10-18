@@ -123,8 +123,8 @@ contains
     type(mergerTree),       intent(inout) :: thisTree
     type(treeNode),         pointer       :: thisNode,newNode1,newNode2
     integer(kind=kind_int8)               :: nodeIndex
-    double precision                      :: branchingProbability,accretionFraction,meanAccretionFraction,deltaCritical&
-         &,collapseTime,uniformRandom ,deltaW ,nodeMass1,nodeMass2,time,deltaCritical1,deltaCritical2,baseNodeTime
+    double precision                      :: branchingProbability,accretionFraction,deltaCritical,collapseTime,uniformRandom &
+         &,deltaW ,nodeMass1,nodeMass2,time,deltaCritical1,deltaCritical2,baseNodeTime
     logical                               :: doBranch
 
     nodeIndex=1                   ! Initialize the node index counter to unity.

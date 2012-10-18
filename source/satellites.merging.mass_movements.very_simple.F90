@@ -37,7 +37,6 @@ contains
     implicit none
     type(varying_string),          intent(in)    :: satelliteMergingMassMovementsMethod
     procedure(),          pointer, intent(inout) :: Satellite_Merging_Mass_Movement_Get
-    character(len=10)                            :: minorMergerGasMovesTo
 
     if (satelliteMergingMassMovementsMethod == 'verySimple') Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Very_Simple
     return
