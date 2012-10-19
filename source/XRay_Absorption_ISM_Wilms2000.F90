@@ -23,6 +23,7 @@
 
 ! Add explicit dependencies on the XSpec files.
 !: aux/XSpec/dotbvabs.o aux/XSpec/gphoto.o aux/XSpec/j4save.o aux/XSpec/phfit2.o
+!; exclude
 
 program XRay_Absorption_ISM_Wilms2000
   !% Wraps the {\tt dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
