@@ -20,7 +20,6 @@
 module Tree_Node_Methods_Formation_Times_Cole2000
   !% Implement tracking of halo formation times.
   use Tree_Nodes
-  use Components
   implicit none
   private
   public :: Tree_Node_Methods_Formation_Times_Cole2000_Initialize, Tree_Node_Formation_Time_Cole2000_Initialize,&
@@ -123,8 +122,6 @@ contains
 
   subroutine Tree_Node_Formation_Time_Rate_Compute_Cole2000(thisNode,interrupt,interruptProcedure)
     !% Compute the exponential disk node mass rate of change.
-    use Cosmological_Parameters
-    use Cooling_Rates
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
@@ -208,7 +205,6 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Tree_Node_Formation_Time_Cole2000_Initialize(thisNode)
     !% Initialize the formation node pointer for any childless node.
-    use Tree_Nodes
     implicit none
     type(treeNode),                     pointer, intent(inout)     :: thisNode
 

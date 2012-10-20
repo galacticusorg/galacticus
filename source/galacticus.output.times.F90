@@ -35,7 +35,6 @@ contains
   subroutine Output_Times_Initialize()
     !% Initialize the output times.
     use Input_Parameters
-    use Memory_Management
     use Sort
     use Memory_Management
     use Histories

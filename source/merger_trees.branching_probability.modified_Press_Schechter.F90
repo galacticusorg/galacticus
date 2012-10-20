@@ -19,7 +19,6 @@
 
 module Modified_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in modified Press-Schechter theory.
-  use FGSL
   use CDM_Power_Spectrum
   use Numerical_Constants_Math
   implicit none
@@ -172,7 +171,6 @@ contains
   double precision function Modified_Press_Schechter_Branching_Maximum_Step(haloMass,deltaCritical,massResolution)
     !% Return the maximum allowed step in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
     !% deltaCritical} should be allowed to take.
-    use Numerical_Integration
     implicit none
     double precision, intent(in) :: haloMass,deltaCritical,massResolution
     double precision, parameter  :: largeStep=1.0d10 ! Effectively infinitely large step in w(=delta_crit).

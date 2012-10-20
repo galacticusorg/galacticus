@@ -23,7 +23,6 @@ program Tests_Linear_Growth_Open
   use ISO_Varying_String
   use Linear_Growth
   use Cosmology_Functions
-  use Cosmological_Parameters
   implicit none
   double precision, parameter, dimension(8) :: redshift        =[0.0000d0,1.0000d0,3.0000d0,9.0000d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]
   double precision, parameter, dimension(8) :: growthFactorOpen=[0.4568354614082405d0,0.6176697062100953d0,0.7581803450845095d0&

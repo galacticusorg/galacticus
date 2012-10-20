@@ -70,7 +70,6 @@ contains
     use Tree_Nodes
     use Components
     use Galacticus_State
-    use Galacticus_Error
     implicit none
     type(mergerTree),        intent(in)                :: thisTree
     character(len=*),        intent(in)                :: storeFile

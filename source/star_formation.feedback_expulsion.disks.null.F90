@@ -19,7 +19,6 @@
 
 module Star_Formation_Expulsive_Feedback_Disks_Null
   !% Implementss a null expulsive outflow rate in galactic disks.
-  use Tree_Nodes
   implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Disks_Null_Initialize
@@ -33,7 +32,6 @@ contains
        &,Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get)
     !% Initializes the ``null'' disk star formation expulsive feedback module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: starFormationExpulsiveFeedbackDisksMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
@@ -46,8 +44,6 @@ contains
   double precision function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null(thisNode,starFormationRate,energyInputRate)
     !% Implements a null expulsive outflow rate for disks.
     use Tree_Nodes
-    use Numerical_Constants_Units
-    use Stellar_Feedback
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: starFormationRate,energyInputRate

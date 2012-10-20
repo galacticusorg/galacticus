@@ -19,10 +19,8 @@
 
 module Galacticus_Output_Merger_Tree
   !% Implements writing a merger tree to the \glc\ output file.
-  use IO_HDF5
   use ISO_Varying_String
   use Merger_Trees
-  use Galacticus_Error
   use Galacticus_HDF5
   use Kind_Numbers
   implicit none

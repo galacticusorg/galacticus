@@ -48,7 +48,6 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Numerical_Constants_Astronomical
-    use Kind_Numbers
     implicit none
     type(mergerTree),        intent(in)                :: thisTree
     type(treeNode),          pointer                   :: thisNode

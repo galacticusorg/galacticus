@@ -42,7 +42,6 @@ contains
   subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Initialize(blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: blackHoleBinaryRecoilVelocityMethod
     procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Recoil_Velocity_Get
@@ -56,7 +55,6 @@ contains
     !% the binary's center of mass. Constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm
     !% 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K
     !% \cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
-    use Tree_Nodes
     use Pseudo_Random
     use Numerical_Constants_Math
     implicit none
@@ -113,7 +111,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
@@ -129,7 +126,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile

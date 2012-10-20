@@ -31,7 +31,6 @@ contains
   subroutine Hot_Halo_Temperature_Virial(hotHaloTemperatureMethod,Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get)
     !% Initialize the cored isothermal hot halo temperature profile module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: hotHaloTemperatureMethod
     procedure(double precision), pointer, intent(inout) :: Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get
@@ -59,7 +58,6 @@ contains
     !% Compute the logarithmic slope of the temperature at radius {\tt radius} in an isothermal temperature profile
     !% for {\tt thisNode}.
     use Tree_Nodes
-    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius

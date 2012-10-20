@@ -61,7 +61,6 @@ contains
     use ISO_Varying_String 
     use Galacticus_Error
     use Input_Parameters
-    use Memory_Management
     !# <include directive="intergalaticMediumStateMethod" type="moduleUse">
     include 'intergalactic_medium.state.modules.inc'
     !# </include>
@@ -206,7 +205,6 @@ contains
     use Numerical_Integration
     use Numerical_Interpolation
     use Cosmology_Functions
-    use FGSL
     use Memory_Management
     use Numerical_Ranges
     implicit none
@@ -271,7 +269,6 @@ contains
     use Cosmological_Parameters
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Atomic
     implicit none
     real(c_double)          :: IGM_State_Electron_Scattering_Integrand
     real(c_double), value   :: time

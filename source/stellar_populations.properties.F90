@@ -174,8 +174,6 @@ contains
 
   subroutine Stellar_Population_Properties_History_Create(thisNode,thisHistory)
     !% Create any history required for storing stellar population properties.
-    use Histories
-    use Tree_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(history),  intent(inout)          :: thisHistory

@@ -176,9 +176,6 @@ contains
 
   subroutine Radiation_IGB_File_Flux(radiationProperties,wavelength,radiationFlux)
     !% Flux method for the radiation component from file method.
-    use Thermodynamics_Radiation
-    use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
     use Numerical_Interpolation
     implicit none
     double precision, intent(in)                   :: wavelength

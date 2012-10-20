@@ -117,8 +117,6 @@ contains
   subroutine Galacticus_Output_Halo_Model_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of halo model properties to be written to the \glc\ output file.
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
@@ -221,7 +219,6 @@ contains
   subroutine Galacticus_Linear_Power_Spectrum_Output
     !% Output the linear theory power spectrum to the main output file.
     use Galacticus_HDF5
-    use IO_HDF5
     use Numerical_Ranges
     use Memory_Management
     use CDM_Power_Spectrum
@@ -327,7 +324,6 @@ contains
   subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
     use Tree_Nodes
-    use IO_HDF5
     use Galacticus_HDF5
     use ISO_Varying_String
     use String_Handling

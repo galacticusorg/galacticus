@@ -103,7 +103,6 @@ contains
     !% Ensure that data is loaded for the requested IMF.
     use Input_Parameters
     use Star_Formation_IMF
-    use ISO_Varying_String
     use Galacticus_Input_Paths
     implicit none
     integer, intent(in)   :: imfIndex
@@ -145,10 +144,8 @@ contains
   double precision function Stellar_Population_Spectra_File_Interpolate(abundances,age,wavelength,imfIndex)
     !% Compute the stellar spectrum by interpolation in the tabulated data.
     use Abundances_Structure
-    use Numerical_Constants_Astronomical
     use Numerical_Interpolation
     use Galacticus_Error
-    use ISO_Varying_String
     implicit none
     type(abundancesStructure), intent(in)     :: abundances
     double precision,          intent(in)     :: age,wavelength

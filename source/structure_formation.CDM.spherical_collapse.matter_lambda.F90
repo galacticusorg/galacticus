@@ -44,7 +44,6 @@ contains
   !# </criticalOverdensityMethod>
   subroutine Spherical_Collape_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
     !% Initializes the $\delta_{\rm crit}$ calculation for the spherical collapse module.
-    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type(varying_string),          intent(in)    :: criticalOverdensityMethod
@@ -59,7 +58,6 @@ contains
   !# </virialDensityContrastMethod>
   subroutine Spherical_Collape_Delta_Virial_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
     !% Initializes the $\Delta_{\rm vir}$ calculation for the spherical collapse module.
-    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type(varying_string),          intent(in)    :: virialDensityContrastMethod
@@ -104,7 +102,6 @@ contains
     use Cosmology_Functions
     use Root_Finder
     use Numerical_Ranges
-    use Numerical_Interpolation
     use Memory_Management
     implicit none
     double precision,        intent(in)                               :: time

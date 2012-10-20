@@ -20,7 +20,6 @@
 module Tree_Node_Methods_Spin_Random
   !% Implement random spin tree node method.
   use Tree_Nodes
-  use Components
   implicit none
   private
   public :: Tree_Node_Methods_Spin_Random_Initialize, Tree_Node_Methods_Spin_Random_Initialize_Spin,&
@@ -133,7 +132,6 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Tree_Node_Methods_Spin_Random_Initialize_Spin(thisNode)
     !% Initialize the spin of {\tt thisNode}.
-    use Cosmological_Parameters
     use Halo_Spin_Distributions
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
@@ -254,7 +252,6 @@ contains
   subroutine Galacticus_Output_Tree_Spin_Random(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store spin properties in the \glc\ output file buffers.
-    use Tree_Nodes
     use Kind_Numbers
     implicit none
     double precision,        intent(in)             :: time

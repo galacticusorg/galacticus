@@ -20,7 +20,6 @@
 module Hashes
   !% Implements ``hashes'' (i.e. associative arrays).
   use ISO_Varying_String
-  use Kind_Numbers
   implicit none
   private
   public :: integerScalarHash
@@ -167,7 +166,6 @@ contains
 
   subroutine Keys_Integer_Scalar(thisHash,keys)
     !% Returns an array of all keys in {\tt thisHash}.
-    use ISO_Varying_String
     implicit none
     type(varying_string),     intent(inout), allocatable, dimension(:) :: keys
     class(integerScalarHash), intent(in)                               :: thisHash

@@ -27,7 +27,6 @@ program Test_Prada2011_Concentration
   use Cosmological_Parameters
   use Merger_Trees
   use Tree_Nodes
-  use String_Handling
   use Unit_Tests
   implicit none
   type(mergerTree),     pointer                         :: thisTree

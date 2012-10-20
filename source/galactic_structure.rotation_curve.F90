@@ -19,7 +19,6 @@
 
 module Galactic_Structure_Rotation_Curves
   !% Implements calculations of the rotation curve as a specified radius.
-  use ISO_Varying_String
   use Tree_Nodes
   use Galactic_Structure_Options
   implicit none

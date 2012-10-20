@@ -366,7 +366,6 @@ contains
   !# </mergerTreeEvolveThreadInitialize>
   subroutine Tree_Node_Methods_Exponential_Disk_Thread_Initialize
     !% Initializes each thread for the tree node exponential disk methods module.
-    use Memory_Management
     implicit none
 
     ! Check if this implementation is selected.
@@ -397,7 +396,6 @@ contains
     !% Trim histories attached to the disk.
     use Galacticus_Display
     use String_Handling
-    use Histories
 !    use Dark_Matter_Halo_Scales
 !    use Galacticus_Error
     implicit none
@@ -504,7 +502,6 @@ contains
 
   subroutine Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node exponential disk gas mass rate of change.
-    use Cosmological_Parameters
     implicit none
     integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -530,8 +527,6 @@ contains
 
   subroutine Tree_Node_Disk_Gas_Mass_Rate_Compute_Exponential(thisNode,interrupt,interruptProcedure)
     !% Compute the exponential disk node mass rate of change.
-    use Cosmological_Parameters
-    use Cooling_Rates
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
@@ -572,7 +567,6 @@ contains
 
   subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node exponential disk stellar mass rate of change.
-    use Cosmological_Parameters
     implicit none
     integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -598,8 +592,6 @@ contains
 
   subroutine Tree_Node_Disk_Stellar_Mass_Rate_Compute_Exponential(thisNode,interrupt,interruptProcedureReturn)
     !% Compute the exponential disk node mass rate of change.
-    use Cosmological_Parameters
-    use Cooling_Rates
     use Star_Formation_Feedback_Disks
     use Star_Formation_Feedback_Expulsion_Disks
     use Galactic_Structure_Options
@@ -808,7 +800,6 @@ contains
 
   subroutine Tree_Node_Disk_Gas_Abundances_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the node exponential disk gas abundance masses rates of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -863,7 +854,6 @@ contains
 
   subroutine Tree_Node_Disk_Stellar_Abundances_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the node exponential disk stellar abundance masses rates of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -918,7 +908,6 @@ contains
 
   subroutine Tree_Node_Disk_Stellar_Luminosities_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the node exponential disk stellar luminosity rates of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -973,7 +962,6 @@ contains
 
   subroutine Tree_Node_Disk_Angular_Momentum_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node exponential disk gas mass rate of change.
-    use Cosmological_Parameters
     implicit none
     integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -999,8 +987,6 @@ contains
 
   subroutine Tree_Node_Disk_Angular_Momentum_Rate_Compute_Exponential(thisNode,interrupt,interruptProcedure)
     !% Compute the exponential disk node mass rate of change.
-    use Cosmological_Parameters
-    use Cooling_Rates
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
@@ -1012,7 +998,6 @@ contains
 
   function Tree_Node_Disk_Stellar_Properties_History_Exponential(thisNode)
     !% Return the disk stellar properties history.
-    use Histories
     implicit none
     type(history)                          :: Tree_Node_Disk_Stellar_Properties_History_Exponential
     type(treeNode), pointer, intent(inout) :: thisNode
@@ -1042,7 +1027,6 @@ contains
 
   function Tree_Node_Disk_Star_Formation_History_Exponential(thisNode)
     !% Return the disk star formation history.
-    use Histories
     implicit none
     type(history)                          :: Tree_Node_Disk_Star_Formation_History_Exponential
     type(treeNode), pointer, intent(inout) :: thisNode
@@ -1432,7 +1416,6 @@ contains
     !% Computes the rotation curve gradient for an exponential disk.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     integer,          intent(in)             :: massType,componentType
@@ -1884,7 +1867,6 @@ contains
 
   subroutine Exponential_Disk_Create(thisNode)
     !% Creates an exponential disk component for {\tt thisNode}.
-    use ISO_Varying_String
     use Galacticus_Display
     use String_Handling
     implicit none
@@ -1910,9 +1892,7 @@ contains
   subroutine Galacticus_Output_Tree_Disk_Exponential_Names(integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of exponential disk properties to be written to the \glc\ output file.
-    use ISO_Varying_String
     use Stellar_Population_Properties_Luminosities
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
@@ -2135,7 +2115,6 @@ contains
   !# </nodeDumpTask>
   subroutine Tree_Node_Methods_Exponential_Disk_Dump(thisNode)
     !% Dump all properties of {\tt thisNode} to screen.
-    use ISO_Varying_String
     use Stellar_Population_Properties_Luminosities
     implicit none
     type(treeNode),   intent(inout), pointer       :: thisNode
@@ -2227,7 +2206,6 @@ contains
   !# </decodePropertyIdentifiersTask>
   subroutine Exponential_Disk_Property_Identifiers_Decode(propertyComponent,propertyObject,propertyIndex,matchedProperty,propertyName)
     !% Decodes property identifiers to property names for the exponential disk module.
-    use ISO_Varying_String
     implicit none
     integer,              intent(in)    :: propertyComponent,propertyObject,propertyIndex
     logical,              intent(inout) :: matchedProperty

@@ -92,7 +92,6 @@ contains
 
   double precision function Mass_from_Sigma(sigma)
     !% Computes the mass corresponding to the given fractional mass fluctuation in real-space spherical top hats.
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in) :: sigma
     integer                      :: iMass
@@ -149,7 +148,6 @@ contains
   double precision function sigma_CDM_Logarithmic_Derivative(mass)
     !% Computes the logarithmic derivative in the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt
     !% mass}.
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in) :: mass
     double precision             :: sigma
@@ -203,7 +201,6 @@ contains
     use Numerical_Ranges
     use Numerical_Constants_Math
     use Numerical_Interpolation
-    use Array_Utilities
     implicit none
     double precision, intent(in) :: logMass
     integer                      :: iMass

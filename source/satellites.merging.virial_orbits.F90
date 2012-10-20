@@ -38,12 +38,8 @@ contains
 
   function Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
     !% Returns virial orbital parameters.
-    use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
     use Input_Parameters
-    use Root_Finder
-    use FGSL
-    use Dark_Matter_Halo_Scales
     use Kepler_Orbits_Structure
     !# <include directive="virialOrbitsMethod" type="moduleUse">
     include 'satellites.merging.virial_orbits.modules.inc'

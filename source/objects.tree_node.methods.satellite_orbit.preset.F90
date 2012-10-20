@@ -22,7 +22,6 @@
 module Tree_Node_Methods_Satellite_Orbit_Preset
   !% Implement satellite orbit tree node methods in which properties are preset.
   use Tree_Nodes
-  use Components
   implicit none
   private
   public :: Tree_Node_Methods_Satellite_Orbit_Initialize_Preset, Satellite_Orbit_Create_Preset, Galacticus_Output_Tree_Satellite_Orbit_Preset,&
@@ -72,8 +71,6 @@ contains
   subroutine Tree_Node_Methods_Satellite_Orbit_Initialize_Preset(componentOption,componentTypeCount)
     !% Initializes the tree node satellite orbit methods module.
     use ISO_Varying_String
-    use Input_Parameters
-    use Galacticus_Error
     use Galacticus_Display
     use String_Handling
     implicit none
@@ -274,7 +271,6 @@ contains
   subroutine Tree_Node_Satellite_Virial_Orbit_Set_Preset(thisNode,thisOrbit)
     !% Set the orbit of the satellite at the virial radius.
     use Kepler_Orbits_Structure
-    use Galacticus_Error
     implicit none
     type(keplerOrbit),         intent(inout) :: thisOrbit
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -295,7 +291,6 @@ contains
   function Tree_Node_Satellite_Virial_Orbit_Preset(thisNode) result (thisOrbit)
     !% Return the orbit of the satellite at the virial radius.
     use Kepler_Orbits_Structure
-    use Virial_Orbits
     implicit none
     type(keplerOrbit)                        :: thisOrbit
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -344,7 +339,6 @@ contains
   subroutine Tree_Node_Satellite_Preset_Promote(thisNode)
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
     !% from the parent.
-    use Galacticus_Error
     use Kepler_Orbits_Structure
     use Histories
     implicit none
@@ -447,8 +441,6 @@ contains
   subroutine Galacticus_Output_Tree_Satellite_Orbit_Preset(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store satellite orbit properties in the \glc\ output file buffers.
-    use Histories
-    use Tree_Nodes
     use Kind_Numbers
     implicit none
     double precision,        intent(in)             :: time

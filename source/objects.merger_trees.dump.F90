@@ -38,7 +38,6 @@ contains
     !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
     !% specified.
     use Tree_Nodes
-    use Input_Parameters
     implicit none
     integer(kind=kind_int8), intent(in)                         :: treeIndex
     type(treeNode),          intent(in), pointer                :: baseNode

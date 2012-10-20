@@ -64,7 +64,6 @@ contains
   integer function IMF_Select_Fixed(starFormationRate,fuelAbundances,component)
     !% Return our selection of stellar initial mass function.
     use Abundances_Structure
-    use Galactic_Structure_Options
     implicit none
     double precision,          intent(in) :: starFormationRate
     type(abundancesStructure), intent(in) :: fuelAbundances
