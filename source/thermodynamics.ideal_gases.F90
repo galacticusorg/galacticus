@@ -38,9 +38,7 @@ contains
   double precision function Ideal_Gas_Sound_Speed(temperature,meanAtomicMass)
     !% Return the sound speed (in km/s) for an ideal gas of given {\tt temperature} and (optionally) {\tt meanAtomicMass}.
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Atomic
     implicit none
     double precision, intent(in)           :: temperature
     double precision, intent(in), optional :: meanAtomicMass

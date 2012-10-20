@@ -46,8 +46,6 @@ contains
     !% Computes the factor by which the spectrum of a galaxy at given {\tt redshift} is attenuated at the given {\tt wavelength}
     !% by the intervening intergalactic medium according to \cite{madau_radiative_1995}.
     use Numerical_Constants_Atomic
-    use Factorials
-    use Gamma_Functions
     implicit none
     double precision, intent(in)              :: wavelength,redshift
     double precision, intent(inout)           :: modifier

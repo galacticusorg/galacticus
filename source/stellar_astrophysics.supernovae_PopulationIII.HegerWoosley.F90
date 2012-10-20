@@ -34,8 +34,6 @@ contains
   !# </supernovaePopIIIMethod>
   subroutine Supernovae_Population_III_HegerWoosley_Initialize(supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get)
     !% Initialize the ``Heger-Woosley2002'' Population III supernovae module.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use ISO_Varying_String
     use Galacticus_Error

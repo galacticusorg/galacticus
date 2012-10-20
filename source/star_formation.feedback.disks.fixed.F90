@@ -19,7 +19,6 @@
 
 module Star_Formation_Feedback_Disks_Fixed
   !% Implements a fixed outflow rate due to star formation feedback in galactic disks.
-  use Tree_Nodes
   implicit none
   private
   public :: Star_Formation_Feedback_Disks_Fixed_Initialize

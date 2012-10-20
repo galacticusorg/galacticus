@@ -37,7 +37,6 @@ contains
     use FoX_wxml
     use System_Command
     use Intergalactic_Medium_State_File
-    use Cosmology_Functions
     use Cosmological_Parameters
     use Numerical_Constants_Astronomical
     use Input_Parameters

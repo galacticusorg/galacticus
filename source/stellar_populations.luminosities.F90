@@ -58,7 +58,6 @@ contains
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} and {\tt age} drawn from IMF
     !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}.
     use Memory_Management
-    use Abundances_Structure
     use Stellar_Population_Spectra
     use Instruments_Filters
     use Numerical_Integration
@@ -300,12 +299,8 @@ contains
   
   function Filter_Luminosity_Integrand_AB(wavelength,parameterPointer) bind(c)
     !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
-    use Stellar_Population_Spectra
     use Instruments_Filters
-    use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
     implicit none
     real(c_double)              :: Filter_Luminosity_Integrand_AB
     real(c_double),   value     :: wavelength

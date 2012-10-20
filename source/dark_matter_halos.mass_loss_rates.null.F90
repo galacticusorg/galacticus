@@ -19,7 +19,6 @@
 
 module Dark_Matter_Halos_Mass_Loss_Rates_Null
   !% Implements a null calculation of dark matter halo mass loss rates.
-  use Tree_Nodes
   implicit none
   private
   public :: Dark_Matter_Halos_Mass_Loss_Rate_Null_Initialize

@@ -33,7 +33,6 @@ contains
   subroutine Black_Hole_Binary_Separation_Growth_Rate_Null_Initialize(blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: blackHoleBinarySeparationGrowthRateMethod
     procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Separation_Growth_Rate_Get
@@ -45,8 +44,6 @@ contains
   double precision function Black_Hole_Binary_Separation_Growth_Rate_Null(thisNode)
     !% Returns a separation growth rate for a binary black hole that is always zero.
     use Tree_Nodes
-    use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Physical
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

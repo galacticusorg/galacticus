@@ -123,7 +123,6 @@ contains
 
   double precision function Accretion_Disk_Radiative_Efficiency_Switched(thisNode,massAccretionRate)
     !% Computes the radiative efficiency for a switching accretion disk.
-    use Black_Hole_Fundamentals
     use Tree_Nodes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -158,7 +157,6 @@ contains
     !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from a switching accretion disk.
     !% disk.
     use Tree_Nodes
-    use Black_Hole_Fundamentals
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: massAccretionRate

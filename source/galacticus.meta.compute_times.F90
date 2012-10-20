@@ -19,9 +19,7 @@
 
 module Galacticus_Meta_Compute_Times
   !% Implements calculations of the time taken to process merger trees.
-  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Tree_Nodes
   implicit none
   private
   public :: Galacticus_Time_Per_Tree

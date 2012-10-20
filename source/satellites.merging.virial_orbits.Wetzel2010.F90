@@ -95,12 +95,10 @@ contains
     use Pseudo_Random
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Galacticus_Error
     use Critical_Overdensity
     use Numerical_Interpolation
     use Root_Finder
     use Cosmology_Functions
-    use FGSL
     use Kepler_Orbits_Structure
     implicit none
     type(keplerOrbit)                                :: thisOrbit
@@ -225,7 +223,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Virial_Orbital_Parameters_Wetzel2010_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
@@ -241,7 +238,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Virial_Orbital_Parameters_Wetzel2010_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile

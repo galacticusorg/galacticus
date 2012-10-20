@@ -310,7 +310,6 @@ contains
   subroutine Galacticus_Output_Tree_Basic_Non_Evolving(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store basic properties in the \glc\ output file buffers.
-    use Tree_Nodes
     use Kind_Numbers
     implicit none
     double precision,        intent(in)             :: time

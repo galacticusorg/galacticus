@@ -44,7 +44,6 @@ contains
     use Merger_Trees
     use Merger_Tree_Construction
     use Merger_Trees_Evolve
-    use Tree_Nodes
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
     use Input_Parameters

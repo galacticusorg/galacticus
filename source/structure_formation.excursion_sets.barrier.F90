@@ -20,7 +20,6 @@
 module Excursion_Sets_Barriers
   !% Implements calculations of barriers for excursion set calculations.
   use ISO_Varying_String
-  use Tree_Nodes
   private
   public :: Excursion_Sets_Barrier, Excursion_Sets_Barrier_Gradient, Excursion_Sets_Barrier_Name
 

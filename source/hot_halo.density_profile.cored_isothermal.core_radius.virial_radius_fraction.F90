@@ -21,7 +21,6 @@
 module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Virial_Fraction
   !% Implements a calculation of the core radius in the hot halo density profile that is a fixed fraction of
   !% the virial radius.
-  use Tree_Nodes
   implicit none
   private
   public :: Hot_Halo_Density_Cored_Isothermal_Core_Radii_VF_Initialize

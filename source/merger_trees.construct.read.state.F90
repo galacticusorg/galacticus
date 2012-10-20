@@ -32,7 +32,6 @@ contains
   subroutine Merger_Tree_Read_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
     use FGSL
-    use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
@@ -47,7 +46,6 @@ contains
   subroutine Merger_Tree_Read_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
     use FGSL
-    use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile

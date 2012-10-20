@@ -40,8 +40,6 @@ contains
   !# </stellarFeedbackMethod>
   subroutine Stellar_Feedback_Standard_Initialize(stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get)
     !% Initialize the ``standard'' stellar feedback module.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
     use ISO_Varying_String
     use Input_Parameters
     implicit none
@@ -84,7 +82,6 @@ contains
   double precision function Stellar_Feedback_Cumulative_Energy_Input_Standard(initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
     use Stellar_Astrophysics
     use Supernovae_Type_Ia
     use Supernovae_Population_III

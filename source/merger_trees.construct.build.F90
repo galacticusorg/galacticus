@@ -68,7 +68,6 @@ contains
     use Numerical_Ranges
     use Numerical_Integration
     use Numerical_Interpolation
-    use ISO_Varying_String
     use FoX_dom
     !# <include directive="mergerTreeBuildMethod" type="moduleUse">
     include 'merger_trees.build.modules.inc'
@@ -345,7 +344,6 @@ contains
     use Galacticus_State
     use Kind_Numbers
     use String_Handling
-    use ISO_Varying_String
     implicit none
     type(mergerTree),        intent(inout) :: thisTree
     logical,                 intent(in)    :: skipTree

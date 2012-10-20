@@ -24,7 +24,6 @@ program Tests_Excursion_Sets
   use Memory_Management
   use Cosmology_Functions
   use Cosmological_Parameters
-  use CDM_Power_Spectrum
   use Excursion_Sets_Barriers
   use Excursion_Sets_First_Crossings
   use Halo_Mass_Function

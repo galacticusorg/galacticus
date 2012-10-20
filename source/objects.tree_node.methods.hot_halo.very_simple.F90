@@ -62,11 +62,8 @@ contains
   subroutine Tree_Node_Methods_Hot_Halo_Initialize_Very_Simple(componentOption,componentTypeCount)
     !% Initializes the tree node hot halo methods module.
     use ISO_Varying_String
-    use Input_Parameters
     use String_Handling
     use Galacticus_Display
-    use Memory_Management
-    use Galacticus_Error
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
@@ -172,7 +169,6 @@ contains
 
   subroutine Tree_Node_Hot_Halo_Mass_Rate_Adjust_Very_Simple(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node hot halo mass rate of change.
-    use Cosmological_Parameters
     implicit none
     integer, intent(in), optional :: instance
     type(treeNode),   pointer, intent(inout) :: thisNode
@@ -189,7 +185,6 @@ contains
 
   subroutine Tree_Node_Hot_Halo_Mass_Rate_Compute_Very_Simple(thisNode,interrupt,interruptProcedure)
     !% Compute the hot halo node mass rate of change.
-    use Accretion_Halos
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
@@ -212,7 +207,6 @@ contains
   !# </scaleSetTask>
   subroutine Hot_Halo_Scale_Set_Very_Simple(thisNode)
     !% Set scales for properties of {\tt thisNode}.
-    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, parameter              :: scaleMassRelative=1.0d-3
@@ -263,7 +257,6 @@ contains
   !# </satelliteMergerTask>
   subroutine Hot_Halo_Remove_Before_Satellite_Merging_Very_Simple(thisNode)
     !% Remove any hot halo associated with {\tt thisNode} before it merges with its host halo.
-    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: hostNode
@@ -287,8 +280,6 @@ contains
   subroutine Tree_Node_Hot_Halo_Promote_Very_Simple(thisNode)
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
     !% thisNode} to account for any hot halo already in the parent.
-    use Galacticus_Error
-    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   pointer, intent(inout)     :: thisNode
     type(treeNode),   pointer                    :: parentNode
@@ -343,7 +334,6 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     use String_Handling
-    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),      pointer, intent(inout) :: thisNode
     type(varying_string)                        :: message
@@ -366,9 +356,7 @@ contains
   subroutine Galacticus_Output_Tree_Hot_Halo_Very_Simple_Names(integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of hot halo properties to be written to the \glc\ output file.
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use ISO_Varying_String
     implicit none
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
@@ -420,8 +408,6 @@ contains
   subroutine Galacticus_Output_Tree_Hot_Halo_Very_Simple(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store hot halo properties in the \glc\ output file buffers.
-    use Tree_Nodes
-    use Cooling_Radii
     use Kind_Numbers
     implicit none
     double precision,        intent(in)                 :: time
@@ -442,7 +428,6 @@ contains
   !# </nodeDumpTask>
   subroutine Tree_Node_Methods_Hot_Halo_Very_Simple_Dump(thisNode)
     !% Dump all properties of {\tt thisNode} to screen.
-    use ISO_Varying_String
     implicit none
     type(treeNode),   intent(inout), pointer     :: thisNode
 

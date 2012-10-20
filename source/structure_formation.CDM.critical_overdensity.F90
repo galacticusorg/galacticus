@@ -129,7 +129,6 @@ contains
   double precision function Critical_Overdensity_Collapsing_Mass(time,aExpansion,collapsing)
     !% Return the mass scale just collapsing at the given cosmic time.
     use Root_Finder
-    use FGSL
     use Cosmology_Functions
     implicit none
     double precision,        intent(in), optional :: aExpansion,time

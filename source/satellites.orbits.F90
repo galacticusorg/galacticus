@@ -91,7 +91,6 @@ contains
     use Root_Finder
     use FGSL
     use Kepler_Orbits_Structure
-    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),          pointer, intent(inout) :: hostNode
     type(keplerOrbit),                intent(inout) :: thisOrbit

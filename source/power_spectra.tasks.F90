@@ -135,7 +135,6 @@ contains
   subroutine Power_Spectrum_Output
     !% Outputs power spectrum data.
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
     implicit none
     type(hdf5Object) :: thisDataset,powerSpectrumGroup
 

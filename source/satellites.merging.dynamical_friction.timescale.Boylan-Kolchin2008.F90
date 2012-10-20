@@ -31,7 +31,6 @@ contains
   subroutine Satellite_Time_Until_Merging_BoylanKolchin2008_Initialize(satelliteMergingMethod,Satellite_Time_Until_Merging)
     !% Determine if this method is to be used and set pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type(varying_string), intent(in)    :: satelliteMergingMethod
     procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
@@ -44,7 +43,6 @@ contains
     !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
     use Dark_Matter_Profiles
     use Dynamical_Friction_Timescale_Utilities
     use Kepler_Orbits_Structure

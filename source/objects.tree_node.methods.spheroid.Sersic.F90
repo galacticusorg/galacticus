@@ -154,10 +154,8 @@ contains
     use Input_Parameters
     use String_Handling
     use Galacticus_Display
-    use Galacticus_Error
     use Stellar_Population_Properties_Luminosities
     use Abundances_Structure
-    use Memory_Management
     implicit none
     type(varying_string), intent(in)    :: componentOption
     integer,              intent(inout) :: componentTypeCount
@@ -356,7 +354,6 @@ contains
     use Galacticus_Display
     use String_Handling
     use ISO_Varying_String
-    use Histories
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     double precision, save                   :: fractionalErrorMaximum=0.0d0
@@ -559,7 +556,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node S\'ersic spheroid gas mass rate of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
     logical,                    intent(inout) :: interrupt
@@ -585,8 +581,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Gas_Mass_Rate_Compute_Sersic(thisNode,interrupt,interruptProcedure)
     !% Compute the S\'ersic spheroid node mass rate of change.
-    use Cosmological_Parameters
-    use Cooling_Rates
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
@@ -627,7 +621,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node S\'ersic spheroid stellar mass rate of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
     logical,                    intent(inout) :: interrupt
@@ -653,8 +646,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Stellar_Mass_Rate_Compute_Sersic(thisNode,interrupt,interruptProcedure)
     !% Compute the S\'ersic spheroid node mass rate of change.
-    use Cosmological_Parameters
-    use Cooling_Rates
     use Star_Formation_Feedback_Spheroids
     use Star_Formation_Feedback_Expulsion_Spheroids
     use Abundances_Structure
@@ -787,7 +778,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Gas_Abundances_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the node S\'ersic spheroid gas abundance masses rates of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -842,7 +832,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Stellar_Abundances_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the node S\'ersic spheroid stellar abundance masses rates of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -897,7 +886,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Stellar_Luminosities_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the node S\'ersic spheroid stellar luminosity rates of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer, intent(inout) :: thisNode
     logical,                   intent(inout) :: interrupt
@@ -952,7 +940,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Angular_Momentum_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
     !% Return the node S\'ersic spheroid gas mass rate of change.
-    use Cosmological_Parameters
     implicit none
     type(treeNode),   pointer,  intent(inout) :: thisNode
     logical,                    intent(inout) :: interrupt
@@ -978,8 +965,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Angular_Momentum_Rate_Compute_Sersic(thisNode,interrupt,interruptProcedure)
     !% Compute the S\'ersic spheroid node mass rate of change.
-    use Cosmological_Parameters
-    use Cooling_Rates
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     logical,                 intent(inout) :: interrupt
@@ -991,7 +976,6 @@ contains
 
   function Tree_Node_Spheroid_Stellar_Properties_History_Sersic(thisNode)
     !% Return spheroid stellar properties history.
-    use Histories
     implicit none
     type(history)                          :: Tree_Node_Spheroid_Stellar_Properties_History_Sersic
     type(treeNode), pointer, intent(inout) :: thisNode
@@ -1021,8 +1005,6 @@ contains
 
   function Tree_Node_Spheroid_Star_Formation_History_Sersic(thisNode)
     !% Return the spheroid star formation history.
-    use Histories
-    use Galacticus_Output_Star_Formation_Histories
     implicit none
     type(history)                          :: Tree_Node_Spheroid_Star_Formation_History_Sersic
     type(treeNode), pointer, intent(inout) :: thisNode
@@ -1052,7 +1034,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Stellar_Prprts_History_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the rates for the stellar properties history.
-    use Histories
     implicit none
     type(treeNode),  pointer, intent(inout) :: thisNode
     logical,                  intent(inout) :: interrupt
@@ -1078,7 +1059,6 @@ contains
 
   subroutine Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust_Sersic(thisNode,interrupt,interruptProcedure,rateAdjustments)
     !% Adjust the rates for the star formation history.
-    use Histories
     use Galacticus_Error
     use Memory_Management
     implicit none
@@ -1443,7 +1423,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Sersic_Profile_Tabulate_State_Store(stateFile,fgslStateFile)
     !% Write the history state to file.
-    use FGSL
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
@@ -1457,7 +1436,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Sersic_Profile_Tabulate_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the history state from the file.
-    use FGSL
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
@@ -1475,7 +1453,6 @@ contains
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Constants_Math         
-    use FGSL
     implicit none
     double precision,                intent(in), optional :: radius
     double precision,                parameter            :: radiusMaximumToTabulate=1000.0d0
@@ -1757,10 +1734,8 @@ contains
   !# </rotationCurveGradientTask>
   subroutine Sersic_Spheroid_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,componentRotationCurveGradient)
     !% Computes the rotation curve gradient for the S\'ersic spheroid.
-    use Tree_Nodes
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Math
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -1796,7 +1771,6 @@ contains
   subroutine Sersic_Spheroid_Density(thisNode,positionSpherical,massType,componentType,componentDensity)
     !% Computes the density at a given position for an S\'ersic spheroid.
     use Galactic_Structure_Options
-    use Numerical_Constants_Math
     use Numerical_Interpolation
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -2052,7 +2026,6 @@ contains
 
   subroutine Sersic_Spheroid_Star_Formation_History_Extend(thisNode)
     !% Extend the range of a star formation history in a Sersic spheroid component for {\tt thisNode}.
-    use Histories
     implicit none
     type(treeNode),      pointer, intent(inout) :: thisNode
     integer                                     :: thisIndex
@@ -2075,7 +2048,6 @@ contains
     use Abundances_Structure
     use ISO_Varying_String
     use Stellar_Population_Properties_Luminosities
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in)                  :: time
@@ -2247,7 +2219,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store S\'ersic spheroid properties in the \glc\ output file buffers.
     use Stellar_Population_Properties_Luminosities
-    use Tree_Nodes
     use Kind_Numbers
     implicit none
     double precision,        intent(in)                   :: time
@@ -2338,7 +2309,6 @@ contains
   subroutine Sersic_Spheroid_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use Kind_Numbers
-    use Tree_Nodes
     use Galacticus_Output_Star_Formation_Histories
     implicit none
     type(treeNode),          intent(inout), pointer      :: thisNode

@@ -19,7 +19,6 @@
 
 module Dark_Matter_Profiles_Isothermal
   !% Implements a isothermal halo spin distribution.
-  use Tree_Nodes
   implicit none
   private
   public :: Dark_Matter_Profile_Isothermal_Initialize
@@ -136,7 +135,6 @@ contains
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -199,7 +197,6 @@ contains
     !% \end{equation}
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -218,7 +215,6 @@ contains
     !% \end{equation}
     use Tree_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

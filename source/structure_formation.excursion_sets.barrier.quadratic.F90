@@ -18,7 +18,6 @@
 !% Contains a module which implements a quadratic barrier for excursion set calculations of dark matter halo formation.
 
 module Excursion_Sets_Barriers_Quadratic
-  use FGSL
   !% Implements a quadratic barrier for excursion set calculations of dark matter halo formation.
   private
   public :: Excursion_Sets_Barriers_Quadratic_Initialize

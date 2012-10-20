@@ -20,7 +20,6 @@
 module Tree_Node_Methods_Positions_Preset
   !% Implements node positions using preset data.
   use Tree_Nodes
-  use Components
   implicit none
   private
   public :: Tree_Node_Methods_Position_Initialize_Preset, Galacticus_Output_Tree_Position_Preset,&
@@ -63,8 +62,6 @@ contains
   subroutine Tree_Node_Methods_Position_Initialize_Preset(componentOption,componentTypeCount)
     !% Initializes the tree node preset position methods module.
     use ISO_Varying_String
-    use Input_Parameters
-    use Galacticus_Error
     use Galacticus_Display
     use String_Handling
     implicit none
@@ -418,8 +415,6 @@ contains
   subroutine Galacticus_Output_Tree_Position_Preset(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store position properties in the \glc\ output file buffers.
-    use Histories
-    use Tree_Nodes
     use Kind_Numbers
     implicit none
     double precision,        intent(in)             :: time
@@ -453,7 +448,6 @@ contains
   !# </nodeDumpTask>
   subroutine Tree_Node_Methods_Position_Preset_Dump(thisNode)
     !% Dump all properties of {\tt thisNode} to screen.
-    use Histories
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, dimension(3)           :: position,velocity

@@ -22,7 +22,6 @@ module Merger_Trees
   use, intrinsic :: ISO_C_Binding
   use               Tree_Nodes
   use               Components
-  use               FGSL
   use               Events_Interrupts
   use               IO_HDF5
   use               ISO_Varying_String
@@ -166,7 +165,6 @@ contains
 
   subroutine Merger_Tree_Destroy_Branch(thisTree,thisNode)
     !% Destroy a branch of a tree which begins at {\tt thisNode}.
-    use Tree_Nodes
     implicit none
     class(mergerTree),          intent(inout) :: thisTree
     type(treeNode),    pointer, intent(inout) :: thisNode
@@ -238,7 +236,6 @@ contains
 
   subroutine Tree_Node_Create_Initialize
     !% Initializes tree node create by calling all relevant initialization routines.
-    use ISO_Varying_String
     use Input_Parameters
     implicit none
     !# <include directive="treeNodeCreateInitialize" type="optionDefinitions">
@@ -276,7 +273,6 @@ contains
 
   subroutine Tree_Node_Promote(thisTree,thisNode)
     !% Transfer the properties of {\tt thisNode} to its parent node, then destroy it.
-    use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
     !# <include directive="nodePromotionTask" type="moduleUse">
@@ -865,7 +861,6 @@ contains
   subroutine Tree_Node_ODEs_Error_Handler()
     !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
     use Tree_Nodes_Dump
-    use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
     implicit none
@@ -881,9 +876,6 @@ contains
 #ifdef PROFILE
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
-    use FGSL
-    use ISO_Varying_String
-    use Galacticus_Meta_Evolver_Profiler
     !# <include directive="decodePropertyIdentifiersTask" type="moduleUse">
     include 'objects.merger_trees.decode_property_identifiers.modules.inc'
     !# </include>
@@ -988,7 +980,6 @@ contains
   
   function Tree_Node_Get(thisTree,nodeIndex)
     !% Return a pointer to a node in {\tt thisTree} given the index of the node.
-    use Tree_Nodes
     implicit none
     class(mergerTree),       intent(in) :: thisTree
     integer(kind=kind_int8), intent(in) :: nodeIndex

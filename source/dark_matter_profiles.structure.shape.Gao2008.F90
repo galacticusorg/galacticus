@@ -19,7 +19,6 @@
 
 module Dark_Matter_Profiles_Shapes_Gao2008
   !% Implements the \cite{gao_redshift_2008} Einasto halo shape algorithm.
-  use Tree_Nodes
   implicit none
   private
   public :: Dark_Matter_Shapes_Gao2008_Initialize

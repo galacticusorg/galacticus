@@ -19,8 +19,6 @@
 
 module Numerical_Constants_Astronomical
   !% Contains various useful astronomical constants.
-  use FGSL
-  use Numerical_Constants_Prefixes
   use Numerical_Constants_Atomic
   use Numerical_Constants_Math
   use Numerical_Constants_Units

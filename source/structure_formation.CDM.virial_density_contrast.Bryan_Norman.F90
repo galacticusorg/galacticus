@@ -38,7 +38,6 @@ contains
   !# </virialDensityContrastMethod>
   subroutine Virial_Density_Bryan_Norman_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
     !% Initializes the $\Delta_{\rm vir}$ calculation for the \cite{bryan_statistical_1998} fitting function module.
-    use Input_Parameters
     use ISO_Varying_String
     use Numerical_Comparison
     use Galacticus_Error

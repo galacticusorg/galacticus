@@ -122,7 +122,6 @@ contains
   !# </mergerTreePostEvolveTask>
   subroutine Meta_Tree_Timing_Post_Evolve()
     !% Record the CPU time after evolving a tree.
-    use Merger_Trees
     use Memory_Management
     implicit none
     double precision, allocatable, dimension(:) :: treeMassesTemporary,treeConstructTimesTemporary,treeEvolveTimesTemporary
@@ -169,8 +168,6 @@ contains
   !# </hdfPreCloseTask>
   subroutine Meta_Tree_Timing_Output
     !% Outputs collected meta-data on tree evolution.
-    use ISO_Varying_String
-    use IO_HDF5
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none

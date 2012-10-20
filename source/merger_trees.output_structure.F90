@@ -47,13 +47,10 @@ contains
     use Input_Parameters
     use Memory_Management
     use Galacticus_HDF5
-    use IO_HDF5
     use ISO_Varying_String
     use String_Handling
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
-    use Kind_Numbers
     !# <include directive="mergerTreeStructureOutputTask" type="moduleUse">
     include 'merger_trees.output_structure.tasks.modules.inc'
     !# </include>
