@@ -19,7 +19,7 @@
 
 module Dark_Matter_Halo_Mass_Accretion_Histories_Zhao2009
   !% Implements the \cite{zhao_accurate_2009} halo mass accretion algorithm.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use, intrinsic :: ISO_C_Binding
   use FGSL
   implicit none
@@ -64,22 +64,23 @@ contains
   double precision function Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009(baseNode,nodeMass)
     !% Compute the time corresponding to {\tt nodeMass} in the mass accretion history of {\tt thisNode} using the algorithm of
     !% \cite{zhao_accurate_2009}.
-    use Tree_Nodes
     use ODE_Solver
     use Galacticus_Error
     use CDM_Power_Spectrum
     use Critical_Overdensity
     implicit none
-    type(treeNode),   intent(inout), pointer :: baseNode
-    double precision, intent(in)             :: nodeMass
-    double precision, parameter              :: odeToleranceAbsolute=1.0d-10, odeToleranceRelative=1.0d-10
-    double precision, dimension(1)           :: nowTime
-    double precision                         :: currentMass
-    type(c_ptr)                              :: parameterPointer
+    type (treeNode          ), intent(inout), pointer :: baseNode
+    double precision,          intent(in  )           :: nodeMass
+    class(nodeComponentBasic),                pointer :: baseBasicComponent
+    double precision,          parameter              :: odeToleranceAbsolute=1.0d-10, odeToleranceRelative=1.0d-10
+    double precision,          dimension(1)           :: nowTime
+    double precision                                  :: currentMass
+    type(c_ptr)                                       :: parameterPointer
 
     ! Get properties of the base node.
-    baseMass=Tree_Node_Mass(baseNode)
-    baseTime=Tree_Node_Time(baseNode)
+    baseBasicComponent => baseNode%basic()
+    baseMass=baseBasicComponent%mass()
+    baseTime=baseBasicComponent%time()
 
     ! Trap cases where the mass occurs in the future.
     if (nodeMass > baseMass) call Galacticus_Error_Report('Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009','specified mass is in the future')

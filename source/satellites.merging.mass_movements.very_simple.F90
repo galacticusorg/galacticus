@@ -44,7 +44,7 @@ contains
 
   subroutine Satellite_Merging_Mass_Movement_Very_Simple(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
     !% Determine where stars and gas move as the result of a merger event using a simple algorithm.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none

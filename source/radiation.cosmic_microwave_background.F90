@@ -36,13 +36,14 @@ contains
   !# </radiationSet>
   subroutine Radiation_Set_CMB(componentMatched,thisNode,radiationProperties)
     !% Property setting routine for the cosmic microwave background radiation component.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Memory_Management
     use Cosmology_Functions
     implicit none
-    logical,          intent(in)                               :: componentMatched
-    type(treeNode),   intent(inout), pointer                   :: thisNode
-    double precision, intent(inout), allocatable, dimension(:) :: radiationProperties
+    logical                  , intent(in   )                            :: componentMatched
+    type (treeNode          ), intent(inout), pointer                   :: thisNode
+    double precision         , intent(inout), allocatable, dimension(:) :: radiationProperties
+    class(nodeComponentBasic),                pointer                   :: thisBasicComponent
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return
@@ -51,7 +52,8 @@ contains
     if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
 
     ! Set the CMB temperature.
-    radiationProperties(1)=CMB_Temperature(Tree_Node_Time(thisNode))
+    thisBasicComponent => thisNode%basic()
+    radiationProperties(1)=CMB_Temperature(thisBasicComponent%time())
 
     return
   end subroutine Radiation_Set_CMB

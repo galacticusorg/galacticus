@@ -93,7 +93,7 @@ contains
        call IO_HDF5_Set_Defaults(hdf5ChunkSize,hdf5CompressionLevel)
 
        ! Call all routines that requested to output to the file on start up.
-       !# <include directive="outputFileOpenTask" type="code" action="subroutine">
+       !# <include directive="outputFileOpenTask" type="functionCall" functionType="void">
        include 'galacticus.output.open.inc'
        !# </include>
 
@@ -111,7 +111,7 @@ contains
     implicit none
 
     ! Perform any final tasks prior to shutdown.
-    !# <include directive="hdfPreCloseTask" type="code" action="subroutine">
+    !# <include directive="hdfPreCloseTask" type="functionCall" functionType="void">
     include 'galacticus.output.HDF5.pre_close_tasks.inc'
     !# </include>
 

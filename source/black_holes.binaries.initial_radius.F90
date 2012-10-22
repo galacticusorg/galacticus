@@ -39,7 +39,7 @@ contains
     !% Computes the initial radius of a newly formed black hole binary.
     use Galacticus_Error
     use Input_Parameters
-    use Tree_Nodes
+    use Galacticus_Nodes
     !# <include directive="blackHoleBinaryInitialRadiiMethod" type="moduleUse">
     include 'black_holes.binary.initial_radius.modules.inc'
     !# </include>
@@ -62,8 +62,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('blackHoleBinaryInitialRadiiMethod',blackHoleBinaryInitialRadiiMethod,defaultValue='spheroidRadiusFraction')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="blackHoleBinaryInitialRadiiMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get</subroutineArgs>
+          !# <include directive="blackHoleBinaryInitialRadiiMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get</functionArgs>
           include 'black_holes.binaries.initial_radius.inc'
           !# </include>
           if (.not.associated(Black_Hole_Binary_Initial_Radius_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Initial_Radius','method ' &

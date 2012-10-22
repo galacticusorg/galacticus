@@ -70,12 +70,12 @@ $binMax = $xBins->index(nelem($xBins)-1)+0.5*$binStep;
 # Factor to convert cold gas mass to HI mass from Power, Baugh & Lacey (2009; http://adsabs.harvard.edu/abs/2009arXiv0908.1396P).
 $gasMassToHIMassFactor = pdl 0.54;
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','diskGasMass','spheroidGasMass']);
+&HDF5::Get_Dataset($dataSet,['volumeWeight','diskMassGas','spheroidMassGas']);
 $dataSets           = $dataSet->{'dataSets'};
-$logarithmicGasMass = log10(($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'})*$gasMassToHIMassFactor);
+$logarithmicMassGas = log10(($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'})*$gasMassToHIMassFactor);
 $weight             = $dataSets->{'volumeWeight'};
 delete($dataSet->{'dataSets'});
-($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicGasMass,$weight,differential => 1);
+($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicMassGas,$weight,differential => 1);
 
 # Compute chi^2.
 $chiSquared = sum(($yGalacticus-$y)**2/($errorGalacticus**2+(0.5*($errorUp-$errorDown))**2));

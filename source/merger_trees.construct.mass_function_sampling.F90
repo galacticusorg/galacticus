@@ -65,8 +65,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('haloMassFunctionSamplingMethod',haloMassFunctionSamplingMethod,defaultValue='powerLaw')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="haloMassFunctionSamplingMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get</subroutineArgs>
+       !# <include directive="haloMassFunctionSamplingMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get</functionArgs>
        include 'merger_trees.construct.mass_function_sampling.inc'
        !# </include>
        if     (                                                                   &

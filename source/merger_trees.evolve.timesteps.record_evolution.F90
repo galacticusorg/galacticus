@@ -53,7 +53,7 @@ contains
   !# </timeStepsTask>
   subroutine Merger_Tree_Timestep_Record_Evolution(thisNode,timeStep,End_Of_Timestep_Task,report)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
@@ -62,10 +62,11 @@ contains
     use Merger_Trees_Evolve_Timesteps_Template
     use Evolve_To_Time_Reports
     implicit none
-    type(treeNode),                           intent(inout), pointer :: thisNode
+    type     (treeNode                     ), intent(inout), pointer :: thisNode
     procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
-    double precision,                         intent(inout)          :: timeStep
-    logical,                                  intent(in)             :: report
+    double precision                        , intent(inout)          :: timeStep
+    logical                                 , intent(in   )          :: report
+    class    (nodeComponentBasic           ),                pointer :: thisBasicComponent
     integer                                                          :: timeIndex
     double precision                                                 :: time,ourTimeStep
     
@@ -145,7 +146,8 @@ contains
     ! Adjust timestep if applicable.
     if (timestepRecordEvolution.and.thisNode%isOnMainBranch()) then
        ! Get current cosmic time.
-       time=Tree_Node_Time(thisNode)
+       thisBasicComponent => thisNode%basic()
+       time=thisBasicComponent%time()
        
        ! Determine how long until next available timestep.
        timeIndex=Interpolate_Locate(timestepRecordEvolutionSteps,evolutionTime,interpolationAccelerator,time)
@@ -167,18 +169,20 @@ contains
   subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode)
     !% Store properties of the main progenitor galaxy.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Interpolation
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type(mergerTree), intent(in)             :: thisTree
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer                                  :: timeIndex
-    double precision                         :: time
+    type (mergerTree        ), intent(in   )          :: thisTree
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    integer                                           :: timeIndex
+    double precision                                  :: time
 
     ! Get current cosmic time.
-    time=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    time=thisBasicComponent%time()
 
     ! Determine how long until next available timestep.
     if (time == evolutionTime(timestepRecordEvolutionSteps)) then
@@ -199,7 +203,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Merger_Tree_Record_Evolution_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use IO_HDF5
     use Galacticus_HDF5
     use Galacticus_Output_Times

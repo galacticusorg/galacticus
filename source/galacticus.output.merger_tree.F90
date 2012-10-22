@@ -67,7 +67,7 @@ contains
 
   subroutine Galacticus_Merger_Tree_Output(thisTree,iOutput,time,isLastOutput)
     !% Write properties of nodes in {\tt thisTree} to the \glc\ output file.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Output_Open
     use Galacticus_Merger_Tree_Output_Filters
     use Input_Parameters
@@ -78,15 +78,16 @@ contains
     include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
     !# </include>
     implicit none
-    type(mergerTree),      intent(inout)          :: thisTree
-    integer,               intent(in)             :: iOutput
-    double precision,      intent(in)             :: time
-    logical,               intent(in),   optional :: isLastOutput
-    type(treeNode),        pointer                :: thisNode
-    integer(kind=HSIZE_T), dimension(1)           :: referenceStart,referenceLength
-    integer                                       :: integerProperty,doubleProperty,iProperty,iGroup
-    logical                                       :: nodePassesFilter
-    type(hdf5Object)                              :: toDataset
+    type(mergerTree),          intent(inout)          :: thisTree
+    integer,                   intent(in)             :: iOutput
+    double precision,          intent(in)             :: time
+    logical,                   intent(in),   optional :: isLastOutput
+    type(treeNode),            pointer                :: thisNode
+    integer(kind=HSIZE_T),     dimension(1)           :: referenceStart,referenceLength
+    class(nodeComponentBasic), pointer                :: thisBasicComponent
+    integer                                           :: integerProperty,doubleProperty,iProperty,iGroup
+    logical                                           :: nodePassesFilter
+    type(hdf5Object)                                  :: toDataset
 
     ! Initialize if necessary.
     !$omp critical(Merger_Tree_Output)
@@ -120,21 +121,25 @@ contains
     ! Ensure that the output filter subsystem is initialized.
     call Galacticus_Merger_Tree_Output_Filter_Initialize()
 
+    ! Get the base node of the tree.
+    thisNode => thisTree%baseNode
+
     ! Count up the number of properties to be output.
-    call Count_Properties(time)
+    call Count_Properties        (time,thisNode)
 
     ! Ensure buffers are allocated for temporary property storage.
     call Allocate_Buffers
 
     ! Get names for all properties to be output.
-    call Establish_Property_Names(time)
+    call Establish_Property_Names(time,thisNode)
 
     ! Loop over all nodes in the tree.
     integerPropertiesWritten=0
     doublePropertiesWritten =0
-    thisNode => thisTree%baseNode
     do while (associated(thisNode))
-       if (Tree_Node_Time(thisNode) == time) then
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
+       if (thisBasicComponent%time() == time) then
           nodePassesFilter=Galacticus_Merger_Tree_Output_Filter(thisNode)
           if (nodePassesFilter) then
              ! Establish node link properties.
@@ -148,8 +153,9 @@ contains
              end if
              
              ! Establish all other properties.
-             !# <include directive="mergerTreeOutputTask" type="code" action="subroutine">
-             !#  <subroutineArgs>thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time</subroutineArgs>
+             call thisNode%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)
+             !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
+             !#  <functionArgs>thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time</functionArgs>
              include 'galacticus.output.merger_tree.tasks.inc'
              !# </include>
              
@@ -160,8 +166,8 @@ contains
           end if
 
           ! Do any extra output tasks.
-          !# <include directive="mergerTreeExtraOutputTask" type="code" action="subroutine">
-          !#  <subroutineArgs>thisNode,iOutput,thisTree%index,nodePassesFilter</subroutineArgs>
+          !# <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
+          !#  <functionArgs>thisNode,iOutput,thisTree%index,nodePassesFilter</functionArgs>
           include 'galacticus.output.merger_tree.tasks.extra.inc'
           !# </include>
 
@@ -330,18 +336,21 @@ contains
     return
   end subroutine Double_Buffer_Dump
 
-  subroutine Count_Properties(time)
+  subroutine Count_Properties(time,thisNode)
     !% Count up the number of properties that will be output.
+    use Galacticus_Nodes
     !# <include directive="mergerTreeOutputPropertyCount" type="moduleUse">
     include 'galacticus.output.merger_tree.property_count.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in) :: time
+    double precision, intent(in   )          :: time
+    type(treeNode),   intent(inout), pointer :: thisNode
 
     integerPropertyCount=0
-    doublePropertyCount=0
-    !# <include directive="mergerTreeOutputPropertyCount" type="code" action="subroutine">
-    !#  <subroutineArgs>integerPropertyCount,doublePropertyCount,time</subroutineArgs>
+    doublePropertyCount =0
+    call thisNode%outputCount(integerPropertyCount,doublePropertyCount,time)
+    !# <include directive="mergerTreeOutputPropertyCount" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,integerPropertyCount,doublePropertyCount,time</functionArgs>
     include 'galacticus.output.merger_tree.property_count.inc'
     !# </include>
     return
@@ -379,19 +388,22 @@ contains
     return
   end subroutine Allocate_Buffers
 
-  subroutine Establish_Property_Names(time)
+  subroutine Establish_Property_Names(time,thisNode)
     !% Set names for the properties.
+    use Galacticus_Nodes
     !# <include directive="mergerTreeOutputNames" type="moduleUse">
     include 'galacticus.output.merger_tree.names.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in) :: time
-    integer                      :: integerProperty,doubleProperty
+    double precision, intent(in   )          :: time
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer                                  :: integerProperty,doubleProperty
 
     integerProperty=0
     doubleProperty =0
-    !# <include directive="mergerTreeOutputNames" type="code" action="subroutine">
-    !#  <subroutineArgs>integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time</subroutineArgs>
+    call thisNode%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
+    !# <include directive="mergerTreeOutputNames" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time</functionArgs>
     include 'galacticus.output.merger_tree.names.inc'
     !# </include>
 
@@ -471,8 +483,8 @@ contains
        call outputGroups(iOutput)%hdf5Group%writeAttribute(Expansion_Factor(time),'outputExpansionFactor')
 
        ! Establish all other properties.
-       !# <include directive="outputGroupOutputTask" type="code" action="subroutine">
-       !#  <subroutineArgs>outputGroups(iOutput)%hdf5Group,time</subroutineArgs>
+       !# <include directive="outputGroupOutputTask" type="functionCall" functionType="void">
+       !#  <functionArgs>outputGroups(iOutput)%hdf5Group,time</functionArgs>
        include 'galacticus.output.merger_tree.outputGroup.tasks.inc'
        !# </include>
 

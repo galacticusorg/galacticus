@@ -19,7 +19,7 @@
 
 module Dark_Matter_Profiles_Einasto
   !% Implements Einasto halo profiles.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use FGSL
   implicit none
   private
@@ -141,10 +141,10 @@ contains
        Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto
        ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
        ! a treeNode to process, it should have been initialized by now.
-       if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call&
+       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable()) call &
             & Galacticus_Error_Report('Dark_Matter_Profile_Einasto_Initialize','Einasto dark matter profile requires a dark matter&
             & profile component that supports the "scale" property')
-       if (.not.associated(Tree_Node_Dark_Matter_Profile_Shape)) call&
+       if (.not.defaultDarkMatterProfileComponent%shapeIsGettable()) call &
             & Galacticus_Error_Report('Dark_Matter_Profile_Einasto_Initialize','Einasto dark matter profile requires a dark matter&
             & profile component that supports the "shape" property')
     end if
@@ -154,45 +154,59 @@ contains
   double precision function Dark_Matter_Profile_Density_Einasto(thisNode,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
     !% in units of Mpc).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: radius
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: scaleRadius,radiusOverScaleRadius&
+         &,virialRadiusOverScaleRadius,alpha
 
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
+    scaleRadius                =thisDarkMatterProfileComponent%scale()
+    alpha                      =thisDarkMatterProfileComponent%shape()
     radiusOverScaleRadius      =radius                                  /scaleRadius
     virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
     Dark_Matter_Profile_Density_Einasto=Density_Einasto_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
-         &*Tree_Node_Mass(thisNode)/scaleRadius**3
+         &*thisBasicComponent%mass()/scaleRadius**3
     return
   end function Dark_Matter_Profile_Density_Einasto
   
   double precision function Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: radius
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: scaleRadius,radiusOverScaleRadius&
+         &,virialRadiusOverScaleRadius,alpha
 
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
+    scaleRadius                =thisDarkMatterProfileComponent%scale()
+    alpha                      =thisDarkMatterProfileComponent%shape()
     radiusOverScaleRadius      =radius                                  /scaleRadius
     virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
     Dark_Matter_Profile_Enclosed_Mass_Einasto=Enclosed_Mass_Einasto_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
-         &*Tree_Node_Mass(thisNode)
+         &*thisBasicComponent%mass()
     return
   end function Dark_Matter_Profile_Enclosed_Mass_Einasto
 
   double precision function Dark_Matter_Profile_Circular_Velocity_Einasto(thisNode,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Physical
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -210,16 +224,23 @@ contains
   double precision function Dark_Matter_Profile_Potential_Einasto(thisNode,radius)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: radius
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: scaleRadius,radiusOverScaleRadius&
+         &,virialRadiusOverScaleRadius,alpha
 
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
+    scaleRadius                =thisDarkMatterProfileComponent%scale()
+    alpha                      =thisDarkMatterProfileComponent%shape()
     radiusOverScaleRadius      =radius                                  /scaleRadius
     virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
     Dark_Matter_Profile_Potential_Einasto=                                                                   &
@@ -227,24 +248,28 @@ contains
          &  -Potential_Einasto_Scale_Free(virialRadiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)     &
          &  -1.0d0/                                                   virialRadiusOverScaleRadius            &
          & )                                                                                                 &
-         & *gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)/scaleRadius
+         & *gravitationalConstantGalacticus*thisBasicComponent%mass()/scaleRadius
     return
   end function Dark_Matter_Profile_Potential_Einasto
     
   double precision function Radius_from_Specific_Angular_Momentum_Einasto(thisNode,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\tt thisNode} at which a circular orbit has the given {\tt specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: specificAngularMomentum
-    double precision                         :: scaleRadius,specificAngularMomentumScaleFree,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: specificAngularMomentum
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: scaleRadius,specificAngularMomentumScaleFree,alpha
   
+    ! Get components.
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get the scale radius of the halo.
-    scaleRadius=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    scaleRadius=thisDarkMatterProfileComponent%scale()
     ! Get the shape parameter of the halo.
-    alpha      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    alpha      =thisDarkMatterProfileComponent%shape()
     ! Compute the specific angular momentum in scale free units.
     specificAngularMomentumScaleFree=specificAngularMomentum/dsqrt(gravitationalConstantGalacticus*scaleRadius&
          &*Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,scaleRadius))
@@ -382,17 +407,21 @@ contains
 
   double precision function Dark_Matter_Profile_Rotation_Normalization_Einasto(thisNode)
     !% Return the rotation normalization of an Einasto halo density profile.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Math
     use Gamma_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: scaleRadius,virialRadiusOverScaleRadius,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: scaleRadius,virialRadiusOverScaleRadius,alpha
+
+    ! Get components.
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
 
     ! Get scale radius, shape and concentration.
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    scaleRadius                =thisDarkMatterProfileComponent%scale()
+    alpha                      =thisDarkMatterProfileComponent%shape()
     virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
 
     ! Compute the rotation normalization.
@@ -409,19 +438,25 @@ contains
   
   double precision function Dark_Matter_Profile_Energy_Einasto(thisNode)
     !% Return the energy of an Einasto halo density profile.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          dimension(0:1)         :: jAlpha
-    double precision, dimension(0:1)         :: hAlpha
-    integer                                  :: iAlpha
-    double precision                         :: scaleRadius,virialRadiusOverScaleRadius,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    integer                              , dimension(0:1)         :: jAlpha
+    double precision                     , dimension(0:1)         :: hAlpha
+    integer                                                       :: iAlpha
+    double precision                                              :: scaleRadius,virialRadiusOverScaleRadius,alpha
     
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get scale radius, shape parameter and concentration.
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    scaleRadius                =thisDarkMatterProfileComponent%scale()
+    alpha                      =thisDarkMatterProfileComponent%shape()
     virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
 
     ! Ensure the table exists and is sufficiently tabulated.
@@ -444,7 +479,7 @@ contains
     end do
 
     ! Scale to dimensionful units.
-    Dark_Matter_Profile_Energy_Einasto=Dark_Matter_Profile_Energy_Einasto*Tree_Node_Mass(thisNode) &
+    Dark_Matter_Profile_Energy_Einasto=Dark_Matter_Profile_Energy_Einasto*thisBasicComponent%mass() &
          &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
     !$omp end critical(Einasto_Interpolation)
     return
@@ -452,19 +487,26 @@ contains
   
   double precision function Dark_Matter_Profile_Energy_Growth_Rate_Einasto(thisNode)
     !% Return the energy of an Einasto halo density profile.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          dimension(0:1)         :: jAlpha
-    double precision, dimension(0:1)         :: hAlpha
-    integer                                  :: iAlpha
-    double precision                         :: scaleRadius,virialRadiusOverScaleRadius,energy,energyGradient,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    integer                              , dimension(0:1)         :: jAlpha
+    double precision                     , dimension(0:1)         :: hAlpha
+    integer                                                       :: iAlpha
+    double precision                                              :: scaleRadius,virialRadiusOverScaleRadius,energy&
+         &,energyGradient,alpha
     
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get scale radius, shape parameter and concentration.
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    scaleRadius                =thisDarkMatterProfileComponent%scale()
+    alpha                      =thisDarkMatterProfileComponent%shape()
     virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
     
     ! Ensure the table exists and is sufficiently tabulated.
@@ -492,11 +534,11 @@ contains
 
     ! Compute the energy growth rate.
     Dark_Matter_Profile_Energy_Growth_Rate_Einasto=Dark_Matter_Profile_Energy_Einasto(thisNode)&
-         &*(Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)+2.0d0 &
+         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()+2.0d0 &
          &*Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)/Dark_Matter_Halo_Virial_Velocity(thisNode)+(energyGradient&
          &*virialRadiusOverScaleRadius/energy)*(Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)&
-         &/Dark_Matter_Halo_Virial_Radius(thisNode) -Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate(thisNode)&
-         &/Tree_Node_Dark_Matter_Profile_Scale(thisNode)))
+         &/Dark_Matter_Halo_Virial_Radius(thisNode)-thisDarkMatterProfileComponent%scaleGrowthRate()&
+         &/thisDarkMatterProfileComponent%scale()))
 
     return
   end function Dark_Matter_Profile_Energy_Growth_Rate_Einasto
@@ -713,20 +755,25 @@ contains
   
   double precision function Dark_Matter_Profile_kSpace_Einasto(thisNode,wavenumber)
     !% Returns the Fourier transform of the Einasto density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$)).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: wavenumber
-    integer,          dimension(0:1)         :: jAlpha,jConcentration
-    double precision, dimension(0:1)         :: hAlpha,hConcentration
-    integer                                  :: iAlpha,iConcentration
-    double precision                         :: scaleRadius,virialRadiusOverScaleRadius,wavenumberScaleFree,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: wavenumber
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    integer                              , dimension(0:1)         :: jAlpha,jConcentration
+    double precision                     , dimension(0:1)         :: hAlpha,hConcentration
+    integer                                                       :: iAlpha,iConcentration
+    double precision                                              :: scaleRadius,virialRadiusOverScaleRadius,wavenumberScaleFree&
+         &,alpha
   
+    ! Get components.
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get scale radius, shape parameter and concentration.
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    alpha                      =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    scaleRadius                =thisDarkMatterProfileComponent%scale()
+    alpha                      =thisDarkMatterProfileComponent%shape()
     virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
     wavenumberScaleFree        =wavenumber*scaleRadius
 
@@ -895,18 +942,21 @@ contains
 
   double precision function Dark_Matter_Profile_Freefall_Radius_Einasto(thisNode,time)
     !% Returns the freefall radius in the Einasto density profile at the specified {\tt time} (given in Gyr).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Interpolation
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: time
-    integer,          dimension(0:1)         :: jAlpha
-    double precision, dimension(0:1)         :: hAlpha
-    integer                                  :: iAlpha
-    double precision                         :: freefallTimeScaleFree,radiusScale,velocityScale,timeScale,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: time
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    integer                              , dimension(0:1)         :: jAlpha
+    double precision                     , dimension(0:1)         :: hAlpha
+    integer                                                       :: iAlpha
+    double precision                                              :: freefallTimeScaleFree,radiusScale,velocityScale,timeScale&
+         &,alpha
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -914,14 +964,18 @@ contains
        return
     end if
 
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get the shape parameter.
-    alpha        =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    alpha        =thisDarkMatterProfileComponent%shape()
 
     ! Get the scale radius.
-    radiusScale  =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    radiusScale  =thisDarkMatterProfileComponent%scale()
 
     ! Get the velocity scale.
-    velocityScale=dsqrt(gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)/radiusScale)
+    velocityScale=dsqrt(gravitationalConstantGalacticus*thisBasicComponent%mass()/radiusScale)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
@@ -955,18 +1009,21 @@ contains
   double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto(thisNode,time)
     !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\tt time} (given in
     !% Gyr).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Interpolation
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: time
-    integer,          dimension(0:1)         :: jAlpha
-    double precision, dimension(0:1)         :: hAlpha
-    integer                                  :: iAlpha
-    double precision                         :: freefallTimeScaleFree,radiusScale,velocityScale,timeScale,alpha
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: time
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    integer                              , dimension(0:1)         :: jAlpha
+    double precision                     , dimension(0:1)         :: hAlpha
+    integer                                                       :: iAlpha
+    double precision                                              :: freefallTimeScaleFree,radiusScale,velocityScale,timeScale&
+         &,alpha
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -974,14 +1031,18 @@ contains
        return
     end if
 
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get the shape parameter.
-    alpha        =Tree_Node_Dark_Matter_Profile_Shape(thisNode)
+    alpha        =thisDarkMatterProfileComponent%shape()
 
     ! Get the scale radius.
-    radiusScale  =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    radiusScale  =thisDarkMatterProfileComponent%scale()
 
     ! Get the velocity scale.
-    velocityScale=dsqrt(gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)/radiusScale)
+    velocityScale=dsqrt(gravitationalConstantGalacticus*thisBasicComponent%mass()/radiusScale)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale

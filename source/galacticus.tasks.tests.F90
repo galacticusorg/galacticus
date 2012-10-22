@@ -46,7 +46,7 @@ contains
        call Unit_Tests_Begin_Group("Galacticus self tests")
 
        ! Perform any test required.
-       !# <include directive="galacticusSelfTest" type="code" action="subroutine">
+       !# <include directive="galacticusSelfTest" type="functionCall" functionType="void">
        include 'galacticus.tasks.tests.inc'
        !# </include>
 

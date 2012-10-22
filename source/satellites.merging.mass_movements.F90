@@ -40,7 +40,7 @@ contains
   !# </satelliteMergerTask>
   subroutine Satellite_Merging_Mass_Movement_Store(thisNode)
     !% Compute and store the mass movement descriptors for this satellite merger.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Satellite_Merging_Mass_Movements_Descriptors
     implicit none
     type(treeNode), intent(inout), pointer  :: thisNode
@@ -51,7 +51,7 @@ contains
 
   subroutine Satellite_Merging_Mass_Movement(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
     !% Returns descriptors of how gas and stars move as the result of a satellite merger.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="satelliteMergingMassMovementsMethod" type="moduleUse">
@@ -78,8 +78,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('satelliteMergingMassMovementsMethod',satelliteMergingMassMovementsMethod,defaultValue='simple')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteMergingMassMovementsMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get</subroutineArgs>
+          !# <include directive="satelliteMergingMassMovementsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get</functionArgs>
           include 'satellites.merging.mass_movements.inc'
           !# </include>
           if (.not.associated(Satellite_Merging_Mass_Movement_Get)) call Galacticus_Error_Report('Satellite_Merging_Mass_Movement','method ' &

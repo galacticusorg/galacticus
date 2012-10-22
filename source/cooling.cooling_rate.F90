@@ -20,7 +20,7 @@
 module Cooling_Rates
   !% Implements calculations of the cooling rate.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Cooling_Rate
@@ -72,8 +72,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('coolingRateMethod',coolingRateMethod,defaultValue='White-Frenk1991')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="coolingRateMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>coolingRateMethod,Cooling_Rate_Get</subroutineArgs>
+          !# <include directive="coolingRateMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>coolingRateMethod,Cooling_Rate_Get</functionArgs>
           include 'cooling.cooling_rate.inc'
           !# </include>
           if (.not.associated(Cooling_Rate_Get)) call Galacticus_Error_Report('Cooling_Rate','method ' &
@@ -87,8 +87,8 @@ contains
     Cooling_Rate=Cooling_Rate_Get(thisNode)
 
     ! Call routines that modify the cooling rate.
-    !# <include directive="coolingRateModifierMethod" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,Cooling_Rate</subroutineArgs>
+    !# <include directive="coolingRateModifierMethod" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,Cooling_Rate</functionArgs>
     include 'cooling.cooling_rate.modifier.tasks.inc'
     !# </include>
 

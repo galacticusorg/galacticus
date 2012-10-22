@@ -72,7 +72,7 @@ contains
   !# </mergerTreeOutputFilter>
   subroutine Galacticus_Merger_Tree_Output_Filter_Stellar_Mass(thisNode,doOutput)
     !% Determines whether {\tt thisNode} has sufficient stellar mass to be output.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none

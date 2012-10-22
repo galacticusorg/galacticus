@@ -19,7 +19,7 @@
 
 module Dark_Matter_Profiles_Concentrations_MunozCuartas2011
   !% Implements the \cite{munoz-cuartas_redshift_2011} NFW halo concentration algorithm.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Concentrations_MunozCuartas2011_Initialize
@@ -43,18 +43,22 @@ contains
 
   double precision function Dark_Matter_Profile_Concentration_MunozCuartas2011(thisNode)
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{munoz-cuartas_redshift_2011}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmology_Functions
     use Cosmological_Parameters
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: w=0.029d0, m=0.097d0, alpha=-110.001d0, beta=2469.720d0, gamma=16.885d0
-    double precision                         :: a,b,redshift,haloMassLogarithmic,concentrationLogarithmic
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    double precision         , parameter              :: w=0.029d0, m=0.097d0, alpha=-110.001d0, beta=2469.720d0, gamma=16.885d0
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: a,b,redshift,haloMassLogarithmic,concentrationLogarithmic
 
-    redshift                =Redshift_from_Expansion_Factor(Expansion_Factor(Tree_Node_Time(thisNode)))
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
+    ! Compute the concentration.
+    redshift                =Redshift_from_Expansion_Factor(Expansion_Factor(thisBasicComponent%time()))
     a                       =w*redshift-m
     b                       =alpha/(redshift+gamma)+beta/(redshift+gamma)**2
-    haloMassLogarithmic     =dlog10(Tree_Node_Mass(thisNode)*Little_H_0())
+    haloMassLogarithmic     =dlog10(thisBasicComponent%mass()*Little_H_0())
     concentrationLogarithmic=a*haloMassLogarithmic+b
     Dark_Matter_Profile_Concentration_MunozCuartas2011=10.0d0**concentrationLogarithmic
     return

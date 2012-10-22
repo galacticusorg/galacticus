@@ -21,6 +21,7 @@
 module Merger_Tree_Timesteps_History
   !% Implements a simple time-stepping criterion for merger tree evolution.
   use FGSL
+  use Galacticus_Nodes
   implicit none
   private
   public :: Merger_Tree_Timestep_History, Merger_Tree_History_Write
@@ -49,7 +50,6 @@ contains
   !# </timeStepsTask>
   subroutine Merger_Tree_Timestep_History(thisNode,timeStep,End_Of_Timestep_Task,report)
     !% Determines the timestep to go to the next tabulation point for global history storage.
-    use Tree_Nodes
     use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
@@ -58,10 +58,11 @@ contains
     use Merger_Trees_Evolve_Timesteps_Template
     use Evolve_To_Time_Reports
     implicit none
-    type(treeNode),                           intent(inout), pointer :: thisNode
+    type     (treeNode                     ), intent(inout), pointer :: thisNode
     procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
-    double precision,                         intent(inout)          :: timeStep
-    logical,                                  intent(in)             :: report
+    double precision                        , intent(inout)          :: timeStep
+    logical                                 , intent(in   )          :: report
+    class    (nodeComponentBasic           ),                pointer :: thisBasicComponent
     integer                                                          :: timeIndex
     double precision                                                 :: time,ourTimeStep
     
@@ -69,8 +70,8 @@ contains
        !$omp critical (timestepHistoryInitialize)
        if (.not.timestepHistoryInitialized) then
           ! Determine if we have active components that can provide star formation rates.
-          diskActive           =associated(Tree_Node_Disk_SFR)
-          spheroidActive       =associated(Tree_Node_Spheroid_SFR)
+          diskActive           =    defaultDiskComponent%starFormationRateIsGettable()
+          spheroidActive       =defaultSpheroidComponent%starFormationRateIsGettable()
           ! Get time at present day.
           time=Cosmology_Age(aExpansion=0.999d0)
           ! Get module parameters.
@@ -143,7 +144,8 @@ contains
 
     ! Adjust timestep.
     ! Get current cosmic time.
-    time=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    time=thisBasicComponent%time()
     
     ! Determine how long until next available timestep.
     timeIndex=Interpolate_Locate(timestepHistorySteps,historyTime,interpolationAccelerator,time)
@@ -164,18 +166,25 @@ contains
   subroutine Merger_Tree_History_Store(thisTree,thisNode)
     !% Store various properties in global arrays.
     use Merger_Trees
-    use Tree_Nodes
     use Numerical_Interpolation
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type(mergerTree), intent(in)             :: thisTree
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer                                  :: timeIndex
-    double precision                         :: time,diskStarFormationRate,spheroidStarFormationRate,hotGasMass
+    type (mergerTree           ), intent(in   )          :: thisTree
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic   ),                pointer :: thisBasicComponent
+    class(nodeComponentDisk    ),                pointer :: thisDiskComponent
+    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent
+    integer                                              :: timeIndex
+    double precision                                     :: time,diskStarFormationRate,spheroidStarFormationRate,hotGasMass
+
+    ! Get components.
+    thisBasicComponent    => thisNode%basic   ()
+    thisDiskComponent     => thisNode%disk    ()
+    thisSpheroidComponent => thisNode%spheroid()
 
     ! Get current cosmic time.
-    time=Tree_Node_Time(thisNode)
+    time=thisBasicComponent%time()
 
     ! Determine how long until next available timestep.
     if (time == historyTime(timestepHistorySteps)) then
@@ -188,8 +197,8 @@ contains
     ! Star formation rate:
     diskStarFormationRate    =0.0d0
     spheroidStarFormationRate=0.0d0
-    if (diskActive)     diskStarFormationRate    =Tree_Node_Disk_SFR    (thisNode)
-    if (spheroidActive) spheroidStarFormationRate=Tree_Node_Spheroid_SFR(thisNode)
+    if (diskActive)     diskStarFormationRate    =thisDiskComponent    %starFormationRate()
+    if (spheroidActive) spheroidStarFormationRate=thisSpheroidComponent%starFormationRate()
     historyStarFormationRate        (timeIndex)= historyStarFormationRate        (timeIndex)                                                               &
          &                                      +(diskStarFormationRate+spheroidStarFormationRate)                                                         &
          &                                      *thisTree%volumeWeight
@@ -224,7 +233,7 @@ contains
     ! Node density
     if (.not.thisNode%isSatellite()) then
        historyNodeDensity           (timeIndex)= historyNodeDensity              (timeIndex)                                                               &
-            &                                   +  Tree_Node_Mass                  (thisNode                                                             ) &
+            &                                   +thisBasicComponent%mass()                                                                                 &
             &                                   *thisTree%volumeWeight
     end if
     return

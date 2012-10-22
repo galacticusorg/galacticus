@@ -192,8 +192,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('haloMassFunctionMethod',haloMassFunctionMethod,defaultValue='Tinker2008')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="haloMassFunctionMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>haloMassFunctionMethod,Halo_Mass_Function_Tabulate</subroutineArgs>
+       !# <include directive="haloMassFunctionMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>haloMassFunctionMethod,Halo_Mass_Function_Tabulate</functionArgs>
        include 'structure_formation.CDM.halo_mass_function.inc'
        !# </include>
        if     (.not.(                                                                                   &

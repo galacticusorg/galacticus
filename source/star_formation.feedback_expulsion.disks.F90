@@ -20,7 +20,7 @@
 module Star_Formation_Feedback_Expulsion_Disks
   !% Implements calculations of expulsive feedback from star formation in disks.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate
@@ -70,8 +70,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('starFormationExpulsiveFeedbackDisksMethod',starFormationExpulsiveFeedbackDisksMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationExpulsiveFeedbackDisksMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>starFormationExpulsiveFeedbackDisksMethod,Star_Formation_Expulsive_Feedback_Disk_Rate_Get</subroutineArgs>
+          !# <include directive="starFormationExpulsiveFeedbackDisksMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>starFormationExpulsiveFeedbackDisksMethod,Star_Formation_Expulsive_Feedback_Disk_Rate_Get</functionArgs>
           include 'star_formation.feedback_expulsive.disks.inc'
           !# </include>
           if (.not.associated(Star_Formation_Expulsive_Feedback_Disk_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Expulsive_Feedback_Disks'&

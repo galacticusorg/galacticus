@@ -41,7 +41,7 @@ contains
   subroutine Merger_Tree_Mass_Accretion_History_Output(thisTree)
     !% Output the mass accretion history of {\tt thisTree}.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
     use Galacticus_HDF5
@@ -49,13 +49,14 @@ contains
     use String_Handling
     use Numerical_Constants_Astronomical
     implicit none
-    type(mergerTree),        intent(in)                :: thisTree
-    type(treeNode),          pointer                   :: thisNode
-    integer(kind=kind_int8), allocatable, dimension(:) :: accretionHistoryNodeIndex
-    double precision,        allocatable, dimension(:) :: accretionHistoryNodeMass,accretionHistoryNodeTime
-    integer(kind=kind_int8)                            :: accretionHistoryCount
-    type(varying_string)                               :: groupName
-    type(hdf5Object)                                   :: treeGroup,accretionDataset
+    type(mergerTree),          intent(in)                :: thisTree
+    type(treeNode),            pointer                   :: thisNode
+    integer(kind=kind_int8),   allocatable, dimension(:) :: accretionHistoryNodeIndex
+    double precision,          allocatable, dimension(:) :: accretionHistoryNodeMass,accretionHistoryNodeTime
+    class(nodeComponentBasic), pointer                   :: thisBasicComponent
+    integer(kind=kind_int8)                              :: accretionHistoryCount
+    type(varying_string)                                 :: groupName
+    type(hdf5Object)                                     :: treeGroup,accretionDataset
 
     ! Check if module is initialized.
     if (.not.accretionHistoryModuleInitialized) then
@@ -92,7 +93,7 @@ contains
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           accretionHistoryCount=accretionHistoryCount+1
-          thisNode => thisNode%childNode
+          thisNode => thisNode%firstChild
        end do
        ! Allocate storage space.
        call Alloc_Array(accretionHistoryNodeIndex,[int(accretionHistoryCount)])
@@ -102,11 +103,12 @@ contains
        accretionHistoryCount=0
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
+          thisBasicComponent => thisNode%basic()
           accretionHistoryCount=accretionHistoryCount+1
           accretionHistoryNodeIndex(accretionHistoryCount)=               thisNode%index()
-          accretionHistoryNodeTime (accretionHistoryCount)=Tree_Node_Time(thisNode)
-          accretionHistoryNodeMass (accretionHistoryCount)=Tree_Node_Mass(thisNode)
-          thisNode => thisNode%childNode
+          accretionHistoryNodeTime (accretionHistoryCount)=thisBasicComponent%time()
+          accretionHistoryNodeMass (accretionHistoryCount)=thisBasicComponent%mass()
+          thisNode => thisNode%firstChild
        end do
        ! Output to HDF5 file.
        groupName   ='mergerTree'

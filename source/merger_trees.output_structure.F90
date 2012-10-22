@@ -43,7 +43,7 @@ contains
   subroutine Merger_Tree_Structure_Output(thisTree)
     !% Output the structure of {\tt thisTree}.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
     use Galacticus_HDF5
@@ -55,14 +55,15 @@ contains
     include 'merger_trees.output_structure.tasks.modules.inc'
     !# </include>
     implicit none
-    type(mergerTree),        intent(in)                :: thisTree
-    type(treeNode),          pointer                   :: thisNode
-    integer(kind=kind_int8), allocatable, dimension(:) :: nodeIndex
-    double precision,        allocatable, dimension(:) :: nodeProperty
-    type(hdf5Object),        save                      :: structureGroup
-    integer                                            :: nodeCount
-    type(varying_string)                               :: groupName,groupComment
-    type(hdf5Object)                                   :: treeGroup,nodeDataset
+    type(mergerTree),          intent(in)                :: thisTree
+    type(treeNode),            pointer                   :: thisNode
+    integer(kind=kind_int8),   allocatable, dimension(:) :: nodeIndex
+    double precision,          allocatable, dimension(:) :: nodeProperty
+    type(hdf5Object),          save                      :: structureGroup
+    class(nodeComponentBasic), pointer                   :: thisBasicComponent
+    integer                                              :: nodeCount
+    type(varying_string)                                 :: groupName,groupComment
+    type(hdf5Object)                                     :: treeGroup,nodeDataset
 
     ! Check if module is initialized.
     if (.not.structureOutputModuleInitialized) then
@@ -140,7 +141,7 @@ contains
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
-          nodeIndex(nodeCount)=thisNode%childNode%index()        
+          nodeIndex(nodeCount)=thisNode%firstChild%index()        
           call thisNode%walkTree(thisNode)
        end do
        !$omp critical(HDF5_Access)
@@ -152,7 +153,7 @@ contains
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
-          nodeIndex(nodeCount)=thisNode%parentNode%index()        
+          nodeIndex(nodeCount)=thisNode%parent%index()        
           call thisNode%walkTree(thisNode)
        end do
        !$omp critical(HDF5_Access)
@@ -164,7 +165,7 @@ contains
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
-          nodeIndex(nodeCount)=thisNode%siblingNode%index()        
+          nodeIndex(nodeCount)=thisNode%sibling%index()        
           call thisNode%walkTree(thisNode)
        end do
        !$omp critical(HDF5_Access)
@@ -175,8 +176,9 @@ contains
        nodeCount=0
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
+          thisBasicComponent => thisNode%basic()
           nodeCount=nodeCount+1
-          nodeProperty(nodeCount)=Tree_Node_Mass(thisNode)
+          nodeProperty(nodeCount)=thisBasicComponent%mass()
           call thisNode%walkTree(thisNode)
        end do
        !$omp critical(HDF5_Access)
@@ -189,8 +191,9 @@ contains
        nodeCount=0
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
+          thisBasicComponent => thisNode%basic()
           nodeCount=nodeCount+1
-          nodeProperty(nodeCount)=Tree_Node_Time(thisNode)
+          nodeProperty(nodeCount)=thisBasicComponent%time()
           call thisNode%walkTree(thisNode)
        end do
        !$omp critical(HDF5_Access)
@@ -234,8 +237,8 @@ contains
        
        !$omp critical(HDF5_Access)
        ! Call any subroutines that want to attach data to the merger tree output.
-       !# <include directive="mergerTreeStructureOutputTask" type="code" action="subroutine">
-       !#  <subroutineArgs>thisTree%baseNode,nodeProperty,treeGroup</subroutineArgs>
+       !# <include directive="mergerTreeStructureOutputTask" type="functionCall" functionType="void">
+       !#  <functionArgs>thisTree%baseNode,nodeProperty,treeGroup</functionArgs>
        include 'merger_trees.output_structure.tasks.inc'
        !# </include>
        

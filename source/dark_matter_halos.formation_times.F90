@@ -28,32 +28,37 @@ contains
   double precision function Dark_Matter_Halo_Formation_Time(thisNode,formationMassFraction)
     !% Returns the time at which the main branch progenitor of {\tt thisNode} first had a mass equal to {\tt
     !% formationMassFraction} of the current mass.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: formationMassFraction
-    type(treeNode),                  pointer :: workNode,formationNode
-    double precision                         :: timeNode,massNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    double precision         , intent(in   )          :: formationMassFraction
+    type (treeNode          ),                pointer :: workNode,formationNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent,workBasicComponent,parentBasicComponent
+    double precision                                  :: timeNode,massNode
 
-    timeNode=Tree_Node_Time(thisNode)
-    massNode=Tree_Node_Mass(thisNode)
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
+    timeNode=thisBasicComponent%time()
+    massNode=thisBasicComponent%mass()
 
     workNode => thisNode
     do while (associated(workNode))
        formationNode => workNode
-       if (Tree_Node_Mass(workNode) <= formationMassFraction*massNode) exit
-       workNode => workNode%childNode
+       workBasicComponent => workNode%basic()
+       if (workBasicComponent%mass() <= formationMassFraction*massNode) exit
+       workNode => workNode%firstChild
     end do
     if (.not.associated(workNode)) then
        ! Find the formation time based on the mass accretion history.
        Dark_Matter_Halo_Formation_Time=Dark_Matter_Halo_Mass_Accretion_Time(formationNode,formationMassFraction*massNode)
     else
        ! Interpolate to get the exact time of formation.
-       Dark_Matter_Halo_Formation_Time=                                      Tree_Node_Time(workNode)  &
-            &                          +(Tree_Node_Time(workNode%parentNode)-Tree_Node_Time(workNode)) &
-            &                          *(formationMassFraction*massNode     -Tree_Node_Mass(workNode)) &
-            &                          /(Tree_Node_Mass(workNode%parentNode)-Tree_Node_Mass(workNode))
+       parentBasicComponent => workNode%parent%basic()
+       Dark_Matter_Halo_Formation_Time=                                 workBasicComponent%time()  &
+            &                          +(parentBasicComponent%time()   -workBasicComponent%time()) &
+            &                          *(formationMassFraction*massNode-workBasicComponent%mass()) &
+            &                          /(parentBasicComponent%mass()   -workBasicComponent%mass())
     end if
 
     return

@@ -19,7 +19,7 @@
 
 module Galactic_Dynamics_Bar_Instabilities_Null
   !% Implements a null calculation of bar instability.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Galactic_Dynamics_Bar_Instabilities_Null_Initialize

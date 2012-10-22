@@ -42,45 +42,45 @@ contains
   
   subroutine Events_Node_Merger_Do_SLH(thisNode)
     !% Processes a node merging event, utilizing a single level substructure hierarchy.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Satellite_Promotion
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(treeNode),                pointer :: parentNode,childNode,thisSatellite,nextSatellite
 
     ! Get the parent node.
-    parentNode => thisNode%parentNode
+    parentNode => thisNode%parent
 
     ! Uncouple thisNode from the children of its parent.
-    childNode => parentNode%childNode
-    do while (.not.associated(childNode%siblingNode,thisNode))
-       childNode => childNode%siblingNode
+    childNode  => parentNode%firstChild
+    do while (.not.associated(childNode%sibling,thisNode))
+       childNode => childNode%sibling
     end do
-    childNode%siblingNode => thisNode%siblingNode
+    childNode%sibling => thisNode%sibling
 
     ! Unset the sibling pointer for this node.
-    thisNode%siblingNode => null()
+    thisNode %sibling => null()
 
     ! Add it to the list of satellite nodes associated with its parent.
-    if (associated(parentNode%satelliteNode)) then
-       call parentNode%lastSatellite(thisSatellite)
-       thisSatellite%siblingNode => thisNode
+    if (associated(parentNode%firstSatellite)) then
+       thisSatellite                => parentNode%lastSatellite()
+       thisSatellite%sibling        => thisNode
     else
-       parentNode%satelliteNode => thisNode
+       parentNode   %firstSatellite => thisNode
     end if
 
     ! Move any of its own satellites to become satellites of the parent and set their parent node pointers appropriately.
-    if (associated(thisNode%satelliteNode)) then
-       thisSatellite => thisNode%satelliteNode
+    if (associated(thisNode%firstSatellite)) then
+       thisSatellite => thisNode%firstSatellite
        do while (associated(thisSatellite))
           ! Find next sibling satellite.
-          nextSatellite => thisSatellite%siblingNode
+          nextSatellite => thisSatellite%sibling
           ! Move the satellite to the new parent.
           call Satellite_Move_To_New_Host(thisSatellite,parentNode)
           ! Move to the next sibling satellite.
           thisSatellite => nextSatellite
        end do
-       thisNode%satelliteNode => null()
+       thisNode%firstSatellite => null()
     end if
     return
   end subroutine Events_Node_Merger_Do_SLH

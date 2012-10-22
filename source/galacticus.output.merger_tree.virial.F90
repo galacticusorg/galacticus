@@ -67,13 +67,15 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Virial_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Virial</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Virial_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Tree_Virial_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of virial properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    double precision, intent(in)                  :: time
+    type(treeNode),   intent(inout), pointer      :: thisNode
+    double precision, intent(in   )               :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
@@ -116,11 +118,13 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Virial_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Virial</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Virial_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Virial_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of virial properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Virial_Initialize
@@ -137,7 +141,7 @@ contains
   subroutine Galacticus_Output_Tree_Virial(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store virial properties in the \glc\ output file buffers.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Kind_Numbers
     implicit none

@@ -37,7 +37,7 @@ contains
   subroutine Merger_Tree_Prune_Hierarchy(thisTree)
     !% Prune hierarchy from {\tt thisTree}.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     implicit none
     type(mergerTree), intent(in) :: thisTree
@@ -77,15 +77,15 @@ contains
           ! Walk the tree, pruning hierarchy.
           do while (associated(thisNode))
              ! Record the parent node to which we will return.
-             previousNode => thisNode%parentNode
+             previousNode => thisNode%parent
 
              ! Find the depth in the hierarchy.
              hierarchyDepth=0
              workNode => thisNode
              do while (associated(workNode))
                 ! Increment hierarchy depth if this node is not the main progenitor.
-                if (.not.workNode%isPrimaryProgenitor().and.associated(workNode%parentNode)) hierarchyDepth=hierarchyDepth+1
-                workNode => workNode%parentNode
+                if (.not.workNode%isPrimaryProgenitor().and.associated(workNode%parent)) hierarchyDepth=hierarchyDepth+1
+                workNode => workNode%parent
              end do
 
              ! Prune if this node is sufficiently deep in the hierarchy.
@@ -93,13 +93,13 @@ contains
                 didPruning=.true.
                 ! Decouple from other nodes.
                 if (thisNode%isPrimaryProgenitorOf(previousNode)) then
-                   previousNode%childNode => thisNode%siblingNode
+                   previousNode%firstChild => thisNode%sibling
                 else
-                   nextNode => previousNode%childNode
-                   do while (.not.associated(nextNode%siblingNode,thisNode))
-                      nextNode => nextNode%siblingNode
+                   nextNode => previousNode%firstChild
+                   do while (.not.associated(nextNode%sibling,thisNode))
+                      nextNode => nextNode%sibling
                    end do
-                   nextNode%siblingNode => thisNode%siblingNode
+                   nextNode%sibling => thisNode%sibling
                 end if
                 ! Should call the "destroyBranch" method on "thisTree" here, but seems to cause a compiler crash under gFortran
                 ! v4.4. So, instead, do the branch destroy manually.
