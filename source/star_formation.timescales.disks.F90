@@ -21,7 +21,7 @@ module Star_Formation_Timescales_Disks
   !% Implements calculations of star formation timescales for galactic disks.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Timescale_Disk
@@ -63,7 +63,7 @@ contains
     !# </include>
     implicit none
     type(c_funptr) :: cFunctionPointer=c_null_funptr
-     !# <include directive="starFormationTimescaleDisksMethod" type="cBinding">
+    !# <include directive="starFormationTimescaleDisksMethod" type="cBinding">
     include 'star_formation.timescales.disks.cBinding.inc'
     !# </include>
 
@@ -85,11 +85,11 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('starFormationTimescaleDisksMethod',starFormationTimescaleDisksMethod,defaultValue='KMT09')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationTimescaleDisksMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>
+          !# <include directive="starFormationTimescaleDisksMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>
           !#   <fortran>starFormationTimescaleDisksMethod,Star_Formation_Timescale_Disk_FGet</fortran>
           !#   <c>char(starFormationTimescaleDisksMethod)//c_null_char,cFunctionPointer</c>
-          !#  </subroutineArgs>
+          !#  </functionArgs>
           include 'star_formation.timescales.disks.inc'
           !# </include>
           functionIsFortran=associated(Star_Formation_Timescale_Disk_FGet)

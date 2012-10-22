@@ -21,6 +21,7 @@
 module Star_Formation_Timescale_Disks_Halo_Scaling
   !% Implements a star formation timescale for galactic disks which scales with halo virial velocity and
   !% redshift.
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Timescale_Disks_Halo_Scaling_Initialize
@@ -39,8 +40,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
-    use Tree_Nodes
-    implicit none
+    implicit none    
     type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
     
@@ -89,17 +89,20 @@ contains
 
   double precision function Star_Formation_Timescale_Disk_Halo_Scaling(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode} in the halo scaling timescale model.
-    use Tree_Nodes
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode)  , intent(inout), pointer :: thisNode
-    double precision, parameter              :: virialVelocityNormalization=200.0d0
-    double precision                         :: expansionFactor,virialVelocity
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision         , parameter              :: virialVelocityNormalization=200.0d0
+    double precision                                  :: expansionFactor,virialVelocity
+
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
 
     ! Get virial velocity and expansion factor.
-    virialVelocity =Dark_Matter_Halo_Virial_Velocity               (thisNode)
-    expansionFactor=Expansion_Factor                (Tree_Node_Time(thisNode))
+    virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
+    expansionFactor=Expansion_Factor                (thisBasicComponent%time())
 
     ! Return the timescale.
     Star_Formation_Timescale_Disk_Halo_Scaling=                                                                        &

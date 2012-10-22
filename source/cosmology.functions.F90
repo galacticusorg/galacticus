@@ -119,8 +119,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('cosmologyMethod',cosmologyMethod,defaultValue='matter-lambda')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="cosmologyMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get</subroutineArgs>
+          !# <include directive="cosmologyMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get</functionArgs>
           include 'cosmology_functions.inc'
           !# </include>
           if     (                                                                &

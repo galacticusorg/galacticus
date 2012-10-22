@@ -27,7 +27,7 @@ contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
     !% Move {\tt satelliteNode} to be a satellite of {\tt newHostNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     !# <include directive="satelliteHostChangeTask" type="moduleUse">
     include 'satellites.structures.host_change.moduleUse.inc'
     !# </include>
@@ -38,19 +38,19 @@ contains
     ! First remove from its current host.
     call satelliteNode%removeFromHost()
     ! Find attachment point for new host.
-    if (associated(newHostNode%satelliteNode)) then
-       call newHostNode%lastSatellite(lastSatelliteNode)
-       lastSatelliteNode%siblingNode => satelliteNode
+    if (associated(newHostNode%firstSatellite)) then
+       lastSatelliteNode          => newHostNode%lastSatellite()
+       lastSatelliteNode%sibling  => satelliteNode
     else
-       newHostNode%satelliteNode => satelliteNode
+       newHostNode%firstSatellite => satelliteNode
     end if
     ! Set parent and sibling pointers.
-    satelliteNode%parentNode  => newHostNode
-    satelliteNode%siblingNode => null()
+    satelliteNode%parent  => newHostNode
+    satelliteNode%sibling => null()
 
     ! Allow arbitrary routines to process the host change event.
-    !# <include directive="satelliteHostChangeTask" type="code" action="subroutine">
-    !#  <subroutineArgs>satelliteNode</subroutineArgs>
+    !# <include directive="satelliteHostChangeTask" type="functionCall" functionType="void">
+    !#  <functionArgs>satelliteNode</functionArgs>
     include 'satellites.structures.host_change.inc'
     !# </include>
 

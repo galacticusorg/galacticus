@@ -41,23 +41,24 @@ contains
 
   double precision function Satellite_Time_Until_Merging_BoylanKolchin2008(thisNode,thisOrbit)
     !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
     use Dynamical_Friction_Timescale_Utilities
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     use Satellite_Orbits
     implicit none
-    type(treeNode),    pointer, intent(inout) :: thisNode
-    type(keplerOrbit),          intent(inout) :: thisOrbit
-    type(treeNode),    pointer                :: hostNode
-    logical,           parameter              :: acceptUnboundOrbits=.false.
-    double precision,  parameter              :: A=0.216d0, b=1.3d0, c=1.9d0, d=1.0d0 ! Fitting parameters from eqn. (6) of Boylan-Kolchin et al.
-    double precision                          :: equivalentCircularOrbitRadius,orbitalCircularity,velocityScale,radialScale&
+    type (treeNode   ),        pointer, intent(inout) :: thisNode
+    type (keplerOrbit),                 intent(inout) :: thisOrbit
+    type (treeNode   ),        pointer                :: hostNode
+    class(nodeComponentBasic), pointer                :: thisBasicComponent,hostBasicComponent
+    logical,                   parameter              :: acceptUnboundOrbits=.false.
+    double precision,          parameter              :: A=0.216d0, b=1.3d0, c=1.9d0, d=1.0d0 ! Fitting parameters from eqn. (6) of Boylan-Kolchin et al.
+    double precision                                  :: equivalentCircularOrbitRadius,orbitalCircularity,velocityScale,radialScale&
          &,massRatio
 
     ! Find the host node.
-    hostNode => thisNode%parentNode
+    hostNode => thisNode%parent
     ! Get the equivalent circular orbit.
     equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit)
     ! Get velocity scale.
@@ -67,7 +68,9 @@ contains
     orbitalCircularity=thisOrbit%angularMomentum()/equivalentCircularOrbitRadius/Dark_Matter_Profile_Circular_Velocity(hostNode&
          &,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
-    massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)-1.0d0
+    thisBasicComponent => thisNode%basic()
+    hostBasicComponent => hostNode%basic()
+    massRatio=hostBasicComponent%mass()/thisBasicComponent%mass()-1.0d0
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.
        Satellite_Time_Until_Merging_BoylanKolchin2008=0.0d0

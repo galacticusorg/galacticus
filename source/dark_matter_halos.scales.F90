@@ -19,7 +19,7 @@
 
 module Dark_Matter_Halo_Scales
   !% Implements calculations of various scales for dark matter halos.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Kind_Numbers
   implicit none
   private
@@ -83,16 +83,21 @@ contains
     !% Returns the virial velocity scale for {\tt thisNode}.
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
+    type(treeNode),            intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
 
     ! Check if virial velocity is already computed. Compute and store if not.
     if (.not.virialVelocityComputed) then
-       virialVelocityComputed=.true.
-       virialVelocityStored=dsqrt(gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)&
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
+       ! Compute the virial velocity.
+       virialVelocityStored=dsqrt(gravitationalConstantGalacticus*thisBasicComponent%mass() &
             &/Dark_Matter_Halo_Virial_Radius(thisNode))
+       ! Record that virial velocity has now been computed.
+       virialVelocityComputed=.true.
     end if
     
     ! Return the stored virial velocity.
@@ -103,10 +108,13 @@ contains
   double precision function Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)
     !% Returns the growth rate of the virial velocity scale for {\tt thisNode}.
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
+    type(treeNode),            intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
-    Dark_Matter_Halo_Virial_Velocity_Growth_Rate=0.5d0*Dark_Matter_Halo_Virial_Velocity(thisNode)&
-         &*(Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)-Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)&
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
+    Dark_Matter_Halo_Virial_Velocity_Growth_Rate=0.5d0*Dark_Matter_Halo_Virial_Velocity(thisNode) &
+         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()-Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode) &
          &/Dark_Matter_Halo_Virial_Radius(thisNode))
     return
   end function Dark_Matter_Halo_Virial_Velocity_Growth_Rate
@@ -138,15 +146,20 @@ contains
     !% Returns the virial radius scale for {\tt thisNode}.
     use Numerical_Constants_Math
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
 
     ! Check if virial radius is already computed. Compute and store if not.
     if (.not.virialRadiusComputed) then
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
+       ! Compute the virial radius.
+       virialRadiusStored=(3.0d0*thisBasicComponent%mass()/4.0d0/Pi/Dark_Matter_Halo_Mean_Density(thisNode))**(1.0d0/3.0d0)
+       ! Record that the virial radius has been computed.
        virialRadiusComputed=.true.
-       virialRadiusStored=(3.0d0*Tree_Node_Mass(thisNode)/4.0d0/Pi/Dark_Matter_Halo_Mean_Density(thisNode))**(1.0d0/3.0d0)
     end if
 
     ! Return the stored value.
@@ -158,10 +171,13 @@ contains
     !% Returns the growth rate of the virial radius scale for {\tt thisNode}.
     use Numerical_Constants_Math
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
     Dark_Matter_Halo_Virial_Radius_Growth_Rate=(1.0d0/3.0d0)*Dark_Matter_Halo_Virial_Radius(thisNode)&
-         &*(Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)-Dark_Matter_Halo_Mean_Density_Growth_Rate(thisNode)&
+         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()-Dark_Matter_Halo_Mean_Density_Growth_Rate(thisNode)&
          &/Dark_Matter_Halo_Mean_Density(thisNode))
     return
   end function Dark_Matter_Halo_Virial_Radius_Growth_Rate
@@ -172,14 +188,17 @@ contains
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: time
-    double precision, save                   :: timePrevious=-1.0d0,densityPrevious
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision,          save                   :: timePrevious=-1.0d0,densityPrevious
     !$omp threadprivate(timePrevious,densityPrevious)
+    double precision                                  :: time
 
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
     ! Get the time at which this halo was last an isolated halo.
-    time=Tree_Node_Time_Last_Isolated(thisNode)
-    if (time <= 0.0d0) time=Tree_Node_Time(thisNode)
+    time=thisBasicComponent%timeLastIsolated()
+    if (time <= 0.0d0) time=thisBasicComponent%time()
     ! If time is not the same as the one previously used then compute its mean density based on mean cosmological density and
     ! overdensity of a collapsing halo, and store it.
     if (time /= timePrevious) then
@@ -197,17 +216,20 @@ contains
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: time,aExpansion
-    double precision, save                   :: timePrevious=-1.0d0,densityGrowthRatePrevious
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: time,aExpansion
+    double precision,          save                   :: timePrevious=-1.0d0,densityGrowthRatePrevious
     !$omp threadprivate(timePrevious,densityGrowthRatePrevious)
 
     if (thisNode%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.
        Dark_Matter_Halo_Mean_Density_Growth_Rate=0.0d0
     else
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
        ! Get the time at which this halo was last an isolated halo.
-       time=Tree_Node_Time_Last_Isolated(thisNode)
+       time=thisBasicComponent%timeLastIsolated()
        ! Check if the time is different from that one previously used.
        if (time /= timePrevious) then
           ! It is not, so recompute the density growth rate.

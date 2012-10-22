@@ -106,8 +106,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('powerSpectrumMethod',powerSpectrumMethod,defaultValue='powerLaw')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="powerSpectrumMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>powerSpectrumMethod,Power_Spectrum_Tabulate</subroutineArgs>
+       !# <include directive="powerSpectrumMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>powerSpectrumMethod,Power_Spectrum_Tabulate</functionArgs>
        include 'structure_formation.CDM.power_spectrum.inc'
        !# </include>
        if (.not.associated(Power_Spectrum_Tabulate)) call Galacticus_Error_Report('Power_Spectrum_Initialize','method '&

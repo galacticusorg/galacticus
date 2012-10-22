@@ -19,7 +19,7 @@
 
 module Dark_Matter_Halo_Biases
   !% Implements calculations of dark matter halo bias.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use ISO_Varying_String
   implicit none
   private
@@ -67,8 +67,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('darkMatterHaloBiasMethod',darkMatterHaloBiasMethod,defaultValue='Tinker2010')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterHaloBiasMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get</subroutineArgs>
+          !# <include directive="darkMatterHaloBiasMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get</functionArgs>
           include 'structure_formation.CDM.halo_bias.inc'
           !# </include>
           if (.not.associated(Dark_Matter_Halo_Bias_Get)) call&

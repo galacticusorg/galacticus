@@ -46,7 +46,7 @@ contains
 
   double precision function Freefall_Radius_Growth_Rate_Dark_Matter_Halo(thisNode)
     !% Return the growth rate of the freefall radius in the ``dark matter halo'' model in Mpc/Gyr.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cooling_Freefall_Times_Available
     use Dark_Matter_Profiles
     implicit none
@@ -67,7 +67,7 @@ contains
 
   double precision function Freefall_Radius_Dark_Matter_Halo(thisNode)
     !% Return the freefall radius in the ``dark matter halo'' model.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cooling_Freefall_Times_Available
     use Dark_Matter_Profiles
     implicit none

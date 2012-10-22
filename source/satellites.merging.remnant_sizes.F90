@@ -41,7 +41,7 @@ contains
   !# </satelliteMergerTask>
   subroutine Satellite_Merging_Remnant_Size(thisNode)
     !% Computes the size of a merger remnant.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="satelliteMergingRemnantSizeMethod" type="moduleUse">
@@ -66,8 +66,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('satelliteMergingRemnantSizeMethod',satelliteMergingRemnantSizeMethod,defaultValue='Covington2008')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteMergingRemnantSizeMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do</subroutineArgs>
+          !# <include directive="satelliteMergingRemnantSizeMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do</functionArgs>
           include 'satellites.merging.remnant_sizes.inc'
           !# </include>
           if (.not.associated(Satellite_Merging_Remnant_Size_Do)) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size','method ' &

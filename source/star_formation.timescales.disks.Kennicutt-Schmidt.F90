@@ -19,7 +19,7 @@
 
 module Star_Formation_Timescale_Disks_Kennicutt_Schmidt
   !% Implements the Kennicutt-Schmidt star formation timescale for galactic disks.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Timescale_Disks_Kennicutt_Schmidt_Initialize
@@ -151,7 +151,7 @@ contains
     !% $q_{\rm crit}=${\tt [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical
     !% density occurs. $\sigma_{\rm gas}$ is assumed to be a constant equal to {\tt [velocityDispersionDiskGas]} and the disk is
     !% assumed to have a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Math
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
@@ -160,20 +160,21 @@ contains
     use Numerical_Integration
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type(treeNode),            intent(inout), pointer     :: thisNode
-    type(abundancesStructure), save                       :: fuelAbundances
+    type (treeNode                  ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk         ),                pointer :: thisDiskComponent
+    type (abundances                ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision,          dimension(abundancesCount) :: abundanceMasses
-    double precision,          parameter                  :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
-    double precision                                      :: gasMass,diskScaleRadius,starFormationRate,radiusInner,radiusOuter&
+    double precision                 , parameter              :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
+    double precision                                          :: gasMass,diskScaleRadius,starFormationRate,radiusInner,radiusOuter&
          &,hydrogenMassFraction
-    type(c_ptr)                                           :: parameterPointer
-    type(fgsl_function)                                   :: integrandFunction
-    type(fgsl_integration_workspace)                      :: integrationWorkspace
+    type (c_ptr                     )                         :: parameterPointer
+    type (fgsl_function             )                         :: integrandFunction
+    type (fgsl_integration_workspace)                         :: integrationWorkspace
 
     ! Get the disk properties.
-    gasMass             =Tree_Node_Disk_Gas_Mass(thisNode)
-    diskScaleRadius     =Tree_Node_Disk_Radius  (thisNode)
+    thisDiskComponent => thisNode%disk()
+    gasMass             =thisDiskComponent%massGas()
+    diskScaleRadius     =thisDiskComponent%radius ()
 
     ! Check if the disk is physical.
     if (gasMass <= 0.0d0 .or. diskScaleRadius <= 0.0d0) then
@@ -181,8 +182,7 @@ contains
        Star_Formation_Timescale_Disk_Kennicutt_Schmidt=0.0d0
     else
        ! Find the hydrogen fraction in the disk gas of the fuel supply.
-       call Tree_Node_Disk_Gas_Abundances(thisNode,abundanceMasses)
-       call fuelAbundances%pack(abundanceMasses)
+       fuelAbundances=thisDiskComponent%abundancesGas()
        call fuelAbundances%massToMassFraction(gasMass)
        hydrogenMassFraction=fuelAbundances%hydrogenMassFraction()
 
@@ -191,7 +191,7 @@ contains
 
        ! Compute critical surface density factor if necessary.
        if (starFormationKennicuttSchmidtTruncate) criticalDensityFactor=toomreParameterCritical*dsqrt(2.0d0)&
-            &*velocityDispersionDiskGas*Tree_Node_Disk_Velocity(activeNode)/Pi/gravitationalConstantGalacticus
+            &*velocityDispersionDiskGas*thisDiskComponent%velocity()/Pi/gravitationalConstantGalacticus
 
        ! Compute suitable limits for the integration.
        radiusInner=diskScaleRadius*radiusInnerDimensionless

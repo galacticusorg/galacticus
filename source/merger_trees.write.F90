@@ -55,25 +55,26 @@ contains
     use Numerical_Interpolation
     use Merger_Trees
     use Merger_Tree_Data_Structure
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
     use Kind_Numbers
     use Sort
     use FGSL
     implicit none
-    type   (mergerTree       ), intent(in)                  :: thisTree
-    integer                   , parameter                   :: hdfChunkSize=1024, hdfCompressionLevel=9
-    double precision          , allocatable, dimension(:  ) :: nodeMass,nodeRedshift
-    double precision          , allocatable, dimension(:,:) :: nodePosition,nodeVelocity
-    integer(kind=kind_int8   ), allocatable, dimension(:  ) :: descendentIndex,treeIndex,nodeIndex,nodeSnapshot
-    type   (treeNode         ), pointer                     :: thisNode
-    integer                   , parameter                   :: snapshotCountIncrement=100
-    double precision          , allocatable, dimension(:  ) :: snapshotTime,snapshotTimeTemp
-    integer                                                 :: nodeCount,snapshotCount
-    type   (mergerTreeData   )                              :: mergerTrees
-    logical                                                 :: snapshotInterpolatorReset
-    type   (fgsl_interp_accel)                              :: snapshotInterpolatorAccelerator
+    type   (mergerTree           ), intent(in)                  :: thisTree
+    integer                       , parameter                   :: hdfChunkSize=1024, hdfCompressionLevel=9
+    double precision              , allocatable, dimension(:  ) :: nodeMass,nodeRedshift,snapshotTime,snapshotTimeTemp
+    double precision              , allocatable, dimension(:,:) :: nodePosition,nodeVelocity
+    integer(kind=kind_int8       ), allocatable, dimension(:  ) :: descendentIndex,treeIndex,nodeIndex,nodeSnapshot
+    type   (treeNode             ), pointer                     :: thisNode
+    class  (nodeComponentBasic   ), pointer                     :: thisBasicComponent
+    class  (nodeComponentPosition), pointer                     :: thisPositionComponent
+    integer                       , parameter                   :: snapshotCountIncrement=100
+    integer                                                     :: nodeCount,snapshotCount
+    type   (mergerTreeData       )                              :: mergerTrees
+    logical                                                     :: snapshotInterpolatorReset
+    type   (fgsl_interp_accel    )                              :: snapshotInterpolatorAccelerator
 
     ! Check if module is initialized.
     if (.not.moduleInitialized) then
@@ -175,18 +176,19 @@ contains
        call Alloc_Array(descendentIndex,[nodeCount])
        call Alloc_Array(nodeMass       ,[nodeCount])
        call Alloc_Array(nodeRedshift   ,[nodeCount])
-       if (needsSnapshots                ) call Alloc_Array(nodeSnapshot,[nodeCount  ])
-       if (associated(Tree_Node_Position)) call Alloc_Array(nodePosition,[nodeCount,3])
-       if (associated(Tree_Node_Velocity)) call Alloc_Array(nodeVelocity,[nodeCount,3])
+       if (needsSnapshots                               ) call Alloc_Array(nodeSnapshot,[nodeCount  ])
+       if (defaultPositionComponent%positionIsGettable()) call Alloc_Array(nodePosition,[nodeCount,3])
+       if (defaultPositionComponent%velocityIsGettable()) call Alloc_Array(nodeVelocity,[nodeCount,3])
 
        ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
        if (needsSnapshots) then
           call Alloc_Array(snapshotTime,[snapshotCountIncrement])
-          thisNode => thisTree%baseNode
+          thisNode           => thisTree%baseNode
+          thisBasicComponent => thisNode%basic()
           snapshotCount=1
-          snapshotTime(snapshotCount)=Tree_Node_Time(thisNode)
+          snapshotTime(snapshotCount)=thisBasicComponent%time()
           do while (associated(thisNode))
-             if (all(snapshotTime(1:snapshotCount) /= Tree_Node_Time(thisNode))) then
+             if (all(snapshotTime(1:snapshotCount) /= thisBasicComponent%time())) then
                 snapshotCount=snapshotCount+1
                 if (snapshotCount > size(snapshotTime)) then
                    call Move_Alloc(snapshotTime,snapshotTimeTemp)
@@ -194,9 +196,10 @@ contains
                    snapshotTime(1:size(snapshotTimeTemp))=snapshotTimeTemp
                    call Dealloc_Array(snapshotTimeTemp)
                 end if
-                snapshotTime(snapshotCount)=Tree_Node_Time(thisNode)
+                snapshotTime(snapshotCount)=thisBasicComponent%time()
              end if
              call thisNode%walkTree(thisNode)
+             thisBasicComponent => thisNode%basic()
           end do
           call Sort_Do(snapshotTime(1:snapshotCount))
        end if
@@ -207,15 +210,17 @@ contains
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
           nodeCount=nodeCount+1
-          nodeIndex      (nodeCount)=thisNode           %index()
-          descendentIndex(nodeCount)=thisNode%parentNode%index()
-          nodeMass       (nodeCount)=Tree_Node_Mass                                                (thisNode)
-          nodeRedshift   (nodeCount)=Redshift_From_Expansion_Factor(Expansion_Factor(Tree_Node_Time(thisNode)))
-          if (associated(Tree_Node_Position)) call Tree_Node_Position(thisNode,nodePosition(nodeCount,:))
-          if (associated(Tree_Node_Velocity)) call Tree_Node_Velocity(thisNode,nodeVelocity(nodeCount,:))
+          nodeIndex      (nodeCount)=thisNode       %index()
+          descendentIndex(nodeCount)=thisNode%parent%index()
+          thisBasicComponent    => thisNode%basic   ()
+          thisPositionComponent => thisNode%position()
+          nodeMass       (nodeCount)=                                                thisBasicComponent%mass()
+          nodeRedshift   (nodeCount)=Redshift_From_Expansion_Factor(Expansion_Factor(thisBasicComponent%time()))
+          if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=thisPositionComponent%position()
+          if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=thisPositionComponent%velocity()
           if (needsSnapshots) then
              nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotCount,snapshotTime,snapshotInterpolatorAccelerator&
-                  &,Tree_Node_Time(thisNode),reset=snapshotInterpolatorReset,closest=.true.)
+                  &,thisBasicComponent%time(),reset=snapshotInterpolatorReset,closest=.true.)
           end if
           call thisNode%walkTree(thisNode)
        end do
@@ -226,12 +231,12 @@ contains
        call mergerTrees%setProperty(propertyTypeDescendentIndex,descendentIndex)
        call mergerTrees%setProperty(propertyTypeNodeMass       ,nodeMass       )
        call mergerTrees%setProperty(propertyTypeRedshift       ,nodeRedshift   )
-       if (associated(Tree_Node_Position)) then
+       if (defaultPositionComponent%positionIsGettable()) then
           call mergerTrees%setProperty(propertyTypePositionX,nodePosition(:,1))
           call mergerTrees%setProperty(propertyTypePositionY,nodePosition(:,2))
           call mergerTrees%setProperty(propertyTypePositionZ,nodePosition(:,3))
        end if
-       if (associated(Tree_Node_Velocity)) then
+       if (defaultPositionComponent%velocityIsGettable()) then
           call mergerTrees%setProperty(propertyTypeVelocityX,nodeVelocity(:,1))
           call mergerTrees%setProperty(propertyTypeVelocityY,nodeVelocity(:,2))
           call mergerTrees%setProperty(propertyTypeVelocityZ,nodeVelocity(:,3))
@@ -250,8 +255,8 @@ contains
        call Dealloc_Array(descendentIndex)
        call Dealloc_Array(nodeMass       )
        call Dealloc_Array(nodeRedshift   )
-       if (associated(Tree_Node_Position)) call Dealloc_Array(nodePosition)
-       if (associated(Tree_Node_Velocity)) call Dealloc_Array(nodeVelocity)
+       if (defaultPositionComponent%positionIsGettable()) call Dealloc_Array(nodePosition)
+       if (defaultPositionComponent%velocityIsGettable()) call Dealloc_Array(nodeVelocity)
 
     end if
 

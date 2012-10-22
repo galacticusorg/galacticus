@@ -19,7 +19,7 @@
 
 module Star_Formation_Timescale_Disks_KMT09
   !% Implements the \cite{krumholz_star_2009} star formation timescale for galactic disks.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Timescale_Disks_KMT09_Initialize
@@ -117,7 +117,7 @@ contains
   double precision function Star_Formation_Timescale_Disk_KMT09(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}. The disk is assumed to obey the
     !% \cite{krumholz_star_2009} star formation rule.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Math
     use Numerical_Constants_Prefixes
     use Abundances_Structure
@@ -125,22 +125,23 @@ contains
     use Numerical_Integration
     use FGSL
     implicit none
-    type(treeNode),            intent(inout), pointer     :: thisNode
-    type(abundancesStructure), save                       :: fuelAbundances
+    type (treeNode                  ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk         ),                pointer :: thisDiskComponent
+    type (abundances                ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision,          dimension(abundancesCount) :: abundanceMasses
     ! Inner and outer radii (in units of disk scale length) between which the star formation surface density rate is
     ! integrated. The outer radius should be large enough that the exponential decline in surface density implies little star
     ! formation is missed at larger radius.
-    double precision,          parameter                  :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
-    double precision                                      :: gasMass,diskScaleRadius,starFormationRate,radiusInner,radiusOuter
-    type(c_ptr)                                           :: parameterPointer
-    type(fgsl_function)                                   :: integrandFunction
-    type(fgsl_integration_workspace)                      :: integrationWorkspace
+    double precision                 , parameter              :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
+    double precision                                          :: gasMass,diskScaleRadius,starFormationRate,radiusInner,radiusOuter
+    type (c_ptr                     )                         :: parameterPointer
+    type (fgsl_function             )                         :: integrandFunction
+    type (fgsl_integration_workspace)                         :: integrationWorkspace
   
     ! Get the disk properties.
-    gasMass        =Tree_Node_Disk_Gas_Mass(thisNode)
-    diskScaleRadius=Tree_Node_Disk_Radius  (thisNode)
+    thisDiskComponent => thisNode%disk()
+    gasMass        =thisDiskComponent%massGas()
+    diskScaleRadius=thisDiskComponent%radius ()
 
     ! Check if the disk is physical.
     if (gasMass <= 0.0d0 .or. diskScaleRadius <= 0.0d0) then
@@ -148,8 +149,7 @@ contains
        Star_Formation_Timescale_Disk_KMT09=0.0d0
     else
        ! Find the hydrogen fraction in the disk gas.
-       call Tree_Node_Disk_Gas_Abundances(thisNode,abundanceMasses)
-       call fuelAbundances%pack(abundanceMasses)
+       fuelAbundances=thisDiskComponent%abundancesGas()
        call fuelAbundances%massToMassFraction(gasMass)
        hydrogenMassFraction      =fuelAbundances%hydrogenMassFraction()
        metallicityRelativeToSolar=fuelAbundances%metallicity(linearByMassSolar)

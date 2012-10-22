@@ -26,17 +26,18 @@ program Test_Prada2011_Concentration
   use Cosmology_Functions
   use Cosmological_Parameters
   use Merger_Trees
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Unit_Tests
   implicit none
-  type(mergerTree),     pointer                         :: thisTree
-  type(treeNode),       pointer                         :: thisNode
-  type(varying_string)                                  :: parameterFile,message
-  integer             ,                       parameter :: massCount=4
-  double precision    , dimension(massCount), parameter :: logMass              =[11.000d0,12.000d0,13.000d0,14.000d0]
-  double precision    , dimension(massCount), parameter :: pradaLogConcentration=[ 0.966d0, 0.887d0, 0.804d0, 0.728d0]
-  double precision    , dimension(massCount)            :: ourLogConcentration
-  integer                                               :: iMass
+  type (mergerTree        ), pointer                         :: thisTree
+  type (treeNode          ), pointer                         :: thisNode
+  class(nodeComponentBasic), pointer :: thisBasicComponent
+  type (varying_string    )                                  :: parameterFile,message
+  integer                  ,                       parameter :: massCount=4
+  double precision         , dimension(massCount), parameter :: logMass              =[11.000d0,12.000d0,13.000d0,14.000d0]
+  double precision         , dimension(massCount), parameter :: pradaLogConcentration=[ 0.966d0, 0.887d0, 0.804d0, 0.728d0]
+  double precision         , dimension(massCount)            :: ourLogConcentration
+  integer                                                    :: iMass
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Prada2011_concentration.size')
@@ -52,14 +53,17 @@ program Test_Prada2011_Concentration
   ! Create a node.
   call thisTree%createNode(thisNode)
 
+  ! Get the basic component.
+  thisBasicComponent => thisNode%basic(autoCreate=.true.)
+
   ! Set the time for the node.
-  call Tree_Node_Time_Set(thisNode,Cosmology_Age(1.00d0))
+  call thisBasicComponent%timeSet(Cosmology_Age(1.00d0))
   
   ! Loop over halo masses
   do iMass=1,massCount
 
      ! Set the mass of the original node.
-     call Tree_Node_Mass_Set(thisNode,10.0d0**logMass(iMass)/Little_H_0())
+     call thisBasicComponent%massSet(10.0d0**logMass(iMass)/Little_H_0())
      
      ! Compute and compare concentration at z=0.
      ourLogConcentration(iMass)=log10(Dark_Matter_Profile_Concentration(thisNode))

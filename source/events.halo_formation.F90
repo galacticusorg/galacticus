@@ -27,7 +27,7 @@ contains
 
   subroutine Event_Halo_Formation(thisNode)
     !% Perform tasks associated with a ``halo formation'' event in {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     !# <include directive="haloFormationTask" type="moduleUse">
     include 'events.halo_formation.moduleUse.inc'
     !# </include>
@@ -35,8 +35,8 @@ contains
     type(treeNode), intent(inout), pointer :: thisNode
 
     ! Allow arbitrary routines to perform tasks.
-    !# <include directive="haloFormationTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode</subroutineArgs>
+    !# <include directive="haloFormationTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode</functionArgs>
     include 'events.halo_formation.inc'
     !# </include>
 

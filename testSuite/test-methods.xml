@@ -42,7 +42,7 @@
       <value>Einasto
       <parameter>
 	<name>treeNodeMethodDarkMatterProfile</name>
-	<value>scale+shape</value>
+	<value>scaleShape</value>
       </parameter>
       </value>
     </parameter>
@@ -109,6 +109,10 @@
       </value>
       <value>read
       <parameter>
+	<name>treeNodeMethodSatellite</name>
+	<value>preset</value>
+      </parameter>
+      <parameter>
 	<name>hotHaloRamPressureStrippingMethod</name>
 	<value>virialRadius</value>
       </parameter>
@@ -122,33 +126,31 @@
       </parameter>
       <parameter>
 	<name>mergerTreeReadPresetOrbits</name>
+	<value>true</value>
+      </parameter>
+      <parameter>
+	<name>mergerTreeReadPresetOrbitsBoundOnly</name>
+	<value>true</value>
+      </parameter>
+      <parameter>
+	<name>satelliteOrbitStoreOrbitalParameters</name>
+	<value>true</value>
+      </parameter>
+      <parameter>
+	<name>treeNodeMethodSatellite</name>
+	<value>standard</value>
+      </parameter>
+      <parameter>
+	<name>mergerTreeReadPresetMergerTimes</name>
 	<value>false</value>
-	<value>true
-	<parameter>
-	  <name>mergerTreeReadPresetOrbitsBoundOnly</name>
-	  <value>true</value>
-	</parameter>
-	<parameter>
-	  <name>satelliteOrbitStoreOrbitalParameters</name>
-	  <value>true</value>
-	</parameter>
-	<parameter>
-	  <name>treeNodeMethodSatelliteOrbit</name>
-	  <value>simple</value>
-	</parameter>
-	<parameter>
-	  <name>mergerTreeReadPresetMergerTimes</name>
-	  <value>false</value>
-	</parameter>
-	<parameter>
-	  <name>mergerTreeReadPresetMergerNodes</name>
-	  <value>false</value>
-	</parameter>
-	<parameter>
-	  <name>mergerTreeReadPresetSubhaloMasses</name>
-	  <value>false</value>
-	</parameter>
-	</value>
+      </parameter>
+      <parameter>
+	<name>mergerTreeReadPresetMergerNodes</name>
+	<value>false</value>
+      </parameter>
+      <parameter>
+	<name>mergerTreeReadPresetSubhaloMasses</name>
+	<value>false</value>
       </parameter>
       </value>
     </parameter>
@@ -166,10 +168,6 @@
     </parameter>
     <parameter>
       <name>treeNodeMethodPosition</name>
-      <value>preset</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodSatelliteOrbit</name>
       <value>preset</value>
     </parameter>
     <parameter>
@@ -399,7 +397,7 @@
       <value>White-Frenk1991</value>
       <value>Cole2000
       <parameter>
-	<name>treeNodeMethodFormationTimes</name>
+	<name>treeNodeMethodFormationTime</name>
 	<value>Cole2000</value>
       </parameter>
       <parameter>
@@ -418,9 +416,9 @@
   <!-- Spheroid comopnents. -->
   <parameters>
     <parameter>
-      <name>treeNodeMethodSpheroid</name>
-      <value>Hernquist</value>
-      <value>Sersic</value>
+      <name>spheroidMassDistribution</name>
+      <value>hernquist</value>
+      <value>sersic</value>
     </parameter>
   </parameters>
    
@@ -448,7 +446,7 @@
 	<value>haloFormation</value>
       </parameter> 
       <parameter>
-	<name>treeNodeMethodFormationTimes</name>
+	<name>treeNodeMethodFormationTime</name>
 	<value>Cole2000</value>
       </parameter>
       </value>
@@ -462,7 +460,7 @@
       <value>White-Frenk1991</value>
       <value>haloFormation
       <parameter>
-	<name>treeNodeMethodFormationTimes</name>
+	<name>treeNodeMethodFormationTime</name>
 	<value>Cole2000</value>
       </parameter>
       </value>
@@ -656,8 +654,8 @@
       <value>true</value>
     </parameter>
     <parameter>
-      <name>treeNodeMethodSatelliteOrbit</name>
-      <value>simple</value>
+      <name>treeNodeMethodSatellite</name>
+      <value>standard</value>
     </parameter>
   </parameters>
   

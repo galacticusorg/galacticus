@@ -64,6 +64,7 @@ contains
   subroutine Galactic_Structure_Radii_Solve_Simple(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``simple'' method.
     use Galacticus_Error
+    use Galacticus_Nodes
     !# <include directive="radiusSolverTask" type="moduleUse">
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     !# </include>
@@ -80,8 +81,8 @@ contains
 
     ! Check that the galaxy is physical plausible. In this simple solver, we don't act on this.
     thisNode%isPhysicallyPlausible=.true.
-    !# <include directive="radiusSolverPlausibility" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,thisNode%isPhysicallyPlausible</subroutineArgs>
+    !# <include directive="radiusSolverPlausibility" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,thisNode%isPhysicallyPlausible</functionArgs>
     include 'galactic_structure.radius_solver.plausible.inc'
     !# </include>
 
@@ -93,9 +94,9 @@ contains
        haloNode => thisNode
     end if
 
-    !# <include directive="radiusSolverTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</subroutineArgs>
-    !#  <subroutineAction>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</subroutineAction>
+    !# <include directive="radiusSolverTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</functionArgs>
+    !#  <onReturn>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</onReturn>
     include 'galactic_structure.radius_solver.tasks.inc'
     !# </include>
 

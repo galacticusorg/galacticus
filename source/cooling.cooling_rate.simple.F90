@@ -21,13 +21,13 @@
 module Cooling_Rates_Simple
   !% Implements a simple cooling rate calculation in which the cooling rate equals the mass of hot gas
   !% divided by a fixed timescale.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Cooling_Rate_Simple_Initialize
 
   ! The fixed timescale for cooling.
-  double precision :: coolingRateSimpleTimescale
+  double precision           :: coolingRateSimpleTimescale
 
 contains
 
@@ -60,10 +60,10 @@ contains
        call Get_Input_Parameter('coolingRateSimpleTimescale',coolingRateSimpleTimescale,defaultValue=1.0d0)
 
        ! Check that the properties we need are gettable.
-       if (.not.associated(Tree_Node_Hot_Halo_Mass        ))                                   &
-            & call Galacticus_Error_Report(                                                    &
+       if (.not.defaultHotHaloComponent%massIsGettable())                                 &
+            & call Galacticus_Error_Report(                                               &
             &                              'Cooling_Rate_Simple_Initialize'             , &
-            &                              'Tree_Node_Hot_Halo_Mass must be gettable'          &
+            &                              'hot halo component must have gettable mass'   &
             &                             )
     end if
     return
@@ -71,11 +71,12 @@ contains
 
   double precision function Cooling_Rate_Simple(thisNode)
     !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
-    use Tree_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
 
-    Cooling_Rate_Simple=Tree_Node_Hot_Halo_Mass(thisNode)/coolingRateSimpleTimescale
+    thisHotHaloComponent => thisNode%hotHalo()
+    Cooling_Rate_Simple=thisHotHaloComponent%mass()/coolingRateSimpleTimescale
     return
   end function Cooling_Rate_Simple
 

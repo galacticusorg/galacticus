@@ -117,7 +117,7 @@ contains
        ! Decide whether or not to skip this tree.
        skipTree=.not.(modulo(iTree-1+(iTree-1)/treeEvolveWorkerCount,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
        ! Perform any pre-tree construction tasks.
-       !# <include directive="mergerTreePreTreeConstructionTask" type="code" action="subroutine">
+       !# <include directive="mergerTreePreTreeConstructionTask" type="functionCall" functionType="void">
        include 'galacticus.tasks.evolve_tree.preConstructionTask.inc'
        !# </include>
        
@@ -135,8 +135,8 @@ contains
              activeTreeWeight=thisTree%volumeWeight
 
              ! Perform any pre-evolution tasks on the tree.
-             !# <include directive="mergerTreePreEvolveTask" type="code" action="subroutine">
-             !#  <subroutineArgs>thisTree</subroutineArgs>
+             !# <include directive="mergerTreePreEvolveTask" type="functionCall" functionType="void">
+             !#  <functionArgs>thisTree</functionArgs>
              include 'galacticus.tasks.evolve_tree.preEvolveTask.inc'
              !# </include>
              
@@ -176,7 +176,7 @@ contains
           end if
 
           ! Perform any post-evolution tasks on the tree.
-          !# <include directive="mergerTreePostEvolveTask" type="code" action="subroutine">
+          !# <include directive="mergerTreePostEvolveTask" type="functionCall" functionType="void">
           include 'galacticus.tasks.evolve_tree.postEvolveTask.inc'
           !# </include>
              

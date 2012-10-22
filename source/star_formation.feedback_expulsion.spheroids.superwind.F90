@@ -84,15 +84,18 @@ contains
     !% spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005}, except that they specifically used the
     !% circular velocity at half-mass radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
+    use Numerical_Constants_Units
     use Stellar_Feedback
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: starFormationRate,energyInputRate
-    double precision                         :: spheroidVelocity,outflowRateToStarFormationRate
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    double precision            , intent(in)             :: starFormationRate,energyInputRate
+    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent
+    double precision                                     :: spheroidVelocity,outflowRateToStarFormationRate
 
     ! Get spheroid circular velocity.
-    spheroidVelocity=Tree_Node_Spheroid_Velocity(thisNode)
+    thisSpheroidComponent => thisNode%spheroid()
+    spheroidVelocity=thisSpheroidComponent%velocity()
 
     ! Check for zero velocity spheroid.
     if (spheroidVelocity <= 0.0d0) then

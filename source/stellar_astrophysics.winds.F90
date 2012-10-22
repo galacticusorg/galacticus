@@ -67,8 +67,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('stellarWindsMethod',stellarWindsMethod,defaultValue='Leitherer1992')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarWindsMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get</subroutineArgs>
+          !# <include directive="stellarWindsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get</functionArgs>
           include 'stellar_astrophysics.winds.inc'
           !# </include>
           if (.not.(associated(Stellar_Winds_Mass_Loss_Rate_Get).or.associated(Stellar_Winds_Terminal_Velocity_Get))) call&

@@ -107,7 +107,7 @@ contains
   !# </calculationResetTask>
   subroutine Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)
     !% Reset the specific angular momentum of cooling gas calculation.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -118,14 +118,18 @@ contains
 
   double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode,radius)
     !% Return the specific angular momentum of cooling gas in the constant rotation model.
-    use Tree_Nodes
+    use Galacticus_Nodes
+    use Cooling_Infall_Radii
     use Dark_Matter_Profiles
     use Hot_Halo_Density_Profile
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: meanSpecificAngularMomentum,rotationNormalization
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    double precision           , intent(in   )          :: radius
+    class(nodeComponentBasic  ),                pointer :: thisBasicComponent
+    class(nodeComponentSpin   ),                pointer :: thisSpinComponent
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                    :: meanSpecificAngularMomentum,rotationNormalization
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)
@@ -139,14 +143,17 @@ contains
        select case (meanSpecificAngularMomentumFrom)
        case (profileDarkMatter)
           ! Compute mean specific angular momentum of the dark matter halo from the spin parameter, mass and energy of the halo.
-          meanSpecificAngularMomentum= gravitationalConstantGalacticus                          &
-               &                      *           Tree_Node_Spin            (thisNode)          &
-               &                      *           Tree_Node_Mass            (thisNode)  **1.5d0 &
+          thisBasicComponent => thisNode%basic()
+          thisSpinComponent  => thisNode%spin ()
+          meanSpecificAngularMomentum= gravitationalConstantGalacticus                   &
+               &                      *thisSpinComponent %spin()                         &
+               &                      *thisBasicComponent%mass()**1.5d0                  &
                &                      /dsqrt(dabs(Dark_Matter_Profile_Energy(thisNode)))
        case (profileHotGas    )
           ! Compute mean specific angular momentum from the hot halo component.
-          meanSpecificAngularMomentum= Tree_Node_Hot_Halo_Angular_Momentum(thisNode) &
-               &                      /Tree_Node_Hot_Halo_Mass            (thisNode)
+          thisHotHaloComponent => thisNode%hotHalo()
+          meanSpecificAngularMomentum= thisHotHaloComponent%angularMomentum() &
+               &                      /thisHotHaloComponent%mass           ()
        end select
 
        ! Compute the rotation normalization.

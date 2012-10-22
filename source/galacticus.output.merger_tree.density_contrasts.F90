@@ -19,7 +19,7 @@
 
 module Galacticus_Output_Trees_Density_Contrasts
   !% Handles outputting of node density contrast properties (radii and masses).
-  use Tree_Nodes
+  use Galacticus_Nodes
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
@@ -45,9 +45,10 @@ module Galacticus_Output_Trees_Density_Contrasts
   double precision                            :: referenceDensity
 
   ! Global variables used in root finding.
-  type(treeNode),   pointer                   :: activeNode
+  type (treeNode          ), pointer          :: activeNode
+  class(nodeComponentBasic), pointer          :: activeBasicComponent
   double precision                            :: meanDensityContrastTarget
-  !$omp threadprivate(activeNode,meanDensityContrastTarget)
+  !$omp threadprivate(activeNode,activeBasicComponent,meanDensityContrastTarget)
 
 contains
 
@@ -126,17 +127,18 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Density_Contrast_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Density_Contrast</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Density_Contrast_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
+  subroutine Galacticus_Output_Tree_Density_Contrast_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of density contrast properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    double precision, intent(in)                  :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
+    type     (treeNode), intent(inout), pointer      :: thisNode
+    double precision   , intent(in   )               :: time
+    integer            , intent(inout)               :: integerProperty,doubleProperty
+    character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    integer                                       :: iDensity
+    double precision   , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    integer                                          :: iDensity
 
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
@@ -161,11 +163,12 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Density_Contrast_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Density_Contrast</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Density_Contrast_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Density_Contrast_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of density contrast properties to be written to the \glc\ output file.
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
@@ -208,9 +211,10 @@ contains
     ! Store property data if we are outputting density contrast data.
     if (outputDensityContrastData) then
 
-       ! Make the node available to the root finding routine.
-       activeNode => thisNode
-
+       ! Make the node and basic component available to the root finding routine.
+       activeNode           => thisNode
+       activeBasicComponent => thisNode%basic()
+       
        ! Loop over all requested densities.
        do iDensity=1,densityContrastCount
           meanDensityContrastTarget=outputDensityContrastValues(iDensity)
@@ -224,7 +228,7 @@ contains
           do while (Mean_Density_Contrast_Root(radiusMaximum,parameterPointer) > 0.0d0)
              radiusMaximum=2.0d0*radiusMaximum
           end do
-          
+
           ! Locate the root.
           radius=Root_Find(radiusMinimum,radiusMaximum,Mean_Density_Contrast_Root,parameterPointer,rootFunction,rootFunctionSolver &
                &,toleranceAbsolute,toleranceRelative)
@@ -258,7 +262,7 @@ contains
     enclosedMass              =Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeSelected,componentType&
          &=componentTypeAll)
     Mean_Density_Contrast_Root=3.0d0*enclosedMass/4.0d0/Pi/radius**3/(referenceDensity &
-         &/Expansion_Factor(Tree_Node_Time(activeNode))**3)-meanDensityContrastTarget
+         &/Expansion_Factor(activeBasicComponent%time())**3)-meanDensityContrastTarget
     return
   end function Mean_Density_Contrast_Root
   

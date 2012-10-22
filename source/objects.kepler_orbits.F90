@@ -17,7 +17,7 @@
 
 !% Contains a module which defines an orbit structure for use in \glc.
 
-module Kepler_Orbits_Structure
+module Kepler_Orbits
   !% Defines an orbit structure for use in \glc.
   implicit none
   private
@@ -54,8 +54,16 @@ module Kepler_Orbits_Structure
      !@ <objectMethods>
      !@   <object>orbit</object>
      !@   <objectMethod>
+     !@     <method>dump</method>
+     !@     <description>Dump an orbit.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>reset</method>
      !@     <description>Resets an orbit to a null state.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroys an orbit.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isDefined</method>
@@ -162,7 +170,9 @@ module Kepler_Orbits_Structure
      !@     <description>Returns the semi-major axis of an orbit.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure :: dump                  => Kepler_Orbits_Dump
      procedure :: reset                 => Kepler_Orbits_Reset
+     procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
      procedure :: assertIsDefined       => Kepler_Orbits_Assert_Is_Defined
      procedure :: isBound               => Kepler_Orbits_Is_Bound
@@ -192,6 +202,80 @@ module Kepler_Orbits_Structure
   end type keplerOrbit
 
 contains
+
+  subroutine Kepler_Orbits_Destroy(thisOrbit)
+    !% Destroy an orbit.
+    implicit none
+    class(keplerOrbit), intent(inout) :: thisOrbit
+
+    ! Nothing to do.
+    return
+  end subroutine Kepler_Orbits_Destroy
+
+  subroutine Kepler_Orbits_Dump(self)
+    !% Reset an orbit to a null state.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class    (keplerOrbit   ), intent(in   ) :: self
+    character(len=12        )                :: label
+    type     (varying_string)                :: message
+
+    if (self%massesIsSet             ) then
+       write (label,'(e12.6)') self%hostMassValue
+       message='host mass:             '//label
+       call Galacticus_Display_Message(message)
+       write (label,'(e12.6)') self%specificReducedMassValue
+       message='specific reduced mass: '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%radiusIsSet             ) then
+       write (label,'(e12.6)') self%radiusValue
+       message='radius            :     '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%radiusPericenterIsSet   ) then
+       write (label,'(e12.6)') self%radiusPericenterValue
+       message='radius pericenter:      '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%radiusApocenterIsSet   ) then
+       write (label,'(e12.6)') self%radiusApocenterValue
+       message='radius apocenter:       '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%velocityRadialIsSet    ) then
+       write (label,'(e12.6)') self%velocityRadialValue
+       message='velocity radial:        '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%velocityTangentialIsSet) then
+       write (label,'(e12.6)') self%velocityTangentialValue
+       message='velocity tangential:    '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%angularMomentumIsSet   ) then
+       write (label,'(e12.6)') self%angularMomentumValue
+       message='angular momentum:       '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%energyIsSet            ) then
+       write (label,'(e12.6)') self%energyValue
+       message='energy:                 '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%eccentricityIsSet      ) then
+       write (label,'(e12.6)') self%eccentricityValue
+       message='eccentricity:           '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%semimajorAxisIsSet     ) then
+       write (label,'(e12.6)') self%semimajorAxisValue
+       message='semi-major axis:        '//label
+       call Galacticus_Display_Message(message)
+    end if
+    return
+  end subroutine Kepler_Orbits_Dump
 
   subroutine Kepler_Orbits_Reset(thisOrbit)
     !% Reset an orbit to a null state.
@@ -714,4 +798,4 @@ contains
     return
   end subroutine Kepler_Orbits_Propagate
 
-end module Kepler_Orbits_Structure
+end module Kepler_Orbits

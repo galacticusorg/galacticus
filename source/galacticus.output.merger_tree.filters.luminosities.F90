@@ -89,21 +89,25 @@ contains
   !# </mergerTreeOutputFilter>
   subroutine Galacticus_Merger_Tree_Output_Filter_Luminosity(thisNode,doOutput)
     !% Determines whether {\tt thisNode} has sufficient stellar mass to be output.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Stellar_Population_Properties_Luminosities
     implicit none
-    type(treeNode)  , intent(inout), pointer :: thisNode
-    logical         , intent(inout)          :: doOutput
-    integer                                  :: iLuminosity
-    double precision                         :: time,luminosity,abMagnitude
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    logical                  , intent(inout)          :: doOutput
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    integer                                           :: iLuminosity
+    double precision                                  :: time,luminosity,abMagnitude
 
     ! Return immediately if this filter is not active.
     if (.not.luminosityFilterActive) return
-
+    
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
+    
     ! Get the time for this node.
-    time=Tree_Node_Time(thisNode)
+    time=thisBasicComponent%time()
 
     ! Loop over all luminosities.
     do iLuminosity=1,luminosityCount

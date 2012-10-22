@@ -79,8 +79,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('virialDensityContrastMethod',virialDensityContrastMethod,defaultValue='sphericalTopHat')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="virialDensityContrastMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>virialDensityContrastMethod,Virial_Density_Contrast_Tabulate</subroutineArgs>
+          !# <include directive="virialDensityContrastMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>virialDensityContrastMethod,Virial_Density_Contrast_Tabulate</functionArgs>
           include 'structure_formation.CDM.virial_overdensity.inc'
           !# </include>
           if (.not.associated(Virial_Density_Contrast_Tabulate)) call Galacticus_Error_Report('Virial_Density_Contrast_Initialize','method ' &
