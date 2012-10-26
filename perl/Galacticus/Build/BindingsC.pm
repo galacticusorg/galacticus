@@ -81,7 +81,19 @@ sub CTemplate_Parse_Directive {
     $buildData->{'componentClasses'}->{$className}->{'name'} = $className;
 
     # Store all methods.
-    $buildData->{'componentClasses'}->{$className}->{'methods'} = $buildData->{'currentDocument'}->{'methods'};
+    foreach my $methodName ( keys(%{$buildData->{'currentDocument'}->{'methods'}->{'method'}}) ) {
+	my $method = $buildData->{'currentDocument'}->{'methods'}->{'method'}->{$methodName};
+	if ( exists($buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName}) ) {
+	    if (
+		exists($method->{$methodName}->{'attributes'}->{'isGettable'})          &&
+		       $method->{$methodName}->{'attributes'}->{'isGettable'} eq "true" 
+		) {
+		$buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName}->{'attributes'}->{'isGettable'} = "true"
+	    }
+	} else {
+	    $buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName} = $method;
+	}
+    }
 }
 
 sub CTemplate_Generate_Output {
@@ -155,7 +167,19 @@ sub CInterface_Parse_Directive {
     $buildData->{'componentClasses'}->{$className}->{'name'} = $className;
 
     # Store all methods.
-    $buildData->{'componentClasses'}->{$className}->{'methods'} = $buildData->{'currentDocument'}->{'methods'};
+    foreach my $methodName ( keys(%{$buildData->{'currentDocument'}->{'methods'}->{'method'}}) ) {
+	my $method = $buildData->{'currentDocument'}->{'methods'}->{'method'}->{$methodName};
+	if ( exists($buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName}) ) {
+	    if (
+		exists($method->{$methodName}->{'attributes'}->{'isGettable'})          &&
+		       $method->{$methodName}->{'attributes'}->{'isGettable'} eq "true" 
+		) {
+		$buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName}->{'attributes'}->{'isGettable'} = "true"
+	    }
+	} else {
+	    $buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName} = $method;
+	}
+    }
 }
 
 sub CInterface_Generate_Output {
