@@ -470,7 +470,7 @@ contains
   end function Coordinates_Cylindrical_R
 
   double precision function Coordinates_Cylindrical_Phi(self)
-    !% Return the $\phi-component of a Cylindrical {\tt coordinate} object.
+    !% Return the $\phi$-component of a Cylindrical {\tt coordinate} object.
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
     
@@ -479,7 +479,7 @@ contains
   end function Coordinates_Cylindrical_Phi
 
   double precision function Coordinates_Cylindrical_Z(self)
-    !% Return the $z-component of a Cylindrical {\tt coordinate} object.
+    !% Return the $z$-component of a Cylindrical {\tt coordinate} object.
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
     
@@ -498,7 +498,7 @@ contains
   end subroutine Coordinates_Cylindrical_Set_R
 
   subroutine Coordinates_Cylindrical_Set_Phi(self,phi)
-    !% Return the $\phi-component of a Cylindrical {\tt coordinate} object.
+    !% Return the $\phi$-component of a Cylindrical {\tt coordinate} object.
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
     double precision                       , intent(in   ) :: phi

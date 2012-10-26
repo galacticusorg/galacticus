@@ -144,10 +144,10 @@ double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self
         call Galacticus_Error_Report('Mass_Distribution_Hernquist_Density_Radial_Moment','requested radial density moment is infinite')
      end if
   else if (                                              &
-       ! Handle special cases.
        &   Values_Agree(moment,1.0d0,absTol=1.0d-3) .or. &
        &   Values_Agree(moment,2.0d0,absTol=1.0d-3)      &
        &  ) then
+     ! Handle special cases.
      if (present(isInfinite)) isInfinite=.false.
      Mass_Distribution_Hernquist_Density_Radial_Moment=0.5d0
   else
