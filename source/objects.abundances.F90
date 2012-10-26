@@ -54,23 +54,26 @@ module Abundances_Structure
      procedure                 :: isZero                 => Abundances_Is_Zero
      procedure                 :: destroy                => Abundances_Destroy
      ! Methods.
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>reset</method>
+     !@   <description>Reset an abundances object.</description>
+     !@ </objectMethod>
+     procedure                 :: reset                  => Abundances_Reset
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>dump</method>
+     !@   <description>Dump an abundances object.</description>
+     !@ </objectMethod>
+     procedure                 :: dump                   => Abundances_Dump
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>setToUnity</method>
+     !@   <description>Set an abundances object to unity.</description>
+     !@ </objectMethod>
+     procedure                 :: setToUnity             => Abundances_Set_To_Unity
      !@ <objectMethods>
      !@   <object>abundances</object>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Reset an abundances object.</description>
-     !@   </objectMethod>
-     procedure                 :: reset                  => Abundances_Reset
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <description>Dump an abundances object.</description>
-     !@   </objectMethod>
-     procedure                 :: dump                   => Abundances_Dump
-     !@   <objectMethod>
-     !@     <method>setToUnity</method>
-     !@     <description>Set an abundances object to unity.</description>
-     !@   </objectMethod>
-     procedure                 :: setToUnity             => Abundances_Set_To_Unity
      !@   <objectMethod>
      !@     <method>serializeCount</method>
      !@     <description>Return a count of the number of properties in a serialized abundances object.</description>
@@ -83,13 +86,15 @@ module Abundances_Structure
      !@     <method>deserialize</method>
      !@     <description>Deserialize an abundances object from an array.</description>
      !@   </objectMethod>
+     !@ </objectMethods>
      procedure, nopass         :: serializeCount         => Abundances_Property_Count
      procedure                 :: serialize              => Abundances_Serialize
      procedure                 :: deserialize            => Abundances_Deserialize
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <description>Increment an abundances object.</description>
-     !@   </objectMethod>
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>increment</method>
+     !@   <description>Increment an abundances object.</description>
+     !@ </objectMethod>
      procedure                 :: increment              => Abundances_Increment
      ! Metallicity methods.
      !@ <objectMethods>
