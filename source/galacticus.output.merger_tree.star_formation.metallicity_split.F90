@@ -162,15 +162,17 @@ contains
   subroutine Star_Formation_History_Create_Metallicity_Split(thisNode,thisHistory)
     !% Create the history required for storing star formation history.
     use Histories
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Output_Times
     implicit none
-    type(treeNode),      intent(inout), pointer :: thisNode
-    type(history),       intent(inout)          :: thisHistory
-    double precision                            :: timeBegin,timeEnd
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    type (history           ), intent(inout)          :: thisHistory
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: timeBegin,timeEnd
 
     ! Find the start and end times for this history.
-    timeBegin=Tree_Node_Time(thisNode  )
+    thisBasicComponent => thisNode%basic()
+    timeBegin=thisBasicComponent%time()
     timeEnd  =Galacticus_Next_Output_Time(timeBegin)
     call Star_Formation_History_Metallicity_Split_Make_History(thisHistory,timeBegin,timeEnd)
     return
@@ -180,7 +182,7 @@ contains
     !% Create the history required for storing star formation history.
     use Histories
     use Numerical_Ranges
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Output_Times
     use Galacticus_Error
     implicit none
@@ -315,7 +317,6 @@ contains
           thisTimeStep => nextTimeStep
        end do
     end if
-    
     return
   end subroutine Star_Formation_History_Metallicity_Split_Make_History
 
@@ -323,20 +324,22 @@ contains
     !% Record the star formation history for {\tt thisNode}.
     use Histories
     use Numerical_Ranges
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Abundances_Structure
     use Arrays_Search
     use Galacticus_Output_Times
     implicit none
-    type(treeNode),            intent(inout), pointer :: thisNode
-    type(history),             intent(inout)          :: thisHistory
-    type(abundancesStructure), intent(in)             :: fuelAbundances
-    double precision,          intent(in)             :: starFormationRate
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    type (history           ), intent(inout)          :: thisHistory
+    type (abundances        ), intent(in   )          :: fuelAbundances
+    double precision         , intent(in   )          :: starFormationRate
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
     integer                                           :: iHistory,iMetallicity,historyCount
     double precision                                  :: timeNode,fuelMetallicity
 
     ! Get the current time for this node.
-    timeNode    =Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    timeNode=thisBasicComponent%time()
 
     ! Get the number of times at which star formation rate is tabulated for this node.
     historyCount=size(thisHistory%time)
@@ -352,8 +355,8 @@ contains
        iMetallicity=Search_Array(metallicityTable,fuelMetallicity)+1
     end if
 
-    ! Accumulate to all future times.
-    thisHistory%rates(iHistory,iMetallicity)=thisHistory%rates(iHistory,iMetallicity)+starFormationRate
+    ! Accumulate to the appropriate time.
+    thisHistory%data(iHistory,iMetallicity)=starFormationRate
 
     return
   end subroutine Star_Formation_History_Record_Metallicity_Split
@@ -364,22 +367,23 @@ contains
     use ISO_Varying_String
     use Galacticus_HDF5
     use IO_HDF5
-    use Tree_Nodes
+    use Galacticus_Nodes
     use String_Handling
     use Kind_Numbers
     use Galacticus_Output_Times
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    logical,                 intent(in)             :: nodePassesFilter
-    type(history),           intent(inout)          :: thisHistory
-    integer,                 intent(in)             :: iOutput
-    integer(kind=kind_int8), intent(in)             :: treeIndex
-    character(len=*),        intent(in)             :: componentLabel
-    type(treeNode),                         pointer :: parentNode
-    double precision                                :: timeBegin,timeEnd
-    type(varying_string)                            :: groupName
-    type(hdf5Object)                                :: historyGroup,treeGroup,outputGroup
-    type(history)                                   :: newHistory
+    type     (treeNode          ), intent(inout), pointer :: thisNode
+    logical                      , intent(in   )          :: nodePassesFilter
+    type     (history           ), intent(inout)          :: thisHistory
+    integer                      , intent(in   )          :: iOutput
+    integer  (kind=kind_int8    ), intent(in   )          :: treeIndex
+    character(len=*             ), intent(in   )          :: componentLabel
+    class    (nodeComponentBasic),                pointer :: parentBasicComponent
+    type     (treeNode          ),                pointer :: parentNode
+    double precision                                      :: timeBegin,timeEnd
+    type     (varying_string    )                         :: groupName
+    type     (hdf5Object        )                         :: historyGroup,treeGroup,outputGroup
+    type     (history           )                         :: newHistory
  
     ! Return if the history does not exist.
     if (.not.thisHistory%exists()) return
@@ -430,10 +434,11 @@ contains
        timeEnd =Galacticus_Output_Time(iOutput+1)
     else
        parentNode => thisNode
-       do while (associated(parentNode%parentNode))
-          parentNode => parentNode%parentNode
+       do while (associated(parentNode%parent))
+          parentNode => parentNode%parent
        end do
-       timeEnd=Tree_Node_Time(parentNode)
+       parentBasicComponent => parentNode%basic()
+       timeEnd=parentBasicComponent%time()
     end if
     call Star_Formation_History_Metallicity_Split_Make_History(newHistory,timeBegin,timeEnd,thisHistory%time)
     newHistory%data(1:size(thisHistory%time),:)=thisHistory%data(:,:)
@@ -450,12 +455,12 @@ contains
     use Abundances_Structure
     use Memory_Management
     implicit none
-    double precision,          intent(in)                :: stellarMass
-    type(abundancesStructure), intent(in)                :: stellarAbundances
-    type(history),             intent(inout)             :: thisHistory
-    double precision,          parameter                 :: stellarMassMinimum=1.0d0
-    double precision,          dimension(:), allocatable :: timeSteps
-    integer                                              :: iMetallicity
+    double precision            , intent(in   )             :: stellarMass
+    type            (abundances), intent(in   )             :: stellarAbundances
+    type            (history   ), intent(inout)             :: thisHistory
+    double precision            , parameter                 :: stellarMassMinimum=1.0d0
+    double precision            , dimension(:), allocatable :: timeSteps
+    integer                                                 :: iMetallicity
 
     ! Return immediately if the history does not exist.
     if (.not.thisHistory%exists()) return
@@ -465,7 +470,7 @@ contains
 
     ! Set scaling factors for recycled mass.
     forall(iMetallicity=1:starFormationHistoryMetallicityCount+1)
-       thisHistory%scales(:,iMetallicity)=max(stellarMass,stellarMassMinimum)/timeSteps
+       thisHistory%data(:,iMetallicity)=max(stellarMass,stellarMassMinimum)/timeSteps
     end forall
 
     ! Destroy temporary array.

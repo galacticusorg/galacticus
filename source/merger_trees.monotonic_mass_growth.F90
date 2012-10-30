@@ -36,13 +36,14 @@ contains
   subroutine Merger_Tree_Monotonic_Mass_Growth(thisTree)
     !% Enforce monotonic mass growth along branches of {\tt thisTree}.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     implicit none
-    type(mergerTree), intent(in) :: thisTree
-    type(treeNode),   pointer    :: thisNode,progenitorNode
-    logical                      :: didModifyTree
-    double precision             :: progenitorMass
+    type (mergerTree        ), intent(in) :: thisTree
+    type (treeNode          ), pointer    :: thisNode,progenitorNode
+    class(nodeComponentBasic), pointer    :: thisBasicComponent,progenitorBasicComponent
+    logical                               :: didModifyTree
+    double precision                      :: progenitorMass
 
     ! Check if module is initialized.
     if (.not.monotonicGrowthModuleInitialized) then
@@ -76,17 +77,19 @@ contains
           ! Walk the tree.
           do while (associated(thisNode))
              ! Find nodes that have children.
-             if (associated(thisNode%childNode)) then
+             if (associated(thisNode%firstChild)) then
                 ! Find the mass of all progenitor nodes.
                 progenitorMass =  0.0d0
-                progenitorNode => thisNode%childNode
+                progenitorNode => thisNode%firstChild
                 do while (associated(progenitorNode))
-                   progenitorMass =  progenitorMass+Tree_Node_Mass(progenitorNode)
-                   progenitorNode => progenitorNode%siblingNode
+                   progenitorBasicComponent => progenitorNode%basic()
+                   progenitorMass =  progenitorMass+progenitorBasicComponent%mass()
+                   progenitorNode => progenitorNode%sibling
                 end do
                 ! Find nodes which are less massive than the sum of their progenitors.
-                if (Tree_Node_Mass(thisNode) < progenitorMass) then
-                   call Tree_Node_Mass_Set(thisNode,progenitorMass)
+                thisBasicComponent => thisNode%basic()
+                if (thisBasicComponent%mass() < progenitorMass) then
+                   call thisBasicComponent%massSet(progenitorMass)
                    didModifyTree=.true.
                 end if
              end if

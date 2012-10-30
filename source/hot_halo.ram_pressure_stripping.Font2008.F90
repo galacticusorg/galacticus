@@ -21,7 +21,7 @@
 module Hot_Halo_Ram_Pressure_Stripping_Font2008
   !% Implements a module which implements a model of ram pressure stripping of hot halos based on the methods of
   !% \cite{font_colours_2008}.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize
@@ -71,35 +71,39 @@ contains
   double precision function Hot_Halo_Ram_Pressure_Stripping_Font2008_Get(thisNode)
     !% Computes the hot halo ram pressure stripping radius, assuming a null calculation in which that radius always equals the
     !% virial radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     use Satellite_Orbits
     use Hot_Halo_Density_Profile
     use Root_Finder
     use FGSL
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    type(fgsl_function),     save                   :: rootFunction
-    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    type (treeNode              ), intent(inout), pointer :: thisNode
+    class(nodeComponentSatellite),                pointer :: thisSatelliteComponent
+    type (fgsl_function         ), save                   :: rootFunction
+    type (fgsl_root_fsolver     ), save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    double precision,        parameter              :: radiusSmallestOverRadiusVirial=1.0d-6
-    type(c_ptr)                                     :: parameterPointer
-    type(keplerOrbit)                               :: thisOrbit
-    double precision                                :: virialRadius,orbitalRadius,orbitalVelocity,densityHotHaloHost,radiusMinimum,radiusMaximum
+    double precision             , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    double precision             , parameter              :: radiusSmallestOverRadiusVirial=1.0d-6
+    type (c_ptr                 )                         :: parameterPointer
+    type (keplerOrbit           )                         :: thisOrbit
+    double precision                                      :: virialRadius,orbitalRadius,orbitalVelocity,densityHotHaloHost&
+         &,radiusMinimum,radiusMaximum
 
     ! Get the virial radius of the satellite.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
     ! Test whether thisNode is a satellite.
     if (thisNode%isSatellite()) then
        ! Find the host node.
-       hostNode      => thisNode%parentNode
+       hostNode      => thisNode%parent
        ! Set a pointer to the satellite node.
        satelliteNode => thisNode
+       ! Get the satellite component.
+       thisSatelliteComponent => thisNode%satellite() 
        ! Get the orbit for this node.
-       thisOrbit=Tree_Node_Satellite_Virial_Orbit(thisNode)
+       thisOrbit=thisSatelliteComponent%virialOrbit()
        ! Get the orbital radius and velocity at pericenter.
        call Satellite_Orbit_Pericenter_Phase_Space_Coordinates(hostNode,thisOrbit,orbitalRadius,orbitalVelocity)
        ! Find the density of the host node hot halo at the pericentric radius.

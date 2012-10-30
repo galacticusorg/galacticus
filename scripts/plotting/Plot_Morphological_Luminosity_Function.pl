@@ -59,7 +59,7 @@ $dataSet->{'tree'} = "all";
 &HDF5::Get_Dataset($dataSet,[
 		       'volumeWeight',
 		       'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega',
-		       'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'
+		       'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'
 		   ]);
 $dataSets  = $dataSet->{'dataSets'};
 
@@ -102,11 +102,10 @@ $weight = where($dataSets->{'volumeWeight'},
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50 &
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00
 		);
-$ratio  = where($dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'},
+$ratio  = where($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'},
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50 &
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00
 		);
-
 $indices          = $ratio->qsorti;
 $totalWeight      = $weight->sum;
 $orderedRatios    = $ratio->index($indices);
@@ -175,12 +174,12 @@ foreach $morphology ( @{$data->{'morphology'}} ) {
 print $morphology->{'class'}." ".$bulgeToTotalMinimum." ".$bulgeToTotalMaximum."\n";
 
 	$magnitude = where($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'},
-			     $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
-			   & $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
+			     $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
+			   & $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
 	    );
 	$weight    = where($dataSets->{'volumeWeight'},
-			     $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
-			   & $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
+			     $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
+			   & $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
 	    );
 
 	($yGalacticus,$errorGalacticus) = &Histograms::Histogram($x,$magnitude,$weight,differential => 1);
@@ -256,7 +255,7 @@ unlink(@plotFiles);
 
 # Output fit data.
 if ( $showFit == 1 ) {
-    $fitData{'name'} = "Cole et al. (2001) K-band luminosity function";
+    $fitData{'name'} = "Devereuc et al. (2009) morphologically segregated K-band luminosity functions";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'} = $fileName;

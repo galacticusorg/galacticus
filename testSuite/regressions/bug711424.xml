@@ -133,7 +133,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodSpheroid</name>
-    <value>Hernquist</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>spheroidMassDistribution</name>
+    <value>hernquist</value>
   </parameter>
   <parameter>
     <name>timestepSimpleRelative</name>
@@ -372,8 +376,8 @@
     <value>100</value>
   </parameter>
   <parameter>
-    <name>trackMergerStatistics</name>
-    <value>true</value>
+    <name>treeNodeMethodMergingStatistics</name>
+    <value>standard</value>
   </parameter>
   <parameter>
     <name>imfSelectionMethod</name>

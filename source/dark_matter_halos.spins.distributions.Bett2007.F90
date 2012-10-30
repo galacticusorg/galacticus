@@ -20,7 +20,7 @@
 module Halo_Spin_Distributions_Bett2007
   !% Implements the \cite{bett_spin_2007} halo spin distribution.
   use FGSL
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Halo_Spin_Distribution_Bett2007_Initialize, Halo_Spin_Distribution_Bett2007_Snapshot,&
@@ -104,7 +104,7 @@ contains
 
   double precision function Halo_Spin_Distribution_Bett2007(thisNode)
     !% Return a halo spin from a lognormal distribution.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Pseudo_Random
     use Numerical_Interpolation
     implicit none

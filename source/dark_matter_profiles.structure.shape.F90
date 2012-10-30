@@ -20,7 +20,7 @@
 module Dark_Matter_Profiles_Shapes
   !% Implements calculations of dark matter halo density profile shapes.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Profile_Shape
@@ -68,8 +68,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('darkMatterShapeMethod',darkMatterShapeMethod,defaultValue='Gao2008')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterShapeMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get</subroutineArgs>
+          !# <include directive="darkMatterShapeMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get</functionArgs>
           include 'dark_matter_profiles.structure.shape.inc'
           !# </include>
           if (.not.associated(Dark_Matter_Profile_Shape_Get)) &

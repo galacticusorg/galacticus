@@ -19,7 +19,7 @@
 
 module Dark_Matter_Halo_Mass_Accretion_Histories_Wechsler2002
   !% Implements the \cite{wechsler_concentrations_2002} halo mass accretion algorithm.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Mass_Accretion_Wechsler2002_Initialize
@@ -79,27 +79,28 @@ contains
   double precision function Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002(baseNode,nodeMass)
     !% Compute the time corresponding to {\tt nodeMass} in the mass accretion history of {\tt thisNode} using the algorithm of
     !% \cite{wechsler_concentrations_2002}.
-    use Tree_Nodes
     use Cosmology_Functions
     implicit none
-    type(treeNode),   intent(inout), pointer :: baseNode
-    double precision, intent(in)             :: nodeMass
-    double precision                         :: expansionFactorBase,expansionFactor,mergerTreeFormationExpansionFactor
+    type (treeNode          ), intent(inout), pointer :: baseNode
+    double precision,          intent(in   )          :: nodeMass
+    class(nodeComponentBasic),                pointer :: baseBasicComponent
+    double precision                                  :: expansionFactorBase,expansionFactor,mergerTreeFormationExpansionFactor
 
+    baseBasicComponent => baseNode%basic()
     select case (accretionHistoryWechslerFormationRedshiftCompute)
     case (.true.)
        ! Compute the expansion factor at formation.
-       mergerTreeFormationExpansionFactor=Expansion_Factor_At_Formation(Tree_Node_Mass(baseNode))
+       mergerTreeFormationExpansionFactor=Expansion_Factor_At_Formation (baseBasicComponent%mass()                )
     case (.false.)
        ! Use the specified formation redshift.
        mergerTreeFormationExpansionFactor=Expansion_Factor_from_Redshift(accretionHistoryWechslerFormationRedshift)
     end select
     
     ! Get the expansion factor at the tree base.
-    expansionFactorBase=Expansion_Factor(Tree_Node_Time(baseNode))
+    expansionFactorBase=Expansion_Factor(baseBasicComponent%time())
 
     ! Compute the expansion factor for the current node.
-    expansionFactor    =expansionFactorBase/(1.0d0-0.5d0*dlog(nodeMass/Tree_Node_Mass(baseNode))&
+    expansionFactor    =expansionFactorBase/(1.0d0-0.5d0*dlog(nodeMass/baseBasicComponent%mass())&
          &/mergerTreeFormationExpansionFactor)
 
     ! Find the time corresponding to this expansion factor.

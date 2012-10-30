@@ -58,7 +58,7 @@ contains
 
   subroutine Satellite_Merging_Remnant_Size_Cole2000(thisNode)
     !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{cole_hierarchical_2000} algorithm.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Numerical_Comparison
     use Satellite_Merging_Remnant_Sizes_Properties
@@ -84,7 +84,7 @@ contains
     logical                                          :: errorCondition
 
     ! Find the node to merge with.
-    call thisNode%mergesWith(hostNode)
+    hostNode => thisNode%mergesWith()
 
     ! Get properties of the merging systems.
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &

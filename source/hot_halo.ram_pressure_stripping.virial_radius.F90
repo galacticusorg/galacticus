@@ -22,7 +22,6 @@ module Hot_Halo_Ram_Pressure_Stripping_Virial_Radii
   !% Implements a null hot halo ram pressure stripping calculation, by simply returning the virial radius as the ram pressure
   !% stripping radius.
   use, intrinsic :: ISO_C_Binding
-  use Tree_Nodes
   implicit none
   private
   public :: Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize
@@ -47,7 +46,7 @@ contains
   double precision function Hot_Halo_Ram_Pressure_Stripping_Virial_Radius(thisNode)
     !% Computes the hot halo ram pressure stripping radius, assuming a null calculation in which that radius always equals the
     !% virial radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

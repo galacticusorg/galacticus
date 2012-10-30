@@ -19,7 +19,7 @@
 
 module Dark_Matter_Profiles_Concentrations_Zhao2009
   !% Implements the \cite{zhao_accurate_2009} NFW halo concentration algorithm.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Concentrations_Zhao2009_Initialize
@@ -44,15 +44,20 @@ contains
 
   double precision function Dark_Matter_Profile_Concentration_Zhao2009(thisNode)
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{zhao_accurate_2009}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: concentrationMinimum =4.00d0
-    double precision, parameter              :: formationMassFraction=0.04d0
-    double precision                         :: timeNode,timeFormation
-
-    timeNode     =Tree_Node_Time                 (thisNode                      )
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    double precision         , parameter              :: concentrationMinimum =4.00d0
+    double precision         , parameter              :: formationMassFraction=0.04d0
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: timeNode,timeFormation
+    
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
+  
+    ! Compute the concentration.
+    timeNode     =thisBasicComponent%time()
     timeFormation=Dark_Matter_Halo_Formation_Time(thisNode,formationMassFraction)
 
     ! Compute the concentration from the formation time using the Zhao et al. (2009) fitting formula.

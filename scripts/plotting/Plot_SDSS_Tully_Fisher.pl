@@ -58,11 +58,11 @@ $dataSet->{'store'} = 0;
 &HDF5::Count_Trees($dataSet);
 &HDF5::Select_Output($dataSet,0.1);
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas','diskCircularVelocity']);
+&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas','diskVelocity']);
 $dataSets     = $dataSet->{'dataSets'};
 $magnitude    = $dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'};
-$bulgeToTotal = $dataSets->{'bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas'};
-$velocity     = $dataSets->{'diskCircularVelocity'};
+$bulgeToTotal = $dataSets->{'bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas'};
+$velocity     = $dataSets->{'diskVelocity'};
 $weight       = $dataSets->{'volumeWeight'};
 delete($dataSet->{'dataSets'});
 # Select galaxies which are disk-dominated.

@@ -21,7 +21,7 @@
 module Galactic_Structure_Radii_Linear
   !% Implements a ``linear'' galactic radii solver (no adiabatic contraction and no self-gravity
   !% of baryons, and size simply scales in proportion to specific angular momentum).
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
   implicit none
   private
@@ -50,7 +50,6 @@ contains
   subroutine Galactic_Structure_Radii_Solve_Linear(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``linear'' method.
     use Galacticus_Error
-    use Tree_Nodes
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -63,7 +62,6 @@ contains
     ! Check that the galaxy is physical plausible. In this linear solver, we don't act on this.
     thisNode%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-
     include 'galactic_structure.radius_solver.tasks.inc'
 
     return

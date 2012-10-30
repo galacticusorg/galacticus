@@ -63,12 +63,12 @@ $y         = (10.0**$y             )*($dataSet->{'parameters'}->{'H_0'}/$columns
 
 # Read galaxy data and construct mass function.
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','diskStellarMass','spheroidStellarMass']);
+&HDF5::Get_Dataset($dataSet,['volumeWeight','diskMassStellar','spheroidMassStellar']);
 $dataSets               = $dataSet->{'dataSets'};
-$logarithmicStellarMass = log10(($dataSets->{'diskStellarMass'}+$dataSets->{'spheroidStellarMass'}));
+$logarithmicMassStellar = log10(($dataSets->{'diskMassStellar'}+$dataSets->{'spheroidMassStellar'}));
 $weight                 = $dataSets->{'volumeWeight'};
 delete($dataSet->{'dataSets'});
-($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicStellarMass,$weight,differential => 1);
+($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicMassStellar,$weight,differential => 1);
 
 # Compute chi^2.
 $chiSquared = sum(($yGalacticus-$y)**2/($errorGalacticus**2+(0.5*($errorUp-$errorDown))**2));

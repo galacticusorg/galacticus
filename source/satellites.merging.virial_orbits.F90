@@ -20,7 +20,7 @@
 module Virial_Orbits
   !% Implements satellite orbital parameters at virial radius crossing.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Virial_Orbital_Parameters
@@ -40,7 +40,7 @@ contains
     !% Returns virial orbital parameters.
     use Galacticus_Error
     use Input_Parameters
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     !# <include directive="virialOrbitsMethod" type="moduleUse">
     include 'satellites.merging.virial_orbits.modules.inc'
     !# </include>
@@ -65,8 +65,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('virialOrbitsMethod',virialOrbitsMethod,defaultValue='Benson2005')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="virialOrbitsMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>virialOrbitsMethod,Virial_Orbital_Parameters_Get</subroutineArgs>
+          !# <include directive="virialOrbitsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>virialOrbitsMethod,Virial_Orbital_Parameters_Get</functionArgs>
           include 'satellites.merging.virial_orbits.inc'
           !# </include>
           if (.not.associated(Virial_Orbital_Parameters_Get)) call Galacticus_Error_Report('Virial_Orbital_Parameters','method ' &

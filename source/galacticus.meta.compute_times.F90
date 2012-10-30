@@ -63,8 +63,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('timePerTreeMethod',timePerTreeMethod,defaultValue='file')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="timePerTreeMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>timePerTreeMethod,Galacticus_Time_Per_Tree_Get</subroutineArgs>
+       !# <include directive="timePerTreeMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>timePerTreeMethod,Galacticus_Time_Per_Tree_Get</functionArgs>
        include 'galacticus.meta.compute_times.inc'
        !# </include>
        if (.not.associated(Galacticus_Time_Per_Tree_Get)) call Galacticus_Error_Report('Galacticus_Time_Per_Tree_Initialize'&

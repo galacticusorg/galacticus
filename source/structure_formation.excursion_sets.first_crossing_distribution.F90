@@ -20,7 +20,6 @@
 module Excursion_Sets_First_Crossings
   !% Implements calculations of first crossing distributions for excursion set calculations.
   use ISO_Varying_String
-  use Tree_Nodes
   private
   public :: Excursion_Sets_First_Crossing_Probability,Excursion_Sets_First_Crossing_Rate,Excursion_Sets_Collapsed_Fraction&
        &,Excursion_Sets_Non_Crossing_Rate
@@ -61,8 +60,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('excursionSetFirstCrossingMethod',excursionSetFirstCrossingMethod,defaultValue='linearBarrier')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="excursionSetFirstCrossingMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>excursionSetFirstCrossingMethod,Excursion_Sets_First_Crossing_Probability_Get,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get</subroutineArgs>
+       !# <include directive="excursionSetFirstCrossingMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>excursionSetFirstCrossingMethod,Excursion_Sets_First_Crossing_Probability_Get,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get</functionArgs>
        include 'structure_formation.excursion_sets.first_crossing_distribution.inc'
        !# </include>
        if     (                                                                     &

@@ -66,8 +66,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('supernovaePopIIIMethod',supernovaePopIIIMethod,defaultValue='Heger-Woosley2002')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="supernovaePopIIIMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get</subroutineArgs>
+          !# <include directive="supernovaePopIIIMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get</functionArgs>
           include 'stellar_astrophysics.supernovae_type_PopIII.inc'
           !# </include>
           if (.not.associated(SNePopIII_Cumulative_Energy_Get)) call Galacticus_Error_Report('Supernovae_Population_III_Initialize'&

@@ -47,7 +47,7 @@ CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
 # List of additional Makefiles which contain dependency information
-MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
+MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps ./work/build/Makefile_Component_Includes
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -98,6 +98,8 @@ vpath %.cpp source
 	$(FCCOMPILER) -c $< -o ./work/build/Bivar/bivar.o $(FCFLAGS_NOOPT)
 
 # Rule for running *.Inc files through the preprocessor.
+./work/build/%.Inc : ./source/%.Inc
+	cp -f ./source/$*.Inc ./work/build/$*.Inc
 ./work/build/%.inc : ./work/build/%.Inc Makefile
 	$(PREPROCESSOR) -C $< -o ./work/build/$*.tmp
 	mv -f ./work/build/$*.tmp ./work/build/$*.inc
@@ -156,7 +158,7 @@ vpath %.cpp source
 	 ./scripts/build/Find_Parameter_Dependencies.pl $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: %.o %.d %.dd %.m %.make
+.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc
 
 # Include depenencies on "include" files.
 -include ./work/build/Makefile_Include_Deps 
@@ -169,6 +171,9 @@ vpath %.cpp source
 
 # Include rules to build include files generated from directives.
 -include ./work/build/Makefile_Directives
+
+# Include dependencies on component include files.
+-include ./work/build/Makefile_Component_Includes
 
 # Rules for memory management routines.
 ./work/build/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
@@ -241,5 +246,7 @@ all: deps $(all_exes)
 
 ./work/build/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
 	./scripts/build/Find_Programs.pl `pwd`
+
+./work/build/Makefile_Component_Includes: ./work/build/objects.nodes.components.Inc
 
 deps: $(MAKE_DEPS) ./work/build/Makefile_All_Execs

@@ -19,7 +19,7 @@
 
 module Galactic_Structure_Rotation_Curves
   !% Implements calculations of the rotation curve as a specified radius.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
   private
@@ -63,9 +63,9 @@ contains
     Galactic_Structure_Rotation_Curve=0.0d0
 
     ! Call routines to supply the velocities for all components.
-    !# <include directive="rotationCurveTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,radius,massTypeActual,componentTypeActual,componentVelocity</subroutineArgs>
-    !#  <subroutineAction>Galactic_Structure_Rotation_Curve=Galactic_Structure_Rotation_Curve+componentVelocity**2</subroutineAction>
+    !# <include directive="rotationCurveTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,radius,massTypeActual,componentTypeActual,componentVelocity</functionArgs>
+    !#  <onReturn>Galactic_Structure_Rotation_Curve=Galactic_Structure_Rotation_Curve+componentVelocity**2</onReturn>
     include 'galactic_structure.rotation_curve.tasks.inc'
     !# </include>
 

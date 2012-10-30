@@ -72,6 +72,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 # necessary cause a crash).
 @executablesToRun = (
     {
+	name     => "tests.nodes.exe",                           # Tests of Galacticus nodes.
+	valgrind => 0
+    },
+    {
 	name     => "tests.IO.HDF5.exe",                         # Tests of HDF5 IO routines.
 	valgrind => 0
     },
@@ -117,6 +121,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     },
     {
 	name     => "tests.make_ranges.exe",                     # Tests of numerical range building functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.mass_distributions.exe",              # Tests of mass distributions.
 	valgrind => 0
     },
     {
@@ -209,6 +217,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     },
     {
 	name     => "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.abundances.exe",                      # Abundances objects.
 	valgrind => 0
     },
     {

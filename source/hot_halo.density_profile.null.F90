@@ -48,7 +48,7 @@ contains
 
   double precision function Hot_Halo_Density_Null_Get(thisNode,radius)
     !% Compute the density at radius {\tt radius} in a null hot halo density profile for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
@@ -59,7 +59,7 @@ contains
   
   double precision function Hot_Halo_Density_Null_Log_Slope_Get(thisNode,radius)
     !% Compute the density at radius {\tt radius} in a null hot halo density profile for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
@@ -70,7 +70,7 @@ contains
   
   double precision function Hot_Halo_Density_Null_Enclosed_Mass_Get(thisNode,radius)
     !% Compute the mass enclosed within radius {\tt radius} in a null hot halo density profile for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius
@@ -81,7 +81,7 @@ contains
 
   double precision function Hot_Halo_Density_Null_Rotation_Normalization_Get(thisNode)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation in a null hot halo density profile for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

@@ -68,8 +68,8 @@ contains
           call Get_Input_Parameter('atomicCollisionalIonizationMethod',atomicCollisionalIonizationMethod,defaultValue='Verner')
           
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="atomicCollisionalIonizationMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>atomicCollisionalIonizationMethod,Atomic_Rate_Ionization_Collisional_Get</subroutineArgs>
+          !# <include directive="atomicCollisionalIonizationMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>atomicCollisionalIonizationMethod,Atomic_Rate_Ionization_Collisional_Get</functionArgs>
           include 'atomic.rates.ionization.collisional.inc'
           !# </include>
           if (.not.associated(Atomic_Rate_Ionization_Collisional_Get)) call&

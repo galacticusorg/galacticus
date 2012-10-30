@@ -23,7 +23,7 @@ module Galactic_Structure_Rotation_Curve_Gradients
   !% Implements calculations of the rotation curve gradient
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Options
   private
   public :: Galactic_Structure_Rotation_Curve_Gradient
@@ -71,9 +71,9 @@ contains
     
     ! Call routines to supply the gradient for all components' rotation curves. Specifically, the returned quantities are
     ! d(V^2)/dr so that they can be summed directly.
-    !# <include directive="rotationCurveGradientTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,radius,massTypeActual,componentTypeActual,componentRotationCurveGradient</subroutineArgs>
-    !#  <subroutineAction>Galactic_Structure_Rotation_Curve_Gradient=Galactic_Structure_Rotation_Curve_Gradient+componentRotationCurveGradient</subroutineAction>
+    !# <include directive="rotationCurveGradientTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,radius,massTypeActual,componentTypeActual,componentRotationCurveGradient</functionArgs>
+    !#  <onReturn>Galactic_Structure_Rotation_Curve_Gradient=Galactic_Structure_Rotation_Curve_Gradient+componentRotationCurveGradient</onReturn>
     include 'galactic_structure.rotation_curve.gradient.tasks.inc'
     !# </include>
   

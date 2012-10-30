@@ -20,7 +20,7 @@
 module Star_Formation_Feedback_Expulsion_Spheroids
   !% Implements calculations of expulsive feedback from star formation in spheroids.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate
@@ -70,8 +70,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('starFormationExpulsiveFeedbackSpheroidsMethod',starFormationExpulsiveFeedbackSpheroidsMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationExpulsiveFeedbackSpheroidsMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>starFormationExpulsiveFeedbackSpheroidsMethod,Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get</subroutineArgs>
+          !# <include directive="starFormationExpulsiveFeedbackSpheroidsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>starFormationExpulsiveFeedbackSpheroidsMethod,Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get</functionArgs>
           include 'star_formation.feedback_expulsive.spheroids.inc'
           !# </include>
           if (.not.associated(Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Expulsive_Feedback_Spheroids'&

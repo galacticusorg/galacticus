@@ -30,7 +30,7 @@ contains
 
   subroutine Dark_Matter_Halo_Spins_Initialize()
     !% Initialize the halo spins module.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Error
     implicit none
 
@@ -38,8 +38,8 @@ contains
        !$omp critical(Dark_Matter_Halo_Spins_Initialize)
        if (.not.moduleInitialized) then
           ! Ensure that the spin property is available.
-          if (.not.associated(Tree_Node_Spin)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Spin property must be gettable')
-          if (.not.associated(Tree_Node_Mass)) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','Tree_Node_Mass property must be gettable')
+          if (.not. defaultSpinComponent%spinIsGettable()) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','spin property of spin component must be gettable')
+          if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','mass property of basic component must be gettable')
           ! Record that the module is now initialized.
           moduleInitialized=.true.
        end if
@@ -50,33 +50,42 @@ contains
 
   double precision function Dark_Matter_Halo_Angular_Momentum(thisNode)
     !% Returns the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type (treeNode          ), pointer, intent(inout) :: thisNode
+    class(nodeComponentBasic), pointer                :: thisBasicComponent
+    class(nodeComponentSpin ), pointer                :: thisSpinComponent
 
     ! Ensure that the module is initialized.
     call Dark_Matter_Halo_Spins_Initialize
 
-    Dark_Matter_Halo_Angular_Momentum=Tree_Node_Spin(thisNode)*gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)**2.5d0 &
+    thisBasicComponent => thisNode%basic(                 )
+    thisSpinComponent  => thisNode%spin (autoCreate=.true.)
+    Dark_Matter_Halo_Angular_Momentum=thisSpinComponent%spin()*gravitationalConstantGalacticus*thisBasicComponent%mass()**2.5d0 &
          &/dsqrt(dabs(Dark_Matter_Profile_Energy(thisNode)))
     return
   end function Dark_Matter_Halo_Angular_Momentum
 
   double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)
     !% Returns the rate of change of the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Profiles
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type (treeNode          ), pointer, intent(inout) :: thisNode
+    class(nodeComponentBasic), pointer                :: thisBasicComponent
+    class(nodeComponentSpin ), pointer                :: thisSpinComponent
 
     ! Ensure that the module is initialized.
     call Dark_Matter_Halo_Spins_Initialize
 
+    thisBasicComponent => thisNode%basic(                 )
+    thisSpinComponent  => thisNode%spin (autoCreate=.true.)
+
     Dark_Matter_Halo_Angular_Momentum_Growth_Rate=Dark_Matter_Halo_Angular_Momentum(thisNode)&
-         &*(Tree_Node_Spin_Growth_Rate(thisNode)/Tree_Node_Spin(thisNode)+2.5d0*Tree_Node_Mass_Accretion_Rate(thisNode)&
-         &/Tree_Node_Mass(thisNode)-0.5d0*Dark_Matter_Profile_Energy_Growth_Rate(thisNode)/Dark_Matter_Profile_Energy(thisNode))
+         &*(thisSpinComponent%spinGrowthRate()/thisSpinComponent%spin()+2.5d0*thisBasicComponent%accretionRate()&
+         &/thisBasicComponent%mass()-0.5d0*Dark_Matter_Profile_Energy_Growth_Rate(thisNode)/Dark_Matter_Profile_Energy(thisNode))
 
     return
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate

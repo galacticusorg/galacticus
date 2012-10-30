@@ -107,8 +107,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('transferFunctionMethod',transferFunctionMethod,defaultValue='Eisenstein-Hu1999')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="transferFunctionMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>transferFunctionMethod,Transfer_Function_Tabulate</subroutineArgs>
+       !# <include directive="transferFunctionMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>transferFunctionMethod,Transfer_Function_Tabulate</functionArgs>
        include 'structure_formation.CDM.transfer_function.inc'
        !# </include>
        if (.not.associated(Transfer_Function_Tabulate)) call Galacticus_Error_Report('Transfer_Function_Initialize','method '&

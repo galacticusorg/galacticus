@@ -20,7 +20,7 @@
 module Halo_Spin_Distributions_Lognormal
   !% Implements a lognormal halo spin distribution.
   use FGSL
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Halo_Spin_Distribution_Lognormal_Initialize, Halo_Spin_Distribution_Lognormal_Snapshot,&
@@ -78,7 +78,7 @@ contains
 
   double precision function Halo_Spin_Distribution_Lognormal(thisNode)
     !% Return a halo spin from a lognormal distribution.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Gaussian_Random
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

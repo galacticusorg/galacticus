@@ -41,11 +41,11 @@ contains
     return
   end subroutine Black_Hole_Binary_Separation_Growth_Rate_Null_Initialize
 
-  double precision function Black_Hole_Binary_Separation_Growth_Rate_Null(thisNode)
+  double precision function Black_Hole_Binary_Separation_Growth_Rate_Null(thisBlackHoleComponent)
     !% Returns a separation growth rate for a binary black hole that is always zero.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    class(nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
 
     Black_Hole_Binary_Separation_Growth_Rate_Null=0.0d0 
     return

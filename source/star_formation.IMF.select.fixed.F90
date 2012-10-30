@@ -66,7 +66,7 @@ contains
     use Abundances_Structure
     implicit none
     double precision,          intent(in) :: starFormationRate
-    type(abundancesStructure), intent(in) :: fuelAbundances
+    type(abundances), intent(in) :: fuelAbundances
     integer,                   intent(in) :: component
 
     IMF_Select_Fixed=imfSelectedIndex

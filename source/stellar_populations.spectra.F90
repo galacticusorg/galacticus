@@ -37,11 +37,11 @@ module Stellar_Population_Spectra
   ! Pointer to the function that actually does the calculation.
   procedure(Stellar_Population_Spectrum_Get_Template), pointer :: Stellar_Population_Spectrum_Get => null()
   abstract interface
-     double precision function Stellar_Population_Spectrum_Get_Template(abundances,age,wavelength,imfIndex)
-       import abundancesStructure
-       type(abundancesStructure), intent(in) :: abundances
-       double precision,          intent(in) :: age,wavelength
-       integer,                   intent(in) :: imfIndex
+     double precision function Stellar_Population_Spectrum_Get_Template(abundancesStellar,age,wavelength,imfIndex)
+       import abundances
+       type(abundances), intent(in) :: abundancesStellar
+       double precision, intent(in) :: age,wavelength
+       integer,          intent(in) :: imfIndex
      end function Stellar_Population_Spectrum_Get_Template
   end interface
   procedure(Stellar_Population_Tabulation_Get_Template), pointer :: Stellar_Population_Spectrum_Tabulation_Get => null()
@@ -78,8 +78,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy-White-Gunn2009')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarPopulationSpectraMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>stellarPopulationSpectraMethod,Stellar_Population_Spectrum_Get,Stellar_Population_Spectrum_Tabulation_Get</subroutineArgs>
+          !# <include directive="stellarPopulationSpectraMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarPopulationSpectraMethod,Stellar_Population_Spectrum_Get,Stellar_Population_Spectrum_Tabulation_Get</functionArgs>
           include 'stellar_populations.spectra.inc'
           !# </include>
           if (.not.(associated(Stellar_Population_Spectrum_Get).and.associated(Stellar_Population_Spectrum_Tabulation_Get))) call&
@@ -92,19 +92,19 @@ contains
     return
   end subroutine Stellar_Population_Spectrum_Initialize
 
-  double precision function Stellar_Population_Spectrum(abundances,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectrum(abundancesStellar,age,wavelength,imfIndex)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
     !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms).
     implicit none
-    type(abundancesStructure), intent(in) :: abundances
-    double precision,          intent(in) :: age,wavelength
-    integer,                   intent(in) :: imfIndex
+    type(abundances), intent(in) :: abundancesStellar
+    double precision, intent(in) :: age,wavelength
+    integer,          intent(in) :: imfIndex
     
     ! Initialize the module.
     call Stellar_Population_Spectrum_Initialize
     
     ! Get the spectrum using the selected method.
-    Stellar_Population_Spectrum=Stellar_Population_Spectrum_Get(abundances,age,wavelength,imfIndex)
+    Stellar_Population_Spectrum=Stellar_Population_Spectrum_Get(abundancesStellar,age,wavelength,imfIndex)
     
     return
   end function Stellar_Population_Spectrum

@@ -32,7 +32,7 @@ contains
   !# </radiationSet>
   subroutine Radiation_Set_Null(componentMatched,thisNode,radiationProperties)
     !% Property setting routine for null radiation component.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     logical,          intent(in)                               :: componentMatched
     type(treeNode),   intent(inout), pointer                   :: thisNode

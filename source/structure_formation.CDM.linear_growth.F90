@@ -88,8 +88,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('linearGrowthMethod',linearGrowthMethod,defaultValue='simple')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="linearGrowthMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>linearGrowthMethod,Linear_Growth_Tabulate</subroutineArgs>
+       !# <include directive="linearGrowthMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>linearGrowthMethod,Linear_Growth_Tabulate</functionArgs>
        include 'structure_formation.CDM.linear_growth.inc'
        !# </include>
        if (.not.associated(Linear_Growth_Tabulate)) call Galacticus_Error_Report('Linear_Growth_Initialize','method ' &
