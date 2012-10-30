@@ -21,7 +21,7 @@
 
 module Star_Formation_Timescale_Disks_Extended_Schmidt
   !% Implements the extended Schmidt star formation timescale of \cite{shi_extended_2011} for galactic disks.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Timescale_Disks_Extended_Schmidt_Initialize
@@ -106,7 +106,7 @@ contains
     !% \end{equation}
     !% where $A=${\tt [starFormationExtendedSchmidtNormalization]} and $N_1=${\tt
     !% [starFormationExtendedSchmidtGasExponent]}. $N_2=${\tt [starFormationExtendedSchmidtStarExponent]}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Math
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
@@ -115,20 +115,21 @@ contains
     use Numerical_Integration
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type(treeNode),            intent(inout), pointer     :: thisNode
-    type(abundancesStructure), save                       :: fuelAbundances
+    type (treeNode                  ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk         ),                pointer :: thisDiskComponent
+    type (abundances                ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision,          dimension(abundancesCount) :: abundanceMasses
-    double precision,          parameter                  :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
-    double precision                                      :: gasMass,diskScaleRadius,starFormationRate,radiusInner,radiusOuter&
+    double precision                 , parameter              :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
+    double precision                                          :: gasMass,diskScaleRadius,starFormationRate,radiusInner,radiusOuter&
          &,hydrogenMassFraction
-    type(c_ptr)                                           :: parameterPointer
-    type(fgsl_function)                                   :: integrandFunction
-    type(fgsl_integration_workspace)                      :: integrationWorkspace
+    type (c_ptr                     )                         :: parameterPointer
+    type (fgsl_function             )                         :: integrandFunction
+    type (fgsl_integration_workspace)                         :: integrationWorkspace
 
     ! Get the disk properties.
-    gasMass             =Tree_Node_Disk_Gas_Mass(thisNode)
-    diskScaleRadius     =Tree_Node_Disk_Radius  (thisNode)
+    thisDiskComponent => thisNode%disk()
+    gasMass           =  thisDiskComponent%massGas()
+    diskScaleRadius   =  thisDiskComponent%radius ()
 
     ! Check if the disk is physical.
     if (gasMass <= 0.0d0 .or. diskScaleRadius <= 0.0d0) then
@@ -136,8 +137,7 @@ contains
        Star_Formation_Timescale_Disk_Extended_Schmidt=0.0d0
     else
        ! Find the hydrogen fraction in the disk gas of the fuel supply.
-       call Tree_Node_Disk_Gas_Abundances(thisNode,abundanceMasses)
-       call fuelAbundances%pack(abundanceMasses)
+       fuelAbundances=thisDiskComponent%abundancesGas()
        call fuelAbundances%massToMassFraction(gasMass)
        hydrogenMassFraction=fuelAbundances%hydrogenMassFraction()
 
@@ -149,13 +149,22 @@ contains
        radiusOuter=diskScaleRadius*radiusOuterDimensionless
 
        ! Compute the star formation rate.
-       starFormationRate=2.0d0*Pi& ! Geometric factor.
-            &*(mega**2)*giga& ! Convert from Msun/pc^2/yr to Msun/Mpc^2/Gyr
-            &*starFormationExtendedSchmidtNormalization& ! Normalization of the star formation rate.
-            &*((hydrogenMassFraction/mega**2)**starFormationExtendedSchmidtGasExponent )& ! Hydrogen fraction and unit conversion for gas.
-            &*((1.0d0/mega**2)**starFormationExtendedSchmidtStarExponent)& ! Unit conversion for stars.
-            &*Integrate(& ! Integral over the disk.
-            &radiusInner,radiusOuter,Star_Formation_Rate_Integrand_ES, parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3,integrationRule=FGSL_Integ_Gauss15)
+       starFormationRate= 2.0d0*Pi                                                                   & ! Geometric factor.
+            &            *(mega**2)*giga                                                             & ! Convert from Msun/pc^2/yr to Msun/Mpc^2/Gyr
+            &            *starFormationExtendedSchmidtNormalization                                  & ! Normalization of the star formation rate.
+            &            *((hydrogenMassFraction/mega**2)**starFormationExtendedSchmidtGasExponent ) & ! Hydrogen fraction and unit conversion for gas.
+            &            *((1.0d0               /mega**2)**starFormationExtendedSchmidtStarExponent) & ! Unit conversion for stars.
+            &            *Integrate(                                                                 & ! Integral over the disk.
+            &                       radiusInner                                                     ,&
+            &                       radiusOuter                                                     ,&
+            &                       Star_Formation_Rate_Integrand_ES                                ,&
+            &                       parameterPointer                                                ,&
+            &                       integrandFunction                                               ,&
+            &                       integrationWorkspace                                            ,&
+            &                       toleranceAbsolute=0.0d0                                         ,&
+            &                       toleranceRelative=1.0d-3                                        ,&
+            &                       integrationRule  =FGSL_Integ_Gauss15                             &
+            &                      )
        call Integrate_Done(integrandFunction,integrationWorkspace)
 
        ! Compute the star formation timescale.

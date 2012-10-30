@@ -44,18 +44,22 @@ contains
     use Critical_Overdensity
     use CDM_Power_Spectrum
     use Virial_Density_Contrast
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: upperB=0.183d0, lowerB=1.5d0, lowerC=2.4d0
-    double precision                         :: deltaCritical,sigma,nu,upperA,lowerA,upperC,y,time,haloDensityContrast
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision         , parameter              :: upperB=0.183d0, lowerB=1.5d0, lowerC=2.4d0
+    double precision                                  :: deltaCritical,sigma,nu,upperA,lowerA,upperC,y,time,haloDensityContrast
+
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
 
     ! Get the time at which this node exists.
-    time=Tree_Node_Time(thisNode)
+    time=thisBasicComponent%time()
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=Tree_Node_Mass(thisNode))
-    sigma        =sigma_CDM(Tree_Node_Mass(thisNode))
+    deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=thisBasicComponent%mass())
+    sigma        =sigma_CDM(thisBasicComponent%mass())
     nu           =deltaCritical/sigma
     
     ! Compute halo density contrast and logarithm.

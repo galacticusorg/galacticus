@@ -64,8 +64,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeOutputFilters',mergerTreeOutputFilters)
 
-          !# <include directive="mergerTreeOutputFilterInitialize" type="code" action="subroutine">
-          !#  <subroutineArgs>mergerTreeOutputFilters</subroutineArgs>
+          !# <include directive="mergerTreeOutputFilterInitialize" type="functionCall" functionType="void">
+          !#  <functionArgs>mergerTreeOutputFilters</functionArgs>
           include 'galacticus.output.merger_tree.filters.initialize.inc'
           !# </include>
 
@@ -80,7 +80,7 @@ contains
 
   logical function Galacticus_Merger_Tree_Output_Filter(thisNode)
     !% Return true if {\tt thisNode} should be included in the output. Always arbitrary filters to block output of {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     !# <include directive="mergerTreeOutputFilter" type="moduleUse">
     include 'galacticus.output.merger_tree.filters.modules.inc'
     !# </include>
@@ -94,8 +94,8 @@ contains
     Galacticus_Merger_Tree_Output_Filter=.true.
     ! Return immediately if no filters were defined.
     if (filterCount == 0) return
-    !# <include directive="mergerTreeOutputFilter" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,Galacticus_Merger_Tree_Output_Filter</subroutineArgs>
+    !# <include directive="mergerTreeOutputFilter" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,Galacticus_Merger_Tree_Output_Filter</functionArgs>
     include 'galacticus.output.merger_tree.filters.inc'
     !# </include>
     return

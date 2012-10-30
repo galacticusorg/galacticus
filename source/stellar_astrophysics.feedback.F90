@@ -71,8 +71,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('stellarFeedbackMethod',stellarFeedbackMethod,defaultValue='standard')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarFeedbackMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get</subroutineArgs>
+          !# <include directive="stellarFeedbackMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get</functionArgs>
           include 'stellar_astrophysics.feedback.inc'
           !# </include>
           if (.not.associated(Stellar_Feedback_Cumulative_Energy_Input_Get)) call Galacticus_Error_Report('Stellar_Feedback_Initialize'&

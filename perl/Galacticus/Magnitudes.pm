@@ -29,7 +29,7 @@ sub Get_Magnitude {
 	    $vegaMagnitude = 0;
 	}
 	# Construct the name of the corresponding luminosity property.
-	$luminosityDataset = lc($component)."StellarLuminosity:".$filter.":".$frame.":z".$redshift.$dustExtension;
+	$luminosityDataset = lc($component)."LuminositiesStellar:".$filter.":".$frame.":z".$redshift.$dustExtension;
 	&HDF5::Get_Dataset($dataSet,[$luminosityDataset]);
 	$dataSets = $dataSet->{'dataSets'};
 	$dataSets->{$dataSetName} = -2.5*log10($dataSets->{$luminosityDataset}+1.0e-40);

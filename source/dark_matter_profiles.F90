@@ -20,7 +20,7 @@
 module Dark_Matter_Profiles
   !% Implements calculations related to the dark matter halo density profile.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Profile_Rotation_Normalization, Dark_Matter_Profile_Energy, Dark_Matter_Profile_Energy_Growth_Rate,&
@@ -91,8 +91,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('darkMatterProfileMethod',darkMatterProfileMethod,defaultValue='NFW')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterProfileMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>darkMatterProfileMethod,Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get</subroutineArgs>
+          !# <include directive="darkMatterProfileMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>darkMatterProfileMethod,Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get,Dark_Matter_Profile_Energy_Growth_Rate_Get,Dark_Matter_Profile_Rotation_Normalization_Get,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get,Dark_Matter_Profile_Circular_Velocity_Get,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get</functionArgs>
           include 'dark_matter_profiles.inc'
           !# </include>
           if (.not.(     associated(Dark_Matter_Profile_Density_Get                              )   &
@@ -293,10 +293,11 @@ contains
     use Galactic_Structure_Options
     use Cosmological_Parameters
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType,weightBy,weightIndex
-    double precision, intent(in)             :: radius
-    double precision, intent(out)            :: componentMass
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    integer                  , intent(in   )          :: massType,componentType,weightBy,weightIndex
+    double precision         , intent(in   )          :: radius
+    double precision         , intent(  out)          :: componentMass
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
     
     componentMass=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
@@ -305,7 +306,8 @@ contains
 
     if (radius >= radiusLarge) then
        ! Return the total mass of the halo in this case.
-       componentMass=Tree_Node_Mass(thisNode)
+       thisBasicComponent => thisNode%basic()
+       componentMass=thisBasicComponent%mass()
     else
        ! Return the mass within the specified radius.
        componentMass=Dark_Matter_Profile_Enclosed_Mass(thisNode,radius)
@@ -366,7 +368,7 @@ contains
   !# </rotationCurveGradientTask>
   subroutine Dark_Matter_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,massType,componentType,componentRotationCurveGradient)
     !% Computes the rotation curve gradient for the dark matter.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes

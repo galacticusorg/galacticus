@@ -315,8 +315,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildMethod',mergerTreeBuildMethod,defaultValue='Cole2000')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="mergerTreeBuildMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>mergerTreeBuildMethod,Merger_Tree_Builder</subroutineArgs>
+       !# <include directive="mergerTreeBuildMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>mergerTreeBuildMethod,Merger_Tree_Builder</functionArgs>
        include 'merger_trees.build.inc'
        !# </include>
        if (.not.associated(Merger_Tree_Builder)) call Galacticus_Error_Report('Merger_Tree_Build','method '&
@@ -340,21 +340,22 @@ contains
   
   subroutine Merger_Tree_Build_Do(thisTree,skipTree)
     !% Build a merger tree.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_State
     use Kind_Numbers
     use String_Handling
     implicit none
-    type(mergerTree),        intent(inout) :: thisTree
-    logical,                 intent(in)    :: skipTree
-    integer(kind=kind_int8), parameter     :: baseNodeIndex=1
-    integer(kind=kind_int8)                :: thisTreeIndex
-    type(varying_string)                   :: message
+    type(mergerTree),          intent(inout) :: thisTree
+    logical,                   intent(in)    :: skipTree
+    class(nodeComponentBasic), pointer       :: baseNodeBasicComponent
+    integer(kind=kind_int8),   parameter     :: baseNodeIndex=1
+    integer(kind=kind_int8)                  :: thisTreeIndex
+    type(varying_string)                     :: message
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
     !$omp critical (Merger_Tree_Build_Do)
-    if (nextTreeIndex<=treeCount) then
+    if (nextTreeIndex <= treeCount) then
        ! Retrieve stored internal state if possible.
        call Galacticus_State_Retrieve
        ! Take a snapshot of the internal state and store it.
@@ -377,15 +378,17 @@ contains
        call thisTree%createNode(thisTree%baseNode,baseNodeIndex)
        ! Assign a weight to the tree.
        thisTree%volumeWeight=treeWeight(thisTreeIndex)
+       ! Get the basic component of the base node.
+       baseNodeBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
        ! Assign a mass to it.
-       call Tree_Node_Mass_Set(thisTree%baseNode,treeHaloMass(thisTreeIndex))
+       call baseNodeBasicComponent%massSet(treeHaloMass(thisTreeIndex) )
        ! Assign a time.
-       call Tree_Node_Time_Set(thisTree%baseNode,mergerTreeBuildTreesBaseTime)
+       call baseNodeBasicComponent%timeSet(mergerTreeBuildTreesBaseTime)
        ! Increment the tree index counter.
        nextTreeIndex=nextTreeIndex+1
     end if
     !$omp end critical (Merger_Tree_Build_Do)
-    ! If we got a tree, we can now process it (in paralell if running under OpenMP).
+    ! If we got a tree, we can now process it (in parallel if running under OpenMP).
     if (associated(thisTree%baseNode).and..not.skipTree) then
        ! Call routine to actually build the tree.
        call Merger_Tree_Builder(thisTree)

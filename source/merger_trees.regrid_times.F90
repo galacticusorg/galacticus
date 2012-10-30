@@ -50,7 +50,7 @@ contains
   subroutine Merger_Tree_Regrid_Time(thisTree)
     !% Regrid times of halos in {\tt thisTree}.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Numerical_Ranges
     use Memory_Management
@@ -62,15 +62,16 @@ contains
     use Kind_Numbers
     use Merger_Trees_Dump
     implicit none
-    type(mergerTree),        intent(inout)             :: thisTree
-    type(treeNode),          pointer                   :: thisNode,childNode,siblingNode,nextNode
-    type(treeNodeList),      allocatable, dimension(:) :: newNodes
-    integer(kind=kind_int8), allocatable, dimension(:) :: highlightNodes
-    type(fgsl_interp_accel)                            :: interpolationAccelerator
-    logical                                            :: interpolationReset
-    integer                                            :: iNow,iParent,iTime
-    double precision                                   :: timeNow,timeParent,massNow,massParent
-    integer(kind=kind_int8)                            :: nodeIndex,firstNewNode
+    type(mergerTree),          intent(inout)             :: thisTree
+    type(treeNode),            pointer                   :: thisNode,childNode,siblingNode,nextNode
+    type(treeNode),            pointer,     dimension(:) :: newNodes
+    integer(kind=kind_int8),   allocatable, dimension(:) :: highlightNodes
+    class(nodeComponentBasic), pointer                   :: thisBasicComponent,parentBasicComponent,childBasicComponent
+    type(fgsl_interp_accel)                              :: interpolationAccelerator
+    logical                                              :: interpolationReset
+    integer                                              :: iNow,iParent,iTime,allocErr
+    double precision                                     :: timeNow,timeParent,massNow,massParent
+    integer(kind=kind_int8)                              :: nodeIndex,firstNewNode
 
     ! Check if module is initialized.
     if (.not.regridTimeModuleInitialized) then
@@ -229,27 +230,28 @@ contains
        ! Walk the tree, locating branches which intersect grid times.
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
+          thisBasicComponent => thisNode%basic()
 
           ! Skip this node if it is the root node.
-          if (associated(thisNode%parentNode)) then
+          if (associated(thisNode%parent)) then
+             parentBasicComponent => thisNode%parent%basic()
 
              ! Get the time of this node and its parent.
-             timeNow      =Tree_Node_Time(thisNode           )
-             timeParent   =Tree_Node_Time(thisNode%parentNode)
+             timeNow   =thisBasicComponent  %time()
+             timeParent=parentBasicComponent%time()
 
              ! Get masses of these halos.
-             massNow      =Tree_Node_Mass(thisNode           )
+             massNow   =thisBasicComponent  %mass()
+             massParent=parentBasicComponent%mass()
              if (thisNode%isPrimaryProgenitor()) then
-                massParent=Tree_Node_Mass(thisNode%parentNode)
                 ! Remove the mass in any non-primary progenitors - we don't want to include their mass in the estimated mass
                 ! growth rate of this node.
-                childNode => thisNode%parentNode%childNode%siblingNode
+                childNode => thisNode%parent%firstChild%sibling
                 do while (associated(childNode))
-                   massParent=massParent-Tree_Node_Mass(childNode)
-                   childNode => childNode%siblingNode
+                   childBasicComponent => childNode%basic()
+                   massParent          =  massParent-childBasicComponent%mass()
+                   childNode           => childNode%sibling
                 end do
-             else
-                massParent=Tree_Node_Mass(thisNode           )
              end if
 
              ! Locate these times in the list of grid times.
@@ -262,43 +264,45 @@ contains
              ! If the branch from node to parent spans one or more grid times, insert new nodes at those points.
              if (iParent > iNow) then
                 ! Create new nodes.
-                allocate(newNodes(iParent-iNow))
+                allocate(newNodes(iParent-iNow),stat=allocErr)
+                if (allocErr/=0) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unable to allocate new nodes')
                 do iTime=iNow+1,iParent
                    nodeIndex=nodeIndex+1_kind_int8
-                   call thisTree%createNode(newNodes(iTime-iNow)%node,nodeIndex)
+                   call newNodes(iTime-iNow)%initialize(nodeIndex)
                 end do
                 ! Assign node properties and build links.
                 do iTime=iNow+1,iParent
                    ! Assign a time and a mass
-                   call Tree_Node_Time_Set(newNodes(iTime-iNow)%node,                              mergerTreeRegridTimeGrid(iTime)                              )
-                   call Tree_Node_Mass_Set(newNodes(iTime-iNow)%node,massNow+(massParent-massNow)*(mergerTreeRegridTimeGrid(iTime)-timeNow)/(timeParent-timeNow))
+                   thisBasicComponent => newNodes(iTime-iNow)%basic()
+                   call thisBasicComponent%timeSet(                              mergerTreeRegridTimeGrid(iTime)                              )
+                   call thisBasicComponent%massSet(massNow+(massParent-massNow)*(mergerTreeRegridTimeGrid(iTime)-timeNow)/(timeParent-timeNow))
                    ! Link to child node.
-                   if (iTime > iNow+1 ) newNodes(iTime-iNow)%node%childNode  => newNodes(iTime-iNow-1)%node
+                   if (iTime > iNow+1 ) newNodes(iTime-iNow)%firstChild => newNodes(iTime-iNow-1)
                    ! Link to parent node.
-                   if (iTime < iParent) newNodes(iTime-iNow)%node%parentNode => newNodes(iTime-iNow+1)%node
+                   if (iTime < iParent) newNodes(iTime-iNow)%parent     => newNodes(iTime-iNow+1)
                 end do
                 ! Link final node to the parent.
-                newNodes(iParent-iNow)%node%parentNode => thisNode%parentNode
+                newNodes(iParent-iNow)%parent  => thisNode%parent
                 ! Link final node sibling to current node sibling.
-                newNodes(iParent-iNow)%node%siblingNode => thisNode%siblingNode
+                newNodes(iParent-iNow)%sibling => thisNode%sibling
                 ! Link the parent to the final node.
                 if (thisNode%isPrimaryProgenitor()) then
                    ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
-                   thisNode%parentNode%childNode           => newNodes(iParent-iNow)%node
+                   thisNode%parent%firstChild  => newNodes(iParent-iNow)
                 else
                    ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
-                   childNode => thisNode%parentNode%childNode
-                   do while (.not.associated(childNode%siblingNode,thisNode))
-                      childNode => childNode%siblingNode
+                   childNode => thisNode%parent%firstChild
+                   do while (.not.associated(childNode%sibling,thisNode))
+                      childNode => childNode%sibling
                    end do
-                   childNode                  %siblingNode => newNodes(iParent-iNow)%node
+                   childNode%sibling => newNodes(iParent-iNow)
                 end if
                 ! Link the child of the first node to the node being processed.
-                newNodes(             1)%node%childNode  => thisNode
+                newNodes(1)%firstChild  => thisNode
                 ! Nullify any sibling of the node being processed.
-                thisNode%siblingNode => null()
+                thisNode%sibling => null()
                 ! Link the parent of the node being processed to the first node of the list.
-                thisNode%parentNode  => newNodes(1)%node
+                thisNode%parent  => newNodes(1)
                 ! Erase the node list.
                 deallocate(newNodes)
              end if
@@ -338,67 +342,68 @@ contains
        ! Walk the tree removing nodes not at grid times.
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
-          
+          thisBasicComponent => thisNode%basic()
+
           ! Record the next node to walk to.
           call thisNode%walkTree(nextNode)
 
           ! Get the time for this node.
-          timeNow=Tree_Node_Time(thisNode)
+          timeNow=thisBasicComponent%time()
 
           ! Find the closest time in the new time grid.
           iNow   =Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
 
           ! If this node does not lie precisely on the grid then remove it.
-          if (associated(thisNode%parentNode) .and. timeNow /= mergerTreeRegridTimeGrid(iNow)) then
+          if (associated(thisNode%parent) .and. timeNow /= mergerTreeRegridTimeGrid(iNow)) then
              if (thisNode%isPrimaryProgenitor()) then
                 ! Handle primary progenitor nodes.
-                if (associated(thisNode%childNode)) then
+                if (associated(thisNode%firstChild)) then
                    ! Handle primary progenitors with children
-                   childNode => thisNode%childNode
+                   childNode => thisNode%firstChild
                    ! Assign all children a parent that is the parent of the current node.
                    do while (associated(childNode))
-                      childNode%parentNode => thisNode %parentNode
-                      if (.not.associated(childNode%siblingNode)) then
-                         childNode%siblingNode => thisNode%siblingNode
+                      childNode%parent => thisNode %parent
+                      if (.not.associated(childNode%sibling)) then
+                         childNode%sibling => thisNode%sibling
                          childNode             => null()
                       else
-                         childNode             => childNode%siblingNode
+                         childNode             => childNode%sibling
                       end if
                    end do
                    ! Assign the current node's parent a child that is the child of the current node.
-                   thisNode%parentNode%childNode => thisNode%childNode
+                   thisNode%parent%firstChild => thisNode%firstChild
                 else
                    ! Handle primary nodes with no children - simply make the parents main progenitor the sibling of the current node.
-                   thisNode%parentNode%childNode => thisNode%siblingNode
+                   thisNode%parent%firstChild => thisNode%sibling
                 end if
              else
                 ! Handle non-primary nodes.
-                if (associated(thisNode%childNode)) then
+                if (associated(thisNode%firstChild)) then
                    ! Handle nod-primary nodes with children.
                    ! Assign all children a parent that is the parent of the current node.
-                   childNode => thisNode%childNode
+                   childNode => thisNode%firstChild
                    do while (associated(childNode))
-                      childNode%parentNode => thisNode %parentNode
-                      if (.not.associated(childNode%siblingNode)) then
-                         childNode%siblingNode => thisNode%siblingNode
+                      childNode%parent => thisNode %parent
+                      if (.not.associated(childNode%sibling)) then
+                         childNode%sibling => thisNode%sibling
                          childNode => null()
                       else
-                         childNode            => childNode%siblingNode
+                         childNode            => childNode%sibling
                       end if
                    end do                    
                    ! Find which sibling points the current node and link in the children of the current node.
-                   siblingNode => thisNode%parentNode%childNode
-                   do while (.not.associated(siblingNode%siblingNode,thisNode))
-                      siblingNode => siblingNode%siblingNode
+                   siblingNode => thisNode%parent%firstChild
+                   do while (.not.associated(siblingNode%sibling,thisNode))
+                      siblingNode => siblingNode%sibling
                    end do
-                   siblingNode%siblingNode => thisNode%childNode
+                   siblingNode%sibling => thisNode%firstChild
                 else
                    ! Handle non-primary nodes with no children - just snip it out of the sibling list.
-                   siblingNode => thisNode%parentNode%childNode
-                   do while (.not.associated(siblingNode%siblingNode,thisNode))
-                      siblingNode => siblingNode%siblingNode
+                   siblingNode => thisNode%parent%firstChild
+                   do while (.not.associated(siblingNode%sibling,thisNode))
+                      siblingNode => siblingNode%sibling
                    end do
-                   siblingNode%siblingNode => thisNode%siblingNode
+                   siblingNode%sibling => thisNode%sibling
                 end if
              end if
  

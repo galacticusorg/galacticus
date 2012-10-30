@@ -43,15 +43,17 @@ contains
     !% Computes the bias for a dark matter halo using the method of \cite{sheth_ellipsoidal_2001}.
     use Critical_Overdensity
     use CDM_Power_Spectrum
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: a=0.707d0, b=0.5d0, c=0.6d0
-    double precision                         :: deltaCritical,sigma,nu
+    type (treeNode          ),   intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                  pointer :: thisBasicComponent
+    double precision         , parameter                :: a=0.707d0, b=0.5d0, c=0.6d0
+    double precision                                    :: deltaCritical,sigma,nu
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=Critical_Overdensity_for_Collapse(time=Tree_Node_Time(thisNode),mass=Tree_Node_Mass(thisNode))
-    sigma        =sigma_CDM(Tree_Node_Mass(thisNode))
+    thisBasicComponent => thisNode%basic()
+    deltaCritical=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())
+    sigma        =sigma_CDM(thisBasicComponent%mass())
     nu           =deltaCritical/sigma
     
     ! Compute halo bias.

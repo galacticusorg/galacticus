@@ -42,7 +42,7 @@ contains
 
   subroutine Satellite_Merging_Remnant_Size_Null(thisNode)
     !% A null implementation of merger remnant size. Does nothing.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

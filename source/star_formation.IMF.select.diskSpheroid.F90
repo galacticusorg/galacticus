@@ -81,7 +81,7 @@ contains
     use Galactic_Structure_Options
     implicit none
     double precision,          intent(in) :: starFormationRate
-    type(abundancesStructure), intent(in) :: fuelAbundances
+    type(abundances), intent(in) :: fuelAbundances
     integer,                   intent(in) :: component
 
     ! Select between disk and spheroid IMFs.

@@ -37,16 +37,17 @@ contains
   subroutine Merger_Tree_Timestep_Simple(thisNode,timeStep,End_Of_Timestep_Task,report)
     !% Determine a suitable timestep for {\tt thisNode} using the simple method. This simply selects the smaller of {\tt
     !% timestepSimpleAbsolute} and {\tt timestepSimpleRelative}$H^{-1}(t)$.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Cosmology_Functions
     use Evolve_To_Time_Reports
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    procedure(),      intent(inout), pointer :: End_Of_Timestep_Task
-    double precision, intent(inout)          :: timeStep
-    logical,          intent(in   )          :: report
-    double precision                         :: time,expansionFactor,expansionTimescale,ourTimeStep
+    type(treeNode),            intent(inout), pointer :: thisNode
+    procedure(),               intent(inout), pointer :: End_Of_Timestep_Task
+    double precision,          intent(inout)          :: timeStep
+    logical,                   intent(in   )          :: report
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: time,expansionFactor,expansionTimescale,ourTimeStep
 
     if (.not.timestepSimpleInitialized) then
        !$omp critical (timestepSimpleInitialize)
@@ -81,7 +82,8 @@ contains
     end if
 
     ! Get current cosmic time.
-    time=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    time=thisBasicComponent%time()
 
     ! Find current expansion timescale.
     expansionFactor=Expansion_Factor(time)

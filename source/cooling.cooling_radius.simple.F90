@@ -22,7 +22,7 @@ module Cooling_Radii_Simple
   !% Implements a simple cooling radius calculation (finds the radius at which the time available for cooling equals the cooling
   !% time).
   use, intrinsic :: ISO_C_Binding
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Kind_Numbers
   use Radiation_Structure
   use Abundances_Structure
@@ -55,9 +55,9 @@ module Cooling_Radii_Simple
   !$omp threadprivate(coolingRadiusStored,coolingRadiusGrowthRateStored)
 
   ! Abundances and chemical objects used in cooling calculations.
-  type(abundancesStructure)          :: abundances
-  !$omp threadprivate(abundances)
-  type(chemicalAbundancesStructure)  :: chemicalMasses,chemicalDensities
+  type(abundances)          :: gasAbundances
+  !$omp threadprivate(gasAbundances)
+  type(chemicalAbundances)  :: chemicalMasses,chemicalDensities
   !$omp threadprivate(chemicalMasses,chemicalDensities)
 
   ! Radiation structure used in cooling calculations.
@@ -91,7 +91,7 @@ contains
   !# </calculationResetTask>
   subroutine Cooling_Radius_Simple_Reset(thisNode)
     !% Reset the cooling radius calculation.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -106,7 +106,7 @@ contains
 
   double precision function Cooling_Radius_Growth_Rate_Simple(thisNode)
     !% Return the growth rate of the cooling radius in the ``simple'' model in Mpc/Gyr.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Hot_Halo_Temperature_Profile
     use Hot_Halo_Density_Profile
@@ -152,10 +152,10 @@ contains
           temperature=Hot_Halo_Temperature(activeNode,coolingRadius)
 
           ! Logarithmic slope of the cooling time-density relation.
-          coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,abundances,chemicalDensities,radiation)
+          coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
           
           ! Logarithmic slope of the cooling time-temperature relation.
-          coolingTimeTemperatureLogSlope=Cooling_Time_Temperature_Log_Slope(temperature,density,abundances,chemicalDensities,radiation)
+          coolingTimeTemperatureLogSlope=Cooling_Time_Temperature_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
           
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
@@ -173,7 +173,7 @@ contains
 
   double precision function Cooling_Radius_Simple(thisNode)
     !% Return the cooling radius in the simple model.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
     use Root_Finder
@@ -238,26 +238,26 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer     :: thisNode
-    double precision, dimension(abundancesCount) :: abundancesMassFraction
-    double precision, dimension(chemicalsCount ) :: chemicalsMasses
-    double precision                             :: massToDensityConversion    
+    type (treeNode            ), intent(inout), pointer     :: thisNode
+    class(nodeComponentHotHalo),                pointer     :: thisHotHaloComponent
+    double precision                                        :: massToDensityConversion    
  
+    ! Get node components.
+    thisHotHaloComponent => thisNode%hotHalo()
+
     ! Get the abundances for this node.
-    call Tree_Node_Hot_Halo_Abundances(thisNode,abundancesMassFraction)
-    call abundances%pack(abundancesMassFraction)
-    call abundances%massToMassFraction(Tree_Node_Hot_Halo_Mass(thisNode))
+    gasAbundances=thisHotHaloComponent%abundances()
+    call gasAbundances%massToMassFraction(thisHotHaloComponent%mass())
 
     ! Get the chemicals for this node.
     if (chemicalsCount > 0) then
-       call Tree_Node_Hot_Halo_Chemicals(thisNode,chemicalsMasses)
-       call chemicalMasses%pack(chemicalsMasses)
+       chemicalMasses=thisHotHaloComponent%chemicals()
        ! Scale all chemical masses by their mass in atomic mass units to get a number density.
        call chemicalMasses%massToNumber(chemicalDensities)
        ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
        massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
        ! Convert to number density.
-       call chemicalDensities%multiply(massToDensityConversion)
+       chemicalDensities=chemicalDensities*massToDensityConversion
     end if
 
     ! Set the radiation field.
@@ -281,7 +281,7 @@ contains
     temperature=Hot_Halo_Temperature(activeNode,radius)
 
     ! Compute the cooling time at the specified radius.
-    coolingTime=Cooling_Time(temperature,density,abundances,chemicalDensities,radiation)
+    coolingTime=Cooling_Time(temperature,density,gasAbundances,chemicalDensities,radiation)
 
     ! Return the difference between cooling time and time available.
     Cooling_Radius_Root=coolingTime-coolingTimeAvailable

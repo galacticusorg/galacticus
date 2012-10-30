@@ -56,7 +56,7 @@ contains
     use Memory_Management
     use Numerical_Ranges
     use Hypergeometric_Functions
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     implicit none
     type(varying_string),                  intent(in)    :: virialOrbitsMethod
     procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
@@ -93,40 +93,43 @@ contains
  function Virial_Orbital_Parameters_Wetzel2010(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
     !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{wetzel_orbits_2010}.
     use Pseudo_Random
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Critical_Overdensity
     use Numerical_Interpolation
     use Root_Finder
     use Cosmology_Functions
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     implicit none
-    type(keplerOrbit)                                :: thisOrbit
-    type(treeNode),          intent(inout), pointer  :: thisNode,hostNode
-    logical,                 intent(in)              :: acceptUnboundOrbits
-    double precision,        parameter               :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
-    double precision,        parameter               :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
-    double precision,        parameter               :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    type(fgsl_interp),       save                    :: interpolationObject
-    type(fgsl_interp_accel), save                    :: interpolationAccelerator
-    logical,                 save                    :: interpolationReset=.true.
+    type (keplerOrbit       )                         :: thisOrbit
+    type (treeNode          ), intent(inout), pointer :: thisNode,hostNode
+    logical,                   intent(in)             :: acceptUnboundOrbits
+    class(nodeComponentBasic),                pointer :: thisBasicComponent,hostBasicComponent
+    double precision,          parameter              :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
+    double precision,          parameter              :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
+    double precision,          parameter              :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
+    type(fgsl_interp),         save                   :: interpolationObject
+    type(fgsl_interp_accel),   save                   :: interpolationAccelerator
+    logical,                   save                   :: interpolationReset=.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,interpolationReset)
-    type(fgsl_function),     save                    :: rootFunction
-    type(fgsl_root_fsolver), save                    :: rootFunctionSolver
+    type(fgsl_function),       save                   :: rootFunction
+    type(fgsl_root_fsolver),   save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    type(c_ptr)                                      :: parameterPointer
-    double precision                                 :: g1,R1,timeNode,massCharacteristic,expansionFactor&
+    type(c_ptr)                                       :: parameterPointer
+    double precision                                  :: g1,R1,timeNode,massCharacteristic,expansionFactor&
          &,pericentricRadius,apocentricRadius,probabilityTotal,circularity,eccentricityInternal,radialScale
-    logical                                          :: foundOrbit
+    logical                                           :: foundOrbit
 
     ! Reset the orbit.
     call thisOrbit%reset()
     ! Set masses and radius of the orbit.
-    call thisOrbit%massesSet(Tree_Node_Mass(thisNode),Tree_Node_Mass(hostNode))
+    thisBasicComponent => thisNode%basic()
+    hostBasicComponent => hostNode%basic()
+    call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
     call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
 
     ! Get the time at which this node exists.
-    timeNode=Tree_Node_Time(thisNode)
+    timeNode=thisBasicComponent%time()
 
     ! Get the expansion factor.
     expansionFactor=Expansion_Factor(timeNode)

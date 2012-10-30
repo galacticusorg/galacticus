@@ -59,16 +59,16 @@ $dataBlock->{'tree'} = "all";
 &HDF5::Get_Dataset($dataBlock,['volumeWeight'
 			      ,'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas[faceOn]:AB'
 			      ,'magnitudeTotal:SDSS_z:observed:z0.1000:AB'
-			      ,'diskStellarMass'
-			      ,'spheroidStellarMass'
-			      ,'diskGasMass'
-			      ,'spheroidGasMass'
-			      ,'diskGasMetals'
-			      ,'spheroidGasMetals'
+			      ,'diskMassStellar'
+			      ,'spheroidMassStellar'
+			      ,'diskMassGas'
+			      ,'spheroidMassGas'
+			      ,'diskAbundancesGasMetals'
+			      ,'spheroidAbundancesGasMetals'
 		   ]);
 $dataSets = $dataBlock->{'dataSets'};
-$gasFraction    = ($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'})/($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'}+$dataSets->{'diskStellarMass'}+$dataSets->{'spheroidStellarMass'});
-$gasMetallicity = where(12.0+log10(($dataSets->{'diskGasMetals'}+$dataSets->{'spheroidGasMetals'})/($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
+$gasFraction    = ($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}+$dataSets->{'diskStellarMass'}+$dataSets->{'spheroidMassStellar'});
+$gasMetallicity = where(12.0+log10(($dataSets->{'diskAbundancesGasMetals'}+$dataSets->{'spheroidAbundancesGasMetals'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");

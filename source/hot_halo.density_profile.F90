@@ -20,7 +20,7 @@
 module Hot_Halo_Density_Profile
   !% Implements calculations of the hot halo gas density profile.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="hotHaloDensityMethod" type="moduleUse">
   include 'hot_halo.density_profile.modules.inc'
   !# </include>
@@ -79,8 +79,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='coredIsothermal')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="hotHaloDensityMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get</subroutineArgs>
+          !# <include directive="hotHaloDensityMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get</functionArgs>
           include 'hot_halo.density_profile.inc'
           !# </include>
           if     (.not.(     associated(Hot_Halo_Density_Get                       )                    &

@@ -41,21 +41,22 @@ contains
 
   double precision function Satellite_Time_Until_Merging_Lacey_Cole(thisNode,thisOrbit)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     use Dynamical_Friction_Timescale_Utilities
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     implicit none
-    type(treeNode),    pointer, intent(inout) :: thisNode
-    type(keplerOrbit),          intent(inout) :: thisOrbit
-    type(treeNode),    pointer                :: hostNode
-    double precision,  parameter              :: inverseTwoB1=1.169335453d0 ! 1/2/B(1).
-    double precision                          :: equivalentCircularOrbitRadius,orbitalCircularity ,velocityScale,radialScale&
+    type (treeNode          ), pointer, intent(inout) :: thisNode
+    type (keplerOrbit       ),          intent(inout) :: thisOrbit
+    type (treeNode          ), pointer                :: hostNode
+    class(nodeComponentBasic), pointer                :: thisBasicComponent,hostBasicComponent
+    double precision,          parameter              :: inverseTwoB1=1.169335453d0 ! 1/2/B(1).
+    double precision                                  :: equivalentCircularOrbitRadius,orbitalCircularity ,velocityScale,radialScale&
          &,massRatio
 
     ! Find the host node.
-    hostNode => thisNode%parentNode
+    hostNode => thisNode%parent
     ! Get velocity scale.
     velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
     radialScale  =Dark_Matter_Halo_Virial_Radius  (hostNode)
@@ -64,7 +65,9 @@ contains
     ! Compute orbital circularity.
     orbitalCircularity=thisOrbit%angularMomentum()/velocityScale/radialScale/equivalentCircularOrbitRadius
     ! Compute mass ratio.
-    massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)
+    thisBasicComponent => thisNode%basic()
+    hostBasicComponent => hostNode%basic()
+    massRatio=hostBasicComponent%mass()/thisBasicComponent%mass()
     ! Check for a greater than unity mass ratio.
     if (massRatio <= 1.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.

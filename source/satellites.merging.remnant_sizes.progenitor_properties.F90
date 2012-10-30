@@ -39,7 +39,7 @@ contains
        &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
        &,remnantSpheroidGasMass)
     !% Calculates progenitor properties for merger remnant calculations.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="satelliteMergingRemnantProgenitorPropertiesMethod" type="moduleUse">
@@ -66,8 +66,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('satelliteMergingRemnantProgenitorPropertiesMethod',satelliteMergingRemnantProgenitorPropertiesMethod,defaultValue='standard')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteMergingRemnantProgenitorPropertiesMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>satelliteMergingRemnantProgenitorPropertiesMethod,Satellite_Merging_Remnant_Progenitor_Properties_Get</subroutineArgs>
+          !# <include directive="satelliteMergingRemnantProgenitorPropertiesMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>satelliteMergingRemnantProgenitorPropertiesMethod,Satellite_Merging_Remnant_Progenitor_Properties_Get</functionArgs>
           include 'satellites.merging.remnant_sizes.progenitor_properties.inc'
           !# </include>
           if (.not.associated(Satellite_Merging_Remnant_Progenitor_Properties_Get)) call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties','method ' &

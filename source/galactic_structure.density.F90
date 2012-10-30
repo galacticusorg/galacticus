@@ -28,7 +28,7 @@ contains
   double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,massType,componentType)
     !% Compute the density (of given {\tt massType}) at the specified {\tt position}. Assumes that galactic structure has already
     !% been computed.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galactic_Structure_Options
     use ISO_Varying_String
     use Galacticus_Error
@@ -79,9 +79,9 @@ contains
     Galactic_Structure_Density=0.0d0
 
     ! Call routines to supply the densities for all components.
-    !# <include directive="densityTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,positionSpherical,massTypeActual,componentTypeActual,componentDensity</subroutineArgs>
-    !#  <subroutineAction>Galactic_Structure_Density=Galactic_Structure_Density+componentDensity</subroutineAction>
+    !# <include directive="densityTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,positionSpherical,massTypeActual,componentTypeActual,componentDensity</functionArgs>
+    !#  <onReturn>Galactic_Structure_Density=Galactic_Structure_Density+componentDensity</onReturn>
     include 'galactic_structure.density.tasks.inc'
     !# </include>
 

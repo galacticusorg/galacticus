@@ -20,7 +20,7 @@
 module Cooling_Rates_Cole2000
   !% Implements a \cite{cole_hierarchical_2000} cooling rate calculation.
   use, intrinsic :: ISO_C_Binding
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Cooling_Rate_Cole2000_Initialize
@@ -45,22 +45,28 @@ contains
   double precision function Cooling_Rate_Cole2000(thisNode)
     !% Computes the mass cooling rate in a hot gas halo utilizing the \cite{cole_hierarchical_2000} method. This is based on the
     !% properties of the halo at formation time, and gives a zero cooling rate when the cooling radius exceeds the virial radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: infallRadius,infallDensity,outerRadius,infallRadiusGrowthRate
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic  ),                pointer :: formationBasicComponent
+    class(nodeComponentHotHalo),                pointer :: formationHotHaloComponent
+    double precision                                    :: infallRadius,infallDensity,outerRadius,infallRadiusGrowthRate
     
+    ! Get node components.
+    formationBasicComponent   => thisNode%formationNode%basic  ()
+    formationHotHaloComponent => thisNode%formationNode%hotHalo()
+
     ! Check for empty halos.
-    if (Tree_Node_Hot_Halo_Mass(thisNode%formationNode) <= 0.0d0) then
+    if (formationHotHaloComponent%mass() <= 0.0d0) then
        Cooling_Rate_Cole2000=0.0d0
        return
     end if
 
     ! Get the outer radius of the hot halo.
-    outerRadius=Tree_Node_Hot_Halo_Outer_Radius(thisNode%formationNode)
+    outerRadius=formationHotHaloComponent%outerRadius()
 
     ! Get the infall radius.
     infallRadius=Infall_Radius                 (thisNode%formationNode)

@@ -80,21 +80,21 @@ contains
     return
   end subroutine Stellar_Population_Spectra_File_Initialize
 
-  double precision function Stellar_Population_Spectra_File_Get(abundances,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectra_File_Get(abundancesStellar,age,wavelength,imfIndex)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
     !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms). This is found by interpolating in tabulated
     !% spectra.
     use Abundances_Structure
     implicit none
-    type(abundancesStructure), intent(in) :: abundances
-    double precision,          intent(in) :: age,wavelength
-    integer,                   intent(in) :: imfIndex
+    type(abundances), intent(in) :: abundancesStellar
+    double precision, intent(in) :: age,wavelength
+    integer,          intent(in) :: imfIndex
 
     ! Ensure that this IMF is initialized.
     call Stellar_Population_Spectra_File_Initialize_IMF(imfIndex)
 
     ! Call routine to interpolate in the tabulated function.
-    Stellar_Population_Spectra_File_Get=Stellar_Population_Spectra_File_Interpolate(abundances,age,wavelength,imfIndex)
+    Stellar_Population_Spectra_File_Get=Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex)
 
     return
   end function Stellar_Population_Spectra_File_Get
@@ -141,13 +141,13 @@ contains
     return
   end subroutine Stellar_Population_Spectra_File_Initialize_IMF
     
-  double precision function Stellar_Population_Spectra_File_Interpolate(abundances,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex)
     !% Compute the stellar spectrum by interpolation in the tabulated data.
     use Abundances_Structure
     use Numerical_Interpolation
     use Galacticus_Error
     implicit none
-    type(abundancesStructure), intent(in)     :: abundances
+    type(abundances),          intent(in)     :: abundancesStellar
     double precision,          intent(in)     :: age,wavelength
     integer,                   intent(in)     :: imfIndex
     double precision,          dimension(0:1) :: hAge,hMetallicity,hWavelength
@@ -166,7 +166,7 @@ contains
     if (wavelength < spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(1) .or.&
          & wavelength > spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints))&
          & call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate','wavelength is out of range')
-    metallicity=Abundances_Get_Metallicity(abundances,metallicityType=logarithmicByMassSolar)
+    metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
     if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)+metallicityTolerance) then
        write (metallicityLabel,'(f12.6)') metallicity
        message='metallicity ['//trim(adjustl(metallicityLabel))//'] exceeds the maximum tabulated ['

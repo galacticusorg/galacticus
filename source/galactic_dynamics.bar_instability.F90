@@ -20,7 +20,7 @@
 module Galactic_Dynamics_Bar_Instabilities
   !% Implements calculations of bar instability in galactic disks.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Bar_Instability_Timescale
@@ -68,8 +68,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('barInstabilityMethod',barInstabilityMethod,defaultValue='ELN')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="barInstabilityMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>barInstabilityMethod,Bar_Instability_Timescale_Get</subroutineArgs>
+          !# <include directive="barInstabilityMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>barInstabilityMethod,Bar_Instability_Timescale_Get</functionArgs>
           include 'galactic_dynamics.bar_instability.inc'
           !# </include>
           if (.not.associated(Bar_Instability_Timescale_Get)) &

@@ -40,12 +40,13 @@ contains
   subroutine Merger_Tree_Prune_Branches(thisTree)
     !% Prune branches from {\tt thisTree}.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     implicit none
-    type(mergerTree), intent(in) :: thisTree
-    type(treeNode),   pointer    :: thisNode,nextNode,destroyNode,previousNode
-    logical                      :: didPruning
+    type (mergerTree        ), intent(in) :: thisTree
+    type (treeNode          ), pointer    :: thisNode,nextNode,destroyNode,previousNode
+    class(nodeComponentBasic), pointer    :: thisBasicComponent
+    logical                               :: didPruning
 
     ! Check if module is initialized.
     if (.not.pruneBranchesModuleInitialized) then
@@ -89,19 +90,20 @@ contains
           thisNode => thisTree%baseNode
           ! Walk the tree, pruning branches.
           do while (associated(thisNode))
+             thisBasicComponent => thisNode%basic()
              ! Record the parent node to which we will return.
-             previousNode => thisNode%parentNode
-             if (Tree_Node_Mass(thisNode) < mergerTreePruningMassThreshold) then
+             previousNode => thisNode%parent
+             if (thisBasicComponent%mass() < mergerTreePruningMassThreshold) then
                 didPruning=.true.
                 ! Decouple from other nodes.
                 if (thisNode%isPrimaryProgenitorOf(previousNode)) then
-                   previousNode%childNode => thisNode%siblingNode
+                   previousNode%firstChild => thisNode%sibling
                 else
-                   nextNode => previousNode%childNode
-                   do while (.not.associated(nextNode%siblingNode,thisNode))
-                      nextNode => nextNode%siblingNode
+                   nextNode => previousNode%firstChild
+                   do while (.not.associated(nextNode%sibling,thisNode))
+                      nextNode => nextNode%sibling
                    end do
-                   nextNode%siblingNode => thisNode%siblingNode
+                   nextNode%sibling => thisNode%sibling
                 end if
                 ! Should call the "destroyBranch" method on "thisTree" here, but seems to cause a compiler crash under gFortran
                 ! v4.4. So, instead, do the branch destroy manually.
@@ -109,7 +111,7 @@ contains
                 do while (associated(nextNode))
                    destroyNode => nextNode
                    call destroyNode%walkBranch(thisNode,nextNode)
-                   call destroyNode%destroy
+                   call destroyNode%destroy()
                 end do
                 ! Return to parent node.
                 thisNode => previousNode

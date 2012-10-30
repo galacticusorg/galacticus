@@ -19,6 +19,7 @@
 
 module Star_Formation_Feedback_Disks_Fixed
   !% Implements a fixed outflow rate due to star formation feedback in galactic disks.
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Feedback_Disks_Fixed_Initialize
@@ -61,7 +62,6 @@ contains
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Fixed(thisNode,starFormationRate,energyInputRate)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\tt thisNode}. Assumes a
     !% fixed ratio of outflow rate to star formation rate.
-    use Tree_Nodes
     use Stellar_Feedback
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

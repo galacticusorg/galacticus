@@ -78,8 +78,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('treeBranchingModifierMethod',treeBranchingModifierMethod,defaultValue='null')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="treeBranchingModifierMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>treeBranchingModifierMethod,Merger_Tree_Branching_Modifier_Get</subroutineArgs>
+       !# <include directive="treeBranchingModifierMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>treeBranchingModifierMethod,Merger_Tree_Branching_Modifier_Get</functionArgs>
        include 'merger_trees.branching_probability.modifier.inc'
        !# </include>
        if (.not.associated(Merger_Tree_Branching_Modifier_Get))  &
