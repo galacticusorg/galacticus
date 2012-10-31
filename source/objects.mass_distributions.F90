@@ -28,6 +28,33 @@ module Mass_Distributions
      !% The basic mass distribution class. Has no symmetry and will abort on inqueries.
      logical           :: dimensionless
    contains
+     !@ <objectMethods>
+     !@   <object>massDistribution</object>
+     !@   <objectMethod>
+     !@     <method>symmetry</method>
+     !@     <description>Returns a label specifying the symmetry of the mass distribution (see \S\ref{sec:MassDistributions}).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isDimensionless</method>
+     !@     <description>Returns {\tt true} is this is a dimensionless mass distribution, {\tt false} otherwise.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>density</method>
+     !@     <description>Returns the density of the mass distribution at the supplied {\tt coordinates}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>densityRadialMoment</method>
+     !@     <description>Returns the $n^{\rm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\bf x}) |x|^n {\rm d} {\bf x}$.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>massEnclosedBySphere</method>
+     !@     <description>Returns the mass enclosed by a sphere of given {\tt radius} centered on the origin.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>potential</method>
+     !@     <description>Returns the gravitational potential at the specified {\tt coordinates}.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_None
      procedure         :: isDimensionless      => Mass_Distribution_Is_Dimensionless
      procedure         :: density              => Mass_Distribution_Density_Null
@@ -39,6 +66,21 @@ module Mass_Distributions
   type, public, extends(massDistribution) :: massDistributionSpherical
      !% A spherical mass distribution class.
    contains
+     !@ <objectMethods>
+     !@   <object>massDistribution</object>
+     !@   <objectMethod>
+     !@     <method>symmetry</method>
+     !@     <description>Returns a label specifying the symmetry of the spherical mass distribution (see \S\ref{sec:MassDistributions}).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>massEnclosedBySphere</method>
+     !@     <description>Returns the mass enclosed by a sphere of given {\tt radius} centered on the origin.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>halfMassRadius</method>
+     !@     <description>Returns the radius enclosing half of the mass of the mass distribution.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_Spherical
      procedure         :: massEnclosedBySphere => Mass_Distribution_Mass_Enc_By_Sphere_Spherical
      procedure         :: halfMassRadius       => Mass_Distribution_Half_Mass_Radius_Spherical
@@ -49,6 +91,11 @@ module Mass_Distributions
   type, public, extends(massDistribution) :: massDistributionCylindrical
      !% A cylindrical mass distribution class.
    contains
+     !@ <objectMethod>
+     !@   <object>massDistribution</object>
+     !@   <method>symmetry</method>
+     !@   <description>Returns a label specifying the symmetry of the cylindrical mass distribution (see \S\ref{sec:MassDistributions}).</description>
+     !@ </objectMethod>
      procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_Cylindrical
   end type massDistributionCylindrical
 

@@ -105,6 +105,8 @@ module Histories
      procedure :: setToUnity => History_Set_To_Unity
      procedure :: exists     => History_Exists
      procedure :: timeSteps  => History_Timesteps
+     !@ <objectMethods>
+     !@   <object>history</object>
      !@   <objectMethod>
      !@     <method>serializeCount</method>
      !@     <description>Return a count of the number of properties in a serialized history object.</description>
@@ -117,6 +119,7 @@ module Histories
      !@     <method>deserialize</method>
      !@     <description>Deserialize a history object from an array.</description>
      !@   </objectMethod>
+     !@ </objectMethods>
      procedure                 :: serializeCount         => History_Serialize_Count
      procedure                 :: serialize              => History_Serialize
      procedure                 :: deserialize            => History_Deserialize
