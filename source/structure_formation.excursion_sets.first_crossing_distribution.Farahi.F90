@@ -15,6 +15,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Arya Farahi, Andrew Benson.
+
 !% Contains a module which implements a fast and accurate method to
 !% solve the excursion set barrier crossing problem for generic
 !% barriers.
