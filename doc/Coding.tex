@@ -54,16 +54,19 @@ It is possible to incorporate C or C++ code into \glc. The implementation of C++
 
 \subsection{Component Property Methods}
 
-C++-wrappers are currently automatically built for the ``get'' method for all scalar properties defined for \glc\ components. To use these wrappers include the following lines:
+C++-wrappers are currently automatically built for the ``get'' method for all real scalar properties defined for \glc\ components. To use these wrappers include the following lines:
 \begin{verbatim}
-//: ./work/build/objects.tree_node.cWrappers.o
-#include <objects.tree_node.cWrappers.h>
+//: ./work/build/objects.nodes.bindings.C.o
+#include <objects.nodes.bindings.C.h>
 \end{verbatim}
-The first line adds an explicit dependency on the wrappers file, while the second includes it. Then, scalar get methods are available using:
+The first line adds an explicit dependency on the bindings file, while the second includes it. A component of a given class can be retrieved from a supplied node pointer using:
 \begin{verbatim}
-double Tree_Node_<Method>(void *thisNode)
+nodeComponent<Class> this<Class>Component (thisNode);
 \end{verbatim}
-where {\tt *thisNode} is a pointer to a node object.
+Then, real scalar get methods are available using:
+\begin{verbatim}
+value=this<Class>Component.<property>();
+\end{verbatim}
 
 \subsection{Using Functions in C++}
 
@@ -101,7 +104,6 @@ void  Star_Formation_Timescale_Disk_Baugh2005_Initialize(char *starFormationTime
   }
 }
 \end{verbatim}
-
 The usual embedded XML directives specifies that this function should be called to initialize the method. The function is passed both the name of the method that has been selected and a function pointer. If the method is matched, the function simply sets the function pointer to point to the specific function implementing the timescale calculation.
 
 \section{Objects}

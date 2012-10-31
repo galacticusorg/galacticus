@@ -1,10 +1,8 @@
 \chapter{Node Components}
 
+In addition to the implementations described here, each component class has a ``{\tt null}'' implementation. Selecting this implementation---which has no properties and does not respond to any events---effectively switches off the relevant component class. Of course, this is safe only if none of the other active implementations expect to get or set properties of the component class (or if they rely on a sensible implementation of that class).
+
 \section{(Supermassive) Black Hole}
-
-\subsection{``Null'' Implementation}
-
-The null black hole implementation defines the same properties as all other black hole implementations, but sets the methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off black holes. Of course, this is safe only if none of the other active components expect to get or set black hole properties (or if they rely on a sensible implementation of black hole evolution).
 
 \subsection{``Standard'' Implementation}
 
@@ -208,10 +206,6 @@ If the {\tt [blackHoleOutputAccretion]}\index{black holes!accretion}\index{accre
 
 \section{Hot Halo}
 
-\subsection{``Null'' Implementation}
-
-The null hot halo implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off hot halos. Of course, this is safe only if none of the other active components expect to get or set hot halo properties (or if they rely on a sensible implementation of hot halo evolution).
-
 \subsection{``Very Simple'' Implementation}
 
 \subsubsection{Properties}
@@ -343,10 +337,6 @@ A fraction $1-${\tt [hotHaloAngularMomentumLossFraction]} of the cooling angular
 
 \section{Galactic Disk}
 
-\subsection{``Null'' Implementation}
-
-The null disk implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off disks. Of course, this is safe only if none of the other active components expect to get or set disk properties (or if they rely on a sensible implementation of disk evolution).
-
 \subsection{``Very Simple'' Implementation}
 
 This implementation assumes a disk with no structural properties---it consists of just gas and stellar masses.
@@ -463,27 +453,34 @@ The option {\tt [diskRadiusSolverCole2000Method]}, if set to {\tt true}, alters 
 \end{equation}
 where $V_{\rm disk}$ is the rotation curve in the plane of an infinitely thin exponential disk. This adjustment accounts for the difference between a thin disk and spherical mass distribution. Note that in this case (as in \citealt{cole_hierarchical_2000}) the resulting disk will not precisely satisfy $j(r) = r V_{\rm c}(r)$ where $V_{\rm c}(r)$ is the net rotation curve.
 
-
 \section{Galactic Spheroid}
 
-\subsection{``Null'' Implementation}
+\subsection{``Standard'' Implementation}
 
-The null spheroid implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off spheroids. Of course, this is safe only if none of the other active components expect to get or set spheroid properties (or if they rely on a sensible implementation of spheroid evolution).
-
-\subsection{``Hernquist'' Implementation}
-
-This implementation assumes a Hernquist profile \citep{hernquist_analytical_1990} for the spheroidal \gls{component} of a galaxy in which stars trace gas.
+The standard spheroid implementation assumes a spheroid density profile described by a single length scale in which stars trace gas. Currently, two options for the density profile are allowed\footnote{The spheroid density distribution is handled internally using a {\tt massDistribution} object (see \S\ref{sec:MassDistributions}). As such, any mass distribution implemented as an extension of the {\tt massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard spheroid component.}:
+\begin{description}
+\item [{\tt hernquist}] Assumes a Hernquist profile \citep{hernquist_analytical_1990} for the spheroidal \gls{component} of a galaxy.
+\item [{\tt sersic}] Assumes a S\'ersic profile (\citealt{sersic_influence_1963}; see also \citealt{mazure_exact_2002}) for the spheroidal \gls{component} of a galaxy in which stars trace gas. The projected density profile of the spheroid is given by:
+\begin{equation}
+ \Sigma(R) \propto \exp\left(-b_{\rm n} R^{1/n} \right),
+\end{equation}
+where the S\'ersic index, $n=${\tt [spheroidSersicIndex]} and the coefficient $b_{\rm n}=2.303(0.8689 n-0.1447)$ \cite{wadadekar_two-dimensional_1999}. The 3D density distribution for a given $n$ is inferred by solving the relevant inverse Abel integral.
+\end{description}
 
 \subsubsection{Properties}
 
-The Hernquist galactic spheroid implementation defines the following properties:
+The standard galactic spheroid implementation defines the following properties:
 \begin{description}
  \item [{\tt Spheroid\_Gas\_Mass}] The mass of gas in the spheroid: $M_{\rm spheroid, gas}$ [{\tt spheroidGasMass}].
  \item [{\tt Spheroid\_Gas\_Abundances}] The mass of elements in the gaseous spheroid: $M_{Z, {\rm spheroid, gas}}$ [{\tt spheroidGas\{abundanceName\}}].
  \item [{\tt Spheroid\_Stellar\_Mass}] The mass of stars in the spheroid: $M_{\rm spheroid, stars}$ [{\tt spheroidStellarMass}].
  \item [{\tt Spheroid\_Stellar\_Abundances}] The mass of elements in the stellar spheroid: $M_{Z, {\rm spheroid, stars}}$ [{\tt spheroidStellar\{abundanceName\}}].
  \item [{\tt Spheroid\_Stellar\_Luminosities}] The luminosities (in multiple bands) of the stellar spheroid: $L_{\rm spheroid, stars}$ [{\tt spheroidStellar\{luminosityName\}}].
- \item [{\tt Spheroid\_Angular\_Momentum}] The pseudo-angular momentum\footnote{Effectively the angular momentum that the spheroid would have, were it rotationally supported rather than pressure supported.} of the spheroid, $J_{\rm spheroid}$ [{\tt spheroidAngularMomentum}]. The parameter {\tt [spheroidAngularMomentumAtScaleRadius]} controls the ratio of the specific pseudo-angular momentum at the scale radius of the Hernquist spheroid to the mean specific pseudo-angular momentum\index{spheroid!Hernquist!pseudo-angular momentum}\index{spheroid!Hernquist!radius}. The Hernquist spheroid has infinite angular momentum if a flat rotation curve is assumed and the profile is assumed to extend to infinity. If a finite truncation radius is assumed, or a different rotation curve is assumed, this ratio can be finite. The {\tt [spheroidAngularMomentumAtScaleRadius]} parameter allows control over these assumptions.
+ \item [{\tt Spheroid\_Angular\_Momentum}] The pseudo-angular momentum\footnote{Effectively the angular momentum that the spheroid would have, were it rotationally supported rather than pressure supported.} of the spheroid, $J_{\rm spheroid}$ [{\tt spheroidAngularMomentum}]. The parameter {\tt [spheroidAngularMomentumAtScaleRadius]} controls the ratio of the specific pseudo-angular momentum at the scale radius of the standard spheroid to the mean specific pseudo-angular momentum\index{spheroid!standard!pseudo-angular momentum}\index{spheroid!standard!radius}. By default, this parameter is set to {\tt [spheroidAngularMomentumAtScaleRadius]} $= I_2/I_3$, where
+\begin{equation}
+I_n = \int_0^\infty \rho(r) r^n {\rm d}r,
+\end{equation}
+and $\rho(r)$ is the spheroid density profile, which is appropriate for a flat rotation curve. In some cases (e.g. the Hernquist profile) one or both of $I_2$ and $I_3$ can be infinite. In such cases {\tt [spheroidAngularMomentumAtScaleRadius]} $=0.5$ is assumed by default. If a finite truncation radius is assumed, or a different rotation curve is assumed, this ratio may be finite. The {\tt [spheroidAngularMomentumAtScaleRadius]} parameter allows control over these assumptions.
  \item [{\tt Spheroid\_Radius}] The radial scale length of the spheroid, $r_{\rm spheroid}$ [{\tt spheroidScaleLength}].
  \item [{\tt Spheroid\_Velocity}] The circular velocity of the spheroid at $r_{\rm spheroid}$, $V_{\rm spheroid}$ [{\tt spheroidCircularVelocity}].
 \end{description}
@@ -499,7 +496,7 @@ No initialization is performed---spheroids are created as needed.
 
 \subsubsection{Differential Evolution}
 
-In the Hernquist galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk \gls{component} via the bar instability mechanism (see \S\protect\ref{sec:DiskExponential}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk \gls{component} and so applies equally to any spheroid \gls{component} implementation.}:
+In the standard galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk \gls{component} via the bar instability mechanism (see \S\protect\ref{sec:DiskExponential}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk \gls{component} and so applies equally to any spheroid \gls{component} implementation.}:
 \begin{equation}
  \dot{M}_{\rm spheroid, gas} = - \dot{M}_{\rm outflow, spheroid} - \dot{M}_{\rm stars, spheroid},
 \end{equation}
@@ -541,83 +538,6 @@ where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is
 \subsubsection{Additional Output}
 
 If the {\tt [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid will be included in the output, as {\tt spheroidStarFormationRate}.
-
-\subsection{``S\'ersic'' Implementation}
-
-This implementation assumes a S\'ersic profile (\citealt{sersic_influence_1963}; see also \citealt{mazure_exact_2002}) for the spheroidal \gls{component} of a galaxy in which stars trace gas. The projected density profile of the spheroid is given by:
-\begin{equation}
- \Sigma(R) \propto \exp\left(-b_{\rm n} R^{1/n} \right),
-\end{equation}
-where the S\'ersic index, $n=${\tt [spheroidSersicIndex]} and the coefficient $b_{\rm n}=2.303(0.8689 n-0.1447)$ \cite{wadadekar_two-dimensional_1999}. The 3D density distribution for a given $n$ is inferred by solving the relevant inverse Abel integral.
-
-\subsubsection{Properties}
-
-The S\'ersic galactic spheroid implementation defines the following properties:
-\begin{description}
- \item [{\tt Spheroid\_Gas\_Mass}] The mass of gas in the spheroid: $M_{\rm spheroid, gas}$ [{\tt spheroidGasMass}].
- \item [{\tt Spheroid\_Gas\_Abundances}] The mass of elements in the gaseous spheroid: $M_{Z, {\rm spheroid, gas}}$ [{\tt spheroidGas\{abundanceName\}}].
- \item [{\tt Spheroid\_Stellar\_Mass}] The mass of stars in the spheroid: $M_{\rm spheroid, stars}$ [{\tt spheroidStellarMass}].
- \item [{\tt Spheroid\_Stellar\_Abundances}] The mass of elements in the stellar spheroid: $M_{Z, {\rm spheroid, stars}}$ [{\tt spheroidStellar\{abundanceName\}}].
- \item [{\tt Spheroid\_Stellar\_Luminosities}] The luminosities (in multiple bands) of the stellar spheroid: $L_{\rm spheroid, stars}$ [{\tt spheroidStellar\{luminosityName\}}].
- \item [{\tt Spheroid\_Angular\_Momentum}] The pseudo-angular momentum\footnote{Effectively the angular momentum that the spheroid would have, were it rotationally supported rather than pressure supported.} of the spheroid, $J_{\rm spheroid}$ [{\tt spheroidAngularMomentum}].
- \item [{\tt Spheroid\_Radius}] The 3D half-mass radius of the spheroid, $r_{\rm spheroid}$ [{\tt spheroidScaleLength}].
- \item [{\tt Spheroid\_Velocity}] The circular velocity of the spheroid at $r_{\rm spheroid}$, $V_{\rm spheroid}$ [{\tt spheroidCircularVelocity}].
-\end{description}
-and the following pipes:
-\begin{description}
- \item [{\tt Tree\_Node\_Spheroid\_Gas\_Energy\_Input}] Energy sent through this pipe is added to the gas of the spheroid and will result in an outflow (see below). Input energy should be in units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$ and must be positive (energy cannot be removed from the gas via this pipe).
- \item [{\tt Tree\_Node\_Spheroid\_Gas\_Sink}] Removes gas (and proportionate amounts of angular momentum and elements) from the spheroid gas. Removed mass should be in units of $M_\odot$ and must be positive (a negative mass sink would add mass to the spheroid which is not allowed via this pipe).
-\end{description}
-
-\subsubsection{Initialization}
-
-No initialization is performed---spheroids are created as needed.
-
-\subsubsection{Differential Evolution}
-
-In the S\'ersic galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk \gls{component} via the bar instability mechanism (see \S\protect\ref{sec:DiskExponential}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk \gls{component} and so applies equally to any spheroid \gls{component} implementation.}:
-\begin{equation}
- \dot{M}_{\rm spheroid, gas} = - \dot{M}_{\rm outflow, spheroid} - \dot{M}_{\rm stars, spheroid},
-\end{equation}
-where the rate of change of stellar mass is
-\begin{equation}
- \dot{M}_{\rm stars, spheroid} = \Psi - \dot{R}
-\end{equation}
-with
-\begin{equation}
- \Psi = {M_{\rm spheroid, gas} \over \tau_{\rm spheroid, star~formation}}
-\end{equation}
-with $\tau_{\rm spheroid, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars.
-Element abundances (including total metals) evolve according to:
-\begin{equation}
-  \dot{M}_{Z, {\rm spheroid, gas}} = - \dot{M}_{Z, {\rm outflow, spheroid}} - \dot{M}_{Z, {\rm stars, spheroid}} + \dot{y},
-\end{equation}
-and
-\begin{equation}
- \dot{M}_{Z, {\rm stars, spheroid}} = \Psi {M_{Z, {\rm spheroid, gas}} \over M_{\rm spheroid, gas}} - \dot{R}_Z
-\end{equation}
-where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the rate of element recycling. The angular momentum evolves as:
-\begin{equation}
- \dot{J}_{\rm spheroid} = \dot{M}_{\rm outflow, spheroid} {J_{\rm spheroid} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}}.
-\end{equation}
-The outflow rate, $\dot{M}_{\rm outflow, spheroid}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}) and prescriptions for expulsive and non-expulsive supernova feedback (see \S\ref{sec:sneExpulsiveFeedback} and \S\ref{sec:sneFeedback} respectively), with an additional contribution given by
-\begin{equation}
- \dot{M}_{\rm outflow, spheroid} = \beta_{\rm spheroid, energy} {\dot{E}_{\rm gas, spheroid} \over V_{\rm spheroid}^2}
-\end{equation}
-where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is an input parameter, and $\dot{E}_{\rm gas,spheroid}$ is any input energy sent through the {\tt Tree\_Node\_Spheroid\_Gas\_Energy\_Input} pipe, but is not allowed to exceed $M_{\rm gas, spheroid}/ \alpha_{\rm outflow minimum, spheroid} \tau_{\rm spheroid, dynamical}$, where $\tau_{\rm spheroid, dynamical}=R_{\rm spheroid}/V_{\rm spheroid}$ is the dynamical time of the spheroid and $\alpha_{\rm outflow minimum, spheroid}=${\tt [spheroidOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the spheroid. This limit prevents the spheroid being depleted on arbitrarily short timescales. The non-expulsive \gls{component} of the outflow is piped to the hot halo component.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None\\
-
-\noindent\emph{Satellite merging:} Spheroids may be created as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see \S\ref{sec:satelliteMergerMassMovementMethod}).\\
-
-\noindent\emph{Node promotion:} None.\\
-
-\subsubsection{Additional Output}
-
-If the {\tt [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid will be included in the output, as {\tt spheroidStarFormationRate}.
-
 
 \section{Basic Properties}\label{sec:ComponentBasicProperties}
 
@@ -690,10 +610,6 @@ where the ``parent'' subscript indicates a property of the parent \gls{node} in 
 \section{Position}\label{sec:ComponentPosition}
 
 The position \gls{component} implements the position and velocity of each galaxy. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc.
-
-\subsection{``Null'' Implementation}
-
-The null position implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off positions. Of course, this is safe only if none of the other active components, functions or tasks expect to get or set position properties (or if they rely on a sensible implementation of position evolution).
 
 \subsection{``Preset'' Implemenation}
 
@@ -819,10 +735,6 @@ with $\dot{M}_{\rm node,bound}$ set to the rate given by the {\tt darkMatterHalo
 
 \section{Dark Matter Halo Spin}\label{sec:DarkMatterHaloSpinComponent}
 
-\subsection{``Null'' Implementation}
-
-The null spin implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off spins. Of course, this is safe only if none of the other active components expect to get or set spin properties (or if they rely on a sensible implementation of spin evolution).
-
 \subsection{``Random'' Implementation}
 
 \subsubsection{Properties}
@@ -877,10 +789,6 @@ The spin parameter evolves linearly with time between \gls{node} and parent node
 \section{Dark Matter Profile}\label{sec:DarkMatterProfileComponent}
 
 This \gls{component} stores dynamic properties associated with dark matter halo density profiles.
-
-\subsection{``Null'' Implementation}
-
-The null profile implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off profiles. Of course, this is safe only if none of the other active components expect to get or set profile properties (or if they rely on a sensible implementation of profile evolution).
 
 \subsection{``Scale'' Implementation}
 
@@ -996,7 +904,3 @@ The formation time does not evolve. When the \gls{node} mass exceeds the mass at
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} None.\\
-
-\subsection{``Null'' Implementation}
-
-The null formation times implementation leaves all methods to point to dummy routines (for rate adjustment and derivative computation) or to {\tt null()} for get/set methods. It can be used to effectively switch off formation times. Of course, this is safe only if none of the other active components expect to get or set formation time properties (or if they rely on a sensible implementation of formation time).
