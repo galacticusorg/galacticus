@@ -39,6 +39,8 @@ module Chemical_Abundances_Structure
      generic                   :: operator(*)            => multiply
      generic                   :: operator(/)            => divide
      ! Serialization methods.
+     !@ <objectMethods>
+     !@   <object>chemicalAbundances</object>
      !@   <objectMethod>
      !@     <method>serializeCount</method>
      !@     <description>Return a count of the number of properties in a serialized chemical abundances object.</description>
@@ -51,13 +53,15 @@ module Chemical_Abundances_Structure
      !@     <method>deserialize</method>
      !@     <description>Deserialize a chemical abundances object from an array.</description>
      !@   </objectMethod>
+     !@ </objectMethods>
      procedure, nopass         :: serializeCount         => Chemicals_Property_Count
      procedure                 :: serialize              => Chemical_Abundances_Serialize
      procedure                 :: deserialize            => Chemical_Abundances_Deserialize
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <description>Increment a chemical abundances object.</description>
-     !@   </objectMethod>
+     !@ <objectMethod>
+     !@   <object>chemicalAbundances</object>
+     !@   <method>increment</method>
+     !@   <description>Increment a chemical abundances object.</description>
+     !@ </objectMethod>
      procedure                 :: increment              => Chemical_Abundances_Increment
      ! Abundance methods.
      !@ <objectMethods>
