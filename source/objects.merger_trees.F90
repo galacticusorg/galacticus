@@ -109,8 +109,6 @@ module Merger_Trees
   !$omp threadprivate(nPropertiesMax,nProperties,propertyValues,propertyScales)
 #ifdef PROFILE
   logical                                     :: profileOdeEvolver
-  integer,          allocatable, dimension(:) :: propertyComponent,propertyObject,propertyIndex
-  !$omp threadprivate(propertyComponent,propertyObject,propertyIndex)
 #endif
 
   ! Module global pointer to the node being processed.
@@ -421,31 +419,11 @@ contains
           deallocate(propertyValues)
           call Memory_Usage_Record(sizeof(propertyScales),addRemove=-1)
           deallocate(propertyScales)
-#ifdef PROFILE
-          if (profileOdeEvolver) then
-             call Memory_Usage_Record(sizeof(propertyComponent),addRemove=-1)
-             deallocate(propertyComponent)
-             call Memory_Usage_Record(sizeof(propertyObject   ),addRemove=-1)
-             deallocate(propertyObject   )
-             call Memory_Usage_Record(sizeof(propertyIndex    ),addRemove=-1)
-             deallocate(propertyIndex    )
-          end if
-#endif
        end if
        allocate(propertyValues(nProperties))
        call Memory_Usage_Record(sizeof(propertyValues))
        allocate(propertyScales(nProperties))
        call Memory_Usage_Record(sizeof(propertyScales))
-#ifdef PROFILE
-       if (profileOdeEvolver) then
-          allocate(propertyComponent(nProperties))
-          call Memory_Usage_Record(sizeof(propertyComponent))
-          allocate(propertyObject   (nProperties))
-          call Memory_Usage_Record(sizeof(propertyObject   ))
-          allocate(propertyIndex    (nProperties))
-          call Memory_Usage_Record(sizeof(propertyIndex    ))
-       end if
-#endif
        nPropertiesMax=nProperties
     end if
 
@@ -539,6 +517,7 @@ contains
   function Tree_Node_ODEs(time,y,dydt,parameterPointer) bind(c)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
+    use FGSL
     implicit none
     integer(c_int)                                       :: Tree_Node_ODEs
     real(c_double),                          value       :: time
@@ -643,6 +622,8 @@ contains
 #ifdef PROFILE
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
+    use FGSL
+    use Galacticus_Meta_Evolver_Profiler
     !# <include directive="decodePropertyIdentifiersTask" type="moduleUse">
     include 'objects.merger_trees.decode_property_identifiers.modules.inc'
     !# </include>
@@ -653,11 +634,10 @@ contains
     integer(c_int),   intent(in), value                  :: stepStatus
     double precision                                     :: scaledErrorMaximum,scaledError,scale
     integer                                              :: iProperty,limitingProperty
-    logical                                              :: matchedProperty
     type(varying_string)                                 :: propertyName
 
     ! If the step was not good, return immediately.
-    if (stepStatus /= FGSL_SUCCESS) return
+    if (stepStatus /= FGSL_Success) return
 
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
@@ -670,13 +650,7 @@ contains
        end if
     end do
     ! Decode the step limiting property.
-    matchedProperty=.false.
-    propertyName="unknown"
-    !# <include directive="decodePropertyIdentifiersTask" type="functionCall" functionType="void">
-    !#  <functionArgs>propertyComponent(limitingProperty),propertyObject(limitingProperty),propertyIndex(limitingProperty),matchedProperty,propertyName</functionArgs>
-    include 'objects.merger_trees.decode_property_identifiers.inc'
-    !# </include>
-
+    propertyName=activeNode%nameFromIndex(limitingProperty)
     ! Record this information.
     call Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
     return
