@@ -35,9 +35,6 @@ my $debugging                           = 0;
 # Global verbosity level.
 my $verbosityLevel                      = 1;
 
-# Switch to control whether instances are included.
-my $instances                           = 1;
-
 # Switch to control gfortran workarounds.
 my $workaround                          = 1;
 
@@ -111,6 +108,8 @@ sub Components_Generate_Output {
 	    \&Generate_Node_Output_Functions                         ,
 	    # Generate functions to serialize/deserialize nodes to/from arrays.
 	    \&Generate_Node_Serialization_Functions                  ,
+	    # Generate functions to get property names from a supplied index.
+	    \&Generate_Node_Property_Name_From_Index_Function        ,
 	    # Generate functions to serialize/deserialize nodes to/from arrays.
 	    \&Generate_Node_ODE_Initialization_Functions             ,
 	    # Generate function to copy one node to another.
@@ -145,9 +144,11 @@ sub Components_Generate_Output {
 	    \&Generate_Implementation_Dump_Functions                 ,
 	    # Generate output functions for each implementation.
 	    \&Generate_Implementation_Output_Functions               ,
+	    # Generate functions to get the name of properties from an index.
+	    \&Generate_Implementation_Name_From_Index_Functions      ,
 	    # Generate serialization/deserialization functions for each implementation.
 	    \&Generate_Implementation_Serialization_Functions        ,
-	    # Generate component co9unt methods.
+	    # Generate component count methods.
 	    \&Generate_Component_Count_Functions                     ,
 	    # Generate component get methods.
 	    \&Generate_Component_Get_Functions                       ,
@@ -1284,15 +1285,12 @@ sub Generate_Tree_Node_Object{
 	 }
 	);
     foreach ( @{$buildData->{'componentClassList'}} ) {
-	my @attributes = ( "allocatable" );
-	push(@attributes,"dimension(:)")
-	    if ( $instances == 1 );
 	push(
 	    @dataContent,
 	    {
 	     intrinsic  => "class",
 	     type       => "nodeComponent".ucfirst($_),
-	     attributes => \@attributes,
+	     attributes => [ "allocatable", "dimension(:)" ],
 	     variables  => [ "component".ucfirst($_) ],
 	     comment    => "A generic ".$_." object."
 	    }
@@ -1587,13 +1585,9 @@ sub Generate_Node_Dump_Function {
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dump()\n";
-	    $functionCode .= "      end do\n";
-	} else {
-	    $functionCode .= "     call self%component".padComponentClass(ucfirst($_),[0,0])."%dump()\n";
-	}
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dump()\n";
+	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    call Galacticus_Display_Unindent('done')\n";
@@ -1647,13 +1641,9 @@ sub Generate_Node_Output_Functions {
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
-	    $functionCode .= "      end do\n";
-	} else {
-	    $functionCode .= "     call self%component".padComponentClass(ucfirst($_),[0,0])."%outputCount(integerPropertyCount,doublePropertyCount,time)\n";
-	}
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%outputCount(integerPropertyCount,doublePropertyCount,time,instance=i)\n";
+	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
@@ -1711,13 +1701,9 @@ sub Generate_Node_Output_Functions {
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
-	    $functionCode .= "      end do\n";
-	} else {
-	    $functionCode .= "     call self%component".padComponentClass(ucfirst($_),[0,0])."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)\n";
-	}
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)\n";
+	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
@@ -1775,15 +1761,10 @@ sub Generate_Node_Output_Functions {
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance=i)\n";
-	    $functionCode .= "      end do\n";
-	} else {
-	    $functionCode .= "     call self%component".padComponentClass(ucfirst($_),[0,0])."%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)\n";
-	}
+	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
@@ -1800,14 +1781,11 @@ sub Generate_Node_Output_Functions {
 	);
 }
 
-sub Generate_Node_Serialization_Functions {
-    # Generate functions to serialize/deserialize nodes to/from arrays.
+sub Generate_Node_Property_Name_From_Index_Function {
+    # Generate function to get the name of a property given an index.
     my $buildData = shift;
 
-    # Function computing a count of the serialization length.
-    my @variables = ( "count" );
-    push(@variables,"i")
-	if ( $instances == 1 );
+    # Define variables.
     my @dataContent =
 	(
 	 {
@@ -1818,7 +1796,77 @@ sub Generate_Node_Serialization_Functions {
 	 },
 	 {
 	     intrinsic  => "integer",
-	     variables  => \@variables
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "index" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "varying_string",
+	     variables  => [ "name" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "count", "i" ]
+	 }
+	);
+    my $functionCode;
+    $functionCode .= "  function Node_Property_Name_From_Index(self,index) result (name)\n";
+    $functionCode .= "    !% Return the name of a property given its index.\n";
+    $functionCode .= "    use ISO_Varying_String\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+
+    # Loop over all component classes
+    $functionCode .= "  name='unknown'\n";
+    $functionCode .= "  count=index\n";
+    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
+	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
+		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
+		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Name_From_Index(component,count,name)\n";
+	    }
+	    $functionCode .= "        end select\n";
+	} else {
+	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
+	}
+	$functionCode .= "        if (count <= 0) return\n";
+	$functionCode .= "      end do\n";
+	$functionCode .= "    end if\n";
+    }
+    $functionCode .= "    if (name == 'unknown') call Galacticus_Error_Report('Node_Property_Name_From_Index','property index out of range')\n";
+    $functionCode .= "    return\n";
+    $functionCode .= "  end function Node_Property_Name_From_Index\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{type => "procedure", name => "nameFromIndex", function => "Node_Property_Name_From_Index"}
+	);
+}
+
+sub Generate_Node_Serialization_Functions {
+    # Generate functions to serialize/deserialize nodes to/from arrays.
+    my $buildData = shift;
+
+    # Function computing a count of the serialization length.
+    my @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "treeNode",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "count", "i" ]
 	 }
 	);
     my $functionCode;
@@ -1830,23 +1878,20 @@ sub Generate_Node_Serialization_Functions {
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		    $functionCode .= "      write (0,*) 'DEBUG -> SerializeToArrayCount -> nodeComponent".ucfirst($_).ucfirst($implementationName)."',i,Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n"
-			if ( $debugging == 1 );
-		    $functionCode .= "        count=count+Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-		}
-		$functionCode .= "        end select\n";
-	    } else {
-		$functionCode .= "        count=count+self%component".padComponentClass(ucfirst($_),[0,0])."%serializeCount()\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
+	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
+		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
+		$functionCode .= "      write (0,*) 'DEBUG -> SerializeToArrayCount -> nodeComponent".ucfirst($_).ucfirst($implementationName)."',i,Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n"
+		    if ( $debugging == 1 );
+		$functionCode .= "        count=count+Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
 	    }
+	    $functionCode .= "        end select\n";
+	} else {
+	    $functionCode .= "        count=count+self%component".padComponentClass(ucfirst($_),[0,0])."%serializeCount()\n";
 	}
-	$functionCode .= "      end do\n"
-	    if ( $instances == 1 );
+	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
@@ -1865,9 +1910,6 @@ sub Generate_Node_Serialization_Functions {
     # Iterate over all property-associated data for which we need serialization/deserialization functions.
     foreach my $content ( "value", "scale", "rate" ) {
 	# Create the serialization function.
-	my @variables = ( "count", "offset" );
-	push(@variables,"i")
-	if ( $instances == 1 );
 	@dataContent =
 	    (
 	     {
@@ -1878,7 +1920,7 @@ sub Generate_Node_Serialization_Functions {
 	     },
 	     {
 		 intrinsic  => "integer",
-		 variables  => \@variables
+		 variables  => [ "count", "offset", "i" ],
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -1895,32 +1937,26 @@ sub Generate_Node_Serialization_Functions {
 	# Loop over all component classes
 	foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	    $functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	    if ( $instances == 1 ) {
-		$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-		if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		    $functionCode .= "        count=0\n";
-		    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-			$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-			$functionCode .= "        count=Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-			$functionCode .= "        write (0,*) 'DEBUG -> SerializeToArray".ucfirst($content)."s -> nodeComponent".ucfirst($_).ucfirst($implementationName)."',i,count,offset,size(array)\n"
-			    if ( $debugging == 1 );
-			$functionCode .= "        if (count > 0) call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Serialize_".pad(ucfirst($content)."s",5)."(component,array(offset:))\n";
-			$functionCode .= "        if (count > 0 .and. any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> SerializeToArray".ucfirst($content)."s: non-positive scale found for ".$_." ".$implementationName."'\n"
-			    if ( $content eq "scale" && $debugging == 1 );
-		    }
-		    $functionCode .= "        end select\n";
-		} else {
-		    $functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-		    $functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
+	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
+		$functionCode .= "        count=0\n";
+		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
+		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
+		    $functionCode .= "        count=Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
+		    $functionCode .= "        write (0,*) 'DEBUG -> SerializeToArray".ucfirst($content)."s -> nodeComponent".ucfirst($_).ucfirst($implementationName)."',i,count,offset,size(array)\n"
+			if ( $debugging == 1 );
+		    $functionCode .= "        if (count > 0) call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Serialize_".pad(ucfirst($content)."s",5)."(component,array(offset:))\n";
+		    $functionCode .= "        if (count > 0 .and. any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> SerializeToArray".ucfirst($content)."s: non-positive scale found for ".$_." ".$implementationName."'\n"
+			if ( $content eq "scale" && $debugging == 1 );
 		}
+		$functionCode .= "        end select\n";
 	    } else {
-		$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."%serializeCount()\n";
-		$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."%serialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
+		$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+		$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
 	    }
 	    $functionCode .= "        offset=offset+count\n";
-	    $functionCode .= "      end do\n"
-		if ( $instances == 1 );
+	    $functionCode .= "      end do\n";
 	    $functionCode .= "    end if\n";
 	}
 	$functionCode .= "    return\n";
@@ -1936,9 +1972,6 @@ sub Generate_Node_Serialization_Functions {
 	    {type => "procedure", name => "serialize".ucfirst($content)."s", function => "serializeToArray".ucfirst($content)."s"}
 	    );
 	# Create the deserialization function.
-	@variables = ( "count", "offset" );
-	push(@variables,"i")
-	    if ( $instances == 1 );
 	@dataContent =
 	    (
 	     {
@@ -1949,7 +1982,7 @@ sub Generate_Node_Serialization_Functions {
 	     },
 	     {
 		 intrinsic  => "integer",
-		 variables  => \@variables
+		 variables  => [ "count", "offset", "i" ],
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -1966,28 +1999,22 @@ sub Generate_Node_Serialization_Functions {
 	# Loop over all component classes
 	foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	    $functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	    if ( $instances == 1 ) {
-		$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-		if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		    $functionCode .= "        count=0\n";
-		    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-			$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-			$functionCode .= "        count=Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-			$functionCode .= "        if (count > 0) call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Deserialize_".pad(ucfirst($content)."s",5)."(component,array(offset:))\n";
-		    }
-		    $functionCode .= "        end select\n";
-		} else {		
-		    $functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-		    $functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%deserialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
+	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
+		$functionCode .= "        count=0\n";
+		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
+		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
+		    $functionCode .= "        count=Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
+		    $functionCode .= "        if (count > 0) call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Deserialize_".pad(ucfirst($content)."s",5)."(component,array(offset:))\n";
 		}
-	    } else {
-		$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."%serializeCount()\n";
-		$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."%deserialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
+		$functionCode .= "        end select\n";
+	    } else {		
+		$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+		$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%deserialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
 	    }
 	    $functionCode .= "        offset=offset+count\n";
-	    $functionCode .= "      end do\n"
-		if ( $instances == 1 );
+	    $functionCode .= "      end do\n";
 	    $functionCode .= "    end if\n";
 	}
 	$functionCode .= "    return\n";
@@ -2016,16 +2043,12 @@ sub Generate_Node_ODE_Initialization_Functions {
 	     type       => "treeNode",
 	     attributes => [ "intent(inout)" ],
 	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
 	 }
 	);
-    push(
-	@dataContent,
-	{
-	    intrinsic  => "integer",
-	    variables  => [ "i" ]
-	}
-	)
-	if ( $instances == 1 );
     my $functionCode;
     $functionCode  = "  subroutine Tree_Node_ODE_Step_Rates_Initialize(self)\n";
     $functionCode .= "    !% Initialize the rates in components of tree node {\\tt self} in preparation for an ODE solver step.\n";
@@ -2034,23 +2057,18 @@ sub Generate_Node_ODE_Initialization_Functions {
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		    $functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_ODE_Step_Rates_Init(component)\n";
-		}
-		$functionCode .= "    end select\n";
-	    } else {
-		$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepRatesInitialize()\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
+	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
+		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
+		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_ODE_Step_Rates_Init(component)\n";
 	    }
+	    $functionCode .= "    end select\n";
 	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."%odeStepRatesInitialize()\n";
+	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepRatesInitialize()\n";
 	}
-	$functionCode .= "      end do\n"
-	    if ( $instances == 1 );
+	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";	
     }
     $functionCode .= "    return\n";
@@ -2073,22 +2091,18 @@ sub Generate_Node_ODE_Initialization_Functions {
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		    $functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_ODE_Step_Scales_Init(component)\n";
-		}
-		$functionCode .= "    end select\n";
-	    } else {
-		$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepScalesInitialize()\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
+	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
+		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
+		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_ODE_Step_Scales_Init(component)\n";
 	    }
-	    $functionCode .= "      end do\n";
+	    $functionCode .= "    end select\n";
 	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."%odeStepScalesInitialize()\n";
+	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepScalesInitialize()\n";
 	}
+	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
@@ -2609,6 +2623,126 @@ sub Generate_Implementation_Output_Functions {
     }
 }
 
+sub Generate_Implementation_Name_From_Index_Functions {
+    # Generate serialization/deserialization functions for each component implementation.
+    my $buildData = shift;
+    # Initialize function code.
+    my $functionCode;
+    # Initialize data content.
+    my @dataContent;
+    # Iterate over component implementations.
+    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+	# Get the component.
+	my $component = $buildData->{'components'}->{$componentID};
+	# Generate data content.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "count" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "varying_string",	
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "name" ]
+	     }
+	    );
+	# Generate the function.
+  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Name_From_Index(self,count,name)\n";
+	$functionCode .= "    !% Return the name of the property of given index for a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
+	$functionCode .= "    use ISO_Varying_String\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	# Iterate over properties.
+	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+   	    # Check if this method has any linked data in this component.
+	    if ( exists($method->{'linkedData'}) ) {
+		# For each linked datum count if necessary.
+		my $linkedDataName = $method->{'linkedData'};
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		    if ( $linkedData->{'rank'} == 0 ) {
+			switch ( $linkedData->{'type'} ) {
+			    case ( "real" ) {
+				$functionCode .= "    count=count-1\n";
+			    }
+			    else {
+				$functionCode .= "    count=count-self%".padLinkedData($linkedDataName,[0,0])."%value%serializeCount()\n";
+			    }
+			}
+		    } else {
+			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%value)) count=count-size(self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
+		    }
+		    $functionCode .= "    if (count <= 0) then\n";
+		    $functionCode .= "      name='".$component->{'class'}.":".$component->{'name'}.":".$methodName."'\n";
+		    $functionCode .= "      return\n";
+		    $functionCode .= "    end if\n";
+		}
+	    }
+	}
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Name_From_Index\n\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "nameFromIndex", function => "Node_Component_".ucfirst($componentID)."_Name_From_Index"}
+	    );
+    }
+    # Generate data content.
+    @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "nodeComponent",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     attributes => [ "intent(inout)" ],
+	     variables  => [ "count" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "varying_string",	
+	     attributes => [ "intent(inout)" ],
+	     variables  => [ "name" ]
+	 }
+	);
+    # Generate the function.
+    $functionCode  = "  subroutine Node_Component_Name_From_Index(self,count,name)\n";
+    $functionCode .= "    !% Return the name of the property of given index.\n";
+    $functionCode .= "    use ISO_Varying_String\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    return\n";
+    $functionCode .= "  end subroutine Node_Component_Name_From_Index\n\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+    # Insert a type-binding for this function into the implementation type.
+    push(
+	@{$buildData->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
+	{type => "procedure", name => "nameFromIndex", function => "Node_Component_Name_From_Index"}
+	);
+}
+
 sub Generate_Implementation_Serialization_Functions {
     # Generate serialization/deserialization functions for each component implementation.
     my $buildData = shift;
@@ -2882,25 +3016,16 @@ sub Generate_Component_Count_Functions {
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode .= "    select type (self)\n";
     	$functionCode .= "    class is (treeNode)\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "     if (allocated(self%component".ucfirst($componentClassName).")) then\n";
-	    $functionCode .= "       select type (component => self%component".ucfirst($componentClassName)."(1))\n";
-	    $functionCode .= "       type is (nodeComponent".ucfirst($componentClassName).")\n";
-	    $functionCode .= "         ".$componentClassName."CountLinked=0\n";
-	    $functionCode .= "       class default\n";
-	    $functionCode .= "         ".$componentClassName."CountLinked=size(self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "       end select\n";
-	    $functionCode .= "     else\n";
-	    $functionCode .= "        ".$componentClassName."CountLinked=0\n";
-	    $functionCode .= "     end if\n";
-	} else {
-	    $functionCode .= "      select type (component => self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      type is (nodeComponent".ucfirst($componentClassName).")\n";
-	    $functionCode .= "        ".$componentClassName."CountLinked=0\n";
-	    $functionCode .= "      class default\n";
-	    $functionCode .= "        ".$componentClassName."CountLinked=1\n";
-	    $functionCode .= "      end select\n";
-	}
+	$functionCode .= "     if (allocated(self%component".ucfirst($componentClassName).")) then\n";
+	$functionCode .= "       select type (component => self%component".ucfirst($componentClassName)."(1))\n";
+	$functionCode .= "       type is (nodeComponent".ucfirst($componentClassName).")\n";
+	$functionCode .= "         ".$componentClassName."CountLinked=0\n";
+	$functionCode .= "       class default\n";
+	$functionCode .= "         ".$componentClassName."CountLinked=size(self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "       end select\n";
+	$functionCode .= "     else\n";
+	$functionCode .= "        ".$componentClassName."CountLinked=0\n";
+	$functionCode .= "     end if\n";
     	$functionCode .= "    end select\n";
     	$functionCode .= "    return\n";
     	$functionCode .= "  end function ".$componentClassName."CountLinked\n";
@@ -2970,8 +3095,6 @@ sub Generate_Component_Get_Functions {
     	$functionCode .= "    class is (treeNode)\n";
     	$functionCode .= "       instanceActual=1\n";
     	$functionCode .= "       if (present(instance)) instanceActual=instance\n";
-	$functionCode .= "       if (instanceActual /= 1) stop 'INSTANCES NOT YET SUPPORTED'\n"
-	    unless ( $instances == 1 );
     	$functionCode .= "       autoCreateActual=.false.\n";
     	$functionCode .= "       if (present(autoCreate)) autoCreateActual=autoCreate\n";
 	$functionCode .= "       if (allocated(self%component".ucfirst($componentClassName).")) then\n";
@@ -2986,10 +3109,7 @@ sub Generate_Component_Get_Functions {
 	$functionCode .= "            call Galacticus_Error_Report('".$componentClassName."Get','component is not allocated')\n";
 	$functionCode .= "         end if\n";
     	$functionCode .= "       end if\n";
-    	$functionCode .= "       ".$componentClassName."Get => self%component".ucfirst($componentClassName);
-	$functionCode .= "(instanceActual)"
-	    if ( $instances == 1 );
-	$functionCode .= "\n";
+    	$functionCode .= "       ".$componentClassName."Get => self%component".ucfirst($componentClassName)."(instanceActual)\n";
     	$functionCode .= "    end select\n";
     	$functionCode .= "    return\n";
     	$functionCode .= "  end function ".$componentClassName."Get\n";
@@ -3095,28 +3215,20 @@ sub Generate_Component_Destruction_Functions {
 		 type       => "treeNode",
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
 	     }
 	    );
-	push(
-	    @dataContent,
-	    {
-		intrinsic  => "integer",
-		variables  => [ "i" ]
-	    }
-	    )
-	    if ( $instances == 1 );
     	my $functionCode = "  subroutine ".$componentClassName."DestroyLinked(self)\n";
 	$functionCode   .= "    !% Destroy the {\\tt ".$componentClassName."} component of {\\tt self}.\n";
     	$functionCode   .= "    implicit none\n";
 	$functionCode   .= &Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode   .= "    if (allocated(self%component".ucfirst($componentClassName).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "        call        self%component".ucfirst($componentClassName)."(i)%destroy()\n";
-	    $functionCode .= "      end do\n";
-	} else {
-	    $functionCode   .= "        call        self%component".ucfirst($componentClassName)."%destroy()\n";
-	}
+	$functionCode   .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
+	$functionCode   .= "        call        self%component".ucfirst($componentClassName)."(i)%destroy()\n";
+	$functionCode   .= "      end do\n";
 	$functionCode   .= "      deallocate (self%component".ucfirst($componentClassName).")\n";
 	$functionCode   .= "    end if\n";
     	$functionCode   .= "    return\n";
@@ -3158,28 +3270,20 @@ sub Generate_Component_Creation_Functions {
 		 intrinsic  => "type",
 		 type       => "varying_string",
 		 variables  => [ "message" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
 	     }
 	    );
-	push(
-	    @dataContent,
-	    {
-		intrinsic  => "integer",
-		variables  => [ "i" ]
-	    },
-	    )
-	    if ( $instances == 1 );
 	# Generate value initialization code.
 	my $initializeCode;
 	my %requiredComponents;
     	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component = $buildData->{'components'}->{$componentID};
-	    if ( $instances == 1 ) {
-		$initializeCode .= "    do i=1,size(self%component".ucfirst($componentClassName).")\n";
-		$initializeCode .= "      select type (component => self%component".ucfirst($componentClassName)."(i))\n";
-	    } else {	
-		$initializeCode .= "    select type (component => self%component".ucfirst($componentClassName).")\n";
-	    }
+	    $initializeCode .= "    do i=1,size(self%component".ucfirst($componentClassName).")\n";
+	    $initializeCode .= "      select type (component => self%component".ucfirst($componentClassName)."(i))\n";
 	    $initializeCode .= "    class is (nodeComponent".$componentID.")\n";
  	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 		my $method = $component->{'methods'}->{'method'}->{$methodName};
@@ -3233,9 +3337,7 @@ sub Generate_Component_Creation_Functions {
 		}
 	    }
 	    $initializeCode .= "    end select\n";
-	    if ( $instances == 1 ) {
-		$initializeCode .= "    end do\n";
-	    }
+	    $initializeCode .= "    end do\n";
 	}
 	# Add pointers for each required component.
 	push(
@@ -3280,27 +3382,15 @@ sub Generate_Component_Creation_Functions {
 	$functionCode .= "      call Galacticus_Display_Message(message,verbosityInfo)\n";
 	$functionCode .= "    end if\n";
     	$functionCode .= "    if (present(template)) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "       allocate(self%component".ucfirst($componentClassName)."(1),source=template)\n";
-	} else {
-	    $functionCode .= "       allocate(self%component".ucfirst($componentClassName).",source=template)\n";
-	}
+	$functionCode .= "       allocate(self%component".ucfirst($componentClassName)."(1),source=template)\n";
     	$functionCode .= "    else\n"; 
-	if ( $instances == 1 ) {
-	    $functionCode .= "       allocate(self%component".ucfirst($componentClassName)."(1),source="."default".ucfirst($componentClassName)."Component)\n";
-	} else {
-	    $functionCode .= "       allocate(self%component".ucfirst($componentClassName).",source="."default".ucfirst($componentClassName)."Component".")\n";
-	}
+	$functionCode .= "       allocate(self%component".ucfirst($componentClassName)."(1),source="."default".ucfirst($componentClassName)."Component)\n";
    	$functionCode .= "    end if\n";
      	$functionCode .= "    select type (self)\n";
 	$functionCode .= "    type is (treeNode)\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "        self%component".ucfirst($componentClassName)."(i)%hostNode => self\n";
-	    $functionCode .= "      end do\n";
-	} else {
-	    $functionCode .= "        self%component".ucfirst($componentClassName)."%hostNode => self\n";
-	}
+	$functionCode .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "        self%component".ucfirst($componentClassName)."(i)%hostNode => self\n";
+	$functionCode .= "      end do\n";
     	$functionCode .= "    end select\n";
 	foreach my $requiredComponent ( keys(%requiredComponents) ) {
 	    $functionCode .= "     self".$requiredComponent."Component => self%".lc($requiredComponent)."()\n";
@@ -3356,7 +3446,7 @@ sub Generate_Node_Copy_Function {
 	    variables  => [ "i" ]
 	}
 	)
-	if ( $instances == 1 && $workaround == 1 );
+	if ( $workaround == 1 );
     # Generate the code.
     my $functionCode;
     $functionCode .= "  subroutine Tree_Node_Copy_Node_To(self,targetNode,skipFormationNode)\n";
@@ -3371,7 +3461,7 @@ sub Generate_Node_Copy_Function {
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee");
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
     # Loop over all component classes
-    if ( $instances == 1 && $workaround == 1 ) {
+    if ( $workaround == 1 ) {
 	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
 	    $functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
 	    $functionCode .= "    allocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0])."(size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")),source=self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
@@ -3396,14 +3486,10 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "    select type (targetNode)\n";
     $functionCode .= "    type is (treeNode)\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    
-	    $functionCode .= "        targetNode%component".padComponentClass(ucfirst($_),[0,14])."(i)%hostNode =>  targetNode\n";
-	    $functionCode .= "      end do\n";
-	} else {
-	    $functionCode .= "      targetNode%component".padComponentClass(ucfirst($_),[0,14])."%hostNode =>  targetNode\n";
-	}
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	
+	$functionCode .= "        targetNode%component".padComponentClass(ucfirst($_),[0,14])."(i)%hostNode =>  targetNode\n";
+	$functionCode .= "      end do\n";
     }
     $functionCode .= "    end select\n";
     $functionCode .= "    return\n";
@@ -3437,16 +3523,12 @@ sub Generate_Node_Move_Function {
 	     type       => "treeNode",
 	     attributes => [ "intent(inout)", "target" ],
 	     variables  => [ "targetNode" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
 	 }
 	);
-    push(
-	@dataContent,
-	{
-	    intrinsic  => "integer",
-	    variables  => [ "i" ]
-	}
-	)
-	if ( $instances == 1 );
     # Generate the code.
     my $functionCode;
     # Create functions for moving node components.
@@ -3457,23 +3539,15 @@ sub Generate_Node_Move_Function {
      # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "      do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    $functionCode .= "        call targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%destroy()\n";
-	    $functionCode .= "      end do\n";
-	} else {
-	    $functionCode .= "        call targetNode%component".padComponentClass(ucfirst($_),[0,0])."%destroy()\n";
-	}
+	$functionCode .= "      do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%destroy()\n";
+	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
 	$functionCode .= "    if (allocated(self      %component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "       call Move_Alloc(self%component".padComponentClass(ucfirst($_),[0,0]).",targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $instances == 1 ) {
-	    $functionCode .= "       do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    $functionCode .= "         targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%hostNode => targetNode\n";
-	    $functionCode .= "       end do\n";
-	} else {
-	    $functionCode .= "         targetNode%component".padComponentClass(ucfirst($_),[0,0])."%hostNode => targetNode\n";
-	}
+	$functionCode .= "       do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "         targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%hostNode => targetNode\n";
+	$functionCode .= "       end do\n";
 	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
@@ -4220,19 +4294,12 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    nullify (self%".padComponentClass($_,[9,14]).")\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" );
     foreach ( @{$buildData->{'componentClassList'}} ) {
-    	$functionCode .= "    allocate(self%".padComponentClass("component".ucfirst($_),[9,14]);
-	$functionCode .= "(1)"
-	    if ( $instances == 1 );
-	$functionCode .= ")\n";
+    	$functionCode .= "    allocate(self%".padComponentClass("component".ucfirst($_),[9,14])."(1))\n";
     }
     $functionCode .= "    select type (self)\n";
     $functionCode .= "    type is (treeNode)\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {
-	if ( $instances == 1 ) {
-	    $functionCode .= "       self%component".padComponentClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
-	} else {
-	    $functionCode .= "       self%component".padComponentClass(ucfirst($_),[0,0])."%hostNode => self\n";
-	}
+	$functionCode .= "       self%component".padComponentClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
     }
     $functionCode .= "    end select\n";
     $functionCode .= "    ! Assign index if supplied.\n";
@@ -4466,184 +4533,179 @@ sub Generate_Component_Class_Destruction_Functions {
 sub Generate_Component_Class_Removal_Functions {
     # Generate class removal functions.
     my $buildData = shift;
-    # Skip if not doing instances.
-    if ( $instances == 1 ) {
-	# Initialize data content.
-	my @dataContent;
-	# Generate the function code.
-	my $functionCode;
-	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
-	    # Specify data content.
-	    @dataContent =
-		(
-		 {
-		     intrinsic  => "class",
-		     type       => "treeNode",
-		     attributes => [ "intent(inout)" ],
-		     variables  => [ "self" ]
-		 },
-		 {
-		     intrinsic  => "integer",
-		     attributes => [ "intent(in   )" ],
-		     variables  => [ "instance" ]
-		 },
-		 {
-		     intrinsic  => "integer",
-		     variables  => [ "instanceCount" ]
-		 },
-		 {
-		     intrinsic  => "class",
-		     type       => "nodeComponent".ucfirst($componentClassName),
-		     attributes => [ "allocatable, dimension(:)" ],
-		     variables  => [ "instancesTemporary" ]
-		 }
-		);
-	    # Generate the function code.
-	    $functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Remove(self,instance)\n";
-	    $functionCode .= "    !% Removes an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous.\n";
-	    $functionCode .= "    use Galacticus_Error\n";
-	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-	    $functionCode .= "    instanceCount=self%".$componentClassName."count()\n";
-	    $functionCode .= "    if (instance < 1 .or. instance > instanceCount) call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Remove','instance out of range')\n";
-	    $functionCode .= "    call self%component".ucfirst($componentClassName)."(instance)%destroy()\n";
-	    $functionCode .= "    if (instanceCount == 1) then\n";
-	    $functionCode .= "      ! Only one instance of this component. Deallocate it and reallocate with generic type.\n";
-	    $functionCode .= "      deallocate(self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      allocate(self%component".ucfirst($componentClassName)."(1))\n";
-	    $functionCode .= "    else\n";
-	    $functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
-	    $functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName).")\n";
-	    if ( $workaround == 1 ) {
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-		    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-		    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		    $functionCode .= "        select type (to => instancesTemporary)\n";
-		    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		    $functionCode .= "          if (instance >             1) to(       1:instance     -1)=from(         1:instance     -1)\n";
-		    $functionCode .= "          if (instance < instanceCount) to(instance:instanceCount-1)=from(instance+1:instanceCount  )\n";
-		    $functionCode .= "        end select\n";
-		    $functionCode .= "      end select\n";
-		}
-	    } else {
-		$functionCode .= "      if (instance >             1) instancesTemporary(       1:instance     -1)=self%component".ucfirst($componentClassName)."(         1:instance     -1)\n";
-		$functionCode .= "      if (instance < instanceCount) instancesTemporary(instance:instanceCount-1)=self%component".ucfirst($componentClassName)."(instance+1:instanceCount  )\n";
-	    }
-	    $functionCode .= "      deallocate(self%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      call Move_Alloc(instancesTemporary,self%component".ucfirst($componentClassName).")\n";
 
-	    $functionCode .= "    end if\n";
-	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Remove\n";
-	    # Insert into the function list.
-	    push(
-		@{$buildData->{'code'}->{'functions'}},
-		$functionCode
-		);
-	    # Bind this function to the treeNode type.
-	    push(
-		@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-		{type => "procedure", name => $componentClassName."Remove", function => "Node_Component_".ucfirst($componentClassName)."_Remove"}
-		);
+    # Initialize data content.
+    my @dataContent;
+    # Generate the function code.
+    my $functionCode;
+    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+	# Specify data content.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "instance" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "instanceCount" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentClassName),
+		 attributes => [ "allocatable, dimension(:)" ],
+		 variables  => [ "instancesTemporary" ]
+	     }
+	    );
+	# Generate the function code.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Remove(self,instance)\n";
+	$functionCode .= "    !% Removes an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous.\n";
+	$functionCode .= "    use Galacticus_Error\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    instanceCount=self%".$componentClassName."count()\n";
+	$functionCode .= "    if (instance < 1 .or. instance > instanceCount) call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Remove','instance out of range')\n";
+	$functionCode .= "    call self%component".ucfirst($componentClassName)."(instance)%destroy()\n";
+	$functionCode .= "    if (instanceCount == 1) then\n";
+	$functionCode .= "      ! Only one instance of this component. Deallocate it and reallocate with generic type.\n";
+	$functionCode .= "      deallocate(self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "      allocate(self%component".ucfirst($componentClassName)."(1))\n";
+	$functionCode .= "    else\n";
+	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
+	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName).")\n";
+	if ( $workaround == 1 ) {
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+		$functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
+		$functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "        select type (to => instancesTemporary)\n";
+		$functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "          if (instance >             1) to(       1:instance     -1)=from(         1:instance     -1)\n";
+		$functionCode .= "          if (instance < instanceCount) to(instance:instanceCount-1)=from(instance+1:instanceCount  )\n";
+		$functionCode .= "        end select\n";
+		$functionCode .= "      end select\n";
+	    }
+	} else {
+	    $functionCode .= "      if (instance >             1) instancesTemporary(       1:instance     -1)=self%component".ucfirst($componentClassName)."(         1:instance     -1)\n";
+	    $functionCode .= "      if (instance < instanceCount) instancesTemporary(instance:instanceCount-1)=self%component".ucfirst($componentClassName)."(instance+1:instanceCount  )\n";
 	}
+	$functionCode .= "      deallocate(self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "      call Move_Alloc(instancesTemporary,self%component".ucfirst($componentClassName).")\n";
+	
+	$functionCode .= "    end if\n";
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Remove\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Bind this function to the treeNode type.
+	push(
+	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    {type => "procedure", name => $componentClassName."Remove", function => "Node_Component_".ucfirst($componentClassName)."_Remove"}
+	    );
     }
 }
 
 sub Generate_Component_Class_Move_Functions {
     # Generate class move functions.
     my $buildData = shift;
-    # Skip if not doing instances.
-    if ( $instances == 1 ) {
-	# Initialize data content.
-	my @dataContent;
+    # Initialize data content.
+    my @dataContent;
+    # Generate the function code.
+    my $functionCode;
+    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+	# Specify data content.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)", "target" ],
+		 variables  => [ "targetNode" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "instanceCount", "targetCount", "i" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentClassName),
+		 attributes => [ "allocatable, dimension(:)" ],
+		 variables  => [ "instancesTemporary" ]
+	     }
+	    );
 	# Generate the function code.
-	my $functionCode;
-	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
-	    # Specify data content.
-	    @dataContent =
-		(
-		 {
-		     intrinsic  => "class",
-		     type       => "treeNode",
-		     attributes => [ "intent(inout)" ],
-		     variables  => [ "self" ]
-		 },
-		 {
-		     intrinsic  => "type",
-		     type       => "treeNode",
-		     attributes => [ "intent(inout)", "target" ],
-		     variables  => [ "targetNode" ]
-		 },
-		 {
-		     intrinsic  => "integer",
-		     variables  => [ "instanceCount", "targetCount", "i" ]
-		 },
-		 {
-		     intrinsic  => "class",
-		     type       => "nodeComponent".ucfirst($componentClassName),
-		     attributes => [ "allocatable, dimension(:)" ],
-		     variables  => [ "instancesTemporary" ]
-		 }
-		);
-	    # Generate the function code.
-	    $functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Move(self,targetNode)\n";
-	    $functionCode .= "    !% Move instances of the ".$componentClassName." component, from one node to another.\n";
-	    $functionCode .= "    use Galacticus_Error\n";
-	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-	    $functionCode .= "    instanceCount=self      %".$componentClassName."count()\n";
-	    $functionCode .= "    targetCount  =targetNode%".$componentClassName."count()\n";
-	    $functionCode .= "    if (instanceCount == 0) return\n";
-	    $functionCode .= "    if (targetCount == 0) then\n";
-	    $functionCode .= "      deallocate(targetNode%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      call Move_Alloc(self%component".ucfirst($componentClassName).",targetNode%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "    else\n";
-	    $functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
-	    $functionCode .= "      allocate(instancesTemporary(instanceCount+targetCount),source=self%component".ucfirst($componentClassName)."(1))\n";
-	    if ( $workaround == 1 ) {
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-		    $functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
-		    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		    $functionCode .= "        select type (to => instancesTemporary)\n";
-		    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		    $functionCode .= "          to(1:targetCount)=from\n";
-		    $functionCode .= "        end select\n";
-		    $functionCode .= "      end select\n";
-		}
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-		    $functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
-		    $functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		    $functionCode .= "        select type (to => instancesTemporary)\n";
-		    $functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
-		    $functionCode .= "          to(targetCount+1:targetCount+instanceCount)=from\n";
-		    $functionCode .= "        end select\n";
-		    $functionCode .= "      end select\n";
-		}
-	    } else {
-		$functionCode .= "      instancesTemporary(            1:targetCount              )=targetNode%component".ucfirst($componentClassName)."\n";
-		$functionCode .= "      instancesTemporary(targetCount+1:targetCount+instanceCount)=self      %component".ucfirst($componentClassName)."\n";
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Move(self,targetNode)\n";
+	$functionCode .= "    !% Move instances of the ".$componentClassName." component, from one node to another.\n";
+	$functionCode .= "    use Galacticus_Error\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    instanceCount=self      %".$componentClassName."count()\n";
+	$functionCode .= "    targetCount  =targetNode%".$componentClassName."count()\n";
+	$functionCode .= "    if (instanceCount == 0) return\n";
+	$functionCode .= "    if (targetCount == 0) then\n";
+	$functionCode .= "      deallocate(targetNode%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "      call Move_Alloc(self%component".ucfirst($componentClassName).",targetNode%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "    else\n";
+	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
+	$functionCode .= "      allocate(instancesTemporary(instanceCount+targetCount),source=self%component".ucfirst($componentClassName)."(1))\n";
+	if ( $workaround == 1 ) {
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+		$functionCode .= "      select type (from => targetNode%component".ucfirst($componentClassName).")\n";
+		$functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "        select type (to => instancesTemporary)\n";
+		$functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "          to(1:targetCount)=from\n";
+		$functionCode .= "        end select\n";
+		$functionCode .= "      end select\n";
 	    }
-	    $functionCode .= "      call targetNode%".$componentClassName."Destroy()\n";
-	    $functionCode .= "      call self      %".$componentClassName."Destroy()\n";
-	    $functionCode .= "      call Move_Alloc(instancesTemporary,targetNode%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "      allocate(self%component".ucfirst($componentClassName)."(1))\n";
-	    $functionCode .= "    end if\n";
-	    $functionCode .= "    do i=1,size(targetNode%component".ucfirst($componentClassName).")\n";
-	    $functionCode .= "       targetNode%component".ucfirst($componentClassName)."(i)%hostNode => targetNode\n";
-	    $functionCode .= "    end do\n";
-	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Move\n";
-	    # Insert into the function list.
-	    push(
-		@{$buildData->{'code'}->{'functions'}},
-		$functionCode
-		);
-	    # Bind this function to the treeNode type.
-	    push(
-		@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-		{type => "procedure", name => $componentClassName."Move", function => "Node_Component_".ucfirst($componentClassName)."_Move"}
-		);
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+		$functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
+		$functionCode .= "      type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "        select type (to => instancesTemporary)\n";
+		$functionCode .= "        type is (nodeComponent".padFullyQualified(ucfirst($componentClassName).ucfirst($implementationName),[0,0]).")\n";
+		$functionCode .= "          to(targetCount+1:targetCount+instanceCount)=from\n";
+		$functionCode .= "        end select\n";
+		$functionCode .= "      end select\n";
+	    }
+	} else {
+	    $functionCode .= "      instancesTemporary(            1:targetCount              )=targetNode%component".ucfirst($componentClassName)."\n";
+	    $functionCode .= "      instancesTemporary(targetCount+1:targetCount+instanceCount)=self      %component".ucfirst($componentClassName)."\n";
 	}
+	$functionCode .= "      call targetNode%".$componentClassName."Destroy()\n";
+	$functionCode .= "      call self      %".$componentClassName."Destroy()\n";
+	$functionCode .= "      call Move_Alloc(instancesTemporary,targetNode%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "      allocate(self%component".ucfirst($componentClassName)."(1))\n";
+	$functionCode .= "    end if\n";
+	$functionCode .= "    do i=1,size(targetNode%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "       targetNode%component".ucfirst($componentClassName)."(i)%hostNode => targetNode\n";
+	$functionCode .= "    end do\n";
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Move\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Bind this function to the treeNode type.
+	push(
+	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	    {type => "procedure", name => $componentClassName."Move", function => "Node_Component_".ucfirst($componentClassName)."_Move"}
+	    );
     }
 }
 
