@@ -25,6 +25,7 @@ module Merger_Trees
   use               IO_HDF5
   use               ISO_Varying_String
   use               Kind_Numbers
+  use               fodeiv2
   implicit none
   private
   public :: mergerTree, Tree_Node_Is_Accurate, Tree_Node_Get
@@ -127,6 +128,9 @@ module Merger_Trees
 
   ! Name of node mergers method used.
   type(varying_string) :: nodeMergersMethod
+
+  ! The algorithm to use for ODE solving.
+  type(fodeiv2_step_type) :: Galacticus_ODE_Algorithm
 
   ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
   procedure(Node_Mergers_Template), pointer :: Events_Node_Merger_Do => null()
@@ -310,6 +314,8 @@ contains
   subroutine Tree_Node_Evolve_Initialize
     !% Initializes the tree evolving routines by reading in parameters
     use Input_Parameters
+    use Galacticus_Error
+    type(varying_string) :: odeAlgorithm
 
     ! Initialize if necessary.
     !$omp critical (Tree_Node_Evolve_Initialize)
@@ -339,6 +345,26 @@ contains
        !@   <group>timeStepping</group>
        !@ </inputParameter>
        call Get_Input_Parameter('odeToleranceRelative',odeToleranceRelative,defaultValue=1.0d-2)
+       !@ <inputParameter>
+       !@   <name>odeAlgorithm</name>
+       !@   <defaultValue>Runge-Kutta-Cash-Karp</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The algorithm to use in the ODE solver.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>timeStepping</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('odeAlgorithm',odeAlgorithm,defaultValue='Runge-Kutta-Cash-Karp')
+       select case (char(odeAlgorithm))
+       case ('Runge-Kutta-Cash-Karp')
+          Galacticus_ODE_Algorithm=Fodeiv2_Step_RKCK
+       case ('Runge-Kutta-Second-Order')
+          Galacticus_ODE_Algorithm=Fodeiv2_Step_RK2
+       case default
+          call Galacticus_Error_Report('Tree_Node_Evolve_Initialize','odeAlgorithm is unrecognized')
+       end select
 #ifdef PROFILE
        !@ <inputParameter>
        !@   <name>profileOdeEvolver</name>
@@ -474,7 +500,8 @@ contains
 #endif
          &                   propertyScales                           , &
          &                   reset=odeReset                           , &
-         &                   errorHandler=Galacticus_ODE_Error_Handler  &
+         &                   errorHandler=Galacticus_ODE_Error_Handler, &
+         &                   algorithm   =Galacticus_ODE_Algorithm      &
          &                  )
 
     ! Extract values.
