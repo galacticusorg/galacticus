@@ -88,6 +88,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.meshes.exe",                          # Tests of mesh functions.
+	valgrind => 0
+    },
+    {
 	name     => "tests.comparisons.exe",                     # Tests of comparison functions.
 	valgrind => 0
     },
