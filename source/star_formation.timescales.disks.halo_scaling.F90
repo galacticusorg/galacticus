@@ -22,13 +22,26 @@ module Star_Formation_Timescale_Disks_Halo_Scaling
   !% Implements a star formation timescale for galactic disks which scales with halo virial velocity and
   !% redshift.
   use Galacticus_Nodes
+  use Kind_Numbers
   implicit none
   private
-  public :: Star_Formation_Timescale_Disks_Halo_Scaling_Initialize
+  public :: Star_Formation_Timescale_Disks_Halo_Scaling_Initialize, Star_Formation_Timescale_Disks_Halo_Scaling_Reset
 
   ! Parameters of the timescale model.
   double precision :: starFormationTimescaleDisksHaloScalingTimescale&
        &,starFormationTimescaleDisksHaloScalingVirialVelocityExponent,starFormationTimescaleDisksHaloScalingRedshiftExponent
+
+  ! Record of unique ID of node which we last computed results for.
+  integer(kind=kind_int8) :: lastUniqueID=-1
+  !$omp threadprivate(lastUniqueID)
+
+  ! Record of whether or not timescale has already been computed for this node.
+  logical :: timescaleComputed=.false.
+  !$omp threadprivate(timescaleComputed)
+
+  ! Stored values of the timescale.
+  double precision :: timeScaleStored
+  !$omp threadprivate(timescaleStored)
   
 contains
 
@@ -100,16 +113,43 @@ contains
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
 
-    ! Get virial velocity and expansion factor.
-    virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
-    expansionFactor=Expansion_Factor                (thisBasicComponent%time())
+    ! Check if node differs from previous one for which we performed calculations.
+    if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Timescale_Disks_Halo_Scaling_Reset(thisNode)
 
-    ! Return the timescale.
-    Star_Formation_Timescale_Disk_Halo_Scaling=                                                                        &
-         &  starFormationTimescaleDisksHaloScalingTimescale                                                            &
-         & *(virialVelocity/virialVelocityNormalization)**starFormationTimescaleDisksHaloScalingVirialVelocityExponent &
-         & /expansionFactor**starFormationTimescaleDisksHaloScalingRedshiftExponent
+    ! Compute the timescale if necessary.
+    if (.not.timescaleComputed) then
+       
+       ! Get virial velocity and expansion factor.
+       virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
+       expansionFactor=Expansion_Factor                (thisBasicComponent%time())
+       
+       ! Return the timescale.
+       timescaleStored=                                                                                                   &
+            &  starFormationTimescaleDisksHaloScalingTimescale                                                            &
+            & *(virialVelocity/virialVelocityNormalization)**starFormationTimescaleDisksHaloScalingVirialVelocityExponent &
+            & /expansionFactor**starFormationTimescaleDisksHaloScalingRedshiftExponent
+       
+       ! Record that the timescale is now computed.
+       timescaleComputed=.true.
+    end if
+    
+    ! Return the stored timescale.
+    Star_Formation_Timescale_Disk_Halo_Scaling=timescaleStored
     return
   end function Star_Formation_Timescale_Disk_Halo_Scaling
+
+  !# <calculationResetTask>
+  !# <unitName>Star_Formation_Timescale_Disks_Halo_Scaling_Reset</unitName>
+  !# </calculationResetTask>
+  subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset(thisNode)
+    !% Reset the halo scaling disk star formation timescale calculation.
+    use Galacticus_Nodes
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    timescaleComputed=.false.
+    lastUniqueID     =thisNode%uniqueID()
+    return
+  end subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset
   
 end module Star_Formation_Timescale_Disks_Halo_Scaling
