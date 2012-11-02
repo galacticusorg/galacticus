@@ -65,7 +65,7 @@ contains
     integer,                                  parameter     :: verbosityLevel=3
     class(nodeComponentBasic),                pointer       :: thisBasicComponent,parentBasicComponent,baseNodeBasicComponent
     integer,                                  parameter     :: isDeadlocked=2,isReporting=1,isNotDeadlocked=0
-    integer                                                 :: nodesEvolvedCount,treeWalkCount,treeWalkCountPreviousOutput,deadlockStatus
+    integer                                                 :: nodesEvolvedCount,nodesTotalCount,treeWalkCount,treeWalkCountPreviousOutput,deadlockStatus
     double precision                                        :: endTimeThisNode,earliestTimeInTree
     logical                                                 :: interrupted,didEvolve
     character(len=12)                                       :: label
@@ -157,6 +157,7 @@ contains
 
        ! Reset tree progress variables.
        nodesEvolvedCount =0
+       nodesTotalCount   =0
        earliestTimeInTree=largeTime
 
        ! Set the deadlock status to deadlocked initially.
@@ -183,6 +184,9 @@ contains
 
              ! Get the basic component of the node.
              thisBasicComponent => thisNode%basic()
+
+             ! Count nodes in the tree.
+             nodesTotalCount=nodesTotalCount+1
 
              ! Find the next node that we will process.
              call thisNode%walkTreeWithSatellites(nextNode)
@@ -267,6 +271,8 @@ contains
              if (Galacticus_Verbosity_Level() >= verbosityLevel) then
                 write (message,'(a,i9,a )') 'Evolving tree [',treeWalkCount,']'
                 call Galacticus_Display_Indent(message,verbosityLevel)
+                write (message,'(a,i9   )') 'Nodes in tree:         ',nodesTotalCount
+                call Galacticus_Display_Message(message,verbosityLevel)
                 write (message,'(a,i9   )') 'Nodes evolved:         ',nodesEvolvedCount
                 call Galacticus_Display_Message(message,verbosityLevel)
                 write (message,'(a,e10.4)') 'Earliest time in tree: ',earliestTimeInTree
