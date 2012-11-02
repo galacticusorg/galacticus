@@ -84,8 +84,8 @@ contains
     do while (associated(thisNode))
        iNode=iNode+1
        nodeIndex      (iNode)=thisNode           %index()
-       parentIndex    (iNode)=thisNode%parentNode%index()
-       childIndex     (iNode)=thisNode%childNode %index()
+       parentIndex    (iNode)=thisNode%parent    %index()
+       childIndex     (iNode)=thisNode%firstChild%index()
        time           (iNode)=                               Tree_Node_Time(thisNode)
        expansionFactor(iNode)=Expansion_Factor              (Tree_Node_Time(thisNode))
        radiusVirial   (iNode)=Dark_Matter_Halo_Virial_Radius(               thisNode )
