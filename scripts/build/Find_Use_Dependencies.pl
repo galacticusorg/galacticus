@@ -28,6 +28,7 @@ $workDir = "/work/build/";
 
 # Modules that require a library to be linked.
 my %moduleLibararies = (
+    fftw3      => "fftw3",
     fgsl       => "fgsl_gfortran",
     fox_common => "FoX_common",
     fox_dom    => "FoX_dom",
