@@ -82,11 +82,12 @@ unless ( -e $galacticusPath."aux/RecFast/recfast.exe" ) {
 
 # Run the RecFast code.
 my $buildFile = 0;
+system("mkdir -p `dirname ".$outputFile."`");
 if ( -e $outputFile ) {
     my $xmlFile         = new XML::Simple;
     my $previousFile    = $xmlFile->XMLin($outputFile);
     my $previousVersion = $previousFile->{'fileFormat'};
-    $buildFile = 1 if ( $previousVersion /= $fileFormatCurrent );
+    $buildFile = 1 if ( $previousVersion != $fileFormatCurrent );
 } else {
     $buildFile = 1;
 }
