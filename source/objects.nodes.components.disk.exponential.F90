@@ -671,12 +671,10 @@ contains
        angularMomentum=thisDiskComponent%angularMomentum()+thisSpheroidComponent%angularMomentum()
        call thisDiskComponent%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
 
-       ! Set scale for gas mass.
-       mass           =thisDiskComponent%massGas        ()+thisSpheroidComponent%massGas        ()
+       ! Set scale for masses.
+       mass           = thisDiskComponent%massGas       ()+thisSpheroidComponent%massGas        () &
+            &          +thisDiskComponent%massStellar   ()+thisSpheroidComponent%massStellar    ()
        call thisDiskComponent%massGasScale              (max(           mass,           massMinimum))
-
-       ! Set scale for stellar mass.
-       mass           =thisDiskComponent%massStellar    ()+thisSpheroidComponent%massStellar    ()
        call thisDiskComponent%massStellarScale          (max(           mass,           massMinimum))
 
        ! Set scales for abundances if necessary.
