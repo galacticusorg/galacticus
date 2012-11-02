@@ -112,6 +112,9 @@ contains
     procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
     procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
     double precision                                          :: radius,velocity
+
+    ! Return immediately if the specific angular momentum is zero.
+    if (specificAngularMomentum <= 0.0d0) return
     
     ! Find the radius in the dark matter profile with the required specific angular momentum
     radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(haloNode,specificAngularMomentum)
