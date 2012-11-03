@@ -2618,32 +2618,29 @@ Additional methods for the halo mass function can be added using the {\tt haloMa
 \end{verbatim}
 Here, {\tt Halo\_Mass\_Function\_Press\_Schechter\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Tabulate)
+  subroutine Method_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Differential_Get)
     implicit none
     type(varying_string),          intent(in)    :: haloMassFunctionMethod
     procedure(),          pointer, intent(inout) :: Halo_Mass_Function_Tabulate
     
-    if (haloMassFunctionMethod == 'myMethod') Halo_Mass_Function_Tabulate => My_Method_Tabulate
+    if (haloMassFunctionMethod == 'myMethod') Halo_Mass_Function_Differential_Get => My_Method_Get
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt haloMassFunctionMethod} input parameter. The procedure pointer {\tt Halo\_Mass\_Function\_Tabulate} must be set to point to a subrouine which returns a tabulation of the halo mass function. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt haloMassFunctionMethod} input parameter. The procedure pointer {\tt Halo\_Mass\_Function\_Differential\_Get} must be set to point to a subrouine which returns the differential form of the halo mass function. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The halo mass function tabulating subroutine must have the form:
+The halo mass function function must have the form:
 \begin{verbatim}
- double precision function Halo_Mass_Function_Tabulate(time,logMass,haloMassFunctionNumberPoints,haloMassFunctionLog
-Mass,haloMassFunctionLogAbundance)
+ double precision function Halo_Mass_Function_Differential_Get(time,mass)
     implicit none
-    double precision,                            intent(in)    :: time,logMass
-    double precision, allocatable, dimension(:), intent(inout) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
-    integer,                                     intent(out)   :: haloMassFunctionNumberPoints
+    double precision, intent(in   ) :: time,mass
     .
     .
     .
     return
- end function Halo_Spin_Sample_Get
+ end function Halo_Mass_Function_Differential_Get
 \end{verbatim}
-The subroutine should create a tabulation of the halo mass function for time {\tt time}, $\d n/\d M$ (in units of Mpc$^{-3} M_\odot^-1$) in the arrays {\tt haloMassFunctionLogMass} and {\tt haloMassFunctionLogAbundance}. These should be allocated to whatever size the method deems appropriate (they may need to be deallocated first) and the number of tabulated points returned in {\tt haloMassFunctionNumberPoints}. The subroutine should ensure that {\tt logMass} is included in the range of the tabulation.
+The function should return the halo mass function, $\d n/\d M$ (in units of Mpc$^{-3} M_\odot^-1$) at mass {\tt mass} and time {\tt time}.
 
 Currently defined halo mass function methods are:
 \begin{description}

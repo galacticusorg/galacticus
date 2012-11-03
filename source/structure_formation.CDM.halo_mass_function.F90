@@ -26,30 +26,66 @@ module Halo_Mass_Function
   ! Flag to indicate if this module has been initialized.  
   logical                                        :: haloMassFunctionInitialized=.false.
 
-  ! Variables to hold the tabulated halo mass function data.
-  logical                                        :: haloMassFunctionTabulated=.false.
-  integer                                        :: haloMassFunctionNumberPoints=-1
-  double precision,    allocatable, dimension(:) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
-  double precision                               :: haloMassFunctionTime
-  type(fgsl_interp)                              :: interpolationObject
-  type(fgsl_interp_accel)                        :: interpolationAccelerator
-  logical                                        :: resetInterpolation=.true.
-
   ! Name of power spectrum method used.
   type(varying_string)                           :: haloMassFunctionMethod
 
-  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
-  procedure(Halo_Mass_Function_Tabulate_Template), pointer :: Halo_Mass_Function_Tabulate => null()
-  abstract interface
-     subroutine Halo_Mass_Function_Tabulate_Template(time,logMass,haloMassFunctionNumberPoints,haloMassFunctionLogMass &
-          &,haloMassFunctionLogAbundance)
-    double precision,                            intent(in)    :: time,logMass
-    double precision, allocatable, dimension(:), intent(inout) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
-    integer,                                     intent(out)   :: haloMassFunctionNumberPoints
-  end subroutine Halo_Mass_Function_Tabulate_Template
- end interface
+  ! Pointer to the function that computes the mass function.
+  procedure(Halo_Mass_Function_Differential), pointer :: Halo_Mass_Function_Differential_Get => null()
   
 contains
+
+  subroutine Halo_Mass_Function_Initialize()
+    !% Initializes the halo mass function module.
+    use Galacticus_Error
+    use Input_Parameters
+    !# <include directive="haloMassFunctionMethod" type="moduleUse">
+    include 'structure_formation.CDM.halo_mass_function.modules.inc'
+    !# </include>
+    implicit none
+
+    if (.not.haloMassFunctionInitialized) then
+       !$omp critical(Halo_Mass_Function_Initialize)
+       if (.not.haloMassFunctionInitialized) then
+          ! Get the transfer function method parameter.
+          !@ <inputParameter>
+          !@   <name>haloMassFunctionMethod</name>
+          !@   <defaultValue>Tinker2008</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing the dark matter halo mass function.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('haloMassFunctionMethod',haloMassFunctionMethod,defaultValue='Tinker2008')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="haloMassFunctionMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>haloMassFunctionMethod,Halo_Mass_Function_Differential_Get</functionArgs>
+          include 'structure_formation.CDM.halo_mass_function.inc'
+          !# </include>
+          if (.not.associated(Halo_Mass_Function_Differential_Get)) call Galacticus_Error_Report('Halo_Mass_Function_Initialize','method '&
+               &//char(haloMassFunctionMethod)//' is unrecognized')
+          ! Flag that the module is now initialized.
+          haloMassFunctionInitialized=.true.
+       end if
+       !$omp end critical(Halo_Mass_Function_Initialize)
+    end if
+    return
+  end subroutine Halo_Mass_Function_Initialize
+
+  double precision function Halo_Mass_Function_Differential(time,mass)
+    !% Return the differential halo mass function for {\tt mass} [$M_\odot$] at {\tt time}.
+    use Numerical_Interpolation
+    implicit none
+    double precision, intent(in) :: time,mass
+
+    ! Ensure that the module is initialized.
+    call Halo_Mass_Function_Initialize()
+    
+    ! Call the function that does the work.
+    Halo_Mass_Function_Differential=Halo_Mass_Function_Differential_Get(time,mass)
+    return
+  end function Halo_Mass_Function_Differential
 
   double precision function Halo_Mass_Function_Integrated(time,massLow,massHigh)
     !% Return tha halo mass function integrated between {\tt massLow} and {\tt massHigh}.
@@ -133,82 +169,5 @@ contains
     Halo_Mass_Fraction_Integrand=Halo_Mass_Function_Differential(time,mass)*(mass**2)
     return
   end function Halo_Mass_Fraction_Integrand
-
-  double precision function Halo_Mass_Function_Differential(time,mass)
-    !% Return the differential halo mass function for {\tt mass} [$M_\odot$] at {\tt time}.
-    use Numerical_Interpolation
-    implicit none
-    double precision, intent(in) :: time,mass
-    double precision             :: logMass
-
-    ! Get logarithm of mass.
-    logMass=dlog(mass)
-
-    ! Ensure that the module is initialized.
-    call Halo_Mass_Function_Initialize()
-
-    ! If mass is out of range, attempt to remake the table.
-    !$omp critical (Halo_Mass_Function_Retabulate)
-    if (.not.haloMassFunctionTabulated .or. logMass<haloMassFunctionLogMass(1) .or. logMass>haloMassFunctionLogMass(haloMassFunctionNumberPoints) .or. time /=&
-         & haloMassFunctionTime) then
-       call Halo_Mass_Function_Tabulate(time,logMass,haloMassFunctionNumberPoints,haloMassFunctionLogMass&
-            &,haloMassFunctionLogAbundance)
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)  
-       haloMassFunctionTabulated=.true.
-       haloMassFunctionTime=time
-       resetInterpolation=.true.
-    end if
-    !$omp end critical (Halo_Mass_Function_Retabulate)
-
-    ! Interpolate in the tabulated function and return a value.
-    Halo_Mass_Function_Differential=dexp(Interpolate(haloMassFunctionNumberPoints,haloMassFunctionLogMass &
-         &,haloMassFunctionLogAbundance,interpolationObject,interpolationAccelerator,logMass,reset=resetInterpolation&
-         &,interpolationType=fgsl_interp_cspline))
-    return
-  end function Halo_Mass_Function_Differential
-
-  subroutine Halo_Mass_Function_Initialize()
-    !% Initializes the transfer function module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="haloMassFunctionMethod" type="moduleUse">
-    include 'structure_formation.CDM.halo_mass_function.modules.inc'
-    !# </include>
-    implicit none
-
-    !$omp critical(Halo_Mass_Function_Initialization) 
-    ! Initialize if necessary.
-    if (.not.haloMassFunctionInitialized) then
-       ! Get the transfer function method parameter.
-       !@ <inputParameter>
-       !@   <name>haloMassFunctionMethod</name>
-       !@   <defaultValue>Tinker2008</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing the dark matter halo mass function.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('haloMassFunctionMethod',haloMassFunctionMethod,defaultValue='Tinker2008')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="haloMassFunctionMethod" type="functionCall" functionType="void">
-       !#  <functionArgs>haloMassFunctionMethod,Halo_Mass_Function_Tabulate</functionArgs>
-       include 'structure_formation.CDM.halo_mass_function.inc'
-       !# </include>
-       if     (.not.(                                                                                   &
-            &        associated(Halo_Mass_Function_Tabulate)                                            &
-            &       )                                                                                   &
-            & )                                                                                         &
-            & call Galacticus_Error_Report(                                                             &
-            &                              'Halo_Mass_Function_Initialize'                            , &
-            &                              'method '//char(haloMassFunctionMethod)//' is unrecognized'  &
-            &                             )
-       ! Flag that the module is now initialized.
-       haloMassFunctionInitialized=.true.
-    end if
-    !$omp end critical(Halo_Mass_Function_Initialization)
-    return
-  end subroutine Halo_Mass_Function_Initialize
 
 end module Halo_Mass_Function

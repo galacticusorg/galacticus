@@ -23,10 +23,6 @@ module Halo_Mass_Function_Tinker2008
   private
   public :: Halo_Mass_Function_Tinker2008_Initialize
 
-  ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
-  integer,          parameter :: nPointsPerDecade=1000
-  double precision            :: logMassMinimum=dlog(1.0d9), logMassMaximum=dlog(1.0d15)
-
   ! Variables to hold the table of parameters vs. overdensity.
   integer                                     :: deltaTableNumberPoints
   double precision, allocatable, dimension(:) :: deltaTableDelta,deltaTableNormalization,deltaTableA,deltaTableB,deltaTableC
@@ -36,7 +32,7 @@ contains
   !# <haloMassFunctionMethod>
   !#  <unitName>Halo_Mass_Function_Tinker2008_Initialize</unitName>
   !# </haloMassFunctionMethod>
-  subroutine Halo_Mass_Function_Tinker2008_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Tabulate)
+  subroutine Halo_Mass_Function_Tinker2008_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Differential_Get)
     !% Initializes the ``Tinker2008 mass functon'' module.
     use ISO_Varying_String
     use FoX_dom
@@ -44,15 +40,15 @@ contains
     use Galacticus_Input_Paths
     use Memory_Management
     implicit none
-    type     (varying_string  ),          intent(in   ) :: haloMassFunctionMethod
-    procedure(                ), pointer, intent(inout) :: Halo_Mass_Function_Tabulate
-    type     (Node            ), pointer                :: doc,columnsElement,columnElement,datum
-    type     (NodeList        ), pointer                :: deltaList,normalizationList,parameterAList,parameterBList,parameterCList
+    type(varying_string),                 intent(in)    :: haloMassFunctionMethod
+    procedure(double precision), pointer, intent(inout) :: Halo_Mass_Function_Differential_Get
+    type(Node),                  pointer                :: doc,columnsElement,columnElement,datum
+    type(NodeList),              pointer                :: deltaList,normalizationList,parameterAList,parameterBList,parameterCList
     integer                                             :: iDatum,ioErr
     double precision                                    :: datumValue
 
     if (haloMassFunctionMethod == 'Tinker2008') then
-       Halo_Mass_Function_Tabulate => Halo_Mass_Function_Tinker2008_Tabulate
+       Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Differential_Tinker2008
 
        ! Read the data file which gives fitting parameters as a function of halo overdensity.
        !$omp critical (FoX_DOM_Access)
@@ -99,11 +95,8 @@ contains
     return
   end subroutine Halo_Mass_Function_Tinker2008_Initialize
 
-  subroutine Halo_Mass_Function_Tinker2008_Tabulate(time,logMass,haloMassFunctionNumberPoints,haloMassFunctionLogMass &
-       &,haloMassFunctionLogAbundance)
-    !% Tabulate a \cite{tinker_towardhalo_2008} halo mass function.
-    use Memory_Management
-    use Numerical_Ranges
+  double precision function Halo_Mass_Function_Differential_Tinker2008(time,mass)
+    !% Compute the \cite{tinker_towardhalo_2008} halo mass function.
     use Numerical_Constants_Math
     use CDM_Power_Spectrum
     use Virial_Density_Contrast
@@ -113,66 +106,51 @@ contains
     use Numerical_Interpolation
     use Linear_Growth
     implicit none
-    double precision,                            intent(in)    :: time,logMass
-    double precision, allocatable, dimension(:), intent(inout) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
-    integer,                                     intent(out)   :: haloMassFunctionNumberPoints
-    integer                                                    :: iMass
-    double precision                                           :: mass,sigma,alpha,normalization,a,b,c,expansionFactor,Delta,a0&
-         &,b0,c0,alphaDelta,normalization0,growthFactor
-    type(fgsl_interp),       save                              :: interpolationObject
-    type(fgsl_interp_accel), save                              :: interpolationAccelerator
-    logical,                 save                              :: resetInterpolation=.true.
+    double precision,        intent(in) :: time,mass
+    double precision                    :: sigma,alpha
+    type(fgsl_interp),       save       :: interpolationObject
+    type(fgsl_interp_accel), save       :: interpolationAccelerator
+    logical,                 save       :: resetInterpolation=.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
+    double precision,        save       :: timePrevious=-1.0d0
+    !$omp threadprivate(timePrevious)
+    double precision,        save       :: expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c
+    !$omp threadprivate(expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c)
 
-    ! Determine range of masss required.
-    logMassMinimum=min(logMassMinimum,logMass-ln2)
-    logMassMaximum=max(logMassMaximum,logMass+ln2)
-    
-    ! Determine number of points to tabulate.
-    haloMassFunctionNumberPoints=int((logMassMaximum-logMassMinimum)*dble(nPointsPerDecade)/ln10)
+    ! Update fitting function parameters if the time differs from that on the previous call.
+    if (time /= timePrevious) then
+       ! Get halo virial density contrast, expansion factor and growth factor.
+       expansionFactor=Expansion_Factor            (time)
+       Delta          =Halo_Virial_Density_Contrast(time)
+       growthFactor   =Linear_Growth_Factor        (time)
+       
+       ! Compute coefficients of fitting function.
+       normalization0=Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableNormalization &
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)   
+       a0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableA &
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
+       b0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableB &
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
+       c0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableC &
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
+       
+       ! Extrapolate to higher redshift using redshift scalings given by Tinker et al. (2008; eqns. 5-8).
+       normalization=normalization0*expansionFactor**0.14d0
+       a=a0*expansionFactor**0.06d0
+       alphaDelta=10.0d0**(-(0.75d0/dlog10(Delta/75.0d0))**1.2d0)
+       b=b0*expansionFactor**alphaDelta
+       c=c0
 
-    ! Deallocate arrays if currently allocated.
-    if (allocated(haloMassFunctionLogMass))      call Dealloc_Array(haloMassFunctionLogMass     )
-    if (allocated(haloMassFunctionLogAbundance)) call Dealloc_Array(haloMassFunctionLogAbundance)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(haloMassFunctionLogMass     ,[haloMassFunctionNumberPoints])
-    call Alloc_Array(haloMassFunctionLogAbundance,[haloMassFunctionNumberPoints])
+       ! Store the time.
+       timePrevious=time
+    end if
 
-    expansionFactor=Expansion_Factor            (time)
-    Delta          =Halo_Virial_Density_Contrast(time)
-    growthFactor   =Linear_Growth_Factor        (time)
-
-    normalization0=Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableNormalization &
-         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)   
-    a0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableA &
-         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
-    b0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableB &
-         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
-    c0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableC &
-         &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
-    
-    ! Extrapolate to higher redshift using redshift scalings given by Tinker et al. (2008; eqns. 5-8).
-    normalization=normalization0*expansionFactor**0.14d0
-    a=a0*expansionFactor**0.06d0
-    alphaDelta=10.0d0**(-(0.75d0/dlog10(Delta/75.0d0))**1.2d0)
-    b=b0*expansionFactor**alphaDelta
-    c=c0
-    
-    ! Tabulate the function.
-    haloMassFunctionLogMass=Make_Range(logMassMinimum,logMassMaximum,haloMassFunctionNumberPoints,rangeTypeLinear)
-    do iMass=1,haloMassFunctionNumberPoints
-       mass=dexp(haloMassFunctionLogMass(iMass))
-       sigma=sigma_CDM(mass)*growthFactor
-       alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
-       haloMassFunctionLogAbundance(iMass)=(Omega_Matter()*Critical_Density()/mass**2)*alpha*normalization*dexp(-c/sigma**2)*(1.0d0+(b&
-            &/sigma)**a)
-    end do
-    where (haloMassFunctionLogAbundance > 0.0d0)
-       haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
-    elsewhere
-       haloMassFunctionLogAbundance=-1000.0d0
-    end where
+    ! Compute the mass function.    
+    sigma=sigma_CDM(mass)*growthFactor
+    alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
+    Halo_Mass_Function_Differential_Tinker2008=(Omega_Matter()*Critical_Density()/mass**2)*alpha*normalization*dexp(-c/sigma**2)&
+         &*(1.0d0+(b/sigma)**a)
     return
-  end subroutine Halo_Mass_Function_Tinker2008_Tabulate
+  end function Halo_Mass_Function_Differential_Tinker2008
   
 end module Halo_Mass_Function_Tinker2008
