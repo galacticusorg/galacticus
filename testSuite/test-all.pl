@@ -188,6 +188,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
  	valgrind => 0
     },
     {
+	name     => "tests.halo_mass_function.Tinker.exe",       # Tests of dark matter halo mass functions.
+ 	valgrind => 0
+    },
+    {
 	name     =>"tests.comoving_distance.dark_energy.exe",    # Tests of comoving distance calculations.
  	valgrind => 0
     },

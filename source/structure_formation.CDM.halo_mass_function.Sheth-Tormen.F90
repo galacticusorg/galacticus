@@ -32,65 +32,35 @@ contains
   !# <haloMassFunctionMethod>
   !#  <unitName>Halo_Mass_Function_Sheth_Tormen_Initialize</unitName>
   !# </haloMassFunctionMethod>
-  subroutine Halo_Mass_Function_Sheth_Tormen_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Tabulate)
+  subroutine Halo_Mass_Function_Sheth_Tormen_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Differential_Get)
     !% Initializes the ``Sheth-Tormen mass function'' module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ),          intent(in   ) :: haloMassFunctionMethod
-    procedure(                ), pointer, intent(inout) :: Halo_Mass_Function_Tabulate
+    type(varying_string),                 intent(in)    :: haloMassFunctionMethod
+    procedure(double precision), pointer, intent(inout) :: Halo_Mass_Function_Differential_Get
     
-    if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Tabulate => Halo_Mass_Function_Sheth_Tormen_Tabulate
+    if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Sheth_Differential_Tormen
     return
   end subroutine Halo_Mass_Function_Sheth_Tormen_Initialize
 
-  subroutine Halo_Mass_Function_Sheth_Tormen_Tabulate(time,logMass,haloMassFunctionNumberPoints,haloMassFunctionLogMass &
-       &,haloMassFunctionLogAbundance)
-    !% Tabulate a Sheth-Tormen halo mass function.
-    use Memory_Management
-    use Numerical_Ranges
+  double precision function Halo_Mass_Function_Sheth_Differential_Tormen(time,mass)
+    !% Compute the Sheth-Tormen halo mass function.
     use Numerical_Constants_Math
     use CDM_Power_Spectrum
     use Critical_Overdensity
     use Cosmological_Parameters
     implicit none
-    double precision,                            intent(in)    :: time,logMass
-    double precision, allocatable, dimension(:), intent(inout) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
-    integer,                                     intent(out)   :: haloMassFunctionNumberPoints
-    double precision, parameter                                :: a=0.707d0, p=0.3d0, normalization=0.3221836349d0
-    integer                                                    :: iMass
-    double precision                                           :: mass,nu,nuPrime,alpha
+    double precision, intent(in) :: time,mass
+    double precision, parameter  :: a=0.707d0, p=0.3d0, normalization=0.3221836349d0
+    double precision             :: nu,nuPrime,alpha
 
-    ! Determine range of masss required.
-    logMassMinimum=min(logMassMinimum,logMass-ln10)
-    logMassMaximum=max(logMassMaximum,logMass+ln10)
-    
-    ! Determine number of points to tabulate.
-    haloMassFunctionNumberPoints=int((logMassMaximum-logMassMinimum)*dble(nPointsPerDecade)/ln10)
-
-    ! Deallocate arrays if currently allocated.
-    if (allocated(haloMassFunctionLogMass))      call Dealloc_Array(haloMassFunctionLogMass     )
-    if (allocated(haloMassFunctionLogAbundance)) call Dealloc_Array(haloMassFunctionLogAbundance)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(haloMassFunctionLogMass     ,[haloMassFunctionNumberPoints])
-    call Alloc_Array(haloMassFunctionLogAbundance,[haloMassFunctionNumberPoints])
-
-    ! Tabulate the function.
-    haloMassFunctionLogMass=Make_Range(logMassMinimum,logMassMaximum,haloMassFunctionNumberPoints,rangeTypeLinear)
-    do iMass=1,haloMassFunctionNumberPoints
-       mass=dexp(haloMassFunctionLogMass(iMass))
-       nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/sigma_CDM(mass))**2
-       nuPrime=a*nu
-       alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
-       haloMassFunctionLogAbundance(iMass)=(Omega_Matter()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0*nuPrime/Pi)*normalization&
-            &*(1.0d0+1.0d0/nuPrime**p) *dexp(-0.5d0*nuPrime)
-    end do
-    where (haloMassFunctionLogAbundance > 0.0d0)
-       haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
-    elsewhere
-       haloMassFunctionLogAbundance=-1000.0d0
-    end where
-    
+    ! Compute the mass function.
+    nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/sigma_CDM(mass))**2
+    nuPrime=a*nu
+    alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
+    Halo_Mass_Function_Sheth_Differential_Tormen=(Omega_Matter()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0*nuPrime/Pi)*normalization&
+         &*(1.0d0+1.0d0/nuPrime**p) *dexp(-0.5d0*nuPrime)
     return
-  end subroutine Halo_Mass_Function_Sheth_Tormen_Tabulate
+  end function Halo_Mass_Function_Sheth_Differential_Tormen
   
 end module Halo_Mass_Function_Sheth_Tormen
