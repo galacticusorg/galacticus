@@ -1457,15 +1457,16 @@ Here, {\tt Cosmology\_Functions\_Matter\_Lambda\_Initialize} is the name of a su
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
        &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
        &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get &
-       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get)
+       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion)
     implicit none
     type(varying_string),          intent(in)    :: cosmologyMethod
-    procedure(),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
-       &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
-       &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
-       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get &
-       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get
-    
+    procedure(),                 pointer, intent(inout) :: Early_Time_Density_Scaling_Get
+    procedure(logical),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get
+    procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get &
+         &,Omega_Matter_Total_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
+         &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get&
+         &,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion_Get
+
     if (cosmologyMethod == 'myMethod') then
        Procedure_Pointer_Get => My_Procedure
        .
@@ -1665,6 +1666,19 @@ Should return the comoving distance (in units of Mpc) to the given cosmic time (
    end function My_Time_From_Comoving_Distance
 \end{verbatim}
 Should return the cosmic time (in units of Gyr) corresponding to the given comoving distance (in units of Mpc).
+
+\begin{verbatim}
+   double precision function My_Comoving_Distance_Conversion(output,distanceModulus,redshift)
+     implicit none
+     integer         , intent(in   ) :: output
+     double precision, intent(in   ) :: distanceModulus,redshift
+     .
+     .
+     .
+     return
+   end function My_Comoving_Distance_Conversion
+\end{verbatim}
+Should convert between different measures of the cosmological distance to an object. Currently, the only option for {\tt output} is {\tt distanceTypeComoving}, such that the returned value must always be the comoving distance (in units of Mpc). At least one of {\tt distanceModulus} and {\tt redshift} must be supplied---the function mus derive comoving distance from that supplied value.
 
 Currently defined cosmology methods are:
 \begin{description}
