@@ -2577,29 +2577,43 @@ Additional methods for the halo bias (i.e. the linear theory bias) can be added 
 \end{verbatim}
 Here, {\tt Dark\_Matter\_Halo\_Bias\_Press\_Schechter\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get)
+  subroutine Method_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get)
     implicit none
     type(varying_string),          intent(in)    :: darkMatterHaloBiasMethod
     procedure(),          pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
     
-    if (darkMatterHaloBiasMethod == 'myMethod') Dark_Matter_Halo_Bias_Get => My_Method_Tabulate
+    if (darkMatterHaloBiasMethod == 'myMethod') then
+       Dark_Matter_Halo_Bias_Node_Get => My_Method_Node_Get
+       Dark_Matter_Halo_Bias_Get      => My_Method_Get
+    end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterHaloBiasMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Halo\_Bias\_Get} must be set to point to a subrouine which returns a tabulation of the halo mass function. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterHaloBiasMethod} input parameter. The procedure pointers {\tt Dark\_Matter\_Halo\_Bias\_Node\_Get} and {\tt Dark\_Matter\_Halo\_Bias\_Get} must be set to point to functions which return the bias of the specified halo. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The halo bias function must have the form:
+The halo bias functions must have the following forms.
 \begin{verbatim}
- double precision function Dark_Matter_Halo_Bias(thisNode)
+ double precision function Dark_Matter_Halo_Bias_Node(thisNode)
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     .
     .
     .
     return
+ end function Dark_Matter_Halo_Bias_Node
+\end{verbatim}
+The function should return the linear theory bias for {\tt thisNode}.
+\begin{verbatim}
+ double precision function Dark_Matter_Halo_Bias(mass,time)
+    implicit none
+    double precision, intent(in   ) :: mass,time
+    .
+    .
+    .
+    return
  end function Dark_Matter_Halo_Bias
 \end{verbatim}
-The function should return the linear theory bias for {\tt thisNode}
+The function should return the linear theory bias for the given {\tt mass} and {\tt time}. Two versions of these functions are provided because a common assumption is that the bias depends only on mass and time, while in reality it may depend on other properties of the halo (environment, formation time etc.). The first version of the function allows for arbitrary dependence on properties of the node.
 
 Currently defined halo bias methods are:
 \begin{description}
