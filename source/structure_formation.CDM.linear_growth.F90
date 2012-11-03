@@ -47,7 +47,7 @@ module Linear_Growth
   ! Component types.
   integer,             parameter,   public                   ::  linearGrowthComponentDarkMatter=1 &
        &                                                        ,linearGrowthComponentBaryons   =2 &
-       &,linearGrowthComponentRadiation =3
+       &                                                        ,linearGrowthComponentRadiation =3
 
   ! Pointer to the subroutine that tabulates the linear growth factor and template interface for that subroutine.
   procedure(Linear_Growth_Tabulate_Template), pointer :: Linear_Growth_Tabulate => null()
@@ -192,7 +192,7 @@ contains
     do jWavenumber=0,1
        
        ! Select the appropriate component.
-       thisLinearGrowthFactor => linearGrowthTableFactor(componentActual,iWavenumber(jWavenumber),:)
+       thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
        Linear_Growth_Factor=Linear_Growth_Factor+Interpolate(linearGrowthTableNumberPoints,linearGrowthTableTime &
@@ -270,7 +270,7 @@ contains
     do jWavenumber=0,1
        
        ! Select the appropriate component.
-       thisLinearGrowthFactor => linearGrowthTableFactor(componentActual,iWavenumber(jWavenumber),:)
+       thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
        linearGrowthFactorTimeDerivative=linearGrowthFactorTimeDerivative+Interpolate_Derivative(linearGrowthTableNumberPoints&
