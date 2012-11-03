@@ -28,18 +28,21 @@ contains
   !# <darkMatterHaloBiasMethod>
   !#  <unitName>Dark_Matter_Halo_Bias_Press_Schechter_Initialize</unitName>
   !# </darkMatterHaloBiasMethod>
-  subroutine Dark_Matter_Halo_Bias_Press_Schechter_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get)
+  subroutine Dark_Matter_Halo_Bias_Press_Schechter_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterHaloBiasMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get
 
-    if (darkMatterHaloBiasMethod == 'Press-Schechter') Dark_Matter_Halo_Bias_Get => Dark_Matter_Halo_Bias_Press_Schechter
+    if (darkMatterHaloBiasMethod == 'Press-Schechter') then
+       Dark_Matter_Halo_Bias_Node_Get => Dark_Matter_Halo_Bias_Node_Press_Schechter
+       Dark_Matter_Halo_Bias_Get      => Dark_Matter_Halo_Bias_Press_Schechter
+    end if
     return
   end subroutine Dark_Matter_Halo_Bias_Press_Schechter_Initialize
 
-  double precision function Dark_Matter_Halo_Bias_Press_Schechter(thisNode)
+  double precision function Dark_Matter_Halo_Bias_Node_Press_Schechter(thisNode)
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
     use Critical_Overdensity
     use CDM_Power_Spectrum
@@ -47,12 +50,25 @@ contains
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode
     class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: deltaCritical,sigma,nu
+
+    ! Compute halo bias.
+    thisBasicComponent => thisNode%basic()
+    Dark_Matter_Halo_Bias_Node_Press_Schechter=Dark_Matter_Halo_Bias_Press_Schechter(thisBasicComponent%mass()&
+         &,thisBasicComponent%time())
+    return
+  end function Dark_Matter_Halo_Bias_Node_Press_Schechter
+
+  double precision function Dark_Matter_Halo_Bias_Press_Schechter(mass,time)
+    !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
+    use Critical_Overdensity
+    use CDM_Power_Spectrum
+    implicit none
+    double precision, intent(in) :: mass,time
+    double precision             :: deltaCritical,sigma,nu
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    thisBasicComponent => thisNode%basic()
-    deltaCritical=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())
-    sigma        =sigma_CDM(thisBasicComponent%mass())
+    deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
+    sigma        =sigma_CDM(mass)
     nu           =deltaCritical/sigma
     
     ! Compute halo bias.

@@ -28,32 +28,45 @@ contains
   !# <darkMatterHaloBiasMethod>
   !#  <unitName>Dark_Matter_Halo_Bias_SMT_Initialize</unitName>
   !# </darkMatterHaloBiasMethod>
-  subroutine Dark_Matter_Halo_Bias_SMT_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get)
+  subroutine Dark_Matter_Halo_Bias_SMT_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterHaloBiasMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
+    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get,Dark_Matter_Halo_Bias_Node_Get
 
-    if (darkMatterHaloBiasMethod == 'SMT') Dark_Matter_Halo_Bias_Get => Dark_Matter_Halo_Bias_SMT
+    if (darkMatterHaloBiasMethod == 'SMT') then
+       Dark_Matter_Halo_Bias_Node_Get => Dark_Matter_Halo_Bias_Node_SMT
+       Dark_Matter_Halo_Bias_Get      => Dark_Matter_Halo_Bias_SMT
+    end if
     return
   end subroutine Dark_Matter_Halo_Bias_SMT_Initialize
 
-  double precision function Dark_Matter_Halo_Bias_SMT(thisNode)
+  double precision function Dark_Matter_Halo_Bias_Node_SMT(thisNode)
+    !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
+    use Galacticus_Nodes
+    implicit none
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+
+    ! Compute halo bias.
+    thisBasicComponent => thisNode%basic()
+    Dark_Matter_Halo_Bias_Node_SMT=Dark_Matter_Halo_Bias_SMT(thisBasicComponent%mass(),thisBasicComponent%time())
+    return
+  end function Dark_Matter_Halo_Bias_Node_SMT
+
+  double precision function Dark_Matter_Halo_Bias_SMT(mass,time)
     !% Computes the bias for a dark matter halo using the method of \cite{sheth_ellipsoidal_2001}.
     use Critical_Overdensity
     use CDM_Power_Spectrum
-    use Galacticus_Nodes
     implicit none
-    type (treeNode          ),   intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                  pointer :: thisBasicComponent
-    double precision         , parameter                :: a=0.707d0, b=0.5d0, c=0.6d0
-    double precision                                    :: deltaCritical,sigma,nu
+    double precision, intent(in) :: mass,time
+    double precision, parameter  :: a=0.707d0, b=0.5d0, c=0.6d0
+    double precision             :: deltaCritical,sigma,nu
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    thisBasicComponent => thisNode%basic()
-    deltaCritical=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())
-    sigma        =sigma_CDM(thisBasicComponent%mass())
+    deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
+    sigma        =sigma_CDM(mass)
     nu           =deltaCritical/sigma
     
     ! Compute halo bias.
