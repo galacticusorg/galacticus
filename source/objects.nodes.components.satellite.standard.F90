@@ -97,7 +97,7 @@ contains
 
      ! Test whether module is already initialize.
      !$omp critical (Node_Component_Satellite_Standard_Initialize)
-     if (.not.moduleInitialized) then
+     if (satelliteComponent%standardIsActive().and..not.moduleInitialized) then
         ! Determine if satellite orbits are to be stored.
         !@ <inputParameter>
         !@   <name>satelliteOrbitStoreOrbitalParameters</name>
