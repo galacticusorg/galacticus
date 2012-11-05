@@ -26,13 +26,13 @@ module Node_Component_Spheroid_Standard
   use Node_Component_Spheroid_Standard_Data
   implicit none
   private
-  public :: Node_Component_Spheroid_Standard_Merger_Tree_Initialize , Node_Component_Spheroid_Standard_Post_Evolve                  , &
-       &    Node_Component_Spheroid_Standard_Rate_Compute           , Node_Component_Spheroid_Standard_Scale_Set                    , &
+  public :: Node_Component_Spheroid_Standard_Rate_Compute           , Node_Component_Spheroid_Standard_Scale_Set                    , &
        &    Node_Component_Spheroid_Standard_Satellite_Merging      , Node_Component_Spheroid_Standard_Enclosed_Mass                , &
        &    Node_Component_Spheroid_Standard_Rotation_Curve         , Node_Component_Spheroid_Standard_Density                      , &
        &    Node_Component_Spheroid_Standard_Potential              , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
        &    Node_Component_Spheroid_Standard_Radius_Solver          , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
-       &    Node_Component_Spheroid_Standard_Pre_Evolve             , Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
+       &    Node_Component_Spheroid_Standard_Pre_Evolve             , Node_Component_Spheroid_Standard_Rotation_Curve_Gradient      , &
+       &    Node_Component_Spheroid_Standard_Initialize             , Node_Component_Spheroid_Standard_Post_Evolve
 
   !# <component>
   !#  <class>spheroid</class>
@@ -172,6 +172,9 @@ module Node_Component_Spheroid_Standard
 
 contains
 
+  !# <mergerTreePreTreeConstructionTask>
+  !#  <unitName>Node_Component_Spheroid_Standard_Initialize</unitName>
+  !# </mergerTreePreTreeConstructionTask>
   subroutine Node_Component_Spheroid_Standard_Initialize()
     !% Initializes the tree node standard spheroid methods module.
     use Input_Parameters
@@ -179,6 +182,7 @@ contains
     use Abundances_Structure
     use ISO_Varying_String
     use Galacticus_Error
+    use Memory_Management
     implicit none
     type(nodeComponentSpheroidStandard) :: spheroidStandardComponent
     double precision                    :: spheroidAngularMomentumAtScaleRadiusDefault,spheroidMassDistributionDensityMomentum2&
@@ -300,23 +304,6 @@ contains
        moduleInitialized=.true.
     end if
     !$omp end critical (Node_Component_Spheroid_Standard_Initialize)
-    return
-  end subroutine Node_Component_Spheroid_Standard_Initialize
-
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Spheroid_Standard_Merger_Tree_Initialize</unitName>
-  !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Spheroid_Standard_Merger_Tree_Initialize(thisNode)
-    !% Ensures that the standard spheroid module is initialized before any merger tree is evolved.
-    use Memory_Management
-    implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode
-
-    ! If the standard spheroid is not active, then return immediately.
-    if (.not.defaultSpheroidComponent%standardIsActive()) return
-
-    ! Ensure that this module has been initialized.
-    call Node_Component_Spheroid_Standard_Initialize()
 
     ! Allocate work arrays for luminosities for this thread.
     if (.not.threadAllocationDone) then
@@ -328,9 +315,8 @@ contains
        luminositiesMinimum=1.0d0
        threadAllocationDone=.true.
     end if
-
     return
-  end subroutine Node_Component_Spheroid_Standard_Merger_Tree_Initialize 
+  end subroutine Node_Component_Spheroid_Standard_Initialize
 
   !# <preEvolveTask>
   !# <unitName>Node_Component_Spheroid_Standard_Pre_Evolve</unitName>

@@ -58,7 +58,15 @@ module Kepler_Orbits
      !@     <description>Dump an orbit.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>reset</method>
+     !@     <method>dumpRaw</method>
+     !@     <description>Dump an orbit in binary.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readRaw</method>
+     !@     <description>Read an orbit in binary.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rese</method>
      !@     <description>Resets an orbit to a null state.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -171,6 +179,8 @@ module Kepler_Orbits
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: dump                  => Kepler_Orbits_Dump
+     procedure :: dumpRaw               => Kepler_Orbits_Dump_Raw
+     procedure :: readRaw               => Kepler_Orbits_Read_Raw
      procedure :: reset                 => Kepler_Orbits_Reset
      procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
@@ -276,6 +286,50 @@ contains
     end if
     return
   end subroutine Kepler_Orbits_Dump
+
+  subroutine Kepler_Orbits_Dump_Raw(self,fileHandle)
+    !% Dump a {\tt keplerOrbit} object in binary.
+    implicit none
+    class  (keplerOrbit), intent(in   ) :: self
+    integer             , intent(in   ) :: fileHandle 
+
+    write (fileHandle) self%massesIsSet,self%massesIsSet,self%radiusIsSet,self%radiusPericenterIsSet,self%radiusApocenterIsSet&
+         &,self%velocityRadialIsSet,self%velocityTangentialIsSet,self%angularMomentumIsSet,self%energyIsSet&
+         &,self%eccentricityIsSet,self%semimajorAxisIsSet
+    if (self%massesIsSet            ) write (fileHandle) self%hostMassValue,self%specificReducedMassValue
+    if (self%radiusIsSet            ) write (fileHandle) self%radiusValue
+    if (self%radiusPericenterIsSet  ) write (fileHandle) self%radiusPericenterValue
+    if (self%radiusApocenterIsSet   ) write (fileHandle) self%radiusApocenterValue
+    if (self%velocityRadialIsSet    ) write (fileHandle) self%velocityRadialValue
+    if (self%velocityTangentialIsSet) write (fileHandle) self%velocityTangentialValue
+    if (self%angularMomentumIsSet   ) write (fileHandle) self%angularMomentumValue
+    if (self%energyIsSet            ) write (fileHandle) self%energyValue
+    if (self%eccentricityIsSet      ) write (fileHandle) self%eccentricityValue
+    if (self%semimajorAxisIsSet     ) write (fileHandle) self%semimajorAxisValue
+    return
+  end subroutine Kepler_Orbits_Dump_Raw
+
+  subroutine Kepler_Orbits_Read_Raw(self,fileHandle)
+    !% Read a {\tt keplerOrbit} object in binary.
+    implicit none
+    class  (keplerOrbit), intent(inout) :: self
+    integer             , intent(in   ) :: fileHandle 
+
+    read (fileHandle) self%massesIsSet,self%massesIsSet,self%radiusIsSet,self%radiusPericenterIsSet,self%radiusApocenterIsSet&
+         &,self%velocityRadialIsSet,self%velocityTangentialIsSet,self%angularMomentumIsSet,self%energyIsSet&
+         &,self%eccentricityIsSet,self%semimajorAxisIsSet
+    if (self%massesIsSet            ) read (fileHandle) self%hostMassValue,self%specificReducedMassValue
+    if (self%radiusIsSet            ) read (fileHandle) self%radiusValue
+    if (self%radiusPericenterIsSet  ) read (fileHandle) self%radiusPericenterValue
+    if (self%radiusApocenterIsSet   ) read (fileHandle) self%radiusApocenterValue
+    if (self%velocityRadialIsSet    ) read (fileHandle) self%velocityRadialValue
+    if (self%velocityTangentialIsSet) read (fileHandle) self%velocityTangentialValue
+    if (self%angularMomentumIsSet   ) read (fileHandle) self%angularMomentumValue
+    if (self%energyIsSet            ) read (fileHandle) self%energyValue
+    if (self%eccentricityIsSet      ) read (fileHandle) self%eccentricityValue
+    if (self%semimajorAxisIsSet     ) read (fileHandle) self%semimajorAxisValue
+    return
+  end subroutine Kepler_Orbits_Read_Raw
 
   subroutine Kepler_Orbits_Reset(thisOrbit)
     !% Reset an orbit to a null state.

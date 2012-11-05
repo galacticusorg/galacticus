@@ -23,14 +23,14 @@ module Node_Component_Disk_Exponential
   use FGSL
   implicit none
   private
-  public :: Node_Component_Disk_Exponential_Merger_Tree_Initialize    , Node_Component_Disk_Exponential_Post_Evolve                  , &
-       &    Node_Component_Disk_Exponential_Scale_Set                 , Node_Component_Disk_Exponential_Density                      , &
+  public :: Node_Component_Disk_Exponential_Scale_Set                 , Node_Component_Disk_Exponential_Density                      , &
        &    Node_Component_Disk_Exponential_Enclosed_Mass             , Node_Component_Disk_Exponential_Rotation_Curve               , &
        &    Node_Component_Disk_Exponential_Radius_Solver_Plausibility, Node_Component_Disk_Exponential_Radius_Solver                , &
        &    Node_Component_Disk_Exponential_State_Retrieve            , Node_Component_Disk_Exponential_Rate_Compute                 , &
        &    Node_Component_Disk_Exponential_Rotation_Curve_Gradient   , Node_Component_Disk_Exponential_Pre_Evolve                   , &
        &    Node_Component_Disk_Exponential_Satellite_Merging         , Node_Component_Disk_Exponential_Potential                    , &
-       &    Node_Component_Disk_Exponential_State_Store               , Node_Component_Disk_Exponential_Star_Formation_History_Output
+       &    Node_Component_Disk_Exponential_State_Store               , Node_Component_Disk_Exponential_Star_Formation_History_Output, &
+       &    Node_Component_Disk_Exponential_Initialize                , Node_Component_Disk_Exponential_Post_Evolve
   
   !# <component>
   !#  <class>disk</class>
@@ -193,15 +193,19 @@ module Node_Component_Disk_Exponential
   !$omp threadprivate(threadAllocationDone)
 
 contains
-
-   subroutine Node_Component_Disk_Exponential_Initialize()
-     !% Initializes the tree node exponential disk methods module.
-     use Input_Parameters
-     use Abundances_Structure
-     use Stellar_Population_Properties_Luminosities
-     implicit none
-     type(nodeComponentDiskExponential) :: diskExponentialComponent
-
+  
+  !# <mergerTreePreTreeConstructionTask>
+  !#  <unitName>Node_Component_Disk_Exponential_Initialize</unitName>
+  !# </mergerTreePreTreeConstructionTask>
+  subroutine Node_Component_Disk_Exponential_Initialize()
+    !% Initializes the tree node exponential disk methods module.
+    use Input_Parameters
+    use Abundances_Structure
+    use Stellar_Population_Properties_Luminosities
+    use Memory_Management
+    implicit none
+    type(nodeComponentDiskExponential) :: diskExponentialComponent
+    
      ! Initialize the module if necessary.
      !$omp critical (Node_Component_Disk_Exponential_Initialize)
      if (.not.moduleInitialized) then
@@ -289,38 +293,20 @@ contains
         moduleInitialized=.true.
      end if
      !$omp end critical (Node_Component_Disk_Exponential_Initialize)
+
+     ! Allocate work arrays for luminosities for this thread.
+     if (.not.threadAllocationDone) then
+        call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
+        call Alloc_Array(luminositiesTransferRate,[luminositiesCount])
+        call Alloc_Array(luminositiesStellarRates,[luminositiesCount])
+        call Alloc_Array(zeroLuminosities        ,[luminositiesCount])
+        call Alloc_Array(luminositiesMinimum     ,[luminositiesCount])
+        zeroLuminosities   =0.0d0
+        luminositiesMinimum=1.0d0
+        threadAllocationDone=.true.
+     end if     
      return
    end subroutine Node_Component_Disk_Exponential_Initialize
-  
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Merger_Tree_Initialize</unitName>
-  !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Disk_Exponential_Merger_Tree_Initialize(thisNode)
-    !% Ensures that the exponential disk module is initialized before any merger tree is evolved.
-    use Memory_Management
-    implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode
-
-    ! If the exponential disk is not active, then return immediately.
-    if (.not.defaultDiskComponent%exponentialIsActive()) return
-
-    ! Ensure that this module has been initialized.
-    call Node_Component_Disk_Exponential_Initialize()
-
-    ! Allocate work arrays for luminosities for this thread.
-    if (.not.threadAllocationDone) then
-       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
-       call Alloc_Array(luminositiesTransferRate,[luminositiesCount])
-       call Alloc_Array(luminositiesStellarRates,[luminositiesCount])
-       call Alloc_Array(zeroLuminosities        ,[luminositiesCount])
-       call Alloc_Array(luminositiesMinimum     ,[luminositiesCount])
-       zeroLuminosities   =0.0d0
-       luminositiesMinimum=1.0d0
-       threadAllocationDone=.true.
-    end if
-
-    return
-  end subroutine Node_Component_Disk_Exponential_Merger_Tree_Initialize
         
   !# <preEvolveTask>
   !# <unitName>Node_Component_Disk_Exponential_Pre_Evolve</unitName>

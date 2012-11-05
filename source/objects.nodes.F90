@@ -158,6 +158,16 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Unique_ID
   
+  subroutine Tree_Node_Unique_ID_Set(self,uniqueID)
+    !% Sets the index of a {\tt treeNode}.
+    implicit none
+    class  (treeNode      ), intent(inout) :: self         
+    integer(kind=kind_int8), intent(in   ) :: uniqueID
+
+    self%uniqueIdValue=uniqueID
+    return
+  end subroutine Tree_Node_Unique_ID_Set
+
   logical function Tree_Node_Is_Primary_Progenitor(self)
     !% Returns true if {\tt self} is the primary progenitor of its parent node.
     implicit none
@@ -674,6 +684,15 @@ module Galacticus_Nodes
 
     return
   end subroutine Node_Component_Dump_Null
+
+  subroutine Node_Component_Dump_Raw_Null(self,fileHandle)
+    !% Dump a generic tree node component in binary.
+    implicit none
+    class(nodeComponent), intent(in   ) :: self
+    integer             , intent(in   ) :: fileHandle
+
+    return
+  end subroutine Node_Component_Dump_Raw_Null
 
   subroutine Node_Component_Output_Count_Null(self,integerPropertyCount,doublePropertyCount,time,instance)
     !% Dump a generic tree node component.

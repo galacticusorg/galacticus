@@ -102,7 +102,15 @@ module Chemical_Abundances_Structure
      !@     <method>dump</method>
      !@     <description>Dump a chemical abundances object.</description>
      !@   </objectMethod>
-     !@ </objectMethods>
+     !@   <objectMethod>
+     !@     <method>dumpRaw</method>
+     !@     <description>Dump a chemical abundances object in binary.</description>
+     !@   </objectMethod>
+      !@   <objectMethod>
+     !@     <method>readRaw</method>
+     !@     <description>Read a chemical abundances object in binary.</description>
+     !@   </objectMethod>
+    !@ </objectMethods>
      procedure                 :: abundance         => Chemicals_Abundances
      procedure                 :: abundanceSet      => Chemicals_Abundances_Set
      procedure                 :: reset             => Chemicals_Abundances_Reset
@@ -112,6 +120,8 @@ module Chemical_Abundances_Structure
      procedure                 :: massToNumber      => Chemicals_Mass_To_Number
      procedure                 :: enforcePositive   => Chemicals_Enforce_Positive
      procedure                 :: dump              => Chemicals_Dump
+     procedure                 :: dumpRaw           => Chemicals_Dump_Raw
+     procedure                 :: readRaw           => Chemicals_Read_Raw
   end type chemicalAbundances
 
   ! Count of the number of elements being tracked.
@@ -412,6 +422,33 @@ contains
     end if
     return
   end subroutine Chemicals_Dump
+
+  subroutine Chemicals_Dump_Raw(chemicals,fileHandle)
+    !% Dump all chemical values in binary.
+    implicit none
+    class(chemicalAbundances), intent(in   ) :: chemicals
+    integer                  , intent(in   ) :: fileHandle
+
+    write (fileHandle) allocated(chemicals%chemicalValue)
+    if (allocated(chemicals%chemicalValue)) write (fileHandle),chemicals%chemicalValue
+    return
+  end subroutine Chemicals_Dump_Raw
+
+  subroutine Chemicals_Read_Raw(chemicals,fileHandle)
+    !% Read all chemical values in binary.
+    use Memory_Management
+    implicit none
+    class(chemicalAbundances), intent(inout) :: chemicals
+    integer                  , intent(in   ) :: fileHandle
+    logical                                  :: isAllocated
+
+    read (fileHandle) isAllocated
+    if (isAllocated) then
+       call Alloc_Array(chemicals%chemicalValue,[chemicalsCount])
+       read (fileHandle),chemicals%chemicalValue
+    end if
+    return
+  end subroutine Chemicals_Read_Raw
 
   subroutine Chemicals_Abundances_Set(chemicals,moleculeIndex,abundance)
     !% Sets the abundance of a molecule in the chemical abundances structure given the {\tt moleculeIndex}.

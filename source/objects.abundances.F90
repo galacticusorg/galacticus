@@ -68,6 +68,18 @@ module Abundances_Structure
      procedure                 :: dump                   => Abundances_Dump
      !@ <objectMethod>
      !@   <object>abundances</object>
+     !@   <method>dumpRaw</method>
+     !@   <description>Dump an abundances object to binary.</description>
+     !@ </objectMethod>
+     procedure                 :: dumpRaw                => Abundances_Dump_Raw
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>readRaw</method>
+     !@   <description>Read an abundances object from binary.</description>
+     !@ </objectMethod>
+     procedure                 :: readRaw                => Abundances_Read_Raw
+     !@ <objectMethod>
+     !@   <object>abundances</object>
      !@   <method>setToUnity</method>
      !@   <description>Set an abundances object to unity.</description>
      !@ </objectMethod>
@@ -280,6 +292,40 @@ contains
     end if
     return
   end subroutine Abundances_Dump
+
+  subroutine Abundances_Dump_Raw(self,fileHandle)
+    !% Dump an abundances object to binary.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class    (abundances    ), intent(in   ) :: self
+    integer                  , intent(in   ) :: fileHandle
+    integer                                  :: i
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    ! Dump the content.
+    write (fileHandle) self%metallicityValue
+    if (elementsCount > 0) write (fileHandle) self%elementalValue
+    return
+  end subroutine Abundances_Dump_Raw
+
+  subroutine Abundances_Read_Raw(self,fileHandle)
+    !% Read an abundances object from binary.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class    (abundances    ), intent(inout) :: self
+    integer                  , intent(in   ) :: fileHandle
+    integer                                  :: i
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    ! Read the content.
+    read (fileHandle) self%metallicityValue
+    if (elementsCount > 0) read (fileHandle) self%elementalValue
+    return
+  end subroutine Abundances_Read_Raw
 
   subroutine Abundances_Reset(self)
     !% Reset an abundances object.
