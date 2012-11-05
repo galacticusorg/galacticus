@@ -208,7 +208,7 @@ contains
     
      ! Initialize the module if necessary.
      !$omp critical (Node_Component_Disk_Exponential_Initialize)
-     if (.not.moduleInitialized) then
+     if (defaultDiskComponent%exponentialIsActive().and..not.moduleInitialized) then
         
         ! Get number of abundance properties.
         abundancesCount  =Abundances_Property_Count            ()

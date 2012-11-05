@@ -192,7 +192,7 @@ contains
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Spheroid_Standard_Initialize)
-    if (.not.moduleInitialized) then
+    if (defaultSpheroidComponent%standardIsActive().and..not.moduleInitialized) then
 
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
