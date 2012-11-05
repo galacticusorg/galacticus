@@ -219,7 +219,7 @@ contains
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
-    if (.not.moduleInitialized) then
+    if (defaultHotHaloComponent%standardIsActive().and..not.moduleInitialized) then
 
        ! Get numbers of abundance and chemicals properties.
        abundancesCount=Abundances_Property_Count()
