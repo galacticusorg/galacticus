@@ -202,6 +202,9 @@ module Node_Component_Hot_Halo_Standard
 
 contains
 
+  !# <mergerTreePreTreeConstructionTask>
+  !#  <unitName>Node_Component_Hot_Halo_Standard_Initialize</unitName>
+  !# </mergerTreePreTreeConstructionTask>
   subroutine Node_Component_Hot_Halo_Standard_Initialize()
     !% Initializes the standard hot halo component module.
     use ISO_Varying_String
@@ -1056,9 +1059,6 @@ contains
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%standardIsActive()) return
 
-    ! Ensure that this module has been initialized.
-    call Node_Component_Hot_Halo_Standard_Initialize()
-
     ! Get the hot halo component.
     currentHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of unspecified class.
@@ -1376,9 +1376,6 @@ contains
     implicit none
     type (treeNode            ), pointer, intent(inout) :: thisNode
     class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-
-    ! Ensure that this module has been initialized.
-    call Node_Component_Hot_Halo_Standard_Initialize()
 
     ! Create the component.
     thisHotHaloComponent => thisNode%hotHalo(autoCreate=.true.)

@@ -48,6 +48,14 @@ module Histories
      !@     <description>Dump a history object.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>dumpRaw</method>
+     !@     <description>Dump a history object in binary.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readRaw</method>
+     !@     <description>Read a history object in binary.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>clone</method>
      !@     <description>Clone a history object.</description>
      !@   </objectMethod>
@@ -93,6 +101,8 @@ module Histories
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: dump       => History_Dump
+     procedure :: dumpRaw    => History_Dump_Raw
+     procedure :: readRaw    => History_Read_Raw
      procedure :: increment  => History_Increment
      procedure :: create     => History_Create
      procedure :: clone      => History_Clone
@@ -242,6 +252,43 @@ contains
     end if
     return
   end subroutine History_Dump
+
+  subroutine History_Dump_Raw(self,fileHandle)
+    !% Dumps a history object in binary.
+    implicit none
+    class  (history), intent(in   ) :: self
+    integer         , intent(in   ) :: fileHandle
+
+    write (fileHandle) self%rangeType
+    write (fileHandle) allocated(self%time)
+    if (allocated(self%time)) then
+       write (fileHandle) shape(self%data)
+       write (fileHandle) self%time
+       write (fileHandle) self%data
+    end if
+    return
+  end subroutine History_Dump_Raw
+
+  subroutine History_Read_Raw(self,fileHandle)
+    !% Read a history object in binary.
+    use Memory_Management
+    implicit none
+    class  (history), intent(inout) :: self
+    integer         , intent(in   ) :: fileHandle
+    logical                         :: isAllocated
+    integer         , dimension(2)  :: historyShape
+    
+    read (fileHandle) self%rangeType
+    read (fileHandle) isAllocated
+    if (isAllocated) then
+       read (fileHandle) historyShape
+       call Alloc_Array(self%time,[historyShape(1)])
+       call Alloc_Array(self%data, historyShape    )
+       read (fileHandle) self%time
+       read (fileHandle) self%data
+    end if
+    return
+  end subroutine History_Read_Raw
 
   subroutine History_Reset(thisHistory)
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.

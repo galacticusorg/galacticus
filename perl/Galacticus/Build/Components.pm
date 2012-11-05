@@ -806,6 +806,7 @@ sub Generate_Node_Component_Type{
 	 {type => "procedure", name => "odeStepRatesInitialize" , function => "Node_Component_ODE_Step_Initialize_Null"},
 	 {type => "procedure", name => "odeStepScalesInitialize", function => "Node_Component_ODE_Step_Initialize_Null"},
 	 {type => "procedure", name => "dump"                   , function => "Node_Component_Dump_Null"               },
+	 {type => "procedure", name => "dumpRaw"                , function => "Node_Component_Dump_Raw_Null"           },
 	 {type => "procedure", name => "outputCount"            , function => "Node_Component_Output_Count_Null"       },
 	 {type => "procedure", name => "outputNames"            , function => "Node_Component_Output_Names_Null"       },
 	 {type => "procedure", name => "output"                 , function => "Node_Component_Output_Null"             }
@@ -1245,6 +1246,7 @@ sub Generate_Tree_Node_Object{
 	 {type => "procedure", name => "index"                    , function => "Tree_Node_Index"                         },
 	 {type => "procedure", name => "indexSet"                 , function => "Tree_Node_Index_Set"                     },
 	 {type => "procedure", name => "uniqueID"                 , function => "Tree_Node_Unique_ID"                     },
+	 {type => "procedure", name => "uniqueIDSet"              , function => "Tree_Node_Unique_ID_Set"                 },
 	 {type => "procedure", name => "initialize"               , function => "treeNodeInitialize"                      },
 	 {type => "procedure", name => "destroy"                  , function => "treeNodeDestroy"                         },
 	 {type => "procedure", name => "removeFromHost"           , function => "Tree_Node_Remove_From_Host"              },
@@ -1543,7 +1545,6 @@ sub Generate_Map_Functions {
 sub Generate_Node_Dump_Function {
     # Generate function to dump node properties.
     my $buildData = shift;
-
     # Create the function.
     my @dataContent =
 	(
@@ -1602,6 +1603,141 @@ sub Generate_Node_Dump_Function {
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "dump", function => "Node_Dump"}
+	);
+    # Create a function for doing a raw (binary) dump.
+    @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "treeNode",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "fileHandle" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
+	 }
+	);
+    $functionCode  = "  subroutine Node_Dump_Raw(self,fileHandle)\n";
+    $functionCode .= "    !% Dump node content in binary.\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    write (fileHandle) self%isPhysicallyPlausible\n";
+    # Iterate over all component classes
+    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+	$functionCode .= "    write (fileHandle) allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      select type (component => self%component".ucfirst($_)."(1))\n";
+	$functionCode .= "      type is (nodeComponent".ucfirst($_).")\n";
+	$functionCode .= "        write (fileHandle) .false.\n";
+	$functionCode .= "      class is (nodeComponent".ucfirst($_).")\n";
+	$functionCode .= "        write (fileHandle) .true.\n";
+	$functionCode .= "      end select\n";
+	$functionCode .= "      write (fileHandle) size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
+	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
+		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
+		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Dump_Raw(component,fileHandle)\n";
+	    }
+	    $functionCode .= "        end select\n";
+	} else {
+	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
+	}
+	$functionCode .= "      end do\n";
+	$functionCode .= "    end if\n";
+    }
+     $functionCode .= "    return\n";
+    $functionCode .= "  end subroutine Node_Dump_Raw\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{type => "procedure", name => "dumpRaw", function => "Node_Dump_Raw"}
+	);
+   # Create a function for doing a raw (binary) read.
+    @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "treeNode",
+	     attributes => [ "intent(inout)", "target" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "fileHandle" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i", "componentCount" ]
+	 },
+	 {
+	     intrinsic  => "logical",
+	     variables  => [ "isAllocated" ]
+	 }
+	);
+    $functionCode  = "  subroutine Node_Read_Raw(self,fileHandle)\n";
+    $functionCode .= "    !% Dump node content in binary.\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    read (fileHandle) self%isPhysicallyPlausible\n";
+    # Iterate over all component classes
+    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+	$functionCode .= "    read (fileHandle) isAllocated\n";
+	$functionCode .= "    if (isAllocated) then\n";
+	$functionCode .= "      read (fileHandle) isAllocated\n";
+	$functionCode .= "      read (fileHandle) componentCount\n";
+	$functionCode .= "      if (allocated(self%component".ucfirst($_).")) deallocate(self%component".ucfirst($_).")\n";
+	$functionCode .= "      if (isAllocated) then\n";
+	$functionCode .= "        allocate(self%component".ucfirst($_)."(componentCount),source=default".ucfirst($_)."Component)\n";
+	$functionCode .= "      else\n";
+	$functionCode .= "        allocate(self%component".ucfirst($_)."(componentCount),source=".ucfirst($_)."Class)\n";
+	$functionCode .= "      end if\n";
+	$functionCode .= "      select type (self)\n";
+	$functionCode .= "      type is (treeNode)\n";
+	$functionCode .= "        do i=1,componentCount\n";
+	$functionCode .= "          self%component".ucfirst($_)."(i)%hostNode => self\n";
+	$functionCode .= "        end do\n";
+	$functionCode .= "      end select\n";
+	$functionCode .= "      do i=1,componentCount\n";
+	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
+	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
+		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
+		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Read_Raw(component,fileHandle)\n";
+	    }
+	    $functionCode .= "        end select\n";
+	} else {
+	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
+	}
+	$functionCode .= "      end do\n";
+	$functionCode .= "    else\n";
+	$functionCode .= "       allocate(self%component".padComponentClass(ucfirst($_),[0,0])."(1))\n";
+	$functionCode .= "    end if\n";
+    }
+     $functionCode .= "    return\n";
+    $functionCode .= "  end subroutine Node_Read_Raw\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{type => "procedure", name => "readRaw", function => "Node_Read_Raw"}
 	);
 }
 
@@ -2208,7 +2344,7 @@ sub Generate_Implementation_Dump_Functions {
 				$functionCode .= "       write (label,'(i3)') i\n";
 				$functionCode .= "       message='".$methodName.": ".(" " x ($implementationPropertyNameLengthMax-length($methodName)))." '//trim(label)\n";
 				$functionCode .= "       call Galacticus_Display_Indent(message)\n";
-				$functionCode .= "       call self%".$linkedDataName."%value(i)\n";
+				$functionCode .= "       call self%".$linkedDataName."%value(i)%dump()\n";
 				$functionCode .= "       call Galacticus_Display_Unindent('end')\n";
 				$functionCode .= "    end do\n";
 			    }
@@ -2229,6 +2365,163 @@ sub Generate_Implementation_Dump_Functions {
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "dump", function => "Node_Component_".ucfirst($componentID)."_Dump"},
+	    );
+	# Create function to do a raw (binary) dump.
+	# Initialize data content.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "fileHandle" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
+	    );
+	# Generate raw dump function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump_Raw(self,fileHandle)\n";
+	$functionCode .= "    !% Dump the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	unless ( $component->{'name'} eq "null" ) {
+	    # Dump the parent type if necessary.
+	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpRaw(fileHandle)\n"
+		if ( exists($component->{'extends'}) );
+	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+		my $method = $component->{'methods'}->{'method'}->{$methodName};
+		# Check if this method has any linked data in this component.
+		if ( exists($method->{'linkedData'}) ) {
+		    my $linkedDataName = $method->{'linkedData'};
+		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		    if ( $linkedData->{'rank'} == 0 ) {
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "logical" ] ) {
+				$functionCode .= "    write (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+			    }
+			    else {
+				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dumpRaw(fileHandle)\n";
+			    }
+			}
+		    } elsif ( $linkedData->{'rank'} == 1 ) {
+			$functionCode .= "    write (fileHandle) allocated(self%".$linkedDataName."%value)\n";
+			$functionCode .= "    if (allocated(self%".$linkedDataName."%value)) then\n";
+			$functionCode .= "       write (fileHandle) size(self%".$linkedDataName."%value)\n";
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "logical" ] ) {
+				$functionCode .= "      write (fileHandle) self%".$linkedDataName."%value\n";
+			    }
+			    else {
+				$functionCode .= "       do i=1,size(self%".$linkedDataName."%value)\n";
+				$functionCode .= "          call self%".$linkedDataName."%value(i)%dumpRaw(fileHandle)\n";
+				$functionCode .= "       end do\n";
+			    }
+			}			
+			$functionCode .= "    end if\n";
+		    }
+		}
+	    }
+	}
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump_Raw\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "dumpRaw", function => "Node_Component_".ucfirst($componentID)."_Dump_Raw"},
+	    );
+	# Create function to do a raw (binary) read.
+	# Initialize data content.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "fileHandle" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i", "arraySize" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 variables  => [ "isAllocated" ]
+	     }
+	    );
+	# Generate raw read function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Read_Raw(self,fileHandle)\n";
+	$functionCode .= "    !% Read the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
+	$functionCode .= "    use Memory_Management\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	unless ( $component->{'name'} eq "null" ) {
+	    # Dump the parent type if necessary.
+	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%readRaw(fileHandle)\n"
+		if ( exists($component->{'extends'}) );
+	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+		my $method = $component->{'methods'}->{'method'}->{$methodName};
+		# Check if this method has any linked data in this component.
+		if ( exists($method->{'linkedData'}) ) {
+		    my $linkedDataName = $method->{'linkedData'};
+		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		    if ( $linkedData->{'rank'} == 0 ) {
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "logical" ] ) {
+				$functionCode .= "    read (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+			    }
+			    else {
+				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%readRaw(fileHandle)\n";
+			    }
+			}
+		    } elsif ( $linkedData->{'rank'} == 1 ) {
+			$functionCode .= "    read (fileHandle) isAllocated\n";
+			$functionCode .= "    if (isAllocated) then\n";
+			$functionCode .= "       read (fileHandle) arraySize\n";
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "logical" ] ) {
+				$functionCode .= "      call Alloc_Array(self%".$linkedDataName."%value,[arraySize])\n";
+				$functionCode .= "      read (fileHandle) self%".$linkedDataName."%value\n";
+			    }
+			    else {
+				$functionCode .= "       allocate(self%".$linkedDataName."%value(arraySize))\n";
+				$functionCode .= "       do i=1,arraySize)\n";
+				$functionCode .= "          call self%".$linkedDataName."%value(i)%readRaw(fileHandle)\n";
+				$functionCode .= "       end do\n";
+			    }
+			}			
+			$functionCode .= "    end if\n";
+		    }
+		}
+	    }
+	}
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Read_Raw\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "readRaw", function => "Node_Component_".ucfirst($componentID)."_Read_Raw"},
 	    );
     }
 }
