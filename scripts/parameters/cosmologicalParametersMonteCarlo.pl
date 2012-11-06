@@ -1,4 +1,12 @@
 #!/usr/bin/env perl
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
