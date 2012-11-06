@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -228,7 +228,7 @@ sub Launch_Models {
 	
 	# Set base model name.
 	my $modelBaseName = "galacticus";
-	$modelBaseName = ${$parameterSet->{'label'}}[0] if ( exists($parameterSet->{'label'}) );
+	$modelBaseName = $parameterSet->{'label'} if ( exists($parameterSet->{'label'}) );
 	
 	# Create an array of hashes giving the parameters for this parameter set.
 	my @parameterHashes = &Create_Parameter_Hashes($parameterSet);
@@ -632,7 +632,7 @@ sub Create_Parameter_Hashes {
 		}
 		$parameters{$parameter->{'name'}} = $value;
 		$label .= ":".$parameter->{'ID'}.".".$parameter->{'index'};
-		if ( exists($parameter->{'label'}) && ${$parameter->{'label'}}[0] eq "yes" ) {
+		if ( exists($parameter->{'label'}) && $parameter->{'label'} eq "yes" ) {
 		    $parameters{'label'} .= $joiner.$parameter->{'name'}."=".$value;
 		    $joiner = ":";
 		}
