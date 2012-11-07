@@ -24,10 +24,14 @@ module Galacticus_Tasks_Evolve_Tree
   public :: Galacticus_Task_Evolve_Tree
 
   ! Flag to indicate if output times have been initialized.
-  logical :: treeEvolveInitialized=.false.
+  logical          :: treeEvolveInitialized=.false.
 
   ! Parameters controlling which trees will be processed.
-  integer :: treeEvolveWorkerCount,treeEvolveWorkerNumber
+  integer          :: treeEvolveWorkerCount,treeEvolveWorkerNumber
+
+  ! Parameters controlling load average.
+  logical          :: treeEvolveLimitLoadAverage
+  double precision :: treeEvolveLoadAverageMaximum
   
 contains
 
@@ -46,10 +50,13 @@ contains
     use Merger_Trees_Evolve
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
+    use Galacticus_Nodes
     use Input_Parameters
     use Galacticus_Output_Times
     use Merger_Tree_Active
     use Memory_Management
+    use System_Load
+    !$ use omp_lib
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
@@ -61,14 +68,19 @@ contains
     include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
     !# </include>
     implicit none
-    type(mergerTree),     save, pointer :: thisTree
-    logical,              save          :: finished,skipTree
-    integer,              save          :: iOutput
-    double precision,     save          :: outputTime
-    type(varying_string), save          :: message
-    character(len=20),    save          :: label
+    type(mergerTree),     save, pointer      :: thisTree
+    logical,              save               :: finished,skipTree
+    integer,              save               :: iOutput
+    double precision,     save               :: outputTime
+    type(varying_string), save               :: message
+    character(len=20),    save               :: label
     !$omp threadprivate(thisTree,finished,skipTree,iOutput,outputTime,message,label)
-    integer                             :: iTree
+    integer                                  :: iTree
+    integer             , save               :: activeTasks,totalTasks
+    double precision    , save, dimension(3) :: loadAverage
+    logical             , save               :: overloaded
+    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded)
+    character(len=32)                        :: treeEvolveLoadAverageMaximumText
 
     ! Initialize the task if necessary.
     if (.not.treeEvolveInitialized) then
@@ -98,19 +110,49 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
-          
+          !@ <inputParameter>
+          !@   <name>treeEvolveLimitLoadAverage</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to limit the load average
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveLimitLoadAverage',treeEvolveLimitLoadAverage,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>treeEvolveLoadAverageMaximum</name>
+          !@   <defaultValue>processorCount</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum load average for which new trees will be processed.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveLoadAverageMaximum',treeEvolveLoadAverageMaximumText,defaultValue="processorCount")
+          if (treeEvolveLoadAverageMaximumText == "processorCount" ) then
+             treeEvolveLoadAverageMaximum=dble(System_Processor_Count())
+          else
+             read (treeEvolveLoadAverageMaximumText,*) treeEvolveLoadAverageMaximum
+          end if
           ! Flag that this task is now initialized.
           treeEvolveInitialized=.true.
        end if
        !$omp end critical (Tasks_Evolve_Tree_Initialize)
     end if
-    
+
+    ! Ensure the nodes objects are initialized.
+    call Galacticus_Nodes_Initialize()
+
     ! Begin looping through available trees.
     finished=.false.
     iTree=0
     
     !$omp parallel copyin(finished)
     do while (.not.finished)
+
        ! Increment the tree number.
        !$omp atomic
        iTree=iTree+1
@@ -130,6 +172,19 @@ contains
           
           ! Skip this tree if necessary.
           if (.not.skipTree) then
+
+             ! Spin while the system is overloaded.
+             overloaded=treeEvolveLimitLoadAverage
+             do while (overloaded)
+                ! Get the load average.
+                call System_Load_Get(loadAverage,activeTasks,totalTasks)
+                ! If load is above allowed tolerances, sleep for a while.
+                overloaded=(loadAverage(1) > treeEvolveLoadAverageMaximum)
+                if (overloaded)                         &
+                     & call Sleep( 5                    &
+                     !$ &         +omp_get_thread_num() &
+                     &           )
+             end do
 
              ! Set this as the active tree.
              activeTreeWeight=thisTree%volumeWeight
