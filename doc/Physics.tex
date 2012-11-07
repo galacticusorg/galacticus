@@ -340,6 +340,22 @@ The algorithm used to compute the cooling radius is selected via the {\tt coolin
 
 Selcted with {\tt coolingRadiusMethod}$=${\tt simple}, this method computes the cooling radius by seeking the radius at which the time available for cooling (see \S\ref{sec:TimeAvailableCooling}) equals the cooling time (see \S\ref{sec:CoolingTime}). The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
 
+\subsubsection{Isothermal}
+
+Selected with {\tt coolingRadiusMethod}$=${\tt isothermal}, this method computes the cooling radius by assuming an isothermal density profile, and a cooling rate proportional to density squared. This implies a cooling time:
+\begin{equation}
+ t_{\rm cool} \equiv {E\over\dot{E}} \propto \rho(r)^{-1}.
+\end{equation}
+The cooling radius is then derived using
+\begin{equation}
+ \rho(r_{\rm cool}) \propto t_{\rm available}^{-1}
+\end{equation}
+which implies
+\begin{equation}
+ r_{\rm cool} = r_{\rm virial} \left( { t_{\rm available} \over t_{\rm cool,virial}} \right)^{1/2},
+\end{equation}
+where $t_{\rm cool,virial}$ is the cooling time at the virial radius.
+
 \subsection{Cooling: Freefall Radius}\label{sec:CoolingFreefallRadius}\index{freefall radius}\index{cooling!freefall radius}
 
 The algorithm used to compute the freefall radius for cooling is selected via the {\tt freefallRadiusMethod} parameter.

@@ -1182,6 +1182,7 @@ The function must return the cooling radius (in units of Mpc) for {\tt thisNode}
 Currently defined cooling radius methods are:
 \begin{description}
  \item [\hyperlink{cooling.cooling_radius.simple.F90:cooling_radii_simple:cooling_radius_simple}{{\tt simple}}] Computes the cooling radius by seeking the radius at which the time available for cooling equals the cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
+ \item [\hyperlink{cooling.cooling_radius.isothermal_profile.F90:cooling_radii_isothermal:cooling_radius_isothermal}{{\tt isothermal}}] Computes the cooling radius by assuming that the hot gas density profile is an isothermal profile ($\rho(r) \propto r^{-2}$), and that the cooling rate scales as density squared, $\dot{E}\propto \rho^2$, such that the cooling time scales as inverse density, $t_{\rm cool} \propto \rho^{-1}$. Consequently, the cooling radius grows as the square root of the time available for cooling.
 \end{description}
 
 \subsubsection{Cooling: Freefall Radius}
