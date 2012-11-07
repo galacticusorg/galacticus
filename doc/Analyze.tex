@@ -504,3 +504,31 @@ will extract the metadata from file {\tt myPlot.pdf}, writing a report to screen
 \item[{\tt myMetaData.merge}] A bundled merge directive for Bazaar containing the committed source changeset used to build \glc\. This can be applied to a \glc\ checkout using the {\tt bzr merge} command;
 \item[{\tt myMetaData.patch}] A bundled {\tt diff} of the \glc\ source against the committed source. This can be applied to a \glc\ checkout (after applying {\tt myMetaData.merge}) using the {\tt bzr patch} command.
 \end{description}
+
+\section{Perl Statistics Modules}\index{statistics!Perl modules}
+
+\glc\ provides some Perl modules which compute useful statistics. These are described below.
+
+\subsection{{\tt Statistics::Histograms}}\index{statistics!histograms}\index{histograms}
+
+The {\tt Statistics::Histograms} module computes histograms from a weighted set of points. The module provides a single function, which is used as follows:
+\begin{verbatim}
+(my $histogram, my $error) = 
+   &Histogram
+     (
+      $binCenters,
+      $values,
+      $weights,
+      normalized     => 1,
+      differential   => 1,
+      gaussianSmooth => $sigma
+     );
+\end{verbatim}
+Given a PDL, {\tt \$binCenters}, containing the positions of the bin centers, this function will construct a histogram of the points in the {\tt \$values} PDL, using weights as given by the {\tt \$weights} PDL. The histogram is returned as {\tt \$histogram} with Poisson errors in {\tt \$errors}. The function currently assumes that the bins are uniformly spaced.
+
+The following options are available:
+\begin{description}
+ \item [{\tt normalized}] [Default: {\tt 0}] If set to {\tt 1}, then the histogram will be normalized to sum to unity;
+ \item [{\tt differential}] [Default: {\tt 0}] If set to {\tt 1}, then the histogram will be divided through by the bin width, to make it differential;
+ \item[{\tt gaussianSmooth}] [Default: no smoothing] If present, this option must specify a PDL which gives, for each point, the value of $\sigma$ in a Gaussian smoothing to be applied to that point before it is added to the histogram. As such, each point will contribute a fraction of its weight to each bin in the histogram.
+\end{description}
