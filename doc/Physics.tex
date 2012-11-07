@@ -636,7 +636,11 @@ Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt haloMassFunction}, thi
 
 \subsubsection{Stellar Mass Function}
 
-Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt stellarMassFunction}, in this case the sampling density is chosen to give optimally minimal errors on the model stellar mass function (see \S\ref{sec:OptimalSamplingStellarMassFunction} for full details).
+Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt stellarMassFunction}, in this case the sampling density is chosen to give optimally minimal errors on the model stellar mass function (see \S\ref{sec:OptimalSamplingStellarMassFunction} for full details). This calculation requires the observational errors on the stellar mass function to be known. A simple model of the form
+\begin{equation}
+ \sigma^2(M) = \left[\phi_0 \left({M\over M_*}\right)^\alpha \exp\left(-\left[{M\over M_*}\right]^\beta\right)\right]^2 + \sigma_0^2
+\end{equation}
+is used to model the error, $\sigma(M)$, on the observed stellar mass function as a function of stellar mass, $M$, where $\phi_0=${\tt [haloMassFunctionSamplingStellarMassFunctionErrorPhi0]},$M_*=${\tt [haloMassFunctionSamplingStellarMassFunctionErrorMstar]},$\alpha=${\tt [haloMassFunctionSamplingStellarMassFunctionErrorAlpha]},$\beta=${\tt [haloMassFunctionSamplingStellarMassFunctionErrorBeta]}, and $\sigma_0=${\tt [haloMassFunctionSamplingStellarMassFunctionErrorConstant]}.
 
 \subsection{Spin Parameter Distribution}\label{sec:SpinParameterDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
 
