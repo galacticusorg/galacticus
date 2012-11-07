@@ -158,6 +158,13 @@ The method used to compute the critical linear overdensity at which overdense re
 
 Selected with {\tt criticalOverdensityMethod}$=${\tt sphericalTopHat} this method calculates critical overdensity using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
 
+\subsubsection{Kitayama \& Suto (1996)}
+
+Selected with {\tt criticalOverdensityMethod}$=${\tt Kitayama-Suto1996} this method calculates critical overdensity using the fitting formula of \cite{kitayama_semianalytic_1996}, and so is valid only in flat cosmological models (an error will be reported in non-flat models). Specifically,
+\begin{equation}
+ \delta_{\rm crit} (t) = {3 (12 \pi)^{2/3} \over 20} [1 + 0.0123 \log_{10}\left\{\Omega_{\rm matter}(t)\right\}]/D(t).
+\end{equation}
+
 \subsection{Critical Overdensity Mass Scaling}\index{critical density!mass scaling}
 
 The method used to compute the scaling with mass of the critical linear overdensity at which overdense regions virialize is selected via the {\tt criticalOverdensityMassScalingMethod} parameter.
@@ -197,6 +204,13 @@ Selected with {\tt virialDensityContrastMethod}$=${\tt fixed} this method uses a
 \subsubsection{Spherical Collapse (Matter + Cosmological Constant)}
 
 Selected with {\tt virialDensityContrastMethod}$=${\tt sphericalTopHat} this method calculates virial density contrast using a spherical top-hat collapse model assuming a Universe which contains matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
+
+\subsubsection{Kitayama \& Suto (1996)}
+
+Selected with {\tt virialDensityContrastMethod}$=${\tt Kitayama-Suto1996} this method calculates virial density contrast using the fitting formula of \cite{kitayama_semianalytic_1996}, and so is valid only in flat cosmological models (an error will be reported in non-flat models). Specifically,
+\begin{equation}
+ \Delta_{\rm virial}(t) = 18 \pi^2 [1+0.4093 \left\{{1\over \Omega_{\rm matter}(t)}-1\right\}(t)^{0.9052}].
+\end{equation}
 
 \subsection{Halo Bias}\index{halo bias}\index{dark matter halos!bias}\index{bias!halo}
 
