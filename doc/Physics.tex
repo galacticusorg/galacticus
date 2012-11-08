@@ -118,6 +118,22 @@ R_{\rm s} &=& \beta R_{\rm th},
 \end{eqnarray}
 where $\beta=${\tt [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
 
+\subsection{Non-linear Matter Power Spectrum}\index{power spectrum!non-linear}
+
+The non-linear matter power spectrum method is selected via the {\tt powerSpectrumNonlinearMethod} parameter.
+
+\subsubsection{Linear}
+
+Selected via {\tt powerSpectrumNonlinearMethod}$=${\tt linear}, this method simply returns the linear matter power spectrum. It is intended primarily for testing purposes.
+
+\subsubsection{Peacock \& Dodds (1996)}
+
+Selected via {\tt powerSpectrumNonlinearMethod}$=${\tt Peacock-Dodds1996}, this method usese the fitting function of \cite{peacock_non-linear_1996} to compute the non-linear matter power spectrum.
+
+\subsubsection{CosmicEmu}
+
+Selected via {\tt powerSpectrumNonlinearMethod}$=${\tt CosmicEmu}, this method usese the cosmic emulator (``CosmicEmu'') code of \cite{lawrence_coyote_2010} to evaluate the non-linear matter power spectrum. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is utilized.
+
 \subsection{Transfer Function}\label{sec:TransferFunction}\index{transfer function}
 
 The functional form of the cold dark matter transfer function is selected via the {\tt transferFunctionMethod} parameter. The power spectrum is computed from the specified transfer function and the primordial power spectrum (see \S\ref{sec:PrimordialPowerSpectrum}) and normalized to a value of $\sigma_8$ specified by {\tt [sigma\_8]}.
