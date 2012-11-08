@@ -25,7 +25,7 @@ module Node_Component_Disk_Very_Simple
   private
   public :: Node_Component_Disk_Very_Simple_Post_Evolve  , Node_Component_Disk_Very_Simple_Rate_Compute         , &
        &    Node_Component_Disk_Very_Simple_Scale_Set    , Node_Component_Disk_Very_Simple_Satellite_Merging    , &
-       &    Node_Component_Disk_Very_Simple_Enclosed_Mass
+       &    Node_Component_Disk_Very_Simple_Enclosed_Mass, Node_Component_Disk_Very_Simple_Initialize
 
   !# <component>
   !#  <class>disk</class>
@@ -54,18 +54,48 @@ module Node_Component_Disk_Very_Simple
   !# </component>
 
   ! Record of whether this module has been initialized.
-  logical :: moduleInitialized=.false.
+  logical            :: moduleInitialized=.false.
+
+  ! Parameters controlling the physical implementation.
+  double precision   :: diskOutflowTimescaleMinimum,diskStarFormationTimescaleMinimum
 
 contains
   
+  !# <mergerTreePreTreeConstructionTask>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Initialize</unitName>
+  !# </mergerTreePreTreeConstructionTask>
   subroutine Node_Component_Disk_Very_Simple_Initialize()
     !% Initializes the tree node very simple disk component module.
+    use Input_Parameters
     implicit none
     type(nodeComponentDiskVerySimple) :: diskVerySimpleComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
-    if (.not.moduleInitialized) then
+    if (defaultDiskComponent%verySimpleIsActive().and..not.moduleInitialized) then
+       ! Read parameters controlling the physical implementation.
+       !@ <inputParameter>
+       !@   <name>diskOutflowTimescaleMinimum</name>
+       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the disk.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskOutflowTimescaleMinimum',diskOutflowTimescaleMinimum,defaultValue=1.0d-3)
+       !@ <inputParameter>
+       !@   <name>diskStarFormationTimescaleMinimum</name>
+       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the disk.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskStarFormationTimescaleMinimum',diskStarFormationTimescaleMinimum,defaultValue=1.0d-3)
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()
        ! Record that the module is now initialized.
@@ -144,6 +174,7 @@ contains
     !% Compute the very simple disk node mass rate of change.
     use Star_Formation_Feedback_Disks
     use Stellar_Feedback
+    use Dark_Matter_Halo_Scales
     implicit none
     type     (treeNode             ), pointer, intent(inout) :: thisNode
     class    (nodeComponentDisk    ), pointer                :: thisDiskComponent
@@ -152,7 +183,7 @@ contains
     procedure(                     ), pointer, intent(inout) :: interruptProcedureReturn
     procedure(                     ), pointer                :: interruptProcedure
     double precision                                         :: starFormationRate,fuelMass ,massOutflowRate,gasMass,diskMass&
-         &,energyInputRate
+         &,energyInputRate,diskDynamicalTime
   
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
@@ -176,6 +207,9 @@ contains
           ! Get the masses of the disk.
           gasMass =        thisDiskComponent%massGas    ()
           diskMass=gasMass+thisDiskComponent%massStellar()
+          ! Limit the outflow rate timescale to a multiple of the dynamical time.
+          diskDynamicalTime=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+          massOutflowRate=min(massOutflowRate,gasMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
           ! Push to the hot halo.
           thisHotHaloComponent => thisNode%hotHalo()
           call thisHotHaloComponent%outflowingMassRate(+massOutflowRate)
@@ -195,7 +229,7 @@ contains
     implicit none
     type (treeNode         ), pointer, intent(inout) :: thisNode
     class(nodeComponentDisk), pointer                :: thisDiskComponent
-    double precision        , parameter              :: massMinimum=1.0d0
+    double precision        , parameter              :: massMinimum=100.0d0
     double precision                                 :: mass
 
     ! Get the disk component.
@@ -330,16 +364,21 @@ contains
   double precision function Node_Component_Disk_Very_Simple_SFR(thisNode)
     !% Return the star formation rate of the very simple disk.
     use Star_Formation_Timescales_Disks
+    use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode          ), pointer, intent(inout) :: thisNode
     class(nodeComponentDisk ), pointer                :: thisDiskComponent
-    double precision                                  :: starFormationTimescale,gasMass
+    double precision                                  :: starFormationTimescale,gasMass,diskDynamicalTime
 
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
 
     ! Get the star formation timescale.
     starFormationTimescale=Star_Formation_Timescale_Disk(thisNode)
+    
+    ! Limit the star formation timescale to a multiple of the dynamical time.
+    diskDynamicalTime=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+    starFormationTimescale=max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
        
     ! Get the gas mass.
     gasMass=thisDiskComponent%massGas()

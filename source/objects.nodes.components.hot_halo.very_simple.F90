@@ -25,7 +25,8 @@ module Node_Component_Hot_Halo_Very_Simple
   public :: Node_Component_Hot_Halo_Very_Simple_Reset           , Node_Component_Hot_Halo_Very_Simple_Rate_Compute   , &
        &    Node_Component_Hot_Halo_Very_Simple_Scale_Set       , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize, &
        &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merger, Node_Component_Hot_Halo_Very_Simple_Promote        , &
-       &    Node_Component_Hot_Halo_Very_Simple_Density
+       &    Node_Component_Hot_Halo_Very_Simple_Density         , Node_Component_Hot_Halo_Very_Simple_Post_Evolve    , &
+       &    Node_Component_Hot_Halo_Very_Simple_Node_Merger
   
   !# <component>
   !#  <class>hotHalo</class>
@@ -134,7 +135,7 @@ contains
     procedure(                              ), intent(inout), optional, pointer :: interruptProcedure
     
     ! Funnel the outflow gas into the hot halo.
-    call self%outflowedMassRate(rate)
+    call self%massRate(rate)
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate
   
@@ -174,7 +175,7 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode            ), pointer, intent(inout) :: thisNode
-    double precision           , parameter              :: scaleMassRelative=1.0d-3
+    double precision           , parameter              :: scaleMassRelative=1.0d-2
     class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
     class(nodeComponentBasic  ), pointer                :: thisBasicComponent
     double precision                                    :: massVirial
@@ -297,7 +298,7 @@ contains
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
        ! promotion.
        select type (parentHotHaloComponent)
-       class is (nodeComponentHotHaloStandard)
+       class is (nodeComponentHotHaloVerySimple)
           call thisHotHaloComponent%massSet(                               &
                &                               thisHotHaloComponent%mass() &
                &                            +parentHotHaloComponent%mass() &
@@ -306,6 +307,62 @@ contains
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Promote
+
+  !# <postEvolveTask>
+  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Post_Evolve</unitName>
+  !# </postEvolveTask>
+  subroutine Node_Component_Hot_Halo_Very_Simple_Post_Evolve(thisNode)
+    !% Do processing of the node required after evolution.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type (treeNode            ), pointer, intent(inout) :: thisNode
+    type (treeNode            ), pointer                :: parentNode
+    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,parentHotHaloComponent
+
+    ! Get the hot halo component.
+    thisHotHaloComponent => thisNode%hotHalo()
+    select type (thisHotHaloComponent)
+    class is (nodeComponentHotHaloVerySimple)
+       ! Check if this node is a satellite.
+       if (thisNode%isSatellite()) then
+          ! Transfer any outflowed gas to the hot halo of the parent node.
+          parentNode => thisNode%parent
+          do while (parentNode%isSatellite())
+             parentNode => parentNode%parent
+          end do
+          parentHotHaloComponent => parentNode%hotHalo()       
+          call parentHotHaloComponent%massSet(parentHotHaloComponent%mass()+thisHotHaloComponent%mass())
+          call   thisHotHaloComponent%massSet(                                                    0.0d0)
+       end if
+    end select
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_Post_Evolve
+
+  !# <nodeMergerTask>
+  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Node_Merger</unitName>
+  !# </nodeMergerTask>
+  subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(thisNode)
+    !% Starve {\tt thisNode} by transferring its hot halo to its parent.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type (treeNode            ), pointer, intent(inout) :: thisNode
+    type (treeNode            ), pointer                :: parentNode
+    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,parentHotHaloComponent
+    
+    ! Get the hot halo component.
+    thisHotHaloComponent => thisNode%hotHalo()
+    select type (thisHotHaloComponent)
+    class is (nodeComponentHotHaloVerySimple)
+       ! Find the parent node and its hot halo component.
+       parentNode => thisNode%parent
+       parentHotHaloComponent => parentNode%hotHalo()       
+       ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate
+       ! to this hot halo (and will be moved to the parent at the end of the evolution timestep).
+       call parentHotHaloComponent%massSet(parentHotHaloComponent%mass()+thisHotHaloComponent%mass())
+       call   thisHotHaloComponent%massSet(                                                    0.0d0)
+    end select
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Cooling_Rate(thisNode)
     !% Get and store the cooling rate for {\tt thisNode}.

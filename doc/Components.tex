@@ -231,11 +231,11 @@ In the very simple hot halo implementation the hot gas mass and heavy element ma
  \dot{M}_{\rm hot} = - \dot{M}_{\rm cooling} + \dot{M}_{\rm outflow},
 \end{equation}
 where $\dot{M}_{\rm cooling}$ is the rate of mass loss from the hot halo due to cooling (see \S\ref{sec:CoolingRate}.
-In the above $\dot{M}_{\rm outflow}$ is the net rate of outflow from any components in the node.
+In the above $\dot{M}_{\rm outflow}$ is the net rate of outflow from any components in the node. For satellite galaxies, the outflow is instead directed to the hot halo of the host \gls{node}.
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} None.\\
+\noindent\emph{Node mergers:} Any hot gas from the merging halo is transferred to its host halo.\\
 
 \noindent\emph{Satellite merging:} Any hot halo of the satellite \gls{node} is added to that of the host \gls{node} and the hot halo \gls{component} removed from the satellite node.\\
 
@@ -343,7 +343,7 @@ This implementation assumes a disk with no structural properties---it consists o
 
 \subsubsection{Properties}
 
-The exponential galactic disk implementation defines the following properties:
+The very simple galactic disk implementation defines the following properties:
 \begin{description}
  \item [{\tt Disk\_Gas\_Mass}] The mass of gas in the disk: $M_{\rm disk, gas}$ [{\tt diskGasMass}];
  \item [{\tt Disk\_Stellar\_Mass}] The mass of stars in the disk: $M_{\rm disk, stars}$ [{\tt diskStellarMass}].
@@ -355,7 +355,7 @@ No initialization is performed---disks are created as needed.
 
 \subsubsection{Differential Evolution}
 
-In the exponential galactic disk implementation the gas mass evolves as:
+In the very simple galactic disk implementation the gas mass evolves as:
 \begin{equation}
  \dot{M}_{\rm disk, gas} = \dot{M}_{\rm cooling} - \dot{M}_{\rm outflow, disk} - \dot{M}_{\rm stars, disk},
 \end{equation}
@@ -367,7 +367,7 @@ with
 \begin{equation}
  \Psi = {M_{\rm disk, gas} \over \tau_{\rm disk, star~formation}}
 \end{equation}
-with $\tau_{\rm disk, star~formation}$ being the star formation timescale. The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the prescriptions for non-expulsive supernova feedback (see \S\ref{sec:sneFeedback}) and is piped to the hot halo component.
+with $\tau_{\rm disk, star~formation}$ being the greater of the star formation timescale and $\Gamma_{\rm disk, star formation, minimum} \tau_{\rm dyn}$, where $\tau_{\rm dyn}$ is the dynamical time of the halo, and $\Gamma_{\rm disk, star formation, minimum}=${\tt [diskStarFormationTimescaleMinimum]}. The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the prescriptions for non-expulsive supernova feedback (see \S\ref{sec:sneFeedback}), but is limited to a maximum of $M_{\rm disk, gas}/ \Gamma_{\rm disk, outflow, minimum} \tau_{\rm dyn}$, where $\Gamma_{\rm disk, outflow, minimum}=${\tt [diskOutflowTimescaleMinimum]}. This outflow is piped to the hot halo component.
 
 \subsubsection{Event Evolution}
 
