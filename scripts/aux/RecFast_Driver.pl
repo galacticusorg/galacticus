@@ -6,8 +6,8 @@ use File::Copy;
 use Data::Dumper;
 use DateTime;
 my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
