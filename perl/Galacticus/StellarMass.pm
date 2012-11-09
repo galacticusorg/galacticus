@@ -21,10 +21,10 @@ sub Get_StellarMass {
     # Decide which datasets to get.
     my @dataSetsRequired = ( "nodeIndex" );
     my @stellarMassComponents;
-    push(@stellarMassComponents,"diskStellarMass"    )
-	if ( exists($model->{'dataSetsAvailable'}->{'diskStellarMass'    }) );
-    push(@stellarMassComponents,"spheroidStellarMass")
-	if ( exists($model->{'dataSetsAvailable'}->{'spheroidStellarMass'}) );
+    push(@stellarMassComponents,"diskMassStellar"    )
+	if ( exists($model->{'dataSetsAvailable'}->{'diskMassStellar'    }) );
+    push(@stellarMassComponents,"spheroidMassStellar")
+	if ( exists($model->{'dataSetsAvailable'}->{'spheroidMassStellar'}) );
     push(@dataSetsRequired,@stellarMassComponents);
 
     # Get the datasets.
