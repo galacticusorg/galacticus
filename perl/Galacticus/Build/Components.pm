@@ -164,6 +164,8 @@ sub Components_Generate_Output {
 	    \&Generate_GSR_Functions                                 ,
 	    # Insert code for type-definitions.
 	    \&Insert_Type_Definitions                                ,
+	    # Generate module status.
+	    \&Generate_Initialization_Status                         ,
 	    # Generate objects that record which type of component will be used by default.
 	    \&Generate_Default_Component_Sources                     ,
 	    # Generate records of which component implementations are selected.
@@ -1235,7 +1237,15 @@ sub Generate_Default_Component_Sources{
     $buildData->{'content'} .= $recordTable->table()."\n";
 }
 
-sub Generate_Tree_Node_Object{
+sub Generate_Initialization_Status {
+    # Generate a variable that stores initialization status..
+    my $buildData = shift;
+    # Insert into the document.
+    $buildData->{'content'} .= "  ! Record of module initialization status.\n";
+    $buildData->{'content'} .= "  logical :: moduleIsInitialized=.false.\n";
+}
+
+sub Generate_Tree_Node_Object {
     # Generate the treeNode object.
     my $buildData = shift;
 
@@ -1343,6 +1353,9 @@ sub Generate_Initialization_Function {
     	}
     }
     $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    # Check for already initialized.
+    $functionCode .= "   !\$omp critical (Galacticus_Nodes_Initialize)\n";
+    $functionCode .= "   if (.not.moduleIsInitialized) then\n";
     # Iterate over all component classes.
     $buildData->{'content'} .= "  ! Parameters controlling output.\n\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
@@ -1395,6 +1408,10 @@ sub Generate_Initialization_Function {
     	$functionCode .= "    end if\n";
     }
     $buildData->{'content'} .= "\n";
+    $functionCode .= "      ! Record that the module is now initialized.\n";
+    $functionCode .= "      moduleIsInitialized=.true.\n";
+    $functionCode .= "    end if\n";
+    $functionCode .= "    !\$omp end critical (Galacticus_Nodes_Initialize)\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Galacticus_Nodes_Initialize\n";	
     # Insert into the function list.
@@ -1430,6 +1447,7 @@ sub Generate_Finalization_Function {
     $functionCode .= "  subroutine Galacticus_Nodes_Finalize()\n";
     $functionCode .= "    !% Finialize the \\glc\\ object system.\n";
     $functionCode .= "    implicit none\n\n";
+    $functionCode .= "    if (.not.moduleIsInitialized) return\n";
     $functionCode .= $table->table();
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Galacticus_Nodes_Finalize\n";
