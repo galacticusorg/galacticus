@@ -39,7 +39,7 @@ sub Histogram {
 	    $histogram +=  $weights(($i))*$fraction    ;
 	    $errors    += ($weights(($i))*$fraction)**2;
 	}
-	
+	$errors .= sqrt($errors);
     } else {
 	# Use direct binning.
 	# Loop through bins.
