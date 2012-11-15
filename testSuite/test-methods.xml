@@ -291,23 +291,28 @@
   <parameters>
     <parameter>
       <name>starFormationTimescaleDisksMethod</name>
-      <value>Kennicutt-Schmidt
+      <value>dynamicalTime</value>
+      <value>integratedSurfaceDensity
+      <parameter>
+	<name>starFormationRateSurfaceDensityDisksMethod</name>
+	<value>Kennicutt-Schmidt
         <parameter>
 	  <name>starFormationKennicuttSchmidtTruncate</name>
 	  <value>true</value>
 	  <value>false</value>
         </parameter>
-      </value>
-      <value>dynamicalTime</value>
-      <value>Blitz-Rosolowsky2006</value>
-      <value>KMT09
+	</value>
+	<value>Blitz-Rosolowsky2006</value>
+	<value>KMT09
         <parameter>
 	  <name>molecularFractionFastKMT09</name>
 	  <value>false</value>
 	  <value>true</value>
         </parameter>
+	</value>
+	<value>extendedSchmidt</value>
+	</parameter>
       </value>
-      <value>extendedSchmidt</value>
       <value>Baugh2005</value>
     </parameter>
   </parameters>
@@ -499,6 +504,15 @@
     </parameter>
   </parameters>
   
+  <!-- Star formation feedback. -->
+  <parameters>
+    <parameter>
+      <name>starFormationFeedbackDisksMethod</name>
+      <value>powerLaw</value>
+      <value>Creasey2012</value>
+    </parameter>
+  </parameters>
+
   <!-- Expulsive feedback. -->
   <parameters>
     <parameter>

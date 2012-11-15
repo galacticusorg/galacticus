@@ -1410,6 +1410,82 @@ Selected with {\tt chemicalReactionRatesMethods}$=${\tt null} this is a null met
 
 Selected with {\tt chemicalReactionRatesMethods}$=${\tt hydrogenNetwork} this method computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\tt [hydrogenNetworkFast]} controls the approximations made. If set {\tt true} then H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
 
+\section{Star Formation Rate Surface Densities}\label{sec:StarFormationRateSurfaceDensity}\index{star formation!rate!surface density}
+
+The method for computing surface densities of star formation rate in disks is selected via {\tt starFormationRateSurfaceDensityDisksMethod}.
+
+\subsection{Kennicutt-Schmidt}\label{sec:StarFormationKennicuttSchmidt}\index{star formation!Kennicutt-Schmidt law}
+
+Selected with {\tt starFormationRateSurfaceDensityDisksMethod}$=${\tt Kennicutt-Schmidt} this method assumes that the Kennicutt-Schmidt law holds \citep{schmidt_rate_1959,kennicutt_global_1998}:
+\begin{equation}
+\dot{\Sigma}_\star = A \left({\Sigma_{\rm H} \over M_\odot \hbox{pc}^{-2}} \right)^N,
+\end{equation}
+where $A=${\tt [starFormationKennicuttSchmidtNormalization]} and $N=${\tt [starFormationKennicuttSchmidtExponent]} are parameters. Optionally, if the {\tt [starFormationKennicuttSchmidtTruncate]} parameter is set to true, then the star formation rate is truncated below a critical surface density such that
+\begin{equation}
+\dot{\Sigma}_\star = \left\{ \begin{array}{ll} A \left({\Sigma_{\rm H} \over M_\odot \hbox{pc}^{-2}} \right)^N & \hbox{ if } \Sigma_{\rm gas,disk} > \Sigma_{\rm crit} \\ A \left({\Sigma_{\rm H} \over M_\odot \hbox{pc}^{-2}} \right)^N \left(\Sigma_{\rm gas,disk}/\Sigma_{\rm crit}\right)^\alpha & \hbox{ otherwise.} \end{array} \right.
+\end{equation}
+Here, $\alpha=${\tt [starFormationKennicuttSchmidtExponentTruncated]} and $\Sigma_{\rm crit}$ is a critical surface density for star formation which we specify as
+\begin{equation}
+\Sigma_{\rm crit} = {q_{\rm crit} \kappa \sigma_{\rm gas} \over \pi \G},
+\end{equation}
+where $\kappa$ is the epicyclic frequency in the disk, $\sigma_{\rm gas}$ is the velocity dispersion of gas in the disk and $q_{\rm crit}=${\tt [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical density occurs. We assume that $\sigma_{\rm gas}$ is a constant equal to {\tt [velocityDispersionDiskGas]} and that the disk has a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
+
+\subsection{Extended Schmidt}\label{sec:StarFormationExtendedSchmidt}\index{star formation!extended Schmidt law}
+
+Selected with {\tt starFormationRateSurfaceDensityDisksMethod}$=${\tt extendedSchmidt} this method assumes that the extended Schmidt law holds \citep{shi_extended_2011}:
+\begin{equation}
+\dot{\Sigma}_\star = A \left(x_{\rm H} {\Sigma_{\rm gas}\over M_\odot \hbox{pc}^{-2}}\right)^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2}
+\end{equation}
+where $A=${\tt [starFormationExtendedSchmidtNormalization]}, $N_1=${\tt
+[starFormationExtendedSchmidtGasExponent]} and $N_2=${\tt [starFormationExtendedSchmidtStarExponent]} are parameters.
+
+\subsection{Blitz-Rosolowsky}\label{sec:StarFormationBlitzRosolowsky}\index{star formation!Blitz-Rosolowsky rule}
+
+Selected with {\tt starFormationRateSurfaceDensityDisksMethod}$=${\tt Blitz-Rosolowsky2006} this method assumes that the star formation rate is given by \citep{blitz_role_2006}:
+\begin{equation}
+ \dot{\Sigma}_\star(R) = \nu_{\rm SF}(R) \Sigma_{\rm H_2, disk}(R),
+\end{equation}
+where $\nu_{\rm SF}$ is a frequency given by
+\begin{equation}
+ \nu_{\rm SF}(R) = \nu_{\rm SF,0} \left[ 1 + \left({\Sigma_{\rm HI}\over \Sigma_0}\right)^q \right],
+\end{equation}
+where $q=${\tt [surfaceDensityExponentBlitzRosolowsky]} and $\Sigma_0=${\tt [surfaceDensityCriticalBlitzRosolowsky]} are parameters and the surface density of molecular gas $\Sigma_{\rm H_2} = (P_{\rm ext}/P_0)^\alpha \Sigma_{\rm HI}$, where $\alpha=${\tt [pressureExponentBlitzRosolowsky]} and $P_0=${\tt [pressureCharacteristicBlitzRosolowsky]} are parameters and the hydrostatic pressure in the disk plane assuming location isothermal gas and stellar components is given by
+\begin{equation}
+ P_{\rm ext} \approx {\pi\over 2} \G \Sigma_{\rm gas} \left[ \Sigma_{\rm gas} + \left({\sigma_{\rm gas}\over \sigma_\star}\right)\Sigma_\star\right]
+\end{equation}
+where we assume that the velocity dispersion in the gas is fixed at $\sigma_{\rm gas}=${\tt [velocityDispersionDiskGas]} and, assuming $\Sigma_\star \gg \Sigma_{\rm gas}$, we can write the stellar velocity dispersion in terms of the disk scale height, $h_\star$, as
+\begin{equation}
+ \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
+\end{equation}
+where we assume $h_\star/R_{\rm disk}=${\tt [heightToRadialScaleDiskBlitzRosolowsky]}.
+
+\subsection{Krumholz-McKee-Tumlinson}\label{sec:StarFormationKMT09}\index{star formation!Krumholz-McKee-Tumlinson method}
+
+Selected with {\tt starFormationRateSurfaceDensityDisksMethod}$=${\tt KMT09} this method assumes that the star formation rate is given by \citep{krumholz_star_2009}:
+\begin{equation}
+ \dot{\Sigma}_\star(R) = \nu_{\rm SF} f_{\rm H_2}(R)\Sigma_{\rm HI, disk}(R) \left\{ \begin{array}{ll} (\Sigma_{\rm HI}/\Sigma_0)^{-1/3}, &  \hbox{ if } \Sigma_{\rm HI}/\Sigma_0 \le 1 \\ (\Sigma_{\rm HI}/\Sigma_0)^{1/3}, & \hbox{ if } \Sigma_{\rm HI}/\Sigma_0 > 1 \end{array} \right. ,
+\end{equation}
+where $\nu_{\rm SF}=${\tt [starFormationFrequencyKMT09]} is a frequency and $\Sigma_0=85 M_\odot \hbox{pc}^{-2}$. The molecular fraction is given by
+\begin{equation}
+ f_{\rm H_2} = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
+\end{equation}
+where
+\begin{equation}
+ \delta = 0.0712 \left[ 0.1 s^{-1} + 0.675 \right]^{-2.8},
+\end{equation}
+and
+\begin{equation}
+ s = {\ln(1+0.6\chi+0.01\chi^2) \over 0.04 \Sigma_{\rm comp,0} Z^\prime},
+\end{equation}
+with
+\begin{equation}
+ \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
+\end{equation}
+and $\Sigma_{\rm comp,0}=c \Sigma_{\rm HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\tt [molecularComplexClumpingFactorKMT09]} is a density enhancement factor relating the surface density of molecular complexes to the gas density on larger scales. Alternatively, if {\tt [molecularFractionFastKMT09]} is set to true, the molecular fraction will be computed using the faster (but less acccurate at low molecular fraction) formula
+\begin{equation}
+ f_{\rm H_2} = 1 - { 3s/4 \over (1 + s/4)}.
+\end{equation}
+
 \section{Star Formation Timescales}\index{star formation!timescale}
 
 The methods for computing star formation timescales in disks and spheroids are selected via the {\tt starFormationTimescaleDisksMethod} and {\tt starFormationTimescaleSpheroidsMethod} respectively.
@@ -1434,96 +1510,13 @@ Selected with {\tt starFormationTimescale[Disks|Spheroids]Method}$=${\tt dynamic
 \end{equation}
 where $\epsilon_\star=${\tt starFormation[Disks|Spheroids]Efficiency} and $\alpha_\star=${\tt starFormation[Disks|Spheroids]VelocityExponent} are input parameters, $\tau_{\rm dynamical}\equiv r/V$ is the dynamical timescale of the \gls{component} and $r$ and $V$ are the characteristic radius and velocity respectively of the component. The timescale is not allowed to fall below a minimum value specified by {\tt starFormation[Disks|Spheroids]MinimumTimescale} (in Gyr).
 
-\subsection{Kennicutt-Schmidt}\label{sec:StarFormationKennicuttSchmidt}\index{star formation!Kennicutt-Schmidt law}
+\subsection{Integrated Surface Density}
 
-Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt Kennicutt-Schmidt} this method assumes that the Kennicutt-Schmidt law holds \citep{schmidt_rate_1959,kennicutt_global_1998}:
+Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt integratedSurfaceDensity} this method computes the star formation timescale to be:
 \begin{equation}
-\dot{\Sigma}_\star = A \left({\Sigma_{\rm H} \over M_\odot \hbox{pc}^{-2}} \right)^N,
+ \tau_\star =  {M_{\rm cold} \over \int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) {\rm d}r},
 \end{equation}
-where $A=${\tt [starFormationKennicuttSchmidtNormalization]} and $N=${\tt [starFormationKennicuttSchmidtExponent]} are parameters. Optionally, if the {\tt [starFormationKennicuttSchmidtTruncate]} parameter is set to true, then the star formation rate is truncated below a critical surface density such that
-\begin{equation}
-\dot{\Sigma}_\star = \left\{ \begin{array}{ll} A \left({\Sigma_{\rm H} \over M_\odot \hbox{pc}^{-2}} \right)^N & \hbox{ if } \Sigma_{\rm gas,disk} > \Sigma_{\rm crit} \\ A \left({\Sigma_{\rm H} \over M_\odot \hbox{pc}^{-2}} \right)^N \left(\Sigma_{\rm gas,disk}/\Sigma_{\rm crit}\right)^\alpha & \hbox{ otherwise.} \end{array} \right.
-\end{equation}
-Here, $\alpha=${\tt [starFormationKennicuttSchmidtExponentTruncated]} and $\Sigma_{\rm crit}$ is a critical surface density for star formation which we specify as
-\begin{equation}
-\Sigma_{\rm crit} = {q_{\rm crit} \kappa \sigma_{\rm gas} \over \pi \G},
-\end{equation}
-where $\kappa$ is the epicyclic frequency in the disk, $\sigma_{\rm gas}$ is the velocity dispersion of gas in the disk and $q_{\rm crit}=${\tt [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical density occurs. We assume that $\sigma_{\rm gas}$ is a constant equal to {\tt [velocityDispersionDiskGas]} and that the disk has a flat rotation curve such that $\kappa = \sqrt{2} V/R$. The integrated star formation rate over the disk is then
-\begin{equation}
-\Psi = 2 \pi \int_0^\infty \dot{\Sigma}_\star(R) R \d R.
-\end{equation}
-From this the star formation timescale is found through the definition $\tau_\star \equiv M_{\rm gas, disk}/\Psi$.
-
-\subsection{Extended Schmidt}\label{sec:StarFormationExtendedSchmidt}\index{star formation!extended Schmidt law}
-
-Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt extendedSchmidt} this method assumes that the xtended Schmidt law holds \citep{shi_extended_2011}:
-\begin{equation}
-\dot{\Sigma}_\star = A \left(x_{\rm H} {\Sigma_{\rm gas}\over M_\odot \hbox{pc}^{-2}}\right)^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2}
-\end{equation}
-where $A=${\tt [starFormationExtendedSchmidtNormalization]}, $N_1=${\tt
-[starFormationExtendedSchmidtGasExponent]} and $N_2=${\tt [starFormationExtendedSchmidtStarExponent]} are parameters. 
-
-The integrated star formation rate over the disk is then
-\begin{equation}
-\Psi = 2 \pi \int_0^\infty \dot{\Sigma}_\star(R) R \d R.
-\end{equation}
-From this the star formation timescale is found through the definition $\tau_\star \equiv M_{\rm gas, disk}/\Psi$.
-
-\subsection{Blitz-Rosolowsky}\label{sec:StarFormationBlitzRosolowsky}\index{star formation!Blitz-Rosolowsky rule}
-
-Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt Blitz-Rosolowsky2006} this method assumes that the star formation rate is given by \citep{blitz_role_2006}:
-\begin{equation}
- \dot{\Sigma}_\star(R) = \nu_{\rm SF}(R) \Sigma_{\rm H_2, disk}(R),
-\end{equation}
-where $\nu_{\rm SF}$ is a frequency given by
-\begin{equation}
- \nu_{\rm SF}(R) = \nu_{\rm SF,0} \left[ 1 + \left({\Sigma_{\rm HI}\over \Sigma_0}\right)^q \right],
-\end{equation}
-where $q=${\tt [surfaceDensityExponentBlitzRosolowsky]} and $\Sigma_0=${\tt [surfaceDensityCriticalBlitzRosolowsky]} are parameters and the surface density of molecular gas $\Sigma_{\rm H_2} = (P_{\rm ext}/P_0)^\alpha \Sigma_{\rm HI}$, where $\alpha=${\tt [pressureExponentBlitzRosolowsky]} and $P_0=${\tt [pressureCharacteristicBlitzRosolowsky]} are parameters and the hydrostatic pressure in the disk plane assuming location isothermal gas and stellar components is given by
-\begin{equation}
- P_{\rm ext} \approx {\pi\over 2} \G \Sigma_{\rm gas} \left[ \Sigma_{\rm gas} + \left({\sigma_{\rm gas}\over \sigma_\star}\right)\Sigma_\star\right]
-\end{equation}
-where we assume that the velocity dispersion in the gas is fixed at $\sigma_{\rm gas}=${\tt [velocityDispersionDiskGas]} and, assuming $\Sigma_\star \gg \Sigma_{\rm gas}$, we can write the stellar velocity dispersion in terms of the disk scale height, $h_\star$, as
-\begin{equation}
- \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
-\end{equation}
-where we assume $h_\star/R_{\rm disk}=${\tt [heightToRadialScaleDiskBlitzRosolowsky]}. The star formation rate integated over the disk is
-\begin{equation}
- \Psi = \int_0^\infty 2 \pi R \dot{\Sigma}_\star(R) \d R.
-\end{equation}
-From this the star formation timescale is found through the definition $\tau_\star \equiv M_{\rm gas, disk}/\Psi$.
-
-\subsection{Krumholz-McKee-Tumlinson}\label{sec:StarFormationKMT09}\index{star formation!Krumholz-McKee-Tumlinson method}
-
-Selected with {\tt starFormationTimescaleDisksMethod}$=${\tt KMT09} this method assumes that the star formation rate is given by \citep{krumholz_star_2009}:
-\begin{equation}
- \dot{\Sigma}_\star(R) = \nu_{\rm SF} f_{\rm H_2}(R)\Sigma_{\rm HI, disk}(R) \left\{ \begin{array}{ll} (\Sigma_{\rm HI}/\Sigma_0)^{-1/3}, &  \hbox{ if } \Sigma_{\rm HI}/\Sigma_0 \le 1 \\ (\Sigma_{\rm HI}/\Sigma_0)^{1/3}, & \hbox{ if } \Sigma_{\rm HI}/\Sigma_0 > 1 \end{array} \right. ,
-\end{equation}
-where $\nu_{\rm SF}=${\tt [starFormationFrequencyKMT09]} is a frequency and $\Sigma_0=85 M_\odot \hbox{pc}^{-2}$. The molecular fraction is given by
-\begin{equation}
- f_{\rm H_2} = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
-\end{equation}
-where
-\begin{equation}
- \delta = 0.0712 \left[ 0.1 s^{-1} + 0.675 \right]^{-2.8},
-\end{equation}
-and
-\begin{equation}
- s = {\ln(1+0.6\chi+0.01\chi^2) \over 0.04 \Sigma_{\rm comp,0} Z^\prime},
-\end{equation}
-with
-\begin{equation}
- \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
-\end{equation}
-and $\Sigma_{\rm comp,0}=c \Sigma_{\rm HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\tt [molecularComplexClumpingFactorKMT09]} is a density enhancement factor relating the surface density of molecular complexes to the gas density on larger scales. Alternatively, if {\tt [molecularFractionFastKMT09]} is set to true, the molecular fraction will be computed using the faster (but less acccurate at low molecular fraction) formula
-\begin{equation}
- f_{\rm H_2} = 1 - { 3s/4 \over (1 + s/4)}.
-\end{equation}
-The star formation rate integated over the disk is
-\begin{equation}
- \Psi = \int_0^\infty 2 \pi R \dot{\Sigma}_\star(R) \d R.
-\end{equation}
-From this the star formation timescale is found through the definition $\tau_\star \equiv M_{\rm gas, disk}/\Psi$.
+where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate (see \S\ref{sec:StarFormationRateSurfaceDensity}).
 
 \subsection{Baugh et al. (2005)}
 
@@ -1756,6 +1749,14 @@ Selected with {\tt starFormationFeedback[Disks|Spheroids]Method}$=${\tt powerLaw
  \dot{M}_{\rm outflow} = \left({V_{\rm outflow} \over V}\right)^{\alpha_{\rm outflow}} {\dot{E} \over E_{\rm canonical}},
 \end{equation}
 where $V_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} (in km/s) and $\alpha_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+
+\subsection{Creasey et al. (2012)}
+
+Selected with {\tt starFormationFeedbackDisksMethod}$=${\tt Creasey2012}, this method computes the outflow rate using the model of \cite{creasey_how_2012}. Specifically,
+\begin{equation}
+\dot{M}_{\rm outflow} = {\dot{E}_{\rm SN} \over E_{\rm SN} \dot{M}_\star} \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_{\rm g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r {\rm d}r,
+\end{equation}
+where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_{\rm g}(r)$ is the gas fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\dot{M}_\star$ is the total star formation rate in the disk, $\dot{E}_{\rm SN}$ is the current energy input rate from supernovae, $E_{\rm SN}$ is the total energy input per unit mass from a stellar population after infinite time, $\beta_0=${\tt [starFormationFeedbackDisksCreasy2012Beta0]}, $\mu=${\tt [starFormationFeedbackDisksCreasy2012Mu]}, and $\nu=${\tt [starFormationFeedbackDisksCreasy2012Nu]}.
 
 \section{Supernovae Expulsive Feedback Models}\label{sec:sneExpulsiveFeedback}\index{supernovae!feedback}\index{feedback!expulsive}
 

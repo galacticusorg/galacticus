@@ -322,6 +322,10 @@
   <!-- Star formation rate options -->
   <parameter>
     <name>starFormationTimescaleDisksMethod</name>
+    <value>integratedSurfaceDensity</value>
+  </parameter>
+  <parameter>
+    <name>starFormationRateSurfaceDensityDisksMethod</name>
     <value>KMT09</value>
   </parameter>
   <parameter>

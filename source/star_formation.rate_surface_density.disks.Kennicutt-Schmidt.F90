@@ -15,48 +15,65 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the Kennicutt-Schmidt star formation timescale for galactic disks.
+!% Contains a module which implements the Kennicutt-Schmidt star formation rate surface density for galactic disks.
 
-module Star_Formation_Timescale_Disks_Kennicutt_Schmidt
-  !% Implements the Kennicutt-Schmidt star formation timescale for galactic disks.
+module Star_Formation_Rate_Surface_Density_Disks_KS
+  !% Implements the Kennicutt-Schmidt star formation rate surface density for galactic disks.
   use Galacticus_Nodes
+  use Kind_Numbers
   implicit none
   private
-  public :: Star_Formation_Timescale_Disks_Kennicutt_Schmidt_Initialize
+  public :: Star_Formation_Rate_Surface_Density_Disks_KS_Reset,&
+       & Star_Formation_Rate_Surface_Density_Disks_KS_Initialize
 
-  ! Internal copy of the number of abundances properties.
-  integer          :: abundancesCount
+  ! Record of unique ID of node which we last computed results for.
+  integer         (kind=kind_int8) :: lastUniqueID=-1
+  !$omp threadprivate(lastUniqueID)
 
+  ! Record of whether or not factors have been precomputed.
+  logical                          :: factorsComputed=.false.
+  !$omp threadprivate(factorsComputed)
+
+  ! Precomputed factors.
+  double precision                 :: criticalDensityFactor,hydrogenMassFraction
+  !$omp threadprivate(criticalDensityFactor,hydrogenMassFraction)
+  
   ! Parameters of the model.
-  double precision :: starFormationKennicuttSchmidtNormalization,starFormationKennicuttSchmidtExponent,velocityDispersionDiskGas&
-       &,toomreParameterCritical,starFormationKennicuttSchmidtExponentTruncated
-  logical          :: starFormationKennicuttSchmidtTruncate
-
-  ! Module global parameter used in root finding.
-  double precision :: criticalDensityFactor
-  !$omp threadprivate(criticalDensityFactor)
-
-  ! Pointer to active node used in integral functions, plus variables needed by integral function.
-  type(treeNode),   pointer :: activeNode
-  !$omp threadprivate(activeNode)
+  double precision                 :: starFormationKennicuttSchmidtNormalization,starFormationKennicuttSchmidtExponent&
+       &,velocityDispersionDiskGas ,toomreParameterCritical,starFormationKennicuttSchmidtExponentTruncated
+  logical                          :: starFormationKennicuttSchmidtTruncate
 
 contains
 
-  !# <starFormationTimescaleDisksMethod>
-  !#  <unitName>Star_Formation_Timescale_Disks_Kennicutt_Schmidt_Initialize</unitName>
-  !# </starFormationTimescaleDisksMethod>
-  subroutine Star_Formation_Timescale_Disks_Kennicutt_Schmidt_Initialize(starFormationTimescaleDisksMethod&
-       &,Star_Formation_Timescale_Disk_Get)
-    !% Initializes the ``Kennicutt-Schmidt'' disk star formation timescale module.
+  !# <calculationResetTask>
+  !# <unitName>Star_Formation_Rate_Surface_Density_Disks_KS_Reset</unitName>
+  !# </calculationResetTask>
+  subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Reset(thisNode)
+    !% Reset the Kennicutt-Schmidt relation calculation.
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    factorsComputed=.false.
+    lastUniqueID   =thisNode%uniqueID()
+    return
+  end subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Reset
+
+  !# <starFormationRateSurfaceDensityDisksMethod>
+  !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_KS_Initialize</unitName>
+  !# </starFormationRateSurfaceDensityDisksMethod>
+  subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Initialize(starFormationRateSurfaceDensityDisksMethod&
+       &,Star_Formation_Rate_Surface_Density_Disk_Get)
+    !% Initializes the ``Kennicutt-Schmidt'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
     use Abundances_Structure
+    use Numerical_Constants_Prefixes
     implicit none
-    type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
+    type     (varying_string  ),          intent(in   ) :: starFormationRateSurfaceDensityDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
     
-    if (starFormationTimescaleDisksMethod == 'Kennicutt-Schmidt') then
-       Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Kennicutt_Schmidt
+    if (starFormationRateSurfaceDensityDisksMethod == 'Kennicutt-Schmidt') then
+       Star_Formation_Rate_Surface_Density_Disk_Get => Star_Formation_Rate_Surface_Density_Disk_KS
        ! Get parameters of for the timescale calculation.
        !@ <inputParameter>
        !@   <name>starFormationKennicuttSchmidtNormalization</name>
@@ -130,15 +147,16 @@ contains
        !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('toomreParameterCritical'                       ,toomreParameterCritical                       ,defaultValue= 0.4d0)
-
-       ! Get the number of abundance properties.
-       abundancesCount=Abundances_Property_Count()
+       ! Renormalize the Kennicutt-Schmidt relation to our internal units.
+       starFormationKennicuttSchmidtNormalization=                       &
+            &  starFormationKennicuttSchmidtNormalization                &
+            & *mega**(2.0d0-2.0d0*starFormationKennicuttSchmidtExponent)
     end if
     return
-  end subroutine Star_Formation_Timescale_Disks_Kennicutt_Schmidt_Initialize
+  end subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Initialize
 
-  double precision function Star_Formation_Timescale_Disk_Kennicutt_Schmidt(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}. The disk is assumed to obey the Kennicutt-Schmidt law:
+  double precision function Star_Formation_Rate_Surface_Density_Disk_KS(thisNode,radius)
+    !% Returns the star formation rate surface density  (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation in the galactic disk of {\tt thisNode}. The disk is assumed to obey the Kennicutt-Schmidt law:
     !% \begin{equation}
     !% \Sigma_\star = A \left(x_{\rm H} {\Sigma_{\rm gas}\over M_\odot \hbox{pc}^{-2}}\right)^N,
     !% \end{equation}
@@ -153,108 +171,58 @@ contains
     !% assumed to have a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
     use Galacticus_Nodes
     use Numerical_Constants_Math
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     use Abundances_Structure
-    use FGSL
-    use Numerical_Integration
-    use, intrinsic :: ISO_C_Binding
+    use Galactic_Structure_Surface_Densities
+    use Galactic_Structure_Options
+    use Numerical_Constants_Prefixes
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk         ),                pointer :: thisDiskComponent
-    type (abundances                ), save                   :: fuelAbundances
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    double precision                   , intent(in   )          :: radius
+    class           (nodeComponentDisk),                pointer :: thisDiskComponent
+    type            (abundances       ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                 , parameter              :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
-    double precision                                          :: gasMass,diskScaleRadius,starFormationRate,radiusInner,radiusOuter&
-         &,hydrogenMassFraction
-    type (c_ptr                     )                         :: parameterPointer
-    type (fgsl_function             )                         :: integrandFunction
-    type (fgsl_integration_workspace)                         :: integrationWorkspace
+    double precision                                            :: gasMass,criticalDensity,surfaceDensityGas
 
-    ! Get the disk properties.
-    thisDiskComponent => thisNode%disk()
-    gasMass             =thisDiskComponent%massGas()
-    diskScaleRadius     =thisDiskComponent%radius ()
-
-    ! Check if the disk is physical.
-    if (gasMass <= 0.0d0 .or. diskScaleRadius <= 0.0d0) then
-       ! It is not, so return zero timescale.
-       Star_Formation_Timescale_Disk_Kennicutt_Schmidt=0.0d0
-    else
+    ! Check if node differs from previous one for which we performed calculations.
+    if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_KS_Reset(thisNode)
+    ! Check if factors have been precomputed.
+    if (.not.factorsComputed) then
+       ! Get the disk properties.
+       thisDiskComponent => thisNode         %disk   ()
+       gasMass             =thisDiskComponent%massGas()
        ! Find the hydrogen fraction in the disk gas of the fuel supply.
        fuelAbundances=thisDiskComponent%abundancesGas()
        call fuelAbundances%massToMassFraction(gasMass)
        hydrogenMassFraction=fuelAbundances%hydrogenMassFraction()
-
-       ! Set a pointer to the node that is accessible by integral function.
-       activeNode => thisNode
-
-       ! Compute critical surface density factor if necessary.
-       if (starFormationKennicuttSchmidtTruncate) criticalDensityFactor=toomreParameterCritical*dsqrt(2.0d0)&
-            &*velocityDispersionDiskGas*thisDiskComponent%velocity()/Pi/gravitationalConstantGalacticus
-
-       ! Compute suitable limits for the integration.
-       radiusInner=diskScaleRadius*radiusInnerDimensionless
-       radiusOuter=diskScaleRadius*radiusOuterDimensionless
-
-       ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here, particularly when a
-       ! truncation surface density is used (since that truncation introduces a discontinuity in the integrand).
-       starFormationRate=2.0d0*Pi*starFormationKennicuttSchmidtNormalization*(mega**2)*((hydrogenMassFraction/mega**2)&
-            &**starFormationKennicuttSchmidtExponent)*Integrate(radiusInner,radiusOuter,Star_Formation_Rate_Integrand_KS&
-            &,parameterPointer ,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3&
-            &,integrationRule=FGSL_Integ_Gauss15)
-       call Integrate_Done(integrandFunction,integrationWorkspace)
-
-       ! Compute the star formation timescale.
-       if (starFormationRate > 0.0d0) then
-          Star_Formation_Timescale_Disk_Kennicutt_Schmidt=gasMass/starFormationRate
-       else
-          Star_Formation_Timescale_Disk_Kennicutt_Schmidt=0.0d0
-       end if
-
+       ! Compute the constant factor appearing in the critical density. 
+       criticalDensityFactor=toomreParameterCritical*dsqrt(2.0d0)&
+            &*velocityDispersionDiskGas*thisDiskComponent%velocity()/Pi/gravitationalConstantGalacticus 
+       ! Record that factors have now been computed.
+       factorsComputed=.true.
     end if
-    return
-  end function Star_Formation_Timescale_Disk_Kennicutt_Schmidt
-  
-  function Star_Formation_Rate_Integrand_KS(radius,parameterPointer) bind(c)
-    !% Integrand function for the ``Kennicutt-Schmidt'' star formation rate calculation.
-    use Galactic_Structure_Surface_Densities
-    use Galactic_Structure_Options
-    use, intrinsic :: ISO_C_Binding
-    use Numerical_Constants_Math
-    use Numerical_Constants_Physical
-    implicit none
-    real(c_double)          :: Star_Formation_Rate_Integrand_KS
-    real(c_double),   value :: radius
-    type(c_ptr),      value :: parameterPointer
-    double precision        :: surfaceDensityGas,criticalDensity
-
     ! Get gas surface density.
-    surfaceDensityGas=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&
+    surfaceDensityGas=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
          &=coordinateSystemCylindrical,massType=massTypeGaseous,componentType=componentTypeDisk)
-
-    ! Compute the star formation rate integrand.
-    Star_Formation_Rate_Integrand_KS=radius*(surfaceDensityGas**starFormationKennicuttSchmidtExponent)
-
+    ! Compute the star formation rate surface density.
+    Star_Formation_Rate_Surface_Density_Disk_KS=                             &
+         &  starFormationKennicuttSchmidtNormalization                                      &
+         & *(hydrogenMassFraction*surfaceDensityGas)**starFormationKennicuttSchmidtExponent
     ! Check if we are applying a truncation radius.
     if (starFormationKennicuttSchmidtTruncate) then
-
        ! Always return zero star formation rate at zero radius, as critical density will be infinite.
        if (radius <= 0.0d0) then
-          Star_Formation_Rate_Integrand_KS=0.0d0
+          Star_Formation_Rate_Surface_Density_Disk_KS=0.0d0
           return
        end if
-
        ! Compute the critical density for star formation.
-       criticalDensity=criticalDensityFactor/radius
-       
+       criticalDensity=criticalDensityFactor/radius 
        ! Check if gas is above the critical density. Return zero star formation rate if it is not.
-       if (surfaceDensityGas < criticalDensity) Star_Formation_Rate_Integrand_KS=Star_Formation_Rate_Integrand_KS&
-            &*(surfaceDensityGas/criticalDensity)**starFormationKennicuttSchmidtExponentTruncated
-
+       if (surfaceDensityGas < criticalDensity) Star_Formation_Rate_Surface_Density_Disk_KS&
+            &=Star_Formation_Rate_Surface_Density_Disk_KS*(surfaceDensityGas/criticalDensity)&
+            &**starFormationKennicuttSchmidtExponentTruncated
     end if
-
     return
-  end function Star_Formation_Rate_Integrand_KS
+  end function Star_Formation_Rate_Surface_Density_Disk_KS
 
-end module Star_Formation_Timescale_Disks_Kennicutt_Schmidt
+end module Star_Formation_Rate_Surface_Density_Disks_KS

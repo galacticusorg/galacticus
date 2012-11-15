@@ -15,49 +15,68 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{blitz_role_2006} star formation timescale for galactic disks.
+!% Contains a module which implements the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
 
-module Star_Formation_Timescale_Disks_Blitz_Rosolowsky
-  !% Implements the \cite{blitz_role_2006} star formation timescale for galactic disks.
+module Star_Formation_Rate_Surface_Density_Disks_BR
+  !% Implements the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
   use Galacticus_Nodes
+  use Kind_Numbers
   implicit none
   private
-  public :: Star_Formation_Timescale_Disks_Blitz_Rosolowsky_Initialize
+  public :: Star_Formation_Rate_Surface_Density_Disks_BR_Reset,&
+       & Star_Formation_Rate_Surface_Density_Disks_BR_Initialize
 
-  ! Internal copy of the number of abundances properties.
-  integer          :: abundancesCount
+  ! Record of unique ID of node which we last computed results for.
+  integer         (kind=kind_int8) :: lastUniqueID=-1
+  !$omp threadprivate(lastUniqueID)
 
+  ! Record of whether or not factors have been precomputed.
+  logical                          :: factorsComputed=.false.
+  !$omp threadprivate(factorsComputed)
+
+  ! Precomputed factors.
+  double precision                 :: hydrogenMassFraction,diskScaleRadius,gasMass,stellarMass
+  !$omp threadprivate(hydrogenMassFraction,diskScaleRadius,gasMass,stellarMass)
+  
   ! Parameters of the model.
   double precision :: velocityDispersionDiskGas,heightToRadialScaleDiskBlitzRosolowsky,surfaceDensityCriticalBlitzRosolowsky&
        &,surfaceDensityExponentBlitzRosolowsky,starFormationFrequencyNormalizationBlitzRosolowsky&
        &,pressureCharacteristicBlitzRosolowsky,pressureExponentBlitzRosolowsky
 
-  ! Pointer to active node used in integral functions, plus variables needed by integral function.
-  type(treeNode),   pointer :: activeNode
-  double precision          :: hydrogenMassFraction,diskScaleRadius
-  !$omp threadprivate(activeNode,hydrogenMassFraction,diskScaleRadius)
-
 contains
 
-  !# <starFormationTimescaleDisksMethod>
-  !#  <unitName>Star_Formation_Timescale_Disks_Blitz_Rosolowsky_Initialize</unitName>
-  !# </starFormationTimescaleDisksMethod>
-  subroutine Star_Formation_Timescale_Disks_Blitz_Rosolowsky_Initialize(starFormationTimescaleDisksMethod&
-       &,Star_Formation_Timescale_Disk_Get)
-    !% Initializes the ``Blitz-Rosolowsky2006'' disk star formation timescale module.
+  !# <calculationResetTask>
+  !# <unitName>Star_Formation_Rate_Surface_Density_Disks_BR_Reset</unitName>
+  !# </calculationResetTask>
+  subroutine Star_Formation_Rate_Surface_Density_Disks_BR_Reset(thisNode)
+    !% Reset the extended Schmidt relation calculation.
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    factorsComputed=.false.
+    lastUniqueID   =thisNode%uniqueID()
+    return
+  end subroutine Star_Formation_Rate_Surface_Density_Disks_BR_Reset
+
+  !# <starFormationRateSurfaceDensityDisksMethod>
+  !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_BR_Initialize</unitName>
+  !# </starFormationRateSurfaceDensityDisksMethod>
+  subroutine Star_Formation_Rate_Surface_Density_Disks_BR_Initialize(starFormationRateSurfaceDensityDisksMethod&
+       &,Star_Formation_Rate_Surface_Density_Disk_Get)
+    !% Initializes the ``extended Schmidt'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Astronomical
-    use Abundances_Structure
     use Galacticus_Error
+    use Abundances_Structure
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Physical
     implicit none
-    type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
+    type     (varying_string  ),          intent(in   ) :: starFormationRateSurfaceDensityDisksMethod
+    procedure(double precision), pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
     
-    if (starFormationTimescaleDisksMethod == 'Blitz-Rosolowsky2006') then
-       Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Blitz_Rosolowsky
-
+    if (starFormationRateSurfaceDensityDisksMethod == 'Blitz-Rosolowsky2006') then
+       Star_Formation_Rate_Surface_Density_Disk_Get => Star_Formation_Rate_Surface_Density_Disk_BR
        ! Get parameters of for the timescale calculation.
        !@ <inputParameter>
        !@   <name>velocityDispersionDiskGas</name>
@@ -143,112 +162,77 @@ contains
        !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('pressureExponentBlitzRosolowsky',pressureExponentBlitzRosolowsky,defaultValue=0.92d0)
-       if (pressureExponentBlitzRosolowsky < 0.0d0) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_Blitz_Rosolowsky_Initialize','pressureExponentBlitzRosolowsky < 0 violates assumptions')
-
+       if (pressureExponentBlitzRosolowsky < 0.0d0) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_BR_Initialize','pressureExponentBlitzRosolowsky < 0 violates assumptions')
        ! Convert parameters to internal units.
        surfaceDensityCriticalBlitzRosolowsky             =surfaceDensityCriticalBlitzRosolowsky*(mega**2)                                                    ! Convert to M_Solar/Mpc^2.
        starFormationFrequencyNormalizationBlitzRosolowsky=starFormationFrequencyNormalizationBlitzRosolowsky*giga                                            ! Convert to Gyr^-1.
        pressureCharacteristicBlitzRosolowsky             =pressureCharacteristicBlitzRosolowsky*boltzmannsConstant*((hecto*megaParsec)**3)/massSolar/kilo**2 ! Convert to M_Solar (km/s)^2 / Mpc.
-
-       ! Get the number of abundance properties.
-       abundancesCount=Abundances_Property_Count()
     end if
     return
-  end subroutine Star_Formation_Timescale_Disks_Blitz_Rosolowsky_Initialize
+  end subroutine Star_Formation_Rate_Surface_Density_Disks_BR_Initialize
 
-  double precision function Star_Formation_Timescale_Disk_Blitz_Rosolowsky(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}. The disk is assumed to obey the
+  double precision function Star_Formation_Rate_Surface_Density_Disk_BR(thisNode,radius)
+    !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
+    !% in the galactic disk of {\tt thisNode}. The disk is assumed to obey the
     !% \cite{blitz_role_2006} star formation rule.
+    use Galacticus_Nodes
+    use Numerical_Constants_Math
+    use Numerical_Constants_Physical
     use Abundances_Structure
-    use, intrinsic :: ISO_C_Binding
-    use Numerical_Integration
-    use FGSL
+    use Galactic_Structure_Surface_Densities
+    use Galactic_Structure_Options
+    use Numerical_Constants_Prefixes
     implicit none
-    type (treeNode                  ), intent(inout), pointer     :: thisNode
-    class(nodeComponentDisk         ),                pointer     :: thisDiskComponent
-    type (abundances                ), save                       :: fuelAbundances
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    double precision                   , intent(in   )          :: radius
+    class           (nodeComponentDisk),                pointer :: thisDiskComponent
+    type            (abundances       ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    ! Inner and outer radii (in units of disk scale length) between which the star formation surface density rate is
-    ! integrated. The outer radius should be large enough that the decline in surface density implies little star
-    ! formation is missed at larger radius.
-    double precision                 , parameter                  :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
-    double precision                                              :: gasMass,stellarMass,starFormationRate,radiusInner,radiusOuter
-    type (c_ptr                     )                             :: parameterPointer
-    type (fgsl_function             )                             :: integrandFunction
-    type (fgsl_integration_workspace)                             :: integrationWorkspace
-  
-    ! Get the disk properties.
-    thisDiskComponent => thisNode%disk()
-    gasMass        =thisDiskComponent%massGas    ()
-    stellarMass    =thisDiskComponent%massStellar()
-    diskScaleRadius=thisDiskComponent%radius     ()
+    double precision                                            :: diskScaleRadius,surfaceDensityGas,surfaceDensityStar&
+         &,pressureRatio,molecularFraction
 
-    ! Check if the disk is physical.
-    if (gasMass <= 0.0d0 .or. stellarMass < 0.0d0 .or. diskScaleRadius <= 0.0d0) then
-       ! It is not, so return zero timescale.
-       Star_Formation_Timescale_Disk_Blitz_Rosolowsky=0.0d0
-    else
-       ! Find the hydrogen fraction in the disk gas.
+    ! Check if node differs from previous one for which we performed calculations.
+    if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_BR_Reset(thisNode)
+    ! Check if factors have been precomputed.
+    if (.not.factorsComputed) then
+       ! Get the disk properties.
+       thisDiskComponent => thisNode       %disk       ()
+       gasMass           =thisDiskComponent%massGas    ()
+       stellarMass       =thisDiskComponent%massStellar()
+       diskScaleRadius   =thisDiskComponent%radius     ()
+       ! Find the hydrogen fraction in the disk gas of the fuel supply.
        fuelAbundances=thisDiskComponent%abundancesGas()
        call fuelAbundances%massToMassFraction(gasMass)
        hydrogenMassFraction=fuelAbundances%hydrogenMassFraction()
-
-       ! Set a pointer to the node that is accessible by integral function.
-       activeNode => thisNode
-
-       ! Compute suitable limits for the integration.
-       radiusInner=diskScaleRadius*radiusInnerDimensionless
-       radiusOuter=diskScaleRadius*radiusOuterDimensionless
-
-       ! Compute the star formation rate. A low order integration rule works best here as the integrand can be discontinuous.
-       starFormationRate=Integrate(radiusInner,radiusOuter,Star_Formation_Rate_Integrand_BR,parameterPointer ,integrandFunction&
-            &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3,integrationRule=FGSL_Integ_Gauss15)
-       call Integrate_Done(integrandFunction,integrationWorkspace)
-
-       ! Infer the star formation timescale.
-       Star_Formation_Timescale_Disk_Blitz_Rosolowsky=gasMass/starFormationRate
-
+       ! Record that factors have now been computed.
+       factorsComputed=.true.
     end if
-    return
-  end function Star_Formation_Timescale_Disk_Blitz_Rosolowsky
-
-  function Star_Formation_Rate_Integrand_BR(radius,parameterPointer) bind(c)
-    !% Integrand function for the ``Blitz-Rosolowsky'' star formation rate calculation.
-    use Galactic_Structure_Surface_Densities
-    use Galactic_Structure_Options
-    use, intrinsic :: ISO_C_Binding
-    use Numerical_Constants_Math
-    use Numerical_Constants_Physical
-    implicit none
-    real(c_double)          :: Star_Formation_Rate_Integrand_BR
-    real(c_double),   value :: radius
-    type(c_ptr),      value :: parameterPointer
-    double precision        :: surfaceDensityGas,surfaceDensityStellar,pressureRatio,molecularFraction
-
-    ! Get gas and stellar surface densities.
-    surfaceDensityGas    =Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&
+    ! Return zero rate for non-positive radius or mass.
+    if (gasMass <= 0.0d0 .or. stellarMass < 0.0d0 .or. diskScaleRadius <= 0.0d0) then
+       Star_Formation_Rate_Surface_Density_Disk_BR=0.0d0
+       return
+    end if
+    ! Get gas surface density.
+    surfaceDensityGas=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
          &=coordinateSystemCylindrical,massType=massTypeGaseous,componentType=componentTypeDisk)
-    surfaceDensityStellar=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&
+    ! Get stellar surface density.
+    surfaceDensityStar=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
          &=coordinateSystemCylindrical,massType=massTypeStellar,componentType=componentTypeDisk)
-
     ! Compute the pressure ratio that Blitz & Rosolowsky use to compute the molecular fraction.
     pressureRatio=0.5d0*Pi*gravitationalConstantGalacticus*surfaceDensityGas*(surfaceDensityGas+velocityDispersionDiskGas &
-         &*dsqrt(surfaceDensityStellar/Pi/gravitationalConstantGalacticus/heightToRadialScaleDiskBlitzRosolowsky&
-         &/diskScaleRadius)) /pressureCharacteristicBlitzRosolowsky
-
+         &*dsqrt(surfaceDensityStar/Pi/gravitationalConstantGalacticus/heightToRadialScaleDiskBlitzRosolowsky&
+         &/diskScaleRadius))/pressureCharacteristicBlitzRosolowsky
     ! Compute the molecular fraction, limited to 100% molecular.
     if (pressureRatio >= 1.0d0) then
        molecularFraction=1.0d0
     else
        molecularFraction=min(pressureRatio**pressureExponentBlitzRosolowsky,1.0d0)
     end if
-
-    ! Compute the star formation rate integrand.
-    Star_Formation_Rate_Integrand_BR=2.0d0*Pi*radius*surfaceDensityGas*hydrogenMassFraction*molecularFraction&
+    ! Compute the star formation rate surface density.
+    Star_Formation_Rate_Surface_Density_Disk_BR=surfaceDensityGas*hydrogenMassFraction*molecularFraction&
          &*starFormationFrequencyNormalizationBlitzRosolowsky*(1.0d0+(hydrogenMassFraction*surfaceDensityGas&
          &/surfaceDensityCriticalBlitzRosolowsky)**surfaceDensityExponentBlitzRosolowsky)
-
     return
-  end function Star_Formation_Rate_Integrand_BR
+  end function Star_Formation_Rate_Surface_Density_Disk_BR
 
-end module Star_Formation_Timescale_Disks_Blitz_Rosolowsky
+end module Star_Formation_Rate_Surface_Density_Disks_BR
