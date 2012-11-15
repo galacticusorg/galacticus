@@ -282,23 +282,30 @@ contains
           ! Get the minimum mass of the interval occupied by this tree.
           if (iTree==1) then
              if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                MassMinimum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
+                massMinimum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
              else
-                MassMinimum=mergerTreeBuildHaloMassMinimum
+                massMinimum=mergerTreeBuildHaloMassMinimum
              end if
           else
-             MassMinimum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
+             massMinimum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
           end if
           ! Get the maximum mass of the interval occupied by this tree.
           if (iTree==treeCount) then
              if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                MassMaximum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
+                massMaximum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
              else
-                MassMaximum=mergerTreeBuildHaloMassMaximum
+                massMaximum=mergerTreeBuildHaloMassMaximum
              end if
           else
-             MassMaximum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
+             massMaximum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
           end if
+          ! For distributions of masses, adjust the masses at the end points so that they are at the
+          ! geometric mean of their range.
+          if     (                                                          &
+               &   (iTree == 1 .or. iTree == treeCount)                     &
+               &  .and.                                                     &
+               &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
+               & ) treeHaloMass(iTree)=sqrt(massMinimum*massMaximum)
           ! Get the integral of the halo mass function over this range.
           treeWeight(iTree)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)
        end do
