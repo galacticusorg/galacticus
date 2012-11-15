@@ -40,7 +40,7 @@ contains
   end subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
 
   double precision function Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF(mass,time,massMinimum,massMaximum)
-    !% Computes the halo mass function sampling rate using a power-law distribution.
+    !% Computes the halo mass function sampling rate using a volume-limited sampling.
     use Halo_Mass_Function
     implicit none
     double precision, intent(in) :: mass,time,massMinimum,massMaximum
