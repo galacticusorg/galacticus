@@ -364,7 +364,7 @@ contains
           ! Check if this exceeds the maximum previously recorded error.
           fractionalError=   abs(thisDiskComponent%massGas    ()) &
                &          /(                                      &
-               &                 thisDiskComponent%massGas    ()  &
+               &             abs(thisDiskComponent%massGas    ()) &
                &            +abs(thisDiskComponent%massStellar()) &
                &           )
           !$omp critical (Exponential_Disk_Post_Evolve_Check)
