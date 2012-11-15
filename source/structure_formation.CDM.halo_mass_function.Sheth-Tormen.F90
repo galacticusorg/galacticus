@@ -39,11 +39,11 @@ contains
     type(varying_string),                 intent(in)    :: haloMassFunctionMethod
     procedure(double precision), pointer, intent(inout) :: Halo_Mass_Function_Differential_Get
     
-    if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Sheth_Differential_Tormen
+    if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Sheth_Tormen_Differential
     return
   end subroutine Halo_Mass_Function_Sheth_Tormen_Initialize
 
-  double precision function Halo_Mass_Function_Sheth_Differential_Tormen(time,mass)
+  double precision function Halo_Mass_Function_Sheth_Tormen_Differential(time,mass)
     !% Compute the Sheth-Tormen halo mass function.
     use Numerical_Constants_Math
     use CDM_Power_Spectrum
@@ -58,9 +58,9 @@ contains
     nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/sigma_CDM(mass))**2
     nuPrime=a*nu
     alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
-    Halo_Mass_Function_Sheth_Differential_Tormen=(Omega_Matter()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0*nuPrime/Pi)*normalization&
+    Halo_Mass_Function_Sheth_Tormen_Differential=(Omega_Matter()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0*nuPrime/Pi)*normalization&
          &*(1.0d0+1.0d0/nuPrime**p) *dexp(-0.5d0*nuPrime)
     return
-  end function Halo_Mass_Function_Sheth_Differential_Tormen
+  end function Halo_Mass_Function_Sheth_Tormen_Differential
   
 end module Halo_Mass_Function_Sheth_Tormen

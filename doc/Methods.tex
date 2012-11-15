@@ -2660,9 +2660,9 @@ The function should return the halo mass function, $\d n/\d M$ (in units of Mpc$
 
 Currently defined halo mass function methods are:
 \begin{description}
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Press-Schechter.F90:halo_mass_function_press_schechter:halo_mass_function_press_schechter_tabulate}{{\tt Press-Schechter}}] Implements the Press-Schechter \citep{press_formation_1974} mass function.
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Sheth-Tormen.F90:halo_mass_function_sheth_tormen:halo_mass_function_sheth_tormen_tabulate}{{\tt Sheth-Tormen}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} mass function.
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Tinker2008.F90:halo_mass_function_tinker2008:halo_mass_function_tinker2008_tabulate}{{\tt Tinker2008}}] Implements the mass function described by \cite{tinker_towardhalo_2008}.
+ \item [\hyperlink{structure_formation.CDM.halo_mass_function.Press-Schechter.F90:halo_mass_function_press_schechter:halo_mass_function_differential_press_schechter}{{\tt Press-Schechter}}] Implements the Press-Schechter \citep{press_formation_1974} mass function.
+ \item [\hyperlink{structure_formation.CDM.halo_mass_function.Sheth-Tormen.F90:halo_mass_function_sheth_tormen:halo_mass_function_sheth_tormen_differential}{{\tt Sheth-Tormen}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} mass function.
+ \item [\hyperlink{structure_formation.CDM.halo_mass_function.Tinker2008.F90:halo_mass_function_tinker2008:halo_mass_function_differential_tinker2008}{{\tt Tinker2008}}] Implements the mass function described by \cite{tinker_towardhalo_2008}.
 \end{description}
 
 \subsubsection{Halo Mass Sampling Density Functions}
@@ -4086,6 +4086,7 @@ Currently defined star formation feedback methods are:
  \dot{M}_{\rm outflow} = \left({V_{\rm outflow} \over V}\right)^{\alpha_{\rm outflow}} {\dot{E} \over E_{\rm canonical}},
 \end{equation}
 where $V_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} (in km/s) and $\alpha_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+ \item [\hyperlink{star_formation.feedback.disks.Creasy2012.F90:star_formation_feedback_disks_creasy2012}{{\tt Creasey2012}}] The outflow rate computed using the model of \cite{creasey_how_2012}.
 \end{description}
 
 \subsubsection{(Expulsive) Star Formation Feedback in Disks/Spheroids}\index{feedback!expulsive}
@@ -4133,6 +4134,49 @@ Currently defined star formation expulsive feedback methods are:
 where $V_{\rm superwind}=${\tt [disk|spheroid]SuperwindVelocity} (in km/s) and $\beta_{\rm superwind}=${\tt [disk|spheroid]SuperwindMassLoading} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
 \end{description}
 
+\subsubsection{Star Formation Rate Surface Density in Disks}
+
+Additional methods for computing the surface density of star formation rate in disks can be added using the {\tt starFormationRateSurfaceDensityDisksMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Blitz-Rosolowsky2006} method is described by a directive:
+\begin{verbatim}
+ !# <starFormationRateSurfaceDensityDisksMethod>
+ !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_BR_Initialize</unitName>
+ !# </starFormationRateSurfaceDensityDisksMethod>
+\end{verbatim}
+Here, {\tt Star\_Formation\_Rate\_Surface\_Density\_Disks\_BR\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(starFormationRateSurfaceDensityDisksMethod,Star_Formation_Rate_Surface_Density_Disk_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: starFormationRateSurfaceDensityDisksMethod
+    procedure(),          pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
+    
+    if (starFormationRateSurfaceDensityDisksMethod == 'myMethod') Star_Formation_Rate_Surface_Density_Disk_Get => My_Method_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt starFormationRateSurfaceDensityDisksMethod} input parameter. The procedure pointer {\tt Star\_Formation\_Rate\_Surface\_Density\_Disk\_Get} must be set to point to a function which returns the surface density of star formation rate at a specified radius as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The star formation rate surface density function must have the form:
+\begin{verbatim}
+ double precision function Star_Formation_Rate_Surface_Density_Get(thisNode,radius)
+    implicit none
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+    .
+    .
+    .
+    return
+ end function Star_Formation_Rate_Surface_Density_Get
+\end{verbatim}
+The function must return the surface density of star formation rate (in units of $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for {\tt thisNode}.
+
+Currently defined star formation rate surface density methods are:
+\begin{description}
+ \item [\hyperlink{star_formation.rate_surface_density.disks.Kennicutt-Schmidt.F90:star_formation_rate_surface_density_disks_ks:star_formation_rate_surface_density_disk_ks}{{\tt Kennicutt-Schmidt}}] The rate is given by the Kennicutt-Schmidt law (\citealt{schmidt_rate_1959,kennicutt_global_1998}; see \S\ref{sec:StarFormationKennicuttSchmidt}).
+ \item [\hyperlink{star_formation.rate_surface_density.disks.extended_Schmidt.F90:star_formation_rate_surface_density_disks_exschmidt:star_formation_rate_surface_density_disk_exschmidt}{{\tt extendedSchmidt}}] The rate is given by the extended Schmidt law (\citealt{shi_extended_2011}; see \S\ref{sec:StarFormationExtendedSchmidt}).
+ \item [\hyperlink{star_formation.rate_surface_density.disks.Blitz-Rosolowsky.F90:star_formation_rate_surface_density_disks_br:star_formation_rate_surface_density_disk_br}{{\tt Blitz-Rosolowsky2006}}] The rate is given by the Blitz-Rosolowsky rule (\citealt{blitz_role_2006}; see \S\ref{sec:StarFormationBlitzRosolowsky}).
+ \item [\hyperlink{star_formation.rate_surface_density.disks.KMT09.F90:star_formation_rate_surface_density_disks_kmt09:star_formation_rate_surface_density_disk_kmt09}{{\tt KMT09}}] The rate is given by the Krumholz-McKee-Tumlinson (\citealt{krumholz_star_2009}; see \S\ref{sec:StarFormationKMT09});
+\end{description}
+
 \subsubsection{Star Formation Timescale in Disks/Spheroids}
 
 Additional methods for computing star formation timescales in disks/spheroids can be added using the {\tt starFormationTimescale[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt dynamicalTime} method is described by a directive:
@@ -4175,12 +4219,9 @@ Currently defined star formation timescale methods are:
 \begin{equation}
  \tau_\star = \epsilon_\star^{-1} \tau_{\rm dynamical, [disk|spheroid]} \left( {V_{\rm [disk|spheroid]} \over 200\hbox{km/s}} \right)^{\alpha_\star},
 \end{equation}
-where $\epsilon_\star$(={\tt starFormation[Disk|Spheroid]Efficiency}) is a star formation efficiency and $\alpha_\star$(={\tt starFormation[Disk|Spheroid]VelocityExponent}) controls the scaling with velocity. Note that $\tau_{\rm dynamical,[disk|spheroid]}=R_{\rm [disk|spheroid]}/V_{\rm [disk|spheroid]}$ where the radius and velocity are whatever characteristic values returned by the disk/spheroid method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the half-mass radius and circular velocity at that radius.
- \item [\hyperlink{star_formation.timescales.disks.Kennicutt-Schmidt.F90:star_formation_timescale_disks_kennicutt_schmidt:star_formation_timescale_disk_kennicutt_schmidt}{{\tt Kennicutt-Schmidt}}] The timescale is given by the Kennicutt-Schmidt law (\citealt{schmidt_rate_1959,kennicutt_global_1998}; see \S\ref{sec:StarFormationKennicuttSchmidt}).
- \item [\hyperlink{star_formation.timescales.disks.extended_Schmidt.F90:star_formation_timescale_disks_extended_schmidt:star_formation_timescale_disk_extended_schmidt}{{\tt extendedSchmidt}}] The timescale is given by the extended Schmidt law (\citealt{shi_extended_2011}; see \S\ref{sec:StarFormationExtendedSchmidt}).
- \item [\hyperlink{star_formation.timescales.disks.Blitz-Rosolowsky.F90:star_formation_timescale_disks_blitz_rosolowsky:star_formation_timescale_disk_blitz_rosolowsky}{{\tt Blitz-Rosolowsky2006}}] The timescale is given by the Blitz-Rosolowsky rule (\citealt{blitz_role_2006}; see \S\ref{sec:StarFormationBlitzRosolowsky}).
- \item [\hyperlink{star_formation.timescales.disks.KMT09.F90:star_formation_timescale_disks_kmt09:star_formation_timescale_disk_kmt09}{{\tt KMT09}}] The timescale is given by the Krumholz-McKee-Tumlinson (\citealt{krumholz_star_2009}; see \S\ref{sec:StarFormationKMT09});
+where $\epsilon_\star$(={\tt starFormation[Disk|Spheroid]Efficiency}) is a star formation efficiency and $\alpha_\star$(={\tt starFormation[Disk|Spheroid]VelocityExponent}) controls the scaling with velocity. Note that $\tau_{\rm dynamical,[disk|spheroid]}=R_{\rm [disk|spheroid]}/V_{\rm [disk|spheroid]}$ where the radius and velocity are whatever characteristic values returned by the disk/spheroid method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but they specifically used the half-mass radius and circular velocity at that radius.
  \item {\tt Baugh2005}] The timescale is given by $\tau_0 (V_{\rm disk}/200\hbox{km/s})^\alpha a^\beta$.
+ \item {\tt integratedSurfaceDensity}] The timescale is given by $\tau_\star = M_{\rm cold}/\int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) {\rm d}r$ where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate (see \S\ref{sec:StarFormationRateSurfaceDensity})
 \end{description}
 
 \subsubsection{Stellar Astrophysics}
