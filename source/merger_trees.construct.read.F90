@@ -1190,14 +1190,14 @@ contains
                 message=message//" - resetting this node to be an isolated node"
                 call Galacticus_Display_Message(message,verbosity=verbosityInfo)
                 nodes(iNode)%hostIndex =  nodes(iNode)%nodeIndex
-                nodes(iNode)%host  => nodes(iNode)
+                nodes(iNode)%host      => nodes(iNode)
                 nodes(iNode)%isSubhalo =  .false.
              end if
           else
              nodes(iNode)%host    => nodes(nodeLocation)
           end if
        else
-          nodes(iNode)%host       => null()
+          call Galacticus_Error_Report('Build_Descendent_Pointers','negative values are not allowed for hostIndex - if node is self-hosting [i.e. not a subhalo] set hostIndex=nodeIndex')
        end if
     end do
     return
