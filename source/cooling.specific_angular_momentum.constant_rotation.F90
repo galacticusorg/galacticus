@@ -42,6 +42,7 @@ module Cooling_Specific_Angular_Momenta_Constant_Rotation
   integer,         parameter :: profileDarkMatter=0
   integer,         parameter :: profileHotGas    =1
   integer                    :: meanSpecificAngularMomentumFrom,rotationNormalizationFrom
+  logical                    :: coolingAngularMomentumUseInteriorMean
 
 contains
 
@@ -97,6 +98,18 @@ contains
        case ("hotGas")
           rotationNormalizationFrom=profileHotGas
        end select
+
+       !@ <inputParameter>
+       !@   <name>coolingAngularMomentumUseInteriorMean</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether to use the specific angular momentum at the cooling radius, or the mean specific angular momentum interior to that radius.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('coolingAngularMomentumUseInteriorMean',coolingAngularMomentumUseInteriorMean,defaultValue=.false.)
 
     end if
     return
@@ -169,8 +182,23 @@ contains
             &                               *meanSpecificAngularMomentum
     end if
 
-    ! Return the computed value.
-    Cooling_Specific_Angular_Momentum_Constant_Rotation=radius*coolingSpecificAngularMomentumStored
+    ! Check that the radius is positive.
+    if (radius > 0.0d0) then
+       ! Return the computed value.
+       if (coolingAngularMomentumUseInteriorMean) then
+          ! Find the specific angular momentum interior to the specified radius.          
+          Cooling_Specific_Angular_Momentum_Constant_Rotation= coolingSpecificAngularMomentumStored                  &
+               &                                              *Hot_Halo_Profile_Radial_Moment(thisNode,3.0d0,radius) &
+               &                                              /Hot_Halo_Profile_Radial_Moment(thisNode,2.0d0,radius)
+       else
+          ! Find the specific angular momentum at the specified radius.
+          Cooling_Specific_Angular_Momentum_Constant_Rotation= coolingSpecificAngularMomentumStored                  &
+               &                                              *                                              radius
+       end if
+    else
+       ! Radius is non-positive - return zero.
+       Cooling_Specific_Angular_Momentum_Constant_Rotation=0.0d0
+    end if
     return
   end function Cooling_Specific_Angular_Momentum_Constant_Rotation
   
