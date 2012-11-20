@@ -1080,6 +1080,15 @@ A = r_{\rm hot, outer}^{-1} {(1-x_{\rm core}\arctan(x_{\rm core}^{-1}) \over 1/2
 \end{equation}
 where $x_{\rm core}=r_{\rm core}/r_{\rm hot, outer}$.
 
+Finally, only the second and third radial moments, $I_2$ and $I_3$ respectively, are supported, for which
+\begin{equation}
+I_2 = x_{\rm core}-tan^{-1}(x_{\rm core}),
+\end{equation}
+and
+\begin{equation}
+I_3 = {1 \over 2} [x_{\rm core}^2-\log(1+x_{\rm core}^2)].
+\end{equation}
+
 \subsection{Null}
 
 Selected with {\tt hotHaloDensityMethod}$=${\tt null} this method assumes no hot halo density profile. It is useful, for example, when performing dark matter-only calculations.
