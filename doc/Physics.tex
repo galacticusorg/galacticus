@@ -416,11 +416,16 @@ The algorithm used to compute the specific angular momentum of cooling gas is se
 
 \subsubsection{Constant Rotation}
 
-Selcted with {\tt coolingSpecificAngularMomentumMethod}$=${\tt constantRotation}, this assumes that the specific angular momentum of cooling gas is given by
+Selected with {\tt coolingSpecificAngularMomentumMethod}$=${\tt constantRotation}, this implementation assumes that the specific angular momentum of cooling gas is given either by
 \begin{equation}
- j_{\rm cool} = \langle j \rangle r_{\rm cool} A
+ j_{\rm cool} = \langle j \rangle r_{\rm cool} A,
 \end{equation}
-where $r_{\rm cool}$ is the cooling radius, $A$ is the rotation normalization (see ) and $\langle j \rangle$ is the mean specific angular momentum of the cooling gas. 
+where $r_{\rm cool}$ is the cooling radius, $A$ is the rotation normalization (see ) and $\langle j \rangle$ is the mean specific angular momentum of the cooling gas, if {\tt [coolingAngularMomentumUseInteriorMean]}$=${\tt false}, or by
+\begin{equation}
+ j_{\rm cool} = \langle j \rangle {I_3(r_{\rm cool})/I_2(r_{\rm cool})} A,
+\end{equation}
+where $I_n(r)$ is the $n^{\rm th}$ radial moment of the hot gas density profile from $0$ to $r$ (this therefore gives the mean specific angular momentum interior to radius $r$), if {\tt [coolingAngularMomentumUseInteriorMean]}$=${\tt true}.
+
 If {\tt [coolingMeanAngularMomentumFrom]}$=${\tt darkMatter} then $\langle j \rangle$ is the mean specific angular momentum of the dark matter halo, computed from its spin parameter, while if {\tt [coolingMeanAngularMomentumFrom]}$=${\tt hotGas} then $\langle j \rangle$ is equal to the mean specific angular momentum of gas currently in the hot gas reservoir. If {\tt [coolingRotationVelocityFrom]}$=${\tt darkMatter} then the rotation normalization $A$ is computed using the dark matter density profile, while if {\tt [coolingRotationVelocityFrom]}$=${\tt hotGas} it is computed using the density profile of the hot gas reservoir.
 
 \subsubsection{Mean}
