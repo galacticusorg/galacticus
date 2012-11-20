@@ -476,6 +476,7 @@
   <parameters>
     <parameter>
       <name>coolingSpecificAngularMomentumMethod</name>
+      <value>mean</value>
       <value>constantRotation
       <parameter>
 	<name>coolingMeanAngularMomentumFrom</name>

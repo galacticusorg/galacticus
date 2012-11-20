@@ -414,7 +414,7 @@ Selcted with {\tt freefallRadiusMethod}$=${\tt darkMatterHalo}, this method comp
 
 The algorithm used to compute the specific angular momentum of cooling gas is selected via the {\tt coolingSpecificAngularMomentumMethod} parameter.
 
-\subsubsection{Simple}
+\subsubsection{Constant Rotation}
 
 Selcted with {\tt coolingSpecificAngularMomentumMethod}$=${\tt constantRotation}, this assumes that the specific angular momentum of cooling gas is given by
 \begin{equation}
@@ -422,6 +422,14 @@ Selcted with {\tt coolingSpecificAngularMomentumMethod}$=${\tt constantRotation}
 \end{equation}
 where $r_{\rm cool}$ is the cooling radius, $A$ is the rotation normalization (see ) and $\langle j \rangle$ is the mean specific angular momentum of the cooling gas. 
 If {\tt [coolingMeanAngularMomentumFrom]}$=${\tt darkMatter} then $\langle j \rangle$ is the mean specific angular momentum of the dark matter halo, computed from its spin parameter, while if {\tt [coolingMeanAngularMomentumFrom]}$=${\tt hotGas} then $\langle j \rangle$ is equal to the mean specific angular momentum of gas currently in the hot gas reservoir. If {\tt [coolingRotationVelocityFrom]}$=${\tt darkMatter} then the rotation normalization $A$ is computed using the dark matter density profile, while if {\tt [coolingRotationVelocityFrom]}$=${\tt hotGas} it is computed using the density profile of the hot gas reservoir.
+
+\subsubsection{Mean}
+
+Selcted with {\tt coolingSpecificAngularMomentumMethod}$=${\tt mean}, this assumes that the specific angular momentum of cooling gas is given by
+\begin{equation}
+ j_{\rm cool} = J_{\rm hot}/M_{\rm hot},
+\end{equation}
+where $J_{\rm hot}$ and $M_{\rm hot}$ are the total angular momentum and mass of the hot halo respectively.
 
 \subsection{Cooling Time}\label{sec:CoolingTime}\index{cooling time}\index{cooling!time}
 
