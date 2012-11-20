@@ -2403,11 +2403,12 @@ Here, {\tt Hot\_Halo\_Density\_Cored\_Isothermal} is the name of a subroutine wh
        Hot_Halo_Density_Log_Slope_Get              => My_Method_Log_Slope_Get
        Hot_Halo_Enclosed_Mass_Get                  => My_Method_Enclosed_Mass_Get
        Hot_Halo_Profile_Rotation_Normalization_Get => My_Method_Rotation_Normalization_Get
+       Hot_Halo_Profile_Radial_Moment_Get          => My_Method_Radial_Moment_Get
     end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt hotHaloDensityMethod} input parameter. The procedure pointer {\tt Hot\_Halo\_Density\_Get} must be set to point to a function which returns the hot halo density as described below while {\tt Hot\_Halo\_Density\_Log\_Slope\_Get} should be set to point to a function which returns the logarithmic slope of that profile. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt hotHaloDensityMethod} input parameter. The procedure pointer {\tt Hot\_Halo\_Density\_Get} must be set to point to a function which returns the hot halo density as described below while {\tt Hot\_Halo\_Density\_Log\_Slope\_Get} should be set to point to a function which returns the logarithmic slope of that profile. Similarly, {\tt Hot\_Halo\_Enclosed\_Mass\_Get}, {\tt Hot\_Halo\_Profile\_Rotation\_Normalization\_Get}, and {\tt Hot\_Halo\_Profile\_Radial\_Moment\_Get} should be set to point to functions which return the mass enclosed within a specified radius, the normalization of the rotation speed for the halo (see below), and the radial moments of the density profile respectively The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The density function must have the form:
 \begin{verbatim}
@@ -2435,6 +2436,24 @@ The rotation velocity normalization function must have the form:
   end function My_Rotation_Normalization
 \end{verbatim}
 and should compute and return the normalization between rotation speed and mean specific angular momentum (in units of Mpc$^{-1}$) of {\tt thisNode} assuming that the hot gas profile rotates at the same velocity at all radii.
+
+The radial moment function must have the form:
+\begin{verbatim}
+  double precision function My_Radial_Moment(thisNode,moment,radius)
+    implicit none
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: moment,radius
+    .
+    .
+    .
+    return
+  end function My_Radial_Moment
+\end{verbatim}
+and should compute and return the radial moment of the profile
+\begin{equation}
+\int_0^r \rho(r^\prime) r^{\prime n} {\rm d}r^\prime,
+\end{equation}
+where $n=${\tt moment} and $r=${\tt radius}.
 
 Currently defined hot halo density profile methods are:
 \begin{description}
