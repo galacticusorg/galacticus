@@ -55,22 +55,26 @@ contains
     include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
     !# </include>
     implicit none
-    type(mergerTree),                         intent(inout) :: thisTree
-    double precision,                         intent(in)    :: endTime
-    type(treeNode),                           pointer       :: thisNode,nextNode,parentNode
-    double precision,                         parameter     :: timeTolerance=1.0d-5
-    double precision,                         parameter     :: largeTime    =1.0d10
-    procedure(Interrupt_Procedure_Template),  pointer       :: interruptProcedure
-    procedure(End_Of_Timestep_Task_Template), pointer       :: End_Of_Timestep_Task
-    integer,                                  parameter     :: verbosityLevel=3
-    class(nodeComponentBasic),                pointer       :: thisBasicComponent,parentBasicComponent,baseNodeBasicComponent
-    integer,                                  parameter     :: isDeadlocked=2,isReporting=1,isNotDeadlocked=0
-    integer                                                 :: nodesEvolvedCount,nodesTotalCount,treeWalkCount,treeWalkCountPreviousOutput,deadlockStatus
-    double precision                                        :: endTimeThisNode,earliestTimeInTree
-    logical                                                 :: interrupted,didEvolve
-    character(len=12)                                       :: label
-    character(len=35)                                       :: message
-    type(varying_string)                                    :: vMessage
+    type            (mergerTree                   ), intent(inout), target :: thisTree
+    double precision                               , intent(in   )         :: endTime
+    type            (treeNode                     ), pointer               :: thisNode,nextNode,parentNode
+    double precision                               , parameter             :: timeTolerance=1.0d-5
+    double precision                               , parameter             :: largeTime    =1.0d10
+    procedure       (Interrupt_Procedure_Template ), pointer               :: interruptProcedure
+    procedure       (End_Of_Timestep_Task_Template), pointer               :: End_Of_Timestep_Task
+    integer                                        , parameter             :: verbosityLevel=3
+    class           (nodeComponentBasic           ), pointer               :: thisBasicComponent,parentBasicComponent&
+         &,baseNodeBasicComponent
+    type            (mergerTree                   ), pointer               :: currentTree
+    integer                                        , parameter             :: isDeadlocked=2,isReporting=1,isNotDeadlocked=0
+    integer                                                                :: nodesEvolvedCount,nodesTotalCount,treeWalkCount&
+         &,treeWalkCountPreviousOutput,deadlockStatus
+    double precision                                                       :: endTimeThisNode,earliestTimeInTree
+    logical                                                                :: interrupted,didEvolve
+    character       (len=12                       )                        :: label
+    character       (len=35)                                               :: message
+    type            (varying_string               )                        :: vMessage
+    logical                                                                :: anyTreeExistsAtOutputTime
 
     ! Check if this routine is initialized.
     if (.not.mergerTreeEvolveToInitialized) then
@@ -100,47 +104,56 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreesDumpStructure',mergerTreesDumpStructure,defaultValue=.false.)
-          
+
           ! Flag that this routine is now initialized.
           mergerTreeEvolveToInitialized=.true.
        end if
        !$omp end critical (Merger_Tree_Evolve_To_Initialize)
     end if
-    
+
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     !# <include directive="mergerTreeEvolveThreadInitialize" type="functionCall" functionType="void">
     include 'merger_trees.evolve.threadInitialize.inc'
     !# </include>
 
-    ! Initialize the tree if necessary.
-    call Merger_Tree_Initialize(thisTree)
+    ! Iterate through all trees.
+    anyTreeExistsAtOutputTime=.false.
+    currentTree => thisTree
+    do while (associated(currentTree))
 
-    ! Check that the output time is not after the end time of this tree.
-    baseNodeBasicComponent => thisTree%baseNode%basic()
-    if (endTime > baseNodeBasicComponent%time()) then
-       ! Final time is exceeded. Check if by a significant factor.
-       if (endTime > baseNodeBasicComponent%time()*(1.0d0+timeTolerance)) then
-          ! Exceeded by a significant factor - report an error. Check if such behavior is expected.
-          if (allTreesExistAtFinalTime) then
-             ! It is not, write an error and exit.
-             vMessage='requested time exceeds the final time in the tree'//char(10)
-             vMessage=vMessage//' HELP: If you expect that not all trees will exist at the latest requested'//char(10)
-             vMessage=vMessage//'       output time (this can happen when using trees extracted from N-body'//char(10)
-             vMessage=vMessage//'       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
-             vMessage=vMessage//'         <parameter>'//char(10)
-             vMessage=vMessage//'          <name>allTreesExistAtFinalTime</name>'//char(10)
-             vMessage=vMessage//'          <value>false</value>'//char(10)
-             vMessage=vMessage//'         </parameter>'//char(10)
-             call Galacticus_Error_Report('Merger_Tree_Evolve_To',vMessage)
+       ! Initialize the tree if necessary.
+       call Merger_Tree_Initialize(currentTree)
+       ! Check that the output time is not after the end time of this tree.
+       baseNodeBasicComponent => currentTree%baseNode%basic()
+       if (endTime > baseNodeBasicComponent%time()) then
+          ! Final time is exceeded. Check if by a significant factor.
+          if (endTime > baseNodeBasicComponent%time()*(1.0d0+timeTolerance)) then
+             ! Exceeded by a significant factor - report an error. Check if such behavior is expected.
+             if (allTreesExistAtFinalTime) then
+                ! It is not, write an error and exit.
+                vMessage='requested time exceeds the final time in the tree'//char(10)
+                vMessage=vMessage//' HELP: If you expect that not all trees will exist at the latest requested'//char(10)
+                vMessage=vMessage//'       output time (this can happen when using trees extracted from N-body'//char(10)
+                vMessage=vMessage//'       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
+                vMessage=vMessage//'         <parameter>'//char(10)
+                vMessage=vMessage//'          <name>allTreesExistAtFinalTime</name>'//char(10)
+                vMessage=vMessage//'          <value>false</value>'//char(10)
+                vMessage=vMessage//'         </parameter>'//char(10)
+                call Galacticus_Error_Report('Merger_Tree_Evolve_To',vMessage)
+             end if
           else
-             ! It is, so simply ignore this tree.
-             return
+             ! Not exceeded by a significant factor (can happen due to approximation errors). Simply reset to actual time requested.
+             call baseNodeBasicComponent%timeSet(endTime)
           end if
        else
-          ! Not exceeded by a significant factor (can happen due to approximation errors). Simply reset to actual time requested.
-          call baseNodeBasicComponent%timeSet(endTime)
+          anyTreeExistsAtOutputTime=.true.
        end if
-    end if
+
+       ! Move to the next tree.
+       currentTree => currentTree%nextTree
+    end do
+    ! Return if none of these trees exist at the output time.
+    if (.not.anyTreeExistsAtOutputTime) return
 
     ! Outer loop: This causes the tree to be repeatedly walked and evolved until it has been evolved all the way to the specified
     ! end time. We stop when no nodes were evolved, which indicates that no further evolution is possible.
@@ -162,125 +175,144 @@ contains
 
        ! Set the deadlock status to deadlocked initially.
        deadlockStatus=isDeadlocked
-
        ! Enter loop for deadlock reporting.
        deadlock : do while (deadlockStatus /= isNotDeadlocked)
 
           ! Post a deadlocking message.
           if (deadlockStatus == isReporting) call Galacticus_Display_Indent("Deadlock report follows")
 
-          ! Point to the base of the tree.
-          thisNode => thisTree%baseNode
+          ! Iterate through all trees.
+          currentTree => thisTree
+          treesLoop: do while (associated(currentTree))
 
-          ! Get the basic component of the node.
-          thisBasicComponent => thisNode%basic()
+             ! Report on current tree if deadlocked.
+             if (deadlockStatus == isReporting) then
+                vMessage="tree "
+                vMessage=vMessage//currentTree%index
+                call Galacticus_Display_Indent(vMessage)
+             end if
 
-          ! Check that tree extends beyond end time.
-          if (thisBasicComponent%time() < endTime) call Galacticus_Error_Report('Merger_Tree_Evolve_To','merger tree stops before&
-               & requested end time')
-
-          ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
-          treeWalkLoop: do while (associated(thisNode))
+             ! Point to the base of the tree.
+             thisNode => currentTree%baseNode
 
              ! Get the basic component of the node.
              thisBasicComponent => thisNode%basic()
 
-             ! Count nodes in the tree.
-             nodesTotalCount=nodesTotalCount+1
-
-             ! Find the next node that we will process.
-             call thisNode%walkTreeWithSatellites(nextNode)
-
-             ! Evolve this node if it exists before the output time and has no children (i.e. they've already all been processed).
-             evolveCondition: if (.not.associated(thisNode%firstChild) .and. thisBasicComponent%time() < endTime) then
-
-                ! Flag that a node was evolved.
-                didEvolve=.true.
-
-                ! Update tree progress counter.
-                nodesEvolvedCount=nodesEvolvedCount+1
-
-                ! Dump the merger tree structure for later plotting.
-                if (mergerTreesDumpStructure) call Merger_Tree_Dump(thisTree%index,thisTree%baseNode,[thisNode%index()])
-
-                ! Evolve the node, handling interrupt events. We keep on evolving it until no interrupt is returned (in which case
-                ! the node has reached the requested end time) or the node no longer exists (e.g. if it was destroyed).
-                interrupted=.true.
-                do while (interrupted.and.associated(thisNode))
-                   interrupted=.false.
-
-                   ! Find maximum allowed end time for this particular node.
-                   if (deadlockStatus == isReporting) then
-                      vMessage="node "
-                      write (label,'(e12.6)') thisBasicComponent%time()
-                      vMessage=vMessage//thisNode%index()//" (current:target times = "//label
-                      write (label,'(e12.6)') endTime
-                      vMessage=vMessage//":"//label//")"
-                      call Galacticus_Display_Indent(vMessage)
-                   end if
-                   endTimeThisNode=Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report=(deadlockStatus == isReporting))
-                   if (deadlockStatus == isReporting) call Galacticus_Display_Unindent("end node")
-
-                   ! If this node is able to  evolve by a finite amount, the tree is not deadlocked.
-                   if (endTimeThisNode > thisBasicComponent%time()) deadlockStatus=isNotDeadlocked
-
-                   ! Update record of earliest time in the tree.
-                   earliestTimeInTree=min(earliestTimeInTree,endTimeThisNode)
-
-                   ! Evolve the node to the next interrupt event, or the end time.
-                   call thisTree%evolveNode(thisNode,endTimeThisNode,interrupted,interruptProcedure)
-
-                   ! Check for interrupt.
-                   if (interrupted) then
-                      ! If an interrupt occured call the specified procedure to handle it.
-                      call interruptProcedure(thisNode)
-                   else                   
-                      ! Call routine to handle end of timestep processing.
-                      if (associated(End_Of_Timestep_Task)) call End_Of_Timestep_Task(thisTree,thisNode)
-                   end if
-                end do
-
-                ! If this halo has reached its parent halo, decide how to handle it.
-                if (associated(thisNode)) then
-                   parentNode           => thisNode%parent
-                   parentBasicComponent => parentNode%basic()
-                   if (thisBasicComponent%time() >= parentBasicComponent%time()) then
-                      ! Parent halo has been reached. Check if the node is the primary (major) progenitor of the parent node.
-                      select case (thisNode%isPrimaryProgenitor())
-                      case (.false.)
-                         ! It is not the major progenitor, so this could be a halo merger event unless the halo is already a
-                         ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging event.
-                         if (.not.thisNode%isSatellite()) call thisTree%mergeNode(thisNode)
-                      case (.true.)
-                         ! This is the major progenitor, so promote the node to its parent as it is the main progenitor providing
-                         ! that the node has no siblings - this ensures that any siblings have already been evolved and become
-                         ! satellites of the parent halo.
-                         if (.not.associated(thisNode%sibling)) call thisTree%promoteNode(thisNode)
-                      end select
-                   end if
-                end if
-             end if evolveCondition
-
-             ! Step to the next node to consider.
-             thisNode => nextNode
-
-          end do treeWalkLoop
-
-          ! Output tree progress information.
-          if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
-             if (Galacticus_Verbosity_Level() >= verbosityLevel) then
-                write (message,'(a,i9,a )') 'Evolving tree [',treeWalkCount,']'
-                call Galacticus_Display_Indent(message,verbosityLevel)
-                write (message,'(a,i9   )') 'Nodes in tree:         ',nodesTotalCount
-                call Galacticus_Display_Message(message,verbosityLevel)
-                write (message,'(a,i9   )') 'Nodes evolved:         ',nodesEvolvedCount
-                call Galacticus_Display_Message(message,verbosityLevel)
-                write (message,'(a,e10.4)') 'Earliest time in tree: ',earliestTimeInTree
-                call Galacticus_Display_Message(message,verbosityLevel)
-                call Galacticus_Display_Unindent('done',verbosityLevel)
-                treeWalkCountPreviousOutput=treeWalkCount
+             ! Check that tree extends beyond end time. If it does not, skip to the next tree.
+             if (thisBasicComponent%time() < endTime) then
+                currentTree => currentTree%nextTree
+                cycle
              end if
-          end if
+
+             ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
+             treeWalkLoop: do while (associated(thisNode))
+
+                ! Get the basic component of the node.
+                thisBasicComponent => thisNode%basic()
+
+                ! Count nodes in the tree.
+                nodesTotalCount=nodesTotalCount+1
+
+                ! Find the next node that we will process.
+                call thisNode%walkTreeWithSatellites(nextNode)
+
+                ! Evolve this node if it exists before the output time and has no children (i.e. they've already all been processed).
+                evolveCondition: if (.not.associated(thisNode%firstChild) .and. thisBasicComponent%time() < endTime) then
+
+                   ! Flag that a node was evolved.
+                   didEvolve=.true.
+
+                   ! Update tree progress counter.
+                   nodesEvolvedCount=nodesEvolvedCount+1
+
+                   ! Dump the merger tree structure for later plotting.
+                   if (mergerTreesDumpStructure) call Merger_Tree_Dump(currentTree%index,currentTree%baseNode,[thisNode%index()])
+
+                   ! Evolve the node, handling interrupt events. We keep on evolving it until no interrupt is returned (in which case
+                   ! the node has reached the requested end time) or the node no longer exists (e.g. if it was destroyed).
+                   interrupted=.true.
+                   do while (interrupted.and.associated(thisNode))
+                      interrupted=.false.
+
+                      ! Find maximum allowed end time for this particular node.
+                      if (deadlockStatus == isReporting) then
+                         vMessage="node "
+                         write (label,'(e12.6)') thisBasicComponent%time()
+                         vMessage=vMessage//thisNode%index()//" (current:target times = "//label
+                         write (label,'(e12.6)') endTime
+                         vMessage=vMessage//":"//label//")"
+                         call Galacticus_Display_Indent(vMessage)
+                      end if
+                      endTimeThisNode=Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report=(deadlockStatus == isReporting))
+                      if (deadlockStatus == isReporting) call Galacticus_Display_Unindent("end node")
+
+                      ! If this node is able to  evolve by a finite amount, the tree is not deadlocked.
+                      if (endTimeThisNode > thisBasicComponent%time()) deadlockStatus=isNotDeadlocked
+
+                      ! Update record of earliest time in the tree.
+                      earliestTimeInTree=min(earliestTimeInTree,endTimeThisNode)
+
+                      ! Evolve the node to the next interrupt event, or the end time.
+                      call currentTree%evolveNode(thisNode,endTimeThisNode,interrupted,interruptProcedure)
+
+                      ! Check for interrupt.
+                      if (interrupted) then
+                         ! If an interrupt occured call the specified procedure to handle it.
+                         call interruptProcedure(thisNode)
+                      else                   
+                         ! Call routine to handle end of timestep processing.
+                         if (associated(End_Of_Timestep_Task)) call End_Of_Timestep_Task(currentTree,thisNode)
+                      end if
+                   end do
+
+                   ! If this halo has reached its parent halo, decide how to handle it.
+                   if (associated(thisNode)) then
+                      parentNode           => thisNode%parent
+                      parentBasicComponent => parentNode%basic()
+                      if (thisBasicComponent%time() >= parentBasicComponent%time()) then
+                         ! Parent halo has been reached. Check if the node is the primary (major) progenitor of the parent node.
+                         select case (thisNode%isPrimaryProgenitor())
+                         case (.false.)
+                            ! It is not the major progenitor, so this could be a halo merger event unless the halo is already a
+                            ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging event.
+                            if (.not.thisNode%isSatellite()) call currentTree%mergeNode(thisNode)
+                         case (.true.)
+                            ! This is the major progenitor, so promote the node to its parent as it is the main progenitor providing
+                            ! that the node has no siblings - this ensures that any siblings have already been evolved and become
+                            ! satellites of the parent halo.
+                            if (.not.associated(thisNode%sibling)) call currentTree%promoteNode(thisNode)
+                         end select
+                      end if
+                   end if
+                end if evolveCondition
+
+                ! Step to the next node to consider.
+                thisNode => nextNode
+
+             end do treeWalkLoop
+
+             ! Output tree progress information.
+             if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
+                if (Galacticus_Verbosity_Level() >= verbosityLevel) then
+                   write (message,'(a,i9,a )') 'Evolving tree [',treeWalkCount,']'
+                   call Galacticus_Display_Indent(message,verbosityLevel)
+                   write (message,'(a,i9   )') 'Nodes in tree:         ',nodesTotalCount
+                   call Galacticus_Display_Message(message,verbosityLevel)
+                   write (message,'(a,i9   )') 'Nodes evolved:         ',nodesEvolvedCount
+                   call Galacticus_Display_Message(message,verbosityLevel)
+                   write (message,'(a,e10.4)') 'Earliest time in tree: ',earliestTimeInTree
+                   call Galacticus_Display_Message(message,verbosityLevel)
+                   call Galacticus_Display_Unindent('done',verbosityLevel)
+                   treeWalkCountPreviousOutput=treeWalkCount
+                end if
+             end if
+
+             ! Report on current tree if deadlocked.
+             if (deadlockStatus == isReporting) call Galacticus_Display_Unindent('done')
+
+             ! Move to the next tree.
+             currentTree => currentTree%nextTree
+          end do treesLoop
 
           if (didEvolve .and. deadlockStatus /= isNotDeadlocked) then
              if (deadlockStatus == isReporting) then
@@ -392,7 +424,7 @@ contains
     do while (associated(satelliteNode))
        satelliteBasicComponent => satelliteNode%basic()
        Evolve_To_Time=min(Evolve_To_Time,satelliteBasicComponent%time())
-       if (report) call Evolve_To_Time_Report("hosted satellite: ",Evolve_To_Time)
+       if (report) call Evolve_To_Time_Report("hosted satellite: ",Evolve_To_Time,satelliteNode%index())
        satelliteNode => satelliteNode%sibling
     end do
 
@@ -406,7 +438,7 @@ contains
        if (report) call Evolve_To_Time_Report("mergee limit: ",Evolve_To_Time,satelliteNode%index())
        satelliteNode => satelliteNode%siblingMergee
     end do
-    
+
     ! Also ensure that a primary progenitor does not evolve in advance of siblings. This is important since we can not promote a
     ! primary progenitor into its parent until all siblings have become satellites in that parent.
     if (thisNode%isPrimaryProgenitor().and.associated(thisNode%sibling)) then

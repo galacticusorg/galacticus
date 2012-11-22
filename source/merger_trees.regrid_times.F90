@@ -23,10 +23,10 @@ module Merger_Trees_Regrid_Times
   implicit none
   private
   public :: Merger_Tree_Regrid_Time
-  
+
   ! Flag indicating if module is initialized.
   logical                                         :: regridTimeModuleInitialized=.false.
- 
+
   ! Flag indicating if regridding is required.
   logical                                         :: mergerTreeRegridTimes
 
@@ -41,7 +41,7 @@ module Merger_Trees_Regrid_Times
   integer,              parameter                 :: mergerTreeRegridSpacingLinear                =0
   integer,              parameter                 :: mergerTreeRegridSpacingLogarithmic           =1
   integer,              parameter                 :: mergerTreeRegridSpacingLogCriticalOverdensity=2
-  
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -62,16 +62,17 @@ contains
     use Kind_Numbers
     use Merger_Trees_Dump
     implicit none
-    type(mergerTree),          intent(inout)             :: thisTree
-    type(treeNode),            pointer                   :: thisNode,childNode,siblingNode,nextNode
-    type(treeNode),            pointer,     dimension(:) :: newNodes
-    integer(kind=kind_int8),   allocatable, dimension(:) :: highlightNodes
-    class(nodeComponentBasic), pointer                   :: thisBasicComponent,parentBasicComponent,childBasicComponent
-    type(fgsl_interp_accel)                              :: interpolationAccelerator
-    logical                                              :: interpolationReset
-    integer                                              :: iNow,iParent,iTime,allocErr
-    double precision                                     :: timeNow,timeParent,massNow,massParent
-    integer(kind=kind_int8)                              :: nodeIndex,firstNewNode
+    type(mergerTree),          intent(inout), target       :: thisTree
+    type(treeNode),            pointer                     :: thisNode,childNode,siblingNode,nextNode
+    type(treeNode),            pointer,       dimension(:) :: newNodes
+    integer(kind=kind_int8),   allocatable,   dimension(:) :: highlightNodes
+    class(nodeComponentBasic), pointer                     :: thisBasicComponent,parentBasicComponent,childBasicComponent
+    type (mergerTree        ), pointer                     :: currentTree
+    type(fgsl_interp_accel)                                :: interpolationAccelerator
+    logical                                                :: interpolationReset
+    integer                                                :: iNow,iParent,iTime,allocErr
+    double precision                                       :: timeNow,timeParent,massNow,massParent
+    integer(kind=kind_int8)                                :: nodeIndex,firstNewNode
 
     ! Check if module is initialized.
     if (.not.regridTimeModuleInitialized) then
@@ -156,7 +157,7 @@ contains
              case default
                 call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unrecognized spacing type: '//mergerTreeRegridSpacingAsText)
              end select
-             
+
              ! Construct array of grid expansion factors.
              call Alloc_Array(mergerTreeRegridTimeGrid,[mergerTreeRegridCount])
              select case (mergerTreeRegridSpacing)
@@ -188,9 +189,9 @@ contains
                    mergerTreeRegridTimeGrid(iTime)=Time_of_Collapse(mergerTreeRegridTimeGrid(iTime))
                 end do
              end select
-             
+
           end if
-          
+
           ! Flag that module is initialized.
           regridTimeModuleInitialized=.true.
        end if
@@ -199,231 +200,236 @@ contains
 
     ! Prune tree if necessary.
     if (mergerTreeRegridTimes) then
-       ! Dump the unprocessed tree if required.
-       if (mergerTreeRegridDumpTrees) call Merger_Tree_Dump(                              &
-            &                                               thisTree%index,               &
-            &                                               thisTree%baseNode           , &
-            &                                               backgroundColor    ='white' , &
-            &                                               nodeColor          ='black' , &
-            &                                               highlightColor     ='black' , &
-            &                                               edgeColor          ='black' , &
-            &                                               nodeStyle          ='solid' , &
-            &                                               highlightStyle     ='filled', &
-            &                                               edgeStyle          ='solid' , &
-            &                                               labelNodes         =.false. , &
-            &                                               scaleNodesByLogMass=.true.  , &
-            &                                               edgeLengthsToTimes =.true.    &
-            &                                              )
 
-       ! Ensure interpolation accelerator gets reset.
-       interpolationReset=.true.
+       ! Iterate over trees.
+       currentTree => thisTree
+       do while (associated(currentTree))
 
-       ! Find the current maximum node index in the tree.
-       nodeIndex=0_kind_int8
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeIndex=max(nodeIndex,thisNode%index())
-          call thisNode%walkTree(thisNode)
-       end do
-       firstNewNode=nodeIndex+1
+          ! Dump the unprocessed tree if required.
+          if (mergerTreeRegridDumpTrees) call Merger_Tree_Dump(                              &
+               &                                               currentTree%index,            &
+               &                                               currentTree%baseNode        , &
+               &                                               backgroundColor    ='white' , &
+               &                                               nodeColor          ='black' , &
+               &                                               highlightColor     ='black' , &
+               &                                               edgeColor          ='black' , &
+               &                                               nodeStyle          ='solid' , &
+               &                                               highlightStyle     ='filled', &
+               &                                               edgeStyle          ='solid' , &
+               &                                               labelNodes         =.false. , &
+               &                                               scaleNodesByLogMass=.true.  , &
+               &                                               edgeLengthsToTimes =.true.    &
+               &                                              )
 
-       ! Walk the tree, locating branches which intersect grid times.
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          thisBasicComponent => thisNode%basic()
+          ! Ensure interpolation accelerator gets reset.
+          interpolationReset=.true.
 
-          ! Skip this node if it is the root node.
-          if (associated(thisNode%parent)) then
-             parentBasicComponent => thisNode%parent%basic()
-
-             ! Get the time of this node and its parent.
-             timeNow   =thisBasicComponent  %time()
-             timeParent=parentBasicComponent%time()
-
-             ! Get masses of these halos.
-             massNow   =thisBasicComponent  %mass()
-             massParent=parentBasicComponent%mass()
-             if (thisNode%isPrimaryProgenitor()) then
-                ! Remove the mass in any non-primary progenitors - we don't want to include their mass in the estimated mass
-                ! growth rate of this node.
-                childNode => thisNode%parent%firstChild%sibling
-                do while (associated(childNode))
-                   childBasicComponent => childNode%basic()
-                   massParent          =  massParent-childBasicComponent%mass()
-                   childNode           => childNode%sibling
-                end do
-             end if
-
-             ! Locate these times in the list of grid times.
-             iNow   =Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow   ,reset=interpolationReset)
-             iParent=Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeParent,reset=interpolationReset)
-
-             ! For nodes existing precisely at a grid time, ignore this grid point. (These are, typically, nodes which have been created at these points.)
-             if (timeNow == mergerTreeRegridTimeGrid(iNow)) iNow=iNow+1
-
-             ! If the branch from node to parent spans one or more grid times, insert new nodes at those points.
-             if (iParent > iNow) then
-                ! Create new nodes.
-                allocate(newNodes(iParent-iNow),stat=allocErr)
-                if (allocErr/=0) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unable to allocate new nodes')
-                do iTime=iNow+1,iParent
-                   nodeIndex=nodeIndex+1_kind_int8
-                   call newNodes(iTime-iNow)%initialize(nodeIndex)
-                end do
-                ! Assign node properties and build links.
-                do iTime=iNow+1,iParent
-                   ! Assign a time and a mass
-                   thisBasicComponent => newNodes(iTime-iNow)%basic()
-                   call thisBasicComponent%timeSet(                              mergerTreeRegridTimeGrid(iTime)                              )
-                   call thisBasicComponent%massSet(massNow+(massParent-massNow)*(mergerTreeRegridTimeGrid(iTime)-timeNow)/(timeParent-timeNow))
-                   ! Link to child node.
-                   if (iTime > iNow+1 ) newNodes(iTime-iNow)%firstChild => newNodes(iTime-iNow-1)
-                   ! Link to parent node.
-                   if (iTime < iParent) newNodes(iTime-iNow)%parent     => newNodes(iTime-iNow+1)
-                end do
-                ! Link final node to the parent.
-                newNodes(iParent-iNow)%parent  => thisNode%parent
-                ! Link final node sibling to current node sibling.
-                newNodes(iParent-iNow)%sibling => thisNode%sibling
-                ! Link the parent to the final node.
-                if (thisNode%isPrimaryProgenitor()) then
-                   ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
-                   thisNode%parent%firstChild  => newNodes(iParent-iNow)
-                else
-                   ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
-                   childNode => thisNode%parent%firstChild
-                   do while (.not.associated(childNode%sibling,thisNode))
-                      childNode => childNode%sibling
-                   end do
-                   childNode%sibling => newNodes(iParent-iNow)
-                end if
-                ! Link the child of the first node to the node being processed.
-                newNodes(1)%firstChild  => thisNode
-                ! Nullify any sibling of the node being processed.
-                thisNode%sibling => null()
-                ! Link the parent of the node being processed to the first node of the list.
-                thisNode%parent  => newNodes(1)
-                ! Erase the node list.
-                deallocate(newNodes)
-             end if
-          
-          end if
-
-          ! Step to the next node.
-          call thisNode%walkTree(thisNode)
-
-       end do
-
-       ! Dump the intermediate tree if required.
-       if (mergerTreeRegridDumpTrees) then
-          allocate(highlightNodes(nodeIndex-firstNewNode+2))
-          highlightNodes(1)=thisTree%baseNode%index()
-          do nodeIndex=1,nodeIndex-firstNewNode+1
-             highlightNodes(nodeIndex+1)=firstNewNode+nodeIndex-1
+          ! Find the current maximum node index in the tree.
+          nodeIndex=0_kind_int8
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             nodeIndex=max(nodeIndex,thisNode%index())
+             call thisNode%walkTree(thisNode)
           end do
-          call Merger_Tree_Dump(                                    &
-               &                thisTree%index,                     &
-               &                thisTree%baseNode                 , &
-               &                highlightNodes     =highlightNodes, &
-               &                backgroundColor    ='white'       , &
-               &                nodeColor          ='black'       , &
-               &                highlightColor     ='black'       , &
-               &                edgeColor          ='black'       , &
-               &                nodeStyle          ='solid'       , &
-               &                highlightStyle     ='filled'      , &
-               &                edgeStyle          ='dotted'      , &
-               &                labelNodes         =.false.       , &
-               &                scaleNodesByLogMass=.true.        , &
-               &                edgeLengthsToTimes =.true.          &
-               &               )
-          deallocate(highlightNodes)
-       end if
+          firstNewNode=nodeIndex+1
 
-       ! Walk the tree removing nodes not at grid times.
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          thisBasicComponent => thisNode%basic()
+          ! Walk the tree, locating branches which intersect grid times.
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             thisBasicComponent => thisNode%basic()
 
-          ! Record the next node to walk to.
-          call thisNode%walkTree(nextNode)
+             ! Skip this node if it is the root node.
+             if (associated(thisNode%parent)) then
+                parentBasicComponent => thisNode%parent%basic()
 
-          ! Get the time for this node.
-          timeNow=thisBasicComponent%time()
+                ! Get the time of this node and its parent.
+                timeNow   =thisBasicComponent  %time()
+                timeParent=parentBasicComponent%time()
 
-          ! Find the closest time in the new time grid.
-          iNow   =Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
-
-          ! If this node does not lie precisely on the grid then remove it.
-          if (associated(thisNode%parent) .and. timeNow /= mergerTreeRegridTimeGrid(iNow)) then
-             if (thisNode%isPrimaryProgenitor()) then
-                ! Handle primary progenitor nodes.
-                if (associated(thisNode%firstChild)) then
-                   ! Handle primary progenitors with children
-                   childNode => thisNode%firstChild
-                   ! Assign all children a parent that is the parent of the current node.
+                ! Get masses of these halos.
+                massNow   =thisBasicComponent  %mass()
+                massParent=parentBasicComponent%mass()
+                if (thisNode%isPrimaryProgenitor()) then
+                   ! Remove the mass in any non-primary progenitors - we don't want to include their mass in the estimated mass
+                   ! growth rate of this node.
+                   childNode => thisNode%parent%firstChild%sibling
                    do while (associated(childNode))
-                      childNode%parent => thisNode %parent
-                      if (.not.associated(childNode%sibling)) then
-                         childNode%sibling => thisNode%sibling
-                         childNode             => null()
-                      else
-                         childNode             => childNode%sibling
-                      end if
+                      childBasicComponent => childNode%basic()
+                      massParent          =  massParent-childBasicComponent%mass()
+                      childNode           => childNode%sibling
                    end do
-                   ! Assign the current node's parent a child that is the child of the current node.
-                   thisNode%parent%firstChild => thisNode%firstChild
-                else
-                   ! Handle primary nodes with no children - simply make the parents main progenitor the sibling of the current node.
-                   thisNode%parent%firstChild => thisNode%sibling
                 end if
-             else
-                ! Handle non-primary nodes.
-                if (associated(thisNode%firstChild)) then
-                   ! Handle nod-primary nodes with children.
-                   ! Assign all children a parent that is the parent of the current node.
-                   childNode => thisNode%firstChild
-                   do while (associated(childNode))
-                      childNode%parent => thisNode %parent
-                      if (.not.associated(childNode%sibling)) then
-                         childNode%sibling => thisNode%sibling
-                         childNode => null()
-                      else
-                         childNode            => childNode%sibling
-                      end if
-                   end do                    
-                   ! Find which sibling points the current node and link in the children of the current node.
-                   siblingNode => thisNode%parent%firstChild
-                   do while (.not.associated(siblingNode%sibling,thisNode))
-                      siblingNode => siblingNode%sibling
+
+                ! Locate these times in the list of grid times.
+                iNow   =Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow   ,reset=interpolationReset)
+                iParent=Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeParent,reset=interpolationReset)
+
+                ! For nodes existing precisely at a grid time, ignore this grid point. (These are, typically, nodes which have been created at these points.)
+                if (timeNow == mergerTreeRegridTimeGrid(iNow)) iNow=iNow+1
+
+                ! If the branch from node to parent spans one or more grid times, insert new nodes at those points.
+                if (iParent > iNow) then
+                   ! Create new nodes.
+                   allocate(newNodes(iParent-iNow),stat=allocErr)
+                   if (allocErr/=0) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unable to allocate new nodes')
+                   do iTime=iNow+1,iParent
+                      nodeIndex=nodeIndex+1_kind_int8
+                      call newNodes(iTime-iNow)%initialize(nodeIndex)
                    end do
-                   siblingNode%sibling => thisNode%firstChild
-                else
-                   ! Handle non-primary nodes with no children - just snip it out of the sibling list.
-                   siblingNode => thisNode%parent%firstChild
-                   do while (.not.associated(siblingNode%sibling,thisNode))
-                      siblingNode => siblingNode%sibling
+                   ! Assign node properties and build links.
+                   do iTime=iNow+1,iParent
+                      ! Assign a time and a mass
+                      thisBasicComponent => newNodes(iTime-iNow)%basic()
+                      call thisBasicComponent%timeSet(                              mergerTreeRegridTimeGrid(iTime)                              )
+                      call thisBasicComponent%massSet(massNow+(massParent-massNow)*(mergerTreeRegridTimeGrid(iTime)-timeNow)/(timeParent-timeNow))
+                      ! Link to child node.
+                      if (iTime > iNow+1 ) newNodes(iTime-iNow)%firstChild => newNodes(iTime-iNow-1)
+                      ! Link to parent node.
+                      if (iTime < iParent) newNodes(iTime-iNow)%parent     => newNodes(iTime-iNow+1)
                    end do
-                   siblingNode%sibling => thisNode%sibling
+                   ! Link final node to the parent.
+                   newNodes(iParent-iNow)%parent  => thisNode%parent
+                   ! Link final node sibling to current node sibling.
+                   newNodes(iParent-iNow)%sibling => thisNode%sibling
+                   ! Link the parent to the final node.
+                   if (thisNode%isPrimaryProgenitor()) then
+                      ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
+                      thisNode%parent%firstChild  => newNodes(iParent-iNow)
+                   else
+                      ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
+                      childNode => thisNode%parent%firstChild
+                      do while (.not.associated(childNode%sibling,thisNode))
+                         childNode => childNode%sibling
+                      end do
+                      childNode%sibling => newNodes(iParent-iNow)
+                   end if
+                   ! Link the child of the first node to the node being processed.
+                   newNodes(1)%firstChild  => thisNode
+                   ! Nullify any sibling of the node being processed.
+                   thisNode%sibling => null()
+                   ! Link the parent of the node being processed to the first node of the list.
+                   thisNode%parent  => newNodes(1)
+                   ! Erase the node list.
+                   deallocate(newNodes)
                 end if
+
              end if
- 
-             ! Destroy the node.
-             call thisNode%destroy()
 
+             ! Step to the next node.
+             call thisNode%walkTree(thisNode)
+
+          end do
+
+          ! Dump the intermediate tree if required.
+          if (mergerTreeRegridDumpTrees) then
+             allocate(highlightNodes(nodeIndex-firstNewNode+2))
+             highlightNodes(1)=currentTree%baseNode%index()
+             do nodeIndex=1,nodeIndex-firstNewNode+1
+                highlightNodes(nodeIndex+1)=firstNewNode+nodeIndex-1
+             end do
+             call Merger_Tree_Dump(                                    &
+                  &                currentTree%index,                  &
+                  &                currentTree%baseNode              , &
+                  &                highlightNodes     =highlightNodes, &
+                  &                backgroundColor    ='white'       , &
+                  &                nodeColor          ='black'       , &
+                  &                highlightColor     ='black'       , &
+                  &                edgeColor          ='black'       , &
+                  &                nodeStyle          ='solid'       , &
+                  &                highlightStyle     ='filled'      , &
+                  &                edgeStyle          ='dotted'      , &
+                  &                labelNodes         =.false.       , &
+                  &                scaleNodesByLogMass=.true.        , &
+                  &                edgeLengthsToTimes =.true.          &
+                  &               )
+             deallocate(highlightNodes)
           end if
 
-          ! Step to the next node.
-          thisNode => nextNode
-          
-       end do
+          ! Walk the tree removing nodes not at grid times.
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             thisBasicComponent => thisNode%basic()
 
-       ! Clean up interpolation objects.
-       call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+             ! Record the next node to walk to.
+             call thisNode%walkTree(nextNode)
 
-       ! Dump the processed tree if required.
-       if (mergerTreeRegridDumpTrees) call Merger_Tree_Dump(                                     &
-               &                                             thisTree%index,                     &
-               &                                             thisTree%baseNode                 , &
+             ! Get the time for this node.
+             timeNow=thisBasicComponent%time()
+
+             ! Find the closest time in the new time grid.
+             iNow   =Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+
+             ! If this node does not lie precisely on the grid then remove it.
+             if (associated(thisNode%parent) .and. timeNow /= mergerTreeRegridTimeGrid(iNow)) then
+                if (thisNode%isPrimaryProgenitor()) then
+                   ! Handle primary progenitor nodes.
+                   if (associated(thisNode%firstChild)) then
+                      ! Handle primary progenitors with children
+                      childNode => thisNode%firstChild
+                      ! Assign all children a parent that is the parent of the current node.
+                      do while (associated(childNode))
+                         childNode%parent => thisNode %parent
+                         if (.not.associated(childNode%sibling)) then
+                            childNode%sibling => thisNode%sibling
+                            childNode             => null()
+                         else
+                            childNode             => childNode%sibling
+                         end if
+                      end do
+                      ! Assign the current node's parent a child that is the child of the current node.
+                      thisNode%parent%firstChild => thisNode%firstChild
+                   else
+                      ! Handle primary nodes with no children - simply make the parents main progenitor the sibling of the current node.
+                      thisNode%parent%firstChild => thisNode%sibling
+                   end if
+                else
+                   ! Handle non-primary nodes.
+                   if (associated(thisNode%firstChild)) then
+                      ! Handle nod-primary nodes with children.
+                      ! Assign all children a parent that is the parent of the current node.
+                      childNode => thisNode%firstChild
+                      do while (associated(childNode))
+                         childNode%parent => thisNode %parent
+                         if (.not.associated(childNode%sibling)) then
+                            childNode%sibling => thisNode%sibling
+                            childNode => null()
+                         else
+                            childNode            => childNode%sibling
+                         end if
+                      end do
+                      ! Find which sibling points the current node and link in the children of the current node.
+                      siblingNode => thisNode%parent%firstChild
+                      do while (.not.associated(siblingNode%sibling,thisNode))
+                         siblingNode => siblingNode%sibling
+                      end do
+                      siblingNode%sibling => thisNode%firstChild
+                   else
+                      ! Handle non-primary nodes with no children - just snip it out of the sibling list.
+                      siblingNode => thisNode%parent%firstChild
+                      do while (.not.associated(siblingNode%sibling,thisNode))
+                         siblingNode => siblingNode%sibling
+                      end do
+                      siblingNode%sibling => thisNode%sibling
+                   end if
+                end if
+
+                ! Destroy the node.
+                call thisNode%destroy()
+
+             end if
+
+             ! Step to the next node.
+             thisNode => nextNode
+
+          end do
+
+          ! Clean up interpolation objects.
+          call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+
+          ! Dump the processed tree if required.
+          if (mergerTreeRegridDumpTrees) call Merger_Tree_Dump(                                     &
+               &                                             currentTree%index,                  &
+               &                                             currentTree%baseNode              , &
                &                                             backgroundColor    ='white'       , &
                &                                             nodeColor          ='black'       , &
                &                                             highlightColor     ='black'       , &
@@ -435,9 +441,12 @@ contains
                &                                             scaleNodesByLogMass=.true.        , &
                &                                             edgeLengthsToTimes =.true.          &
                &                                            )
+          ! Move to the next tree.
+          currentTree => currentTree%nextTree
+       end do
     end if
 
     return
   end subroutine Merger_Tree_Regrid_Time
-  
+
 end module Merger_Trees_Regrid_Times

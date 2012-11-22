@@ -43,6 +43,8 @@ contains
     use Evolve_To_Time_Reports
     use Merger_Trees_Evolve_Timesteps_Template
     use Input_Parameters
+    use ISO_Varying_String
+    use String_Handling
     implicit none
     type     (treeNode                     ), intent(inout), pointer :: thisNode
     procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
@@ -128,7 +130,7 @@ contains
        ! Set return value if our timestep is smaller than current one.
        if (timeUntilMerging <= timeStep) then
           timeStep=timeUntilMerging
-          ! Trigger a merger event only if the target no has no children. If it has children, we need to wait for them to be
+          ! Trigger a merger event only if the target node has no children. If it has children, we need to wait for them to be
           ! evolved before merging.
           if (.not.associated(hostNode%firstChild)) then
              End_Of_Timestep_Task => Satellite_Merger_Process
@@ -136,8 +138,8 @@ contains
              End_Of_Timestep_Task => null()
           end if
        end if
-       if (report) call Evolve_To_Time_Report("satellite (self): ",timeStep)
-     end if
+       if (report) call Evolve_To_Time_Report("satellite (self): ",timeStep,hostNode%index())
+    end if
     return
   end subroutine Merger_Tree_Timestep_Satellite
 

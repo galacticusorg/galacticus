@@ -22,16 +22,16 @@ module Merger_Trees_Prune_Branches
   implicit none
   private
   public :: Merger_Tree_Prune_Branches
-  
+
   ! Flag indicating if module is initialized.
   logical          :: pruneBranchesModuleInitialized=.false.
- 
+
   ! Flag indicating if pruning is required.
   logical          :: mergerTreePruneBranches
 
   ! Mass below which branches should be pruned.
   double precision :: mergerTreePruningMassThreshold
-  
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -43,10 +43,11 @@ contains
     use Galacticus_Nodes
     use Input_Parameters
     implicit none
-    type (mergerTree        ), intent(in) :: thisTree
-    type (treeNode          ), pointer    :: thisNode,nextNode,destroyNode,previousNode
-    class(nodeComponentBasic), pointer    :: thisBasicComponent
-    logical                               :: didPruning
+    type (mergerTree        ), intent(in), target :: thisTree
+    type (treeNode          ), pointer            :: thisNode,nextNode,destroyNode,previousNode
+    class(nodeComponentBasic), pointer            :: thisBasicComponent
+    type (mergerTree        ), pointer            :: currentTree
+    logical                                       :: didPruning
 
     ! Check if module is initialized.
     if (.not.pruneBranchesModuleInitialized) then
@@ -83,45 +84,51 @@ contains
 
     ! Prune tree if necessary.
     if (mergerTreePruneBranches) then
-       didPruning=.true.
-       do while (didPruning)
-          didPruning=.false.
-          ! Get root node of the tree.       
-          thisNode => thisTree%baseNode
-          ! Walk the tree, pruning branches.
-          do while (associated(thisNode))
-             thisBasicComponent => thisNode%basic()
-             ! Record the parent node to which we will return.
-             previousNode => thisNode%parent
-             if (thisBasicComponent%mass() < mergerTreePruningMassThreshold) then
-                didPruning=.true.
-                ! Decouple from other nodes.
-                if (thisNode%isPrimaryProgenitorOf(previousNode)) then
-                   previousNode%firstChild => thisNode%sibling
-                else
-                   nextNode => previousNode%firstChild
-                   do while (.not.associated(nextNode%sibling,thisNode))
-                      nextNode => nextNode%sibling
+       ! Iterate over trees.
+       currentTree => thisTree
+       do while (associated(currentTree))
+          didPruning=.true.
+          do while (didPruning)
+             didPruning=.false.
+             ! Get root node of the tree.       
+             thisNode => currentTree%baseNode
+             ! Walk the tree, pruning branches.
+             do while (associated(thisNode))
+                thisBasicComponent => thisNode%basic()
+                ! Record the parent node to which we will return.
+                previousNode => thisNode%parent
+                if (thisBasicComponent%mass() < mergerTreePruningMassThreshold) then
+                   didPruning=.true.
+                   ! Decouple from other nodes.
+                   if (thisNode%isPrimaryProgenitorOf(previousNode)) then
+                      previousNode%firstChild => thisNode%sibling
+                   else
+                      nextNode => previousNode%firstChild
+                      do while (.not.associated(nextNode%sibling,thisNode))
+                         nextNode => nextNode%sibling
+                      end do
+                      nextNode%sibling => thisNode%sibling
+                   end if
+                   ! Should call the "destroyBranch" method on "currentTree" here, but seems to cause a compiler crash under gFortran
+                   ! v4.4. So, instead, do the branch destroy manually.
+                   nextNode => thisNode
+                   do while (associated(nextNode))
+                      destroyNode => nextNode
+                      call destroyNode%walkBranch(thisNode,nextNode)
+                      call destroyNode%destroy()
                    end do
-                   nextNode%sibling => thisNode%sibling
+                   ! Return to parent node.
+                   thisNode => previousNode
                 end if
-                ! Should call the "destroyBranch" method on "thisTree" here, but seems to cause a compiler crash under gFortran
-                ! v4.4. So, instead, do the branch destroy manually.
-                nextNode => thisNode
-                do while (associated(nextNode))
-                   destroyNode => nextNode
-                   call destroyNode%walkBranch(thisNode,nextNode)
-                   call destroyNode%destroy()
-                end do
-                ! Return to parent node.
-                thisNode => previousNode
-             end if
-             call thisNode%walkTree(thisNode)
+                call thisNode%walkTree(thisNode)
+             end do
           end do
+          ! Move to the next tree.
+          currentTree => currentTree%nextTree
        end do
     end if
 
     return
   end subroutine Merger_Tree_Prune_Branches
-  
+
 end module Merger_Trees_Prune_Branches

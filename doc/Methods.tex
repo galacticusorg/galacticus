@@ -5394,7 +5394,7 @@ Here, {\tt Merger\_Tree\_Mass\_Accretion\_History\_Output} is the name of a subr
     return
   end subroutine Merger_Tree_PreEvolution_Task
 \end{verbatim}
-where {\tt thisTree} is the tree to be processed. The subroutine will be called once for each tree, prior to the tree being evolved.
+where {\tt thisTree} is the tree to be processed. The function will be called once for each tree, prior to the tree being evolved. Note that {\tt thisTree} may link to other trees via its {\tt nextTree} pointer. The function may want to process each tree in this linked list.
 
 \subsubsection{Merger Tree Initialization Tasks}
 
