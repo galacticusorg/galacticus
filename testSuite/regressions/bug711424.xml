@@ -396,8 +396,8 @@
     <value>testSuite/outputs/regressions/test.hdf5</value>
   </parameter>
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
-    <value>simple</value>
+    <name>treeNodeMethodSatellite</name>
+    <value>standard</value>
   </parameter>
   <parameter>
     <name>T_CMB</name>
