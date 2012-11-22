@@ -81,9 +81,6 @@ module Merger_Tree_Read
   ! Size of the simulation box.
   double precision                                   :: lengthSimulationBox
 
-  ! Flag indicating whether to skip the main tree (and consider only queued trees).
-  logical                                            :: mergerTreeReadSkipMainTree
-
   ! Flag indicating whether mismatches in cosmological parameters should be considered fatal.
   logical                                            :: mergerTreeReadMismatchIsFatal
 
@@ -112,9 +109,6 @@ module Merger_Tree_Read
 
   ! Option controlling whether tree indices should always be set to the corresponding node index.
   logical                                            :: mergerTreeReadTreeIndexToRootNodeIndex
-
-  ! Buffer to hold additional merger trees.
-  type(mergerTree),        allocatable, dimension(:) :: mergerTreesQueued
 
   ! Labels used for node properties.
   integer,                 parameter                 :: nodeIsUnreachable=-1
@@ -195,17 +189,6 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadSkipMainTree</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>false</defaultValue>
-       !@   <description>
-       !@     Specifies whether the main tree is to be skipped (and only queued trees are processed). Useful primarily for debugging purposes.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadSkipMainTree',mergerTreeReadSkipMainTree,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadMismatchIsFatal</name>
        !@   <attachedTo>module</attachedTo>
@@ -696,239 +679,204 @@ contains
     type   (varying_string                )                                      :: message
 
     !$omp critical(mergerTreeReadTree)
-    finished=.false.
-    do while (.not.finished)
-       ! Do we have some queued trees to process?
-       if (allocated(mergerTreesQueued)) then
-          ! Retrieve stored internal state if possible.
-          call Galacticus_State_Retrieve
-          ! Take a snapshot of the internal state and store it.
-          call Galacticus_State_Snapshot
-          message='Storing state for subtree #'
-          message=message//(mergerTreeQueuePosition+1)//" of tree #"//nextTreeToRead
-          call Galacticus_State_Store(message)
-          ! We do have queued trees - simply return the next one.
-          mergerTreeQueuePosition=mergerTreeQueuePosition+1
-          thisTree=mergerTreesQueued(mergerTreeQueuePosition)
-          ! If the last tree in the queue has been reached, destroy the queue.
-          if (mergerTreeQueuePosition == size(mergerTreesQueued)) then
-             call Memory_Usage_Record(sizeof(mergerTreesQueued),addRemove=-1)
-             deallocate(mergerTreesQueued)
-             mergerTreeQueuePosition=0
-          end if
-          finished=.true.
-       else
-          ! We do not have any queued trees. Therefore, increment the tree to read index.
+    ! Increment the tree to read index.
+    nextTreeToRead=nextTreeToRead+1
+    ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
+    ! that contain 1 or fewer nodes and these are unprocessable.
+    if (nextTreeToRead <= size(mergerTreeFirstNodeIndex)) then
+       do while ( (       mergerTreeReadBeginAt            > 0                     &
+            &       .and. mergerTreeIndex(nextTreeToRead) /= mergerTreeReadBeginAt &
+            &     )                                                                &
+            &     .or. mergerTreeNodeCount(nextTreeToRead) <= 1                    &
+            &   )
           nextTreeToRead=nextTreeToRead+1
-          ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
-          ! that contain 1 or fewer nodes and these are unprocessable.
-          if (nextTreeToRead <= size(mergerTreeFirstNodeIndex)) then
-             do while ( (       mergerTreeReadBeginAt            > 0                     &
-                  &       .and. mergerTreeIndex(nextTreeToRead) /= mergerTreeReadBeginAt &
-                  &     )                                                                &
-                  &     .or. mergerTreeNodeCount(nextTreeToRead) <= 1                    &
-                  &   )
-                nextTreeToRead=nextTreeToRead+1
-                ! If the end of the list has been reached, exit.
-                if (nextTreeToRead > size(mergerTreeFirstNodeIndex)) exit
+          ! If the end of the list has been reached, exit.
+          if (nextTreeToRead > size(mergerTreeFirstNodeIndex)) exit
+       end do
+    end if
+
+    ! Flag that we've now found the first merger tree to process.
+    mergerTreeReadBeginAt=-1
+
+    if (nextTreeToRead > size(mergerTreeFirstNodeIndex))  then
+       ! All trees have been read.
+       !$omp critical(HDF5_Access)
+       ! Close the halo trees group.
+       if (haloTreesGroup%isOpen()) call haloTreesGroup%close()
+       ! Test if the merger tree file is still open.
+       if (mergerTreeFile%isOpen()) then
+          ! Close the particles group.
+          if (mergerTreeFile%hasGroup("particles")) then
+             if (particlesGroup%isOpen()) call particlesGroup%close()
+          end if
+          ! Close the file.
+          call mergerTreeFile%close()
+       end if
+       !$omp end critical(HDF5_Access)
+       ! Flag that we do not have a tree.
+       haveTree=.false.
+    else
+       ! Flag that we do have a tree.
+       haveTree=.true.
+    end if
+
+    ! Continue only if we have a tree.
+    if (haveTree) then
+       ! Retrieve stored internal state if possible.
+       call Galacticus_State_Retrieve
+       ! Take a snapshot of the internal state and store it.
+       call Galacticus_State_Snapshot
+       message='Storing state for tree #'
+       message=message//nextTreeToRead
+       call Galacticus_State_Store(message)
+
+       ! If the tree is to be skipped, do not read it.
+       if (skipTree) then
+          ! Simply allocate a base node to indicate that the tree exists.
+          call thisTree%createNode(thisTree%baseNode)
+       else
+          ! Set tree properties.
+          ! treeIndex
+          thisTree%index=mergerTreeIndex(nextTreeToRead)
+          ! volumeWeight
+          if (allocated(treeVolumeWeight)) then
+             ! Use the tree-specific weight if available.
+             treeVolumeWeightCurrent=treeVolumeWeight(nextTreeToRead)
+          else
+             ! Otherwise use the same weight for all trees.
+             treeVolumeWeightCurrent=treeVolumeWeightUniform
+          end if
+          thisTree%volumeWeight=treeVolumeWeightCurrent
+
+          ! Get the start index and extent of the datasets for this tree.
+          firstNodeIndex(1)=mergertreeFirstNodeIndex(nextTreeToRead)
+          nodeCount     (1)=mergerTreeNodeCount     (nextTreeToRead)
+
+          ! Allocate temporary arrays to hold the merger tree data.
+          allocate(nodes(nodeCount(1)))
+          call Memory_Usage_Record(sizeof(nodes))
+
+          ! Read data from the file.
+          call Read_Node_Data(nodes,firstNodeIndex,nodeCount)
+
+          ! Sort node indices.
+          call Create_Node_Indices(nodes,nodeCount)
+
+          ! Convert masses to Galacticus internal units.
+          nodes%nodeMass=nodes%nodeMass*unitConversionMass
+          if (scaleFactorExponentMass /= 0) then
+             do iNode=1,nodeCount(1)
+                nodes(iNode)%nodeMass=nodes(iNode)%nodeMass*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentMass
              end do
           end if
 
-          ! Flag that we've now found the first merger tree to process.
-          mergerTreeReadBeginAt=-1
-          if (nextTreeToRead > size(mergerTreeFirstNodeIndex))  then
-             ! All trees have been read.
-             !$omp critical(HDF5_Access)
-             ! Close the halo trees group.
-             if (haloTreesGroup%isOpen()) call haloTreesGroup%close()
-             ! Test if the merger tree file is still open.
-             if (mergerTreeFile%isOpen()) then
-                ! Close the particles group.
-                if (mergerTreeFile%hasGroup("particles")) then
-                   if (particlesGroup%isOpen()) call particlesGroup%close()
-                end if
-                ! Close the file.
-                call mergerTreeFile%close()
-             end if
-             !$omp end critical(HDF5_Access)
-             ! Flag that we do not have a tree.
-             haveTree=.false.
-          else
-             ! Flag that we do have a tree.
-             haveTree=.true.
+          ! Read optional datasets.
+          call Read_Particle_Data(nodes,firstNodeIndex,nodeCount,position,velocity)
+
+          ! Identify subhalos.
+          nodes%isSubhalo=nodes%nodeIndex /= nodes%hostIndex
+
+          ! Build pointers to descendent nodes.
+          call Build_Descendent_Pointers(nodes)
+
+          ! Find cases where something that was a subhalo stops being a subhalo.
+          call Enforce_Subhalo_Status(nodes)
+
+          ! If necessary, add masses of subhalos to host halos.
+          if (.not.haloMassesIncludeSubhalos) then
+             do iNode=1,nodeCount(1)
+                if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) nodes(iNode)%host%nodeMass= &
+                     &                                                         nodes(iNode)%host%nodeMass+nodes(iNode)%nodeMass
+             end do
           end if
 
-          ! Continue only if we have a tree.
-          if (haveTree) then
-             ! Retrieve stored internal state if possible.
-             call Galacticus_State_Retrieve
-             ! Take a snapshot of the internal state and store it.
-             call Galacticus_State_Snapshot
-             message='Storing state for tree #'
-             message=message//nextTreeToRead
-             call Galacticus_State_Store(message)
+          ! Associate parent pointers with the descendent host.
+          call Build_Parent_Pointers(nodes)
 
-             ! If the tree is to be skipped, do not read it.
-             if (skipTree) then
-                ! Simply allocate a base node to indicate that the tree exists.
-                call thisTree%createNode(thisTree%baseNode)
-             else
-                ! Set tree properties.
-                ! treeIndex
-                thisTree%index=mergerTreeIndex(nextTreeToRead)
-                ! volumeWeight
-                if (allocated(treeVolumeWeight)) then
-                   ! Use the tree-specific weight if available.
-                   treeVolumeWeightCurrent=treeVolumeWeight(nextTreeToRead)
-                else
-                   ! Otherwise use the same weight for all trees.
-                   treeVolumeWeightCurrent=treeVolumeWeightUniform
-                end if
-                thisTree%volumeWeight=treeVolumeWeightCurrent
+          ! Create an array of standard nodes.
+          call Create_Node_Array(thisTree,nodes,thisNodeList,isolatedNodeCount,childIsSubhalo)
 
-                ! Get the start index and extent of the datasets for this tree.
-                firstNodeIndex(1)=mergertreeFirstNodeIndex(nextTreeToRead)
-                nodeCount     (1)=mergerTreeNodeCount     (nextTreeToRead)
+          ! Assign parent pointers and properties.
+          call Build_Isolated_Parent_Pointers(thisTree,nodes,thisNodeList,primaryRootIndex,iExtraTree)
 
-                ! Allocate temporary arrays to hold the merger tree data.
-                allocate(nodes(nodeCount(1)))
-                call Memory_Usage_Record(sizeof(nodes))
+          ! Now build child and sibling links.
+          call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
 
-                ! Read data from the file.
-                call Read_Node_Data(nodes,firstNodeIndex,nodeCount)
-
-                ! Sort node indices.
-                call Create_Node_Indices(nodes,nodeCount)
-
-                ! Convert masses to Galacticus internal units.
-                nodes%nodeMass=nodes%nodeMass*unitConversionMass
-                if (scaleFactorExponentMass /= 0) then
-                   do iNode=1,nodeCount(1)
-                      nodes(iNode)%nodeMass=nodes(iNode)%nodeMass*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentMass
-                   end do
-                end if
-
-                ! Read optional datasets.
-                call Read_Particle_Data(nodes,firstNodeIndex,nodeCount,position,velocity)
-
-                ! Identify subhalos.
-                nodes%isSubhalo=nodes%nodeIndex /= nodes%hostIndex
-
-                ! Build pointers to descendent nodes.
-                call Build_Descendent_Pointers(nodes)
-
-                ! Find cases where something that was a subhalo stops being a subhalo.
-                call Enforce_Subhalo_Status(nodes)
-
-                ! If necessary, add masses of subhalos to host halos.
-                if (.not.haloMassesIncludeSubhalos) then
-                   do iNode=1,nodeCount(1)
-                      if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) nodes(iNode)%host%nodeMass= &
-                           &                                                         nodes(iNode)%host%nodeMass+nodes(iNode)%nodeMass
-                   end do
-                end if
-
-                ! Associate parent pointers with the descendent host.
-                call Build_Parent_Pointers(nodes)
-
-                ! Create an array of standard nodes.
-                call Create_Node_Array(thisTree,nodes,thisNodeList,isolatedNodeCount,childIsSubhalo)
-
-                ! Assign nodes to individual trees.
-                call Assign_Nodes_To_Trees(nodes,iExtraTree,primaryRootIndex)
-
-                ! Assign parent pointers and properties.
-                call Build_Isolated_Parent_Pointers(thisTree,nodes,thisNodeList,primaryRootIndex,iExtraTree)
-
-                ! Now build child and sibling links.
-                call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
-
-                ! Check that all required properties exist.
-                if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
-                   ! Position and velocity methods are required.
-                   if (.not.(defaultPositionComponent%positionIsSettable().and.defaultPositionComponent%velocityIsSettable())) call&
-                        & Galacticus_Error_Report('Merger_Tree_Read_Do','presetting positions or orbits requires a component that supports&
-                        & position and velocity setting (e.g. set [treeNodeMethodPosition]=preset); alternatively setting [mergerTreeReadPresetPositions]=false and [mergerTreeReadPresetOrbits]=false will remove the need to store positions and velocities')
-                end if
-                if (mergerTreeReadPresetMergerTimes) then
-                   ! Time of merging property is required.
-                   if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                        & 'presetting merging times requires a component that supports setting of merging times')
-                end if
-                if (mergerTreeReadPresetScaleRadii) then
-                   ! Scale radius property is required.
-                   if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                        & 'presetting scale radii requires a component that supports setting of scale radii')
-                end if
-                if (mergerTreeReadPresetSpins      ) then
-                   ! Spin property is required.
-                   if (.not.defaultSpinComponent             %spinIsSettable       ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                        & 'presetting spins requires a component that supports setting of spins')
-                end if
-                if (mergerTreeReadPresetOrbits     ) then
-                   ! Orbit property is required.
-                   if (.not.defaultSatelliteComponent        %virialOrbitIsSettable()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                        & 'presetting orbits requires a component that supports setting of orbits (e.g. [treeNodeMethodSatelliteOrbit]=preset); alternatively, set [mergerTreeReadPresetOrbits]=false to prevent attempts to set orbits)')
-                end if
-
-                ! Assign scale radii.
-                if (mergerTreeReadPresetScaleRadii) call Assign_Scale_Radii    (nodes,thisNodeList)
-
-                ! Assign spin parameters.
-                if (mergerTreeReadPresetSpins     ) call Assign_Spin_Parameters(nodes,thisNodeList)
-
-                ! Assign isolated node indices to subhalos.
-                call Assign_Isolated_Node_Indices(nodes,thisNodeList)
-
-                ! Ensure that isolated nodes with progenitors that descend into subhalos have valid primary progenitors.
-                call Validate_Isolated_Halos(nodes)
-
-                ! Scan subhalos to determine when and how they merge.
-                call Scan_For_Mergers(nodes,thisNodeList,historyCountMaximum)
-
-                ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
-                call Assign_Mergers(nodes,thisNodeList)
-
-                ! Allocate arrays for history building.
-                if (historyCountMaximum > 0) then
-                   if (allocated(position)) call Dealloc_Array(position)
-                   if (allocated(velocity)) call Dealloc_Array(velocity)
-                   call Alloc_Array(historyTime,[int(historyCountMaximum)])
-                   if (mergerTreeReadPresetSubhaloMasses                              ) call Alloc_Array(historyMass,[  int(historyCountMaximum)])
-                   if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(position   ,[3,int(historyCountMaximum)])
-                   if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(velocity   ,[3,int(historyCountMaximum)])
-                end if
-
-                ! Build subhalo mass histories if required.
-                call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyMass,position,velocity)
-
-                ! Deallocate history building arrays.
-                if (allocated(historyTime)) call Dealloc_Array(historyTime)
-                if (allocated(historyMass)) call Dealloc_Array(historyMass)
-                if (allocated(position   )) call Dealloc_Array(position   )
-                if (allocated(velocity   )) call Dealloc_Array(velocity   )
-
-                ! Deallocate the temporary arrays.
-                call Memory_Usage_Record(sizeof(nodes       ),addRemove=-1)
-                deallocate(nodes)
-                call Memory_Usage_Record(sizeof(thisNodeList),addRemove=-1)
-                deallocate(thisNodeList)
-
-                ! Destroy sorted node indices.
-                call Destroy_Node_Indices()
-             end if
+          ! Check that all required properties exist.
+          if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
+             ! Position and velocity methods are required.
+             if (.not.(defaultPositionComponent%positionIsSettable().and.defaultPositionComponent%velocityIsSettable())) call&
+                  & Galacticus_Error_Report('Merger_Tree_Read_Do','presetting positions or orbits requires a component that supports&
+                  & position and velocity setting (e.g. set [treeNodeMethodPosition]=preset); alternatively setting [mergerTreeReadPresetPositions]=false and [mergerTreeReadPresetOrbits]=false will remove the need to store positions and velocities')
+          end if
+          if (mergerTreeReadPresetMergerTimes) then
+             ! Time of merging property is required.
+             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
+                  & 'presetting merging times requires a component that supports setting of merging times')
+          end if
+          if (mergerTreeReadPresetScaleRadii) then
+             ! Scale radius property is required.
+             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
+                  & 'presetting scale radii requires a component that supports setting of scale radii')
+          end if
+          if (mergerTreeReadPresetSpins      ) then
+             ! Spin property is required.
+             if (.not.defaultSpinComponent             %spinIsSettable       ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
+                  & 'presetting spins requires a component that supports setting of spins')
+          end if
+          if (mergerTreeReadPresetOrbits     ) then
+             ! Orbit property is required.
+             if (.not.defaultSatelliteComponent        %virialOrbitIsSettable()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
+                  & 'presetting orbits requires a component that supports setting of orbits (e.g. [treeNodeMethodSatelliteOrbit]=preset); alternatively, set [mergerTreeReadPresetOrbits]=false to prevent attempts to set orbits)')
           end if
 
-          ! If the main gtree is to be skipped, destroy it and don't set the finished flag so that we'll
-          ! make another pass through the main tree getting loop and pick up a queued tree instead.
-          if (mergerTreeReadSkipMainTree) then
-             call thisTree%destroy()
-          else
-             finished=.true.
+          ! Assign scale radii.
+          if (mergerTreeReadPresetScaleRadii) call Assign_Scale_Radii    (nodes,thisNodeList)
+
+          ! Assign spin parameters.
+          if (mergerTreeReadPresetSpins     ) call Assign_Spin_Parameters(nodes,thisNodeList)
+
+          ! Assign isolated node indices to subhalos.
+          call Assign_Isolated_Node_Indices(nodes,thisNodeList)
+
+          ! Ensure that isolated nodes with progenitors that descend into subhalos have valid primary progenitors.
+          call Validate_Isolated_Halos(nodes)
+
+          ! Scan subhalos to determine when and how they merge.
+          call Scan_For_Mergers(nodes,thisNodeList,historyCountMaximum)
+
+          ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
+          call Assign_Mergers(nodes,thisNodeList)
+
+          ! Allocate arrays for history building.
+          if (historyCountMaximum > 0) then
+             if (allocated(position)) call Dealloc_Array(position)
+             if (allocated(velocity)) call Dealloc_Array(velocity)
+             call Alloc_Array(historyTime,[int(historyCountMaximum)])
+             if (mergerTreeReadPresetSubhaloMasses                              ) call Alloc_Array(historyMass,[  int(historyCountMaximum)])
+             if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(position   ,[3,int(historyCountMaximum)])
+             if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(velocity   ,[3,int(historyCountMaximum)])
           end if
 
+          ! Build subhalo mass histories if required.
+          call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyMass,position,velocity)
+
+          ! Deallocate history building arrays.
+          if (allocated(historyTime)) call Dealloc_Array(historyTime)
+          if (allocated(historyMass)) call Dealloc_Array(historyMass)
+          if (allocated(position   )) call Dealloc_Array(position   )
+          if (allocated(velocity   )) call Dealloc_Array(velocity   )
+
+          ! Deallocate the temporary arrays.
+          call Memory_Usage_Record(sizeof(nodes       ),addRemove=-1)
+          deallocate(nodes)
+          call Memory_Usage_Record(sizeof(thisNodeList),addRemove=-1)
+          deallocate(thisNodeList)
+
+          ! Destroy sorted node indices.
+          call Destroy_Node_Indices()
        end if
-    end do
+    end if
     !$omp end critical(mergerTreeReadTree)
     return
   end subroutine Merger_Tree_Read_Do
@@ -1369,53 +1317,18 @@ contains
     return
   end subroutine Create_Node_Array
 
-  subroutine Assign_Nodes_To_Trees(nodes,iExtraTree,primaryRootIndex)
-    !% Determine how many tree roots exist in this tree and assign nodes to these trees.
-    use Memory_Management
-    use Merger_Tree_Read_State
-    implicit none
-    type(nodeData), intent(inout), dimension(:), target  :: nodes
-    integer,        intent(out)                          :: iExtraTree,primaryRootIndex
-    integer                                              :: iNode,treeRootCount
-    double precision                                     :: baseNodeMass
-
-    ! Determine how many tree roots we have.
-    treeRootCount=0
-    baseNodeMass=-1.0d0
-    do iNode=1,size(nodes)
-       if (.not.nodes(iNode)%isSubhalo .and. .not.associated(nodes(iNode)%descendent)) then
-          treeRootCount=treeRootCount+1
-          if (nodes(iNode)%nodeMass > baseNodeMass) then
-             primaryRootIndex=iNode
-             baseNodeMass=nodes(iNode)%nodeMass
-          end if
-       end if
-    end do
-
-    ! Allocate a tree queue for any extra roots.
-    if (treeRootCount > 1) then
-       if (allocated(mergerTreesQueued)) then
-          call Memory_Usage_Record(sizeof(mergerTreesQueued),addRemove=-1)
-          deallocate(mergerTreesQueued)
-       end if
-       allocate(mergerTreesQueued(treeRootCount-1))
-       call Memory_Usage_Record(sizeof(mergerTreesQueued))
-       iExtraTree=0
-    end if
-    return
-  end subroutine Assign_Nodes_To_Trees
-
   subroutine Build_Isolated_Parent_Pointers(thisTree,nodes,nodeList,primaryRootIndex,iExtraTree)
     !% Create parent pointer links between isolated nodes and assign times and masses to those nodes.
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Error
     implicit none
-    type (mergerTree        ), intent(inout)               :: thisTree
+    type (mergerTree        ), intent(inout), target       :: thisTree
     type (nodeData          ), intent(inout), dimension(:) :: nodes
     type (treeNodeList      ), intent(inout), dimension(:) :: nodeList
     integer                  , intent(inout)               :: iExtraTree,primaryRootIndex
     class(nodeComponentBasic), pointer                     :: nodeBasicComponent 
+    type (mergerTree        ), pointer                     :: currentTree
     integer                                                :: iNode,iIsolatedNode
     type (varying_string)                                  :: message
     character(len=12)                                      :: label
@@ -1429,25 +1342,22 @@ contains
              nodeList(iIsolatedNode)%node%parent  => nodes(iNode)%parent%node
           else
              nodeList(iIsolatedNode)%node%parent  => null()
-             if (iNode == primaryRootIndex) then
-                thisTree                     %baseNode    => nodeList(iIsolatedNode)%node
-                if (mergerTreeReadTreeIndexToRootNodeIndex) thisTree%index = nodes(iNode)%nodeIndex
-                thisTree                     %volumeWeight=  treeVolumeWeightCurrent
+             ! Find a tree to attach this base node to. Begin with the original tree passed to us.
+             currentTree => thisTree
+             ! Check if its baseNode is already assigned.
+             do while (associated(currentTree%baseNode))
+                ! While it is, create the next tree (unless it already exists), then step to it.
+                if (.not.associated(currentTree%nextTree)) allocate(currentTree%nextTree)
+                currentTree => currentTree%nextTree
+             end do
+             ! Assign this node as the base node of the current tree.
+             currentTree                     %baseNode    => nodeList(iIsolatedNode)%node
+             if (mergerTreeReadTreeIndexToRootNodeIndex) then
+                currentTree                  %index       =  nodes   (iNode        )%nodeIndex
              else
-                iExtraTree=iExtraTree+1
-                ! Catch attempts to queue the root node of the tree.
-                if (nodes(iNode)%nodeIndex == thisTree%index .and. .not.mergerTreeReadTreeIndexToRootNodeIndex) then
-                   message=         "the root node of a tree is being placed on the tree queue,"       //char(10)
-                   message=message//"but [mergerTreeReadTreeIndexToRootNodeIndex]=false."              //char(10)
-                   message=message//"This will result in duplicated tree indices."                     //char(10)
-                   message=message//"Recommendation: set [mergerTreeReadTreeIndexToRootNodeIndex]=true"//char(10)
-                   call Galacticus_Error_Report('Build_Isolated_Parent_Pointers',message)
-                end if
-                mergerTreesQueued(iExtraTree)%baseNode    => nodeList(iIsolatedNode)%node
-                mergerTreesQueued(iExtraTree)%index       =  nodes(iNode)%nodeIndex
-                mergerTreesQueued(iExtraTree)%volumeWeight=  treeVolumeWeightCurrent
-                mergerTreesQueued(iExtraTree)%initialized =  .false.
+                currentTree                  %index       =  thisTree               %index
              end if
+             currentTree                  %volumeWeight=  treeVolumeWeightCurrent
           end if
           if (nodes(iNode)%nodeMass <= 0.0d0) then
              write (label,'(e12.6)') nodes(iNode)%nodeMass
@@ -1846,7 +1756,7 @@ contains
                 do while (associated(firstProgenitor))
                    thisSatelliteComponent => firstProgenitor%satellite(autoCreate=.true.)
                    call thisSatelliteComponent%timeOfMergingSet(timeSubhaloMerges)
-                   firstProgenitor => firstProgenitor%firstChild
+                  firstProgenitor => firstProgenitor%firstChild
                 end do
              end if
           end if
@@ -1992,7 +1902,8 @@ contains
                 end do
                 ! Set a pointer between the isolated nodes corresponding to these subhalos if and only if they descend
                 ! into the same root node.
-                if (rootNode%index() == mergeRootNode%index()) then
+!! AJB HACK
+!                if (rootNode%index() == mergeRootNode%index()) then
                    ! Set pointer from merging node (a.k.a. the "mergee") to node that will be merged with.
                    nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeTarget => nodeList(nodes(jNode)%isolatedNodeIndex)%node
                    ! Make a backward pointer from the merge target to the mergee. Check if the target already has mergees associated with it.
@@ -2005,7 +1916,8 @@ contains
                    end if
                    ! Append the mergee as the first mergee on the target node.
                    nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee => nodeList(nodes(iNode)%isolatedNodeIndex)%node
-                end if
+!! AJB HACK
+!                end if
              end if
           end if
        end do
@@ -2250,12 +2162,13 @@ contains
              end if
              thisNode => thisNode%descendent
           end do
+          outputNode=outputNode.or.(thisNode%nodeIndex == branchRoot)
        else
           outputNode=.true.
        end if
        if (outputNode) then
           ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
-       ! index plus the time, separated by a colon.
+          ! index plus the time, separated by a colon.
           ! Determine node color.
           if (present(highlightNodes)) then
              if (any(highlightNodes == nodes(iNode)%nodeIndex)) then

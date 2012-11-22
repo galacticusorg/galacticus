@@ -23,16 +23,16 @@ module Merger_Tree_Mass_Accretion_History
   implicit none
   private
   public :: Merger_Tree_Mass_Accretion_History_Output, Merger_Tree_Mass_Accretion_History_Close
-  
+
   ! Flag indicating if module is initialized.
   logical          :: accretionHistoryModuleInitialized=.false.
-  
+
   ! Flag indicating if output is required.
   logical          :: massAccretionHistoryOutput
 
   ! Accretion group object.
   type(hdf5Object) :: accretionGroup
-  
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -49,11 +49,12 @@ contains
     use String_Handling
     use Numerical_Constants_Astronomical
     implicit none
-    type(mergerTree),          intent(in)                :: thisTree
+    type(mergerTree),          intent(in) , target       :: thisTree
     type(treeNode),            pointer                   :: thisNode
     integer(kind=kind_int8),   allocatable, dimension(:) :: accretionHistoryNodeIndex
     double precision,          allocatable, dimension(:) :: accretionHistoryNodeMass,accretionHistoryNodeTime
     class(nodeComponentBasic), pointer                   :: thisBasicComponent
+    type(mergerTree),          pointer                   :: currentTree
     integer(kind=kind_int8)                              :: accretionHistoryCount
     type(varying_string)                                 :: groupName
     type(hdf5Object)                                     :: treeGroup,accretionDataset
@@ -88,51 +89,57 @@ contains
 
     ! Output the mass accretion history.
     if (massAccretionHistoryOutput) then
-       ! Count up number of entries expected for accretion history.
-       accretionHistoryCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          accretionHistoryCount=accretionHistoryCount+1
-          thisNode => thisNode%firstChild
+       ! Iterate over trees.
+       currentTree => thisTree
+       do while (associated(currentTree))
+          ! Count up number of entries expected for accretion history.
+          accretionHistoryCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             accretionHistoryCount=accretionHistoryCount+1
+             thisNode => thisNode%firstChild
+          end do
+          ! Allocate storage space.
+          call Alloc_Array(accretionHistoryNodeIndex,[int(accretionHistoryCount)])
+          call Alloc_Array(accretionHistoryNodeTime ,[int(accretionHistoryCount)])
+          call Alloc_Array(accretionHistoryNodeMass ,[int(accretionHistoryCount)])
+          ! Extract accretion history.
+          accretionHistoryCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             thisBasicComponent => thisNode%basic()
+             accretionHistoryCount=accretionHistoryCount+1
+             accretionHistoryNodeIndex(accretionHistoryCount)=               thisNode%index()
+             accretionHistoryNodeTime (accretionHistoryCount)=thisBasicComponent%time()
+             accretionHistoryNodeMass (accretionHistoryCount)=thisBasicComponent%mass()
+             thisNode => thisNode%firstChild
+          end do
+          ! Output to HDF5 file.
+          groupName   ='mergerTree'
+          groupName   =groupName//currentTree%index
+          !$omp critical (HDF5_Access)
+          treeGroup=accretionGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
+          call treeGroup%writeDataset(accretionHistoryNodeIndex,'nodeIndex','Index of the node.'         )
+          call treeGroup%writeDataset(accretionHistoryNodeTime ,'nodeTime' ,'Time at node [Gyr].'        ,datasetReturned=accretionDataset)
+          call accretionDataset%writeAttribute(gigaYear ,"unitsInSI")
+          call accretionDataset%close()
+          call treeGroup%writeDataset(accretionHistoryNodeMass ,'nodeMass' ,'Mass of the node [M⊙].',datasetReturned=accretionDataset)
+          call accretionDataset%writeAttribute(massSolar,"unitsInSI")
+          call accretionDataset%close()
+          call treeGroup       %close()
+          !$omp end critical (HDF5_Access)
+          ! Deallocate storage space.
+          call Dealloc_Array(accretionHistoryNodeIndex)
+          call Dealloc_Array(accretionHistoryNodeTime )
+          call Dealloc_Array(accretionHistoryNodeMass )
+          ! Move to the next tree.
+          currentTree => currentTree%nextTree
        end do
-       ! Allocate storage space.
-       call Alloc_Array(accretionHistoryNodeIndex,[int(accretionHistoryCount)])
-       call Alloc_Array(accretionHistoryNodeTime ,[int(accretionHistoryCount)])
-       call Alloc_Array(accretionHistoryNodeMass ,[int(accretionHistoryCount)])
-       ! Extract accretion history.
-       accretionHistoryCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          thisBasicComponent => thisNode%basic()
-          accretionHistoryCount=accretionHistoryCount+1
-          accretionHistoryNodeIndex(accretionHistoryCount)=               thisNode%index()
-          accretionHistoryNodeTime (accretionHistoryCount)=thisBasicComponent%time()
-          accretionHistoryNodeMass (accretionHistoryCount)=thisBasicComponent%mass()
-          thisNode => thisNode%firstChild
-       end do
-       ! Output to HDF5 file.
-       groupName   ='mergerTree'
-       groupName   =groupName//thisTree%index
-       !$omp critical (HDF5_Access)
-       treeGroup=accretionGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
-       call treeGroup%writeDataset(accretionHistoryNodeIndex,'nodeIndex','Index of the node.'         )
-       call treeGroup%writeDataset(accretionHistoryNodeTime ,'nodeTime' ,'Time at node [Gyr].'        ,datasetReturned=accretionDataset)
-       call accretionDataset%writeAttribute(gigaYear ,"unitsInSI")
-       call accretionDataset%close()
-       call treeGroup%writeDataset(accretionHistoryNodeMass ,'nodeMass' ,'Mass of the node [M⊙].',datasetReturned=accretionDataset)
-       call accretionDataset%writeAttribute(massSolar,"unitsInSI")
-       call accretionDataset%close()
-       call treeGroup       %close()
-       !$omp end critical (HDF5_Access)
-       ! Deallocate storage space.
-       call Dealloc_Array(accretionHistoryNodeIndex)
-       call Dealloc_Array(accretionHistoryNodeTime )
-       call Dealloc_Array(accretionHistoryNodeMass )
     end if
 
     return
   end subroutine Merger_Tree_Mass_Accretion_History_Output
-  
+
   !# <hdfPreCloseTask>
   !#   <unitName>Merger_Tree_Mass_Accretion_History_Close</unitName>
   !# </hdfPreCloseTask>
@@ -143,5 +150,5 @@ contains
     if (massAccretionHistoryOutput) call accretionGroup%close()
     return
   end subroutine Merger_Tree_Mass_Accretion_History_Close
- 
+
 end module Merger_Tree_Mass_Accretion_History
