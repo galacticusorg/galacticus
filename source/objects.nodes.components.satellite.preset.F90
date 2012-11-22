@@ -48,7 +48,6 @@ module Node_Component_Satellite_Preset
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
-  !#     <getFunction>Node_Component_Satellite_Preset_Time_Of_Merging</getFunction>
   !#   </method>
   !#   <method>
   !#     <name>boundMass</name>
@@ -97,9 +96,7 @@ contains
     ! Copy the satellite orbit from the parent node.
     select type (parentSatelliteComponent)
     class is (nodeComponentSatellitePreset)
-       call thisSatelliteComponent%   timeOfMergingSet(parentSatelliteComponent%timeOfMerging   ())
-       call thisSatelliteComponent%     virialOrbitSet(parentSatelliteComponent%virialOrbit     ())
-       call thisSatelliteComponent%boundMassHistorySet(parentSatelliteComponent%boundMassHistory())
+       thisSatelliteComponent=parentSatelliteComponent
     end select
     return
   end subroutine Node_Component_Satellite_Preset_Promote
