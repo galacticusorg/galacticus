@@ -555,6 +555,15 @@ sub Distribute_Class_Defaults {
 			} else {
 			    $classDefaults{$componentID.$methodName}->{'count'} = $method->{'classDefault'}->{'count'};
 			}
+		    } elsif ( $method->{'classDefault'} =~ m/^\[.*\]$/ ) {
+			my @splitDefault = split(/,/,$method->{'classDefault'});
+			my $defaultCount = scalar(@splitDefault);
+			if ( exists($classDefaults{$componentID.$methodName}->{'count'}) ) {
+			    die("Distribute_Class_Defaults: inconsistent class default counts for ".$componentID." ".$method)
+				unless ( $defaultCount eq $classDefaults{$componentID.$methodName}->{'count'} );
+			} else {
+			    $classDefaults{$componentID.$methodName}->{'count'} = $defaultCount
+			}
 		    }
 		}
 	    }
