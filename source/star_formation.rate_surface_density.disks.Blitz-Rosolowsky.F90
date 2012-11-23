@@ -188,7 +188,7 @@ contains
     class           (nodeComponentDisk),                pointer :: thisDiskComponent
     type            (abundances       ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                                            :: diskScaleRadius,surfaceDensityGas,surfaceDensityStar&
+    double precision                                            :: surfaceDensityGas,surfaceDensityStar&
          &,pressureRatio,molecularFraction
 
     ! Check if node differs from previous one for which we performed calculations.
@@ -222,7 +222,7 @@ contains
     pressureRatio=0.5d0*Pi*gravitationalConstantGalacticus*surfaceDensityGas*(surfaceDensityGas+velocityDispersionDiskGas &
          &*dsqrt(surfaceDensityStar/Pi/gravitationalConstantGalacticus/heightToRadialScaleDiskBlitzRosolowsky&
          &/diskScaleRadius))/pressureCharacteristicBlitzRosolowsky
-    ! Compute the molecular fraction, limited to 100% molecular.
+   ! Compute the molecular fraction, limited to 100% molecular.
     if (pressureRatio >= 1.0d0) then
        molecularFraction=1.0d0
     else
