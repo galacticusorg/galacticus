@@ -193,6 +193,7 @@ contains
              snapshotCount=1
              snapshotTime(snapshotCount)=thisBasicComponent%time()
              do while (associated(thisNode))
+                thisBasicComponent => thisNode%basic()
                 if (all(snapshotTime(1:snapshotCount) /= thisBasicComponent%time())) then
                    snapshotCount=snapshotCount+1
                    if (snapshotCount > size(snapshotTime)) then
@@ -204,7 +205,6 @@ contains
                    snapshotTime(snapshotCount)=thisBasicComponent%time()
                 end if
                 call thisNode%walkTree(thisNode)
-                thisBasicComponent => thisNode%basic()
              end do
              call Sort_Do(snapshotTime(1:snapshotCount))
           end if
@@ -213,6 +213,7 @@ contains
           treeIndex=currentTree%index
           nodeCount=0
           thisNode => currentTree%baseNode
+          snapshotInterpolatorReset=.true.
           do while (associated(thisNode))
              nodeCount=nodeCount+1
              nodeIndex      (nodeCount)=thisNode       %index()
@@ -223,10 +224,8 @@ contains
              nodeRedshift   (nodeCount)=Redshift_From_Expansion_Factor(Expansion_Factor(thisBasicComponent%time()))
              if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=thisPositionComponent%position()
              if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=thisPositionComponent%velocity()
-             if (needsSnapshots) then
-                nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotCount,snapshotTime,snapshotInterpolatorAccelerator&
+             if (needsSnapshots) nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotCount,snapshotTime,snapshotInterpolatorAccelerator&
                      &,thisBasicComponent%time(),reset=snapshotInterpolatorReset,closest=.true.)
-             end if
              call thisNode%walkTree(thisNode)
           end do
           call Interpolate_Done(interpolationAccelerator=snapshotInterpolatorAccelerator,reset=snapshotInterpolatorReset)
