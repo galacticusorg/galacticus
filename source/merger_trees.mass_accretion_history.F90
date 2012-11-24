@@ -48,6 +48,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Numerical_Constants_Astronomical
+    use Galacticus_Error
     implicit none
     type(mergerTree),          intent(in) , target       :: thisTree
     type(treeNode),            pointer                   :: thisNode
@@ -118,6 +119,7 @@ contains
           groupName   ='mergerTree'
           groupName   =groupName//currentTree%index
           !$omp critical (HDF5_Access)
+          if (accretionGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('Merger_Tree_Mass_Accretion_History_Output','duplicate tree index detected - mass accretion history can not be output'//char(10)//'  HELP: This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <parameter>'//char(10)//'    <name>mergerTreeReadTreeIndexToRootNodeIndex</name>'//char(10)//'    <value>true</value>'//char(10)//'  </parameter>')
           treeGroup=accretionGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
           call treeGroup%writeDataset(accretionHistoryNodeIndex,'nodeIndex','Index of the node.'         )
           call treeGroup%writeDataset(accretionHistoryNodeTime ,'nodeTime' ,'Time at node [Gyr].'        ,datasetReturned=accretionDataset)
