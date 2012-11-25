@@ -125,6 +125,7 @@ sub Write {
 	my $isBazaarBranch = $?;
 	if ( $isBazaarBranch == 0 ) {
 	    my $cwd = `pwd`;
+	    chomp($cwd);
 	    system("cd ".$galacticusPath."; bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.2/ -o ".$cwd."/bzrSend.meta");
 	    my $bzrDiff = `bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.2/ $galacticusPath`;
 	    my $bzrMerge = read_file("bzrSend.meta");
