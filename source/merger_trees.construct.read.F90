@@ -861,6 +861,9 @@ contains
           ! Build subhalo mass histories if required.
           call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyMass,position,velocity)
 
+          ! Assign new uniqueIDs to any cloned nodes inserted into the trees.
+          call Assign_UniqueIDs_To_Clones(thisNodeList)
+
           ! Deallocate history building arrays.
           if (allocated(historyTime)) call Dealloc_Array(historyTime)
           if (allocated(historyMass)) call Dealloc_Array(historyMass)
@@ -1770,10 +1773,7 @@ contains
              if (associated(nodeList(iIsolatedNode)%node%firstChild)) then
                 thisBasicComponent  => nodeList(iIsolatedNode)%node           %basic()
                 childBasicComponent => nodeList(iIsolatedNode)%node%firstChild%basic()
-                if     (                                                                                              &
-                     &        nodeList(iIsolatedNode)%node%index() == nodeList(iIsolatedNode)%node%firstChild%index() &
-                     &  .and. Values_Agree(thisBasicComponent%time(),childBasicComponent%time(),relTol=2.0d-6)        &
-                     & ) then
+                if (nodeList(iIsolatedNode)%node%uniqueID() == nodeList(iIsolatedNode)%node%firstChild%uniqueID()) then
                    ! Set the position and velocity of the pseudo-primary progenitor here also.
                    childPositionComponent => nodeList(iIsolatedNode)%node%firstChild%position(autoCreate=.true.)
                    call childPositionComponent%positionSet(nodes(iNode)%position)
@@ -2116,6 +2116,21 @@ contains
     end do
     return
   end subroutine Validate_Isolated_Halos
+  
+  subroutine Assign_UniqueIDs_To_Clones(nodeList)
+    !% Assign new uniqueID values to any cloned nodes inserted into the trees.
+    implicit none
+    type   (treeNodeList), intent(inout), dimension(:) :: nodeList
+    integer                                            :: iNode
+    
+    do iNode=1,size(nodeList)
+       if (associated(nodeList(iNode)%node%firstChild)) then
+          if (nodeList(iNode)%node%uniqueID() == nodeList(iNode)%node%firstChild%uniqueID()) &
+               &  call nodeList(iNode)%node%firstChild%uniqueIDSet()
+       end if
+    end do
+    return
+  end subroutine Assign_UniqueIDs_To_Clones
 
   subroutine Dump_Tree(nodes,highlightNodes,branchRoot)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\sc dot}.
