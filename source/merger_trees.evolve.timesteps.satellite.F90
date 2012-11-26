@@ -37,7 +37,7 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Satellite</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Satellite(thisNode,timeStep,End_Of_Timestep_Task,report)
+  subroutine Merger_Tree_Timestep_Satellite(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the time at which the node merges.
     use Galacticus_Nodes
     use Evolve_To_Time_Reports
@@ -45,15 +45,19 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     use String_Handling
+    use ISO_Varying_String
     implicit none
-    type     (treeNode                     ), intent(inout), pointer :: thisNode
-    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
-    double precision,                         intent(inout)          :: timeStep
-    logical,                                  intent(in)             :: report
-    type     (treeNode                     ),                pointer :: hostNode
-    class    (nodeComponentBasic           ),                pointer :: thisBasicComponent,hostBasicComponent
-    class    (nodeComponentSatellite       ),                pointer :: thisSatelliteComponent
-    double precision                                                 :: timeUntilMerging,timeStepAllowed,mergeTargetTimeMinimum,mergeTargetTimeOffsetMaximum
+    type     (treeNode                     ), intent(inout), pointer           :: thisNode
+    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer           :: End_Of_Timestep_Task
+    double precision,                         intent(inout)                    :: timeStep
+    logical,                                  intent(in)                       :: report
+    type     (treeNode                     ), intent(inout), pointer, optional :: lockNode
+    type     (varying_string               ), intent(inout),          optional :: lockType  
+    type     (treeNode                     ),                pointer           :: hostNode
+    class    (nodeComponentBasic           ),                pointer           :: thisBasicComponent,hostBasicComponent
+    class    (nodeComponentSatellite       ),                pointer           :: thisSatelliteComponent
+    double precision                                                           :: timeUntilMerging,timeStepAllowed,mergeTargetTimeMinimum&
+         &,mergeTargetTimeOffsetMaximum
 
     ! Initialize the module.
     if (.not.mergerTimestepsInitialized) then
@@ -122,6 +126,8 @@ contains
        ! Set return value if our timestep is smaller than current one. Do not set an end of timestep task in this case - we want
        ! to wait for the merge target to catch up before triggering a merger.
        if (timeStepAllowed <= timeStep) then
+          if (present(lockNode)) lockNode => hostNode
+          if (present(lockType)) lockType =  "satellite (host)"
           timeStep=timeStepAllowed
           End_Of_Timestep_Task => null()
        end if
@@ -129,6 +135,8 @@ contains
     else
        ! Set return value if our timestep is smaller than current one.
        if (timeUntilMerging <= timeStep) then
+          if (present(lockNode)) lockNode => hostNode
+          if (present(lockType)) lockType =  "satellite (self)"
           timeStep=timeUntilMerging
           ! Trigger a merger event only if the target node has no children. If it has children, we need to wait for them to be
           ! evolved before merging.

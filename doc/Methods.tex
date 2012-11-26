@@ -5028,12 +5028,14 @@ Merger tree nodes are evolved over some fixed timestep before evolution is stopp
 \end{verbatim}
 Here, {\tt unitName} gives the name of the subroutine to be called to (possibly) adjust the timestep. It should have the following form:
 \begin{verbatim}
-  subroutine My_Timestep(thisNode,timeStep,End_Of_Timestep_Task,record)
+  subroutine My_Timestep(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    procedure(),      intent(inout), pointer :: End_Of_Timestep_Task
-    double precision, intent(inout)          :: timeStep
-    logical         , intent(in   )          :: record
+    type     (treeNode      ), intent(inout), pointer           :: thisNode
+    procedure(              ), intent(inout), pointer           :: End_Of_Timestep_Task
+    double precision         , intent(inout)                    :: timeStep
+    logical                  , intent(in   )                    :: report
+    type     (treeNode      ), intent(inout), pointer, optional :: lockNode
+    type     (varying_string), intent(inout),          optional :: lockType
     .
     .
     .
@@ -5051,7 +5053,7 @@ This subroutine should compute a suitable timestep for {\tt thisNode} and, if it
     return
   end subroutine My_End_Of_Timestep_Task
 \end{verbatim}
-If the {\tt record} argument is {\tt true} then the function should report the value of {\tt timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.) It is recommended that the report be made using the \hyperlink{merger_trees.evolve.timesteps.report.F90:evolve_to_time_reports:evolve_to_time_report}{\tt Evolve\_To\_Time\_Report()} function.
+If the {\tt report} argument is {\tt true} then the function should report the value of {\tt timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.) It is recommended that the report be made using the \hyperlink{merger_trees.evolve.timesteps.report.F90:evolve_to_time_reports:evolve_to_time_report}{\tt Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\tt lockNode} and {\tt lockType} arguments are present then additional information can be supplied to aid in diagnosing deadlock conditions. If the current task is limiting the timestep then the {\tt lockNode} pointer should be set to point to whichever node is causing the limit (which may be {\tt thisNode} or some other node, e.g. a satellite of {\tt thisNode}, etc.), and {\tt lockType} should be set to a short description label identifying the type of limit.
 
 \subsubsection{Galactic Component Density}
 
