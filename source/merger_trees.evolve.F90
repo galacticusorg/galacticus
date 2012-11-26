@@ -20,6 +20,8 @@
 module Merger_Trees_Evolve
   !% Implements evolution of merger trees. 
   use Galacticus_Nodes
+  use ISO_Varying_String
+  use Kind_Numbers
   implicit none
   private
   public :: Merger_Tree_Evolve_To
@@ -37,6 +39,16 @@ module Merger_Trees_Evolve
   logical          :: evolveToTimeInitialized=.false.
   double precision :: timestepHostAbsolute,timestepHostRelative
 
+  ! Structure used to store list of nodes for deadlock reporting.
+  type :: deadlockList
+     type   (deadlockList  ), pointer :: next => null()
+     type   (treeNode      ), pointer :: node,lockNode
+     integer(kind=kind_int8)          :: treeIndex
+     type   (varying_string)          :: lockType
+  end type deadlockList
+  type(deadlockList), pointer :: deadlockHeadNode => null()
+  !$omp threadprivate(deadlockHeadNode)
+
 contains
 
   subroutine Merger_Tree_Evolve_To(thisTree,endTime)
@@ -51,13 +63,14 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     use String_Handling
+    use Kind_Numbers
     !# <include directive="mergerTreeEvolveThreadInitialize" type="moduleUse">
     include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
     !# </include>
     implicit none
     type            (mergerTree                   ), intent(inout), target :: thisTree
     double precision                               , intent(in   )         :: endTime
-    type            (treeNode                     ), pointer               :: thisNode,nextNode,parentNode
+    type            (treeNode                     ), pointer               :: thisNode,nextNode,parentNode,lockNode
     double precision                               , parameter             :: timeTolerance=1.0d-5
     double precision                               , parameter             :: largeTime    =1.0d10
     procedure       (Interrupt_Procedure_Template ), pointer               :: interruptProcedure
@@ -73,7 +86,7 @@ contains
     logical                                                                :: interrupted,didEvolve
     character       (len=12                       )                        :: label
     character       (len=35)                                               :: message
-    type            (varying_string               )                        :: vMessage
+    type            (varying_string               )                        :: vMessage,lockType
     logical                                                                :: anyTreeExistsAtOutputTime
 
     ! Check if this routine is initialized.
@@ -198,12 +211,6 @@ contains
              ! Get the basic component of the node.
              thisBasicComponent => thisNode%basic()
 
-             ! Check that tree extends beyond end time. If it does not, skip to the next tree.
-             if (thisBasicComponent%time() < endTime) then
-                currentTree => currentTree%nextTree
-                cycle
-             end if
-
              ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
              treeWalkLoop: do while (associated(thisNode))
 
@@ -217,7 +224,7 @@ contains
                 call thisNode%walkTreeWithSatellites(nextNode)
 
                 ! Evolve this node if it exists before the output time and has no children (i.e. they've already all been processed).
-                evolveCondition: if (.not.associated(thisNode%firstChild) .and. thisBasicComponent%time() < endTime) then
+                evolveCondition: if (associated(thisNode%parent) .and. .not.associated(thisNode%firstChild) .and. thisBasicComponent%time() < endTime) then
 
                    ! Flag that a node was evolved.
                    didEvolve=.true.
@@ -242,10 +249,13 @@ contains
                          write (label,'(e12.6)') endTime
                          vMessage=vMessage//":"//label//")"
                          call Galacticus_Display_Indent(vMessage)
+                         endTimeThisNode=Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report=.true.&
+                              &,lockNode=lockNode,lockType=lockType)
+                         call Galacticus_Display_Unindent("end node")
+                         call Deadlock_Add_Node(thisNode,currentTree%index,lockNode,lockType)
+                      else
+                         endTimeThisNode=Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report=.false.)
                       end if
-                      endTimeThisNode=Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report=(deadlockStatus == isReporting))
-                      if (deadlockStatus == isReporting) call Galacticus_Display_Unindent("end node")
-
                       ! If this node is able to  evolve by a finite amount, the tree is not deadlocked.
                       if (endTimeThisNode > thisBasicComponent%time()) deadlockStatus=isNotDeadlocked
 
@@ -308,7 +318,7 @@ contains
              end if
 
              ! Report on current tree if deadlocked.
-             if (deadlockStatus == isReporting) call Galacticus_Display_Unindent('done')
+             if (deadlockStatus == isReporting) call Galacticus_Display_Unindent('end tree')
 
              ! Move to the next tree.
              currentTree => currentTree%nextTree
@@ -317,6 +327,7 @@ contains
           if (didEvolve .and. deadlockStatus /= isNotDeadlocked) then
              if (deadlockStatus == isReporting) then
                 call Galacticus_Display_Unindent("report done")
+                call Deadlock_Tree_Output(endTime)
                 call Galacticus_Error_Report('Merger_Tree_Evolve_To','merger tree appears to be deadlocked (see preceding report) - check timestep criteria')
              else
                 ! Tree is deadlocked. Switch to reporting mode and do one more pass through the tree.
@@ -334,7 +345,7 @@ contains
     return
   end subroutine Merger_Tree_Evolve_To
 
-  double precision function Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report)
+  double precision function Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determine the time to which {\tt thisNode} should be evolved.
     use Merger_Tree_Timesteps
     use Cosmology_Functions
@@ -345,18 +356,21 @@ contains
     use String_Handling
     use Merger_Trees
     use Evolve_To_Time_Reports
+    use Kind_Numbers
     implicit none
-    type(treeNode),            intent(inout), pointer :: thisNode
-    double precision,          intent(in)             :: endTime
-    type(treeNode),                           pointer :: satelliteNode
-    procedure(),               intent(out),   pointer :: End_Of_Timestep_Task
-    logical,                   intent(in)             :: report
-    procedure(),                              pointer :: End_Of_Timestep_Task_Internal
-    class(nodeComponentBasic),                pointer :: thisBasicComponent,parentBasicComponent,satelliteBasicComponent,siblingBasicComponent
-    class(nodeComponentSatellite),            pointer :: satelliteSatelliteComponent
-    double precision                                  :: time,expansionFactor,expansionTimescale,hostTimeLimit
-    character(len=9)                                  :: timeFormatted
-    type(varying_string)                              :: message
+    type(treeNode),            intent(inout), pointer           :: thisNode
+    double precision,          intent(in)                       :: endTime
+    type(treeNode),                           pointer           :: satelliteNode
+    procedure(),               intent(out),   pointer           :: End_Of_Timestep_Task
+    logical,                   intent(in)                       :: report
+    type(treeNode),            intent(out),   pointer, optional :: lockNode
+    type(varying_string),      intent(out),            optional :: lockType  
+    procedure(),                              pointer           :: End_Of_Timestep_Task_Internal
+    class(nodeComponentBasic),                pointer           :: thisBasicComponent,parentBasicComponent,satelliteBasicComponent,siblingBasicComponent
+    class(nodeComponentSatellite),            pointer           :: satelliteSatelliteComponent
+    double precision                                            :: time,expansionFactor,expansionTimescale,hostTimeLimit
+    character(len=9)                                            :: timeFormatted
+    type(varying_string)                                        :: message
 
     ! Initialize if not yet done.
     !$omp critical (evolveToTimeInitialize)
@@ -390,6 +404,10 @@ contains
     ! Initially set to the global end time.
     Evolve_To_Time=endTime
     if (report) call Evolve_To_Time_Report("start (target): ",Evolve_To_Time)
+    
+    ! Initialize the lock node if present.
+    if (present(lockNode)) lockNode => null()
+    if (present(lockType)) lockType ='null'
 
     ! Get the basic component of the node.
     thisBasicComponent => thisNode%basic()
@@ -400,7 +418,11 @@ contains
        ! Limit to the time of its parent node if this node is not a satellite.
        if (associated(thisNode%parent)) then
           parentBasicComponent => thisNode%parent%basic()
-          Evolve_To_Time=min(Evolve_To_Time,parentBasicComponent%time())
+          if (parentBasicComponent%time() < Evolve_To_Time) then
+             if (present(lockNode)) lockNode => thisNode%parent
+             if (present(lockType)) lockType =  "promotion"
+             Evolve_To_Time=parentBasicComponent%time()
+          end if
        end if
        if (report) call Evolve_To_Time_Report("promotion limit: ",Evolve_To_Time)
     case (.true.)
@@ -415,7 +437,11 @@ contains
        ! Determine suitable timestep.
        hostTimeLimit=time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute)
        ! Limit to this time.
-       Evolve_To_Time=min(Evolve_To_Time,hostTimeLimit)
+       if (hostTimeLimit < Evolve_To_Time) then
+          if (present(lockNode)) lockNode => thisNode%parent
+          if (present(lockType)) lockType =  "satellite in host"
+          Evolve_To_Time=hostTimeLimit
+       end if
        if (report) call Evolve_To_Time_Report("satellite in host limit: ",Evolve_To_Time)
     end select
 
@@ -423,7 +449,11 @@ contains
     satelliteNode => thisNode%firstSatellite
     do while (associated(satelliteNode))
        satelliteBasicComponent => satelliteNode%basic()
-       Evolve_To_Time=min(Evolve_To_Time,satelliteBasicComponent%time())
+       if (satelliteBasicComponent%time() < Evolve_To_Time) then
+          if (present(lockNode)) lockNode => satelliteNode
+          if (present(lockType)) lockType =  "hosted satellite"
+          Evolve_To_Time=satelliteBasicComponent%time()
+       end if
        if (report) call Evolve_To_Time_Report("hosted satellite: ",Evolve_To_Time,satelliteNode%index())
        satelliteNode => satelliteNode%sibling
     end do
@@ -434,7 +464,14 @@ contains
     time=thisBasicComponent%time()
     do while (associated(satelliteNode))
        satelliteSatelliteComponent => satelliteNode%satellite()
-       Evolve_To_Time=min(Evolve_To_Time,max(satelliteSatelliteComponent%timeOfMerging(),time))
+       if (max(satelliteSatelliteComponent%timeOfMerging(),time) < Evolve_To_Time) then
+          if (present(lockNode)) lockNode => satelliteNode
+          if (present(lockType)) then
+             write (timeFormatted,'(f7.4)') max(satelliteSatelliteComponent%timeOfMerging(),time)
+             lockType =  "mergee ("//trim(timeFormatted)//")"
+          end if
+          Evolve_To_Time=max(satelliteSatelliteComponent%timeOfMerging(),time)
+       end if
        if (report) call Evolve_To_Time_Report("mergee limit: ",Evolve_To_Time,satelliteNode%index())
        satelliteNode => satelliteNode%siblingMergee
     end do
@@ -443,14 +480,18 @@ contains
     ! primary progenitor into its parent until all siblings have become satellites in that parent.
     if (thisNode%isPrimaryProgenitor().and.associated(thisNode%sibling)) then
        siblingBasicComponent => thisNode%sibling%basic()
-       Evolve_To_Time=min(Evolve_To_Time,max(thisBasicComponent%time(),siblingBasicComponent%time()))
+       if (max(thisBasicComponent%time(),siblingBasicComponent%time()) < Evolve_To_Time) then
+          if (present(lockNode)) lockNode => thisNode%sibling
+          if (present(lockType)) lockType =  "sibling"
+          Evolve_To_Time=max(thisBasicComponent%time(),siblingBasicComponent%time())
+       end if
        if (report) call Evolve_To_Time_Report("sibling: ",Evolve_To_Time,thisNode%sibling%index())
     end if
 
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
     if (report) call Galacticus_Display_Indent("timestepping criteria")
     End_Of_Timestep_Task_Internal => null()
-    Evolve_To_Time=min(Evolve_To_Time,thisBasicComponent%time()+Time_Step_Get(thisNode,Evolve_To_Time,End_Of_Timestep_Task_Internal,report))
+    Evolve_To_Time=min(Evolve_To_Time,thisBasicComponent%time()+Time_Step_Get(thisNode,Evolve_To_Time,End_Of_Timestep_Task_Internal,report,lockNode,lockType))
     End_Of_Timestep_Task => End_Of_Timestep_Task_Internal
     if (report) call Galacticus_Display_Unindent("done")
 
@@ -478,5 +519,95 @@ contains
     end if
     return
   end function Evolve_To_Time
+
+  subroutine Deadlock_Add_Node(thisNode,treeIndex,lockNode,lockType)
+    !% Add a node to the deadlocked nodes list.
+    implicit none
+    type   (treeNode      ), pointer, intent(in   ) :: thisNode,lockNode
+    integer(kind=kind_int8),          intent(in   ) :: treeIndex
+    type   (varying_string),          intent(in   ) :: lockType
+    type   (deadlockList  ), pointer                :: deadlockThisNode
+
+    ! Add a node to the deadlock linked list.
+    if (associated(deadlockHeadNode)) then
+       deadlockThisNode => deadlockHeadNode
+       do while (associated(deadlockThisNode%next))
+          deadlockThisNode => deadlockThisNode%next
+       end do
+       allocate(deadlockThisNode%next)
+       deadlockThisNode => deadlockThisNode%next
+    else
+       allocate(deadlockHeadNode)
+       deadlockThisNode => deadlockHeadNode
+    end if
+    ! Set properties.
+    deadlockThisNode%node      => thisNode
+    deadlockThisNode%treeIndex =  treeIndex
+    deadlockThisNode%lockNode  => lockNode
+    deadlockThisNode%lockType  =  lockType
+    return
+  end subroutine Deadlock_Add_Node
+
+  subroutine Deadlock_Tree_Output(endTime)
+    !% Output the deadlocked nodes in {\tt dot} format.
+    implicit none
+    double precision                    , intent(in   ) :: endTime
+    type            (deadlockList      ), pointer       :: thisNode,testNode
+    class           (nodeComponentBasic), pointer       :: thisBasicComponent
+    type            (treeNode          ), pointer       :: parentNode
+    logical                                             :: foundLockNode
+    integer                                             :: treeUnit
+
+    ! Begin tree.
+    open(newUnit=treeUnit,file='galacticusDeadlockTree.gv',status='unknown',form='formatted')
+    write (treeUnit,*) 'digraph Tree {'
+    
+    ! Find any nodes that cause a lock but which are not in our list.
+    thisNode => deadlockHeadNode
+    do while (associated(thisNode))
+       if (associated(thisNode%lockNode)) then
+          testNode => deadlockHeadNode
+          foundLockNode=.false.
+          do while (associated(testNode).and..not.foundLockNode)
+             foundLockNode=(associated(thisNode%lockNode,testNode%node))
+             testNode => testNode%next
+          end do
+          if (.not.foundLockNode) then
+             testNode => deadlockHeadNode
+             do while (associated(testNode%next))
+                testNode => testNode%next
+             end do
+             allocate(testNode%next)
+             testNode => testNode%next
+             ! Find root node.
+             parentNode => thisNode%lockNode
+             do while (associated(parentNode%parent))
+                parentNode => parentNode%parent
+             end do
+             ! Set properties.
+             testNode%node      => thisNode%lockNode             
+             testNode%treeIndex =  parentNode%index()
+             testNode%lockNode  => null()
+             testNode%lockType  =  "unknown"
+             thisBasicComponent => thisNode%lockNode%basic()
+             if (associated(thisNode%lockNode%firstChild)) testNode%lockType = "child"
+             if (thisBasicComponent%time() >= endTime    ) testNode%lockType = "end time"
+          end if
+       end if
+       thisNode => thisNode%next
+    end do
+    
+    ! Iterate over all nodes visited.
+    thisNode => deadlockHeadNode
+    do while (associated(thisNode))
+       write (treeUnit,'(a,i16.16,a,i16.16,a,i16.16,a,f7.4,a,a,a)') '"',thisNode%node%index(),'" [shape=circle, label="',thisNode%node%index(),'\ntree: ',thisNode%treeIndex,'\ntime: ',thisBasicComponent%time(),'\n',char(thisNode%lockType),'"];'
+       if (associated(thisNode%lockNode)) write (treeUnit,'(a,i16.16,a,i16.16,a)') '"',thisNode%node%index(),'" -> "',thisNode%lockNode%index(),'"' ;
+       thisNode => thisNode%next
+    end do
+    ! Close the tree.
+    write (treeUnit,*) '}'
+    close(treeUnit)
+    return
+  end subroutine Deadlock_Tree_Output
 
 end module Merger_Trees_Evolve
