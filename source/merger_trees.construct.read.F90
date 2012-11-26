@@ -1775,8 +1775,6 @@ contains
                      &  .and. Values_Agree(thisBasicComponent%time(),childBasicComponent%time(),relTol=2.0d-6)        &
                      & ) then
                    ! Set the position and velocity of the pseudo-primary progenitor here also.
-call galacticus_error_report('wong',"UP YOU BUTT WITH A CO-CO-NUTT!")
-stop
                    childPositionComponent => nodeList(iIsolatedNode)%node%firstChild%position(autoCreate=.true.)
                    call childPositionComponent%positionSet(nodes(iNode)%position)
                    call childPositionComponent%velocitySet(nodes(iNode)%velocity)
