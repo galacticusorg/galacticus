@@ -160,11 +160,20 @@ module Galacticus_Nodes
   
   subroutine Tree_Node_Unique_ID_Set(self,uniqueID)
     !% Sets the index of a {\tt treeNode}.
+    use Galacticus_Error
     implicit none
-    class  (treeNode      ), intent(inout) :: self         
-    integer(kind=kind_int8), intent(in   ) :: uniqueID
+    class  (treeNode      ), intent(inout)           :: self         
+    integer(kind=kind_int8), intent(in   ), optional :: uniqueID
 
-    self%uniqueIdValue=uniqueID
+    if (present(uniqueID)) then
+       self%uniqueIdValue=uniqueID
+    else
+       !$omp critical(UniqueID_Assign)
+       uniqueIDCount=uniqueIDCount+1
+       if (uniqueIDCount <= 0) call Galacticus_Error_Report('Tree_Node_Unique_ID_Set','ran out of unique ID numbers')
+       self%uniqueIdValue=uniqueIDCount
+       !$omp end critical(UniqueID_Assign)
+    end if
     return
   end subroutine Tree_Node_Unique_ID_Set
 

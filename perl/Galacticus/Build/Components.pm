@@ -4625,10 +4625,11 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    ! Assign index if supplied.\n";
     $functionCode .= "    if (present(index)) call self%indexSet(index)\n";
     $functionCode .= "    ! Assign a unique ID.\n";
-    $functionCode .= "    !\$omp atomic\n";
+    $functionCode .= "    !\$omp critical(UniqueID_Assign)\n";
     $functionCode .= "    uniqueIDCount=uniqueIDCount+1\n";
     $functionCode .= "    if (uniqueIDCount <= 0) call Galacticus_Error_Report('treeNodeInitialize','ran out of unique ID numbers')\n";
     $functionCode .= "    self%uniqueIdValue=uniqueIDCount\n";
+    $functionCode .= "    !\$omp end critical(UniqueID_Assign)\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine treeNodeInitialize\n";	
     # Insert into the function list.
