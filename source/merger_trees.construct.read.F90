@@ -673,9 +673,9 @@ contains
     type   (treeNodeList                  ), allocatable, dimension(:  )         :: thisNodeList
     logical                                , allocatable, dimension(:  )         :: childIsSubhalo
     integer(kind=HSIZE_T                  ),              dimension(1  )         :: nodeCount,firstNodeIndex
-    integer                                                                      :: isolatedNodeCount,primaryRootIndex,iExtraTree
+    integer                                                                      :: isolatedNodeCount
     integer(kind=kind_int8                )                                      :: iNode,historyCountMaximum
-    logical                                                                      :: haveTree,finished
+    logical                                                                      :: haveTree
     type   (varying_string                )                                      :: message
 
     !$omp critical(mergerTreeReadTree)
@@ -797,7 +797,7 @@ contains
           call Create_Node_Array(thisTree,nodes,thisNodeList,isolatedNodeCount,childIsSubhalo)
 
           ! Assign parent pointers and properties.
-          call Build_Isolated_Parent_Pointers(thisTree,nodes,thisNodeList,primaryRootIndex,iExtraTree)
+          call Build_Isolated_Parent_Pointers(thisTree,nodes,thisNodeList)
 
           ! Now build child and sibling links.
           call Build_Child_and_Sibling_Links(nodes,thisNodeList,childIsSubhalo)
@@ -1317,7 +1317,7 @@ contains
     return
   end subroutine Create_Node_Array
 
-  subroutine Build_Isolated_Parent_Pointers(thisTree,nodes,nodeList,primaryRootIndex,iExtraTree)
+  subroutine Build_Isolated_Parent_Pointers(thisTree,nodes,nodeList)
     !% Create parent pointer links between isolated nodes and assign times and masses to those nodes.
     use ISO_Varying_String
     use String_Handling
@@ -1326,7 +1326,6 @@ contains
     type (mergerTree        ), intent(inout), target       :: thisTree
     type (nodeData          ), intent(inout), dimension(:) :: nodes
     type (treeNodeList      ), intent(inout), dimension(:) :: nodeList
-    integer                  , intent(inout)               :: iExtraTree,primaryRootIndex
     class(nodeComponentBasic), pointer                     :: nodeBasicComponent 
     type (mergerTree        ), pointer                     :: currentTree
     integer                                                :: iNode,iIsolatedNode
@@ -1776,6 +1775,8 @@ contains
                      &  .and. Values_Agree(thisBasicComponent%time(),childBasicComponent%time(),relTol=2.0d-6)        &
                      & ) then
                    ! Set the position and velocity of the pseudo-primary progenitor here also.
+call galacticus_error_report('wong',"UP YOU BUTT WITH A CO-CO-NUTT!")
+stop
                    childPositionComponent => nodeList(iIsolatedNode)%node%firstChild%position(autoCreate=.true.)
                    call childPositionComponent%positionSet(nodes(iNode)%position)
                    call childPositionComponent%velocitySet(nodes(iNode)%velocity)
@@ -1873,7 +1874,6 @@ contains
     implicit none
     type(nodeData),     intent(inout), dimension(:) :: nodes
     type(treeNodeList), intent(inout), dimension(:) :: nodeList
-    type(treeNode),     pointer                     :: rootNode,mergeRootNode
     integer                                         :: iNode
     integer(kind=kind_int8)                         :: jNode
     type(varying_string)                            :: message
@@ -1891,33 +1891,18 @@ contains
                 message=message//'] merger in which subhalo has no isolated node progenitor - this should not happen'
                 call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
              else
-                ! Find the root nodes into which these nodes will descend.
-                rootNode => nodeList(nodes(iNode)%isolatedNodeIndex)%node
-                do while (associated(rootNode%parent))
-                   rootNode => rootNode%parent
-                end do
-                mergeRootNode => nodeList(nodes(jNode)%isolatedNodeIndex)%node
-                do while (associated(mergeRootNode%parent))
-                   mergeRootNode => mergeRootNode%parent
-                end do
-                ! Set a pointer between the isolated nodes corresponding to these subhalos if and only if they descend
-                ! into the same root node.
-!! AJB HACK
-!                if (rootNode%index() == mergeRootNode%index()) then
-                   ! Set pointer from merging node (a.k.a. the "mergee") to node that will be merged with.
-                   nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeTarget => nodeList(nodes(jNode)%isolatedNodeIndex)%node
-                   ! Make a backward pointer from the merge target to the mergee. Check if the target already has mergees associated with it.
-                   if (associated(nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee)) then
-                      ! It does: unlink them and attached to the "siblingMergee" pointer of the current mergee.
-                      nodeList(nodes(iNode)%isolatedNodeIndex)%node%siblingMergee => nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee
-                   else
-                      ! It does not: simply nullify the next mergee pointer of the mergee.
-                      nodeList(nodes(iNode)%isolatedNodeIndex)%node%siblingMergee => null()
-                   end if
-                   ! Append the mergee as the first mergee on the target node.
-                   nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee => nodeList(nodes(iNode)%isolatedNodeIndex)%node
-!! AJB HACK
-!                end if
+                ! Set pointer from merging node (a.k.a. the "mergee") to node that will be merged with.
+                nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeTarget => nodeList(nodes(jNode)%isolatedNodeIndex)%node
+                ! Make a backward pointer from the merge target to the mergee. Check if the target already has mergees associated with it.
+                if (associated(nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee)) then
+                   ! It does: unlink them and attached to the "siblingMergee" pointer of the current mergee.
+                   nodeList(nodes(iNode)%isolatedNodeIndex)%node%siblingMergee => nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee
+                else
+                   ! It does not: simply nullify the next mergee pointer of the mergee.
+                   nodeList(nodes(iNode)%isolatedNodeIndex)%node%siblingMergee => null()
+                end if
+                ! Append the mergee as the first mergee on the target node.
+                nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee => nodeList(nodes(iNode)%isolatedNodeIndex)%node
              end if
           end if
        end do
