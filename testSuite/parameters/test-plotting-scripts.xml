@@ -10,7 +10,7 @@
   <parameters>
     <parameter>
       <name>outputRedshifts</name>
-      <value>0.0 0.1</value>
+      <value>0.0 0.07 0.1</value>
     </parameter>
     <!-- Luminosities -->
     <parameter>
