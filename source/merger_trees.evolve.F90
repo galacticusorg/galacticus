@@ -82,7 +82,7 @@ contains
     integer                                        , parameter             :: isDeadlocked=2,isReporting=1,isNotDeadlocked=0
     integer                                                                :: nodesEvolvedCount,nodesTotalCount,treeWalkCount&
          &,treeWalkCountPreviousOutput,deadlockStatus
-    double precision                                                       :: endTimeThisNode,earliestTimeInTree
+    double precision                                                       :: endTimeThisNode,earliestTimeInTree,finalTimeInTree
     logical                                                                :: interrupted,didEvolve
     character       (len=12                       )                        :: label
     character       (len=35)                                               :: message
@@ -211,6 +211,9 @@ contains
              ! Get the basic component of the node.
              thisBasicComponent => thisNode%basic()
 
+             ! Record the final time in this tree.
+             finalTimeInTree=thisBasicComponent%time()
+
              ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
              treeWalkLoop: do while (associated(thisNode))
 
@@ -224,7 +227,7 @@ contains
                 call thisNode%walkTreeWithSatellites(nextNode)
 
                 ! Evolve this node if it exists before the output time and has no children (i.e. they've already all been processed).
-                evolveCondition: if (associated(thisNode%parent) .and. .not.associated(thisNode%firstChild) .and. thisBasicComponent%time() < endTime) then
+                evolveCondition: if (associated(thisNode%parent) .and. .not.associated(thisNode%firstChild) .and. thisBasicComponent%time() < min(endTime,finalTimeInTree)) then
 
                    ! Flag that a node was evolved.
                    didEvolve=.true.
