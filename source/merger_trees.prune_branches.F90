@@ -91,37 +91,49 @@ contains
           do while (didPruning)
              didPruning=.false.
              ! Get root node of the tree.       
-             thisNode => currentTree%baseNode
-             ! Walk the tree, pruning branches.
-             do while (associated(thisNode))
-                thisBasicComponent => thisNode%basic()
-                ! Record the parent node to which we will return.
-                previousNode => thisNode%parent
-                if (thisBasicComponent%mass() < mergerTreePruningMassThreshold) then
-                   didPruning=.true.
-                   ! Decouple from other nodes.
-                   if (thisNode%isPrimaryProgenitorOf(previousNode)) then
-                      previousNode%firstChild => thisNode%sibling
-                   else
-                      nextNode => previousNode%firstChild
-                      do while (.not.associated(nextNode%sibling,thisNode))
-                         nextNode => nextNode%sibling
+             thisNode           => currentTree%baseNode
+             thisBasicComponent => thisNode%basic()
+             if (thisBasicComponent%mass() < mergerTreePruningMassThreshold) then
+                ! Entire tree is below threshold. Destroy all but this base node. (Leaving just
+                ! the base node makes the tree inert - i.e. it can not do anything.)
+                thisNode => thisNode%firstChild
+                do while (associated(thisNode))
+                   nextNode => thisNode%sibling
+                   call currentTree%destroyBranch(thisNode)
+                   thisNode => nextNode
+                end do
+             else
+                ! Walk the tree, pruning branches.
+                do while (associated(thisNode))
+                   thisBasicComponent => thisNode%basic()
+                   ! Record the parent node to which we will return.
+                   previousNode => thisNode%parent
+                   if (thisBasicComponent%mass() < mergerTreePruningMassThreshold) then
+                      didPruning=.true.
+                      ! Decouple from other nodes.
+                      if (thisNode%isPrimaryProgenitorOf(previousNode)) then
+                         previousNode%firstChild => thisNode%sibling
+                      else
+                         nextNode => previousNode%firstChild
+                         do while (.not.associated(nextNode%sibling,thisNode))
+                            nextNode => nextNode%sibling
+                         end do
+                         nextNode%sibling => thisNode%sibling
+                      end if
+                      ! Should call the "destroyBranch" method on "currentTree" here, but seems to cause a compiler crash under gFortran
+                      ! v4.4. So, instead, do the branch destroy manually.
+                      nextNode => thisNode
+                      do while (associated(nextNode))
+                         destroyNode => nextNode
+                         call destroyNode%walkBranch(thisNode,nextNode)
+                         call destroyNode%destroy()
                       end do
-                      nextNode%sibling => thisNode%sibling
+                      ! Return to parent node.
+                      thisNode => previousNode
                    end if
-                   ! Should call the "destroyBranch" method on "currentTree" here, but seems to cause a compiler crash under gFortran
-                   ! v4.4. So, instead, do the branch destroy manually.
-                   nextNode => thisNode
-                   do while (associated(nextNode))
-                      destroyNode => nextNode
-                      call destroyNode%walkBranch(thisNode,nextNode)
-                      call destroyNode%destroy()
-                   end do
-                   ! Return to parent node.
-                   thisNode => previousNode
-                end if
-                call thisNode%walkTree(thisNode)
-             end do
+                   call thisNode%walkTree(thisNode)
+                end do
+             end if
           end do
           ! Move to the next tree.
           currentTree => currentTree%nextTree
