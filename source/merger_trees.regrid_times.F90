@@ -41,6 +41,7 @@ module Merger_Trees_Regrid_Times
   integer,              parameter                 :: mergerTreeRegridSpacingLinear                =0
   integer,              parameter                 :: mergerTreeRegridSpacingLogarithmic           =1
   integer,              parameter                 :: mergerTreeRegridSpacingLogCriticalOverdensity=2
+  integer,              parameter                 :: mergerTreeRegridSpacingMillennium            =3
 
 contains
 
@@ -64,13 +65,13 @@ contains
     implicit none
     type(mergerTree),          intent(inout), target       :: thisTree
     type(treeNode),            pointer                     :: thisNode,childNode,siblingNode,nextNode
-    type(treeNode),            pointer,       dimension(:) :: newNodes
+    type(treeNodeList),        allocatable,   dimension(:) :: newNodes
     integer(kind=kind_int8),   allocatable,   dimension(:) :: highlightNodes
     class(nodeComponentBasic), pointer                     :: thisBasicComponent,parentBasicComponent,childBasicComponent
     type (mergerTree        ), pointer                     :: currentTree
     type(fgsl_interp_accel)                                :: interpolationAccelerator
     logical                                                :: interpolationReset
-    integer                                                :: iNow,iParent,iTime,allocErr
+    integer                                                :: iNow,iParent,iTime,allocErr,jTime
     double precision                                       :: timeNow,timeParent,massNow,massParent
     integer(kind=kind_int8)                                :: nodeIndex,firstNewNode
 
@@ -154,6 +155,8 @@ contains
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLogarithmic
              case ("log critical density")
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLogCriticalOverdensity
+             case ("millennium")
+                mergerTreeRegridSpacing=mergerTreeRegridSpacingMillennium
              case default
                 call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unrecognized spacing type: '//mergerTreeRegridSpacingAsText)
              end select
@@ -187,6 +190,17 @@ contains
                 ! Convert critical overdensity to time.
                 do iTime=1,mergerTreeRegridCount
                    mergerTreeRegridTimeGrid(iTime)=Time_of_Collapse(mergerTreeRegridTimeGrid(iTime))
+                end do
+             case (mergerTreeRegridSpacingMillennium)
+                ! Use the timesteps used in the original Millennium Simulation as reported by Croton et al.
+                ! (2006; MNRAS; 365; 11; http://adsabs.harvard.edu/abs/2006MNRAS.365...11C).
+                ! Check for consistent number of timesteps.
+                if (mergerTreeRegridCount /= 60) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','"millennium" grid spacing requires exactly 60 timesteps')
+                ! Convert expansion factors to time.
+                do iTime=1,mergerTreeRegridCount
+                   jTime=mergerTreeRegridCount-iTime
+                   mergerTreeRegridTimeGrid(iTime)=0.1d0**(dble(jTime)*(dble(jTime)+35.0d0)/4200.0d0)
+                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
                 end do
              end select
 
@@ -274,41 +288,42 @@ contains
                    if (allocErr/=0) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unable to allocate new nodes')
                    do iTime=iNow+1,iParent
                       nodeIndex=nodeIndex+1_kind_int8
-                      call newNodes(iTime-iNow)%initialize(nodeIndex)
+                      call currentTree%createNode(newNodes(iTime-iNow)%node)
+                      call newNodes(iTime-Inow)%node%indexSet(nodeIndex)
                    end do
                    ! Assign node properties and build links.
                    do iTime=iNow+1,iParent
                       ! Assign a time and a mass
-                      thisBasicComponent => newNodes(iTime-iNow)%basic()
+                      thisBasicComponent => newNodes(iTime-iNow)%node%basic(autoCreate=.true.)
                       call thisBasicComponent%timeSet(                              mergerTreeRegridTimeGrid(iTime)                              )
                       call thisBasicComponent%massSet(massNow+(massParent-massNow)*(mergerTreeRegridTimeGrid(iTime)-timeNow)/(timeParent-timeNow))
                       ! Link to child node.
-                      if (iTime > iNow+1 ) newNodes(iTime-iNow)%firstChild => newNodes(iTime-iNow-1)
+                      if (iTime > iNow+1 ) newNodes(iTime-iNow)%node%firstChild => newNodes(iTime-iNow-1)%node
                       ! Link to parent node.
-                      if (iTime < iParent) newNodes(iTime-iNow)%parent     => newNodes(iTime-iNow+1)
+                      if (iTime < iParent) newNodes(iTime-iNow)%node%parent     => newNodes(iTime-iNow+1)%node
                    end do
                    ! Link final node to the parent.
-                   newNodes(iParent-iNow)%parent  => thisNode%parent
+                   newNodes(iParent-iNow)%node%parent  => thisNode%parent
                    ! Link final node sibling to current node sibling.
-                   newNodes(iParent-iNow)%sibling => thisNode%sibling
+                   newNodes(iParent-iNow)%node%sibling => thisNode%sibling
                    ! Link the parent to the final node.
                    if (thisNode%isPrimaryProgenitor()) then
                       ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
-                      thisNode%parent%firstChild  => newNodes(iParent-iNow)
+                      thisNode%parent%firstChild  => newNodes(iParent-iNow)%node
                    else
                       ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
                       childNode => thisNode%parent%firstChild
                       do while (.not.associated(childNode%sibling,thisNode))
                          childNode => childNode%sibling
                       end do
-                      childNode%sibling => newNodes(iParent-iNow)
+                      childNode%sibling => newNodes(iParent-iNow)%node
                    end if
                    ! Link the child of the first node to the node being processed.
-                   newNodes(1)%firstChild  => thisNode
+                   newNodes(1)%node%firstChild  => thisNode
                    ! Nullify any sibling of the node being processed.
                    thisNode%sibling => null()
                    ! Link the parent of the node being processed to the first node of the list.
-                   thisNode%parent  => newNodes(1)
+                   thisNode%parent  => newNodes(1)%node
                    ! Erase the node list.
                    deallocate(newNodes)
                 end if
