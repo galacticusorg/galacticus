@@ -63,7 +63,7 @@ contains
     if (resetActual) then
        resetFlag=1       
     else
-       resetFlag=3
+       resetFlag=2
     end if
     ! Decide how many points to use for computing partial derivatives.
     if (present(numberComputePoints)) then
