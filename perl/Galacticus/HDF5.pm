@@ -193,7 +193,7 @@ sub Get_Dataset {
 			my $mergerTreeIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex")->get;
 			my $mergerTreeCount = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
 			for(my $i=0;$i<nelem($mergerTreeCount);++$i) {
-			    $dataTree = $dataTree->append($mergerTreeIndex->(($i))*ones($mergerTreeCount->(($i))));
+			    $dataTree = $dataTree->append($mergerTreeIndex->(($i))*ones($mergerTreeCount->(($i))->sclr()));
 			}
 		    }
 		} else {
