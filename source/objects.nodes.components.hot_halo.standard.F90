@@ -527,8 +527,8 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Post_Evolve
 
-  subroutine Node_Component_Hot_Halo_Standard_Stripped_Gas_Rates(thisNode,gasMassRate)
-    !% Adjusts the rates of all components of the stripped gas reservoir under the assumption of uniformly distributed properties
+  subroutine Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(thisNode,gasMassRate)
+    !% Add gas stripped from the hot halo to the stripped gas reservoirs under the assumption of uniformly distributed properties
     !% (e.g. fully-mixed metals).
     implicit none
     type (treeNode            ), pointer, intent(inout) :: thisNode
@@ -548,13 +548,13 @@ contains
        ! If gas is present, adjust the rates.
        if (gasMass > 0.0d0) then
           ! Mass.
-          call thisHotHaloComponent%      strippedMassRate(                                          gasMassRate        )
+          call thisHotHaloComponent%      strippedMassRate(                                  gasMassRate        )
           ! Metal abundances.
-          call thisHotHaloComponent%strippedAbundancesRate(thisHotHaloComponent%strippedAbundances()*gasMassRate/gasMass)
+          call thisHotHaloComponent%strippedAbundancesRate(thisHotHaloComponent%abundances()*gasMassRate/gasMass)
        end if
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Stripped_Gas_Rates
+  end subroutine Node_Component_Hot_Halo_Standard_Strip_Gas_Rate
 
   subroutine Node_Component_Hot_Halo_Standard_Heat_Source(thisHotHaloComponent,rate,interrupt,interruptProcedure)
     !% An incoming pipe for sources of heating to the hot halo.
@@ -975,9 +975,9 @@ contains
                 outerRadiusGrowthRate=(ramPressureRadius-outerRadius)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
                 if (outerRadius <= Dark_Matter_Halo_Virial_Radius(thisNode) .and. outerRadius > outerRadiusOverVirialRadiusMinimum*Dark_Matter_Halo_Virial_Radius(thisNode)) then
                    massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
-                   call thisHotHaloComponent% outerRadiusRate(+outerRadiusGrowthRate)
-                   call thisHotHaloComponent%     massSinkSet(+         massLossRate)
-                   call thisHotHaloComponent%strippedMassRate(-         massLossRate)
+                   call thisHotHaloComponent%outerRadiusRate(+outerRadiusGrowthRate)
+                   call thisHotHaloComponent%    massSinkSet(+         massLossRate)
+                   call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(thisNode,-massLossRate)
                 end if
              end if
           else
