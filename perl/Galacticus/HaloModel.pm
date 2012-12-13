@@ -66,7 +66,7 @@ sub Compute_Power_Spectrum {
 
     # Get galaxy data.
     @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','volumeWeight','nodeBias');
-    if ( $redshiftSpace == 1 ) {push(@properties,'nodeVirialVelocity','nodeVirialRadius','nodeMass')};
+    if ( $redshiftSpace == 1 ) {push(@properties,'nodeVirialVelocity','nodeVirialRadius','basicMass')};
     &HDF5::Get_Dataset($dataBlock,\@properties);
     my $dataSets = $dataBlock->{'dataSets'};
 
