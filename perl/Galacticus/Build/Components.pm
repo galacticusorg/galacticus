@@ -2981,6 +2981,12 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	# If this component is an extension, first call on the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%nameFromIndex(count,name)\n";
+	    $functionCode .= "    if (count <= 0) return\n";
+	}
 	# Iterate over properties.
 	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 	    my $method = $component->{'methods'}->{'method'}->{$methodName};
@@ -3089,7 +3095,14 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= "    !% Return a count of the serialization of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=0\n";
+	# If this component is an extension, get the count of the extended type.
+	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=";
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+	} else {
+	    $functionCode .= "0\n";
+	}
 	# Initialize a count of scalar properties.
 	my $scalarPropertyCount = 0;
 	# Iterate over properties.
@@ -3154,6 +3167,16 @@ sub Generate_Implementation_Serialization_Functions {
 	    $functionCode .= "    implicit none\n";
 	    my $serializationCode;
 	    my $needCount = 0;
+	    # If this component is an extension, call serialization on the extended type.
+	    if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+		my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+		$serializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+		$serializationCode .= " if (count > 0) then\n";
+		$serializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serialize".ucfirst($content)."s(array)\n";
+		$serializationCode .= "  offset=offset+count\n";
+		$serializationCode .= " end if\n";
+		$needCount = 1;
+	    }
 	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 		my $method = $component->{'methods'}->{'method'}->{$methodName};
 	    	# Check if this method has any linked data in this component.
@@ -3246,6 +3269,16 @@ sub Generate_Implementation_Serialization_Functions {
 	    $functionCode .= "    implicit none\n";
 	    my $deserializationCode;
 	    $needCount = 0;
+	    # If this component is an extension, call deserialization on the extended type.
+	    if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+		my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+		$deserializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+		$deserializationCode .= " if (count > 0) then\n";
+		$deserializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%deserialize".ucfirst($content)."s(array)\n";
+		$deserializationCode .= "  offset=offset+count\n";
+		$deserializationCode .= " end if\n";
+		$needCount = 1;
+	    }
 	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 	    	my $method = $component->{'methods'}->{'method'}->{$methodName};
 	    	# Check if this method has any linked data in this component.
@@ -5538,6 +5571,11 @@ sub Generate_ODE_Initialization_Functions {
 	$functionCode .= "    !% Initialize rates in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	# If this component is an extension, first call on the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%odeStepRatesInitialize()\n";
+	}
 	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 	    my $method = $component->{'methods'}->{'method'}->{$methodName};	    
 	    if ( exists($method->{'linkedData'}) ) {
@@ -5582,6 +5620,11 @@ sub Generate_ODE_Initialization_Functions {
 	$functionCode .= "    !% Initialize scales in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	# If this component is an extension, first call on the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%odeStepScalesInitialize()\n";
+	}
 	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 	    my $method = $component->{'methods'}->{'method'}->{$methodName};
 	    if ( exists($method->{'linkedData'}) ) {
