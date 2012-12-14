@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -52,11 +52,11 @@ $dataBlock->{'store'} = 0;
 &HDF5::Count_Trees($dataBlock);
 &HDF5::Select_Output($dataBlock,0.0);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosity:RGO_I:rest:z0.0000:dustAtlas']);
+&HDF5::Get_Dataset($dataBlock,['volumeWeight','diskRadius','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas']);
 $dataSets = $dataBlock->{'dataSets'};
-$scaleLength = $dataSets->{'diskScaleLength'};
+$scaleLength = $dataSets->{'diskRadius'};
 $magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
-$morphology = $dataSets->{'bulgeToTotalLuminosity:RGO_I:rest:z0.0000:dustAtlas'};
+$morphology = $dataSets->{'bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas'};
 $weight = $dataSets->{'volumeWeight'};
 delete($dataBlock->{'dataSets'});
   

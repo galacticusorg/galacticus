@@ -84,8 +84,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('intergalaticMediumStateMethod',intergalaticMediumStateMethod,defaultValue='RecFast')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="intergalaticMediumStateMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>intergalaticMediumStateMethod,Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get</subroutineArgs>
+          !# <include directive="intergalaticMediumStateMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>intergalaticMediumStateMethod,Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get</functionArgs>
           include 'intergalactic_medium.state.inc'
           !# </include>
           if (.not.(associated(Intergalactic_Medium_Electron_Fraction_Get).and.associated(Intergalactic_Medium_Temperature_Get))) call&

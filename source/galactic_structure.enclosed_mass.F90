@@ -21,7 +21,7 @@ module Galactic_Structure_Enclosed_Masses
   !% Implements calculations of the mass enclosed within a specified radius.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
   private
@@ -87,12 +87,11 @@ contains
     Galactic_Structure_Enclosed_Mass=0.0d0
 
     ! Call routines to supply the masses for all components.
-    !# <include directive="enclosedMassTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,radiusActual,massTypeActual,componentTypeActual,weightByActual,weightIndexActual,componentMass</subroutineArgs>
-    !#  <subroutineAction>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</subroutineAction>
+    !# <include directive="enclosedMassTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,radiusActual,massTypeActual,componentTypeActual,weightByActual,weightIndexActual,componentMass</functionArgs>
+    !#  <onReturn>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</onReturn>
     include 'galactic_structure.enclosed_mass.tasks.inc'
     !# </include>
-
     return
   end function Galactic_Structure_Enclosed_Mass
   

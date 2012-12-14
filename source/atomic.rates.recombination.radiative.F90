@@ -68,8 +68,8 @@ contains
           call Get_Input_Parameter('atomicRadiativeRecombinationMethod',atomicRadiativeRecombinationMethod,defaultValue='Verner')
           
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="atomicRadiativeRecombinationMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>atomicRadiativeRecombinationMethod,Atomic_Rate_Recombination_Radiative_Get</subroutineArgs>
+          !# <include directive="atomicRadiativeRecombinationMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>atomicRadiativeRecombinationMethod,Atomic_Rate_Recombination_Radiative_Get</functionArgs>
           include 'atomic.rates.recombination.radiative.inc'
           !# </include>
           if (.not.associated(Atomic_Rate_Recombination_Radiative_Get)) call&

@@ -21,7 +21,7 @@
 
 module Black_Hole_Binary_Initial_Radii_Tidal_Radius
   !% Implements a black hole binary initial separation based on tidal disruption of the satellite galaxy.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Black_Hole_Binary_Initial_Radii_Tidal_Radius_Initialize
@@ -62,31 +62,26 @@ contains
     use Galacticus_Display
     use String_Handling
     implicit none
-    type(treeNode         ), intent(inout), pointer  :: thisNode, hostNode
-    type(fgsl_function    ), save                    :: rootFunction
-    type(fgsl_root_fsolver), save                    :: rootFunctionSolver
+    type            (treeNode              ), intent(inout), pointer :: thisNode, hostNode
+    class           (nodeComponentBlackHole),                pointer :: thisBlackHoleComponent
+    type            (fgsl_function         ), save                   :: rootFunction
+    type            (fgsl_root_fsolver     ), save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                                 :: radiusMinimum,radiusMaximum
-    type(c_ptr            )                          :: parameterPointer
+    double precision                                                 :: radiusMinimum,radiusMaximum
+    type            (c_ptr                 )                         :: parameterPointer
 
     ! Assume zero separation by default.
     Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
-
+    ! Get the black hole component.
+    thisBlackHoleComponent => thisNode%blackHole(instance=1)
     ! If the primary black hole has zero mass (i.e. has been ejected), then return immediately.
-    if (Tree_Node_Black_Hole_Mass(thisNode) <= 0.0d0) return
-
+    if (thisBlackHoleComponent%mass() <= 0.0d0) return
     ! Get the half-mass radius of the satellite galaxy.
     radiusHalfMass=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-
     ! Get the mass within the half-mass radius.
     massHalf=Galactic_Structure_Enclosed_Mass(thisNode,radiusHalfMass,massType=massTypeGalactic)
-
     ! Return zero radius for massless galaxy.
-    if (radiusHalfMass <= 0.0d0 .or. massHalf <= 0.0d0) then
-       Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
-       return
-    end if
-
+    if (radiusHalfMass <= 0.0d0 .or. massHalf <= 0.0d0) return
     ! Solve for the radius around the host at which the satellite gets disrupted.
     activeNode => hostNode
     radiusMinimum=Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)

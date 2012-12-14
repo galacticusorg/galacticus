@@ -29,7 +29,7 @@ contains
     !% Compute the cladistic information content (CIC; \citealt{thorley_information_1998}) of a merger tree in bits.
     use Factorials
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(mergerTree), intent(in) :: thisTree
     type(treeNode),   pointer    :: thisNode,childNode

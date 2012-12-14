@@ -32,63 +32,33 @@ contains
   !# <haloMassFunctionMethod>
   !#  <unitName>Halo_Mass_Function_Press_Schechter_Initialize</unitName>
   !# </haloMassFunctionMethod>
-  subroutine Halo_Mass_Function_Press_Schechter_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Tabulate)
+  subroutine Halo_Mass_Function_Press_Schechter_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Differential_Get)
     !% Initializes the ``Press-Schechter mass functon'' module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ),          intent(in   ) :: haloMassFunctionMethod
-    procedure(                ), pointer, intent(inout) :: Halo_Mass_Function_Tabulate
+    type(varying_string),                 intent(in   ) :: haloMassFunctionMethod
+    procedure(double precision), pointer, intent(inout) :: Halo_Mass_Function_Differential_Get
     
-    if (haloMassFunctionMethod == 'Press-Schechter') Halo_Mass_Function_Tabulate => Halo_Mass_Function_Press_Schechter_Tabulate
+    if (haloMassFunctionMethod == 'Press-Schechter') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Differential_Press_Schechter
     return
   end subroutine Halo_Mass_Function_Press_Schechter_Initialize
 
-  subroutine Halo_Mass_Function_Press_Schechter_Tabulate(time,logMass,haloMassFunctionNumberPoints,haloMassFunctionLogMass &
-       &,haloMassFunctionLogAbundance)
-    !% Tabulate a Press-Schechter halo mass function.
-    use Memory_Management
-    use Numerical_Ranges
+ double precision function Halo_Mass_Function_Differential_Press_Schechter(time,mass)
+    !% Compute the Press-Schechter halo mass function.
     use Numerical_Constants_Math
     use CDM_Power_Spectrum
     use Critical_Overdensity
     use Cosmological_Parameters
     use Excursion_Sets_First_Crossings
     implicit none
-    double precision,                            intent(in)    :: time,logMass
-    double precision, allocatable, dimension(:), intent(inout) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
-    integer,                                     intent(out)   :: haloMassFunctionNumberPoints
-    integer                                                    :: iMass
-    double precision                                           :: mass,alpha,variance
+    double precision, intent(in) :: time,mass
+    double precision             :: variance,alpha
 
-    ! Determine range of masss required.
-    logMassMinimum=min(logMassMinimum,logMass-ln10)
-    logMassMaximum=max(logMassMaximum,logMass+ln10)
-    
-    ! Determine number of points to tabulate.
-    haloMassFunctionNumberPoints=int((logMassMaximum-logMassMinimum)*dble(nPointsPerDecade)/ln10)
-
-    ! Deallocate arrays if currently allocated.
-    if (allocated(haloMassFunctionLogMass))      call Dealloc_Array(haloMassFunctionLogMass     )
-    if (allocated(haloMassFunctionLogAbundance)) call Dealloc_Array(haloMassFunctionLogAbundance)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(haloMassFunctionLogMass     ,[haloMassFunctionNumberPoints])
-    call Alloc_Array(haloMassFunctionLogAbundance,[haloMassFunctionNumberPoints])
-
-    ! Tabulate the function.
-    haloMassFunctionLogMass=Make_Range(logMassMinimum,logMassMaximum,haloMassFunctionNumberPoints,rangeTypeLinear)
-    do iMass=1,haloMassFunctionNumberPoints
-       mass    =dexp(haloMassFunctionLogMass(iMass))
-       alpha   =dabs(sigma_CDM_Logarithmic_Derivative(mass))
-       variance=sigma_CDM(mass)**2
-       haloMassFunctionLogAbundance(iMass)=2.0d0*(Omega_Matter()*Critical_Density()/mass**2)*alpha*variance&
-            &*Excursion_Sets_First_Crossing_Probability(variance,time)
-    end do
-    where (haloMassFunctionLogAbundance > 0.0d0)
-       haloMassFunctionLogAbundance=dlog(haloMassFunctionLogAbundance)
-    elsewhere
-       haloMassFunctionLogAbundance=-1000.0d0
-    end where
+    alpha   =abs(sigma_CDM_Logarithmic_Derivative(mass))
+    variance=sigma_CDM(mass)**2
+    Halo_Mass_Function_Differential_Press_Schechter=2.0d0*(Omega_Matter()*Critical_Density()/mass**2)*alpha*variance&
+         &*Excursion_Sets_First_Crossing_Probability(variance,time)
     return
-  end subroutine Halo_Mass_Function_Press_Schechter_Tabulate
+  end function Halo_Mass_Function_Differential_Press_Schechter
   
 end module Halo_Mass_Function_Press_Schechter

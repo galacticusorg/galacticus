@@ -15,6 +15,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Arya Farahi, Andrew Benson.
+
 !% Contains a module which implements the first crossing distribution for excursion set calculations of dark matter halo formation
 !% using a high order modification of the methodology of \cite{zhang_random_2006}.
 

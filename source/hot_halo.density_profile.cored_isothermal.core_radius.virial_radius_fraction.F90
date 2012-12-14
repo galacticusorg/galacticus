@@ -62,7 +62,7 @@ contains
   double precision function Hot_Halo_Density_Cored_Isothermal_Core_Radius_Virial_Fraction(thisNode)
     !% Returns the radius (in Mpc) of the core radius in a cored isothermal hot halo density profile. Assumes that the radius is
     !% a fixed fraction of the halo virial radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

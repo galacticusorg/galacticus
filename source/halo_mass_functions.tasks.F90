@@ -67,7 +67,7 @@ contains
 
   subroutine Halo_Mass_Function_Compute
     !% Computes mass functions and related properties for output.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Merger_Trees
     use Halo_Mass_Function
     use Dark_Matter_Halo_Biases
@@ -82,9 +82,11 @@ contains
     use Virial_Density_Contrast
     use Galacticus_Calculations_Resets
     implicit none
-    integer          :: haloMassFunctionsPointsPerDecade,haloMassFunctionsCount,iMass,outputCount,iOutput
-    double precision :: haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,criticalOverdensity,characteristicMass
-    type(mergerTree) :: thisTree
+    class(nodeComponentBasic), pointer :: thisBasicComponent
+    integer                            :: haloMassFunctionsPointsPerDecade,haloMassFunctionsCount,iMass,outputCount,iOutput
+    double precision                   :: haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,criticalOverdensity&
+         &,characteristicMass
+    type (mergerTree        )          :: thisTree
 
     ! Get the requested output redshifts.
     outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
@@ -176,10 +178,13 @@ contains
     ! Create a node object.
     call thisTree%createNode(thisTree%baseNode)
 
+    ! Get the basic component.
+    thisBasicComponent => thisTree%baseNode%basic()
+
     ! Loop over all output times.
     do iOutput=1,outputCount
        ! Set the time in the node.
-       call Tree_Node_Time_Set(thisTree%baseNode,outputTimes(iOutput))
+       call thisBasicComponent%timeSet(outputTimes(iOutput))
        
        ! Build a range of halo masses.
        haloMassFunction_Mass(:,iOutput)=Make_Range(haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,haloMassFunctionsCount,rangeTypeLogarithmic)
@@ -189,7 +194,7 @@ contains
           ! Reset calculations.
           call Galacticus_Calculations_Reset(thisTree%baseNode)
           ! Set the mass in the node.
-          call Tree_Node_Mass_Set(thisTree%baseNode,haloMassFunction_Mass(iMass,iOutput))
+          call thisBasicComponent%massSet(haloMassFunction_Mass(iMass,iOutput))
           ! Compute halo properties.
           haloMassFunction_dndM             (iMass,iOutput)=Halo_Mass_Function_Differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)

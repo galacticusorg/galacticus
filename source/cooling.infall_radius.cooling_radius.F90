@@ -46,7 +46,7 @@ contains
 
   double precision function Infall_Radius_Cooling_Radius(thisNode)
     !% Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cooling_Radii
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
@@ -57,7 +57,7 @@ contains
   
   double precision function Infall_Radius_Growth_Rate_Cooling_Radius(thisNode)
     !% Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cooling_Radii
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

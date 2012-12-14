@@ -46,10 +46,10 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     
     return
   end subroutine Chemical_Reaction_Rates_Null_Compute

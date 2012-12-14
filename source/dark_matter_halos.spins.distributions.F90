@@ -20,7 +20,7 @@
 module Halo_Spin_Distributions
   !% Implements calculations of dark matter halo spin distributions
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Halo_Spin_Distribution_Sample
@@ -69,8 +69,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('haloSpinDistributionMethod',haloSpinDistributionMethod,defaultValue='Bett2007')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="haloSpinDistributionMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>haloSpinDistributionMethod,Halo_Spin_Sample_Get</subroutineArgs>
+          !# <include directive="haloSpinDistributionMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>haloSpinDistributionMethod,Halo_Spin_Sample_Get</functionArgs>
           include 'dark_matter_halos.spins.distributions.inc'
           !# </include>
           if (.not.associated(Halo_Spin_Sample_Get)) call Galacticus_Error_Report('Halo_Spin_Distribution','method ' &

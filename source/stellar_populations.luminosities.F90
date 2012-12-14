@@ -43,7 +43,7 @@ module Stellar_Population_Luminosities
   ! Module global variables used in integrations.
   double precision          :: ageTabulate,redshiftTabulate
   integer                   :: filterIndexTabulate,imfIndexTabulate
-  type(abundancesStructure) :: abundancesTabulate
+  type(abundances)          :: abundancesTabulate
   !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate)
 
   ! Flag indicating if this module has been initialized yet.
@@ -54,7 +54,7 @@ module Stellar_Population_Luminosities
 
 contains
   
-  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,imfIndex,abundances,age,redshift)
+  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,imfIndex,abundancesStellar,age,redshift)
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} and {\tt age} drawn from IMF
     !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}.
     use Memory_Management
@@ -72,7 +72,7 @@ contains
     implicit none
     integer,                   intent(in)                                    :: luminosityIndex(:),filterIndex(:),imfIndex
     double precision,          intent(in)                                    :: age(:),redshift(:)
-    type(abundancesStructure), intent(in)                                    :: abundances
+    type(abundances),          intent(in)                                    :: abundancesStellar
     double precision,                       dimension(size(luminosityIndex)) :: Stellar_Population_Luminosity
     type(luminosityTable),     allocatable, dimension(:)                     :: luminosityTablesTemporary
     double precision,          allocatable, dimension(:,:,:)                 :: luminosityTemporary
@@ -223,7 +223,7 @@ contains
     end do
  
     ! Get interpolation in metallicity.
-    metallicity=Abundances_Get_Metallicity(abundances,metallicityType=logarithmicByMassSolar)
+    metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
     if (metallicity == logMetallicityZero .or. metallicity < luminosityTables(imfIndex)%metallicity(1)) then
        iMetallicity=1
        hMetallicity=[1.0d0,0.0d0]

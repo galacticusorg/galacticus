@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -12,6 +12,8 @@ use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
+use Carp 'verbose';
+$SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 require Stats::Means;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
@@ -55,11 +57,11 @@ $dataSet->{'store'} = 0;
 &HDF5::Count_Trees($dataSet);
 &HDF5::Select_Output($dataSet,0.0);
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','spheroidStellarMass','blackHoleMass']);
+&HDF5::Get_Dataset($dataSet,['volumeWeight','spheroidMassStellar','blackHoleMass']);
 $dataSets         = $dataSet->{'dataSets'};
-$volumeWeight     = where($dataSets->{'volumeWeight'}       ,$dataSets->{'spheroidStellarMass'} > 3.0e8);
-$spheroidMass     = where($dataSets->{'spheroidStellarMass'},$dataSets->{'spheroidStellarMass'} > 3.0e8);
-$blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidStellarMass'} > 3.0e8);
+$volumeWeight     = where($dataSets->{'volumeWeight'}       ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
+$spheroidMass     = where($dataSets->{'spheroidMassStellar'},$dataSets->{'spheroidMassStellar'} > 3.0e8);
+$blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
 unless (exists($dataSets->{'blackHoleMass'})) {
     if ( $showFit == 1 ) {
 	$fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";

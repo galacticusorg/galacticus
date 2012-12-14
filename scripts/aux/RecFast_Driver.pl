@@ -6,8 +6,8 @@ use File::Copy;
 use Data::Dumper;
 use DateTime;
 my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
@@ -82,11 +82,12 @@ unless ( -e $galacticusPath."aux/RecFast/recfast.exe" ) {
 
 # Run the RecFast code.
 my $buildFile = 0;
+system("mkdir -p `dirname ".$outputFile."`");
 if ( -e $outputFile ) {
     my $xmlFile         = new XML::Simple;
     my $previousFile    = $xmlFile->XMLin($outputFile);
     my $previousVersion = $previousFile->{'fileFormat'};
-    $buildFile = 1 if ( $previousVersion /= $fileFormatCurrent );
+    $buildFile = 1 if ( $previousVersion != $fileFormatCurrent );
 } else {
     $buildFile = 1;
 }

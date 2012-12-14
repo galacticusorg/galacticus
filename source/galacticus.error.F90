@@ -76,7 +76,7 @@ contains
     use FGSL
     implicit none
     type(fgsl_error_handler_t) :: galacticusGslErrorHandler,standardGslErrorHandler
-  
+
     call Signal( 2,Galacticus_Signal_Handler_SIGINT )
     call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)

@@ -102,16 +102,17 @@ contains
 
   subroutine Merger_Tree_Smooth_Accretion_Do(thisTree,skipTree)
     !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmology_Functions
     use Kind_Numbers
     use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
-    type(mergerTree),       intent(inout) :: thisTree
-    logical,                intent(in)    :: skipTree
-    type(treeNode),         pointer       :: currentNode,newNode
-    integer(kind=kind_int8)               :: nodeIndex
-    double precision                      :: mergerTreeBaseTime,expansionFactorBase,nodeMass,nodeTime
+    type (mergerTree        ), intent(inout) :: thisTree
+    logical,                   intent(in   ) :: skipTree
+    type (treeNode          ), pointer       :: currentNode,newNode
+    class(nodeComponentBasic), pointer       :: newBasicComponent,baseBasicComponent
+    integer(kind=kind_int8)                  :: nodeIndex
+    double precision                         :: mergerTreeBaseTime,expansionFactorBase,nodeMass,nodeTime
 
     ! Build the merger tree.
     !$omp critical (Merger_Tree_Build_Do)
@@ -121,15 +122,16 @@ contains
        ! Create the base node.
        nodeIndex=1
        call thisTree%createNode(thisTree%baseNode,nodeIndex)
+       baseBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
        ! Assign an arbitrary weight to the tree.
        thisTree%volumeWeight=1.0
        ! Assign a mass to the base node.
-       call Tree_Node_Mass_Set(thisTree%baseNode,mergerTreeHaloMass)
+       call baseBasicComponent%massSet(mergerTreeHaloMass)
        ! Find the cosmic time at which the tree is based.
        expansionFactorBase=Expansion_Factor_from_Redshift(mergerTreeBaseRedshift)
        mergerTreeBaseTime =Cosmology_Age                 (expansionFactorBase   )
        ! Assign a time to the base node.
-       call Tree_Node_Time_Set(thisTree%baseNode,mergerTreeBaseTime)
+       call baseBasicComponent%timeSet(mergerTreeBaseTime)
        ! Get a pointer to the current node (i.e. the base node).       
        currentNode => thisTree%baseNode
        ! Initialize current node mass.
@@ -142,17 +144,18 @@ contains
           nodeIndex=nodeIndex+1
           ! Create a node.
           call thisTree%createNode(newNode,nodeIndex)
+          newBasicComponent => newNode%basic(autoCreate=.true.)
           ! Adjust the mass by the specified factor.
           nodeMass=nodeMass*mergerTreeHaloMassDeclineFactor
           ! Set the mass of the node.
-          call Tree_Node_Mass_Set (newNode,nodeMass )
+          call newBasicComponent%massSet(nodeMass)
           ! Find the time corresponding to this expansion factor.
           nodeTime=Dark_Matter_Halo_Mass_Accretion_Time(thisTree%baseNode,nodeMass)
           ! Set the time for the new node.
-          call Tree_Node_Time_Set (newNode,nodeTime )
+          call newBasicComponent%timeSet(nodeTime)
           ! Create parent and child links.
-          currentNode%childNode  => newNode
-          newNode    %parentNode => currentNode
+          currentNode%firstChild => newNode
+          newNode    %parent     => currentNode
           ! Move the current node to the new node.
           currentNode => newNode
        end do

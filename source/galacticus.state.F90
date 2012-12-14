@@ -47,7 +47,7 @@ contains
     ! Ensure that module is initialized.
     call State_Initialize
 
-    !# <include directive="galacticusStateSnapshotTask" type="code" action="subroutine">
+    !# <include directive="galacticusStateSnapshotTask" type="functionCall" functionType="void">
     include 'galacticus.state.snapshot.inc'
     !# </include>
     return
@@ -95,8 +95,8 @@ contains
        open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
        fgslStateFile=FGSL_Open(char(fileNameFGSL),'w')
        
-       !# <include directive="galacticusStateStoreTask" type="code" action="subroutine">
-       !#  <subroutineArgs>stateUnit,fgslStateFile</subroutineArgs>
+       !# <include directive="galacticusStateStoreTask" type="functionCall" functionType="void">
+       !#  <functionArgs>stateUnit,fgslStateFile</functionArgs>
        include 'galacticus.state.store.inc'
        !# </include>
        
@@ -146,8 +146,8 @@ contains
           open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
           fgslStateFile=FGSL_Open(char(fileNameFGSL),'r')
           
-          !# <include directive="galacticusStateRetrieveTask" type="code" action="subroutine">
-          !#  <subroutineArgs>stateUnit,fgslStateFile</subroutineArgs>
+          !# <include directive="galacticusStateRetrieveTask" type="functionCall" functionType="void">
+          !#  <functionArgs>stateUnit,fgslStateFile</functionArgs>
           include 'galacticus.state.retrieve.inc'
           !# </include>
           

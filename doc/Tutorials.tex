@@ -217,16 +217,18 @@ If only half-mass radii are available, the scale radius is set by using a root f
 
 \subsubsection{``Fly-by'' Halos}
 
-In some cases, a halo that is part of one tree can later become part of another tree. This can happen in so-called ``fly-by'' encounters where a halo may briefly become a subhalo in a halo in tree A then leave that halo and become a subhalo in tree B. \glc\ currently does not handle such cases and will complain that the host halo of a node cannot be found (since it exists in a different tree). This problem can be avoided by setting:
+In some cases, a halo that is part of one tree can later become part of another tree. This can happen in so-called ``fly-by'' encounters where a halo may briefly become a subhalo in a halo in tree A then leave that halo and become a subhalo in tree B.
 
+The correct way to handle this issue is to combine trees A and B into a single tree (which will now have multiple base nodes). \glc\ will then process these two trees simultaneously, correctly handling the fly-by, and outputting the trees as two separate trees.
+
+If for some reason this is not possible or desired, the fly-by problem will normally cause \glc\ to complain that the host halo of a node cannot be found (since it exists in a different tree). This problem can be avoided by setting:
 \begin{verbatim}
   <parameter>
     <name>mergerTreeReadMissingHostsAreFatal</name>
     <value>false</value>
   </parameter>
 \end{verbatim}
-
-In this case, nodes with missing hosts are simply treated as being isolated halos. This will avoid an error condition, but is not a physically correct way to handle such cases, so use with caution. Future versions of \glc\ will allow nodes to move between trees and so will correctly handle fly-by encounters.
+In this case, nodes with missing hosts are simply treated as being isolated halos. This will avoid an error condition, but is not a physically correct way to handle such cases, so use with caution.
 
 \subsection{Analyzing the Output}
 

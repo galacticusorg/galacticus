@@ -103,7 +103,7 @@ contains
     ! Allocate the arrays to current required size.
     call Alloc_Array(growthTableTime        ,[    growthTableNumberPoints])
     call Alloc_Array(growthTableWavenumber  ,[  1                        ])
-    call Alloc_Array(growthTableGrowthFactor,[3,1,growthTableNumberPoints])
+    call Alloc_Array(growthTableGrowthFactor,[growthTableNumberPoints,1,3])
     
     ! Set an arbitrary wavenumber (we do not tabulate as a function of wavenumber so the value does not matter).
     growthTableWavenumber=1.0d0
@@ -112,18 +112,18 @@ contains
     growthTableTime=Make_Range(growthTableTimeMinimum,growthTableTimeMaximum,growthTableNumberPoints,rangeTypeLogarithmic)
     
     ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase.
-    growthTableGrowthFactor(:,:,1)=1.0d0
+    growthTableGrowthFactor(1,:,:)=1.0d0
     growthFactorDerivative=Expansion_Rate(Expansion_Factor(growthTableTime(1)))
     do iTime=2,growthTableNumberPoints
        timeNow=growthTableTime(iTime-1)
-       growthFactorODEVariables(1)=growthTableGrowthFactor(1,1,iTime-1)
+       growthFactorODEVariables(1)=growthTableGrowthFactor(iTime-1,1,1)
        growthFactorODEVariables(2)=growthFactorDerivative
        call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,timeNow,growthTableTime(iTime),2,growthFactorODEVariables &
             &,growthTableODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
-       growthTableGrowthFactor(1:2,1,iTime)=growthFactorODEVariables(1)
+       growthTableGrowthFactor(iTime,1,1:2)=growthFactorODEVariables(1)
        growthFactorDerivative              =growthFactorODEVariables(2)
     end do
-    growthTableGrowthFactor(3,1,:)=1.0d0 ! Assume no growth in radiation.
+    growthTableGrowthFactor(:,1,3)=1.0d0 ! Assume no growth in radiation.
     
     ! Flag that interpolation must be reset.
     call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
@@ -132,16 +132,16 @@ contains
     ! Normalize to growth factor of unity at present day.
     tPresent=Cosmology_Age(1.0d0)
     do iComponent=1,3
-       linearGrowthFactorPresent=Interpolate(growthTableNumberPoints,growthTableTime,growthTableGrowthFactor(iComponent,1,:)&
+       linearGrowthFactorPresent=Interpolate(growthTableNumberPoints,growthTableTime,growthTableGrowthFactor(:,1,iComponent)&
             &,interpolationObject,interpolationAccelerator,tPresent,reset=resetInterpolation)
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.
-       growthTableGrowthFactor(iComponent,1,:)=growthTableGrowthFactor(iComponent,1,:)/linearGrowthFactorPresent
+       growthTableGrowthFactor(:,1,iComponent)=growthTableGrowthFactor(:,1,iComponent)/linearGrowthFactorPresent
     end do
 
     ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
     normalizationMatterDominated(:)=((9.0d0*Omega_Matter()/4.0d0)**(1.0d0/3.0d0))*((H_0_invGyr()*growthTableTime(1))**(2.0d0/3.0d0)) &
-         &/growthTableGrowthFactor(:,1,1)
+         &/growthTableGrowthFactor(1,1,:)
     return
   end subroutine Linear_Growth_Factor_Simple_Tabulate
   

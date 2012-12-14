@@ -65,7 +65,7 @@ contains
     return
   end subroutine Cooling_Function_Atomic_CIE_Cloudy_Initialize
 
-  subroutine Cooling_Function_Atomic_CIE_Cloudy_Create(abundances)
+  subroutine Cooling_Function_Atomic_CIE_Cloudy_Create(gasAbundances)
     !% Create the cooling function.
     use Cooling_Functions_CIE_File
     use Abundances_Structure
@@ -73,7 +73,7 @@ contains
     use Galacticus_Input_Paths
     use String_Handling
     implicit none
-    type(abundancesStructure), intent(in) :: abundances
+    type(abundances), intent(in) :: gasAbundances
     logical                               :: makeFile
     character(len=32)                     :: metallicityLabel
     type(varying_string)                  :: command,coolingFunctionFileVarString
@@ -84,8 +84,8 @@ contains
     if (.not.coolingFunctionInitialized) then
        makeFile=.true.
     else
-       if (Abundances_Get_Metallicity(abundances,linearByMassSolar) > 0.0d0) then
-          makeFile=(min(Abundances_Get_Metallicity(abundances,linearByMassSolar),metallicityMaximumLimit) > metallicityMaximum&
+       if (Abundances_Get_Metallicity(gasAbundances,linearByMassSolar) > 0.0d0) then
+          makeFile=(min(Abundances_Get_Metallicity(gasAbundances,linearByMassSolar),metallicityMaximumLimit) > metallicityMaximum&
                &*(1.0d0+metallicityTolerance))
        else
           makeFile=.false.
@@ -99,8 +99,8 @@ contains
     ! Read the file if this module has not been initialized or if the metallicity is out of range.
     if (makeFile) then
        ! Determine maximum metallicity to which we should tabulate.
-       if (Abundances_Get_Metallicity(abundances,linearByMassSolar) > 0.0d0) then
-          metallicityMaximum=min(max(metallicityMaximumDefault,3.0d0*Abundances_Get_Metallicity(abundances,linearByMassSolar))&
+       if (Abundances_Get_Metallicity(gasAbundances,linearByMassSolar) > 0.0d0) then
+          metallicityMaximum=min(max(metallicityMaximumDefault,3.0d0*Abundances_Get_Metallicity(gasAbundances,linearByMassSolar))&
                &,metallicityMaximumLimit)
        else
           metallicityMaximum=metallicityMaximumDefault
@@ -127,7 +127,7 @@ contains
   !# <coolingFunctionCompute>
   !#   <unitName>Cooling_Function_Atomic_CIE_Cloudy</unitName>
   !# </coolingFunctionCompute>
-  subroutine Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+  subroutine Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Cooling_Functions_CIE_File
     use Abundances_Structure
@@ -135,8 +135,8 @@ contains
     use Radiation_Structure
     implicit none
     double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)  :: abundances
-    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(abundances),         intent(in)  :: gasAbundances
+    type(chemicalAbundances), intent(in)  :: chemicalDensities
     type(radiationStructure),          intent(in)  :: radiation
     double precision,                  intent(out) :: coolingFunction
 
@@ -144,10 +144,10 @@ contains
     if (functionSelected) then
        
        ! Create the cooling function.
-       call Cooling_Function_Atomic_CIE_Cloudy_Create(abundances)
+       call Cooling_Function_Atomic_CIE_Cloudy_Create(gasAbundances)
        
        ! Call routine to interpolate in the tabulated function.
-       coolingFunction=Cooling_Function_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
+       coolingFunction=Cooling_Function_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
        
     else
 
@@ -162,7 +162,7 @@ contains
   !# <coolingFunctionDensitySlopeCompute>
   !#   <unitName>Cooling_Function_Density_Slope_Atomic_CIE_Cloudy</unitName>
   !# </coolingFunctionDensitySlopeCompute>
-  subroutine Cooling_Function_Density_Slope_Atomic_CIE_Cloudy(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,abundances&
+  subroutine Cooling_Function_Density_Slope_Atomic_CIE_Cloudy(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,gasAbundances&
        &,chemicalDensities,radiation)
     !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Abundances_Structure
@@ -170,8 +170,8 @@ contains
     use Radiation_Structure
     implicit none
     double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)  :: abundances
-    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(abundances),         intent(in)  :: gasAbundances
+    type(chemicalAbundances), intent(in)  :: chemicalDensities
     type(radiationStructure),          intent(in)  :: radiation
     double precision,                  intent(out) :: coolingFunctionDensitySlope
     double precision                                :: coolingFunction
@@ -180,7 +180,7 @@ contains
     if (functionSelected) then
        
        ! Get the cooling function.
-       call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+       call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
        
        ! Logarithmic slope is always 2 for a CIE cooling function.
        coolingFunctionDensitySlope=2.0d0*coolingFunction/numberDensityHydrogen
@@ -199,7 +199,7 @@ contains
   !#   <unitName>Cooling_Function_Temperature_Slope_Atomic_CIE_Cloudy</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
   subroutine Cooling_Function_Temperature_Slope_Atomic_CIE_Cloudy(coolingFunctionTemperatureSlope,temperature&
-       &,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+       &,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
     use Cooling_Functions_CIE_File
     use Abundances_Structure
@@ -207,8 +207,8 @@ contains
     use Radiation_Structure
     implicit none
     double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)  :: abundances
-    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(abundances),         intent(in)  :: gasAbundances
+    type(chemicalAbundances), intent(in)  :: chemicalDensities
     type(radiationStructure),          intent(in)  :: radiation
     double precision,                  intent(out) :: coolingFunctionTemperatureSlope
     double precision                               :: coolingFunction
@@ -217,14 +217,14 @@ contains
     if (functionSelected) then
        
        ! Create the cooling function.
-       call Cooling_Function_Atomic_CIE_Cloudy_Create(abundances)
+       call Cooling_Function_Atomic_CIE_Cloudy_Create(gasAbundances)
        
        ! Get the cooling function.
-       call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+       call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
        
        ! Call routine to interpolate in the tabulated function.
        coolingFunctionTemperatureSlope=Cooling_Function_CIE_File_logTemperature_Interpolate(temperature,numberDensityHydrogen&
-            &,abundances,radiation)*coolingFunction/temperature
+            &,gasAbundances,radiation)*coolingFunction/temperature
        
     else
        

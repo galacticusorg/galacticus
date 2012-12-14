@@ -20,7 +20,7 @@
 
 module Dark_Matter_Halos_Mass_Loss_Rates_vanDenBosch
   !% Implements a calculation of dark matter halo mass loss rates using the method of \cite{van_den_bosch_mass_2005}.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize
@@ -58,18 +58,21 @@ contains
 
   double precision function Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch(thisNode)
     !% Returns the rate of mass loss from dark matter halos using the prescription of \cite{van_den_bosch_mass_2005}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Virial_Density_Contrast
     use Cosmology_Functions
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: satelliteBoundMass,satelliteTime,massLossTimescale,satelliteHostMassRatio
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent,parentBasicComponent
+    double precision                                  :: satelliteBoundMass,satelliteTime,massLossTimescale,satelliteHostMassRatio
 
-    satelliteBoundMass=Tree_Node_Bound_Mass(thisNode)
+    thisBasicComponent => thisNode          %basic()
+    satelliteBoundMass =  thisBasicComponent%mass ()
     if (satelliteBoundMass > 0.0d0) then
-       satelliteTime=Tree_Node_Time(thisNode)
+       satelliteTime=thisBasicComponent%time()
        massLossTimescale=massLossRateNormalization*Expansion_Factor(satelliteTime)**1.5d0/dsqrt(Halo_Virial_Density_Contrast(satelliteTime))
-       satelliteHostMassRatio=satelliteBoundMass/Tree_Node_Mass(thisNode%parentNode)          
+       parentBasicComponent => thisNode%parent%basic()
+       satelliteHostMassRatio=satelliteBoundMass/parentBasicComponent%mass()
        Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=-satelliteBoundMass*satelliteHostMassRatio**zeta/massLossTimescale
     else   
        Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=0.0d0

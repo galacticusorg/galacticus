@@ -20,7 +20,8 @@ module CDM_Primordial_Power_Spectrum
   use FGSL
   implicit none
   private
-  public :: Primordial_Power_Spectrum_CDM, CDM_Primordial_Power_Spectrum_State_Retrieve
+  public :: Primordial_Power_Spectrum_CDM, Primordial_Power_Spectrum_Logarithmic_Derivative,&
+       & CDM_Primordial_Power_Spectrum_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
   logical                                        :: powerSpectrumInitialized=.false., tablesInitialized=.false.
@@ -82,6 +83,40 @@ contains
     return
   end function Primordial_Power_Spectrum_CDM
 
+  double precision function Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber)
+    !% Return the logarithmic derivative CDM primordial power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    use Numerical_Interpolation
+    implicit none
+    double precision, intent(in) :: wavenumber
+    double precision             :: logWavenumber
+
+    ! Get logarithm of wavenumber.
+    logWavenumber=dlog(wavenumber)
+
+    !$omp critical(Power_Spectrum_Initialization) 
+    ! Initialize if necessary.
+    if (.not.(powerSpectrumInitialized.and.tablesInitialized)) then
+       call Power_Spectrum_Initialize(logWavenumber)
+       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
+       resetInterpolation=.true.
+    end if
+
+    ! If wavenumber is out of range, attempt to remake the table.
+    if (logWavenumber<powerSpectrumLogWavenumber(1) .or. logWavenumber>powerSpectrumLogWavenumber(powerSpectrumNumberPoints) )&
+         & then
+       call Power_Spectrum_Tabulate(logWavenumber,powerSpectrumNumberPoints,powerSpectrumLogWavenumber,powerSpectrumLogP)
+       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
+       resetInterpolation=.true.
+    end if
+    !$omp end critical(Power_Spectrum_Initialization)
+    
+    ! Interpolate in the tabulated function and return a value.
+    Primordial_Power_Spectrum_Logarithmic_Derivative=Interpolate_Derivative(powerSpectrumNumberPoints,powerSpectrumLogWavenumber&
+         &,powerSpectrumLogP ,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation)
+    
+    return
+  end function Primordial_Power_Spectrum_Logarithmic_Derivative
+
   subroutine Power_Spectrum_Initialize(logWavenumber)
     !% Initializes the transfer function module.
     use Galacticus_Error
@@ -106,8 +141,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('powerSpectrumMethod',powerSpectrumMethod,defaultValue='powerLaw')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="powerSpectrumMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>powerSpectrumMethod,Power_Spectrum_Tabulate</subroutineArgs>
+       !# <include directive="powerSpectrumMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>powerSpectrumMethod,Power_Spectrum_Tabulate</functionArgs>
        include 'structure_formation.CDM.power_spectrum.inc'
        !# </include>
        if (.not.associated(Power_Spectrum_Tabulate)) call Galacticus_Error_Report('Power_Spectrum_Initialize','method '&

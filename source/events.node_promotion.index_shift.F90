@@ -40,7 +40,7 @@ contains
     !% Shifts the index of {\tt thisNode} to its parent node just prior to promotion, thereby allowing indices to track galaxies
     !% through the tree.
     use Input_Parameters
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), pointer, intent(inout) :: thisNode
     type(treeNode), pointer                :: parentNode
@@ -69,7 +69,7 @@ contains
     ! Check if we are to perform an index shift.
     if (nodePromotionIndexShift) then
        ! Get the parent node.
-       parentNode => thisNode%parentNode
+       parentNode => thisNode%parent
        ! Shift the index from thisNode to the parent node.
        call parentNode%indexSet(thisNode%index())
     end if

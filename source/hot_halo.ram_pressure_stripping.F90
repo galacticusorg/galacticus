@@ -20,7 +20,6 @@
 module Hot_Halo_Ram_Pressure_Stripping
   !% Implements calculations of ram pressure stripping of hot halos.
   use ISO_Varying_String
-  use Tree_Nodes
   implicit none
   private
   public :: Hot_Halo_Ram_Pressure_Stripping_Radius
@@ -38,6 +37,7 @@ contains
 
   double precision function Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
     !% Return the ram pressure stripping radius for the hot halo of {\tt thisNode} (in units of Mpc).
+    use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="hotHaloRamPressureStrippingMethod" type="moduleUse">
@@ -63,8 +63,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('hotHaloRamPressureStrippingMethod',hotHaloRamPressureStrippingMethod,defaultValue='Font2008')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="hotHaloRamPressureStrippingMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Radius_Get</subroutineArgs>
+          !# <include directive="hotHaloRamPressureStrippingMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Radius_Get</functionArgs>
           include 'hot_halo.ram_pressure_stripping.inc'
           !# </include>
           if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Radius_Get)) call Galacticus_Error_Report('Hot_Halo_Ram_Pressure_Stripping_Radius','method ' &

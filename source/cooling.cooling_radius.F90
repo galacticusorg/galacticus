@@ -20,7 +20,7 @@
 module Cooling_Radii
   !% Implements calculations of the cooling radius.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="coolingRadiusMethod" type="moduleUse">
   include 'cooling.cooling_radius.modules.inc'
   !# </include>
@@ -69,8 +69,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('coolingRadiusMethod',coolingRadiusMethod,defaultValue='simple')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="coolingRadiusMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get</subroutineArgs>
+          !# <include directive="coolingRadiusMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get</functionArgs>
           include 'cooling.cooling_radius.inc'
           !# </include>
           if (.not.(associated(Cooling_Radius_Get).and.associated(Cooling_Radius_Growth_Rate_Get))) call&

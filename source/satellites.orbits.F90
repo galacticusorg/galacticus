@@ -19,7 +19,7 @@
 
 module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Pericenter_Phase_Space_Coordinates
@@ -39,7 +39,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Root_Finder
     use FGSL
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),          pointer, intent(inout) :: hostNode
@@ -90,7 +90,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Root_Finder
     use FGSL
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     implicit none
     type(treeNode),          pointer, intent(inout) :: hostNode
     type(keplerOrbit),                intent(inout) :: thisOrbit
