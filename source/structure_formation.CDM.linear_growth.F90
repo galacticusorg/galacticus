@@ -47,7 +47,7 @@ module Linear_Growth
   ! Component types.
   integer,             parameter,   public                   ::  linearGrowthComponentDarkMatter=1 &
        &                                                        ,linearGrowthComponentBaryons   =2 &
-       &,linearGrowthComponentRadiation =3
+       &                                                        ,linearGrowthComponentRadiation =3
 
   ! Pointer to the subroutine that tabulates the linear growth factor and template interface for that subroutine.
   procedure(Linear_Growth_Tabulate_Template), pointer :: Linear_Growth_Tabulate => null()
@@ -88,8 +88,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('linearGrowthMethod',linearGrowthMethod,defaultValue='simple')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="linearGrowthMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>linearGrowthMethod,Linear_Growth_Tabulate</subroutineArgs>
+       !# <include directive="linearGrowthMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>linearGrowthMethod,Linear_Growth_Tabulate</functionArgs>
        include 'structure_formation.CDM.linear_growth.inc'
        !# </include>
        if (.not.associated(Linear_Growth_Tabulate)) call Galacticus_Error_Report('Linear_Growth_Initialize','method ' &
@@ -192,7 +192,7 @@ contains
     do jWavenumber=0,1
        
        ! Select the appropriate component.
-       thisLinearGrowthFactor => linearGrowthTableFactor(componentActual,iWavenumber(jWavenumber),:)
+       thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
        Linear_Growth_Factor=Linear_Growth_Factor+Interpolate(linearGrowthTableNumberPoints,linearGrowthTableTime &
@@ -270,7 +270,7 @@ contains
     do jWavenumber=0,1
        
        ! Select the appropriate component.
-       thisLinearGrowthFactor => linearGrowthTableFactor(componentActual,iWavenumber(jWavenumber),:)
+       thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
        linearGrowthFactorTimeDerivative=linearGrowthFactorTimeDerivative+Interpolate_Derivative(linearGrowthTableNumberPoints&

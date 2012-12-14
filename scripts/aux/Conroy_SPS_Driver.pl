@@ -9,8 +9,8 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
@@ -66,7 +66,7 @@ if ( $makeFile == 1 ) {
     close(pHndl);
     open(pHndl,"svn info ".$galacticusPath."aux/FSPS_v2.3 |");
     while ( my $line = <pHndl> ) {
- 	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$currentRevision = $1};
+ 	if ( $line =~ m/Revision:\s*(\d+)/ ) {$currentRevision = $1};
     }
     close(pHndl);
     if ( $currentRevision < $availableRevision ) {

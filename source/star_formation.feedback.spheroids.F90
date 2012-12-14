@@ -20,7 +20,7 @@
 module Star_Formation_Feedback_Spheroids
   !% Implements calculations of feedback from star formation in spheroids.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Feedback_Spheroid_Outflow_Rate
@@ -70,8 +70,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('starFormationFeedbackSpheroidsMethod',starFormationFeedbackSpheroidsMethod,defaultValue='powerLaw')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationFeedbackSpheroidsMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>starFormationFeedbackSpheroidsMethod,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get</subroutineArgs>
+          !# <include directive="starFormationFeedbackSpheroidsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>starFormationFeedbackSpheroidsMethod,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get</functionArgs>
           include 'star_formation.feedbacks.spheroids.inc'
           !# </include>
           if (.not.associated(Star_Formation_Feedback_Spheroid_Outflow_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Feedback_Spheroids'&

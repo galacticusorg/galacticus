@@ -73,8 +73,8 @@ contains
           call Get_Input_Parameter('excursionSetBarrierMethod',excursionSetBarrierMethod,defaultValue='criticalOverdensity')
           ! Include file that makes calls to all available method initialization routines.
           name=""
-          !# <include directive="excursionSetBarrierMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>excursionSetBarrierMethod,Excursion_Sets_Barrier_Get,Excursion_Sets_Barrier_Gradient_Get,name</subroutineArgs>
+          !# <include directive="excursionSetBarrierMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>excursionSetBarrierMethod,Excursion_Sets_Barrier_Get,Excursion_Sets_Barrier_Gradient_Get,name</functionArgs>
           include 'structure_formation.excursion_sets.barrier.inc'
           !# </include>          
           if     (.not.(                                                              &
@@ -116,8 +116,8 @@ contains
           name           =""
           allocate(methods(size(excursionSetBarrierRemapMethods)))
           methods        =excursionSetBarrierRemapMethods
-          !# <include directive="excursionSetBarrierRemapInitialize" type="code" action="subroutine">
-          !#  <subroutineArgs>methods,name,rateCalculation,matchedCount</subroutineArgs>
+          !# <include directive="excursionSetBarrierRemapInitialize" type="functionCall" functionType="void">
+          !#  <functionArgs>methods,name,rateCalculation,matchedCount</functionArgs>
           include 'structure_formation.excursion_sets.barrier.remap.initialize.inc'
           !# </include>
           deallocate(methods)
@@ -196,8 +196,8 @@ contains
     end if
 
     do iRemap=1,remapCount
-       !# <include directive="excursionSetBarrierRemap" type="code" action="subroutine">
-       !#  <subroutineArgs>Excursion_Sets_Barrier,variance,time,ratesCalculationActual,iRemap</subroutineArgs>
+       !# <include directive="excursionSetBarrierRemap" type="functionCall" functionType="void">
+       !#  <functionArgs>Excursion_Sets_Barrier,variance,time,ratesCalculationActual,iRemap</functionArgs>
        include 'structure_formation.excursion_sets.barrier.remap.inc'
        !# </include>
     end do
@@ -229,8 +229,8 @@ contains
        remapCount=size(excursionSetBarrierRemapMethods     )
     end if
     do iRemap=1,remapCount
-       !# <include directive="excursionSetBarrierRemapGradient" type="code" action="subroutine">
-       !#  <subroutineArgs>barrier,Excursion_Sets_Barrier_Gradient,variance,time,ratesCalculationActual,iRemap</subroutineArgs>
+       !# <include directive="excursionSetBarrierRemapGradient" type="functionCall" functionType="void">
+       !#  <functionArgs>barrier,Excursion_Sets_Barrier_Gradient,variance,time,ratesCalculationActual,iRemap</functionArgs>
        include 'structure_formation.excursion_sets.barrier.remap.gradient.inc'
        !# </include>
     end do

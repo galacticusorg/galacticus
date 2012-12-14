@@ -19,7 +19,7 @@
 
 module Dark_Matter_Profiles_Concentrations_Gao2008
   !% Implements the \cite{gao_redshift_2008} NFW halo concentration algorithm.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Concentrations_Gao2008_Initialize
@@ -37,7 +37,6 @@ contains
     procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
     
     if (darkMatterConcentrationMethod == 'Gao2008') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Gao2008
-  
     return
   end subroutine Dark_Matter_Concentrations_Gao2008_Initialize
 
@@ -47,15 +46,19 @@ contains
     !% \cite{gao_redshift_2008} and use these fits to find $A$ and $B$ at any given redshift, from which we then compute the
     !% concentration. Note that the fits of \cite{gao_redshift_2008} were computed using Einasto profile fits and utilizing
     !% $M_{200}$ and $c_{200}$.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmology_Functions
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: littleHubbleConstantGao2008=0.73d0
-    double precision                         :: logarithmHaloMass,logarithmExpansionFactor,parameterA,parameterB
-  
-    logarithmHaloMass                        =dlog10(littleHubbleConstantGao2008*Tree_Node_Mass(thisNode) )
-    logarithmExpansionFactor                 =dlog10(Expansion_Factor(           Tree_Node_Time(thisNode)))
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    double precision         , parameter              :: littleHubbleConstantGao2008=0.73d0
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: logarithmHaloMass,logarithmExpansionFactor,parameterA,parameterB
+
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
+    ! Compute the concentration.
+    logarithmHaloMass                        =dlog10(littleHubbleConstantGao2008*thisBasicComponent%mass() )
+    logarithmExpansionFactor                 =dlog10(Expansion_Factor(           thisBasicComponent%time()))
     parameterA                               =-0.140d0*dexp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
     parameterB                               = 2.646d0*dexp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
     Dark_Matter_Profile_Concentration_Gao2008=10.0d0**(parameterA*logarithmHaloMass+parameterB)

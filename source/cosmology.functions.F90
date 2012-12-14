@@ -26,7 +26,8 @@ module Cosmology_Functions
   public :: Cosmology_Age, Expansion_Factor, Hubble_Parameter, Early_Time_Density_Scaling, Expansion_Factor_Is_Valid,&
        & Cosmic_Time_Is_Valid, Omega_Matter_Total, Omega_Dark_Energy, Expansion_Rate, Epoch_of_Matter_Dark_Energy_Equality,&
        & Epoch_of_Matter_Domination, Expansion_Factor_from_Redshift, Redshift_from_Expansion_Factor, CMB_Temperature,&
-       & Comoving_Distance, Time_From_Comoving_Distance
+       & Comoving_Distance, Time_From_Comoving_Distance, Comoving_Distance_Conversion, Comoving_Volume_Element_Redshift,&
+       & Comoving_Volume_Element_Time
 
   ! Flag to indicate if this module has been initialized.  
   logical              :: cosmologyInitialized=.false.
@@ -41,7 +42,7 @@ module Cosmology_Functions
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Factor_Get                     => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Hubble_Parameter_Get                     => null()
   procedure(Cosmology_Density_Scaling_Template),                  pointer :: Early_Time_Density_Scaling_Get           => null()
-  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Matter_Total_Get                  => null()
+  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Matter_Total_Get                   => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Dark_Energy_Get                    => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: CMB_Temperature_Get                      => null()
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Rate_Get                       => null()
@@ -50,6 +51,14 @@ module Cosmology_Functions
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Epoch_of_Matter_Domination_Get           => null()
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Comoving_Distance_Get                    => null()
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Time_From_Comoving_Distance_Get          => null()
+  procedure(Cosmology_Comoving_Distance_Conversion_Template),     pointer :: Comoving_Distance_Conversion_Get         => null()
+
+  abstract interface
+     double precision function Cosmology_Comoving_Distance_Conversion_Template(output,distanceModulus,redshift)
+       integer         , intent(in)           :: output
+       double precision, intent(in), optional :: distanceModulus,redshift
+     end function Cosmology_Comoving_Distance_Conversion_Template
+  end interface
 
   abstract interface
      double precision function Cosmology_Double_Function_Optional_Integer_Template(inputParameter)
@@ -119,8 +128,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('cosmologyMethod',cosmologyMethod,defaultValue='matter-lambda')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="cosmologyMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get</subroutineArgs>
+          !# <include directive="cosmologyMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion_Get</functionArgs>
           include 'cosmology_functions.inc'
           !# </include>
           if     (                                                                &
@@ -140,6 +149,7 @@ contains
                &        .and.associated(CMB_Temperature_Get                     ) &
                &        .and.associated(Comoving_Distance_Get                   ) &
                &        .and.associated(Time_From_Comoving_Distance_Get         ) &
+               &        .and.associated(Comoving_Distance_Conversion_Get        ) &
                &       )                                                          &
                & )                                                                &
                & call Galacticus_Error_Report('Cosmology_Functions','method '//char(cosmologyMethod)//' is unrecognized')
@@ -366,6 +376,32 @@ contains
      Expansion_Factor_from_Redshift=1.0d0/(1.0d0+redshift)
      return
    end function Expansion_Factor_from_Redshift
+   
+   double precision function Comoving_Volume_Element_Redshift(time)
+     !% Returns the differential comoving volume element ${\rm d}V/{\rm d}z = r_{\rm c}^2(t) {\rm c} H^{-1}(t)$ (where $r_{\rm c}$
+     !% is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the
+     !% specified {\tt time}.
+     use Numerical_Constants_Prefixes
+     use Numerical_Constants_Physical
+     implicit none
+     double precision, intent(in) :: time
+
+     Comoving_Volume_Element_Redshift=Comoving_Distance(time)**2*(speedLight/kilo)/Hubble_Parameter(tCosmological=time)
+     return
+   end function Comoving_Volume_Element_Redshift
+  
+   double precision function Comoving_Volume_Element_Time(time)
+     !% Returns the differential comoving volume element ${\rm d}V/{\rm d}t = r_{\rm c}^2(t) {\rm c} a(t)$ (where $r_{\rm c}$
+     !% is the comoving distance to time $t$ and $a(t)$ is the expansion at that time) for unit solid angle at the
+     !% specified {\tt time}.
+     use Numerical_Constants_Physical
+     use Numerical_Constants_Astronomical
+     implicit none
+     double precision, intent(in) :: time
+
+     Comoving_Volume_Element_Time=Comoving_Distance(time)**2*(gigaYear*speedLight/megaParsec)/Expansion_Factor(time)
+     return
+   end function Comoving_Volume_Element_Time
   
    double precision function Comoving_Distance(time)
      !% Return the comoving distance to the given cosmic {\tt time}.
@@ -394,5 +430,20 @@ contains
 
      return
    end function Time_From_Comoving_Distance
+
+   double precision function Comoving_Distance_Conversion(output,distanceModulus,redshift)
+     !% Convert between different measures of comoving distance.
+     implicit none
+     integer         , intent(in)           :: output
+     double precision, intent(in), optional :: distanceModulus,redshift
+  
+     ! Initialize the module.
+     call Cosmology_Functions_Initialize
+
+     ! Get the answer using the selected method.
+     Comoving_Distance_Conversion=Comoving_Distance_Conversion_Get(output,distanceModulus,redshift)
+
+     return
+   end function Comoving_Distance_Conversion
 
 end module Cosmology_Functions

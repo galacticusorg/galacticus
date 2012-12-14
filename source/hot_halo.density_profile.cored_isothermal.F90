@@ -32,23 +32,24 @@ contains
   !#  <unitName>Hot_Halo_Density_Cored_Isothermal</unitName>
   !# </hotHaloDensityMethod>
   subroutine Hot_Halo_Density_Cored_Isothermal(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
-       &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get)
+       &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Profile_Radial_Moment_Get)
     !% Initialize the cored isothermal hot halo density profile module.
     use ISO_Varying_String
     use Input_Parameters
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(varying_string),                 intent(in)    :: hotHaloDensityMethod
     procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
-         &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get
+         &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Profile_Radial_Moment_Get
     
     if (hotHaloDensityMethod == 'coredIsothermal') then
        Hot_Halo_Density_Get                        => Hot_Halo_Density_Cored_Isothermal_Get
        Hot_Halo_Density_Log_Slope_Get              => Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get
        Hot_Halo_Enclosed_Mass_Get                  => Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
        Hot_Halo_Profile_Rotation_Normalization_Get => Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get
+       Hot_Halo_Profile_Radial_Moment_Get          => Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get
        ! Detect whether there is an active component which can provide a hot gas mass.
-       hotHaloActive=associated(Tree_Node_Hot_Halo_Mass)
+       hotHaloActive=defaultHotHaloComponent%massIsGettable()
     end if
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal
@@ -82,29 +83,27 @@ contains
 
   double precision function Hot_Halo_Density_Cored_Isothermal_Get(thisNode,radius)
     !% Compute the density at radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     use Numerical_Constants_Math
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: hotGasMass,outerRadius,coreRadius,densityNormalization
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    double precision           , intent(in   )          :: radius
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                    :: hotGasMass,outerRadius,coreRadius,densityNormalization
 
-    hotGasMass          =Tree_Node_Hot_Halo_Mass                      (thisNode)
-    if (hotGasMass <= 0.0d0) then
-       Hot_Halo_Density_Cored_Isothermal_Get=0.0d0
-       return
-    end if
-    outerRadius         =Tree_Node_Hot_Halo_Outer_Radius              (thisNode)
-    coreRadius          =Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
-    densityNormalization=Density_Normalization_Factor(coreRadius,outerRadius)*hotGasMass/4.0d0/Pi/(coreRadius**3)
+    thisHotHaloComponent => thisNode%hotHalo()
+    hotGasMass           =  thisHotHaloComponent%mass       ()
+    outerRadius          =  thisHotHaloComponent%outerRadius()
+    coreRadius           =  Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
+    densityNormalization =  Density_Normalization_Factor(coreRadius,outerRadius)*hotGasMass/4.0d0/Pi/(coreRadius**3)
     Hot_Halo_Density_Cored_Isothermal_Get=densityNormalization/(1.0d0+(radius/coreRadius)**2)
     return
   end function Hot_Halo_Density_Cored_Isothermal_Get
   
   double precision function Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get(thisNode,radius)
     !% Compute the density at radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -119,13 +118,14 @@ contains
   
   double precision function Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get(thisNode,radius)
     !% Compute the mass enclosed within radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     use Galactic_Structure_Options
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: hotGasMass,outerRadius,coreRadius
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    double precision,            intent(in   )          :: radius
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                    :: hotGasMass,outerRadius,coreRadius
 
     ! Return immediately with zero mass if no active component can supply a hot halo mass.
     if (.not.hotHaloActive) then
@@ -133,17 +133,15 @@ contains
        return
     end if
 
-    hotGasMass =Tree_Node_Hot_Halo_Mass                      (thisNode)
+    thisHotHaloComponent => thisNode%hotHalo()
+    hotGasMass           =  thisHotHaloComponent%mass       ()
+
     if (hotGasMass <= 0.0d0) then
        Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=0.0d0
        return
     end if
-    if (radius >= radiusLarge) then
-       Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass
-       return
-    end if
-    outerRadius=Tree_Node_Hot_Halo_Outer_Radius              (thisNode)
-    ! Truncate the profile at the outer radius.
+    outerRadius          =  thisHotHaloComponent%outerRadius()
+    ! Truncate the profile at the virial radius.
     if (radius >= outerRadius) then
        Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass
        return
@@ -151,22 +149,23 @@ contains
     coreRadius =Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
     Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass*Density_Normalization_Factor(coreRadius,outerRadius)*(radius&
          &/coreRadius-datan(radius/coreRadius))
-
     return
   end function Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
 
   double precision function Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get(thisNode)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: radiusOuter,radiusCoreOverRadiusOuter
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                    :: radiusOuter,radiusCoreOverRadiusOuter
 
     ! Get outer radius and ratio of core radius to virial radius.
-    radiusOuter              =Tree_Node_Hot_Halo_Outer_Radius              (thisNode)
+    thisHotHaloComponent => thisNode            %hotHalo    ()
+    radiusOuter          =  thisHotHaloComponent%outerRadius()
     if (radiusOuter <= 0.0d0) then
        Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get=0.0d0
        return
@@ -191,5 +190,55 @@ contains
          &                                                     /radiusOuter
     return
   end function Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get
+  
+  double precision function Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get(thisNode,moment,radius)
+    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    use Galacticus_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    use Hot_Halo_Density_Cored_Isothermal_Core_Radii
+    use Galacticus_Error
+    use Numerical_Comparison
+    implicit none
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                      , intent(in   )          :: moment,radius
+    double precision                                               :: radiusOuter,radiusCore,radiusOuterOverRadiusCore,hotGasMass&
+         & ,densityNormalization
+
+    ! Get the hot halo component.
+    thisHotHaloComponent => thisNode%hotHalo()
+
+    ! Get outer radius and ratio of core radius to outer radius.
+    radiusOuter=max(radius,thisHotHaloComponent%outerRadius())
+    if (radiusOuter <= 0.0d0) then
+       Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=0.0d0
+       return
+    end if
+    radiusCore               =Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
+    radiusOuterOverRadiusCore=radiusOuter/radiusCore
+
+    ! Get the density normalization
+    hotGasMass=thisHotHaloComponent%mass()
+    if (hotGasMass <= 0.0d0) then
+       Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=0.0d0
+       return
+    end if
+    densityNormalization=Density_Normalization_Factor(radiusCore,radiusOuter)*hotGasMass/4.0d0/Pi/(radiusCore**3)
+
+    ! Compute the moment.
+    if      (Values_Agree(moment,2.0d0,absTol=1.0d-3)) then
+       Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=(radiusOuterOverRadiusCore-atan(radiusOuterOverRadiusCore))
+    else if (Values_Agree(moment,3.0d0,absTol=1.0d-3)) then
+       Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=0.5d0*(radiusOuterOverRadiusCore**2-log(1.0d0+radiusOuterOverRadiusCore**2))
+    else
+       ! Abort for unsupported moments.
+       call Galacticus_Error_Report('Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get','only 2nd and 3rd moments are supported')
+    end if
+    ! Make the result dimensionful.
+    Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=                                                 &
+         &   Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get*densityNormalization*radiusCore**moment
+    return
+  end function Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get
   
 end module Hot_Halo_Density_Profile_Cored_Isothermal

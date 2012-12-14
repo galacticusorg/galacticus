@@ -23,8 +23,9 @@ module CDM_Power_Spectrum
   use, intrinsic :: ISO_C_Binding                             
   implicit none
   private
-  public :: Power_Spectrum_CDM, sigma_CDM, Mass_from_Sigma, sigma_8, sigma_CDM_Logarithmic_Derivative,&
-       & sigma_CDM_Plus_Logarithmic_Derivative, CDM_Power_Spectrum_State_Store, CDM_Power_Spectrum_State_Retrieve
+  public :: Power_Spectrum_CDM, Power_Spectrum_Logarithmic_Derivative, Power_Spectrum_Dimensionless, sigma_CDM, Mass_from_Sigma,&
+       & sigma_8, sigma_CDM_Logarithmic_Derivative, sigma_CDM_Plus_Logarithmic_Derivative, CDM_Power_Spectrum_State_Store,&
+       & CDM_Power_Spectrum_State_Retrieve
 
   ! Flag to indicate if the power spectrum has been normalized.  
   logical                     :: sigmaInitialized   =.false.
@@ -48,6 +49,29 @@ module CDM_Power_Spectrum
   double precision                               :: smoothingMass
 
 contains
+
+  double precision function Power_Spectrum_Dimensionless(wavenumber)
+    !% Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    use Numerical_Constants_Math
+    implicit none
+    double precision, intent(in) :: wavenumber
+
+    Power_Spectrum_Dimensionless=4.0d0*Pi*wavenumber**3*Power_Spectrum_CDM(wavenumber)/(2.0d0*Pi)**3
+    return
+  end function Power_Spectrum_Dimensionless
+
+  double precision function Power_Spectrum_Logarithmic_Derivative(wavenumber)
+    !% Return the logarithmic derivative of the power spectrum, ${\rm d}\ln P(k)/{\rm d}\ln k$, for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    use CDM_Transfer_Function
+    use CDM_Primordial_Power_Spectrum
+    implicit none
+    double precision, intent(in) :: wavenumber
+
+    Power_Spectrum_Logarithmic_Derivative=                                                                    &
+         &                                       Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber) &
+         &                                +2.0d0*        Transfer_Function_Logarithmic_Derivative(wavenumber)
+    return
+  end function Power_Spectrum_Logarithmic_Derivative
 
   double precision function Power_Spectrum_CDM(wavenumber)
     !% Return the CDM power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
@@ -278,10 +302,10 @@ contains
     normalizingSigma=.true.
     if (useTopHat) then
        sigma_CDM_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,sigma_CDM_Integrand_TopHat,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-10)/2.0d0/Pi**2
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
     else
        sigma_CDM_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,sigma_CDM_Integrand,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-10)/2.0d0/Pi**2
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
     end if
     call Integrate_Done(integrandFunction,integrationWorkspace)
     normalizingSigma=.false.

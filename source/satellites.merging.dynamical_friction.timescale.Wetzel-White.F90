@@ -43,24 +43,27 @@ contains
 
   double precision function Satellite_Time_Until_Merging_Wetzel_White(thisNode)
     !% Return the timescale for merging satellites using the \cite{wetzel_what_2010} method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dynamical_Friction_Timescale_Utilities
     use Cosmology_Functions
     implicit none
-    type(treeNode),    pointer, intent(inout) :: thisNode
-    type(treeNode),    pointer                :: hostNode
-    double precision,  parameter              :: timeScaleNormalization=0.2d0 ! C_dyn from Wetzel & White (2010).
-    double precision                          :: massRatio
+    type (treeNode          ), pointer, intent(inout) :: thisNode
+    type (treeNode          ), pointer                :: hostNode
+    class(nodeComponentBasic), pointer                :: thisBasicComponent,hostBasicComponent
+    double precision,          parameter              :: timeScaleNormalization=0.2d0 ! C_dyn from Wetzel & White (2010).
+    double precision                                  :: massRatio
 
     ! Find the host node.
-    hostNode => thisNode%parentNode
+    hostNode => thisNode%parent
     ! Compute mass ratio.
-    massRatio=Tree_Node_Mass(hostNode)/Tree_Node_Mass(thisNode)
+    thisBasicComponent => thisNode%basic()
+    hostBasicComponent => hostNode%basic()
+    massRatio=hostBasicComponent%mass()/thisBasicComponent%mass()
     ! Compute dynamical friction timescale using eqn. (2) from Wetzel & White (2010).
-    Satellite_Time_Until_Merging_Wetzel_White= Dynamical_Friction_Timescale_Multiplier()                  &
-         &                                    *timeScaleNormalization                                     &
-         &                                    /Expansion_Rate(Expansion_Factor(Tree_Node_Time(thisNode))) &
-         &                                    *           massRatio                                       &
+    Satellite_Time_Until_Merging_Wetzel_White= Dynamical_Friction_Timescale_Multiplier()                   &
+         &                                    *timeScaleNormalization                                      &
+         &                                    /Expansion_Rate(Expansion_Factor(thisBasicComponent%time())) &
+         &                                    *           massRatio                                        &
          &                                    /dlog(1.0d0+massRatio)
     return
   end function Satellite_Time_Until_Merging_Wetzel_White

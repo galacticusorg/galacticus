@@ -61,13 +61,18 @@ contains
   double precision function Black_Hole_Binary_Initial_Radius_Spheroid_Size(thisNode,hostNode)
     !% Returns an initial separation for a binary black holes that is a fixed fraction of the scale radius of the larger of the
     !% host and satellite spheroids.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode,hostNode
+    type (treeNode             ), intent(inout), pointer :: thisNode,hostNode
+    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent,hostSpheroidComponent
 
-    Black_Hole_Binary_Initial_Radius_Spheroid_Size=blackHoleInitialRadiusSpheroidRadiusRatio*max(                                     &
-         &                                                                                        Tree_Node_Spheroid_Radius(thisNode) &
-         &                                                                                       ,Tree_Node_Spheroid_Radius(hostNode) &
+    ! Get the spheroid components.
+    thisSpheroidComponent => thisNode%spheroid()
+    hostSpheroidComponent => hostNode%spheroid()
+    ! Compute the initial radius.
+    Black_Hole_Binary_Initial_Radius_Spheroid_Size=blackHoleInitialRadiusSpheroidRadiusRatio*max(                                &
+         &                                                                                       thisSpheroidComponent%radius(), &
+         &                                                                                       hostSpheroidComponent%radius()  &
          &                                                                                      )
     return
   end function Black_Hole_Binary_Initial_Radius_Spheroid_Size

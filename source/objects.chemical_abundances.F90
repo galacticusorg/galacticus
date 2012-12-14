@@ -22,30 +22,50 @@ module Chemical_Abundances_Structure
   use ISO_Varying_String
   implicit none
   private
-  public :: chemicalAbundancesStructure, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count
+  public :: chemicalAbundances, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count
   
-  type chemicalAbundancesStructure
+  type chemicalAbundances
      !% The structure used for describing chemical abundances in \glc.
      private
      double precision, allocatable, dimension(:) :: chemicalValue
    contains
-     ! Pack/unpack methods.
+     ! Operators.
+     procedure                 :: add                    => Chemical_Abundances_Add
+     procedure                 :: subtract               => Chemical_Abundances_Subtract
+     procedure                 :: multiply               => Chemical_Abundances_Multiply
+     procedure                 :: divide                 => Chemical_Abundances_Divide
+     generic                   :: operator(+)            => add
+     generic                   :: operator(-)            => subtract
+     generic                   :: operator(*)            => multiply
+     generic                   :: operator(/)            => divide
+     ! Serialization methods.
      !@ <objectMethods>
-     !@   <object>chemicalAbundancesStructure</object>
+     !@   <object>chemicalAbundances</object>
      !@   <objectMethod>
-     !@     <method>pack</method>
-     !@     <description>Packs chemical abundance data into a 1-D array.</description>
+     !@     <method>serializeCount</method>
+     !@     <description>Return a count of the number of properties in a serialized chemical abundances object.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>unpack(array)</method>
-     !@     <description>Unpacks chemical abundance data from a 1-D array.</description>
+     !@     <method>serialize</method>
+     !@     <description>Serialize a chemical abundances object to an array.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>deserialize</method>
+     !@     <description>Deserialize a chemical abundances object from an array.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure                 :: pack         => Chemical_Abundances_Pack
-     procedure                 :: unpack       => Chemical_Abundances_Unpack
+     procedure, nopass         :: serializeCount         => Chemicals_Property_Count
+     procedure                 :: serialize              => Chemical_Abundances_Serialize
+     procedure                 :: deserialize            => Chemical_Abundances_Deserialize
+     !@ <objectMethod>
+     !@   <object>chemicalAbundances</object>
+     !@   <method>increment</method>
+     !@   <description>Increment a chemical abundances object.</description>
+     !@ </objectMethod>
+     procedure                 :: increment              => Chemical_Abundances_Increment
      ! Abundance methods.
      !@ <objectMethods>
-     !@   <object>chemicalAbundancesStructure</object>
+     !@   <object>chemicalAbundances</object>
      !@   <objectMethod>
      !@     <method>abundance</method>
      !@     <description>Returns the abundance of a chemical given its index.</description>
@@ -59,6 +79,14 @@ module Chemical_Abundances_Structure
      !@     <description>Resets abundances to zero.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>setToUnity</method>
+     !@     <description>Set abundances to unity.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroys a chemical abundances object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>numberToMass</method>
      !@     <description>Converts from abundances by number to abundances by mass.</description>
      !@   </objectMethod>
@@ -67,22 +95,34 @@ module Chemical_Abundances_Structure
      !@     <description>Converts from abundances by mass to abundances by number.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>multiply</method>
-     !@     <description>Multiplies abundances by given factor.</description>
+     !@     <method>enforcePositive</method>
+     !@     <description>Enforces all chemical values to be positive.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>divide</method>
-     !@     <description>Divides abundances by given factor.</description>
+     !@     <method>dump</method>
+     !@     <description>Dump a chemical abundances object.</description>
      !@   </objectMethod>
-     !@ </objectMethods>
+     !@   <objectMethod>
+     !@     <method>dumpRaw</method>
+     !@     <description>Dump a chemical abundances object in binary.</description>
+     !@   </objectMethod>
+      !@   <objectMethod>
+     !@     <method>readRaw</method>
+     !@     <description>Read a chemical abundances object in binary.</description>
+     !@   </objectMethod>
+    !@ </objectMethods>
      procedure                 :: abundance         => Chemicals_Abundances
      procedure                 :: abundanceSet      => Chemicals_Abundances_Set
      procedure                 :: reset             => Chemicals_Abundances_Reset
+     procedure                 :: setToUnity        => Chemicals_Abundances_Set_To_Unity
+     procedure                 :: destroy           => Chemicals_Abundances_Destroy
      procedure                 :: numberToMass      => Chemicals_Number_To_Mass
      procedure                 :: massToNumber      => Chemicals_Mass_To_Number
-     procedure                 :: multiply          => Chemicals_Abundances_Multiply
-     procedure                 :: divide            => Chemicals_Abundances_Divide
-  end type chemicalAbundancesStructure
+     procedure                 :: enforcePositive   => Chemicals_Enforce_Positive
+     procedure                 :: dump              => Chemicals_Dump
+     procedure                 :: dumpRaw           => Chemicals_Dump_Raw
+     procedure                 :: readRaw           => Chemicals_Read_Raw
+  end type chemicalAbundances
 
   ! Count of the number of elements being tracked.
   integer                                         :: chemicalsCount=0
@@ -90,6 +130,7 @@ module Chemical_Abundances_Structure
 
   ! Names of chemicals to track.
   type(varying_string), allocatable, dimension(:) :: chemicalsToTrack
+  integer                                         :: chemicalNameLengthMaximum
 
   ! Indices of chemicals as used in the Chemical_Structures module.
   integer,              allocatable, dimension(:) :: chemicalsIndices
@@ -99,6 +140,9 @@ module Chemical_Abundances_Structure
 
   ! Flag indicating if this module has been initialized.
   logical                                         :: chemicalAbundancesInitialized=.false.
+
+  ! Unit and zero chemical abundances objects.
+  type(chemicalabundances),           public      :: zeroChemicals,unitChemicals
 
 contains
 
@@ -138,13 +182,21 @@ contains
              !@ </inputParameter>
              call Get_Input_Parameter('chemicalsToTrack',chemicalsToTrack)
              ! Validate the input names by looking them up in the list of chemical names.
+             chemicalNameLengthMaximum=0
              do iChemical=1,chemicalsCount
                 chemicalsIndices(iChemical)=Chemical_Database_Get_Index(char(chemicalsToTrack(iChemical)))
                 call thisChemical%retrieve(char(chemicalsToTrack(iChemical)))
                 chemicalsCharges(iChemical)=dble(thisChemical%charge())
                 chemicalsMasses (iChemical)=     thisChemical%mass  ()
+                if (len(chemicalsToTrack(iChemical)) > chemicalNameLengthMaximum) chemicalNameLengthMaximum&
+                     &=len(chemicalsToTrack(iChemical))
              end do
           end if
+          ! Create zero and unit chemical abundances objects.
+          call Alloc_Array(zeroChemicals%chemicalValue,[propertyCount])
+          call Alloc_Array(unitChemicals%chemicalValue,[propertyCount])
+          zeroChemicals%chemicalValue=0.0d0
+          unitChemicals%chemicalValue=1.0d0
           ! Flag that this module is now initialized.
           chemicalAbundancesInitialized=.true.
        end if
@@ -200,44 +252,98 @@ contains
     return
   end function Chemicals_Index
   
-  subroutine Chemicals_Abundances_Multiply(theseAbundances,scaleFactor)
-    !% Multiply chemical abundances in {\tt theseAbundances} by a scalar {\tt scaleFactor}.
+  subroutine Chemical_Abundances_Increment(self,increment)
+    !% Increment an abundances object.
     implicit none
-    class(chemicalAbundancesStructure), intent(inout) :: theseAbundances
-    double precision,                   intent(in)    :: scaleFactor
-    
-    ! Ensure the target structure is allocated.
-    call Chemical_Abundances_Allocate_Values(theseAbundances)
+    class(chemicalAbundances), intent(inout) :: self
+    class(chemicalAbundances), intent(in   ) :: increment
 
-    ! Do the multiplication.
-    select type (theseAbundances)
-    type is (chemicalAbundancesStructure)
-       theseAbundances%chemicalValue=theseAbundances%chemicalValue*scaleFactor
-    end select
+    ! Ensure module is initialized.
+    call Chemical_Abundances_Initialize
+    self%chemicalValue=self%chemicalValue+increment%chemicalValue
     return
-  end subroutine Chemicals_Abundances_Multiply
+  end subroutine Chemical_Abundances_Increment
 
-  subroutine Chemicals_Abundances_Divide(theseAbundances,scaleFactor)
-    !% Divide chemical abundances in {\tt theseAbundances} by a scalar {\tt scaleFactor}.
+  function Chemical_Abundances_Add(abundances1,abundances2)
+    !% Add two abundances objects.
     implicit none
-    class(chemicalAbundancesStructure), intent(inout) :: theseAbundances
-    double precision,                   intent(in)    :: scaleFactor
-    
-    ! Ensure the target structure is allocated.
-    call Chemical_Abundances_Allocate_Values(theseAbundances)
+    type (chemicalAbundances)                       :: Chemical_Abundances_Add
+    class(chemicalAbundances), intent(in)           :: abundances1
+    class(chemicalAbundances), intent(in), optional :: abundances2
 
-    ! Do the division.
-    select type (theseAbundances)
-    type is (chemicalAbundancesStructure)
-       theseAbundances%chemicalValue=theseAbundances%chemicalValue/scaleFactor
-    end select
+    ! Ensure module is initialized.
+    call Chemical_Abundances_Initialize
+    if (chemicalsCount == 0) then
+       Chemical_Abundances_Add=zeroChemicals
+    else
+       if (present(abundances2)) then
+          Chemical_Abundances_Add%chemicalValue=abundances1%chemicalValue+abundances2%chemicalValue
+       else
+          Chemical_Abundances_Add%chemicalValue=abundances1%chemicalValue
+       end if
+    end if
     return
-  end subroutine Chemicals_Abundances_Divide
+  end function Chemical_Abundances_Add
+
+  function Chemical_Abundances_Subtract(abundances1,abundances2)
+    !% Subtract two abundances objects.
+    implicit none
+    type (chemicalAbundances)                       :: Chemical_Abundances_Subtract
+    class(chemicalAbundances), intent(in)           :: abundances1
+    class(chemicalAbundances), intent(in), optional :: abundances2
+
+    ! Ensure module is initialized.
+    call Chemical_Abundances_Initialize
+    if (chemicalsCount == 0) then
+       Chemical_Abundances_Subtract=zeroChemicals
+    else
+       if (present(abundances2)) then
+          Chemical_Abundances_Subtract%chemicalValue= abundances1%chemicalValue-abundances2%chemicalValue
+       else
+          Chemical_Abundances_Subtract%chemicalValue=-abundances1%chemicalValue
+       end if
+    end if
+    return
+  end function Chemical_Abundances_Subtract
+
+  function Chemical_Abundances_Multiply(abundances1,multiplier)
+    !% Multiply a chemical abundances object by a scalar.
+    implicit none
+    type (chemicalAbundances)             :: Chemical_Abundances_Multiply
+    class(chemicalAbundances), intent(in) :: abundances1
+    double precision         , intent(in) :: multiplier
+
+    ! Ensure module is initialized.
+    call Chemical_Abundances_Initialize
+    if (chemicalsCount == 0) then
+       Chemical_Abundances_Multiply=zeroChemicals
+    else
+       Chemical_Abundances_Multiply%chemicalValue=abundances1%chemicalValue*multiplier
+    end if
+    return
+  end function Chemical_Abundances_Multiply
+
+  function Chemical_Abundances_Divide(abundances1,divisor)
+    !% Divide a chemical abundances object by a scalar.
+    implicit none
+    type (chemicalAbundances)             :: Chemical_Abundances_Divide
+    class(chemicalAbundances), intent(in) :: abundances1
+    double precision         , intent(in) :: divisor
+
+    ! Ensure module is initialized.
+    call Chemical_Abundances_Initialize
+    if (chemicalsCount == 0) then
+       Chemical_Abundances_Divide=zeroChemicals
+    else
+       Chemical_Abundances_Divide%chemicalValue=abundances1%chemicalValue/divisor
+    end if
+    return
+  end function Chemical_Abundances_Divide
 
   double precision function Chemicals_Abundances(chemicals,moleculeIndex)
     !% Returns the abundance of a molecule in the chemical abundances structure given the {\tt moleculeIndex}.
     implicit none
-    class(chemicalAbundancesStructure), intent(in) :: chemicals
+    class(chemicalAbundances), intent(in) :: chemicals
     integer,                             intent(in) :: moleculeIndex
 
     Chemicals_Abundances=chemicals%chemicalValue(moleculeIndex)
@@ -247,8 +353,8 @@ contains
   subroutine Chemicals_Number_To_Mass(chemicals,chemicalsByMass)
     !% Multiply all chemical species by their mass in units of the atomic mass. This converts abundances by number into abundances by mass.
     implicit none
-    class(chemicalAbundancesStructure), intent(in)    :: chemicals
-    type(chemicalAbundancesStructure),  intent(inout) :: chemicalsByMass
+    class(chemicalAbundances), intent(in)    :: chemicals
+    type(chemicalAbundances),  intent(inout) :: chemicalsByMass
 
     ! Ensure values array exists.
     call Chemical_Abundances_Allocate_Values(chemicalsByMass)
@@ -267,8 +373,8 @@ contains
   subroutine Chemicals_Mass_To_Number(chemicals,chemicalsByNumber)
     !% Divide all chemical species by their mass in units of the atomic mass. This converts abundances by mass into abundances by number.
     implicit none
-    class(chemicalAbundancesStructure), intent(in)    :: chemicals
-    type(chemicalAbundancesStructure),  intent(inout) :: chemicalsByNumber
+    class(chemicalAbundances), intent(in)    :: chemicals
+    type(chemicalAbundances),  intent(inout) :: chemicalsByNumber
 
     ! Ensure values array exists.
     call Chemical_Abundances_Allocate_Values(chemicalsByNumber)
@@ -284,18 +390,78 @@ contains
     return
   end subroutine Chemicals_Mass_To_Number
 
+  subroutine Chemicals_Enforce_Positive(chemicals)
+    !% Force all chemical values to be positive, by truncating negative values to zero.
+    implicit none
+    class(chemicalAbundances), intent(inout) :: chemicals
+
+    if (allocated(chemicals%chemicalValue)) then
+       where (chemicals%chemicalValue < 0.0d0)
+          chemicals%chemicalValue=0.0d0
+       end where
+    end if
+    return
+  end subroutine Chemicals_Enforce_Positive
+
+  subroutine Chemicals_Dump(chemicals)
+    !% Dump all chemical values.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class(chemicalAbundances), intent(in   ) :: chemicals
+    integer                                  :: i
+    character(len=12        )                :: label
+    type     (varying_string)                :: message
+
+    if (allocated(chemicals%chemicalValue)) then
+       do i=1,chemicalsCount
+          write (label,'(e12.6)') chemicals%chemicalValue(i)
+          message=chemicalsToTrack(i)//': '//repeat(" ",chemicalNameLengthMaximum-len(chemicalsToTrack(i)))//label
+          call Galacticus_Display_Message(message)
+       end do
+    end if
+    return
+  end subroutine Chemicals_Dump
+
+  subroutine Chemicals_Dump_Raw(chemicals,fileHandle)
+    !% Dump all chemical values in binary.
+    implicit none
+    class(chemicalAbundances), intent(in   ) :: chemicals
+    integer                  , intent(in   ) :: fileHandle
+
+    write (fileHandle) allocated(chemicals%chemicalValue)
+    if (allocated(chemicals%chemicalValue)) write (fileHandle),chemicals%chemicalValue
+    return
+  end subroutine Chemicals_Dump_Raw
+
+  subroutine Chemicals_Read_Raw(chemicals,fileHandle)
+    !% Read all chemical values in binary.
+    use Memory_Management
+    implicit none
+    class(chemicalAbundances), intent(inout) :: chemicals
+    integer                  , intent(in   ) :: fileHandle
+    logical                                  :: isAllocated
+
+    read (fileHandle) isAllocated
+    if (isAllocated) then
+       call Alloc_Array(chemicals%chemicalValue,[chemicalsCount])
+       read (fileHandle),chemicals%chemicalValue
+    end if
+    return
+  end subroutine Chemicals_Read_Raw
+
   subroutine Chemicals_Abundances_Set(chemicals,moleculeIndex,abundance)
     !% Sets the abundance of a molecule in the chemical abundances structure given the {\tt moleculeIndex}.
     implicit none
-    class(chemicalAbundancesStructure), intent(inout) :: chemicals
-    integer,                             intent(in)    :: moleculeIndex
-    double precision,                    intent(in)    :: abundance
+    class(chemicalAbundances), intent(inout) :: chemicals
+    integer,                   intent(in   ) :: moleculeIndex
+    double precision,          intent(in   ) :: abundance
     
     ! Ensure values array exists.
     call Chemical_Abundances_Allocate_Values(chemicals)
     
     select type (chemicals)
-    type is (chemicalAbundancesStructure)
+    type is (chemicalAbundances)
        chemicals%chemicalValue(moleculeIndex)=abundance
     end select
     return
@@ -304,27 +470,53 @@ contains
   subroutine Chemicals_Abundances_Reset(chemicals)
     !% Resets all chemical abundances to zero.
     implicit none
-    class(chemicalAbundancesStructure), intent(inout) :: chemicals
+    class(chemicalAbundances), intent(inout) :: chemicals
 
     ! Ensure values array exists.
     call Chemical_Abundances_Allocate_Values(chemicals)
 
     ! Reset to zero.
     select type (chemicals)
-    type is (chemicalAbundancesStructure)
+    type is (chemicalAbundances)
        chemicals%chemicalValue=0.0d0
     end select
     return
   end subroutine Chemicals_Abundances_Reset
 
+  subroutine Chemicals_Abundances_Set_To_Unity(chemicals)
+    !% Resets all chemical abundances to unity.
+    implicit none
+    class(chemicalAbundances), intent(inout) :: chemicals
+
+    ! Ensure values array exists.
+    call Chemical_Abundances_Allocate_Values(chemicals)
+
+    ! Reset to zero.
+    select type (chemicals)
+    type is (chemicalAbundances)
+       chemicals%chemicalValue=1.0d0
+    end select
+    return
+  end subroutine Chemicals_Abundances_Set_To_Unity
+
+  subroutine Chemicals_Abundances_Destroy(chemicals)
+    !% Destroy a chemical abundances object.
+    use Memory_Management
+    implicit none
+    class(chemicalAbundances), intent(inout) :: chemicals
+
+    if (allocated(chemicals%chemicalValue)) call Dealloc_Array(chemicals%chemicalValue)
+    return
+  end subroutine Chemicals_Abundances_Destroy
+
   subroutine Chemical_Abundances_Allocate_Values(chemicals)
     !% Ensure that the {\tt chemicalValue} array in an {\tt chemicalsStructure} is allocated.
     use Memory_Management
     implicit none
-    class(chemicalAbundancesStructure), intent(inout) :: chemicals
+    class(chemicalAbundances), intent(inout) :: chemicals
 
     select type (chemicals)
-    type is (chemicalAbundancesStructure)
+    type is (chemicalAbundances)
        if (.not.allocated(chemicals%chemicalValue)) then
           allocate(chemicals%chemicalValue(chemicalsCount))
           call Memory_Usage_Record(sizeof(chemicals%chemicalValue))
@@ -333,10 +525,10 @@ contains
     return
   end subroutine Chemical_Abundances_Allocate_Values
 
-  subroutine Chemical_Abundances_Pack(chemicals,chemicalAbundancesArray)
+  subroutine Chemical_Abundances_Deserialize(chemicals,chemicalAbundancesArray)
     !% Pack abundances from an array into an abundances structure.
     implicit none
-    class(chemicalAbundancesStructure), intent(inout)            :: chemicals
+    class(chemicalAbundances), intent(inout)            :: chemicals
     double precision,                   intent(in), dimension(:) :: chemicalAbundancesArray
 
     ! Ensure module is initialized.
@@ -346,17 +538,17 @@ contains
     call Chemical_Abundances_Allocate_Values(chemicals)
     ! Extract chemical values from array.
     select type (chemicals)
-    type is (chemicalAbundancesStructure)
+    type is (chemicalAbundances)
        chemicals%chemicalValue=chemicalAbundancesArray
     end select
     return
-  end subroutine Chemical_Abundances_Pack
+  end subroutine Chemical_Abundances_Deserialize
 
-  subroutine Chemical_Abundances_Unpack(chemicals,chemicalAbundancesArray)
+  subroutine Chemical_Abundances_Serialize(chemicals,chemicalAbundancesArray)
     !% Pack abundances from an array into an abundances structure.
     implicit none
     double precision,                   intent(out), dimension(:) :: chemicalAbundancesArray(:)
-    class(chemicalAbundancesStructure), intent(in)                :: chemicals
+    class(chemicalAbundances), intent(in)                :: chemicals
 
     ! Ensure module is initialized.
     call Chemical_Abundances_Initialize
@@ -368,6 +560,6 @@ contains
        chemicalAbundancesArray=0.0d0
     end if
     return
-  end subroutine Chemical_Abundances_Unpack
+  end subroutine Chemical_Abundances_Serialize
 
 end module Chemical_Abundances_Structure

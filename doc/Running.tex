@@ -257,6 +257,10 @@ Once all workers have finished, their outputs can (if required) be combined into
 \end{verbatim}
 where {\tt model1} etc. are the names of the various output files and {\tt modelOutput} is the file into which the combined results should be placed. The {\tt Merge\_Models.pl} script will combine all merger trees into the output file and will additionally cumulate any data in the {\tt globalHistory} groups in these files. The UUIDs of the merged files (see \S\ref{sec:UUID}) will be concatenated (with a ``:'' separator) and placed into the {\tt UUIDs} attribute of the new file. Additionally, a new UUID will be generated and stored in the {\tt UUID} attribute of the new file.
 
+\subsection{Limiting the Load Average}\index{load average}
+
+If {\tt [treeEvolveLimitLoadAverage]}$=${\tt true} then \glc\ will attempt to keep the load average of the system under {\tt [treeEvolveLoadAverageMaximum]} by waiting to run trees if the current load average exceeds this value. {\tt [treeEvolveLoadAverageMaximum]} can be set to the numerical maximum load average desired or, alternatively, can be set to {\tt processorCount} in which case the number of processor cores present on the system will be used for {\tt [treeEvolveLoadAverageMaximum]}.
+
 \section{Additional Codes}
 
 The \glc\ code base can be used for other calculations. Some examples of such usage (and which are sufficiently useful in their own right) are included and are detailed in this section.

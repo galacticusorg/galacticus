@@ -20,7 +20,7 @@ module CDM_Transfer_Function
   use FGSL
   implicit none
   private
-  public :: Transfer_Function_CDM, CDM_Transfer_Function_State_Retrieve
+  public :: Transfer_Function_CDM, Transfer_Function_Logarithmic_Derivative, CDM_Transfer_Function_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
   logical                                        :: transferFunctionInitialized=.false., tablesInitialized=.false.
@@ -83,6 +83,42 @@ contains
     return
   end function Transfer_Function_CDM
 
+  double precision function Transfer_Function_Logarithmic_Derivative(wavenumber)
+    !% Return the logarithmic derivative of the CDM transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    use Numerical_Interpolation
+    implicit none
+    double precision, intent(in) :: wavenumber
+    double precision             :: logWavenumber
+
+    ! Get logarithm of wavenumber.
+    logWavenumber=dlog(wavenumber)
+
+    !$omp critical(Transfer_Function_Initialization) 
+    ! Initialize if necessary.
+    if (.not.(transferFunctionInitialized.and.tablesInitialized)) then
+       call Transfer_Function_Initialize(logWavenumber)
+       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
+       resetInterpolation=.true.
+    end if
+
+    ! If wavenumber is out of range, attempt to remake the table.
+    if (logWavenumber<transferFunctionLogWavenumber(1) .or. logWavenumber&
+         &>transferFunctionLogWavenumber(transferFunctionNumberPoints) ) then
+       call Transfer_Function_Tabulate(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
+            &,transferFunctionLogT)
+       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
+       resetInterpolation=.true.
+    end if
+    !$omp end critical(Transfer_Function_Initialization)
+
+    ! Interpolate in the tabulated function and return a value.
+    Transfer_Function_Logarithmic_Derivative=Interpolate_Derivative(transferFunctionNumberPoints,transferFunctionLogWavenumber&
+         &,transferFunctionLogT ,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation&
+         &,interpolationType=fgsl_interp_cspline)
+
+    return
+  end function Transfer_Function_Logarithmic_Derivative
+
   subroutine Transfer_Function_Initialize(logWavenumber)
     !% Initializes the transfer function module.
     use Galacticus_Error
@@ -107,8 +143,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('transferFunctionMethod',transferFunctionMethod,defaultValue='Eisenstein-Hu1999')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="transferFunctionMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>transferFunctionMethod,Transfer_Function_Tabulate</subroutineArgs>
+       !# <include directive="transferFunctionMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>transferFunctionMethod,Transfer_Function_Tabulate</functionArgs>
        include 'structure_formation.CDM.transfer_function.inc'
        !# </include>
        if (.not.associated(Transfer_Function_Tabulate)) call Galacticus_Error_Report('Transfer_Function_Initialize','method '&

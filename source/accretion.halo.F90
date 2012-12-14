@@ -20,7 +20,7 @@
 module Accretion_Halos
   !% Implements calculations of baryonic accretion into halos.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Abundances_Structure
   use Chemical_Abundances_Structure
   implicit none
@@ -53,17 +53,17 @@ module Accretion_Halos
   abstract interface
      subroutine Halo_Baryonic_Abundances_Get_Template(thisNode,accretedAbundances)
        import treeNode
-       import abundancesStructure
+       import abundances
        type(treeNode),            intent(inout), pointer :: thisNode
-       type(abundancesStructure), intent(inout)          :: accretedAbundances
+       type(abundances), intent(inout)          :: accretedAbundances
      end subroutine Halo_Baryonic_Abundances_Get_Template
   end interface
   abstract interface
      subroutine Halo_Baryonic_Chemicals_Get_Template(thisNode,accretedChemicals)
        import treeNode
-       import chemicalAbundancesStructure
+       import chemicalAbundances
        type(treeNode),                    intent(inout), pointer :: thisNode
-       type(chemicalAbundancesStructure), intent(inout)          :: accretedChemicals
+       type(chemicalAbundances), intent(inout)          :: accretedChemicals
      end subroutine Halo_Baryonic_Chemicals_Get_Template
   end interface
 
@@ -94,8 +94,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('accretionHalosMethod',accretionHalosMethod,defaultValue='simple')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="accretionHalosMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get</subroutineArgs>
+          !# <include directive="accretionHalosMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get</functionArgs>
           include 'accretion.halos.inc'
           !# </include>
           if     (.not.(     associated(Halo_Baryonic_Accretion_Rate_Get           ) &
@@ -178,7 +178,7 @@ contains
     !% Compute the rate of mass accretion of abundances (in $M_\odot/$Gyr) accreted onto {\tt thisNode}.
     implicit none
     type(treeNode),            intent(inout), pointer :: thisNode
-    type(abundancesStructure), intent(inout)          :: accretionRateAbundances
+    type(abundances), intent(inout)          :: accretionRateAbundances
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
@@ -193,7 +193,7 @@ contains
     !% Compute the mass of abundances (in $M_\odot$) accreted onto {\tt thisNode}.
     implicit none
     type(treeNode),            intent(inout), pointer :: thisNode
-    type(abundancesStructure), intent(inout)          :: accretedAbundances
+    type(abundances), intent(inout)          :: accretedAbundances
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
@@ -208,7 +208,7 @@ contains
     !% Compute the mass of chemicals (in $M_\odot$) accreted onto {\tt thisNode}.
     implicit none
     type(treeNode),                    intent(inout), pointer :: thisNode
-    type(chemicalAbundancesStructure), intent(inout)          :: accretionRateChemicals
+    type(chemicalAbundances), intent(inout)          :: accretionRateChemicals
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
@@ -223,7 +223,7 @@ contains
     !% Compute the mass of chemicals (in $M_\odot$) accreted onto {\tt thisNode}.
     implicit none
     type(treeNode),                    intent(inout), pointer :: thisNode
-    type(chemicalAbundancesStructure), intent(inout)          :: accretedChemicals
+    type(chemicalAbundances), intent(inout)          :: accretedChemicals
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize

@@ -20,7 +20,7 @@
 module Dark_Matter_Halos_Mass_Loss_Rates
   !% Implements calculations of mass loss rates from dark matter halos.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Halos_Mass_Loss_Rate
@@ -68,8 +68,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('darkMatterHaloMassLossRateMethod',darkMatterHaloMassLossRateMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterHaloMassLossRateMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>darkMatterHaloMassLossRateMethod,Dark_Matter_Halos_Mass_Loss_Rate_Get</subroutineArgs>
+          !# <include directive="darkMatterHaloMassLossRateMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>darkMatterHaloMassLossRateMethod,Dark_Matter_Halos_Mass_Loss_Rate_Get</functionArgs>
           include 'dark_matter_halos.mass_loss_rates.inc'
           !# </include>
           if (.not.associated(Dark_Matter_Halos_Mass_Loss_Rate_Get)) call Galacticus_Error_Report('Dark_Matter_Halo_Mass_Loss_Rates_Initialize'&

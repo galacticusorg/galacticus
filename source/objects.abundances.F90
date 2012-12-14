@@ -23,32 +23,94 @@ module Abundances_Structure
   use Numerical_Constants_Astronomical
   implicit none
   private
-  public :: abundancesStructure, Abundances_Names, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
-       &, Abundances_Mass_To_Mass_Fraction
+  public :: abundances, Abundances_Names, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
+       &, Abundances_Mass_To_Mass_Fraction, operator(*), max
   
-  type abundancesStructure
+  ! Interface to multiplication operators with abundances objects as their second argument.
+  interface operator(*)
+     module procedure Abundances_Multiply_Switched
+  end interface operator(*)
+
+  ! Interface to max() function for abundances objects.
+  interface max
+     module procedure Abundances_Max
+  end interface max
+
+  type abundances
      !% The abundances structure used for describing elemental abundances in \glc.
      private
      double precision                            :: metallicityValue
      double precision, allocatable, dimension(:) :: elementalValue
    contains
-     ! Pack/unpack methods.
+     ! Operators.
+     procedure                 :: add                    => Abundances_Add
+     procedure                 :: subtract               => Abundances_Subtract
+     procedure                 :: multiply               => Abundances_Multiply
+     procedure                 :: divide                 => Abundances_Divide
+     generic                   :: operator(+)            => add
+     generic                   :: operator(-)            => subtract
+     generic                   :: operator(*)            => multiply
+     generic                   :: operator(/)            => divide
+     procedure                 :: isZero                 => Abundances_Is_Zero
+     procedure                 :: destroy                => Abundances_Destroy
+     ! Methods.
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>reset</method>
+     !@   <description>Reset an abundances object.</description>
+     !@ </objectMethod>
+     procedure                 :: reset                  => Abundances_Reset
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>dump</method>
+     !@   <description>Dump an abundances object.</description>
+     !@ </objectMethod>
+     procedure                 :: dump                   => Abundances_Dump
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>dumpRaw</method>
+     !@   <description>Dump an abundances object to binary.</description>
+     !@ </objectMethod>
+     procedure                 :: dumpRaw                => Abundances_Dump_Raw
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>readRaw</method>
+     !@   <description>Read an abundances object from binary.</description>
+     !@ </objectMethod>
+     procedure                 :: readRaw                => Abundances_Read_Raw
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>setToUnity</method>
+     !@   <description>Set an abundances object to unity.</description>
+     !@ </objectMethod>
+     procedure                 :: setToUnity             => Abundances_Set_To_Unity
      !@ <objectMethods>
-     !@   <object>abundancesStructure</object>
+     !@   <object>abundances</object>
      !@   <objectMethod>
-     !@     <method>pack</method>
-     !@     <description>Packs abundance data into a 1-D array.</description>
+     !@     <method>serializeCount</method>
+     !@     <description>Return a count of the number of properties in a serialized abundances object.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>unpack(array)</method>
-     !@     <description>Unpacks abundance data from a 1-D array.</description>
+     !@     <method>serialize</method>
+     !@     <description>Serialize an abundances object to an array.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>deserialize</method>
+     !@     <description>Deserialize an abundances object from an array.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure                 :: pack                   => Abundances_Pack
-     procedure                 :: unpack                 => Abundances_Unpack
+     procedure, nopass         :: serializeCount         => Abundances_Property_Count
+     procedure                 :: serialize              => Abundances_Serialize
+     procedure                 :: deserialize            => Abundances_Deserialize
+     !@ <objectMethod>
+     !@   <object>abundances</object>
+     !@   <method>increment</method>
+     !@   <description>Increment an abundances object.</description>
+     !@ </objectMethod>
+     procedure                 :: increment              => Abundances_Increment
      ! Metallicity methods.
      !@ <objectMethods>
-     !@   <object>abundancesStructure</object>
+     !@   <object>abundances</object>
      !@   <objectMethod>
      !@     <method>metallicity</method>
      !@     <description>Returns the metallicity.</description>
@@ -67,7 +129,7 @@ module Abundances_Structure
      procedure                 :: massToMassFraction     => Abundances_Mass_To_Mass_Fraction_Packed
      ! Hydrogen/helium methods.
      !@ <objectMethods>
-     !@   <object>abundancesStructure</object>
+     !@   <object>abundances</object>
      !@   <objectMethod>
      !@     <method>hydrogenNumberFraction</method>
      !@     <description>Returns the hydrogen fraction by number.</description>
@@ -89,7 +151,26 @@ module Abundances_Structure
      procedure                 :: hydrogenMassFraction   => Abundances_Hydrogen_Mass_Fraction
      procedure                 :: heliumMassFraction     => Abundances_Helium_Mass_Fraction
      procedure                 :: heliumNumberFraction   => Abundances_Helium_Number_Fraction
-  end type abundancesStructure
+     ! Output methods.
+     !@ <objectMethods>
+     !@   <object>abundances</object>
+     !@   <objectMethod>
+     !@     <method>output</method>
+     !@     <description>Store an abundances object in the output buffers.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>outputCount</method>
+     !@     <description>Specify the count of an abundances object for output.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>outputNames</method>
+     !@     <description>Specify the names of abundance object properties for output.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure                 :: output      => Abundances_Output
+     procedure                 :: outputCount => Abundances_Output_Count
+     procedure                 :: outputNames => Abundances_Output_Names
+  end type abundances
 
   ! Count of the number of elements being tracked.
   integer                                     :: elementsCount=0
@@ -119,6 +200,9 @@ module Abundances_Structure
   integer,          parameter, public         :: adjustElementsNone  =0
   integer,          parameter, public         :: adjustElementsReset =1
   integer,          parameter, public         :: adjustElementsUpdate=2
+
+  ! Unit and zero abundances objects.
+  type(abundances),            public         :: zeroAbundances,unitAbundances
 
 contains
 
@@ -158,6 +242,13 @@ contains
                 elementsIndices(iElement)=Atom_Lookup(shortLabel=elementsToTrack(iElement))
              end do
           end if
+          ! Create zero and unit abundances objects.
+          call Alloc_Array(zeroAbundances%elementalValue,[elementsCount])
+          call Alloc_Array(unitAbundances%elementalValue,[elementsCount])
+          zeroAbundances%metallicityValue=0.0d0
+          zeroAbundances%  elementalValue=0.0d0
+          unitAbundances%metallicityValue=1.0d0
+          unitAbundances%  elementalValue=1.0d0
           ! Flag that this module is now initialized.
           abundancesInitialized=.true.
        end if
@@ -165,6 +256,223 @@ contains
     end if
     return
   end subroutine Abundances_Initialize
+
+  subroutine Abundances_Destroy(self)
+    !% Destroy an abundances object.
+    use Memory_Management
+    implicit none
+    class(abundances), intent(inout) :: self
+
+    if (allocated(self%elementalValue)) call Dealloc_Array(self%elementalValue)
+    return
+  end subroutine Abundances_Destroy
+
+  subroutine Abundances_Dump(self)
+    !% Reset an abundances object.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class    (abundances    ), intent(in   ) :: self
+    integer                                  :: i
+    character(len=12        )                :: label
+    type     (varying_string)                :: message
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    write (label,'(e12.6)') self%metallicityValue
+    message='metallicity: '//label
+    call Galacticus_Display_Message(message)
+    if (elementsCount > 0) then
+       do i=1,elementsCount
+          write (label,'(e12.6)') self%elementalValue(i)
+          message=elementsToTrack(i)//':          '//label
+          call Galacticus_Display_Message(message)
+       end do
+    end if
+    return
+  end subroutine Abundances_Dump
+
+  subroutine Abundances_Dump_Raw(self,fileHandle)
+    !% Dump an abundances object to binary.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class    (abundances    ), intent(in   ) :: self
+    integer                  , intent(in   ) :: fileHandle
+    integer                                  :: i
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    ! Dump the content.
+    write (fileHandle) self%metallicityValue
+    if (elementsCount > 0) write (fileHandle) self%elementalValue
+    return
+  end subroutine Abundances_Dump_Raw
+
+  subroutine Abundances_Read_Raw(self,fileHandle)
+    !% Read an abundances object from binary.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class    (abundances    ), intent(inout) :: self
+    integer                  , intent(in   ) :: fileHandle
+    integer                                  :: i
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    ! Read the content.
+    read (fileHandle) self%metallicityValue
+    if (elementsCount > 0) read (fileHandle) self%elementalValue
+    return
+  end subroutine Abundances_Read_Raw
+
+  subroutine Abundances_Reset(self)
+    !% Reset an abundances object.
+    implicit none
+    class(abundances), intent(inout) :: self
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    ! Zero all properties.
+    call self%metallicitySet(0.0d0,adjustElements=adjustElementsReset)
+    return
+  end subroutine Abundances_Reset
+
+  subroutine Abundances_Set_To_Unity(self)
+    !% Set an abundances object to unity.
+    implicit none
+    class(abundances), intent(inout) :: self
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    ! Ensure object is initialized.
+    call Abundances_Allocate_Elemental_Values(self)
+    ! Set values to unity.
+    self                       %metallicityValue=1.0d0
+    if (elementsCount > 0) self%  elementalValue=1.0d0
+    return
+  end subroutine Abundances_Set_To_Unity
+
+  logical function Abundances_Is_Zero(self)
+    !% Test whether an abundances object is zero.
+    implicit none
+    class(abundances), intent(in) :: self
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    ! Detect if all abundances are zero.
+    Abundances_Is_Zero=.true.
+    if (self%metallicityValue /= 0.0d0) Abundances_Is_Zero=.false.
+    if (elementsCount > 0 .and. allocated(self%elementalValue)) then
+       if (any(self%elementalValue /= 0.0d0)) Abundances_Is_Zero=.false.
+    end if
+    return
+  end function Abundances_Is_Zero
+
+  function Abundances_Add(abundances1,abundances2)
+    !% Add two abundances objects.
+    implicit none
+    type (abundances)                       :: Abundances_Add
+    class(abundances), intent(in)           :: abundances1
+    class(abundances), intent(in), optional :: abundances2
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    if (present(abundances2)) then
+       Abundances_Add                       %metallicityValue=abundances1%metallicityValue+abundances2%metallicityValue
+       if (elementsCount > 0) Abundances_Add%  elementalValue=abundances1%  elementalValue+abundances2%  elementalValue
+    else
+       Abundances_Add                       %metallicityValue=abundances1%metallicityValue
+       if (elementsCount > 0) Abundances_Add%  elementalValue=abundances1%  elementalValue
+    end if
+    return
+  end function Abundances_Add
+
+  subroutine Abundances_Increment(self,increment)
+    !% Increment an abundances object.
+    implicit none
+    class(abundances), intent(inout) :: self
+    class(abundances), intent(in   ) :: increment
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+
+    self                       %metallicityValue=self%metallicityValue+increment%metallicityValue
+    if (elementsCount > 0) self%elementalValue  =self%elementalValue  +increment%elementalValue
+    return
+  end subroutine Abundances_Increment
+
+  function Abundances_Subtract(abundances1,abundances2)
+    !% Subtract two abundances objects.
+    implicit none
+    type (abundances)                       :: Abundances_Subtract
+    class(abundances), intent(in)           :: abundances1
+    class(abundances), intent(in), optional :: abundances2
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    if (present(abundances2)) then
+       Abundances_Subtract                       %metallicityValue= abundances1%metallicityValue-abundances2%metallicityValue
+       if (elementsCount > 0) Abundances_Subtract%  elementalValue= abundances1%  elementalValue-abundances2%  elementalValue
+    else
+       Abundances_Subtract                       %metallicityValue=-abundances1%metallicityValue
+       if (elementsCount > 0) Abundances_Subtract%  elementalValue=-abundances1%  elementalValue
+    end if
+    return
+  end function Abundances_Subtract
+
+  function Abundances_Multiply(abundances1,multiplier)
+    !% Multiply an abundances object by a scalar.
+    implicit none
+    type (abundances)             :: Abundances_Multiply
+    class(abundances), intent(in) :: abundances1
+    double precision , intent(in) :: multiplier
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    Abundances_Multiply                       %metallicityValue=abundances1%metallicityValue*multiplier
+    if (elementsCount > 0) Abundances_Multiply%  elementalValue=abundances1%  elementalValue*multiplier
+    return
+  end function Abundances_Multiply
+
+  function Abundances_Multiply_Switched(multiplier,abundances1)
+    !% Multiply a scalar by an abundances object.
+    implicit none
+    type(abundances)             :: Abundances_Multiply_Switched
+    type(abundances), intent(in) :: abundances1
+    double precision, intent(in) :: multiplier
+
+    Abundances_Multiply_Switched=Abundances_Multiply(abundances1,multiplier)
+    return
+  end function Abundances_Multiply_Switched
+
+  function Abundances_Max(abundances1,abundances2)
+    !% Return an element-by-element {\tt max()} on two abundances objects.
+    implicit none
+    type(abundances)             :: Abundances_Max
+    type(abundances), intent(in) :: abundances1,abundances2
+
+    Abundances_Max                       %metallicityValue=max(abundances1%metallicityValue,abundances2%metallicityValue)
+    if (elementsCount > 0) Abundances_Max%  elementalValue=max(abundances1%  elementalValue,abundances2%  elementalValue)
+    return
+  end function Abundances_Max
+
+  function Abundances_Divide(abundances1,divisor)
+    !% Divide an abundances object by a scalar.
+    implicit none
+    type (abundances)             :: Abundances_Divide
+    class(abundances), intent(in) :: abundances1
+    double precision , intent(in) :: divisor
+
+    ! Ensure module is initialized.
+    call Abundances_Initialize
+    Abundances_Divide                       %metallicityValue=abundances1%metallicityValue/divisor
+    if (elementsCount > 0) Abundances_Divide%  elementalValue=abundances1%  elementalValue/divisor
+    return
+  end function Abundances_Divide
 
   integer function Abundances_Property_Count()
     !% Return the number of properties required to track abundances. This is equal to the number of elements tracked, {\tt
@@ -227,72 +535,72 @@ contains
     return
   end function Abundances_Atomic_Index
 
-  subroutine Abundances_Allocate_Elemental_Values(abundances)
-    !% Ensure that the {\tt elementalValue} array in an {\tt abundancesStructure} is allocated.
+  subroutine Abundances_Allocate_Elemental_Values(self)
+    !% Ensure that the {\tt elementalValue} array in an {\tt abundances} is allocated.
     use Memory_Management
     implicit none
-    type(abundancesStructure), intent(inout) :: abundances
+    type(abundances), intent(inout) :: self
 
-    if (.not.allocated(abundances%elementalValue)) call Alloc_Array(abundances%elementalValue,[elementsCount])
+    if (.not.allocated(self%elementalValue)) call Alloc_Array(self%elementalValue,[elementsCount])
     return
   end subroutine Abundances_Allocate_Elemental_Values
 
-  subroutine Abundances_Pack(abundances,abundancesArray)
+  subroutine Abundances_Deserialize(self,abundancesArray)
     !% Pack abundances from an array into an abundances structure.
     implicit none
-    class(abundancesStructure), intent(inout)              :: abundances
-    double precision,           intent(in),   dimension(:) :: abundancesArray
+    class(abundances), intent(inout)               :: self
+    double precision,  intent(in   ), dimension(:) :: abundancesArray
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (abundances)
-    type is (abundancesStructure)
+    select type (self)
+    type is (abundances)
     ! Extract metallicity from array.
-    abundances%metallicityValue=abundancesArray(1)
+    self%metallicityValue=abundancesArray(1)
     ! Ensure elemental values array exists.
-    call Abundances_Allocate_Elemental_Values(abundances)
+    call Abundances_Allocate_Elemental_Values(self)
     ! Extract elemental values from array.
-    abundances%elementalValue=abundancesArray(2:elementsCount+1)
+    self%elementalValue=abundancesArray(2:elementsCount+1)
     end select
     return
-  end subroutine Abundances_Pack
+  end subroutine Abundances_Deserialize
 
-  subroutine Abundances_Unpack(abundances,abundancesArray)
+  subroutine Abundances_Serialize(self,abundancesArray)
     !% Pack abundances from an array into an abundances structure.
     implicit none
-    double precision,           intent(out), dimension(:) :: abundancesArray(:)
-    class(abundancesStructure), intent(in)                :: abundances
+    double precision,  intent(  out), dimension(:) :: abundancesArray(:)
+    class(abundances), intent(in   )               :: self
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
     ! Place metallicity into array.
-    abundancesArray(1)=abundances%metallicityValue
+    abundancesArray(1)=self%metallicityValue
     ! Place elemental values into arrays.
-    if (allocated(abundances%elementalValue)) then
-       abundancesArray(2:elementsCount+1)=abundances%elementalValue
+    if (allocated(self%elementalValue)) then
+       abundancesArray(2:elementsCount+1)=self%elementalValue
     else
        abundancesArray(2:elementsCount+1)=0.0d0
     end if
     return
-  end subroutine Abundances_Unpack
+  end subroutine Abundances_Serialize
 
-  double precision function Abundances_Get_Metallicity(abundances,metallicityType)
-    !% Return the metallicity of the {\tt abundances} structure.
+  double precision function Abundances_Get_Metallicity(self,metallicityType)
+    !% Return the metallicity of the {\tt self} structure.
     use Numerical_Constants_Astronomical
     use Galacticus_Error
     implicit none
-    class(abundancesStructure), intent(in)           :: abundances
-    integer,                    intent(in), optional :: metallicityType
-    integer                                          :: metallicityTypeActual
+    class(abundances), intent(in)           :: self
+    integer,           intent(in), optional :: metallicityType
+    integer                                 :: metallicityTypeActual
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (abundances)
-    type is (abundancesStructure)
-       Abundances_Get_Metallicity=abundances%metallicityValue
+    select type (self)
+    type is (abundances)
+       Abundances_Get_Metallicity=self%metallicityValue
        
        if (present(metallicityType)) then
           metallicityTypeActual=metallicityType
@@ -321,24 +629,24 @@ contains
     return
   end function Abundances_Get_Metallicity
 
-  subroutine Abundances_Set_Metallicity(abundances,metallicity,metallicityType,adjustElements,abundanceIndex)
-    !% Set the metallicity of the {\tt abundances} structure to {\tt metallicity}.
+  subroutine Abundances_Set_Metallicity(self,metallicity,metallicityType,adjustElements,abundanceIndex)
+    !% Set the metallicity of the {\tt self} structure to {\tt metallicity}.
     use Galacticus_Error
     use Atomic_Data
     implicit none
-    class(abundancesStructure), intent(inout)        :: abundances
-    double precision,           intent(in)           :: metallicity
-    integer,                    intent(in), optional :: metallicityType,adjustElements,abundanceIndex
-    integer                                          :: adjustElementsActual,iElement
-    double precision                                 :: metallicityPrevious
+    class(abundances), intent(inout)           :: self
+    double precision,  intent(in   )           :: metallicity
+    integer,           intent(in   ), optional :: metallicityType,adjustElements,abundanceIndex
+    integer                                    :: adjustElementsActual,iElement
+    double precision                           :: metallicityPrevious
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (abundances)
-    type is (abundancesStructure)
+    select type (self)
+    type is (abundances)
     ! Store the current metallicity.
-    metallicityPrevious        =abundances%metallicityValue
+    metallicityPrevious        =self%metallicityValue
 
     ! Determine how elements will be adjusted.
     if (present(adjustElements)) then
@@ -348,18 +656,18 @@ contains
     end if
 
     ! Store the current metallicity if necessary.
-    if (elementsCount > 0 .and. adjustElementsActual == adjustElementsUpdate) metallicityPrevious=abundances%metallicityValue
+    if (elementsCount > 0 .and. adjustElementsActual == adjustElementsUpdate) metallicityPrevious=self%metallicityValue
 
     ! Update the metallicity.
-    abundances%metallicityValue=metallicity
+    self%metallicityValue=metallicity
     if (present(metallicityType)) then
        select case (metallicityType)
        case (linearByMass)
           ! Do nothing, this is how we store metallicity.
        case (linearByMassSolar)
-          abundances%metallicityValue=         abundances%metallicityValue *metallicitySolar
+          self%metallicityValue=         self%metallicityValue *metallicitySolar
        case (logarithmicByMassSolar)
-          abundances%metallicityValue=(10.0d0**abundances%metallicityValue)*metallicitySolar
+          self%metallicityValue=(10.0d0**self%metallicityValue)*metallicitySolar
        case default
           call Galacticus_Error_Report('Abundances_Set_Metallicity','type not supported')
        end select
@@ -372,22 +680,26 @@ contains
           ! Do nothing to the elemental abundances in this case.
        case (adjustElementsReset)
           ! Ensure that we have an abundanceIndex specified.
-          if (.not.present(abundanceIndex)) call Galacticus_Error_Report('Abundances_Set_Metallicity', &
+          if (self%metallicityValue /= 0.0d0 .and. .not.present(abundanceIndex)) call Galacticus_Error_Report('Abundances_Set_Metallicity', &
                & 'an abundance pattern must be specified in order to reset elemental abundances')
           ! Ensure elemental values array exists.
-          call Abundances_Allocate_Elemental_Values(abundances)
-          do iElement=1,elementsCount
-             abundances%elementalValue(iElement)=abundances%metallicityValue*Atomic_Abundance(abundanceIndex=abundanceIndex&
-                  &,atomIndex=elementsIndices(iElement),normalization=normalizationMetals)
-          end do
+          call Abundances_Allocate_Elemental_Values(self)
+          if (self%metallicityValue == 0.0d0) then
+             self%elementalValue=0.0d0
+          else
+             do iElement=1,elementsCount
+                self%elementalValue(iElement)=self%metallicityValue*Atomic_Abundance(abundanceIndex=abundanceIndex&
+                     &,atomIndex=elementsIndices(iElement),normalization=normalizationMetals)
+             end do
+          end if
        case (adjustElementsUpdate)
           ! Ensure that we have an abundanceIndex specified.
           if (.not.present(abundanceIndex)) call Galacticus_Error_Report('Abundances_Set_Metallicity', &
                & 'an abundance pattern must be specified in order to reset elemental abundances')
           ! Ensure elemental values array exists.
-          call Abundances_Allocate_Elemental_Values(abundances)
+          call Abundances_Allocate_Elemental_Values(self)
           do iElement=1,elementsCount
-             abundances%elementalValue(iElement)=abundances%elementalValue(iElement)+(abundances%metallicityValue&
+             self%elementalValue(iElement)=self%elementalValue(iElement)+(self%metallicityValue&
                   &-metallicityPrevious)*Atomic_Abundance(abundanceIndex=abundanceIndex,atomIndex=elementsIndices(iElement)&
                   &,normalization=normalizationMetals)
           end do
@@ -397,127 +709,180 @@ contains
     return
   end subroutine Abundances_Set_Metallicity
 
-  subroutine Abundances_Mass_To_Mass_Fraction_Packed(abundances,mass)
+  subroutine Abundances_Mass_To_Mass_Fraction_Packed(self,mass)
     !% Convert abundance masses to mass fractions by dividing by {\tt mass} while ensuring that the fractions remain within the range 0--1.
     implicit none
-    class(abundancesStructure), intent(inout) :: abundances
-    double precision,           intent(in)    :: mass
+    class(abundances), intent(inout) :: self
+    double precision,  intent(in   ) :: mass
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
     ! Scale metallicity first.
-    if      (abundances%metallicityValue >  mass ) then
-       abundances%metallicityValue=1.0d0
-    else if (abundances%metallicityValue <= 0.0d0) then
-       abundances%metallicityValue=0.0d0
+    if      (self%metallicityValue >  mass ) then
+       self%metallicityValue=1.0d0
+    else if (self%metallicityValue <= 0.0d0) then
+       self%metallicityValue=0.0d0
     else
-       abundances%metallicityValue=abundances%metallicityValue/mass
+       self%metallicityValue=self%metallicityValue/mass
     end if
     
     ! Scale elemental abundances.
     if (elementsCount > 0) then
-       where     (abundances%elementalValue >  mass )
-          abundances%elementalValue=1.0d0
-       elsewhere (abundances%elementalValue <= 0.0d0)
-          abundances%elementalValue=0.0d0
+       where     (self%elementalValue >  mass )
+          self%elementalValue=1.0d0
+       elsewhere (self%elementalValue <= 0.0d0)
+          self%elementalValue=0.0d0
        elsewhere
-          abundances%elementalValue=abundances%elementalValue/mass
+          self%elementalValue=self%elementalValue/mass
        end where
     end if
     return
   end subroutine Abundances_Mass_To_Mass_Fraction_Packed
 
-  subroutine Abundances_Mass_To_Mass_Fraction(abundances,mass)
+  subroutine Abundances_Mass_To_Mass_Fraction(self,mass)
     !% Convert abundance masses to mass fractions by dividing by {\tt mass} while ensuring that the fractions remain within the range 0--1.
     implicit none
-    double precision, intent(inout), dimension(:) :: abundances
-    double precision, intent(in)                  :: mass
+    double precision, intent(inout), dimension(:) :: self
+    double precision, intent(in   )               :: mass
     
     ! Scale abundances.
-    where     (abundances >  mass )
-       abundances=1.0d0
-    elsewhere (abundances <= 0.0d0)
-       abundances=0.0d0
+    where     (self >  mass )
+       self=1.0d0
+    elsewhere (self <= 0.0d0)
+       self=0.0d0
     elsewhere
-       abundances=abundances/mass
+       self=self/mass
     end where
     return
   end subroutine Abundances_Mass_To_Mass_Fraction
 
-  double precision function Abundances_Hydrogen_Mass_Fraction(abundances)
+  double precision function Abundances_Hydrogen_Mass_Fraction(self)
     !% Returns the mass fraction of hydrogen.
     implicit none
-    class(abundancesStructure), intent(in) :: abundances
-    double precision,           parameter  :: massFractionMinimum=0.7d0
+    class(abundances), intent(in) :: self
+    double precision,  parameter  :: massFractionMinimum=0.7d0
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (abundances)
-    type is (abundancesStructure)
-    Abundances_Hydrogen_Mass_Fraction=max((abundances%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
+    select type (self)
+    type is (abundances)
+    Abundances_Hydrogen_Mass_Fraction=max((self%metallicityValue/metallicitySolar)*(hydrogenByMassSolar&
          &-hydrogenByMassPrimordial)+hydrogenByMassPrimordial,massFractionMinimum)
     end select
     return
   end function Abundances_Hydrogen_Mass_Fraction
 
-  double precision function Abundances_Helium_Mass_Fraction(abundances)
+  double precision function Abundances_Helium_Mass_Fraction(self)
     !% Returns the mass fraction of helium.
     implicit none
-    class(abundancesStructure), intent(in) :: abundances
+    class(abundances), intent(in) :: self
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (abundances)
-    type is (abundancesStructure)
-    Abundances_Helium_Mass_Fraction=(abundances%metallicityValue/metallicitySolar)*(heliumByMassSolar-heliumByMassPrimordial)&
+    select type (self)
+    type is (abundances)
+    Abundances_Helium_Mass_Fraction=(self%metallicityValue/metallicitySolar)*(heliumByMassSolar-heliumByMassPrimordial)&
          &+heliumByMassPrimordial
     end select
     return
   end function Abundances_Helium_Mass_Fraction
 
-  double precision function Abundances_Hydrogen_Number_Fraction(abundances)
+  double precision function Abundances_Hydrogen_Number_Fraction(self)
     !% Returns the number fraction of hydrogen.
     implicit none
-    class(abundancesStructure), intent(in) :: abundances
-    double precision                       :: numberHydrogen,numberHelium
+    class(abundances), intent(in) :: self
+    double precision              :: numberHydrogen,numberHelium
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (abundances)
-    type is (abundancesStructure)
-
-    numberHydrogen=Abundances_Hydrogen_Mass_Fraction(abundances)/atomicMassHydrogen
-    numberHelium  =Abundances_Helium_Mass_Fraction  (abundances)/atomicMassHelium
-    Abundances_Hydrogen_Number_Fraction=numberHydrogen/(numberHydrogen+numberHelium)
-
+    select type (self)
+    type is (abundances)
+       numberHydrogen=Abundances_Hydrogen_Mass_Fraction(self)/atomicMassHydrogen
+       numberHelium  =Abundances_Helium_Mass_Fraction  (self)/atomicMassHelium
+       Abundances_Hydrogen_Number_Fraction=numberHydrogen/(numberHydrogen+numberHelium)
     end select
-
     return
   end function Abundances_Hydrogen_Number_Fraction
 
-  double precision function Abundances_Helium_Number_Fraction(abundances)
+  double precision function Abundances_Helium_Number_Fraction(self)
     !% Returns the mass fraction of helium.
     implicit none
-    class(abundancesStructure), intent(in) :: abundances
-    double precision                       :: numberHydrogen,numberHelium
+    class(abundances), intent(in) :: self
+    double precision              :: numberHydrogen,numberHelium
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    select type (abundances)
-    type is (abundancesStructure)
-
-    numberHydrogen=Abundances_Hydrogen_Mass_Fraction(abundances)/atomicMassHydrogen
-    numberHelium  =Abundances_Helium_Mass_Fraction  (abundances)/atomicMassHelium
-    Abundances_Helium_Number_Fraction=numberHelium/(numberHydrogen+numberHelium)
-
+    select type (self)
+    type is (abundances)
+       numberHydrogen=Abundances_Hydrogen_Mass_Fraction(self)/atomicMassHydrogen
+       numberHelium  =Abundances_Helium_Mass_Fraction  (self)/atomicMassHelium
+       Abundances_Helium_Number_Fraction=numberHelium/(numberHydrogen+numberHelium)
     end select
-
     return
   end function Abundances_Helium_Number_Fraction
+  
+  subroutine Abundances_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
+       &,doubleBuffer,time)
+    !% Store an abundances object in the output buffers.
+    implicit none
+    class           (abundances    )                 , intent(in   ) :: self
+    double precision                                 , intent(in   ) :: time
+    integer                                          , intent(inout) :: integerProperty,integerBufferCount&
+    &,doubleProperty,doubleBufferCount
+    integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
+    double precision                , dimension(:,:), intent(inout) :: doubleBuffer
 
+    doubleProperty=doubleProperty+1
+    doubleBuffer(doubleBufferCount,doubleProperty)=self%metallicityValue
+    if (elementsCount > 0) then
+       doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+elementsCount)=self%elementalValue(:)
+       doubleProperty=doubleProperty+elementsCount
+    end if
+    return
+  end subroutine Abundances_Output
+
+  subroutine Abundances_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
+    !% Increment the output count to account for an abundances object.
+    implicit none
+    class           (abundances), intent(in   ) :: self
+    integer                     , intent(inout) :: integerPropertyCount,doublePropertyCount
+    double precision            , intent(in   ) :: time                                    
+
+    doublePropertyCount=doublePropertyCount+propertyCount
+    return
+  end subroutine Abundances_Output_Count
+  
+  subroutine Abundances_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
+       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
+    !% Assign names to output buffers for an abundances object.
+    implicit none
+    class           (abundances       )              , intent(in   ) :: self
+    double precision                                 , intent(in   ) :: time
+    integer                                          , intent(inout) :: integerProperty,doubleProperty
+    character       (len=*            ), dimension(:), intent(inout) :: integerPropertyNames,integerPropertyComments,doublePropertyNames,doublePropertyComments
+    double precision                   , dimension(:), intent(inout) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    character       (len=*            )              , intent(in   ) :: prefix,comment
+    double precision                                 , intent(in   ) :: unitsInSI
+    integer                                                          :: iElement
+
+    doubleProperty=doubleProperty+1
+    doublePropertyNames   (doubleProperty)=trim(prefix)//'Metals'
+    doublePropertyComments(doubleProperty)=trim(comment)//' [Metals]'
+    doublePropertyUnitsSI (doubleProperty)=unitsInSI
+    if (elementsCount > 0) then
+       do iElement=1,elementsCount
+          doubleProperty=doubleProperty+1
+          doublePropertyNames   (doubleProperty)=trim(prefix)//trim(elementsToTrack(iElement))
+          doublePropertyComments(doubleProperty)=trim(comment)//' ['//trim(elementsToTrack(iElement))//']'
+          doublePropertyUnitsSI (doubleProperty)=unitsInSI
+       end do
+    end if
+    return
+  end subroutine Abundances_Output_Names
+  
 end module Abundances_Structure

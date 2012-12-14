@@ -260,12 +260,17 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in ) :: massHalo,massStellar
-    double precision, intent(out) :: numberCentrals,numberSatellites
-    double precision, parameter   :: massNormalization=1.0d12
-    double precision              :: fMassHalo,fMassStellar,massCut,massSatellite
+    double precision, intent(in )        :: massHalo,massStellar
+    double precision, intent(out)        :: numberCentrals,numberSatellites
+    double precision, parameter          :: massNormalization=1.0d12
+    double precision                     :: fMassHalo,massCut,massSatellite
+    double precision, save               :: massHaloPrevious=-1.0d0,fMassStellar
+    !$omp threadprivate(massHaloPrevious,fMassStellar)
+    double precision, save, dimension(2) :: massStellarPrevious=-1.0d0,fMassHaloStored,massSatelliteStored,massCutStored
+    !$omp threadprivate(massStellarPrevious,fMassHaloStored,massSatelliteStored,massCutStored)
 
     ! Ensure that the stellar-halo mass relation is tabulated over a sufficient range.
+    !$omp critical(CSMF_Behroozi2010_Tabulate)
     do while (massHalo < fMassHaloTableMinimum .or. massHalo > fMassHaloTableMaximum)
        if (massHalo < fMassHaloTableMinimum) fMassStellarTableMinimum=0.5d0*fMassStellarTableMinimum
        if (massHalo > fMassHaloTableMaximum) fMassStellarTableMaximum=2.0d0*fMassStellarTableMaximum
@@ -281,15 +286,40 @@ contains
        call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
        interpolationReset=.true.
     end do
+    !$omp end critical(CSMF_Behroozi2010_Tabulate)
 
-    ! Compute the forward and inverse stellar-halo mass relation.
-    fMassHalo   =fSHMRInverse(massStellar)
-    fMassStellar=Interpolate(fMassStellarTableCount,fMassHaloTable,fMassStellarTable,interpolationObject,interpolationAccelerator,massHalo&
-       &,extrapolationType=extrapolationTypeNone,reset=interpolationReset)
+    ! Compute the inverse stellar-halo mass relation if stellar mass has changed.
+    if      (massStellar == massStellarPrevious(1)) then
+       fMassHalo    =fMassHaloStored    (1)
+       massSatellite=massSatelliteStored(1)
+       massCut      =massCutStored      (1)
+    else if (massStellar == massStellarPrevious(2)) then
+       fMassHalo    =fMassHaloStored    (2)
+       massSatellite=massSatelliteStored(2)
+       massCut      =massCutStored      (2)
+    else
+       fMassHaloStored    (2)=fMassHaloStored    (1)
+       massSatelliteStored(2)=massSatelliteStored(1)
+       massCutStored      (2)=massCutStored      (1)
+       massStellarPrevious(2)=massStellarPrevious(1)
+       fMassHalo             =fSHMRInverse(massStellar)
+       massSatellite         =massNormalization*conditionalStellarMassFunctionBehrooziBSatellite*(fMassHalo/massNormalization)&
+            &                  **conditionalStellarMassFunctionBehrooziBetaSatellite
+       massCut               =massNormalization*conditionalStellarMassFunctionBehrooziBCut      *(fMassHalo/massNormalization)&
+            &                  **conditionalStellarMassFunctionBehrooziBetaCut       
+       fMassHaloStored    (1)=fMassHalo
+       massStellarPrevious(1)=massStellar
+       massSatelliteStored(1)=massSatellite
+       massCutStored      (1)=massCut
+    end if
 
-    ! Compute mass scales.
-    massSatellite=massNormalization*conditionalStellarMassFunctionBehrooziBSatellite*(fMassHalo/massNormalization)**conditionalStellarMassFunctionBehrooziBetaSatellite
-    massCut      =massNormalization*conditionalStellarMassFunctionBehrooziBCut      *(fMassHalo/massNormalization)**conditionalStellarMassFunctionBehrooziBetaCut
+    ! Computed the forward stellar-halo mass relation is halo mass has changed.
+    if (massHalo /= massHaloPrevious) then
+       massHaloPrevious=massHalo
+       fMassStellar=Interpolate(fMassStellarTableCount,fMassHaloTable,fMassStellarTable,interpolationObject&
+            &,interpolationAccelerator,massHalo ,extrapolationType=extrapolationTypeNone,reset=interpolationReset)
+    end if
+
     ! Compute the number of central galaxies.
     numberCentrals=                                                            &
          &          0.5d0                                                      &
@@ -307,6 +337,7 @@ contains
          &            numberCentrals                                                                 &
          &           *(massHalo/massSatellite)**conditionalStellarMassFunctionBehrooziAlphaSatellite &
          &           *exp(-massCut/massHalo)
+
     return
   end subroutine Cumulative_Conditional_Stellar_Mass_Function_Compute
 
@@ -324,7 +355,7 @@ contains
          &   +(massStellar/Mstar0)**conditionalStellarMassFunctionBehrooziDelta                                                 &
          &   /(1.0d0+1.0d0/(massStellar/Mstar0)**conditionalStellarMassFunctionBehrooziGamma)                                   &
          &   -0.5d0
-    ! For some parameter choices, teh halo mass can grow unreasonably large. Therefore, above a transition value, allow the
+    ! For some parameter choices, the halo mass can grow unreasonably large. Therefore, above a transition value, allow the
     ! logarithmic halo mass to grow only logarithmically. Halo masses this high are irrelevant anyway (since the halo mass
     ! function will be so suppressed, while allowing the mass to continue to slowly grow allows for any tabulation to remain
     ! monotonically growing.

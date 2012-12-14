@@ -34,19 +34,23 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Simple</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Simple(thisNode,timeStep,End_Of_Timestep_Task,report)
+  subroutine Merger_Tree_Timestep_Simple(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determine a suitable timestep for {\tt thisNode} using the simple method. This simply selects the smaller of {\tt
     !% timestepSimpleAbsolute} and {\tt timestepSimpleRelative}$H^{-1}(t)$.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Cosmology_Functions
     use Evolve_To_Time_Reports
+    use ISO_Varying_String
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    procedure(),      intent(inout), pointer :: End_Of_Timestep_Task
-    double precision, intent(inout)          :: timeStep
-    logical,          intent(in   )          :: report
-    double precision                         :: time,expansionFactor,expansionTimescale,ourTimeStep
+    type(treeNode),            intent(inout), pointer           :: thisNode
+    procedure(),               intent(inout), pointer           :: End_Of_Timestep_Task
+    double precision,          intent(inout)                    :: timeStep
+    logical,                   intent(in   )                    :: report
+    type     (treeNode      ), intent(inout), pointer, optional :: lockNode
+    type     (varying_string), intent(inout),          optional :: lockType  
+    class(nodeComponentBasic),                pointer           :: thisBasicComponent
+    double precision                                            :: time,expansionFactor,expansionTimescale,ourTimeStep
 
     if (.not.timestepSimpleInitialized) then
        !$omp critical (timestepSimpleInitialize)
@@ -81,7 +85,8 @@ contains
     end if
 
     ! Get current cosmic time.
-    time=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    time=thisBasicComponent%time()
 
     ! Find current expansion timescale.
     expansionFactor=Expansion_Factor(time)
@@ -91,7 +96,11 @@ contains
     ourTimeStep=min(timestepSimpleRelative*expansionTimescale,timestepSimpleAbsolute)
 
     ! Set return value if our timestep is smaller than current one.
-    if (ourTimeStep < timeStep) timeStep=ourTimeStep
+    if (ourTimeStep < timeStep) then
+       if (present(lockNode)) lockNode => thisNode
+       if (present(lockType)) lockType =  "simple"
+       timeStep=ourTimeStep
+    end if
 
     if (report) call Evolve_To_Time_Report("simple: ",timeStep)
     return

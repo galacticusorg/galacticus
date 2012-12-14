@@ -63,12 +63,16 @@ module Cosmology_Functions_Matter_Lambda
   integer                                     :: distanceTableNumberPoints
   double precision                            :: distanceTableTimeMinimum=1.0d-4, distanceTableTimeMaximum
   integer,          parameter                 :: distanceTableNPointsPerDecade=100
-  double precision, allocatable, dimension(:) :: distanceTableTime,distanceTableComovingDistance,distanceTableComovingDistanceNegated
-  type(fgsl_interp)                           :: interpolationObjectDistance      ,interpolationObjectDistanceInverse
-  type(fgsl_interp_accel)                     :: interpolationAcceleratorDistance ,interpolationAcceleratorDistanceInverse
-  logical                                     :: resetInterpolationDistance=.true.,resetInterpolationDistanceInverse=.true.
+  double precision, allocatable, dimension(:) :: distanceTableTime,distanceTableComovingDistance&
+       &,distanceTableLuminosityDistanceNegated ,distanceTableComovingDistanceNegated
+  type(fgsl_interp)                           :: interpolationObjectDistance      ,interpolationObjectDistanceInverse      , &
+       & interpolationObjectLuminosityDistance
+  type(fgsl_interp_accel)                     :: interpolationAcceleratorDistance ,interpolationAcceleratorDistanceInverse , &
+       & interpolationAcceleratorLuminosityDistance
+  logical                                     :: resetInterpolationDistance=.true.,resetInterpolationDistanceInverse=.true., &
+       & resetInterpolationLuminosityDistance=.true.
+
   ! Variables used in the ODE solver.
-  
   type(fgsl_odeiv_step)                       :: odeStepper
   type(fgsl_odeiv_control)                    :: odeController
   type(fgsl_odeiv_evolve)                     :: odeEvolver
@@ -83,8 +87,9 @@ contains
   !# </cosmologyMethod>
   subroutine Cosmology_Functions_Matter_Lambda_Initialize(cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get &
-       &,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get&
-       &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get)
+       &,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get &
+       &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get&
+       &,Comoving_Distance_Conversion_Get)
     !% Initialize the module.
     use Numerical_Comparison
     use ISO_Varying_String
@@ -96,7 +101,7 @@ contains
     procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get &
          &,Omega_Matter_Total_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
          &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get&
-         &,Time_From_Comoving_Distance_Get
+         &,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion_Get
     double precision,            parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
     double precision,            parameter              :: omegaTolerance=1.0d-9
     double precision                                    :: cubicTerm1,cubicTerm5,cubicTerm9,cubicTerm21Squared,cubicTerm21 &
@@ -121,6 +126,7 @@ contains
        CMB_Temperature_Get                      => CMB_Temperature_Matter_Lambda
        Comoving_Distance_Get                    => Comoving_Distance_Matter_Lambda
        Time_From_Comoving_Distance_Get          => Time_From_Comoving_Distance_Matter_Lambda
+       Comoving_Distance_Conversion_Get         => Comoving_Distance_Conversion_Matter_Lambda
 
        ! Determine if this universe will collapse. We take the Friedmann equation, which gives H^2 as a function of expansion factor,
        ! a, and solve for where H^2=0. If this has a real solution, then we have a collapsing universe.
@@ -274,36 +280,46 @@ contains
     use Galacticus_Error
     implicit none
     double precision, intent(in) :: tCosmological
+    double precision, save       :: tCosmologicalPrevious,expansionFactorPrevious
+    !$omp threadprivate(tCosmologicalPrevious,expansionFactorPrevious)
     double precision             :: tEffective
     logical                      :: remakeTable
 
-    ! Quit on invalid input.
-    if (tCosmological<0.0d0) call Galacticus_Error_Report('Expansion_Factor','cosmological time must be positive')
-
-    ! Check if we need to recompute our table.
-    if (ageTableInitialized) then
-       remakeTable=(tCosmological<ageTableTime(1).or.tCosmological>ageTableTime(ageTableNumberPoints))
-    else
-       remakeTable=.true.
-    end if
-    if (remakeTable) call Make_Expansion_Factor_Table(tCosmological)
-
-    ! Quit on invalid input.
-    if (collapsingUniverse.and.tCosmological>tCosmologicalMax) call Galacticus_Error_Report('Expansion_Factor','cosmological time&
-         & exceeds that at the Big Crunch')
-
-    ! Interpolate to get the expansion factor.
-    if (collapsingUniverse) then
-       if (tCosmological <= tCosmologicalTurnaround) then
-          tEffective=tCosmological
+    ! Check if the time differs from the previous time.
+    if (tCosmological /= tCosmologicalPrevious) then
+       
+       ! Quit on invalid input.
+       if (tCosmological<0.0d0) call Galacticus_Error_Report('Expansion_Factor','cosmological time must be positive')
+       
+       ! Check if we need to recompute our table.
+       if (ageTableInitialized) then
+          remakeTable=(tCosmological<ageTableTime(1).or.tCosmological>ageTableTime(ageTableNumberPoints))
        else
-          tEffective=tCosmologicalMax-tCosmological
+          remakeTable=.true.
        end if
-    else
-       tEffective=tCosmological
+       if (remakeTable) call Make_Expansion_Factor_Table(tCosmological)
+       
+       ! Quit on invalid input.
+       if (collapsingUniverse.and.tCosmological>tCosmologicalMax) call Galacticus_Error_Report('Expansion_Factor','cosmological time&
+            & exceeds that at the Big Crunch')
+       
+       ! Interpolate to get the expansion factor.
+       if (collapsingUniverse) then
+          if (tCosmological <= tCosmologicalTurnaround) then
+             tEffective=tCosmological
+          else
+             tEffective=tCosmologicalMax-tCosmological
+          end if
+       else
+          tEffective=tCosmological
+       end if
+       expansionFactorPrevious=Interpolate(ageTableNumberPoints,ageTableTime,ageTableExpansionFactor,interpolationObjectInverse&
+            &,interpolationAcceleratorInverse,tEffective,reset=resetInterpolationInverse)
+       tCosmologicalPrevious=tCosmological
     end if
-    Expansion_Factor_Matter_Lambda=Interpolate(ageTableNumberPoints,ageTableTime,ageTableExpansionFactor,interpolationObjectInverse&
-         &,interpolationAcceleratorInverse,tEffective,reset=resetInterpolationInverse)
+    
+    ! Return the stored expansion factor.
+    Expansion_Factor_Matter_Lambda=expansionFactorPrevious
     return
   end function Expansion_Factor_Matter_Lambda
   
@@ -708,6 +724,54 @@ contains
     return
   end function Comoving_Distance_Matter_Lambda
   
+  double precision function Comoving_Distance_Conversion_Matter_Lambda(output,distanceModulus,redshift)
+    !% Convert bewteen different measures of distance.
+    use Numerical_Interpolation
+    use Galacticus_Error
+    use Cosmology_Functions_Options
+    implicit none
+    integer         , intent(in)           :: output
+    double precision, intent(in), optional :: distanceModulus,redshift
+    logical                                :: remakeTable,gotComovingDistance
+    double precision                       :: luminosityDistance,comovingDistance
+
+    !$omp critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+    ! Check if we need to recompute our table.
+    if (.not.distanceTableInitialized) call Make_Distance_Table(Cosmology_Age_Matter_Lambda(1.0d0))
+    !$omp end critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+
+    ! Convert to comoving distance from whatever was supplied.
+    gotComovingDistance=.false.
+    if (present(distanceModulus)) then
+       luminosityDistance =10.0d0**((distanceModulus-25.0d0)/5.0d0)
+       !$omp critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+       do while (luminosityDistance > -distanceTableLuminosityDistanceNegated(1))
+          call Make_Distance_Table(0.5d0*distanceTableTimeMinimum) 
+       end do
+       !$omp end critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+       comovingDistance   =-Interpolate(distanceTableNumberPoints,distanceTableLuminosityDistanceNegated &
+            &,distanceTableComovingDistanceNegated,interpolationObjectLuminosityDistance&
+            &,interpolationAcceleratorLuminosityDistance,-luminosityDistance,reset =resetInterpolationLuminosityDistance)
+       gotComovingDistance=.true.
+    end if
+    if (present(redshift)) then
+       comovingDistance   =Comoving_Distance_Matter_Lambda(Cosmology_Age_Matter_Lambda(1.0d0/(1.0d0+redshift)))
+       gotComovingDistance=.true.
+    end if
+    if (.not.gotComovingDistance) call Galacticus_Error_Report('Comoving_Distance_Conversion_Matter_Lambda','no distance measure&
+         & provided')
+    
+    ! Convert to required distance measure.
+    select case (output)
+    case (distanceTypeComoving)
+       Comoving_Distance_Conversion_Matter_Lambda=comovingDistance
+    case default
+       call Galacticus_Error_Report('Comoving_Distance_Conversion_Matter_Lambda','unrecognized output option')
+    end select
+
+    return
+  end function Comoving_Distance_Conversion_Matter_Lambda
+
   subroutine Make_Distance_Table(tCosmological)
     !% Builds a table of distance vs. time.
     use Numerical_Interpolation
@@ -732,13 +796,15 @@ contains
     distanceTableNumberPoints=int(dlog10(distanceTableTimeMaximum/distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade))+1
  
     ! Deallocate arrays if currently allocated.
-    if (allocated(distanceTableTime                   )) call Dealloc_Array(distanceTableTime                   )
-    if (allocated(distanceTableComovingDistance       )) call Dealloc_Array(distanceTableComovingDistance       )
-    if (allocated(distanceTableComovingDistanceNegated)) call Dealloc_Array(distanceTableComovingDistanceNegated)
+    if (allocated(distanceTableTime                     )) call Dealloc_Array(distanceTableTime                     )
+    if (allocated(distanceTableComovingDistance         )) call Dealloc_Array(distanceTableComovingDistance         )
+    if (allocated(distanceTableComovingDistanceNegated  )) call Dealloc_Array(distanceTableComovingDistanceNegated  )
+    if (allocated(distanceTableLuminosityDistanceNegated)) call Dealloc_Array(distanceTableLuminosityDistanceNegated)
     ! Allocate the arrays to current required size.
-    call Alloc_Array(distanceTableTime                   ,[distanceTableNumberPoints])
-    call Alloc_Array(distanceTableComovingDistance       ,[distanceTableNumberPoints])
-    call Alloc_Array(distanceTableComovingDistanceNegated,[distanceTableNumberPoints])
+    call Alloc_Array(distanceTableTime                     ,[distanceTableNumberPoints])
+    call Alloc_Array(distanceTableComovingDistance         ,[distanceTableNumberPoints])
+    call Alloc_Array(distanceTableComovingDistanceNegated  ,[distanceTableNumberPoints])
+    call Alloc_Array(distanceTableLuminosityDistanceNegated,[distanceTableNumberPoints])
     
     ! Create the range of times.
     distanceTableTime=Make_Range(distanceTableTimeMinimum,distanceTableTimeMaximum,distanceTableNumberPoints,rangeTypeLogarithmic)
@@ -749,15 +815,20 @@ contains
        distanceTableComovingDistance(iTime)=Integrate(distanceTableTime(iTime),distanceTableTime(distanceTableNumberPoints) &
             &,Comoving_Distance_Integrand,parameterPointer,integrandFunction ,integrationWorkspace,toleranceAbsolute&
             &=toleranceAbsolute ,toleranceRelative=toleranceRelative,reset=resetIntegration)
+       distanceTableLuminosityDistanceNegated(iTime)=distanceTableComovingDistance(iTime)&
+            &/Expansion_Factor_Matter_Lambda(distanceTableTime(iTime))
     end do
     ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
-    distanceTableComovingDistanceNegated=-distanceTableComovingDistance
+    distanceTableComovingDistanceNegated  =-distanceTableComovingDistance
+    distanceTableLuminosityDistanceNegated=-distanceTableLuminosityDistanceNegated
     ! Reset interpolators.
-    call Interpolate_Done(interpolationObjectDistance       ,interpolationAcceleratorDistance       ,resetInterpolationDistance       )
-    call Interpolate_Done(interpolationObjectDistanceInverse,interpolationAcceleratorDistanceInverse,resetInterpolationDistanceInverse)
-    resetInterpolationDistance       =.true.
-    resetInterpolationDistanceInverse=.true.
-    
+    call Interpolate_Done(interpolationObjectDistance          ,interpolationAcceleratorDistance          ,resetInterpolationDistance          )
+    call Interpolate_Done(interpolationObjectDistanceInverse   ,interpolationAcceleratorDistanceInverse   ,resetInterpolationDistanceInverse   )
+    call Interpolate_Done(interpolationObjectLuminosityDistance,interpolationAcceleratorLuminosityDistance,resetInterpolationLuminosityDistance)
+    resetInterpolationDistance          =.true.
+    resetInterpolationDistanceInverse   =.true.
+    resetInterpolationLuminosityDistance=.true.
+
     ! Flag that the table is now initialized.
     distanceTableInitialized=.true.
     return

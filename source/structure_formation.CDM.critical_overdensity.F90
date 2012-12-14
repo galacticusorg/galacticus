@@ -101,8 +101,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('criticalOverdensityMethod',criticalOverdensityMethod,defaultValue='sphericalTopHat')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="criticalOverdensityMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>criticalOverdensityMethod,Critical_Overdensity_Tabulate</subroutineArgs>
+          !# <include directive="criticalOverdensityMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>criticalOverdensityMethod,Critical_Overdensity_Tabulate</functionArgs>
           include 'structure_formation.CDM.critical_overdensity.inc'
           !# </include>
           if (.not.associated(Critical_Overdensity_Tabulate)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
@@ -368,8 +368,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('criticalOverdensityMassScalingMethod',criticalOverdensityMassScalingMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="criticalOverdensityMassScalingMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get</subroutineArgs>
+          !# <include directive="criticalOverdensityMassScalingMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get</functionArgs>
           include 'structure_formation.CDM.critical_overdensity.mass_scaling.inc'
           !# </include>
           if (.not.(associated(Critical_Overdensity_Mass_Scaling_Get).and.associated(Critical_Overdensity_Mass_Scaling_Gradient_Get))) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &

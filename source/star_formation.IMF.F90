@@ -26,7 +26,7 @@ module Star_Formation_IMF
   include 'star_formation.IMF.register.modules.inc'
   !# </include>
   !# <include directive="imfSelectionMethod" type="moduleUse">
-  !#  <subroutineArgs>imfSelectionMethod,IMF_Select,imfNames</subroutineArgs>
+  !#  <functionArgs>imfSelectionMethod,IMF_Select,imfNames</functionArgs>
   include 'star_formation.IMF.select.modules.inc'
   !# </include>
   implicit none
@@ -90,9 +90,9 @@ module Star_Formation_IMF
   procedure(IMF_Select_Template), pointer :: IMF_Select_Do => null()
   abstract interface
      integer function IMF_Select_Template(starFormationRate,fuelAbundances,component)
-       import abundancesStructure
+       import abundances
        double precision,          intent(in) :: starFormationRate
-       type(abundancesStructure), intent(in) :: fuelAbundances
+       type(abundances), intent(in) :: fuelAbundances
        integer,                   intent(in) :: component
      end function IMF_Select_Template
   end interface
@@ -114,7 +114,7 @@ contains
     !% Selects an IMF give an input {\tt starFormationRate} and {\tt fuelAbundances}.
     implicit none
     double precision,          intent(in) :: starFormationRate
-    type(abundancesStructure), intent(in) :: fuelAbundances
+    type(abundances), intent(in) :: fuelAbundances
     integer,                   intent(in) :: component
 
     ! Initialize the IMF subsystem.
@@ -174,8 +174,8 @@ contains
        !$omp critical(IMF_Initialize)
        if (.not.imfInitialized) then
           ! Register all available IMFs.
-          !# <include directive="imfRegister" type="code" action="subroutine">
-          !#  <subroutineArgs>imfAvailableCount</subroutineArgs>
+          !# <include directive="imfRegister" type="functionCall" functionType="void">
+          !#  <functionArgs>imfAvailableCount</functionArgs>
           include 'star_formation.IMF.register.inc'
           !# </include>
           
@@ -183,8 +183,8 @@ contains
           allocate(imfNames      (imfAvailableCount))
           allocate(imfDescriptors(imfAvailableCount))
           call Memory_Usage_Record(sizeof(imfNames)+sizeof(imfDescriptors))
-          !# <include directive="imfRegisterName" type="code" action="subroutine">
-          !#  <subroutineArgs>imfNames,imfDescriptors</subroutineArgs>
+          !# <include directive="imfRegisterName" type="functionCall" functionType="void">
+          !#  <functionArgs>imfNames,imfDescriptors</functionArgs>
           include 'star_formation.IMF.register_names.inc'
           !# </include>
           
@@ -202,8 +202,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('imfSelectionMethod',imfSelectionMethod,defaultValue='fixed')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="imfSelectionMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>imfSelectionMethod,IMF_Select_Do,imfNames</subroutineArgs>
+          !# <include directive="imfSelectionMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>imfSelectionMethod,IMF_Select_Do,imfNames</functionArgs>
           include 'star_formation.IMF.select.inc'
           !# </include>
           if (.not.associated(IMF_Select_Do)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
@@ -277,7 +277,7 @@ contains
     use Abundances_Structure
     implicit none
     double precision,          intent(in) :: starFormationRate
-    type(abundancesStructure), intent(in) :: fuelAbundances
+    type(abundances), intent(in) :: fuelAbundances
     integer,                   intent(in) :: component
     integer                               :: imfSelected
     logical                               :: imfMatched
@@ -290,9 +290,9 @@ contains
 
     ! Get the recycled fraction from the appropriate IMF.
     imfMatched=.false.
-    !# <include directive="imfRecycledInstantaneous" type="code" action="subroutine">
-    !#  <subroutineArgs>imfSelected,imfMatched,IMF_Recycled_Fraction_Instantaneous</subroutineArgs>
-    !#  <subroutineAction>if (imfMatched) return</subroutineAction>
+    !# <include directive="imfRecycledInstantaneous" type="functionCall" functionType="void">
+    !#  <functionArgs>imfSelected,imfMatched,IMF_Recycled_Fraction_Instantaneous</functionArgs>
+    !#  <onReturn>if (imfMatched) return</onReturn>
     include 'star_formation.IMF.recycled_instantaneous.inc'
     !# </include>
     return
@@ -303,7 +303,7 @@ contains
     use Abundances_Structure
     implicit none
     double precision,          intent(in) :: starFormationRate
-    type(abundancesStructure), intent(in) :: fuelAbundances
+    type(abundances), intent(in) :: fuelAbundances
     integer,                   intent(in) :: component
     integer                               :: imfSelected
     logical                               :: imfMatched
@@ -316,9 +316,9 @@ contains
 
     ! Get the yield from the appropriate IMF.
     imfMatched=.false.
-    !# <include directive="imfYieldInstantaneous" type="code" action="subroutine">
-    !#  <subroutineArgs>imfSelected,imfMatched,IMF_Yield_Instantaneous</subroutineArgs>
-    !#  <subroutineAction>if (imfMatched) return</subroutineAction>
+    !# <include directive="imfYieldInstantaneous" type="functionCall" functionType="void">
+    !#  <functionArgs>imfSelected,imfMatched,IMF_Yield_Instantaneous</functionArgs>
+    !#  <onReturn>if (imfMatched) return</onReturn>
     include 'star_formation.IMF.yield_instantaneous.inc'
     !# </include>
     return
@@ -336,9 +336,9 @@ contains
 
     ! Get the recycled fraction from the appropriate IMF.
     imfMatched=.false.
-    !# <include directive="imfTabulate" type="code" action="subroutine">
-    !#  <subroutineArgs>imfIndex,imfMatched,imfMass,imfPhi</subroutineArgs>
-    !#  <subroutineAction>if (imfMatched) return</subroutineAction>
+    !# <include directive="imfTabulate" type="functionCall" functionType="void">
+    !#  <functionArgs>imfIndex,imfMatched,imfMass,imfPhi</functionArgs>
+    !#  <onReturn>if (imfMatched) return</onReturn>
     include 'star_formation.IMF.tabulate.inc'
     !# </include>
     return
@@ -352,9 +352,9 @@ contains
 
     ! Get the minimum mass from the appropriate IMF.
     imfMatched=.false.
-    !# <include directive="imfMinimumMass" type="code" action="subroutine">
-    !#  <subroutineArgs>imfSelected,imfMatched,IMF_Minimum_Mass</subroutineArgs>
-    !#  <subroutineAction>if (imfMatched) return</subroutineAction>
+    !# <include directive="imfMinimumMass" type="functionCall" functionType="void">
+    !#  <functionArgs>imfSelected,imfMatched,IMF_Minimum_Mass</functionArgs>
+    !#  <onReturn>if (imfMatched) return</onReturn>
     include 'star_formation.IMF.minimum_mass.inc'
     !# </include>
     return
@@ -368,9 +368,9 @@ contains
 
     ! Get the maximum mass from the appropriate IMF.
     imfMatched=.false.
-    !# <include directive="imfMaximumMass" type="code" action="subroutine">
-    !#  <subroutineArgs>imfSelected,imfMatched,IMF_Maximum_Mass</subroutineArgs>
-    !#  <subroutineAction>if (imfMatched) return</subroutineAction>
+    !# <include directive="imfMaximumMass" type="functionCall" functionType="void">
+    !#  <functionArgs>imfSelected,imfMatched,IMF_Maximum_Mass</functionArgs>
+    !#  <onReturn>if (imfMatched) return</onReturn>
     include 'star_formation.IMF.maximum_mass.inc'
     !# </include>
     return
@@ -385,9 +385,9 @@ contains
 
     ! Get the IMF for the selected IMF and initial stellar mass.
     imfMatched=.false.
-    !# <include directive="imfPhi" type="code" action="subroutine">
-    !#  <subroutineArgs>imfSelected,imfMatched,initialMass,IMF_Phi</subroutineArgs>
-    !#  <subroutineAction>if (imfMatched) return</subroutineAction>
+    !# <include directive="imfPhi" type="functionCall" functionType="void">
+    !#  <functionArgs>imfSelected,imfMatched,initialMass,IMF_Phi</functionArgs>
+    !#  <onReturn>if (imfMatched) return</onReturn>
     include 'star_formation.IMF.phi.inc'
     !# </include>
     return
@@ -417,7 +417,7 @@ contains
     implicit none
     double precision,          intent(in)                    :: starFormationRate,ageMinimum
     double precision,          intent(in),  optional         :: ageMaximum
-    type(abundancesStructure), intent(in)                    :: fuelAbundances
+    type(abundances), intent(in)                    :: fuelAbundances
     integer,                   intent(in)                    :: component
     logical,                   allocatable, dimension(:    ) :: recycledFractionTabulatedTemporary
     integer,                   allocatable, dimension(:    ) :: recycledFractionIndexTemporary
@@ -802,7 +802,7 @@ contains
      double precision,          intent(in)                      :: starFormationRate,ageMinimum
      double precision,          intent(in),  optional           :: ageMaximum
      integer,                   intent(in),  optional           :: abundanceIndex
-     type(abundancesStructure), intent(in)                      :: fuelAbundances
+     type(abundances), intent(in)                      :: fuelAbundances
      integer,                   intent(in)                      :: component
      logical,                   allocatable, dimension(:      ) :: metalYieldTabulatedTemporary
      integer,                   allocatable, dimension(:      ) :: metalYieldIndexTemporary
@@ -1254,7 +1254,7 @@ contains
     implicit none
     double precision,          intent(in)                    :: starFormationRate,ageMinimum
     double precision,          intent(in),  optional         :: ageMaximum
-    type(abundancesStructure), intent(in)                    :: fuelAbundances
+    type(abundances), intent(in)                    :: fuelAbundances
     integer,                   intent(in)                    :: component
     logical,                   allocatable, dimension(:    ) :: energyInputTabulatedTemporary
     integer,                   allocatable, dimension(:    ) :: energyInputIndexTemporary

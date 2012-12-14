@@ -23,7 +23,7 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core
   !% Implements a calculation of the core radius in the hot halo density profile that is a fraction of the
   !% dark matter profile scale radius, but which grows as gas is depleted to keep the density at the virial radius constant (similar
   !% to the algorithm of \citep{cole_hierarchical_2000}).
-  use Tree_Nodes
+  use Galacticus_Nodes
   use FGSL
   implicit none
   private
@@ -60,9 +60,9 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(varying_string),                 intent(in)    :: hotHaloCoredIsothermalCoreRadiiMethod
+    type     (varying_string  ),          intent(in   ) :: hotHaloCoredIsothermalCoreRadiiMethod
     procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get
-    
+
     if (hotHaloCoredIsothermalCoreRadiiMethod == 'growingCore') then
        Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get => Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core
        !@ <inputParameter>
@@ -89,9 +89,9 @@ contains
        call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadiusMaximum',isothermalCoreRadiusOverVirialRadiusMaximum,defaultValue=10.0d0)
 
        ! Ensure that the dark matter profile supports the scale property.
-       if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call Galacticus_Error_Report( &
+       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable()) call Galacticus_Error_Report( &
             & 'Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize',&
-            &'method requires a component that supports the Tree_Node_Dark_Matter_Profile_Scale property')
+            &'method requires a dark matter profile component that provides a gettable "scale" property')
     end if
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize
@@ -101,22 +101,30 @@ contains
     !% a fraction of the dark matter profile scale radius, but which grows as gas is depleted to keep the density at the virial
     !% radius constant (similar to the algorithm of \citep{cole_hierarchical_2000}).
     use Cosmological_Parameters
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     use Memory_Management
     use Numerical_Ranges
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, save                   :: isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved&
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentHotHalo          ),                pointer :: thisHotHaloComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                     , save                   :: isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved&
          &,isothermalCoreRadiusOverVirialRadiusSaved
     !$omp threadprivate(isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved,isothermalCoreRadiusOverVirialRadiusSaved)
-    double precision                         :: isothermalCoreRadiusOverVirialRadius,isothermalCoreRadiusOverVirialRadiusInitial&
+    double precision                                              :: isothermalCoreRadiusOverVirialRadius,isothermalCoreRadiusOverVirialRadiusInitial&
          &,hotGasFraction,targetValue
-    logical                                  :: makeTable
+    logical                                                       :: makeTable
+
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            ()
+    thisHotHaloComponent           => thisNode%hotHalo          ()
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
 
     ! Find the fraction of gas in the hot halo relative to that expected from the universal baryon fraction.
-    hotGasFraction=(Tree_Node_Hot_Halo_Mass(thisNode)/Tree_Node_Mass(thisNode))*(Omega_Matter()/Omega_b())
+    hotGasFraction=(thisHotHaloComponent%mass()/thisBasicComponent%mass())*(Omega_Matter()/Omega_b())
 
     ! Return an arbitrary value for empty halos.
     if (hotGasFraction <= 0.0d0) then
@@ -125,7 +133,7 @@ contains
     end if
 
     ! Comptue the desired core radius (in units of the virial radius) for a fully populated halo.
-    isothermalCoreRadiusOverVirialRadiusInitial=isothermalCoreRadiusOverScaleRadius*Tree_Node_Dark_Matter_Profile_Scale(thisNode)&
+    isothermalCoreRadiusOverVirialRadiusInitial=isothermalCoreRadiusOverScaleRadius*thisDarkMatterProfileComponent%scale()&
          &/Dark_Matter_Halo_Virial_Radius(thisNode)
 
     ! Check if the initial core radius and hot gas fraction equal the previously stored values.

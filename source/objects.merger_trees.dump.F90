@@ -37,21 +37,22 @@ contains
     !% are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
     !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
     !% specified.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    integer(kind=kind_int8), intent(in)                         :: treeIndex
-    type(treeNode),          intent(in), pointer                :: baseNode
-    integer(kind=kind_int8), intent(in), dimension(:), optional :: highlightNodes
-    character(len=*),        intent(in),               optional :: backgroundColor,nodeColor,highlightColor,edgeColor,nodeStyle&
+    integer(kind=kind_int8),   intent(in)                         :: treeIndex
+    type(treeNode),            intent(in), pointer                :: baseNode
+    integer(kind=kind_int8),   intent(in), dimension(:), optional :: highlightNodes
+    character(len=*),          intent(in),               optional :: backgroundColor,nodeColor,highlightColor,edgeColor,nodeStyle&
          &,highlightStyle,edgeStyle
-    logical,                 intent(in),               optional :: labelNodes,scaleNodesByLogMass,edgeLengthsToTimes
-    type(treeNode),                      pointer                :: thisNode
-    logical                                                     :: labelNodesActual,scaleNodesByLogMassActual,edgeLengthsToTimesActual
-    integer                                                     :: fileUnit
-    double precision                                            :: timeDifference,nodeMassMinimum,nodeMassMaximum,nodeMass,timeMinimum,timeMaximum
-    character(len=  20)                                         :: color,style,treeIndexFormatted,outputCountFormatted&
+    logical,                   intent(in),               optional :: labelNodes,scaleNodesByLogMass,edgeLengthsToTimes
+    type(treeNode),                        pointer                :: thisNode
+    class(nodeComponentBasic),             pointer                :: thisBasicComponent,parentBasicComponent
+    logical                                                       :: labelNodesActual,scaleNodesByLogMassActual,edgeLengthsToTimesActual
+    integer                                                       :: fileUnit
+    double precision                                              :: timeDifference,nodeMassMinimum,nodeMassMaximum,nodeMass,timeMinimum,timeMaximum
+    character(len=  20)                                           :: color,style,treeIndexFormatted,outputCountFormatted&
          &,backgroundColorActual,nodeColorActual,highlightColorActual,edgeColorActual,nodeStyleActual,highlightStyleActual,edgeStyleActual
-    character(len=1024)                                         :: fileName
+    character(len=1024)                                           :: fileName
 
     ! If the tree index differs from the previous one, then reset the output count.
     if (treeIndex /= treeIndexPrevious) then
@@ -117,17 +118,19 @@ contains
     ! If sizes are to be scaled by mass, find the range of masses in the tree. If edges are set to time intervals, find minimum
     ! and maximum times in tree.
     if (scaleNodesByLogMassActual.or.edgeLengthsToTimesActual) then
-       thisNode => baseNode
-       nodeMassMinimum=Tree_Node_Mass(thisNode)
-       nodeMassMaximum=Tree_Node_Mass(thisNode)
-       timeMinimum    =Tree_Node_Time(thisNode)
-       timeMaximum    =Tree_Node_Time(thisNode)
+       thisNode           => baseNode
+       thisBasicComponent => thisNode%basic()
+       nodeMassMinimum=thisBasicComponent%mass()
+       nodeMassMaximum=thisBasicComponent%mass()
+       timeMinimum    =thisBasicComponent%time()
+       timeMaximum    =thisBasicComponent%time()
        do while (associated(thisNode))
-          if (Tree_Node_Mass(thisNode) < nodeMassMinimum) nodeMassMinimum=Tree_Node_Mass(thisNode)
-          if (Tree_Node_Mass(thisNode) > nodeMassMaximum) nodeMassMaximum=Tree_Node_Mass(thisNode)
-          if (Tree_Node_Time(thisNode) < timeMinimum    ) timeMinimum    =Tree_Node_Time(thisNode)
-          if (Tree_Node_Time(thisNode) > timeMaximum    ) timeMaximum    =Tree_Node_Time(thisNode)
+          if (thisBasicComponent%mass() < nodeMassMinimum) nodeMassMinimum=thisBasicComponent%mass()
+          if (thisBasicComponent%mass() > nodeMassMaximum) nodeMassMaximum=thisBasicComponent%mass()
+          if (thisBasicComponent%time() < timeMinimum    ) timeMinimum    =thisBasicComponent%time()
+          if (thisBasicComponent%time() > timeMaximum    ) timeMaximum    =thisBasicComponent%time()
           call thisNode%walkTreeWithSatellites(thisNode)
+          thisBasicComponent => thisNode%basic()
        end do
        nodeMassMinimum=dlog(nodeMassMinimum)
        nodeMassMaximum=dlog(nodeMassMaximum)
@@ -136,7 +139,7 @@ contains
     end if
 
     ! Open an output file and write the GraphViz opening.
-    write (treeIndexFormatted,'(i8)') treeIndex
+    write (treeIndexFormatted  ,'(i8)') treeIndex
     write (outputCountFormatted,'(i8)') outputCount
     write (fileName,'(a,a,a,a,a)') 'mergerTreeDump:',trim(adjustl(treeIndexFormatted)),':',trim(adjustl(outputCountFormatted)),'.gv'
     open(newunit=fileUnit,file=fileName,status='unknown',form='formatted')
@@ -145,7 +148,8 @@ contains
     write (fileUnit,'(a)'    ) 'size="8,11";'
 
     ! Loop over all nodes.
-    thisNode => baseNode
+    thisNode           => baseNode
+    thisBasicComponent => thisNode%basic()
     do while (associated(thisNode))
        ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
        ! index plus the redshift, separated by a colon.
@@ -165,14 +169,15 @@ contains
        if (thisNode%isSatellite()) then
           write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',thisNode%index(),'" [shape=box   , color=',trim(color),', style=',trim(style),'];'
           ! Make a link to the hosting node.
-          write (fileUnit,'(a,i16.16,a,i16.16,a,a,a)') '"',thisNode%index(),'" -> "',thisNode%parentNode%index(),'" [color=red, style=',trim(edgeStyleActual),'];'
+          write (fileUnit,'(a,i16.16,a,i16.16,a,a,a)') '"',thisNode%index(),'" -> "',thisNode%parent%index(),'" [color=red, style=',trim(edgeStyleActual),'];'
        else
           write (fileUnit,'(a,i16.16,a,a,a,a,a,f10.6,a)') '"',thisNode%index(),'" [shape=circle, color=',trim(color),', style=',trim(style),'];'
           ! Make a link to the descendent node.
-          if (associated(thisNode%parentNode)) then
-             write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',thisNode%index(),'" -> "',thisNode%parentNode%index(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
+          if (associated(thisNode%parent)) then
+             write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',thisNode%index(),'" -> "',thisNode%parent%index(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
              if (edgeLengthsToTimesActual) then
-                timeDifference=1000.0d0*dlog10(Tree_Node_Time(thisNode%parentNode)/Tree_Node_Time(thisNode))/(timeMaximum-timeMinimum)
+                parentBasicComponent => thisNode%parent%basic()
+                timeDifference=1000.0d0*dlog10(parentBasicComponent%time()/thisBasicComponent%time())/(timeMaximum-timeMinimum)
                 write (fileUnit,'(a,f10.6,$)') ', minlen=',timeDifference
              end if
              write (fileUnit,'(a)') '];'
@@ -181,7 +186,7 @@ contains
 
        ! Set size of node if requested.
        if (scaleNodesByLogMassActual) then
-          nodeMass=10.0d0*(dlog(Tree_Node_Mass(thisNode))-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
+          nodeMass=10.0d0*(dlog(thisBasicComponent%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
           write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',thisNode%index(),'" [width=',nodeMass,'];'
        end if
 

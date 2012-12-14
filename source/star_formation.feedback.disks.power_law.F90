@@ -19,7 +19,7 @@
 
 module Star_Formation_Feedback_Disks_Power_Law
   !% Implements a power-law outflow rate due to star formation feedback in galactic disks.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Feedback_Disks_Power_Law_Initialize
@@ -81,16 +81,20 @@ contains
     !% rate and $\alpha_{\rm disk,outflow}$(={\tt diskOutflowExponent}) controls the scaling with velocity. Note that the velocity
     !% $V_{\rm disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to that
     !% adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Units
     use Stellar_Feedback
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: starFormationRate,energyInputRate
-    double precision                         :: diskVelocity,outflowRateToStarFormationRate
+    type (treeNode         ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk),                pointer :: thisDiskComponent
+    double precision        , intent(in)             :: starFormationRate,energyInputRate
+    double precision                                 :: diskVelocity,outflowRateToStarFormationRate
+
+    ! Get the disk.
+    thisDiskComponent => thisNode%disk()
 
     ! Get disk circular velocity.
-    diskVelocity=Tree_Node_Disk_Velocity(thisNode)
+    diskVelocity=thisDiskComponent%velocity()
 
     ! Check for zero velocity disk.
     if (diskVelocity <= 0.0d0) then

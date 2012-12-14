@@ -291,6 +291,7 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
  \item[{\tt expansionFactor}] The expansion factor at which the galaxy exists. Provided by: {\tt Galacticus::Time}.
  \item[{\tt stellarMass}] The sum of disk and spheroid stellar masses. Provided by: {\tt Galacticus::StellarMass}.
  \item[{\tt hostNodeMass}] For isolated nodes, the node mass. For non-isolated nodes, the mass of the isolated node in which the node resides. Provided by: {\tt Galacticus::HostNode}.\index{nodes!host mass}\index{halos!host mass}\index{satellites!host mass}
+ \item[{\tt stellarMass}] The sum of disk and speheroid stellar masses (or, whichever of these exist in the model). Provided by: {\tt Galacticus::StellarMass}.
  \item[{\tt hotHalo(Fraction\textbar Frac)}] The fraction the node's mass in the hot gas halo. Provided by: {\tt Galacticus::Baryons}.
  \item[{\tt inclination}] A randomly selected inclination for the disk (in degrees). Provided by: {\tt Galacticus::Inclination}.
  \item[{\tt \textasciicircum(disk\textbar bulge)StellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Dust-extingiushed\index{dust!extinction} luminosities for disk and bulge found by interpolating in the dust tables of \cite{ferrara_atlas_1999}. If the {\tt [faceOn]} qualifier is present, extinctions are computed assuming that the disk is observed face-on, otherwise a random inclination is used. Optionally, the dust atlas file to used can be specified via {\tt \$dataSet-\textgreater\{'dustAtlasFile'\}}. The available dust atlases span a limited range of spheroid sizes and central optical depths in their tabulations. Standard behavior is to extrapolate beyond the ends of these ranges. This can be controlled via {\tt \$dataSet-\textgreater\{'dustAtlasExtrapolateInSize'\}} and {\tt \$dataSet-\textgreater\{'dustAtlasExtrapolateInTau'\}} respectively, which can be set to {\tt yes}/{\tt no} (or, equivalently, 1/0). Provided by: {\tt Galacticus::DustAttenuation}.
@@ -484,7 +485,7 @@ The \hyperlink{galacticus.meta.tree_timing.F90:galacticus_meta_tree_timing}{{\tt
 
 The \hyperlink{galacticus.meta.evolver_profiler.F90:galacticus_meta_evolver_profiler}{{\tt Galacticus\_Meta\_Evolver\_Profiler}} module records statistics on the performance of the main ODE solver used to advance galaxies through time. 
 
-\emph{Note:} Currently, this profiler requires access to features of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} that are not implemeted within \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL}. As such, this functionallity is normally \emph{not} compiled with \glc. If you want to use the profiler, contact \href{mailto:abenson@caltech.edu}{Andrew Benson} and request a copy of the modified FGSL source code. Once this is installed, the profiler can be activated by including {\tt -DPROFILE} in the compilation options (e.g. add this to your {\tt GALACTICUS\_FCFLAGS} environment variable).
+\emph{Note:} Currently, this profiler requires access to features of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} that are not implemeted within \href{http://www.lrz-muenchen.de/services/software/mathematik/gsl/fortran/}{FGSL}. As such, this functionallity is normally \emph{not} compiled with \glc. If you want to use the profiler, contact \href{mailto:abenson@obs.carnegiescience.edu}{Andrew Benson} and request a copy of the modified FGSL source code. Once this is installed, the profiler can be activated by including {\tt -DPROFILE} in the compilation options (e.g. add this to your {\tt GALACTICUS\_FCFLAGS} environment variable).
 
 When active, setting {\tt [profileOdeEvolver]}$=${\tt true} will activate profiling. Each step taken by the ODE evolver is then analyzed. First, a record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to determine step size) is determined and a record of this is kept.
 
@@ -502,4 +503,32 @@ will extract the metadata from file {\tt myPlot.pdf}, writing a report to screen
 \item[{\tt myMetaDataScript.pl}] The script used to create {\tt myPlot.pdf};
 \item[{\tt myMetaData.merge}] A bundled merge directive for Bazaar containing the committed source changeset used to build \glc\. This can be applied to a \glc\ checkout using the {\tt bzr merge} command;
 \item[{\tt myMetaData.patch}] A bundled {\tt diff} of the \glc\ source against the committed source. This can be applied to a \glc\ checkout (after applying {\tt myMetaData.merge}) using the {\tt bzr patch} command.
+\end{description}
+
+\section{Perl Statistics Modules}\index{statistics!Perl modules}
+
+\glc\ provides some Perl modules which compute useful statistics. These are described below.
+
+\subsection{{\tt Statistics::Histograms}}\index{statistics!histograms}\index{histograms}
+
+The {\tt Statistics::Histograms} module computes histograms from a weighted set of points. The module provides a single function, which is used as follows:
+\begin{verbatim}
+(my $histogram, my $error) = 
+   &Histogram
+     (
+      $binCenters,
+      $values,
+      $weights,
+      normalized     => 1,
+      differential   => 1,
+      gaussianSmooth => $sigma
+     );
+\end{verbatim}
+Given a PDL, {\tt \$binCenters}, containing the positions of the bin centers, this function will construct a histogram of the points in the {\tt \$values} PDL, using weights as given by the {\tt \$weights} PDL. The histogram is returned as {\tt \$histogram} with Poisson errors in {\tt \$errors}. The function currently assumes that the bins are uniformly spaced.
+
+The following options are available:
+\begin{description}
+ \item [{\tt normalized}] [Default: {\tt 0}] If set to {\tt 1}, then the histogram will be normalized to sum to unity;
+ \item [{\tt differential}] [Default: {\tt 0}] If set to {\tt 1}, then the histogram will be divided through by the bin width, to make it differential;
+ \item[{\tt gaussianSmooth}] [Default: no smoothing] If present, this option must specify a PDL which gives, for each point, the value of $\sigma$ in a Gaussian smoothing to be applied to that point before it is added to the histogram. As such, each point will contribute a fraction of its weight to each bin in the histogram.
 \end{description}

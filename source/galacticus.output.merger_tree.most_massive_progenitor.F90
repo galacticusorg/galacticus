@@ -66,10 +66,12 @@ contains
   !#  <unitName>Galacticus_Output_Most_Massive_Progenitor_Names</unitName>
   !#  <sortName>Galacticus_Output_Most_Massive_Progenitor</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Most_Massive_Progenitor_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Most_Massive_Progenitor_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
+    type(treeNode)  , intent(inout), pointer      :: thisNode
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
@@ -100,11 +102,13 @@ contains
   !#  <unitName>Galacticus_Output_Most_Massive_Progenitor_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Most_Massive_Progenitor</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Most_Massive_Progenitor_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Most_Massive_Progenitor_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
 
     ! Ensure the module is initialized.
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
@@ -120,19 +124,20 @@ contains
   subroutine Galacticus_Output_Most_Massive_Progenitor(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store link properties in the \glc\ output file buffers.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    double precision,        intent(in)             :: time
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
-    double precision,        save                   :: timePrevious    =-1.0d0
-    integer(kind=kind_int8), save                   :: uniqueIdPrevious=-1,uniqueIdMatched
+    double precision           , intent(in)             :: time
+    type   (treeNode          ), intent(inout), pointer :: thisNode
+    integer                    , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
+    integer(kind=kind_int8    ), intent(inout)          :: integerBuffer(:,:)
+    double precision,            intent(inout)          :: doubleBuffer(:,:)
+    double precision,            save                   :: timePrevious    =-1.0d0
+    integer(kind=kind_int8    ), save                   :: uniqueIdPrevious=-1,uniqueIdMatched
     !$omp threadprivate(timePrevious,uniqueIdPrevious,uniqueIdMatched)
-    type(treeNode),          pointer                :: currentNode
-    double precision                                :: mostMassiveProgenitorMass
+    type   (treeNode          ),                pointer :: currentNode
+    class  (nodeComponentBasic),                pointer :: currentBasicComponent
+    double precision                                    :: mostMassiveProgenitorMass
 
     ! Ensure the module is initialized.
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
@@ -140,8 +145,8 @@ contains
     if (outputMostMassiveProgenitor) then
        ! Find the root node in the tree.
        currentNode => thisNode
-       do while (associated(currentNode%parentNode))
-          currentNode => currentNode%parentNode
+       do while (associated(currentNode%parent))
+          currentNode => currentNode%parent
        end do
        ! Check if this is the same tree, at the same time as on the previous call.
        if (time /= timePrevious .or. thisNode%uniqueId() /= uniqueIdPrevious) then
@@ -151,9 +156,10 @@ contains
           ! Find the most massive progenitor in the tree at this time.
           mostMassiveProgenitorMass=0.0d0
           do while (associated(currentNode))
-             if (Tree_Node_Time(currentNode) == time .and. Tree_Node_Mass(currentNode) > mostMassiveProgenitorMass) then
-                uniqueIdMatched          =               currentNode%uniqueId()
-                mostMassiveProgenitorMass=Tree_Node_Mass(currentNode)
+             currentBasicComponent => currentNode%basic()
+             if (currentBasicComponent%time() == time .and. currentBasicComponent%mass() > mostMassiveProgenitorMass) then
+                uniqueIdMatched          =currentNode          %uniqueId()
+                mostMassiveProgenitorMass=currentBasicComponent%mass    ()
              end if
              call currentNode%walkTree(currentNode)
           end do

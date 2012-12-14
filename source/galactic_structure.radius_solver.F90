@@ -20,7 +20,7 @@
 module Galactic_Structure_Radii
   !% Implements calculations of sizes of galactic components (or more general components).
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Galactic_Structure_Radii_Solve
@@ -43,7 +43,7 @@ module Galactic_Structure_Radii
 contains
 
   !# <preDerivativeTask>
-  !# <unitName>Galactic_Structure_Radii_Solve</unitName>
+  !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
   !# </preDerivativeTask>
   subroutine Galactic_Structure_Radii_Solve(thisNode)
     !% Solve for the radii of galactic components in {\tt thisNode}.
@@ -72,8 +72,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('galacticStructureRadiusSolverMethod',galacticStructureRadiusSolverMethod,defaultValue='adiabatic')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="galacticStructureRadiusSolverMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</subroutineArgs>
+          !# <include directive="galacticStructureRadiusSolverMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</functionArgs>
           include 'galactic_structure.radius_solver.inc'
           !# </include>
           if (.not.associated(Galactic_Structure_Radii_Solve_Do)) &
