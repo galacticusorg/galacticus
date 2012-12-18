@@ -182,7 +182,6 @@ contains
        resetInterpolationWavenumber=.true.
        linearGrowthInitialized     =.true.
     end if
-    !$omp end critical(Linear_Growth_Initialize)
 
     ! Determine which wavenumbers to use.
     call Interpolate_In_Wavenumber(iWavenumber,hWavenumber,wavenumber)
@@ -195,11 +194,9 @@ contains
        thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
-       !$omp critical(Linear_Growth_Initialize)
        Linear_Growth_Factor=Linear_Growth_Factor+Interpolate(linearGrowthTableNumberPoints,linearGrowthTableTime &
             &,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)&
             &*hWavenumber(jWavenumber)
-    !$omp end critical(Linear_Growth_Initialize)
     end do
 
     ! Normalize.
@@ -207,6 +204,7 @@ contains
     case (normalizeMatterDominated)
        Linear_Growth_Factor=Linear_Growth_Factor*normalizationMatterDominated(componentActual)
     end select
+    !$omp end critical(Linear_Growth_Initialize)
 
     return
   end function Linear_Growth_Factor
@@ -265,6 +263,7 @@ contains
     linearGrowthFactor=Linear_Growth_Factor(timeActual,component=componentActual,wavenumber=wavenumber)
 
     ! Determine which wavenumbers to use.
+    !$omp critical(Linear_Growth_Initialize)
     call Interpolate_In_Wavenumber(iWavenumber,hWavenumber,wavenumber)
 
     ! Loop over wavenumbers and compute growth factor.
@@ -275,12 +274,11 @@ contains
        thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
-       !$omp critical(Linear_Growth_Initialize)
        linearGrowthFactorTimeDerivative=linearGrowthFactorTimeDerivative+Interpolate_Derivative(linearGrowthTableNumberPoints&
             &,linearGrowthTableTime ,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset&
             &=resetInterpolation)*hWavenumber(jWavenumber)
-       !$omp end critical(Linear_Growth_Initialize)
     end do
+    !$omp end critical(Linear_Growth_Initialize)
     
     ! Get the expansion factor.
     expansionFactor=Expansion_Factor(timeActual)
@@ -301,7 +299,6 @@ contains
     double precision, intent(in),  optional       :: wavenumber
 
     if (present(wavenumber).and.size(linearGrowthTableWavenumber) > 1) then
-       !$omp critical(Linear_Growth_Initialize)
        iWavenumber(0)=Interpolate_Locate              (                                    &
             &                                           size(linearGrowthTableWavenumber)  &
             &                                          ,     linearGrowthTableWavenumber   &
@@ -315,7 +312,6 @@ contains
             &                                          ,iWavenumber(0)                     &
             &                                          ,wavenumber                         &
             &                                         )
-       !$omp end critical(Linear_Growth_Initialize)
        iWavenumber(1)=iWavenumber(0)+1
     else
        ! No wavenumber was specified, so use the largest scale (smallest wavenumber) tabulated.
