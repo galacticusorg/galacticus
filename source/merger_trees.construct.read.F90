@@ -140,7 +140,7 @@ module Merger_Tree_Read
   type nodeData
      !% Structure used to store raw data read from merger tree files.
      integer(kind=kind_int8)                         :: nodeIndex,hostIndex,descendentIndex,particleIndexStart,particleIndexCount&
-          &,isolatedNodeIndex,mergesWithIndex
+          &,isolatedNodeIndex,primaryIsolatedNodeIndex,mergesWithIndex
      double precision                                :: nodeMass,nodeTime,halfMassRadius,scaleRadius,angularMomentum
      double precision,       dimension(3)            :: position,velocity
      logical                                         :: isSubhalo,childIsSubhalo
@@ -848,6 +848,9 @@ contains
           ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
           call Assign_Mergers(nodes,thisNodeList)
 
+          ! Search for subhalos which move between branches/trees.
+          call Scan_for_Branch_Jumps(nodes,thisNodeList)
+
           ! Allocate arrays for history building.
           if (historyCountMaximum > 0) then
              if (allocated(position)) call Dealloc_Array(position)
@@ -1293,22 +1296,52 @@ contains
     type(treeNodeList), intent(inout), dimension(:), allocatable :: nodeList
     logical,            intent(inout), dimension(:), allocatable :: childIsSubhalo
     integer,            intent(out)                              :: isolatedNodeCount
-    integer(kind=kind_int8)                                      :: iNode
-    integer                                                      :: iIsolatedNode
+    integer(kind=kind_int8)                                      :: iNode,descendentLocation
+    integer                                                      :: iIsolatedNode,descendentIndex,initialSatelliteCount
+    logical                                                      :: descendentsFound,createNode
 
     ! Determine how many nodes are isolated (i.e. not subhalos).
     isolatedNodeCount=count(.not.nodes%isSubhalo)
 
+    ! Scan here for nodes that are subhalos and have no progenitor. These objects must be
+    ! created as satellites within the tree.
+    initialSatelliteCount=0
+    do iNode=1,size(nodes)
+       if (nodes(iNode)%isSubhalo) then
+          descendentsFound=.false.
+          descendentIndex=Descendent_Node_Sort_Index(nodes(iNode)%nodeIndex)
+          if (descendentIndex > 0 .and. descendentIndex <= size(nodes)) then
+             descendentLocation=descendentLocations(descendentIndex)
+             if (associated(nodes(descendentLocation)%descendent)) &
+                  & descendentsFound=(nodes(descendentLocation)%descendent%nodeIndex == nodes(iNode)%nodeIndex)
+          end if
+          if (.not.descendentsFound) initialSatelliteCount=initialSatelliteCount+1
+       end if
+    end do
+
     ! Allocate nodes.
-    allocate(nodeList(isolatedNodeCount))
+    allocate(nodeList(isolatedNodeCount+initialSatelliteCount))
     call Memory_Usage_Record(sizeof(nodeList))
-    call Alloc_Array(childIsSubhalo,[isolatedNodeCount])
+    call Alloc_Array(childIsSubhalo,[isolatedNodeCount+initialSatelliteCount])
 
     ! Create the nodes.
     iIsolatedNode          =0
     nodes%isolatedNodeIndex=nodeIsUnreachable
     do iNode=1,size(nodes)
+       createNode=.false.
        if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
+          createNode=.true.
+       else if (nodes(iNode)%isSubhalo) then
+          descendentsFound=.false.
+          descendentIndex=Descendent_Node_Sort_Index(nodes(iNode)%nodeIndex)
+          if (descendentIndex > 0 .and. descendentIndex <= size(nodes)) then
+             descendentLocation=descendentLocations(descendentIndex)
+             if (associated(nodes(descendentLocation)%descendent)) &
+                  & descendentsFound=(nodes(descendentLocation)%descendent%nodeIndex == nodes(iNode)%nodeIndex)
+          end if
+          if (.not.descendentsFound) createNode=.true.
+       end if
+       if (createNode) then
           iIsolatedNode=iIsolatedNode+1
           ! Store a record of where this node goes in the isolated node list.
           nodes(iNode)%isolatedNodeIndex=iIsolatedNode
@@ -1326,41 +1359,63 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type (mergerTree        ), intent(inout), target       :: thisTree
-    type (nodeData          ), intent(inout), dimension(:) :: nodes
-    type (treeNodeList      ), intent(inout), dimension(:) :: nodeList
-    class(nodeComponentBasic), pointer                     :: nodeBasicComponent 
-    type (mergerTree        ), pointer                     :: currentTree
-    integer                                                :: iNode,iIsolatedNode
-    type (varying_string)                                  :: message
-    character(len=12)                                      :: label
+    type     (mergerTree        ), intent(inout), target       :: thisTree
+    type     (nodeData          ), intent(inout), dimension(:) :: nodes
+    type     (treeNodeList      ), intent(inout), dimension(:) :: nodeList
+    class    (nodeComponentBasic), pointer                     :: nodeBasicComponent 
+    type     (mergerTree        ), pointer                     :: currentTree
+    type     (nodeData          ), pointer                     :: parentNode
+    integer                                                    :: iNode
+    integer  (kind=kind_int8    )                              :: iIsolatedNode
+    type     (varying_string    )                              :: message
+    character(len=12            )                              :: label
+    logical                                                    :: assignLastIsolatedTime
 
-    iIsolatedNode=0
     do iNode=1,size(nodes)
-       ! Only process if this is an isolated node.
-       if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-          iIsolatedNode=iIsolatedNode+1
-          if (associated(nodes(iNode)%parent)) then
-             nodeList(iIsolatedNode)%node%parent  => nodes(iNode)%parent%node
-          else
-             nodeList(iIsolatedNode)%node%parent  => null()
-             ! Find a tree to attach this base node to. Begin with the original tree passed to us.
-             currentTree => thisTree
-             ! Check if its baseNode is already assigned.
-             do while (associated(currentTree%baseNode))
-                ! While it is, create the next tree (unless it already exists), then step to it.
-                if (.not.associated(currentTree%nextTree)) allocate(currentTree%nextTree)
-                currentTree => currentTree%nextTree
-             end do
-             ! Assign this node as the base node of the current tree.
-             currentTree                     %baseNode    => nodeList(iIsolatedNode)%node
-             if (mergerTreeReadTreeIndexToRootNodeIndex) then
-                currentTree                  %index       =  nodes   (iNode        )%nodeIndex
+       ! Only process if this is an isolated node (or an initial satellite).
+       if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
+          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
+          ! Check for an isolated node. 
+          if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
+             assignLastIsolatedTime=.false.
+             if (associated(nodes(iNode)%parent)) then
+                nodeList(iIsolatedNode)%node%parent  => nodes(iNode)%parent%node
              else
-                currentTree                  %index       =  thisTree               %index
+                nodeList(iIsolatedNode)%node%parent  => null()
+                ! Find a tree to attach this base node to. Begin with the original tree passed to us.
+                currentTree => thisTree
+                ! Check if its baseNode is already assigned.
+                do while (associated(currentTree%baseNode))
+                   ! While it is, create the next tree (unless it already exists), then step to it.
+                   if (.not.associated(currentTree%nextTree)) allocate(currentTree%nextTree)
+                   currentTree => currentTree%nextTree
+                end do
+                ! Assign this node as the base node of the current tree.
+                currentTree   %baseNode    => nodeList(iIsolatedNode)%node
+                if (mergerTreeReadTreeIndexToRootNodeIndex) then
+                   currentTree%index       =  nodes   (iNode        )%nodeIndex
+                else
+                   currentTree%index       =  thisTree               %index
+                end if
+                currentTree   %volumeWeight=  treeVolumeWeightCurrent
+                currentTree   %initialized =  .false.
              end if
-             currentTree                  %volumeWeight=  treeVolumeWeightCurrent
+          else
+             ! Node is not isolated, so must be an initial satellite.
+             assignLastIsolatedTime=.true.
+             if (associated(nodes(iNode)%host)) then
+                parentNode => nodes(iNode)%host
+                do while (parentNode%isSubhalo)
+                   parentNode => parentNode%host
+                end do
+                nodeList(iIsolatedNode)%node%parent => parentNode%node
+             else
+                call Galacticus_Error_Report('Build_Isolated_Parent_Pointers','initial satellite has no parent defined')
+             end if
           end if
+          ! Assign mass and time. For the case of satellites we also assign the time at
+          ! which the satellite was last isolated. Since we do not know this, we simply
+          ! set it equal to the current time (which is, obviously, an upper limit).
           if (nodes(iNode)%nodeMass <= 0.0d0) then
              write (label,'(e12.6)') nodes(iNode)%nodeMass
              message='non-positive mass ['//label//'] found for node '
@@ -1374,8 +1429,10 @@ contains
              call Galacticus_Error_Report('Build_Isolated_Parent_Pointers',message)
           end if
           nodeBasicComponent => nodeList(iIsolatedNode)%node%basic(autoCreate=.true.)
-          call nodeBasicComponent%massSet(nodes(iNode)%nodeMass)
-          call nodeBasicComponent%timeSet(nodes(iNode)%nodeTime)
+          call        nodeBasicComponent%massSet            (nodes(iNode)%nodeMass)
+          call        nodeBasicComponent%timeSet            (nodes(iNode)%nodeTime)
+          if (assignLastIsolatedTime) & 
+               & call nodeBasicComponent%timeLastIsolatedSet(nodes(iNode)%nodeTime)
        end if
     end do
     return
@@ -1389,46 +1446,62 @@ contains
     type (treeNodeList      ), intent(inout), dimension(:)              :: nodeList
     logical                  , intent(inout), dimension(:), allocatable :: childIsSubhalo
     class(nodeComponentBasic), pointer                                  :: nodeBasicComponent, primaryBasicComponent
-    integer                                                             :: iNode,iIsolatedNode
+    integer                                                             :: iNode
+    integer(kind=kind_int8)                                             :: iIsolatedNode
     logical                                                             :: descendsToSubhalo 
+call dump_tree(nodes,highlightnodes=[182722_kind_int8])
 
-    iIsolatedNode=0
+
     childIsSubhalo=.false.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-          iIsolatedNode=iIsolatedNode+1
-          ! Check if the node has a parent.
-          if (associated(nodeList(iIsolatedNode)%node%parent)) then
-             ! Determine if this node definitely descends to a subhalo - in which case it can never be the primary progenitor.
-             descendsToSubhalo=nodes(iNode)%descendentIndex /= nodeList(iIsolatedNode)%node%parent%index()                   
-             ! It does, so set the child pointer of the parent appropriately.
-             if (associated(nodeList(iIsolatedNode)%node%parent%firstChild)) then
-                ! A child is already associated. Check if current node does not descend to a subhalo and is more massive.
-                nodeBasicComponent    => nodeList(iIsolatedNode)%node%basic()
-                primaryBasicComponent => nodeList(iIsolatedNode)%node%parent%firstChild%basic()
-               if (.not.descendsToSubhalo                                              &
-                     & .and. (                                                         &
-                     &        childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)    &
-                     &         .or.                                                    &
-                     &        nodeBasicComponent%mass() > primaryBasicComponent%mass() &
-                     &       )                                                         &
-                     & ) then
-                   ! It is, so make this the main progenitor.
-                   nodeList(iIsolatedNode)%node%sibling           => nodeList(iIsolatedNode)%node%parent%firstChild
-                   nodeList(iIsolatedNode)%node%parent%firstChild => nodeList(iIsolatedNode)%node
-                   ! Record that the main child is now not a subhalo.
-                   childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)=.false.
+       if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
+          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
+          ! Check for an isolated node.
+          if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
+             ! Check if the node has a parent.
+             if (associated(nodeList(iIsolatedNode)%node%parent)) then
+                ! Determine if this node definitely descends to a subhalo - in which case it can never be the primary progenitor.
+                descendsToSubhalo=nodes(iNode)%descendentIndex /= nodeList(iIsolatedNode)%node%parent%index()                   
+                ! It does, so set the child pointer of the parent appropriately.
+                if (associated(nodeList(iIsolatedNode)%node%parent%firstChild)) then
+                   ! A child is already associated. Check if current node does not descend to a subhalo and is more massive.
+                   nodeBasicComponent    => nodeList(iIsolatedNode)%node%basic()
+                   primaryBasicComponent => nodeList(iIsolatedNode)%node%parent%firstChild%basic()
+                   if (.not.descendsToSubhalo                                              &
+                        & .and. (                                                         &
+                        &        childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)    &
+                        &         .or.                                                    &
+                        &        nodeBasicComponent%mass() > primaryBasicComponent%mass() &
+                        &       )                                                         &
+                        & ) then
+                      ! It is, so make this the main progenitor.
+                      nodeList(iIsolatedNode)%node%sibling           => nodeList(iIsolatedNode)%node%parent%firstChild
+                      nodeList(iIsolatedNode)%node%parent%firstChild => nodeList(iIsolatedNode)%node
+                      ! Record that the main child is now not a subhalo.
+                      childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)=.false.
+                   else
+                      ! It is not, so add after the main child.
+                      nodeList(iIsolatedNode)%node%sibling                   => nodeList(iIsolatedNode)%node%parent%firstChild%sibling
+                      nodeList(iIsolatedNode)%node%parent%firstChild%sibling => nodeList(iIsolatedNode)%node
+                   end if
                 else
-                   ! It is not, so add after the main child.
-                   nodeList(iIsolatedNode)%node%sibling                   => nodeList(iIsolatedNode)%node%parent%firstChild%sibling
-                   nodeList(iIsolatedNode)%node%parent%firstChild%sibling => nodeList(iIsolatedNode)%node
+                   ! No child is currently associated. Simply point to the current node.
+                   nodeList(iIsolatedNode)%node%parent%firstChild => nodeList(iIsolatedNode)%node
+                   ! Record whether or not this child is a known subhalo or not.
+                   childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)=descendsToSubhalo
                 end if
+             end if
+          else
+             ! Node must be an initial satellite.
+             if (associated(nodeList(iIsolatedNode)%node%parent%firstSatellite)) then
+                ! The parent halo already has some satellites. Add this one to the list.
+                nodeList(iIsolatedNode)%node%sibling               => nodeList(iIsolatedNode)%node%parent%firstSatellite
+                nodeList(iIsolatedNode)%node%parent%firstSatellite => nodeList(iIsolatedNode)%node                
              else
-                ! No child is currently associated. Simply point to the current node.
-                nodeList(iIsolatedNode)%node%parent%firstChild => nodeList(iIsolatedNode)%node
-                ! Record whether or not this child is a known subhalo or not.
-                childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)=descendsToSubhalo
+                ! The parent halo does not yet have any satellites. Simply add this one as the first.
+                nodeList(iIsolatedNode)%node%sibling               => null()
+                nodeList(iIsolatedNode)%node%parent%firstSatellite => nodeList(iIsolatedNode)%node
              end if
           end if
        end if
@@ -1454,23 +1527,23 @@ contains
     class    (nodeComponentBasic            ), pointer                     :: thisBasicComponent
     class    (nodeComponentDarkMatterProfile), pointer                     :: thisDarkMatterProfileComponent
     type     (c_ptr                         )                              :: parameterPointer
-    integer                                                                :: iNode,iIsolatedNode
+    integer                                                                :: iNode
+    integer  (kind=kind_int8                )                              :: iIsolatedNode
     double precision                                                       :: radiusMinimum,radiusMaximum,radiusScale
     logical                                                                :: excessiveScaleRadii,excessiveHalfMassRadii
     character(len=50                        )                              :: message
 
-    iIsolatedNode=0
     excessiveScaleRadii   =.false.
     excessiveHalfMassRadii=.false.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-          iIsolatedNode=iIsolatedNode+1
-
+       if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
+          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
+          
           ! Check if the node is sufficiently massive.
           thisBasicComponent => nodeList(iIsolatedNode)%node%basic()
           if (thisBasicComponent%mass() >= mergerTreeReadPresetScaleRadiiMinimumMass) then
-
+             
              ! Get the dark matter profile component.
              thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)
 
@@ -1541,18 +1614,18 @@ contains
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none
-    type (nodeData          ), intent(inout), dimension(:) :: nodes
-    type (treeNodeList      ), intent(inout), dimension(:) :: nodeList
-    class(nodeComponentBasic), pointer                     :: thisBasicComponent
-    class(nodeComponentSpin ), pointer                     :: thisSpinComponent
-    integer                                                :: iNode,iIsolatedNode
-    double precision                                       :: spin
+    type            (nodeData          ), intent(inout), dimension(:) :: nodes
+    type            (treeNodeList      ), intent(inout), dimension(:) :: nodeList
+    class           (nodeComponentBasic), pointer                     :: thisBasicComponent
+    class           (nodeComponentSpin ), pointer                     :: thisSpinComponent
+    integer                                                           :: iNode
+    integer         (kind=kind_int8    )                              :: iIsolatedNode
+    double precision                                                  :: spin
 
-    iIsolatedNode=0
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-          iIsolatedNode=iIsolatedNode+1
+       if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
+          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Get basic and spin components.
           thisBasicComponent => nodeList(iIsolatedNode)%node%basic(                 )
           thisSpinComponent  => nodeList(iIsolatedNode)%node%spin (autoCreate=.true.)
@@ -1587,16 +1660,21 @@ contains
   subroutine Assign_Isolated_Node_Indices(nodes,nodeList)
     !% Assign to each node the number of the corresponding isolated node.
     implicit none
-    type(nodeData),     intent(inout), dimension(:) :: nodes
-    type(treeNodeList), intent(inout), dimension(:) :: nodeList
-    type(nodeData),     pointer                     :: thisNode
-    integer                                         :: iNode,iIsolatedNode
-    logical                                         :: endOfBranch
-
-    iIsolatedNode=0
+    type   (nodeData      ), intent(inout), dimension(:) :: nodes
+    type   (treeNodeList  ), intent(inout), dimension(:) :: nodeList
+    type   (nodeData      ), pointer                     :: thisNode
+    integer(kind=kind_int8)                              :: iIsolatedNode
+    integer                                              :: iNode
+    logical                                              :: endOfBranch
+    
+    ! First make a copy of the currently assigned isolated node indices. These will be used
+    ! later to reference the nodes which are the primary node associated with objects in nodeList.
+    nodes%primaryIsolatedNodeIndex=nodes%isolatedNodeIndex
+    ! Iterate over nodes.
     do iNode=1,size(nodes)
-       if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-          iIsolatedNode=iIsolatedNode+1
+       ! Only process if this is an isolated node.
+       if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
+          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Find the subset with descendents.
           if (associated(nodes(iNode)%descendent)) then
              ! Select the subset which have a subhalo as a descendent.
@@ -1609,7 +1687,7 @@ contains
                    if (thisNode%isolatedNodeIndex == nodeIsUnreachable) thisNode%isolatedNodeIndex=nodeIsReachable
 
                    if (.not.associated(thisNode%descendent)) then
-                      ! If there is no descendent then the end of the branch has been reached.                               
+                      ! If there is no descendent then the end of the branch has been reached.
                       endOfBranch=.true.
                    else
                       ! Step to the next descendent.
@@ -1636,43 +1714,53 @@ contains
     use Galacticus_Error
     use Numerical_Comparison
     implicit none
-    type   (nodeData              ), intent(inout), dimension(:) :: nodes
-    type   (treeNodeList          ), intent(inout), dimension(:) :: nodeList
-    integer(kind=kind_int8        ), intent(  out)               :: historyCountMaximum
-    type   (nodeData              ), pointer                     :: thisNode
-    type   (treeNode              ), pointer                     :: firstProgenitor,satelliteNode,hostNode
-    double precision               , parameter                   :: timeUntilMergingInfinite=1.0d30
-    double precision               ,                dimension(3) :: satellitePosition,hostPosition,relativePosition
-    double precision               ,                dimension(3) :: satelliteVelocity,hostVelocity,relativeVelocity
-    logical                        , parameter                   :: acceptUnboundOrbits=.false.
-    class  (nodeComponentBasic    ), pointer                     :: thisBasicComponent    ,childBasicComponent                         ,satelliteBasicComponent    ,hostParentBasicComponent
-    class  (nodeComponentPosition ), pointer                     :: thisPositionComponent ,childPositionComponent,hostPositionComponent,satellitePositionComponent
-    class  (nodeComponentSatellite), pointer                     :: thisSatelliteComponent                                             ,satelliteSatelliteComponent
-    type   (keplerOrbit           )                              :: thisOrbit
-    integer                                                      :: iNode,iIsolatedNode,descendentIndex
-    integer(kind=kind_int8        )                              :: historyCount,descendentLocation
-    logical                                                      :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge,descendentsFound
-    double precision                                             :: timeSubhaloMerges,radiusPericenter,radiusApocenter,radiusVirial
-    type   (varying_string        )                              :: message
+    type   (nodeData              ), intent(inout), dimension(:), target :: nodes
+    type   (treeNodeList          ), intent(inout), dimension(:)         :: nodeList
+    integer(kind=kind_int8        ), intent(  out)                       :: historyCountMaximum
+    type   (nodeData              ), pointer                             :: thisNode
+    type   (treeNode              ), pointer                             :: firstProgenitor,satelliteNode,hostNode,orbitalPartner
+    double precision               , parameter                           :: timeUntilMergingInfinite=1.0d30
+    double precision               ,                dimension(3)         :: satellitePosition,hostPosition,relativePosition
+    double precision               ,                dimension(3)         :: satelliteVelocity,hostVelocity,relativeVelocity
+    logical                        , parameter                           :: acceptUnboundOrbits=.false.
+    class  (nodeComponentBasic    ), pointer                             :: thisBasicComponent    ,childBasicComponent                         ,satelliteBasicComponent    ,orbitalPartnerBasicComponent
+    class  (nodeComponentPosition ), pointer                             :: thisPositionComponent ,childPositionComponent,hostPositionComponent,satellitePositionComponent
+    class  (nodeComponentSatellite), pointer                             :: thisSatelliteComponent                                             ,satelliteSatelliteComponent
+    type   (keplerOrbit           )                                      :: thisOrbit
+    integer                                                              :: iNode,descendentIndex
+    integer(kind=kind_int8        )                                      :: historyCount,descendentLocation,iIsolatedNode
+    logical                                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge,descendentsFound
+    double precision                                                     :: timeSubhaloMerges,radiusPericenter,radiusApocenter,radiusVirial
+    type   (varying_string        )                                      :: message
 
-    iIsolatedNode        = 0
     historyCountMaximum  = 0
     nodes%mergesWithIndex=-1 
     do iNode=1,size(nodes)
-       if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-          iIsolatedNode=iIsolatedNode+1
+       if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
+          iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
           ! Find the subset with descendents.
           if (associated(nodes(iNode)%descendent)) then
              ! Flag indicating if this is a node for which a merging time should be set.
              nodeWillMerge=.false.
-             ! Select the subset which have a subhalo.
-             if (nodes(iNode)%descendent%isSubhalo) then
+             ! Select the subset which have a subhalo, or which are an initial subhalo.
+             if (nodes(iNode)%descendent%isSubhalo.or.nodes(iNode)%isSubhalo) then
                 ! Trace descendents until merging or final time.
-                thisNode        => nodes(iNode)%descendent
                 endOfBranch     =.false.
                 branchTipReached=.false.
                 branchMerges    =.false.
                 historyCount    =0
+                if (nodes(iNode)%isSubhalo) then
+                   thisNode => nodes(iNode)
+                else
+                   ! Check for an immediate subhalo-subhalo merger.
+                   if (Is_Subhalo_Subhalo_Merger(nodes,nodes(iNode))) then
+                      endOfBranch =.true.
+                      branchMerges=.true.
+                      nodes(iNode)%mergesWithIndex=nodes(iNode)%descendent%nodeIndex
+                      historyCount=historyCount+max(0_kind_int8,nodes(iNode)%particleIndexCount) 
+                   end if
+                   thisNode => nodes(iNode)%descendent
+                end if
                 do while (.not.endOfBranch)
                    ! Record which isolated node this node belongs to.
                    thisNode%isolatedNodeIndex=iIsolatedNode
@@ -1758,7 +1846,7 @@ contains
                 do while (associated(firstProgenitor))
                    thisSatelliteComponent => firstProgenitor%satellite(autoCreate=.true.)
                    call thisSatelliteComponent%timeOfMergingSet(timeSubhaloMerges)
-                  firstProgenitor => firstProgenitor%firstChild
+                   firstProgenitor => firstProgenitor%firstChild
                 end do
              end if
           end if
@@ -1788,24 +1876,32 @@ contains
     if (mergerTreeReadPresetOrbits) then
        iIsolatedNode=0
        do iNode=1,size(nodes)
-          if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-             iIsolatedNode=iIsolatedNode+1
+          if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
+             iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
              ! Set the orbit for this halo.
              satelliteNode => nodeList(iIsolatedNode)%node
              if (associated(satelliteNode%parent).and..not.satelliteNode%isPrimaryProgenitor()) then
                 ! Find the orbital partner.
                 hostNode => satelliteNode%parent%firstChild
+                ! If the parent node has no progenitors, then we are forced to use the parent node
+                ! itself as the orbital partner.
+                if (associated(hostNode)) then
+                   orbitalPartner => hostNode     %parent
+                else
+                   hostNode       => satelliteNode%parent
+                   orbitalPartner => hostNode
+                end if
                 ! Get components.
-                satelliteBasicComponent     => satelliteNode             %basic    (                 )
-                hostParentBasicComponent    => hostNode     %parent      %basic    (                 )
-                satellitePositionComponent  => satelliteNode             %position (                 )
-                hostPositionComponent       => hostNode                  %position (                 )
-                satelliteSatelliteComponent => satelliteNode             %satellite(autoCreate=.true.)
+                satelliteBasicComponent      => satelliteNode             %basic    (                 )
+                satellitePositionComponent   => satelliteNode             %position (                 )
+                satelliteSatelliteComponent  => satelliteNode             %satellite(autoCreate=.true.)
+                hostPositionComponent        => hostNode                  %position (                 )
+                orbitalPartnerBasicComponent => orbitalPartner            %basic    (                 )
                 ! Get position and velocity.
-                satellitePosition          =  satellitePositionComponent%position ()
-                satelliteVelocity          =  satellitePositionComponent%velocity ()
-                hostPosition               =       hostPositionComponent%position ()
-                hostVelocity               =       hostPositionComponent%velocity ()
+                satellitePosition            =  satellitePositionComponent%position (                 )
+                satelliteVelocity            =  satellitePositionComponent%velocity (                 )
+                hostPosition                 =       hostPositionComponent%position (                 )
+                hostVelocity                 =       hostPositionComponent%velocity (                 )
                 ! Find relative position and velocity.
                 relativePosition=satellitePosition-hostPosition
                 relativeVelocity=satelliteVelocity-hostVelocity
@@ -1824,9 +1920,9 @@ contains
                 if (.not.velocitiesIncludeHubbleFlow) relativeVelocity=relativeVelocity+relativePosition*Hubble_Parameter(tCosmological=satelliteBasicComponent%time())
                 ! Create the orbit.
                 call thisOrbit%reset()
-                call thisOrbit%massesSet            (                                 &
-                     &                               satelliteBasicComponent %mass(), &
-                     &                               hostParentBasicComponent%mass()  &
+                call thisOrbit%massesSet            (                                     &
+                     &                               satelliteBasicComponent     %mass(), &
+                     &                               orbitalPartnerBasicComponent%mass()  &
                      &                              )
                 call thisOrbit%radiusSet            (                                                                   Vector_Magnitude(relativePosition))
                 call thisOrbit%velocityRadialSet    (                 Dot_Product   (relativeVelocity,relativePosition)/Vector_Magnitude(relativePosition))
@@ -1834,7 +1930,7 @@ contains
                 ! Propagate to the virial radius.
                 radiusPericenter=thisOrbit%radiusPericenter()
                 radiusApocenter =thisOrbit%radiusApocenter ()
-                radiusVirial    =Dark_Matter_Halo_Virial_Radius(hostNode%parent)
+                radiusVirial    =Dark_Matter_Halo_Virial_Radius(orbitalPartner)
                 ! Check if the orbit intersects the virial radius.
                 if     (                                                                          &
                      &    radiusVirial >= radiusPericenter                                        &
@@ -1891,6 +1987,7 @@ contains
              else
                 ! Set pointer from merging node (a.k.a. the "mergee") to node that will be merged with.
                 nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeTarget => nodeList(nodes(jNode)%isolatedNodeIndex)%node
+
                 ! Make a backward pointer from the merge target to the mergee. Check if the target already has mergees associated with it.
                 if (associated(nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee)) then
                    ! It does: unlink them and attached to the "siblingMergee" pointer of the current mergee.
@@ -1908,6 +2005,172 @@ contains
     return
   end subroutine Assign_Mergers
 
+  subroutine Scan_for_Branch_Jumps(nodes,nodeList)
+    !% Search for subhalos which move between branches/trees.
+    use Galacticus_Error
+    use String_Handling
+    implicit none
+    type            (nodeData      ), intent(inout), dimension(:), target :: nodes
+    type            (treeNodeList  ), intent(inout), dimension(:)         :: nodeList
+    type            (nodeData      ), pointer                             :: descendentNode,jumpToHost,hostDescendent,previousNode,currentHost
+    integer                                                               :: iNode
+    integer         (kind=kind_int8)                                      :: iIsolatedNode
+    logical                                                               :: subhaloJumps,isMergerEvent,wasMergerEvent
+    double precision                                                      :: timeOfJump
+
+    ! Search for subhalos whose descendents live in a different host than that to which their
+    ! host descends. These subhalos are jumping between tree branches (or between trees). Add
+    ! an event to such nodes to handle the jump.
+    do iNode=1,size(nodes)
+       ! Only process if this is an isolated node (or an initial satellite).
+       if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
+          iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
+          ! Find those which are a subhalo, or whose descendent is a subhalo.
+          descendentNode => null()
+          if      (           nodes(iNode)%isSubhalo  ) then
+             descendentNode => nodes(iNode)
+             previousNode   => nodes(iNode)
+          else if (associated(nodes(iNode)%descendent)) then
+             if (nodes(iNode)%descendent%isSubhalo) then
+                descendentNode => nodes(iNode)%descendent
+                previousNode   => nodes(iNode)
+             end if
+          end if
+          ! Check for an immediate subhalo-subhalo merger. If found, nullify the descendent,
+          ! so we do not attempt to process this branch.
+          if (Is_Subhalo_Subhalo_Merger(nodes,nodes(iNode))) then
+             descendentNode => null()
+             currentHost => Last_Host_Descendent(nodes(iNode))
+
+             ! Add a jump if the tree ends before the descendent time.
+             if (currenthost%nodeTime <= nodes(iNode)%descendent%nodeTime) then
+                timeOfJump     =  currentHost%nodeTime
+                jumpToHost     => nodes(iNode)%descendent%host
+                call Create_Branch_Jump_Event(                                                    &
+                     &                        nodeList(iIsolatedNode                      )%node, &
+                     &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
+                     &                        timeOfJump                                          &
+                     &                       )
+             end if
+          end if
+          ! If a subhalo was found, follow its descent.
+          wasMergerEvent=.false.
+          do while (associated(descendentNode))
+             subhaloJumps=.false.
+             timeOfJump  =-1.0d0
+             if (descendentNode%isSubhalo.and.associated(descendentNode%descendent)) then
+                ! Determine if this is actually a merger event rather than a branch jump.
+                ! Assume it is not a merger initially.
+                isMergerEvent=.false.
+                if (descendentNode%descendent%isSubhalo) then
+                   ! Descendent is a subhalo. Check for subhalo-subhalo merger.
+                   if (Is_Subhalo_Subhalo_Merger(nodes,previousNode)) isMergerEvent=.true.
+                else
+                   ! Descendent is not a subhalo, so this must be a merger event.
+                   isMergerEvent=.true.
+                end if
+                ! If this is a merger event, then check that the current descendent's host has a
+                ! descendent that exists beyond the time of the merger. If it does not, then we
+                ! still need to allow our node to jump branches (if necessary) as it will not be
+                ! able to evolve in the descendentless host.
+                wasMergerEvent=isMergerEvent
+                if (isMergerEvent) then
+                   currentHost => Last_Host_Descendent(descendentNode)
+                   if (currenthost%nodeTime <= descendentNode%descendent%nodeTime) then
+                      isMergerEvent=.false.
+                      timeOfJump=currentHost%nodeTime
+                   endif
+                end if
+                ! Proceed only if this is not a merger event.
+                if (.not.isMergerEvent) then
+                   ! Does this subhalo's descendent live in the host to which the subhalo's host descends.
+                   if (.not.associated(descendentNode%host%descendent)) then
+                      ! Host has no descendent, so this must be a branch jump.
+                      subhaloJumps=.true.
+                   else if (descendentNode%descendent%hostIndex /= descendentNode%host%descendent%hostIndex) then
+                      ! Host has a descendent, but it's host is not the same as our descendent's host.
+                      subhaloJumps=.true.
+                      ! Check that is not simply a case of the subhalo skipping one or more timesteps before
+                      ! reappearing in the expected host.
+                      hostDescendent => descendentNode%host%descendent%host
+                      do while (descendentNode%descendent%host%nodeTime > hostDescendent%nodeTime)
+                         if (associated(hostDescendent%descendent)) then
+                            hostDescendent => hostDescendent%descendent%host
+                         else
+                            exit
+                         end if
+                      end do
+                      ! Subhalo reappeared in the expected host. This is not a branch jump.
+                      if (descendentNode%descendent%hostIndex == hostDescendent%nodeIndex) subhaloJumps=.false.
+                   end if
+                else
+                   ! Since this is a merger event, we're finished checking this branch.
+                   exit
+                end if
+             end if
+             ! If a jump was detected, create an event.
+             if (subhaloJumps) then
+                if (timeOfJump < 0.0d0)                   &
+                     & timeOfJump=descendentNode%nodeTime
+                jumpToHost => descendentNode%descendent%host
+                ! Find an isolated host.
+                do while (jumpToHost%isSubhalo)
+                   jumpToHost => jumpToHost%host
+                end do
+                call Create_Branch_Jump_Event(                                                    &
+                     &                        nodeList(iIsolatedNode                      )%node, &
+                     &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
+                     &                        timeOfJump                                          &
+                     &                       )
+             end if
+             ! Move to the descendent.
+             previousNode   => descendentNode
+             descendentNode => descendentNode%descendent
+             ! If the descendent is not a subhalo, then we're finished checking this branch.
+             if (associated(descendentNode)) then
+                if (.not.descendentNode%isSubhalo) exit
+             end if
+             ! If this was a merger event, then we're finished checking this branch.
+             if (wasMergerEvent) exit
+          end do
+       end if
+    end do
+    return
+  end subroutine Scan_for_Branch_Jumps
+
+  function Last_Host_Descendent(thisNode) result (currentHost)
+    !% Return a pointer to the last descendent that can be reached from {\tt thisNode} when descending through hosts.
+    implicit none
+    type(nodeData), pointer                :: currentHost
+    type(nodeData), target , intent(inout) :: thisNode
+
+    currentHost => thisNode%host
+    do while(associated(currentHost%descendent))
+       currentHost => currentHost%descendent%host
+    end do
+    return
+  end function Last_Host_Descendent
+  
+  subroutine Create_Branch_Jump_Event(thisNode,jumpToHost,timeOfJump)
+    !% Create a matched-pair of branch jump events in the given nodes.
+    use Node_Branch_Jumps
+    implicit none
+    type            (treeNode ), pointer, intent(inout) :: thisNode,jumpToHost
+    double precision           ,          intent(in   ) :: timeOfJump
+    type            (nodeEvent), pointer                :: newEvent,pairEvent
+
+    newEvent       => thisNode%createEvent()
+    newEvent %time =  timeOfJump
+    newEvent %node => jumpToHost
+    newEvent %task => Node_Branch_Jump
+    pairEvent      => jumpToHost%createEvent()
+    pairEvent%time =  timeOfJump
+    pairEvent%node => thisNode
+    pairEvent%task => null()
+    pairEvent%ID   =  newEvent%ID
+    return
+  end subroutine Create_Branch_Jump_Event
+
   subroutine Build_Subhalo_Mass_Histories(nodes,nodeList,historyTime,historyMass,position,velocity)
     !% Build and attached bound mass histories to subhalos.
     use Galacticus_Error
@@ -1923,8 +2186,8 @@ contains
     type   (treeNode              ), pointer                                 :: firstProgenitor
     class  (nodeComponentSatellite), pointer                                 :: thisSatelliteComponent
     class  (nodeComponentPosition ), pointer                                 :: thisPositionComponent
-    integer(kind=kind_int8        )                                          :: iTime,historyCount,descendentLocation
-    integer                                                                  :: iIsolatedNode,iNode,iAxis,descendentIndex
+    integer(kind=kind_int8        )                                          :: iTime,historyCount,descendentLocation,iIsolatedNode
+    integer                                                                  :: iNode,iAxis,descendentIndex
     logical                                                                  :: endOfBranch,descendentsFound
     double precision                                                         :: expansionFactor
     type   (varying_string        )                                          :: message
@@ -1934,10 +2197,9 @@ contains
        ! Check that preset subhalo masses are supported.
        if (mergerTreeReadPresetSubhaloMasses.and..not.defaultSatelliteComponent%boundMassHistoryIsSettable()) &
             & call Galacticus_Error_Report('Merger_Tree_Read_Do','presetting subhalo masses requires a component that supports setting of node bound mass histories')
-       iIsolatedNode=0
        historyBuildNodeLoop: do iNode=1,size(nodes)
-          historyBuildIsolatedSelect: if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-             iIsolatedNode=iIsolatedNode+1
+          historyBuildIsolatedSelect: if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
+             iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
              ! Find the subset with descendents.
              historyBuildHasDescendentSelect: if (associated(nodes(iNode)%descendent)) then
                 ! Set a pointer to the current node - this will be updated if any descendents are traced.
@@ -2083,17 +2345,17 @@ contains
   subroutine Validate_Isolated_Halos(nodes)
     !% Ensure that nodes have valid primary progenitors.
     implicit none
-    type (nodeData          ), intent(inout), dimension(:) :: nodes
-    type (treeNode          ), pointer                     :: newNode
-    class(nodeComponentBasic), pointer                     :: newBasicComponent
-    integer                                                :: iNode,iIsolatedNode
+    type   (nodeData          ), intent(inout), dimension(:) :: nodes
+    type   (treeNode          ), pointer                     :: newNode,thisSatellite
+    class  (nodeComponentBasic), pointer                     :: newBasicComponent
+    integer                                                  :: iNode
+    integer(kind=kind_int8    )                              :: iIsolatedNode
 
     ! Search for cases where a node has no progenitors which do not descend into subhalos.
     do iNode=1,size(nodes)
-       iIsolatedNode=0
-       ! Select isolated nodes.
-       if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
-          iIsolatedNode=iIsolatedNode+1
+       ! Only process if this is an isolated node.
+       if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable .and. .not.nodes(iNode)%isSubhalo) then
+          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Select nodes with parents.
           if (associated(nodes(iNode)%node%parent)) then
              ! Select nodes with subhalo descendents which are also the primary progenitor of their parent.
@@ -2104,12 +2366,19 @@ contains
                 ! quantities which use the node index as a label in dataset names for example).
                 allocate(newNode)
                 call nodes(iNode)%node%parent%copyNodeTo(newNode)
-                newNode%sibling                     => nodes(iNode)%node
-                newNode%parent                      => nodes(iNode)%node%parent
-                newNode%firstChild                  => null()
-                nodes(iNode)%node%parent%firstChild => newNode
-                newBasicComponent                   => newNode%basic()
+                newNode%sibling                         => nodes(iNode)%node
+                newNode%parent                          => nodes(iNode)%node%parent
+                newNode%firstChild                      => null()                
+                nodes(iNode)%node%parent%firstChild     => newNode
+                newBasicComponent                       => newNode%basic()
                 call newBasicComponent%timeSet(newBasicComponent%time()*(1.0d0-1.0d-6))
+                ! Any satellites are now attached to the copy.
+                nodes(iNode)%node%parent%firstSatellite => null()
+                thisSatellite => newNode%firstSatellite
+                do while (associated(thisSatellite))
+                   thisSatellite%parent => newNode
+                   thisSatellite        => thisSatellite%sibling
+                end do
              end if
           end if
        end if
@@ -2131,6 +2400,65 @@ contains
     end do
     return
   end subroutine Assign_UniqueIDs_To_Clones
+
+  logical function Is_Subhalo_Subhalo_Merger(nodes,thisNode)
+    !% Returns true if {\tt thisNode} undergoes a subhalo-subhalo merger.
+    implicit none
+    type   (nodeData      ), intent(inout), dimension(:) :: nodes
+    type   (nodeData      ), intent(in   )               :: thisNode
+    integer                                              :: descendentIndex
+    logical                                              :: progenitorsFound
+    integer(kind=kind_int8)                              :: progenitorLocation
+
+    Is_Subhalo_Subhalo_Merger=.false.
+    ! Return immediately if there is no descendent. (Since there can be no merger if there is no descendent.)
+    if (.not.associated(thisNode%descendent          )) return
+    ! Return immediately if descendent is not a subhalo, as this could then not be a subhalo-subhalo merger.
+    if (.not.           thisNode%descendent%isSubhalo ) return
+    ! Check if thisNode's descendent has any progenitor nodes.
+    descendentIndex=Descendent_Node_Sort_Index(thisNode%descendent%nodeIndex)
+    if (descendentIndex > 0 .and. descendentIndex <= size(nodes)) then
+       progenitorLocation=descendentLocations(descendentIndex)
+       progenitorsFound=(nodes(progenitorLocation)%descendent%nodeIndex == thisNode%descendent%nodeIndex)
+    else
+       progenitorsFound=.false.
+    end if
+    if (progenitorsFound) then
+       ! It does. Iterate through them.
+       do while (                                                                                 &
+            &     nodes(progenitorLocation)%descendent%nodeIndex == thisNode%descendent%nodeIndex &
+            &    .and.                                                                            &
+            &     descendentIndex > 0                                                             &
+            &   )
+          ! Test if this progenitor is not thisNode, has some isolated node associated with it,
+          ! has a descendent, and has a mass greater than thisNode.
+          if     (                                                                                     &
+               &                    nodes(progenitorLocation)%nodeIndex         /= thisNode%nodeIndex  &
+               &  .and.             nodes(progenitorLocation)%isolatedNodeIndex /= nodeIsUnreachable   &
+               &  .and.  associated(nodes(progenitorLocation)%descendent                             ) &
+               &  .and.             nodes(progenitorLocation)%nodeMass           > thisNode%nodeMass   &
+               & ) then
+             ! It does, so this is a subhalo-subhalo merger.
+             Is_Subhalo_Subhalo_Merger =.true.
+             exit
+          end if
+          ! Skip to the next progenitor.
+          do while (descendentIndex > 0)
+             ! Decrement the index.
+             descendentIndex   =descendentIndex-1
+             ! If we've reached zero, there are no more nodes less to probe.
+             if (descendentIndex <= 0) exit
+             ! Find the location of this progenitor in the array of nodes.
+             progenitorLocation=descendentLocations(descendentIndex)
+             ! Providing this progenitor has a descendent, we can exit and process it.
+             if (associated(nodes(progenitorLocation)%descendent)) exit
+          end do
+          ! Exit if we've reached the end of the array of nodes.
+          if (descendentIndex == 0) exit
+       end do
+    end if
+    return
+  end function Is_Subhalo_Subhalo_Merger
 
   subroutine Dump_Tree(nodes,highlightNodes,branchRoot)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\sc dot}.

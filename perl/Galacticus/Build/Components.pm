@@ -96,6 +96,8 @@ sub Components_Generate_Output {
 	    \&Generate_Implementations                               ,
 	    # Generate the treeNode object.
 	    \&Generate_Tree_Node_Object                              ,
+	    # Create the node event object.
+	    \&Generate_Node_Event_Object                             ,
 	    # Create an initialization method.
 	    \&Generate_Initialization_Function                       ,
 	    # Generate a finalization method.
@@ -172,6 +174,8 @@ sub Components_Generate_Output {
 	    \&Generate_Active_Implementation_Records                 ,
 	    # Generate deferred procedure pointers.
 	    \&Generate_Deferred_Procedure_Pointers                   ,
+	    # Generate interface for nodeEvent tasks.
+	    \&Generate_Node_Event_Interface                          ,
 	    # Generate required null binding functions.
 	    \&Generate_Null_Binding_Functions                        ,
 	    # Insert the "contains" line.
@@ -1193,6 +1197,40 @@ sub Generate_Deferred_Procedure_Pointers {
     $buildData->{'content'} .= &Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
 }
 
+sub Generate_Node_Event_Interface {
+    # Generate interace for node event tasks.
+    my $buildData = shift;
+    # Initialize data content.
+    my @dataContent = 
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "nodeEvent",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "thisEvent" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "treeNode",
+	     attributes => [ "pointer", "intent(inout)" ],
+	     variables  => [ "thisNode" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     attributes => [ "intent(inout)" ],
+	     variables  => [ "deadlockStatus" ]
+	 }
+	);
+    # Insert interface.
+    $buildData->{'content'} .= "  ! Interface for node event tasks.\n";
+    $buildData->{'content'} .= "  abstract interface\n";
+    $buildData->{'content'} .= "    subroutine nodeEventTask(thisEvent,thisNode,deadlockStatus)\n";
+    $buildData->{'content'} .= "      import nodeEvent,treeNode\n";
+    $buildData->{'content'} .= &Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+    $buildData->{'content'} .= "    end subroutine nodeEventTask\n";
+    $buildData->{'content'} .= "  end interface\n";
+}
+
 sub Generate_Default_Component_Sources{
     # Generate records of which component implementations are selected.
     my $buildData = shift;
@@ -1283,7 +1321,8 @@ sub Generate_Tree_Node_Object {
 	 {type => "procedure", name => "walkBranchWithSatellites" , function => "Tree_Node_Walk_Branch_With_Satellites"   },
 	 {type => "procedure", name => "walkTree"                 , function => "Tree_Node_Walk_Tree"                     },
 	 {type => "procedure", name => "walkTreeUnderConstruction", function => "Tree_Node_Walk_Tree_Under_Construction"  },
-	 {type => "procedure", name => "walkTreeWithSatellites"   , function => "Tree_Node_Walk_Tree_With_Satellites"     }
+	 {type => "procedure", name => "walkTreeWithSatellites"   , function => "Tree_Node_Walk_Tree_With_Satellites"     },
+	 {type => "procedure", name => "createEvent"              , function => "Tree_Node_Create_Event"                  }
 	);
     # Add data content.
     my @dataContent =
@@ -1303,6 +1342,12 @@ sub Generate_Tree_Node_Object {
 	     intrinsic  => "logical",
 	     attributes => [ "public" ],
 	     variables  => [ "isPhysicallyPlausible" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "nodeEvent",
+	     attributes => [ "public", "pointer" ],
+	     variables  => [ "event" ]
 	 }
 	);
     foreach ( @{$buildData->{'componentClassList'}} ) {
@@ -1326,6 +1371,52 @@ sub Generate_Tree_Node_Object {
 	dataContent    => \@dataContent
     };
     push(@{$buildData->{'typesOrder'}},"treeNode");
+}
+
+sub Generate_Node_Event_Object {
+    # Generate the nodeEvent object.
+    my $buildData = shift;
+    # Add data content.
+    my @dataContent =
+	(
+	 {
+	     intrinsic  => "integer",
+	     type       => "kind=kind_int8",
+	     attributes => [ "public" ],
+	     variables  => [ "ID" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "treeNode",
+	     attributes => [ "pointer", "public" ],
+	     variables  => [ "node" ]
+	 },
+	 {
+	     intrinsic  => "double precision",
+	     attributes => [ "public" ],
+	     variables  => [ "time" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "nodeEvent",
+	     attributes => [ "public", "pointer" ],
+	     variables  => [ "next" ]
+	 },
+	 {
+	     intrinsic  => "procedure",
+	     type       => "nodeEventTask",
+	     attributes => [ "public", "pointer" ],
+	     variables  => [ "task" ]
+	 }
+	);
+    # Create the tree node class.
+    $buildData->{'types'}->{'nodeEvent'} = {
+	name           => "nodeEvent",
+	comment        => "Type for events attached to nodes.",
+	isPublic       => "true",
+	dataContent    => \@dataContent
+    };
+    push(@{$buildData->{'typesOrder'}},"nodeEvent");
 }
 
 sub Generate_Initialization_Function {
@@ -3811,7 +3902,7 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
 	foreach ( "uniqueIdValue", "indexValue" );
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
-	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee");
+	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event" );
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
     # Loop over all component classes
     if ( $workaround == 1 ) {
@@ -4645,7 +4736,7 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    ! Ensure pointers are nullified.\n";
     $functionCode .= "    nullify (self%".padComponentClass($_,[9,14]).")\n"
-	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" );
+	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" );
     foreach ( @{$buildData->{'componentClassList'}} ) {
     	$functionCode .= "    allocate(self%".padComponentClass("component".ucfirst($_),[9,14])."(1))\n";
     }
@@ -4683,6 +4774,16 @@ sub Generate_Tree_Node_Destruction_Function {
 	     type       => "treeNode",
 	     attributes => [ "intent(inout)" ],
 	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "nodeEvent",
+	     attributes => [ "pointer" ],
+	     variables  => [ "thisEvent", "pairEvent", "lastEvent", "nextEvent" ]
+	 },
+	 {
+	     intrinsic  => "logical",
+	     variables  => [ "pairMatched" ]
 	 }
 	);
     # Create the function code.
@@ -4694,6 +4795,38 @@ sub Generate_Tree_Node_Destruction_Function {
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
      	$functionCode .= "    call self%".padComponentClass(lc($componentClass)."Destroy",[7,0])."()\n";
     }
+    # Remove any events attached to the node, along with their paired event in other nodes.
+    $functionCode .= "    ! Iterate over all attached events.\n";
+    $functionCode .= "    thisEvent => self%event\n";
+    $functionCode .= "    do while (associated(thisEvent))\n";
+    $functionCode .= "        ! Locate the paired event and remove it.\n";
+    $functionCode .= "        pairEvent => thisEvent%node%event\n";
+    $functionCode .= "        lastEvent => thisEvent%node%event\n";
+    $functionCode .= "        ! Iterate over all events.\n";
+    $functionCode .= "        pairMatched=.false.\n";
+    $functionCode .= "        do while (associated(pairEvent).and..not.pairMatched)\n";
+    $functionCode .= "           ! Match the paired event ID with the current event ID.\n";
+    $functionCode .= "           if (pairEvent%ID == thisEvent%ID) then\n";
+    $functionCode .= "              pairMatched=.true.\n";
+    $functionCode .= "              if (associated(pairEvent,thisEvent%node%event)) then\n";
+    $functionCode .= "                 thisEvent%node  %event => pairEvent%next\n";
+    $functionCode .= "                 lastEvent       => thisEvent%node %event\n";
+    $functionCode .= "              else\n";
+    $functionCode .= "                 lastEvent%next  => pairEvent%next\n";
+    $functionCode .= "              end if\n";
+    $functionCode .= "              nextEvent => pairEvent%next\n";
+    $functionCode .= "              deallocate(pairEvent)\n";
+    $functionCode .= "              pairEvent => nextEvent\n";
+    $functionCode .= "           else\n";
+    $functionCode .= "              lastEvent => pairEvent\n";
+    $functionCode .= "              pairEvent => pairEvent%next\n";
+    $functionCode .= "           end if\n";
+    $functionCode .= "        end do\n";
+    $functionCode .= "        if (.not.pairMatched) call Galacticus_Error_Report('treeNodeDestroy','unable to find paired event')\n";
+    $functionCode .= "        nextEvent => thisEvent%next\n";
+    $functionCode .= "        deallocate(thisEvent)\n";
+    $functionCode .= "        thisEvent => nextEvent\n";
+    $functionCode .= "    end do\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine treeNodeDestroy\n";	
     # Insert into the function list.

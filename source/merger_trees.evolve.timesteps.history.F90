@@ -168,7 +168,7 @@ contains
     return
   end subroutine Merger_Tree_Timestep_History
 
-  subroutine Merger_Tree_History_Store(thisTree,thisNode)
+  subroutine Merger_Tree_History_Store(thisTree,thisNode,deadlockStatus)
     !% Store various properties in global arrays.
     use Merger_Trees
     use Numerical_Interpolation
@@ -177,6 +177,7 @@ contains
     implicit none
     type (mergerTree           ), intent(in   )          :: thisTree
     type (treeNode             ), intent(inout), pointer :: thisNode
+    integer                     , intent(inout)          :: deadlockStatus
     class(nodeComponentBasic   ),                pointer :: thisBasicComponent
     class(nodeComponentDisk    ),                pointer :: thisDiskComponent
     class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent

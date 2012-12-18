@@ -697,7 +697,7 @@ contains
     include 'events.node_mergers.process.modules.inc'
     !# </include>
     implicit none
-    class(mergerTree),   intent(inout)          :: thisTree
+    class(mergerTree),   intent(in   )          :: thisTree
     type(treeNode),      intent(inout), pointer :: thisNode
     type(varying_string)                        :: message
     

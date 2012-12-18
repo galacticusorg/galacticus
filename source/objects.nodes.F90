@@ -102,6 +102,9 @@ module Galacticus_Nodes
   ! Unique ID counter.
   integer(kind=kind_int8)    :: uniqueIdCount     =0
 
+  ! Event ID counter.
+  integer(kind=kind_int8)    :: eventID           =0
+
   ! Include node methods.
   !# <include directive="component" type="component">
   include 'objects.nodes.components.inc'
@@ -177,6 +180,29 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Unique_ID_Set
 
+  function Tree_Node_Create_Event(self) result (newEvent)
+    !% Create a new event in a tree node.
+    implicit none
+    type (nodeEvent), pointer       :: newEvent,thisEvent
+    class(treeNode ), intent(inout) :: self
+
+    allocate(newEvent)
+    nullify(newEvent%next)
+    !$omp atomic
+    eventID=eventID+1
+    newEvent%ID=eventID
+    if (associated(self%event)) then
+       thisEvent => self%event
+       do while (associated(thisEvent%next))
+          thisEvent => thisEvent%next
+       end do
+       thisEvent%next => newEvent
+    else
+       self%event => newEvent
+    end if
+    return
+  end function Tree_Node_Create_Event
+  
   logical function Tree_Node_Is_Primary_Progenitor(self)
     !% Returns true if {\tt self} is the primary progenitor of its parent node.
     implicit none
@@ -653,7 +679,7 @@ module Galacticus_Nodes
        else
           progenitorNode => progenitorNode%firstChild
        end if
-    end do
+  end do
     return
   end function Merger_Tree_Walk_Descend_to_Progenitors
 

@@ -15,22 +15,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which defines the template for tasks performed at the end of timesteps.
+!% Contains a module which provides an enumeration for tree deadlock statuses.
 
-module Merger_Trees_Evolve_Timesteps_Template
-  !% Defines the template for tasks performed at the end of timesteps.
-  use Merger_Trees
-  use Galacticus_Nodes
-  implicit none
-  public
-
-  abstract interface
-     subroutine End_Of_Timestep_Task_Template(thisTree,thisNode,deadlockStatus)
-       import mergerTree, treeNode
-       type(mergerTree), intent(in)             :: thisTree
-       type(treeNode),   intent(inout), pointer :: thisNode
-       integer,          intent(inout)          :: deadlockStatus
-     end subroutine End_Of_Timestep_Task_Template
-  end interface
-
-end module Merger_Trees_Evolve_Timesteps_Template
+module Merger_Trees_Evolve_Deadlock_Status
+  !% Provides an enumeration for tree deadlock statuses.
+  integer , parameter :: isDeadlocked=2,isReporting=1,isNotDeadlocked=0
+end module Merger_Trees_Evolve_Deadlock_Status
