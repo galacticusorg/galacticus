@@ -302,6 +302,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (percentageComplete == barPercentage) return
        if (.not.isNew) call Galacticus_Display_Counter_Clear_Lockless()
        percentage=max(0,min(percentageComplete,100))
        majorCount=percentage/2
