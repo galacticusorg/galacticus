@@ -195,9 +195,11 @@ contains
        thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
+       !$omp critical(Linear_Growth_Initialize)
        Linear_Growth_Factor=Linear_Growth_Factor+Interpolate(linearGrowthTableNumberPoints,linearGrowthTableTime &
             &,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)&
             &*hWavenumber(jWavenumber)
+    !$omp end critical(Linear_Growth_Initialize)
     end do
 
     ! Normalize.
@@ -273,9 +275,11 @@ contains
        thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
+       !$omp critical(Linear_Growth_Initialize)
        linearGrowthFactorTimeDerivative=linearGrowthFactorTimeDerivative+Interpolate_Derivative(linearGrowthTableNumberPoints&
             &,linearGrowthTableTime ,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset&
             &=resetInterpolation)*hWavenumber(jWavenumber)
+       !$omp end critical(Linear_Growth_Initialize)
     end do
     
     ! Get the expansion factor.
@@ -297,6 +301,7 @@ contains
     double precision, intent(in),  optional       :: wavenumber
 
     if (present(wavenumber).and.size(linearGrowthTableWavenumber) > 1) then
+       !$omp critical(Linear_Growth_Initialize)
        iWavenumber(0)=Interpolate_Locate              (                                    &
             &                                           size(linearGrowthTableWavenumber)  &
             &                                          ,     linearGrowthTableWavenumber   &
@@ -310,6 +315,7 @@ contains
             &                                          ,iWavenumber(0)                     &
             &                                          ,wavenumber                         &
             &                                         )
+       !$omp end critical(Linear_Growth_Initialize)
        iWavenumber(1)=iWavenumber(0)+1
     else
        ! No wavenumber was specified, so use the largest scale (smallest wavenumber) tabulated.
