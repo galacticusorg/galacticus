@@ -58,7 +58,7 @@ contains
        Transfer_Function_Tabulate => Transfer_Function_Eisenstein_Hu_Make
        !@ <inputParameter>
        !@   <name>effectiveNumberNeutrinos</name>
-       !@   <defaultValue>3.04 \citep{komatsu_seven-year_2010}</defaultValue>       
+       !@   <defaultValue>3.046 \citep{mangano_relic_2005}</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The effective number of neutrino species as used in the \cite{eisenstein_power_1999} transfer function.
@@ -66,7 +66,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('effectiveNumberNeutrinos',effectiveNumberNeutrinos,defaultValue=3.04d0)
+       call Get_Input_Parameter('effectiveNumberNeutrinos',effectiveNumberNeutrinos,defaultValue=3.046d0)
        !@ <inputParameter>
        !@   <name>summedNeutrinoMasses</name>
        !@   <defaultValue>0</defaultValue>       

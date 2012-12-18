@@ -49,7 +49,7 @@ contains
        Power_Spectrum_Tabulate => Power_Spectrum_Power_Law_Tabulate
        !@ <inputParameter>
        !@   <name>powerSpectrumIndex</name>
-       !@   <defaultValue>0.961 \citep{komatsu_seven-year_2010}</defaultValue>
+       !@   <defaultValue>0.9538 (\citealt{story_measurement_2012}; CMB$+H_0+$BAO)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The index of the power-law primordial power spectrum.
@@ -57,7 +57,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('powerSpectrumIndex'              ,powerSpectrumIndex              ,defaultValue=0.961d0)
+       call Get_Input_Parameter('powerSpectrumIndex'              ,powerSpectrumIndex              ,defaultValue=0.9538d0)
        !@ <inputParameter>
        !@   <name>powerSpectrumRunning</name>
        !@   <defaultValue>0</defaultValue>
