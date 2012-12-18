@@ -151,16 +151,18 @@ contains
     return
   end subroutine Merger_Tree_Timestep_Satellite
 
-  subroutine Satellite_Merger_Process(thisTree,thisNode)
+  subroutine Satellite_Merger_Process(thisTree,thisNode,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
     use Merger_Trees
     use Galacticus_Nodes
+    use Merger_Trees_Evolve_Deadlock_Status
     !# <include directive="satelliteMergerTask" type="moduleUse">
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
     implicit none
     type(mergerTree), intent(in)             :: thisTree
     type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(inout)          :: deadlockStatus
 
     ! Allow arbitrary routines to process the merger.
     !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
@@ -173,6 +175,9 @@ contains
     call thisNode%removeFromMergee()
     call thisNode%destroy         ()
     thisNode => null()
+
+    ! The tree was changed, so mark that it is not deadlocked.
+    deadlockStatus=isNotDeadlocked
     return
   end subroutine Satellite_Merger_Process
 

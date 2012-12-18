@@ -164,12 +164,16 @@ contains
     type (treeNode          ), intent(inout), pointer :: thisNode
     class(nodeComponentBasic),                pointer :: thisBasicComponent
 
-    thisBasicComponent => thisNode%basic()
-    if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
-         & reionizationSuppressionVelocity) then
+    if (thisNode%isSatellite()) then
        Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
     else
-       Halo_Baryonic_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%mass()
+       thisBasicComponent => thisNode%basic()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+            & reionizationSuppressionVelocity) then
+          Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
+       else
+          Halo_Baryonic_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%mass()
+       end if
     end if
     return
   end function Halo_Baryonic_Accreted_Mass_Simple_Get
@@ -215,12 +219,16 @@ contains
     type (treeNode          ), intent(inout), pointer :: thisNode
     class(nodeComponentBasic),                pointer :: thisBasicComponent
 
-    thisBasicComponent => thisNode%basic()
-    if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
-         & reionizationSuppressionVelocity) then
-       Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%mass()
-    else
+    if (thisNode%isSatellite()) then
        Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
+    else
+       thisBasicComponent => thisNode%basic()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+            & reionizationSuppressionVelocity) then
+          Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%mass()
+       else
+          Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
+       end if
     end if
     return
   end function Halo_Baryonic_Failed_Accreted_Mass_Simple_Get
@@ -313,13 +321,13 @@ contains
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     implicit none
-    type (treeNode                   ), intent(inout), pointer :: thisNode
-    double precision,                   intent(in   )          :: massAccreted
-    type (chemicalAbundances), intent(  out)          :: chemicalMasses
-    class(nodeComponentBasic         ),                pointer :: thisBasicComponent
-    type (chemicalAbundances), save                   :: chemicalDensities
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    double precision                    , intent(in   )          :: massAccreted
+    type            (chemicalAbundances), intent(  out)          :: chemicalMasses
+    class           (nodeComponentBasic),                pointer :: thisBasicComponent
+    type            (chemicalAbundances), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                           :: massToDensityConversion,temperature,numberDensityHydrogen
+    double precision                                             :: massToDensityConversion,temperature,numberDensityHydrogen
 
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0

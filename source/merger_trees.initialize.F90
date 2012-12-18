@@ -45,7 +45,7 @@ contains
           include 'merger_trees.initialize.tasks.inc'
           !# </include>
 
-          call thisNode%walkTree(thisNode)
+          call thisNode%walkTreeWithSatellites(thisNode)
        end do
        thisTree%initialized=.true.
     end if

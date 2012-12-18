@@ -5044,15 +5044,19 @@ Here, {\tt unitName} gives the name of the subroutine to be called to (possibly)
 \end{verbatim}
 This subroutine should compute a suitable timestep for {\tt thisNode} and, if it is less than the currently defined value of {\tt timeStep} should set {\tt timeStep} to that value. Optionally, the procedure pointer {\tt End\_Of\_Timestep\_Task} can be set to point to a subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for this pointer to be null. Note that the {\tt End\_Of\_Timestep\_Task} will only be called for the task which provided the shortest timestep---other tasks can always request to be called again when the next timestep is determined. The subroutine to be called at the end of the timestep must have the form:
 \begin{verbatim}
-  subroutine My_End_Of_Timestep_Task(thisNode)
+  subroutine My_End_Of_Timestep_Task(thisTree,thisNode,deadlockStatus)
     implicit none
+    type(mergerTree), intent(in)             :: thisTree
     type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(inout)          :: deadlockStatus
     .
     .
     .
     return
   end subroutine My_End_Of_Timestep_Task
 \end{verbatim}
+The {\tt deadlockStatus} argument should be set to {\tt isNotDeadlocked} (provided by the \hyperlink{merger_trees.evolve.deadlock_options.F90:merger_trees_evolve_deadlock_status}{\tt Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to the state of the tree (e.g. merging a node), to indicate that the tree was not deadlocked in this pass (i.e. something actually changed in the tree).
+
 If the {\tt report} argument is {\tt true} then the function should report the value of {\tt timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.) It is recommended that the report be made using the \hyperlink{merger_trees.evolve.timesteps.report.F90:evolve_to_time_reports:evolve_to_time_report}{\tt Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\tt lockNode} and {\tt lockType} arguments are present then additional information can be supplied to aid in diagnosing deadlock conditions. If the current task is limiting the timestep then the {\tt lockNode} pointer should be set to point to whichever node is causing the limit (which may be {\tt thisNode} or some other node, e.g. a satellite of {\tt thisNode}, etc.), and {\tt lockType} should be set to a short description label identifying the type of limit.
 
 \subsubsection{Galactic Component Density}

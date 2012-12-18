@@ -22,9 +22,9 @@ module Node_Component_Satellite_Standard
   use Kepler_Orbits
   implicit none
   private
-  public :: Node_Component_Satellite_Standard_Scale_Set          , Node_Component_Satellite_Standard_Create     , &
-       &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize , &
-       &    Node_Component_Satellite_Standard_Halo_Formation_Task
+  public :: Node_Component_Satellite_Standard_Scale_Set          , Node_Component_Satellite_Standard_Create         , &
+       &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize     , &
+       &    Node_Component_Satellite_Standard_Halo_Formation_Task, Node_Component_Satellite_Standard_Tree_Initialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -133,6 +133,18 @@ contains
 
      return
    end subroutine Node_Component_Satellite_Standard_Initialize
+
+  !# <mergerTreeInitializeTask>
+  !#  <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
+  !# </mergerTreeInitializeTask>
+  subroutine Node_Component_Satellite_Standard_Tree_Initialize(thisNode)
+    !% Initialize the standard satellite component.
+    implicit none
+    type (treeNode), pointer, intent(inout) :: thisNode
+
+    if (thisNode%isSatellite()) call Node_Component_Satellite_Standard_Create(thisNode)
+    return
+  end subroutine Node_Component_Satellite_Standard_Tree_Initialize
   
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Rate_Compute</unitName>
