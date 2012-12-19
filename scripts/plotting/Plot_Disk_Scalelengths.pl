@@ -52,12 +52,12 @@ $dataBlock->{'store'} = 0;
 &HDF5::Count_Trees($dataBlock);
 &HDF5::Select_Output($dataBlock,0.0);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['volumeWeight','diskRadius','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas']);
+&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight','diskRadius','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas']);
 $dataSets = $dataBlock->{'dataSets'};
 $scaleLength = $dataSets->{'diskRadius'};
 $magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
 $morphology = $dataSets->{'bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas'};
-$weight = $dataSets->{'volumeWeight'};
+$weight = $dataSets->{'mergerTreeWeight'};
 delete($dataBlock->{'dataSets'});
   
 # Initialize chi^2 accumulator.
