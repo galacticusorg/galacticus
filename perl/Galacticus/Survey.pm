@@ -110,11 +110,11 @@ sub Get_SurveyProperties {
     }
     if ( $dataSetName eq "angularWeight"      ) {
 	if ( $useLightcone == 0 ) {
-	    # Ensure that we have the "volumeWeight" property.
-	    &HDF5::Get_Dataset($dataBlock,["volumeWeight"]);
+	    # Ensure that we have the "mergerTreeWeight" property.
+	    &HDF5::Get_Dataset($dataBlock,["mergerTreeWeight"]);
 	    my $dataSets = $dataBlock->{'dataSets'};
 	    # Compute the angular weight for each galaxy.
-	    $dataSets->{$dataSetName} = $dataSets->{"volumeWeight"}*($comovingDistanceMaximum**3-$comovingDistanceMinimum**3)/3.0;
+	    $dataSets->{$dataSetName} = $dataSets->{"mergerTreeWeight"}*($comovingDistanceMaximum**3-$comovingDistanceMinimum**3)/3.0;
 	} else {
 	    die("Galacticus::Survey: lightcone data was found, but no 'angularWeight' dataset is present");
 	}
