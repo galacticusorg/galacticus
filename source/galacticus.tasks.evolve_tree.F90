@@ -46,7 +46,6 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Merger_Trees
-    use Merger_Tree_Construction
     use Merger_Trees_Evolve
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
@@ -63,9 +62,6 @@ contains
     !# </include>
     !# <include directive="mergerTreePostEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.postEvolveTask.moduleUse.inc'
-    !# </include>
-    !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
-    include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
     !# </include>
     implicit none
     type(mergerTree),     save, pointer      :: thisTree
@@ -154,20 +150,14 @@ contains
     do while (.not.finished)
 
        ! Increment the tree number.
-       !$omp atomic
-       iTree=iTree+1
-       ! Decide whether or not to skip this tree.
-       skipTree=.not.(modulo(iTree-1+(iTree-1)/treeEvolveWorkerCount,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
-       ! Perform any pre-tree construction tasks.
-       !# <include directive="mergerTreePreTreeConstructionTask" type="functionCall" functionType="void">
-       include 'galacticus.tasks.evolve_tree.preConstructionTask.inc'
-       !# </include>
-       
-       ! Get a tree.
-       !$omp critical(Tree_Sharing)
-       thisTree => Merger_Tree_Create(skipTree)
-       finished=finished.or..not.associated(thisTree)
-       !$omp end critical(Tree_Sharing)
+       if (treeEvolveWorkerCount == 1) then
+          call Get_Tree(iTree,skipTree,thisTree,finished)
+       else
+          !$omp critical(Tree_Sharing)
+          call Get_Tree(iTree,skipTree,thisTree,finished)
+          !$omp end critical(Tree_Sharing)
+       end if
+
        if (.not.finished) then
           
           ! Skip this tree if necessary.
@@ -243,5 +233,33 @@ contains
     Galacticus_Task_Evolve_Tree=.false.
     return
   end function Galacticus_Task_Evolve_Tree
+
+  subroutine Get_Tree(iTree,skipTree,thisTree,finished)
+    !% Get a tree to process.
+    use Merger_Trees
+    use Merger_Tree_Construction
+    !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
+    include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
+    !# </include>
+    implicit none
+    integer            , intent(inout)          :: iTree
+    logical            , intent(  out)          :: skipTree
+    logical            , intent(inout)          :: finished
+    type   (mergerTree), intent(  out), pointer :: thisTree
+    
+    ! Increment the tree counter.
+    iTree=iTree+1
+    ! Decide whether or not to skip this tree.
+    skipTree=.not.(modulo(iTree-1+(iTree-1)/treeEvolveWorkerCount,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
+    ! Perform any pre-tree construction tasks.
+    !# <include directive="mergerTreePreTreeConstructionTask" type="functionCall" functionType="void">
+    include 'galacticus.tasks.evolve_tree.preConstructionTask.inc'
+    !# </include>
+    
+    ! Get a tree.
+    thisTree => Merger_Tree_Create(skipTree)
+    finished=finished.or..not.associated(thisTree)
+    return
+  end subroutine Get_Tree
 
 end module Galacticus_Tasks_Evolve_Tree
