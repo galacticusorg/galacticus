@@ -9,7 +9,7 @@ use List::MoreUtils qw{ any };
 # Andrew Benson (18-October-2011)
 
 # Get the name of the executable to find parameters for.
-die("Usage: extractParameters.pl <executable>") unless ( scalar(@ARGV) == 1 );
+die("Usage: Find_Parameter_Dependencies.pl <executable>") unless ( scalar(@ARGV) == 1 );
 my $executable = $ARGV[0];
 
 # Build a hash of dependencies.
@@ -32,25 +32,36 @@ while ( my $fileName = readdir(sDir) ) {
 	(my $objectFile = $fileName) =~ s/\.[a-zA-Z0-9]+$/\.o/;
 	# Open the file and scan for parameters.
 	my $xmlBuffer;
-	open(sFile,"source/".$fileName);
-	while ( my $line = <sFile> ) {
-	    if ( $line =~ m/^\s*(\!|\/\/)@(.*)/ ) {
-		my $xmlLine = $2;
-		$xmlBuffer = "" if ( $xmlLine =~ m/^\s*<inputParameter>\s*$/ );
-		$xmlBuffer .= $xmlLine;
-		if ( $xmlLine =~ m/^\s*<\/inputParameter>\s*$/ ) {
-		    # Parse the XML.
-		    my $xml = new XML::Simple;
-		    my $inputParameter = $xml->XMLin($xmlBuffer);
-		    if ( exists {map { $_ => 1 } @{$dependencies->{'objectFiles'}}}->{$objectFile} ) {
-			unless ( exists {map { $_ => 1 } @{$dependencies->{'parameters' }}}->{$inputParameter->{'name'}} ) {
-			    push(@{$dependencies->{'parameters'}},$inputParameter->{'name'});
+	my @fileStack = ( "source/".$fileName );
+	while ( scalar(@fileStack) > 0 ) {
+	    my $fileToProcess = shift(@fileStack);
+	    open(sFile,$fileToProcess);
+	    while ( my $line = <sFile> ) {
+		# Detect included files and push onto the stack.
+		if ( exists {map { $_ => 1 } @{$dependencies->{'objectFiles'}}}->{$objectFile} ) {
+		    if ( $line =~ m/^\s*include\s*[\'\"](.*)[\'\"]/ ) {
+			push(@fileStack,"work/build/".$1);
+		    }
+		}
+		# Search for XML.
+		if ( $line =~ m/^\s*(\!|\/\/)@(.*)/ ) {
+		    my $xmlLine = $2;
+		    $xmlBuffer = "" if ( $xmlLine =~ m/^\s*<inputParameter>\s*$/ );
+		    $xmlBuffer .= $xmlLine;
+		    if ( $xmlLine =~ m/^\s*<\/inputParameter>\s*$/ ) {
+			# Parse the XML.
+			my $xml = new XML::Simple;
+			my $inputParameter = $xml->XMLin($xmlBuffer);
+			if ( exists {map { $_ => 1 } @{$dependencies->{'objectFiles'}}}->{$objectFile} ) {
+			    unless ( exists {map { $_ => 1 } @{$dependencies->{'parameters' }}}->{$inputParameter->{'name'}} ) {
+				push(@{$dependencies->{'parameters'}},$inputParameter->{'name'});
+			    }
 			}
 		    }
 		}
 	    }
+	    close(sFile);
 	}
-	close(sFile);
     }
 }
 close(sDir);
