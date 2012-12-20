@@ -182,7 +182,7 @@ contains
     logical                         ,          intent(inout) :: interrupt
     procedure(                     ), pointer, intent(inout) :: interruptProcedureReturn
     procedure(                     ), pointer                :: interruptProcedure
-    double precision                                         :: starFormationRate,fuelMass ,massOutflowRate,gasMass,diskMass&
+    double precision                                         :: starFormationRate,fuelMass,massOutflowRate,diskMass&
          &,energyInputRate,diskDynamicalTime
   
     ! Get a local copy of the interrupt procedure.
@@ -205,11 +205,10 @@ contains
        massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
        if (massOutflowRate > 0.0d0) then       
           ! Get the masses of the disk.
-          gasMass =        thisDiskComponent%massGas    ()
-          diskMass=gasMass+thisDiskComponent%massStellar()
+          diskMass=fuelMass+thisDiskComponent%massStellar()
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
           diskDynamicalTime=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
-          massOutflowRate=min(massOutflowRate,gasMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
+          massOutflowRate=min(massOutflowRate,fuelMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
           ! Push to the hot halo.
           thisHotHaloComponent => thisNode%hotHalo()
           call thisHotHaloComponent%outflowingMassRate(+massOutflowRate)
@@ -237,11 +236,9 @@ contains
     ! Check if a very simple disk component exists.
     select type (thisDiskComponent)
     class is (nodeComponentDiskVerySimple)
-       ! Set scale for gas mass.
-       mass=thisDiskComponent%massGas         (                     )
+       ! Set scale for gas and stellar mass.
+       mass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
        call thisDiskComponent%massGasScale    (max(mass,massMinimum))
-       ! Set scale for stellar mass.
-       mass=thisDiskComponent%massStellar     (                     )
        call thisDiskComponent%massStellarScale(max(mass,massMinimum))
     end select
     return
