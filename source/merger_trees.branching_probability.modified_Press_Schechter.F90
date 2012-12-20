@@ -26,8 +26,8 @@ module Modified_Press_Schechter_Branching
   public :: Modified_Press_Schechter_Branching_Initialize
   
   ! Parent halo shared variables.
-  double precision :: parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor
-  !$omp threadprivate(parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor)
+  double precision :: parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor
+  !$omp threadprivate(parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor)
 
   ! Parameters of the merger rate modification function.
   double precision :: modifiedPressSchechterG0,modifiedPressSchechterGamma1,modifiedPressSchechterGamma2
@@ -161,7 +161,7 @@ contains
     type(fgsl_function)                    :: integrandFunction
     type(fgsl_integration_workspace)       :: integrationWorkspace
 
-    Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum&
+    Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-branchingProbabilityPreFactor*Integrate(probabilityMinimumMass,massMaximum&
          &,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
          &,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -208,7 +208,7 @@ contains
        call Compute_Common_Factors
        massMinimum=massResolution
        massMaximum=0.5d0*parentHaloMass
-       Modified_Press_Schechter_Branching_Probability=Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
+       Modified_Press_Schechter_Branching_Probability=branchingProbabilityPreFactor*Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
             &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=branchingProbabilityIntegrandToleraceRelative&
             &,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -266,32 +266,39 @@ contains
   end function Branching_Probability_Integrand
   
   double precision function Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
-    !% Progenitor mass function from Press-Schechter.
+    !% Progenitor mass function from Press-Schechter. The constant factor of the parent halo
+    !% mass is not included here---instead it is included in a multiplicative prefactor by which
+    !% integrals over this function are multiplied.
     implicit none
     double precision, intent(in) :: childHaloMass,childSigma,childAlpha
 
-    Progenitor_Mass_Function=(parentHaloMass/childHaloMass**2)*Merging_Rate(childSigma,childAlpha)&
-         &*Modification_Function(childSigma)
+    Progenitor_Mass_Function=Merging_Rate(childSigma,childAlpha)*Modification_Function(childSigma)/(childHaloMass**2)
     return
   end function Progenitor_Mass_Function
   
   double precision function Merging_Rate(childSigma,childAlpha)
-    !% Merging rate from Press-Schechter.
+    !% Merging rate from Press-Schechter. The constant factor of sqrt(2/pi) not included
+    !% here---instead it is included in a multiplicative prefactor by which integrals over this
+    !% function are multiplied.
     implicit none
     double precision, intent(in) :: childSigma,childAlpha
     double precision             :: childSigmaSquared
 
     childSigmaSquared=childSigma**2
-    Merging_Rate=sqrtTwoOverPi*(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*dabs(childAlpha)
+    Merging_Rate=(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*dabs(childAlpha)
     return
   end function Merging_Rate
   
   double precision function Modification_Function(childSigma)
-    !% Empirical modification of the progenitor mass function from \cite{parkinson_generating_2008}.
+    !% Empirical modification of the progenitor mass function from
+    !% \cite{parkinson_generating_2008}. The constant factors of $G_0 (\delta_{\rm
+    !% p}/\sigma_{\rm p})^{\gamma_2}$ and $1/\sigma_{\rm p}^{\gamma_1}$ are not included
+    !% here---instead they are included in a multiplicative prefactor by which integrals over
+    !% this function are multiplied.
     implicit none
     double precision, intent(in) :: childSigma
 
-    Modification_Function=modificationG0Gamma2Factor*((childSigma/parentSigma)**modifiedPressSchechterGamma1)
+    Modification_Function=childSigma**modifiedPressSchechterGamma1
     return
   end function Modification_Function
   
@@ -299,8 +306,9 @@ contains
     !% Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
     implicit none
 
-    parentSigmaSquared        =parentSigma**2
-    modificationG0Gamma2Factor=modifiedPressSchechterG0*((parentDelta/parentSigma)**modifiedPressSchechterGamma2)
+    parentSigmaSquared           =parentSigma**2
+    modificationG0Gamma2Factor   =modifiedPressSchechterG0*((parentDelta/parentSigma)**modifiedPressSchechterGamma2)
+    branchingProbabilityPreFactor=sqrtTwoOverPi*parentHaloMass*modificationG0Gamma2Factor/parentSigma**modifiedPressSchechterGamma1
     return
   end subroutine Compute_Common_Factors
 
