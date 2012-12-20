@@ -1469,6 +1469,16 @@ sub Generate_Initialization_Function {
 	die("No default method was found for ".$componentClass." class")
 	    unless ( defined($defaultMethod) );
 	# Insert a function call to get the parameter controlling the choice of implementation for this class.
+        $functionCode .= "    !@ <inputParameter>\n";
+        $functionCode .= "    !@   <name>treeNodeMethod".ucfirst($componentClass)."</name>\n";
+        $functionCode .= "    !@   <defaultValue>".$defaultMethod."</defaultValue>\n";
+        $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
+        $functionCode .= "    !@   <description>\n";
+        $functionCode .= "    !@    Specifies the implementation to be used for the ".$componentClass." component of nodes.\n";
+        $functionCode .= "    !@   </description>\n";
+        $functionCode .= "    !@   <type>string</type>\n";
+        $functionCode .= "    !@   <cardinality>1</cardinality>\n";
+        $functionCode .= "    !@ </inputParameter>\n";
     	$functionCode .= "    call Get_Input_Parameter('treeNodeMethod".padComponentClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".padImplementation($defaultMethod."'",[1,0]).")\n";
     	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
     	    my $fullName  = ucfirst($componentClass).ucfirst($implementationName);
@@ -1496,6 +1506,16 @@ sub Generate_Initialization_Function {
 		    ) 
 		{
 		    my $parameterName = $1;
+		    $functionCode .= "    !@ <inputParameter>\n";
+		    $functionCode .= "    !@   <name>".$parameterName."</name>\n";
+		    $functionCode .= "    !@   <defaultValue>false</defaultValue>\n";
+		    $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
+		    $functionCode .= "    !@   <description>\n";
+		    $functionCode .= "    !@    Specifies whether the {\\tt ".$methodName."} method of the {\\tt ".$implementationName."} implemention of the {\\tt ".$componentClass."} component class should be output.\n";
+		    $functionCode .= "    !@   </description>\n";
+		    $functionCode .= "    !@   <type>string</type>\n";
+		    $functionCode .= "    !@   <cardinality>1</cardinality>\n";
+		    $functionCode .= "    !@ </inputParameter>\n";
 		    $functionCode .= "call Get_Input_Parameter('".$parameterName."',".$parameterName.",defaultValue=.false.)\n";
 		    $buildData->{'content'} .= "  logical :: ".$parameterName."\n";
 		}
