@@ -116,6 +116,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.tables.exe",                          # Tests of table functions.
+	valgrind => 0
+    },
+    {
 	name     => "tests.interpolation.exe",                   # Tests of interpolation functions.
 	valgrind => 0
     },

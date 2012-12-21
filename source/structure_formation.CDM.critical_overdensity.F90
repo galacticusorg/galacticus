@@ -21,7 +21,7 @@ module Critical_Overdensity
   !% Implements the critical linear theory overdensity for halo collapse.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use FGSL
+  use Tables
   implicit none
   private
   public :: Critical_Overdensity_for_Collapse, Critical_Overdensity_for_Collapse_Time_Gradient, Time_of_Collapse,&
@@ -34,16 +34,8 @@ module Critical_Overdensity
   !$omp threadprivate(tablesInitialized)
 
   ! Variables to hold the tabulated critical overdensity data.
-  integer                                        :: deltaCritTableNumberPoints
-  double precision,    allocatable, dimension(:) :: deltaCritTableTime,deltaCritTableDeltaCrit,deltaCritReverseTableTime&
-       &,deltaCritReverseTableDeltaCrit
-  type(fgsl_interp)                              :: interpolationObject,reverseInterpolationObject
-  type(fgsl_interp_accel)                        :: interpolationAccelerator,reverseInterpolationAccelerator
-  logical                                        :: resetInterpolation,reverseResetInterpolation
-  !$omp threadprivate(deltaCritTableNumberPoints,deltaCritTableTime,deltaCritTableDeltaCrit,deltaCritReverseTableTime)
-  !$omp threadprivate(deltaCritReverseTableDeltaCrit,interpolationObject,reverseInterpolationObject)
-  !$omp threadprivate(interpolationAccelerator,reverseInterpolationAccelerator)
-  !$omp threadprivate(resetInterpolation,reverseResetInterpolation)
+  class(table1D),      allocatable               :: deltaCritTable,deltaCritTableReversed
+  !$omp threadprivate(deltaCritTable,deltaCritTableReversed)
 
   ! Name of critical overdensity method used.
   type(varying_string)                           :: criticalOverdensityMethod,criticalOverdensityMassScalingMethod
@@ -55,10 +47,10 @@ module Critical_Overdensity
   ! Pointer to the subroutine that tabulates the critical overdensity and template interface for that subroutine.
   procedure(Critical_Overdensity_Tabulate_Template), pointer :: Critical_Overdensity_Tabulate => null()
   abstract interface
-     subroutine Critical_Overdensity_Tabulate_Template(time,deltaCritTableNumberPoints,deltaCritTime,deltaCritDeltaCrit)
-       double precision,                            intent(in)    :: time
-       double precision, allocatable, dimension(:), intent(inout) :: deltaCritTime,deltaCritDeltaCrit
-       integer,                                     intent(out)   :: deltaCritTableNumberPoints
+     subroutine Critical_Overdensity_Tabulate_Template(time,deltaCritTable)
+       import table
+       double precision       , intent(in   ) :: time
+       class           (table), intent(inout) :: deltaCritTable
      end subroutine Critical_Overdensity_Tabulate_Template
   end interface
 
@@ -112,15 +104,10 @@ contains
        !$omp end critical (Critical_Overdensity_Initialize)
     end if
     ! Call routine to initialize the critical overdensity table.
-    call Critical_Overdensity_Tabulate(time,deltaCritTableNumberPoints,deltaCritTableTime,deltaCritTableDeltaCrit)
-    if (.not.Array_Is_Monotonic(deltaCritTableDeltaCrit,direction=directionDecreasing)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','critical overdensity must be monotonically decreasing with time')
+    call Critical_Overdensity_Tabulate(time,deltaCritTable)
+    if (.not.deltaCritTable%isMonotonic(direction=directionDecreasing)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','critical overdensity must be monotonically decreasing with time')
     ! Create the reversed arrays.
-    if (allocated(deltaCritReverseTableTime     )) call Dealloc_Array(deltaCritReverseTableTime     )
-    if (allocated(deltaCritReverseTableDeltaCrit)) call Dealloc_Array(deltaCritReverseTableDeltaCrit)
-    call Alloc_Array(deltaCritReverseTableTime     ,[deltaCritTableNumberPoints])
-    call Alloc_Array(deltaCritReverseTableDeltaCrit,[deltaCritTableNumberPoints])
-    deltaCritReverseTableTime     =Array_Reverse(deltaCritTableTime     )
-    deltaCritReverseTableDeltaCrit=Array_Reverse(deltaCritTableDeltaCrit)
+    call deltaCritTable%reverse(deltaCritTableReversed)
     ! Flag that the module and tables are now initialized.
     tablesInitialized=.true.
     return
@@ -128,6 +115,7 @@ contains
 
   double precision function Critical_Overdensity_Collapsing_Mass(time,aExpansion,collapsing)
     !% Return the mass scale just collapsing at the given cosmic time.
+    use FGSL
     use Root_Finder
     use Cosmology_Functions
     implicit none
@@ -206,20 +194,14 @@ contains
 
     ! Check if we need to recompute our table.
     if (tablesInitialized) then
-       remakeTable=(time<deltaCritTableTime(1).or.time>deltaCritTableTime(deltaCritTableNumberPoints))
+       remakeTable=(time<deltaCritTable%x(1).or.time>deltaCritTable%x(-1))
     else
        remakeTable=.true.
     end if
-    if (remakeTable) then
-       call Critical_Overdensity_Initialize(timeActual)
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
-       resetInterpolation=.true.
-       reverseResetInterpolation=.true.
-    end if
+    if (remakeTable) call Critical_Overdensity_Initialize(timeActual)
 
     ! Interpolate to get the critical overdensity for collapse.
-    Critical_Overdensity_for_Collapse=Interpolate(deltaCritTableNumberPoints,deltaCritTableTime,deltaCritTableDeltaCrit&
-         &,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    Critical_Overdensity_for_Collapse=deltaCritTable%interpolate(timeActual)
 
     ! Scale by a mass dependent factor if necessary.
     if (present(mass)) Critical_Overdensity_for_Collapse=Critical_Overdensity_for_Collapse*Critical_Overdensity_Mass_Scaling(mass)
@@ -259,20 +241,14 @@ contains
 
     ! Check if we need to recompute our table.
     if (tablesInitialized) then
-       remakeTable=(time<deltaCritTableTime(1).or.time>deltaCritTableTime(deltaCritTableNumberPoints))
+       remakeTable=(time<deltaCritTable%x(1).or.time>deltaCritTable%x(-1))
     else
        remakeTable=.true.
     end if
-    if (remakeTable) then
-       call Critical_Overdensity_Initialize(timeActual)
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
-       resetInterpolation=.true.
-       reverseResetInterpolation=.true.
-    end if
+    if (remakeTable) call Critical_Overdensity_Initialize(timeActual)
 
     ! Interpolate to get the derivative.
-    Critical_Overdensity_for_Collapse_Time_Gradient=Interpolate_Derivative(deltaCritTableNumberPoints,deltaCritTableTime&
-         &,deltaCritTableDeltaCrit ,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    Critical_Overdensity_for_Collapse_Time_Gradient=deltaCritTable%interpolateGradient(timeActual)
 
     ! Scale by a mass dependent factor if necessary.
     if (present(mass)) Critical_Overdensity_for_Collapse_Time_Gradient=Critical_Overdensity_for_Collapse_Time_Gradient*Critical_Overdensity_Mass_Scaling(mass)
@@ -297,23 +273,18 @@ contains
 
     ! Check if we need to recompute our table.
     if (.not.tablesInitialized) call Critical_Overdensity_Initialize(Cosmology_Age(1.0d0))
-    do while (criticalOverdensityActual>deltaCritTableDeltaCrit(1).or.criticalOverdensityActual&
-         &<deltaCritTableDeltaCrit(deltaCritTableNumberPoints))
-       if (criticalOverdensityActual>deltaCritTableDeltaCrit(1)) then
-          time=0.5d0*deltaCritTableTime(1)
+    do while (criticalOverdensityActual<deltaCritTableReversed%x(1).or.criticalOverdensityActual&
+         &>deltaCritTableReversed%x(-1))
+       if (criticalOverdensityActual>deltaCritTableReversed%x(-1)) then
+          time=0.5d0*deltaCritTable%x( 1)
        else
-          time=2.0d0*deltaCritTableTime(deltaCritTableNumberPoints)
+          time=2.0d0*deltaCritTable%x(-1)
        end if
        call Critical_Overdensity_Initialize(time)
-       call Interpolate_Done(reverseInterpolationObject,reverseInterpolationAccelerator,reverseResetInterpolation)
-       reverseResetInterpolation=.true.
-       resetInterpolation=.true.
     end do
     
     ! Interpolate to get the expansion factor.
-    Time_of_Collapse=Interpolate(deltaCritTableNumberPoints,deltaCritReverseTableDeltaCrit,deltaCritReverseTableTime &
-         &,reverseInterpolationObject,reverseInterpolationAccelerator,criticalOverdensityActual,reset=reverseResetInterpolation)
-
+    Time_of_Collapse=deltaCritTableReversed%interpolate(criticalOverdensityActual)
     return
   end function Time_of_Collapse
 
@@ -388,13 +359,11 @@ contains
   subroutine Critical_Overdensity_State_Retrieve(stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
     use Memory_Management
+    use FGSL
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
 
-    deltaCritTableNumberPoints=0
-    if (allocated(deltaCritTableTime     )) call Dealloc_Array(deltaCritTableTime     )
-    if (allocated(deltaCritTableDeltaCrit)) call Dealloc_Array(deltaCritTableDeltaCrit)
     tablesInitialized=.false.
     return
   end subroutine Critical_Overdensity_State_Retrieve

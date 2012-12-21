@@ -20,7 +20,7 @@
 module Virial_Density_Contrast
   !% Implements the virial overdensity for halos.
   use ISO_Varying_String
-  use FGSL
+  use Tables
   implicit none
   private
   public :: Halo_Virial_Density_Contrast, Halo_Virial_Density_Contrast_Rate_of_Change, Virial_Density_Contrast_State_Retrieve
@@ -29,13 +29,9 @@ module Virial_Density_Contrast
   logical                                        :: deltaVirialInitialized=.false.
 
   ! Variables to hold the tabulated virial overdensity data.
-  integer                                        :: deltaVirialTableNumberPoints
-  double precision,    allocatable, dimension(:) :: deltaVirialTableTime,deltaVirialTableDeltaVirial
-  type(fgsl_interp)                              :: interpolationObject
-  type(fgsl_interp_accel)                        :: interpolationAccelerator
-  logical                                        :: resetInterpolation, tablesInitialized=.false.
-  !$omp threadprivate(deltaVirialTableNumberPoints,deltaVirialTableTime,deltaVirialTableDeltaVirial)
-  !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation,tablesInitialized)
+  logical                                        :: tablesInitialized=.false.
+  class(table1D),      allocatable               :: deltaVirialTable
+  !$omp threadprivate(deltaVirialTable,tablesInitialized)
 
   ! Name of virial overdensity method used.
   type(varying_string)                           :: virialDensityContrastMethod
@@ -43,10 +39,10 @@ module Virial_Density_Contrast
   ! Pointer to the subroutine that tabulates the virial overdensity and template interface for that subroutine.
   procedure(Virial_Density_Contrast_Tabulate_Template), pointer :: Virial_Density_Contrast_Tabulate => null()
   abstract interface
-     subroutine Virial_Density_Contrast_Tabulate_Template(time,deltaVirialTableNumberPoints,deltaVirialTime,deltaVirialDeltaVirial)
-       double precision,                            intent(in)    :: time
-       double precision, allocatable, dimension(:), intent(inout) :: deltaVirialTime,deltaVirialDeltaVirial
-       integer,                                     intent(out)   :: deltaVirialTableNumberPoints
+     subroutine Virial_Density_Contrast_Tabulate_Template(time,deltaVirialTable)
+       import table1D
+       double precision         , intent(in   ) :: time
+       class           (table1D), intent(inout) :: deltaVirialTable
      end subroutine Virial_Density_Contrast_Tabulate_Template
   end interface
   
@@ -105,15 +101,13 @@ contains
     
     ! Check if we need to recompute our table.
     if (tablesInitialized) then
-       remakeTable=(time<deltaVirialTableTime(1).or.time>deltaVirialTableTime(deltaVirialTableNumberPoints))
+       remakeTable=(time<deltaVirialTable%x(1).or.time>deltaVirialTable%x(-1))
     else
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Virial_Density_Contrast_Tabulate(time,deltaVirialTableNumberPoints,deltaVirialTableTime,deltaVirialTableDeltaVirial)
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
-       resetInterpolation=.true.
-       tablesInitialized =.true.
+       call Virial_Density_Contrast_Tabulate(time,deltaVirialTable)
+       tablesInitialized=.true.
     end if
     return
   end subroutine Virial_Density_Contrast_Retabulate
@@ -153,8 +147,7 @@ contains
     call Virial_Density_Contrast_Retabulate(timeActual)
 
     ! Interpolate to get the expansion factor.
-    Halo_Virial_Density_Contrast=Interpolate(deltaVirialTableNumberPoints,deltaVirialTableTime,deltaVirialTableDeltaVirial &
-         &,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    Halo_Virial_Density_Contrast=deltaVirialTable%interpolate(timeActual)
     return
   end function Halo_Virial_Density_Contrast
 
@@ -193,8 +186,7 @@ contains
     call Virial_Density_Contrast_Retabulate(timeActual)
 
     ! Interpolate to get the expansion factor.
-    Halo_Virial_Density_Contrast_Rate_of_Change=Interpolate_Derivative(deltaVirialTableNumberPoints,deltaVirialTableTime&
-         &,deltaVirialTableDeltaVirial ,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)
+    Halo_Virial_Density_Contrast_Rate_of_Change=deltaVirialTable%interpolateGradient(timeActual)
     return
   end function Halo_Virial_Density_Contrast_Rate_of_Change
 
@@ -204,13 +196,11 @@ contains
   subroutine Virial_Density_Contrast_State_Retrieve(stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
     use Memory_Management
+    use FGSL
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
 
-    deltaVirialTableNumberPoints=0
-    if (allocated(deltaVirialTableTime       )) call Dealloc_Array(deltaVirialTableTime       )
-    if (allocated(deltaVirialTableDeltaVirial)) call Dealloc_Array(deltaVirialTableDeltaVirial)
     tablesInitialized=.false.
     return
   end subroutine Virial_Density_Contrast_State_Retrieve

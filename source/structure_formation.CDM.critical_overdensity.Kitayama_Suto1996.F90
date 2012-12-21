@@ -52,18 +52,16 @@ contains
     return
   end subroutine Critical_Overdensity_Kitayama_Suto1996_Initialize
 
-  subroutine Critical_Overdensity_Kitayama_Suto1996(time,deltaTableNumberPoints,deltaTableTime,deltaTableDelta)
+  subroutine Critical_Overdensity_Kitayama_Suto1996(time,deltaTable)
     !% Tabulate the virial density contrast for the \cite{kitayama_semianalytic_1996} fitting function module.
-    use Memory_Management
     use Cosmology_Functions
     use Numerical_Constants_Math
-    use Numerical_Ranges
     use Linear_Growth
+    use Tables
     implicit none
-    double precision, intent(in)                               :: time
-    integer,          intent(out)                              :: deltaTableNumberPoints
-    double precision, intent(inout), allocatable, dimension(:) :: deltaTableTime,deltaTableDelta
-    integer                                                    :: iTime
+    double precision       , intent(in   )              :: time
+    class           (table), intent(inout), allocatable :: deltaTable
+    integer                                             :: iTime,deltaTableNumberPoints
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
@@ -73,21 +71,26 @@ contains
     deltaTableNumberPoints=int(dlog10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
     
-    ! Deallocate arrays if currently allocated.
-    if (allocated(deltaTableTime )) call Dealloc_Array(deltaTableTime )
-    if (allocated(deltaTableDelta)) call Dealloc_Array(deltaTableDelta)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(deltaTableTime ,[deltaTableNumberPoints])
-    call Alloc_Array(deltaTableDelta,[deltaTableNumberPoints])
-    
-    ! Create set of grid points in time variable.
-    deltaTableTime=Make_Range(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints,rangeTypeLogarithmic)
-    
-    ! Evaluate the fitting formulae of Kitayama & Suto at each time to get the critical overdensity.
-    do iTime=1,deltaTableNumberPoints
-       deltaTableDelta(iTime)=(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)*(1.0d0+0.0123d0&
-            &*log10(Omega_Matter_Total(deltaTableTime(iTime))))/Linear_Growth_Factor(deltaTableTime(iTime))
-    end do
+    ! Create the table.
+    if (allocated(deltaTable)) then
+       call deltaTable%destroy()
+       deallocate(deltaTable)
+    end if
+    allocate(table1DLogarithmicLinear :: deltaTable)
+    select type (deltaTable)
+    type is (table1DLogarithmicLinear)
+       ! Create the table.
+       call deltaTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)    
+       ! Evaluate the fitting formula of Kitayama & Suto at each time to get the critical overdensity.
+       do iTime=1,deltaTableNumberPoints
+          call deltaTable%populate(                                                                  &
+               &                   (3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                         &
+               &                   *(1.0d0+0.0123d0*log10(Omega_Matter_Total(deltaTable%x(iTime))))  &
+               &                   /Linear_Growth_Factor                    (deltaTable%x(iTime))  , &
+               &                   iTime                                                             &
+               &                  )
+       end do
+    end select
     return
   end subroutine Critical_Overdensity_Kitayama_Suto1996
 

@@ -20,7 +20,8 @@
 module CDM_Power_Spectrum
   !% Implements the CDM power spectrum.
   use FGSL
-  use, intrinsic :: ISO_C_Binding                             
+  use, intrinsic :: ISO_C_Binding
+  use Tables
   implicit none
   private
   public :: Power_Spectrum_CDM, Power_Spectrum_Logarithmic_Derivative, Power_Spectrum_Dimensionless, sigma_CDM, Mass_from_Sigma,&
@@ -37,16 +38,13 @@ module CDM_Power_Spectrum
   double precision            :: sigma_8_Value               ! Power spectrum normalization parameter.
 
   ! Variables to hold the tabulated sigma(M) data.
-  integer                                        :: sigmaTableNPoints=-1
-  double precision,    allocatable, dimension(:) :: sigmaTableLogMass, sigmaTable,sigmaTableReversed
-  double precision                               :: sigmaTableLogMassMinimum=dlog(1.0d6), sigmaTableLogMassMaximum=dlog(1.0d15)
-  integer,             parameter                 :: sigmaTableNPointsPerDecade=10
-  type(fgsl_interp)                              :: interpolationObject
-  type(fgsl_interp_accel)                        :: interpolationAccelerator
-  logical                                        :: resetInterpolation=.true.
+  integer                         :: sigmaTableNPoints=-1
+  double precision                :: sigmaTableMassMinimum=1.0d6, sigmaTableMassMaximum=1.0d15
+  integer,             parameter  :: sigmaTableNPointsPerDecade=10
+  type(table1DLogarithmicCSpline) :: sigmaTableNew
 
   ! Smoothing mass scale used in computing variance.
-  double precision                               :: smoothingMass
+  double precision                :: smoothingMass
 
 contains
 
@@ -83,7 +81,7 @@ contains
     use ISO_Varying_String
     implicit none
     double precision, intent(in) :: wavenumber
-    double precision             :: mass,logMass
+    double precision             :: mass
     character(len=15)            :: label
     type(varying_string)         :: message
 
@@ -101,8 +99,7 @@ contains
           message=message//"  Critical_Density(): "//trim(label)
           call Galacticus_Error_Report("Power_Spectrum_CDM",message)
        end if
-       logMass=dlog(mass)
-       call Initialize_Sigma(logMass)
+       call Initialize_Sigma(mass)
     end if
     
     ! Compute the power spectrum.
@@ -119,32 +116,31 @@ contains
     implicit none
     double precision, intent(in) :: sigma
     integer                      :: iMass
-    double precision             :: logMass,h
+    double precision             :: h,logMass
     
     ! Ensure that the sigma(M) tabulation exists.
-    call Initialize_Sigma(sigmaTableLogMassMinimum)
+    call Initialize_Sigma(sigmaTableMassMinimum)
 
     ! If the requested sigma is below the lowest value tabulated, attempt to tabulate to higher mass (lower sigma).
-    do while (sigma < sigmaTable(sigmaTableNPoints))
-       call Initialize_Sigma(sigmaTableLogMass(sigmaTableNPoints)+1.0d0)
+    do while (sigma < sigmaTableNew%y(-1))
+       call Initialize_Sigma(log(sigmaTableNew%x(-1))+1.0d0)
     end do
 
     ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
-    if (sigma > sigmaTable(1)) then
-       Mass_from_Sigma=exp(sigmaTableLogMass(1))
+    if (sigma > sigmaTableNew%y(1)) then
+       Mass_from_Sigma=exp(sigmaTableNew%x(1))
        return
     end if
 
     ! Find the largest mass corresponding to this sigma.
     iMass=sigmaTableNPoints
-    do while (iMass > 1 .and. sigmaTable(iMass-1) < sigma)
+    do while (iMass > 1 .and. sigmaTableNew%y(iMass-1) < sigma)
        iMass=iMass-1
     end do
 
-    h=(sigma-sigmaTable(iMass))/(sigmaTable(iMass-1)-sigmaTable(iMass))
-    logMass=sigmaTableLogMass(iMass)*(1.0d0-h)+sigmaTableLogMass(iMass-1)*h
+    h=(sigma-sigmaTableNew%y(iMass))/(sigmaTableNew%y(iMass-1)-sigmaTableNew%y(iMass))
+    logMass=log(sigmaTableNew%x(iMass))*(1.0d0-h)+log(sigmaTableNew%x(iMass-1))*h
     Mass_from_Sigma=exp(logMass)
-
     return
   end function Mass_from_Sigma
 
@@ -153,18 +149,13 @@ contains
     use Numerical_Interpolation
     implicit none
     double precision, intent(in) :: mass
-    double precision             :: logMass
-
-    ! Get logarithm of mass.
-    logMass=dlog(mass)
 
     ! Check if we need to initialize this function.
-    call Initialize_Sigma(logMass)
+    call Initialize_Sigma(mass)
     
     ! Interpolate in tabulated function and return result.
     !$omp critical(Sigma_CDM_Interpolate)
-    sigma_CDM=Interpolate(sigmaTableNPoints,sigmaTableLogMass,sigmaTable,interpolationObject,interpolationAccelerator,logMass&
-         &,interpolationType=FGSL_Interp_CSpline,reset=resetInterpolation)
+    sigma_CDM=sigmaTableNew%interpolate(mass)
     !$omp end critical(Sigma_CDM_Interpolate)
     return
   end function sigma_CDM
@@ -186,22 +177,15 @@ contains
     implicit none
     double precision, intent(in)  :: mass
     double precision, intent(out) :: sigma,sigmaLogarithmicDerivative
-    double precision              :: logMass
-
-    ! Get logarithm of mass.
-    logMass=dlog(mass)
 
     ! Check if we need to initialize this function.
-    call Initialize_Sigma(logMass)
+    call Initialize_Sigma(mass)
     
     ! Interpolate in tabulated function and return result.
     !$omp critical(Sigma_CDM_Interpolate)
-    sigma=Interpolate(sigmaTableNPoints,sigmaTableLogMass,sigmaTable,interpolationObject,interpolationAccelerator,logMass&
-         &,interpolationType=FGSL_Interp_CSpline,reset=resetInterpolation)
-    sigmaLogarithmicDerivative=Interpolate_Derivative(sigmaTableNPoints,sigmaTableLogMass,sigmaTable,interpolationObject&
-         &,interpolationAccelerator,logMass,interpolationType=FGSL_Interp_CSpline,reset=resetInterpolation)/sigma
+    sigma                     =sigmaTableNew%interpolate        (mass)
+    sigmaLogarithmicDerivative=sigmaTableNew%interpolateGradient(mass)*mass/sigma
     !$omp end critical(Sigma_CDM_Interpolate)
-
     return
   end subroutine sigma_CDM_Plus_Logarithmic_Derivative
 
@@ -210,13 +194,13 @@ contains
     implicit none
 
     ! Ensure the module has been initialized.
-    call Initialize_Sigma(sigmaTableLogMassMinimum)
+    call Initialize_Sigma(sigmaTableMassMinimum)
 
     sigma_8=sigma_8_Value
     return
   end function sigma_8
 
-  subroutine Initialize_Sigma(logMass)
+  subroutine Initialize_Sigma(mass)
     !% Ensure that $\sigma(M)$ is tabulated over a range that includes {\tt logMass}. The default normalization, $\sigma_9=0.807$,
     !% is taken from \cite{komatsu_seven-year_2010}.
     use Input_Parameters
@@ -226,12 +210,12 @@ contains
     use Numerical_Constants_Math
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in) :: logMass
+    double precision, intent(in) :: mass
     integer                      :: iMass
-    double precision             :: mass
+    double precision             :: sigma
     
     !$omp critical (Sigma_CDM_Interpolate)
-    if (.not.sigmaInitialized.or.logMass<sigmaTableLogMassMinimum.or.logMass>sigmaTableLogMassMaximum) then
+    if (.not.sigmaInitialized.or.mass<sigmaTableMassMinimum.or.mass>sigmaTableMassMaximum) then
        ! Compute the normalization if required.
        if (.not.sigmaNormalized) then
           !@ <inputParameter>
@@ -250,31 +234,21 @@ contains
           sigmaNormalized=.true.
        end if
        ! Find suitable range of masses to tabulate.
-       sigmaTableLogMassMinimum=min(sigmaTableLogMassMinimum,logMass-ln10)
-       sigmaTableLogMassMaximum=max(sigmaTableLogMassMaximum,logMass+ln10)
-       sigmaTableNPoints=int((sigmaTableLogMassMaximum-sigmaTableLogMassMinimum)*dble(sigmaTableNPointsPerDecade)/ln10)
+       sigmaTableMassMinimum=min(sigmaTableMassMinimum,mass/10.0d0)
+       sigmaTableMassMaximum=max(sigmaTableMassMaximum,mass*10.0d0)
+       sigmaTableNPoints=int(log10(sigmaTableMassMaximum/sigmaTableMassMinimum)*dble(sigmaTableNPointsPerDecade))
        ! Allocate arrays.
-       if (allocated(sigmaTableLogMass )) call Dealloc_Array(sigmaTableLogMass )
-       if (allocated(sigmaTable        )) call Dealloc_Array(sigmaTable        )
-       if (allocated(sigmaTableReversed)) call Dealloc_Array(sigmaTableReversed)
-       call Alloc_Array(sigmaTableLogMass ,[sigmaTableNPoints])
-       call Alloc_Array(sigmaTable        ,[sigmaTableNPoints])
-       call Alloc_Array(sigmaTableReversed,[sigmaTableNPoints])
-       ! Generate a range of mass values to tabulate.
-       sigmaTableLogMass=Make_Range(sigmaTableLogMassMinimum,sigmaTableLogMassMaximum,sigmaTableNPoints,rangeTypeLinear)
+       call sigmaTableNew%destroy()
+       call sigmaTableNew%create(sigmaTableMassMinimum,sigmaTableMassMaximum,sigmaTableNPoints)
        ! Compute sigma(M) at each tabulated point.
        do iMass=1,sigmaTableNPoints
-          mass=dexp(sigmaTableLogMass(iMass))
-          sigmaTable(iMass)=sigma_CDM_Integral(mass,useTopHat=.false.)*sigmaNormalization
+          sigma=sigma_CDM_Integral(sigmaTableNew%x(iMass),useTopHat=.false.)*sigmaNormalization
           ! Enforce monotonicity.
           if (iMass > 1) then
-             if (sigmaTable(iMass) > sigmaTable(iMass-1)) sigmaTable(iMass)=sigmaTable(iMass-1)
+             if (sigma > sigmaTableNew%y(iMass-1)) sigma=sigmaTableNew%y(iMass-1)
           end if
-          sigmaTableReversed(sigmaTableNPoints+1-iMass)=sigmaTable(iMass)
+          call sigmaTableNew%populate(sigma,iMass,computeSpline=(iMass == sigmaTableNPoints))
        end do
-       ! Reset the interpolators.
-       call Interpolate_Done(interpolationObject       ,interpolationAccelerator       ,resetInterpolation       )
-       resetInterpolation=.true.
        ! Flag that this module is now initialized.
        sigmaInitialized=.true.
     end if
@@ -350,7 +324,7 @@ contains
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
 
-    write (stateFile) sigmaTableLogMassMinimum,sigmaTableLogMassMaximum
+    write (stateFile) sigmaTableMassMinimum,sigmaTableMassMaximum
     return
   end subroutine CDM_Power_Spectrum_State_Store
   
@@ -364,10 +338,10 @@ contains
     type(fgsl_file), intent(in) :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
-    read (stateFile) sigmaTableLogMassMinimum,sigmaTableLogMassMaximum
+    read (stateFile) sigmaTableMassMinimum,sigmaTableMassMaximum
     ! Flag that sigma tabulation needs to be reinitialized.
     sigmaInitialized=.false.
-    call Initialize_Sigma(0.5d0*(sigmaTableLogMassMinimum+sigmaTableLogMassMaximum))
+    call Initialize_Sigma(sqrt(sigmaTableMassMinimum*sigmaTableMassMaximum))
     return
   end subroutine CDM_Power_Spectrum_State_Retrieve
     

@@ -702,8 +702,6 @@ contains
     return
   end subroutine Assert_Integer_1D_Array
 
-
-
   subroutine Assert_Logical_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
     implicit none

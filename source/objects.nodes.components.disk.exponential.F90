@@ -20,7 +20,7 @@
 module Node_Component_Disk_Exponential
   !% Implements the exponential disk node component.
   use Galacticus_Nodes
-  use FGSL
+  use Tables
   implicit none
   private
   public :: Node_Component_Disk_Exponential_Scale_Set                 , Node_Component_Disk_Exponential_Density                      , &
@@ -155,13 +155,11 @@ module Node_Component_Disk_Exponential
   double precision, parameter                 :: rotationCurveHalfRadiusMinimumDefault=1.0d-6,rotationCurveHalfRadiusMaximumDefault=10.0d0
   double precision                            :: rotationCurveHalfRadiusMinimum=rotationCurveHalfRadiusMinimumDefault&
        &,rotationCurveHalfRadiusMaximum=rotationCurveHalfRadiusMaximumDefault
-  double precision, allocatable, dimension(:) :: rotationCurveHalfRadius,rotationCurveBesselFactors
-  type(fgsl_interp)                           :: interpolationObject
-  type(fgsl_interp_accel)                     :: interpolationAccelerator
-  logical                                     :: interpolationReset=.true.
   double precision                            :: scaleLengthFactor,diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
   logical                                     :: scaleLengthFactorSet=.false.
-  
+  type(table1DLogarithmicLinear)                    :: rotationCurveTable
+
+
   ! Tabulation of the exponential disk rotation curve gradient.
   integer,          parameter                 :: rotationCurveGradientPointsPerDecade=10
   integer                                     :: rotationCurveGradientPointsCount
@@ -169,11 +167,8 @@ module Node_Component_Disk_Exponential
   double precision, parameter                 :: rotationCurveGradientHalfRadiusMinimumDefault=1.0d-6,rotationCurveGradientHalfRadiusMaximumDefault=10.0d0
   double precision                            :: rotationCurveGradientHalfRadiusMinimum=rotationCurveGradientHalfRadiusMinimumDefault&
        &,rotationCurveGradientHalfRadiusMaximum=rotationCurveGradientHalfRadiusMaximumDefault
-  double precision, allocatable, dimension(:) :: rotationCurveGradientHalfRadius,rotationCurveGradientBesselFactors
-  type(fgsl_interp)                           :: interpolationObjectGradient
-  type(fgsl_interp_accel)                     :: interpolationAcceleratorGradient
-  logical                                     :: interpolationResetGradient=.true.
-  
+  type(table1DLogarithmicLinear)                    :: rotationCurveGradientTable
+
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
   double precision                            :: radiusHistory(2)
@@ -976,7 +971,6 @@ contains
    double precision function Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors(halfRadius)
      !% Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
      use Memory_Management
-     use Numerical_Ranges
      use Numerical_Constants_Math
      use Numerical_Interpolation
      use Bessel_Functions
@@ -984,7 +978,8 @@ contains
      double precision, intent(in) :: halfRadius
      double precision, parameter  :: halfRadiusSmall=1.0d-3
      integer                      :: iPoint
-     
+     double precision             :: x
+
      ! For small half-radii, use a series expansion for a more accurate result.
      if (halfRadius == 0.0d0) then
         Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=0.0d0
@@ -1004,24 +999,21 @@ contains
         rotationCurvePointsCount=int(dlog10(rotationCurveHalfRadiusMaximum/rotationCurveHalfRadiusMinimum)*dble(rotationCurvePointsPerDecade))+1
         
         ! Allocate table arrays.
-        if (allocated(rotationCurveHalfRadius   )) call Dealloc_Array(rotationCurveHalfRadius   )
-        if (allocated(rotationCurveBesselFactors)) call Dealloc_Array(rotationCurveBesselFactors)
-        call Alloc_Array(rotationCurveHalfRadius   ,[rotationCurvePointsCount])
-        call Alloc_Array(rotationCurveBesselFactors,[rotationCurvePointsCount])
-        
-        ! Create range of half-radii.
-        rotationCurveHalfRadius=Make_Range(rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,rotationCurvePointsCount,rangeType=rangeTypeLogarithmic)
+        call rotationCurveTable%destroy()
+        call rotationCurveTable%create(rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,rotationCurvePointsCount)
         
         ! Compute Bessel factors.
         do iPoint=1,rotationCurvePointsCount
-           rotationCurveBesselFactors(iPoint)=rotationCurveHalfRadius(iPoint)**2&
-                &*(Bessel_Function_I0(rotationCurveHalfRadius(iPoint))*Bessel_Function_K0(rotationCurveHalfRadius(iPoint)) &
-                &-Bessel_Function_I1(rotationCurveHalfRadius(iPoint))*Bessel_Function_K1(rotationCurveHalfRadius(iPoint)))
+           x=rotationCurveTable%x(iPoint)
+           call rotationCurveTable%populate(                                               &
+                &                            x**2                                          &
+                &                           *(                                             &
+                &                              Bessel_Function_I0(x)*Bessel_Function_K0(x) &
+                &                             -Bessel_Function_I1(x)*Bessel_Function_K1(x) &
+                &                            ),                                            &
+                &                           iPoint                                         &
+                &                          )
         end do
-        
-        ! Reset the interpolations.
-        call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
-        interpolationReset=.true.
         
         ! Flag that the rotation curve is now initialized.
         rotationCurveInitialized=.true.
@@ -1030,8 +1022,7 @@ contains
      
      ! Interpolate in the tabulated function.
      !$omp critical(Exponential_Disk_Rotation_Curve_Interpolate)
-     Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=Interpolate(rotationCurvePointsCount,rotationCurveHalfRadius&
-          &,rotationCurveBesselFactors,interpolationObject,interpolationAccelerator,halfRadius,reset=interpolationReset)
+Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable%interpolate(halfRadius)
      !$omp end critical(Exponential_Disk_Rotation_Curve_Interpolate)
      
      return
@@ -1091,7 +1082,6 @@ contains
   double precision function Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs(halfRadius)
     !% Compute Bessel function factors appearing in the expression for a razor-thin exponential disk rotation curve gradient.
     use Memory_Management
-    use Numerical_Ranges
     use Numerical_Constants_Math
     use Numerical_Interpolation
     use Bessel_Functions
@@ -1100,7 +1090,8 @@ contains
     double precision, parameter  :: halfRadiusSmall=1.0d-3
     double precision, parameter  :: halfRadiusLarge=1.0d+2
     integer                      :: iPoint
-    
+    double precision             :: x
+
     ! For small and large half-radii, use a series expansion for a more accurate result.
     if (halfRadius == 0.0d0) then
        Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs=0.0d0
@@ -1124,29 +1115,24 @@ contains
        rotationCurveGradientPointsCount=int(dlog10(rotationCurveGradientHalfRadiusMaximum/rotationCurveGradientHalfRadiusMinimum)*dble(rotationCurveGradientPointsPerDecade))+1
 
        ! Allocate table arrays.
-       if (allocated(rotationCurveGradientHalfRadius   )) call Dealloc_Array(rotationCurveGradientHalfRadius   )
-       if (allocated(rotationCurveGradientBesselFactors)) call Dealloc_Array(rotationCurveGradientBesselFactors)
-       call Alloc_Array(rotationCurveGradientHalfRadius   ,[rotationCurveGradientPointsCount])
-       call Alloc_Array(rotationCurveGradientBesselFactors,[rotationCurveGradientPointsCount])
+       call rotationCurveGradientTable%destroy()
+       call rotationCurveGradientTable%create(rotationCurveGradientHalfRadiusMinimum,rotationCurveGradientHalfRadiusMaximum,rotationCurveGradientPointsCount)
 
-       ! Create range of half-radii.
-       rotationCurveGradientHalfRadius=Make_Range(rotationCurveGradientHalfRadiusMinimum,rotationCurveGradientHalfRadiusMaximum,rotationCurveGradientPointsCount,rangeType=rangeTypeLogarithmic)
-       
        ! Compute Bessel factors.
        do iPoint=1,rotationCurveGradientPointsCount
-          rotationCurveGradientBesselFactors(iPoint)= rotationCurveGradientHalfRadius(iPoint)**2                                                                                  &
-               &                                     *( rotationCurveGradientHalfRadius(iPoint)                                                                                   &
-               &                                       *  Bessel_Function_I0(rotationCurveGradientHalfRadius(iPoint))*Bessel_Function_K0(rotationCurveGradientHalfRadius(iPoint)) &
-               &                                       +rotationCurveGradientHalfRadius(iPoint)**2                                                                                &
-               &                                       *( Bessel_Function_I1(rotationCurveGradientHalfRadius(iPoint))*Bessel_Function_K0(rotationCurveGradientHalfRadius(iPoint)) &
-               &                                         -Bessel_Function_I0(rotationCurveGradientHalfRadius(iPoint))*Bessel_Function_K1(rotationCurveGradientHalfRadius(iPoint)) &
-               &                                        )                                                                                                                         &
-               &                                      )
+          x=rotationCurveGradientTable%x(iPoint)
+          call rotationCurveGradientTable%populate(                                                 &
+               &                                    x**2                                            &
+               &                                   *( x                                             &
+               &                                     *  Bessel_Function_I0(x)*Bessel_Function_K0(x) &
+               &                                     +x**2                                          &
+               &                                     *( Bessel_Function_I1(x)*Bessel_Function_K0(x) &
+               &                                       -Bessel_Function_I0(x)*Bessel_Function_K1(x) &
+               &                                      )                                             &
+               &                                    ),                                              &
+               &                                   iPoint                                           &
+               &                                  )
        end do
-       
-       ! Reset the interpolations.
-       call Interpolate_Done(interpolationObjectGradient,interpolationAcceleratorGradient,interpolationResetGradient)
-       interpolationResetGradient=.true.
        
        ! Flag that the rotation curve is now initialized.
        rotationCurveGradientInitialized=.true.
@@ -1155,10 +1141,8 @@ contains
     
     ! Interpolate in the tabulated function.
     !$omp critical(Exponential_Disk_Rotation_Curve_Gradient_Interpolate)
-    Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs=Interpolate(rotationCurveGradientPointsCount,rotationCurveGradientHalfRadius&
-         &,rotationCurveGradientBesselFactors,interpolationObjectGradient,interpolationAcceleratorGradient,halfRadius,reset=interpolationResetGradient)
+    Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs=rotationCurveGradientTable%interpolate(halfRadius)
     !$omp end critical(Exponential_Disk_Rotation_Curve_Gradient_Interpolate)
-
     return
   end function Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs
 
@@ -1497,6 +1481,7 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Node_Component_Disk_Exponential_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use FGSL
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
@@ -1511,6 +1496,7 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Node_Component_Disk_Exponential_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use FGSL
     implicit none
     integer,         intent(in) :: stateFile
     type(fgsl_file), intent(in) :: fgslStateFile
