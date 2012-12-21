@@ -132,7 +132,7 @@ module Tables
 contains
 
   subroutine Table_1D_Destroy(self)
-    !% Create a 1-D table.
+    !% Destroy a 1-D table.
     use Memory_Management
     use Numerical_Ranges
     implicit none
@@ -169,7 +169,7 @@ contains
   end function Table1D_Xs
 
   double precision function Table1D_Y(self,i,table)
-    !% Return the {\tt i}^${\rm th}$ $y$-value for a 1D table.
+    !% Return the {\tt i}$^{\rm th}$ $y$-value for a 1D table.
     use Galacticus_Error
     implicit none
     class  (table1D), intent(in   )           :: self
