@@ -38,8 +38,8 @@ while ( my $fileName = readdir(sDir) ) {
 	    open(sFile,$fileToProcess);
 	    while ( my $line = <sFile> ) {
 		# Detect included files and push onto the stack.
-		if ( exists {map { $_ => 1 } @{$dependencies->{'objectFiles'}}}->{$objectFile} ) {
-		    if ( $line =~ m/^\s*include\s*[\'\"](.*)[\'\"]/ ) {
+		if ( $line =~ m/^\s*include\s*[\'\"](.*)[\'\"]/ ) {
+		    if ( exists {map { $_ => 1 } @{$dependencies->{'objectFiles'}}}->{$objectFile} ) {
 			push(@fileStack,"work/build/".$1);
 		    }
 		}
