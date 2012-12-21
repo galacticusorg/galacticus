@@ -48,7 +48,7 @@ contains
     implicit none
     type(varying_string),          intent(in)    :: criticalOverdensityMethod
     procedure(),          pointer, intent(inout) :: Critical_Overdensity_Tabulate
-    
+
     if (criticalOverdensityMethod == 'sphericalTopHat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
     return
   end subroutine Spherical_Collape_Delta_Critical_Initialize
@@ -62,56 +62,56 @@ contains
     implicit none
     type(varying_string),          intent(in)    :: virialDensityContrastMethod
     procedure(),          pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
-    
+
     if (virialDensityContrastMethod == 'sphericalTopHat') Virial_Density_Contrast_Tabulate =>&
          & Spherical_Collapse_Virial_Density_Contrast
     return
   end subroutine Spherical_Collape_Delta_Virial_Initialize
 
-  subroutine Spherical_Collapse_Critical_Overdensity(time,deltaCritNumberPoints,deltaCritTime,deltaCritDeltaCrit)
+  subroutine Spherical_Collapse_Critical_Overdensity(time,deltaCritTable)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
+    use Tables
     implicit none
-    double precision, intent(in)                               :: time
-    integer,          intent(out)                              :: deltaCritNumberPoints
-    double precision, intent(inout), allocatable, dimension(:) :: deltaCritTime,deltaCritDeltaCrit
+    double precision       , intent(in   )              :: time
+    class           (table), intent(inout), allocatable :: deltaCritTable
 
     !$omp critical(Spherical_Collapse_Make_Table)
-    call Make_Table(time,deltaCritNumberPoints,deltaCritTime,deltaCritDeltaCrit,calculationDeltaCrit)
+    call Make_Table(time,deltaCritTable,calculationDeltaCrit)
     !$omp end critical(Spherical_Collapse_Make_Table)
 
     return
   end subroutine Spherical_Collapse_Critical_Overdensity
 
-  subroutine Spherical_Collapse_Virial_Density_Contrast(time,deltaVirialNumberPoints,deltaVirialTime,deltaVirialDeltaVirial)
+  subroutine Spherical_Collapse_Virial_Density_Contrast(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the spherical collapse model.
+    use Tables
     implicit none
-    double precision, intent(in)                               :: time
-    integer,          intent(out)                              :: deltaVirialNumberPoints
-    double precision, intent(inout), allocatable, dimension(:) :: deltaVirialTime,deltaVirialDeltaVirial
+    double precision       , intent(in   )              :: time
+    class           (table), intent(inout), allocatable :: deltaVirialTable
 
     !$omp critical(Spherical_Collapse_Make_Table)
-    call Make_Table(time,deltaVirialNumberPoints,deltaVirialTime,deltaVirialDeltaVirial,calculationDeltaVirial)
+    call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
     !$omp end critical(Spherical_Collapse_Make_Table)
-
     return
   end subroutine Spherical_Collapse_Virial_Density_Contrast
 
-  subroutine Make_Table(time,deltaTableNumberPoints,deltaTableTime,deltaTableDelta,calculationType)
+  subroutine Make_Table(time,deltaTable,calculationType)
     !% Tabulate $\delta_{\rm crit}$ or $\Delta_{\rm vir}$ vs. time.
     use Linear_Growth
     use Cosmology_Functions
     use Root_Finder
     use Numerical_Ranges
     use Memory_Management
+    use Tables
+    use Kind_Numbers
     implicit none
     double precision,        intent(in)                               :: time
-    integer,                 intent(out)                              :: deltaTableNumberPoints
-    double precision,        intent(inout), allocatable, dimension(:) :: deltaTableTime,deltaTableDelta
     integer,                 intent(in)                               :: calculationType
+    class(table),            intent(inout), allocatable               :: deltaTable
     type(fgsl_function),     save                                     :: rootFunction
     type(fgsl_root_fsolver), save                                     :: rootFunctionSolver
     double precision,        parameter                                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
-    integer                                                           :: iTime
+    integer                                                           :: iTime,deltaTableNumberPoints
     type(c_ptr)                                                       :: parameterPointer
     double precision                                                  :: epsilonPerturbation,epsilonPerturbationMinimum &
          &,epsilonPerturbationMaximum,aExpansionNow,normalization,eta,radiusMaximum,radiiRatio
@@ -120,74 +120,81 @@ contains
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-    
+
     ! Determine number of points to tabulate.
     deltaTableNumberPoints=int(dlog10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
-    
-    ! Deallocate arrays if currently allocated.
-    if (allocated(deltaTableTime )) call Dealloc_Array(deltaTableTime )
-    if (allocated(deltaTableDelta)) call Dealloc_Array(deltaTableDelta)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(deltaTableTime ,[deltaTableNumberPoints])
-    call Alloc_Array(deltaTableDelta,[deltaTableNumberPoints])
-    
-    ! Create set of grid points in time variable.
-    deltaTableTime=Make_Range(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints,rangeTypeLogarithmic)
-    
-    ! Solve ODE to get corresponding overdensities.
-    do iTime=1,deltaTableNumberPoints
-       ! Get the current expansion factor.
-       aExpansionNow=Expansion_Factor(deltaTableTime(iTime))
-       ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
-       if (Omega_Dark_Energy(aExpansion=aExpansionNow)>0.0d0) then
-          epsilonPerturbationMaximum=-(27.0d0*Omega_Dark_Energy(aExpansion=aExpansionNow)*(Omega_Matter_Total(aExpansion=aExpansionNow)&
-               & **2)/4.0d0)**(1.0d0/3.0d0)
-       else
-          epsilonPerturbationMaximum=-1.0d-6
-       end if
 
-       ! Estimate a suitably negative minimum value for epsilon.
-       epsilonPerturbationMinimum=-10.0d0
+    ! Deallocate table if currently allocated.
+    if (allocated(deltaTable)) then
+       call deltaTable%destroy()
+       deallocate(deltaTable)
+    end if
+    allocate(table1DLogarithmicLinear :: deltaTable)
+    select type (deltaTable)
+    type is (table1DLogarithmicLinear)
+       ! Create the table.
+       call deltaTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
+       ! Solve ODE to get corresponding overdensities.
+       do iTime=1,deltaTableNumberPoints
 
-       OmegaM               =Omega_Matter_Total(aExpansion=aExpansionNow)
-       OmegaDE              =Omega_Dark_Energy (aExpansion=aExpansionNow)
-       hubbleParameterInvGyr=Expansion_Rate    (           aExpansionNow)
-       tNow                 =deltaTableTime(iTime)
-       
-       ! Find the value of epsilon for which the perturbation just collapses at this time.
-       epsilonPerturbation=Root_Find(epsilonPerturbationMinimum,epsilonPerturbationMaximum,collapseRoot,parameterPointer &
-            &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
-       
-       ! Compute the corresponding critical overdensity.
-       normalization=Linear_Growth_Factor(tNow,normalize=normalizeMatterDominated)/Linear_Growth_Factor(tNow)/aExpansionNow
-       select case (calculationType)
-       case (calculationDeltaCrit)
-          ! Critical linear overdensity.
-          deltaTableDelta(iTime)=normalization*0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)/OmegaM
-       case (calculationDeltaVirial)
-          ! Compute the maximum radius of the perturbation.
-          radiusMaximum=Perturbation_Maximum_Radius(epsilonPerturbation)
-          ! Find the eta-factor (see Lahav et al. 1991) which measures the dark energy contribution to the energy of the
-          ! perturbation.
-          eta=2.0d0*(OmegaDE/OmegaM)*radiusMaximum**3
-          ! Handle the open universe case separately.
-          if (OmegaDE == 0.0d0) then
-             radiiRatio=0.5d0
+          ! Get the current expansion factor.
+          aExpansionNow=Expansion_Factor(deltaTable%x(iTime))
+          ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
+          if (Omega_Dark_Energy(aExpansion=aExpansionNow)>0.0d0) then
+             epsilonPerturbationMaximum=-(27.0d0*Omega_Dark_Energy(aExpansion=aExpansionNow)*(Omega_Matter_Total(aExpansion=aExpansionNow)&
+                  & **2)/4.0d0)**(1.0d0/3.0d0)
           else
-             ! Coefficients of the cubic energy equation.
-             a=cmplx(  2.0d0*eta ,0.0d0)
-             b=cmplx(  0.0d0     ,0.0d0)
-             c=cmplx(-(2.0d0+eta),0.0d0)
-             d=cmplx(  1.0d0     ,0.0d0)
-             ! Solve the cubic equation to get 
-             Delta=(sqrt(3.0d0)*sqrt(27.0d0*a**4*d**2+4.0d0*a**3*c**3)-9.0d0*a**2*d)**(1.0d0/3.0d0)
-             radiiRatio=real(cmplx(1.0d0,-sqrt(3.0d0))*c/2.0d0**(2.0d0/3.0d0)/3.0d0**(1.0d0/3.0d0)/Delta-cmplx(1.0d0,sqrt(3.0d0))&
-                  & *Delta /2.0d0/a /2.0d0**(1.0d0/3.0d0)/3.0d0**(2.0d0/3.0d0))
+             epsilonPerturbationMaximum=-1.0d-6
           end if
-          deltaTableDelta(iTime)=1.0d0/(radiiRatio*Perturbation_Maximum_Radius(epsilonPerturbation))**3
-       end select
-    end do
+
+          ! Estimate a suitably negative minimum value for epsilon.
+          epsilonPerturbationMinimum=-10.0d0
+
+          OmegaM               =Omega_Matter_Total(aExpansion=aExpansionNow)
+          OmegaDE              =Omega_Dark_Energy (aExpansion=aExpansionNow)
+          hubbleParameterInvGyr=Expansion_Rate    (           aExpansionNow)
+          tNow                 =deltaTable%x(iTime)
+
+          ! Find the value of epsilon for which the perturbation just collapses at this time.
+          epsilonPerturbation=Root_Find(epsilonPerturbationMinimum,epsilonPerturbationMaximum,collapseRoot,parameterPointer &
+               &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+          ! Compute the corresponding critical overdensity.
+          normalization=Linear_Growth_Factor(tNow,normalize=normalizeMatterDominated)/Linear_Growth_Factor(tNow)/aExpansionNow
+          select case (calculationType)
+          case (calculationDeltaCrit)
+             ! Critical linear overdensity.
+             call deltaTable%populate(                                                                       &
+                  &                   normalization*0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)/OmegaM, &
+                  &                   iTime                                                                  &
+                  &                  )
+          case (calculationDeltaVirial)
+             ! Compute the maximum radius of the perturbation.
+             radiusMaximum=Perturbation_Maximum_Radius(epsilonPerturbation)
+             ! Find the eta-factor (see Lahav et al. 1991) which measures the dark energy contribution to the energy of the
+             ! perturbation.
+             eta=2.0d0*(OmegaDE/OmegaM)*radiusMaximum**3
+             ! Handle the open universe case separately.
+             if (OmegaDE == 0.0d0) then
+                radiiRatio=0.5d0
+             else
+                ! Coefficients of the cubic energy equation.
+                a=cmplx(  2.0d0*eta ,0.0d0,kind=kind_dble)
+                b=cmplx(  0.0d0     ,0.0d0,kind=kind_dble)
+                c=cmplx(-(2.0d0+eta),0.0d0,kind=kind_dble)
+                d=cmplx(  1.0d0     ,0.0d0,kind=kind_dble)
+                ! Solve the cubic equation to get 
+                Delta=(sqrt(3.0d0)*sqrt(27.0d0*a**4*d**2+4.0d0*a**3*c**3)-9.0d0*a**2*d)**(1.0d0/3.0d0)
+                radiiRatio=real(cmplx(1.0d0,-sqrt(3.0d0),kind=kind_dble)*c/2.0d0**(2.0d0/3.0d0)/3.0d0**(1.0d0/3.0d0)/Delta-cmplx(1.0d0,sqrt(3.0d0),kind=kind_dble)&
+                     & *Delta /2.0d0/a /2.0d0**(1.0d0/3.0d0)/3.0d0**(2.0d0/3.0d0))
+             end if
+             call deltaTable%populate(                                                                        &
+                  &                   1.0d0/(radiiRatio*Perturbation_Maximum_Radius(epsilonPerturbation))**3, &
+                  &                   iTime                                                                   &
+                  &                  )
+          end select
+       end do
+    end select
     return
   end subroutine Make_Table
 
@@ -195,7 +202,7 @@ contains
     real(c_double), value   :: epsilonPerturbation
     type(c_ptr),    value   :: parameterPointer
     real(c_double)          :: collapseRoot
-   
+
     ! Evaluate the root function.
     collapseRoot=tCollapse(epsilonPerturbation)-tNow
   end function collapseRoot
@@ -240,7 +247,7 @@ contains
     real(c_double), value   :: aMaximum
     type(c_ptr),    value   :: parameterPointer
     real(c_double)          :: aMaximumRoot
-   
+
     ! Evaluate the root function.
     aMaximumRoot=OmegaM/aMaximum+epsilonPerturbationShared+OmegaDE*aMaximum**2
   end function aMaximumRoot
@@ -268,8 +275,8 @@ contains
 
     ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion.
     tMaximum=Integrate(aMinimum,aMaximum,Perturbation_Integrand,parameterPointer,integrandFunction,integrationWorkspace &
-            &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,hasSingularities=.true.,reset=integrationReset)&
-            &/hubbleParameterInvGyr
+         &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,hasSingularities=.true.,reset=integrationReset)&
+         &/hubbleParameterInvGyr
     ! Add on analytic correction for region close to aMaximum.
     tMaximum=tMaximum-2.0d0*dsqrt(OmegaM/aMaximum+epsilonPerturbation+OmegaDE*aMaximum**2)/(2.0d0*OmegaDE*aMaximum-OmegaM&
          &/aMaximum**2)/hubbleParameterInvGyr
@@ -307,7 +314,7 @@ contains
     write (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
     return
   end subroutine Spherical_Collapse_Matter_Lambda_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Spherical_Collapse_Matter_Lambda_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -320,5 +327,5 @@ contains
     read (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
     return
   end subroutine Spherical_Collapse_Matter_Lambda_State_Retrieve
-  
+
 end module Spherical_Collapse_Matter_Lambda

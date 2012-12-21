@@ -52,18 +52,18 @@ contains
     return
   end subroutine Virial_Density_Kitayama_Suto1996_Initialize
 
-  subroutine Virial_Density_Kitayama_Suto1996(time,deltaTableNumberPoints,deltaTableTime,deltaTableDelta)
+  subroutine Virial_Density_Kitayama_Suto1996(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the \cite{kitayama_semianalytic_1996} fitting function module.
     use Memory_Management
     use Cosmology_Functions
     use Numerical_Constants_Math
     use Numerical_Ranges
+    use Tables
     implicit none
-    double precision, intent(in)                               :: time
-    integer,          intent(out)                              :: deltaTableNumberPoints
-    double precision, intent(inout), allocatable, dimension(:) :: deltaTableTime,deltaTableDelta
-    integer                                                    :: iTime
-    double precision                                           :: omegaf
+    double precision       , intent(in   )              :: time
+    class           (table), intent(inout), allocatable :: deltaVirialTable
+    integer                                             :: iTime,deltaTableNumberPoints
+    double precision                                    :: omegaf
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
@@ -72,22 +72,22 @@ contains
     ! Determine number of points to tabulate.
     deltaTableNumberPoints=int(dlog10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
-    
-    ! Deallocate arrays if currently allocated.
-    if (allocated(deltaTableTime )) call Dealloc_Array(deltaTableTime )
-    if (allocated(deltaTableDelta)) call Dealloc_Array(deltaTableDelta)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(deltaTableTime ,[deltaTableNumberPoints])
-    call Alloc_Array(deltaTableDelta,[deltaTableNumberPoints])
-    
-    ! Create set of grid points in time variable.
-    deltaTableTime=Make_Range(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints,rangeTypeLogarithmic)
-    
-    ! Evaluate the fitting formulae of Kitayama & Suto at each time to get the density contrast.
-    do iTime=1,deltaTableNumberPoints
-       omegaf=1.0d0/Omega_Matter_Total(deltaTableTime(iTime))-1.0d0
-       deltaTableDelta(iTime)=18.0d0*Pi**2*(1.0d0+0.4093d0*omegaf**0.9052d0)
-    end do
+    ! Deallocate table if currently allocated.
+    if (allocated(deltaVirialTable)) then
+       call deltaVirialTable%destroy()
+       deallocate(deltaVirialTable)
+    end if
+    allocate(table1DLogarithmicLinear :: deltaVirialTable)
+    select type (deltaVirialTable)
+    type is (table1DLogarithmicLinear)
+       ! Create the table.
+       call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
+       ! Evaluate the fitting formulae of Kitayama & Suto at each time to get the density contrast.
+       do iTime=1,deltaTableNumberPoints
+          omegaf=1.0d0/Omega_Matter_Total(deltaVirialTable%x(iTime))-1.0d0
+          call deltaVirialTable%populate(18.0d0*Pi**2*(1.0d0+0.4093d0*omegaf**0.9052d0),iTime)
+       end do
+    end select
     return
   end subroutine Virial_Density_Kitayama_Suto1996
 

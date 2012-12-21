@@ -21,11 +21,15 @@ module Dark_Matter_Halo_Scales
   !% Implements calculations of various scales for dark matter halos.
   use Galacticus_Nodes
   use Kind_Numbers
+  use Tables
   implicit none
   private
-  public :: Dark_Matter_Halo_Dynamical_Timescale, Dark_Matter_Halo_Virial_Velocity, Dark_Matter_Halo_Virial_Velocity_Growth_Rate,&
-       & Dark_Matter_Halo_Virial_Radius, Dark_Matter_Halo_Virial_Radius_Growth_Rate, Dark_Matter_Halo_Mean_Density,&
-       & Dark_Matter_Halo_Mean_Density_Growth_Rate, Dark_Matter_Halo_Virial_Temperature, Dark_Matter_Halo_Scales_Reset
+  public :: Dark_Matter_Halo_Dynamical_Timescale, Dark_Matter_Halo_Virial_Velocity,&
+       & Dark_Matter_Halo_Virial_Velocity_Growth_Rate, Dark_Matter_Halo_Virial_Radius,&
+       & Dark_Matter_Halo_Virial_Radius_Growth_Rate, Dark_Matter_Halo_Mean_Density,&
+       & Dark_Matter_Halo_Mean_Density_Growth_Rate,&
+       & Dark_Matter_Halo_Virial_Temperature, Dark_Matter_Halo_Scales_Reset, &
+       & Dark_Matter_Halo_Scales_State_Store,Dark_Matter_Halo_Scales_State_Retrieve
 
   ! Record of unique ID of node which we last computed results for.
   integer(kind=kind_int8) :: lastUniqueID=-1
@@ -38,6 +42,13 @@ module Dark_Matter_Halo_Scales
   ! Stored values of halo scales.
   double precision :: virialRadiusStored,virialTemperatureStored,virialVelocityStored,dynamicalTimescaleStored
   !$omp threadprivate(virialRadiusStored,virialTemperatureStored,virialVelocityStored,dynamicalTimescaleStored)
+
+  ! Table for fast lookup of the mean density of halos.
+  double precision               :: meanDensityTimeMinimum=-1.0d0,meanDensityTimeMaximum=-1.0d0
+  integer, parameter             :: meanDensityTablePointsPerDecade=100
+  type(table1DLogarithmicLinear) :: meanDensityTable
+  logical                        :: resetMeanDensityTable
+  !$omp threadprivate(meanDensityTable,meanDensityTimeMinimum,meanDensityTimeMaximum,resetMeanDensityTable)
 
 contains
 
@@ -190,8 +201,7 @@ contains
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode
     class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision,          save                   :: timePrevious=-1.0d0,densityPrevious
-    !$omp threadprivate(timePrevious,densityPrevious)
+    integer                                           :: i,meanDensityTablePoints
     double precision                                  :: time
 
     ! Get the basic component.
@@ -199,14 +209,25 @@ contains
     ! Get the time at which this halo was last an isolated halo.
     time=thisBasicComponent%timeLastIsolated()
     if (time <= 0.0d0) time=thisBasicComponent%time()
-    ! If time is not the same as the one previously used then compute its mean density based on mean cosmological density and
-    ! overdensity of a collapsing halo, and store it.
-    if (time /= timePrevious) then
-       timePrevious=time
-       densityPrevious=Halo_Virial_Density_Contrast(time)*Omega_Matter()*Critical_Density()/Expansion_Factor(time)**3
+    ! Retabulate the mean density vs. time if necessary.
+    if (resetMeanDensityTable .or. time < meanDensityTimeMinimum .or. time > meanDensityTimeMaximum) then
+       resetMeanDensityTable=.false.
+       if (meanDensityTimeMinimum <= 0.0d0) then
+          meanDensityTimeMinimum=                           time/10.0d0
+          meanDensityTimeMaximum=                           time* 2.0d0
+       else
+          meanDensityTimeMinimum=min(meanDensityTimeMinimum,time/10.0d0)
+          meanDensityTimeMaximum=max(meanDensityTimeMaximum,time* 2.0d0)
+       end if
+       meanDensityTablePoints=int(log10(meanDensityTimeMaximum/meanDensityTimeMinimum)*dble(meanDensityTablePointsPerDecade))+1
+       call meanDensityTable%destroy()
+       call meanDensityTable%create(meanDensityTimeMinimum,meanDensityTimeMaximum,meanDensityTablePoints)
+       do i=1,meanDensityTablePoints
+          call meanDensityTable%populate(Halo_Virial_Density_Contrast(meanDensityTable%x(i))*Omega_Matter()*Critical_Density()/Expansion_Factor(meanDensityTable%x(i))**3,i)
+       end do
     end if
     ! Return the stored value.
-    Dark_Matter_Halo_Mean_Density=densityPrevious
+    Dark_Matter_Halo_Mean_Density=meanDensityTable%interpolate(time)
     return
   end function Dark_Matter_Halo_Mean_Density
 
@@ -246,5 +267,35 @@ contains
     end if
     return
   end function Dark_Matter_Halo_Mean_Density_Growth_Rate
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Dark_Matter_Halo_Scales_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Dark_Matter_Halo_Scales_State_Store(stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use FGSL
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) meanDensityTimeMinimum,meanDensityTimeMaximum
+    return
+  end subroutine Dark_Matter_Halo_Scales_State_Store
+  
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Dark_Matter_Halo_Scales_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Dark_Matter_Halo_Scales_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    use FGSL
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    read (stateFile) meanDensityTimeMinimum,meanDensityTimeMaximum    
+    ! Ensure that interpolation objects will get reset.
+    resetMeanDensityTable=.true.
+    return
+  end subroutine Dark_Matter_Halo_Scales_State_Retrieve
 
 end module Dark_Matter_Halo_Scales

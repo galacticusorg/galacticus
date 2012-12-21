@@ -88,17 +88,18 @@ contains
     return
   end subroutine Virial_Density_Fixed_Initialize
 
-  subroutine Virial_Density_Fixed(time,deltaTableNumberPoints,deltaTableTime,deltaTableDelta)
+  subroutine Virial_Density_Fixed(time,deltaVirialTable)
     !% Tabulate the virial density contrast assuming a fixed value.
     use Memory_Management
     use Cosmology_Functions
     use Numerical_Constants_Math
     use Numerical_Ranges
+    use Tables
     implicit none
-    double precision, intent(in)                               :: time
-    integer,          intent(out)                              :: deltaTableNumberPoints
-    double precision, intent(inout), allocatable, dimension(:) :: deltaTableTime,deltaTableDelta
-    integer                                                    :: iTime
+    double precision       , intent(in   )              :: time
+    class           (table), intent(inout), allocatable :: deltaVirialTable
+    integer                                             :: iTime,deltaTableNumberPoints
+    double precision                                    :: densityContrast
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
@@ -108,25 +109,25 @@ contains
     deltaTableNumberPoints=int(dlog10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
     
-    ! Deallocate arrays if currently allocated.
-    if (allocated(deltaTableTime )) call Dealloc_Array(deltaTableTime )
-    if (allocated(deltaTableDelta)) call Dealloc_Array(deltaTableDelta)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(deltaTableTime ,[deltaTableNumberPoints])
-    call Alloc_Array(deltaTableDelta,[deltaTableNumberPoints])
-    
-    ! Create the tabulation.
-    deltaTableTime  =Make_Range(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints,rangeTypeLogarithmic)
-
-    ! Set the fixed virial density contrast.
-    deltaTableDelta=virialDensityContrastFixed
-
-    ! If the fixed value is defined with respect to the critical density, then translate it to be with respect to mean density.
-    if (densityType == densityTypeCritical) then
-       do iTime=1,deltaTableNumberPoints
-          deltaTableDelta(iTime)= deltaTableDelta(iTime)/Omega_Matter_Total(deltaTableTime(iTime))
-       end do
+    ! Deallocate table if currently allocated.
+    if (allocated(deltaVirialTable)) then
+       call deltaVirialTable%destroy()
+       deallocate(deltaVirialTable)
     end if
+    allocate(table1DLogarithmicLinear :: deltaVirialTable)
+    select type (deltaVirialTable)
+    type is (table1DLogarithmicLinear)
+       ! Create the table.
+       call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
+       ! Populate the table.
+       do iTime=1,deltaTableNumberPoints
+          densityContrast=virialDensityContrastFixed
+          ! If the fixed value is defined with respect to the critical density, then translate it to be
+          ! with respect to mean density.
+          if (densityType == densityTypeCritical) densityContrast=densityContrast/Omega_Matter_Total(deltaVirialTable%x(iTime))
+          call deltaVirialTable%populate(densityContrast,iTime)
+       end do
+    end select
     return
   end subroutine Virial_Density_Fixed
 

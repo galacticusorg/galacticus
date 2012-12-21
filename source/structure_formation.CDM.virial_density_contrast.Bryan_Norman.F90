@@ -60,47 +60,46 @@ contains
     return
   end subroutine Virial_Density_Bryan_Norman_Initialize
 
-  subroutine Virial_Density_Bryan_Norman(time,deltaTableNumberPoints,deltaTableTime,deltaTableDelta)
+  subroutine Virial_Density_Bryan_Norman(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the \cite{bryan_statistical_1998} fitting function module.
     use Memory_Management
     use Cosmology_Functions
     use Numerical_Constants_Math
     use Numerical_Ranges
+    use Tables
     implicit none
-    double precision, intent(in)                               :: time
-    integer,          intent(out)                              :: deltaTableNumberPoints
-    double precision, intent(inout), allocatable, dimension(:) :: deltaTableTime,deltaTableDelta
-    integer                                                    :: iTime
-    double precision                                           :: x
+    double precision       , intent(in   )              :: time
+    class           (table), intent(inout), allocatable :: deltaVirialTable
+    integer                                             :: iTime,deltaTableNumberPoints
+    double precision                                    :: x
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-    
-    ! Determine number of points to tabulate.
+        ! Determine number of points to tabulate.
     deltaTableNumberPoints=int(dlog10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
-    
-    ! Deallocate arrays if currently allocated.
-    if (allocated(deltaTableTime )) call Dealloc_Array(deltaTableTime )
-    if (allocated(deltaTableDelta)) call Dealloc_Array(deltaTableDelta)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(deltaTableTime ,[deltaTableNumberPoints])
-    call Alloc_Array(deltaTableDelta,[deltaTableNumberPoints])
-    
-    ! Create set of grid points in time variable.
-    deltaTableTime=Make_Range(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints,rangeTypeLogarithmic)
-    
-    ! Evaluate the fitting formulae of Bryan & Norman at each time to get the density contrast.
-    do iTime=1,deltaTableNumberPoints
-       x=Omega_Matter_Total(deltaTableTime(iTime))-1.0d0
-       select case (fitType)
-       case (fitTypeZeroLambda)
-          deltaTableDelta(iTime)=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/Omega_Matter_Total(deltaTableTime(iTime))
-       case (fitTypeFlatUniverse)
-          deltaTableDelta(iTime)=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/Omega_Matter_Total(deltaTableTime(iTime))
-       end select
-    end do
+    ! Deallocate table if currently allocated.
+    if (allocated(deltaVirialTable)) then
+       call deltaVirialTable%destroy()
+       deallocate(deltaVirialTable)
+    end if
+    allocate(table1DLogarithmicLinear :: deltaVirialTable)
+    select type (deltaVirialTable)
+    type is (table1DLogarithmicLinear)
+       ! Create the table.
+       call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)    
+       ! Evaluate the fitting formulae of Bryan & Norman at each time to get the density contrast.
+       do iTime=1,deltaTableNumberPoints
+          x=Omega_Matter_Total(deltaVirialTable%x(iTime))-1.0d0
+          select case (fitType)
+          case (fitTypeZeroLambda)
+             call deltaVirialTable%populate((18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/Omega_Matter_Total(deltaVirialTable%x(iTime)),iTime)
+          case (fitTypeFlatUniverse)
+             call deltaVirialTable%populate((18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/Omega_Matter_Total(deltaVirialTable%x(iTime)),iTime)
+          end select
+       end do
+    end select
     return
   end subroutine Virial_Density_Bryan_Norman
 
