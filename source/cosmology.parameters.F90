@@ -43,7 +43,7 @@ contains
        if (.not.Omega_b_Is_Set) then
           !@ <inputParameter>
           !@   <name>Omega_b</name>
-          !@   <defaultValue>0.04568 (\citealt{story_measurement_2012}; CMB$+H_0+$BAO)</defaultValue>       
+          !@   <defaultValue>0.04611 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of baryons in the Universe in units of the critical density.
@@ -52,7 +52,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>cosmology</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('Omega_b',Omega_b_Value,defaultValue=0.04568d0)
+          call Get_Input_Parameter('Omega_b',Omega_b_Value,defaultValue=0.04611d0)
           Omega_b_Is_Set=.true.
        end if
        !$omp end critical (Omega_b_Initialization)
@@ -76,7 +76,7 @@ contains
           
           !@ <inputParameter>
           !@   <name>Omega_Matter</name>
-          !@   <defaultValue>0.2833 (\citealt{story_measurement_2012}; CMB$+H_0+$BAO)</defaultValue>       
+          !@   <defaultValue>0.2812 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of matter in the Universe in units of the critical density.
@@ -85,7 +85,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>cosmology</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('Omega_Matter',Omega_Matter_Value,defaultValue=0.2833d0)
+          call Get_Input_Parameter('Omega_Matter',Omega_Matter_Value,defaultValue=0.2812d0)
           Omega_Matter_Is_Set=.true.
        end if
        !$omp end critical (Omega_Matter_Initialization)
@@ -104,7 +104,7 @@ contains
        if (.not.Omega_DE_Is_Set) then
           !@ <inputParameter>
           !@   <name>Omega_DE</name>
-          !@   <defaultValue>0.7167 (\citealt{story_measurement_2012}; CMB$+H_0+$BAO)</defaultValue>       
+          !@   <defaultValue>0.7188 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of dark energy in the Universe in units of the critical density.
@@ -113,7 +113,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>cosmology</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('Omega_DE',Omega_DE_Value,defaultValue=0.7167d0)
+          call Get_Input_Parameter('Omega_DE',Omega_DE_Value,defaultValue=0.7188d0)
           Omega_DE_Is_Set=.true.
        end if
        !$omp end critical (Omega_DE_Initialization)
@@ -206,7 +206,7 @@ contains
        if (.not.H_0_Is_Set) then
           !@ <inputParameter>
           !@   <name>H_0</name>
-          !@   <defaultValue>69.62 (\citealt{story_measurement_2012}; CMB$+H_0+$BAO)</defaultValue>       
+          !@   <defaultValue>69.7 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The present day value of the Hubble parameter in units of km/s/Mpc.
@@ -215,7 +215,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>cosmology</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('H_0',H_0_Value,defaultValue=69.62d0)
+          call Get_Input_Parameter('H_0',H_0_Value,defaultValue=69.7d0)
           ! Validate the input value.
           if (H_0_Value <= 0.0d0) call Galacticus_Display_Message("WARNING: H_0<=0 - are you sure this is what you wanted?",verbosityWarn)
           ! Record that H_0 is now set.
