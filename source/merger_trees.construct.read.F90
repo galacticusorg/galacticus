@@ -93,6 +93,9 @@ module Merger_Tree_Read
   ! Flag indicating whether or not velocities include Hubble flow.
   logical                                            :: velocitiesIncludeHubbleFlow
 
+  ! Flag indicating whether branch jumps are allowed.
+  logical                                            :: mergerTreeReadAllowBranchJumps
+
   ! Flags indicating whether or not to preset subhalo properties.
   logical                                            :: mergerTreeReadPresetMergerTimes
   logical                                            :: mergerTreeReadPresetMergerNodes
@@ -365,6 +368,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadTreeIndexToRootNodeIndex',mergerTreeReadTreeIndexToRootNodeIndex,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadAllowBranchJumps</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
+       !@   <description>
+       !@     Specifies whether nodes are allowed to jump between branches.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadAllowBranchJumps',mergerTreeReadAllowBranchJumps,defaultValue=.true.)
 
        ! Get array of output times.
        outputTimesCount=Galacticus_Output_Time_Count()
@@ -2018,6 +2032,8 @@ call dump_tree(nodes,highlightnodes=[182722_kind_int8])
     logical                                                               :: subhaloJumps,isMergerEvent,wasMergerEvent
     double precision                                                      :: timeOfJump
 
+    ! If branch jumps are not allowed, simply return.
+    if (.not.mergerTreeReadAllowBranchJumps) return
     ! Search for subhalos whose descendents live in a different host than that to which their
     ! host descends. These subhalos are jumping between tree branches (or between trees). Add
     ! an event to such nodes to handle the jump.
