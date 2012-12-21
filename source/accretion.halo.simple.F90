@@ -96,7 +96,7 @@ contains
        else
           !@ <inputParameter>
           !@   <name>reionizationSuppressionRedshift</name>
-          !@   <defaultValue>10.5</defaultValue>
+          !@   <defaultValue>9.97 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@    The redshift below which baryonic accretion is suppressed.
@@ -104,7 +104,7 @@ contains
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue=10.5d0)
+          call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue=9.97d0)
           reionizationSuppressionTime=Cosmology_Age(Expansion_Factor_from_Redshift(reionizationSuppressionRedshift))
        end if
        !@ <inputParameter>

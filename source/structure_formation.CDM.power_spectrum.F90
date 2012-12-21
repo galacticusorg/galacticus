@@ -220,7 +220,7 @@ contains
        if (.not.sigmaNormalized) then
           !@ <inputParameter>
           !@   <name>sigma_8</name>
-          !@   <defaultValue>0.823 (\citealt{story_measurement_2012}; CMB$+H_0+$BAO)</defaultValue>
+          !@   <defaultValue>0.817 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.
@@ -228,7 +228,7 @@ contains
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('sigma_8',sigma_8_Value,defaultValue=0.823d0)
+          call Get_Input_Parameter('sigma_8',sigma_8_Value,defaultValue=0.817d0)
           massNormalization=(4.0d0*PI/3.0d0)*Omega_Matter()*Critical_Density()*(radiusNormalization/Little_H_0())**3
           sigmaNormalization=sigma_8_Value/sigma_CDM_Integral(massNormalization,useTopHat=.true.)
           sigmaNormalized=.true.
