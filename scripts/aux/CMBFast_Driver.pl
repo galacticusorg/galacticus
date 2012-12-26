@@ -93,6 +93,9 @@ if ( -e $transferFunctionFile ) {
 
 # Create the file if necessary.
 if ( $makeFile == 1 ) {
+   # Create the directory.
+   system("mkdir -p `dirname ".$transferFunctionFile."`");
+
    # Run CMBFast.
    open(cmbPipe,"|".$galacticusPath."aux/cmbfast4.5.1/cmb");
    print cmbPipe "1\n";
