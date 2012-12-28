@@ -393,11 +393,14 @@ make
 make check
 make install
 
-! Install Bazaar:
+! Install Mercurial:
 
-wget "http://launchpad.net/bzr/2.4/2.4b5/+download/bzr-2.4b5.tar.gz"
-tar xvfz bzr-2.4b5.tar.gz
-python setup.py install --home /your/install/path
+wget "http://mercurial.selenic.com/release/mercurial-2.4.1.tar.gz"
+tar xvfz mercurial-2.4.1.tar.gz
+cd mercurial-2.4.1
+setenv PREFIX /your/install/path
+make
+make install
 
 ! Install Perl local::lib for local installs of modules:
 
