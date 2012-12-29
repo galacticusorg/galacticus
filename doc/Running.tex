@@ -49,7 +49,7 @@ All parameter values (both those specified in this file and those set to default
 
 Some scripts are provided which assist in the generation of parameter files. These are located in the {\tt scripts/parameters/} folder and are detailed below:
 \begin{description}
-\item [{\tt cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-7 constraints \cite{komatsu_seven-year_2010}. It uses the covariance matrix (currently defined in {\tt data/Cosmological\_Parameters\_WMAP-7.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-7 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\item [{\tt cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \cite{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in {\tt data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
 \end{description}
 
 \section{Running Galacticus}
