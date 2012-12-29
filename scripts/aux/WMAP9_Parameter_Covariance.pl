@@ -121,7 +121,7 @@ my $output;
 for(my $i=0;$i<scalar(@datasets);++$i) {
     my $datasetI = $datasets[$i];
     my @parameters;
-    for(my $j=0;$j<$i;++$j) {
+    for(my $j=0;$j<=$i;++$j) {
 	my $datasetJ = $datasets[$j];
 	push(
 	    @parameters,
@@ -170,7 +170,7 @@ $output->{'timestamp'  } = $now;
 
 # Serialize data to XML.
 my $xml = new XML::Simple(NoAttr=>1, RootName=>"parameters");
-open(oHndl,">".$galacticusPath."/cosmology/Cosmological_Parameters_WMAP-9.xml");
+open(oHndl,">".$galacticusPath."/data/cosmology/Cosmological_Parameters_WMAP-9.xml");
 print oHndl $xml->XMLout($output);
 close(oHndl);
 
