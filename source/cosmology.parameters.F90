@@ -19,7 +19,7 @@
 
 module Cosmological_Parameters
   !% Implements cosmological parameters and related derived quantities. Default parameter values are taken from
-  !% \cite{komatsu_seven-year_2010}.
+  !% \cite{hinshaw_nine-year_2012}.
   use Input_Parameters
   implicit none
   private
