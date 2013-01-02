@@ -125,7 +125,7 @@ sub Write {
 	my $isMercurialBranch = $?;
 	if ( $isMercurialBranch == 0 ) {
 	    my $cwd = `pwd`;
-	    system("cd ".$galacticusPath."; hg bundle -t none ".$cwd."/hgBundle.meta https://abensonca@bitbucket.org/abensonca/galacticus_v0.9.2");
+	    system("cd ".$galacticusPath."; hg bundle -t none ".$cwd."/hgBundle.meta https://abensonca\@bitbucket.org/abensonca/galacticus_v0.9.2");
 	    my $hgDiff   = `hg diff $galacticusPath`;
 	    my $hgBundle = read_file("hgBundle.meta");
 	    $metaData{'Source'} = {
@@ -242,7 +242,7 @@ sub Read {
 	print "  Mercurial Revision: ".$version->{'Version'}->{'Revision'}."\n";
 	print "  Run Time          : ".$version->{'Version'}->{'RunTime' }."\n\n";
 	print "==> Use:\n";
-	print "         hg clone -r ".$version->{'Version'}->{'Revision'}." https://abensonca@bitbucket.org/abensonca/galacticus_v".$version->{'Version'}->{'Version' }."\n";
+	print "         hg clone -r ".$version->{'Version'}->{'Revision'}." https://abensonca\@bitbucket.org/abensonca/galacticus_v".$version->{'Version'}->{'Version' }."\n";
 	print "         hg unbundle -u ".$mergeFile."\n";
 	print "         patch < ".$patchFile."\n\n";
 	print "    to obtain this version of Galacticus.\n\n";
