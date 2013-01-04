@@ -90,7 +90,7 @@ module Node_Component_Black_Hole_Standard
 
   ! Feedback parameters.
   double precision                            :: blackHoleWindEfficiency
-  logical                                     :: blackHoleHeatsHotHalo
+  logical                                     :: blackHoleHeatsHotHalo,blackHoleWindEfficiencyScalesWithRadiativeEfficiency
 
   ! Output options.
   logical                                     :: blackHoleOutputAccretion
@@ -179,7 +179,7 @@ contains
        call Get_Input_Parameter("bondiHoyleAccretionTemperatureSpheroid",bondiHoyleAccretionTemperatureSpheroid,defaultValue&
             &=1.0d2)
 
-       ! Get temperature of accreting gas.
+       ! Get wind efficiency and scaling.
        !@ <inputParameter>
        !@   <name>blackHoleWindEfficiency</name>
        !@   <defaultValue>$2.4\times 10^{-3}$</defaultValue>
@@ -192,6 +192,18 @@ contains
        !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=2.4d-3)
+       !@ <inputParameter>
+       !@   <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether the black hole wind effiency should scale with the radiative effiency of the accretion disk.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter("blackHoleWindEfficiencyScalesWithRadiativeEfficiency",blackHoleWindEfficiencyScalesWithRadiativeEfficiency,defaultValue=.false.)
 
        ! Options controlling AGN feedback.
        !@ <inputParameter>
@@ -298,7 +310,7 @@ contains
     double precision                                          :: restMassAccretionRate,massAccretionRate,radiativeEfficiency &
          &,energyInputRate ,spheroidDensityRadius2,spheroidGasMass,spheroidRadius,criticalDensityRadius2,windFraction &
          &,spheroidDensityOverCriticalDensity ,heatingRate,couplingEfficiency,jetEfficiency,accretionRateSpheroid &
-         &,accretionRateHotHalo,binaryRadius,radialMigrationRate,radiusHardBinary
+         &,accretionRateHotHalo,binaryRadius,radialMigrationRate,radiusHardBinary,windEfficiencyNet
     logical                                                   :: binaryRadiusFound
     
     if (defaultBlackHoleComponent%standardIsActive()) then
@@ -377,8 +389,11 @@ contains
                       ! Smooth polynomial interpolating function between these limits.
                       windFraction=3.0d0*spheroidDensityOverCriticalDensity**2-2.0d0*spheroidDensityOverCriticalDensity**3
                    end if
+                   ! Include scaling with radiative efficiency if requested,
+                   windEfficiencyNet=windFraction*blackHoleWindEfficiency
+                   if (blackHoleWindEfficiencyScalesWithRadiativeEfficiency) windEfficiencyNet=windEfficiencyNet*radiativeEfficiency
                    ! Compute the energy input and send it down the spheroid gas energy input pipe.
-                   energyInputRate=windFraction*blackHoleWindEfficiency*restMassAccretionRate*(speedLight/kilo)**2
+                   energyInputRate=windEfficiencyNet*restMassAccretionRate*(speedLight/kilo)**2
                    call thisSpheroidComponent%energyGasInputRate(energyInputRate)
                 end if
              end if
