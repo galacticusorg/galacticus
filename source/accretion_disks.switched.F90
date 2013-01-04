@@ -232,8 +232,8 @@ contains
 
        ! If below the critical accretion rate for transition to a thin disk, reduce the radiative efficiency by a factor
        ! proportional to the accretion rate.
-       if (accretionRateThinDiskMinimumExists.and.massAccretionRateDimensionless < accretionRateThinDiskMinimumLogarithmic) then
-          Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=massAccretionRateDimensionless/accretionRateThinDiskMinimumLogarithmic
+       if (accretionRateThinDiskMinimumExists.and.massAccretionRateDimensionless < accretionRateThinDiskMinimum) then
+          Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=massAccretionRateDimensionless/accretionRateThinDiskMinimum
        else
           Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=1.0d0
        end if
