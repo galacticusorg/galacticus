@@ -32,8 +32,8 @@ Selected with {\tt accretionDisksMethod}$=${\tt Shakura-Sunyaev}, this implement
 
 \subsection{Advection Dominated, Geometrically Thick, Radiatively Inefficient Flows (ADAFs)}
 
-Selected with {\tt accretionDisksMethod}$=${\tt ADAF}, this implementation assumes that accretion is via an advection dominated accretion flow \citep{narayan_advection-dominated_1994} which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a pure ADAF, is controlled by {\tt [adafRadiativeEfficiencyType]}. If set to {\tt fixed}, then the radiative efficiency is set to the value of the input parameter {\tt [adafRadiativeEfficiency]}. Alternatively, if set to {\tt thinDisk} the radiative efficiency will be set to that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in units of the accretion power $\dot{M} {\rm c}^2$) is set by {\tt [adafJetEfficiencyMaximum]}---in the model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum 
-is important to avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected for a pure ADAF) or the energy at the \gls{isco} by use of the {\tt [adafEnergyOption]} parameter (set to {\tt pureADAF} or {\tt ISCO} respectively). The ADAF structure is controlled by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\tt [adafAdiabaticIndex]} and {\tt [adafViscosityOption]} input parameters respectively. The field-enhancing shear, $g$, is computed using $g=\exp(\omega \tau)$ if {\tt [adafFieldEnhanceType]} is set to ``exponential'' where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity timescales. If  {\tt [adafFieldEnhanceType]} is set to ``linear'' then the alternative version, $g=1+\omega \tau$ is used instead. {\tt [adafViscosityOption]} may be set to ``{\tt fit}'', in which case the fitting function for $\alpha$ as a function of black hole 
+Selected with {\tt accretionDisksMethod}$=${\tt ADAF}, this implementation assumes that accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994} which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a pure \gls{adaf}, is controlled by {\tt [adafRadiativeEfficiencyType]}. If set to {\tt fixed}, then the radiative efficiency is set to the value of the input parameter {\tt [adafRadiativeEfficiency]}. Alternatively, if set to {\tt thinDisk} the radiative efficiency will be set to that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in units of the accretion power $\dot{M} {\rm c}^2$) is set by {\tt [adafJetEfficiencyMaximum]}---in the model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum 
+is important to avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the {\tt [adafEnergyOption]} parameter (set to {\tt pureADAF} or {\tt ISCO} respectively). The \gls{adaf} structure is controlled by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\tt [adafAdiabaticIndex]} and {\tt [adafViscosityOption]} input parameters respectively. The field-enhancing shear, $g$, is computed using $g=\exp(\omega \tau)$ if {\tt [adafFieldEnhanceType]} is set to ``exponential'' where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity timescales. If  {\tt [adafFieldEnhanceType]} is set to ``linear'' then the alternative version, $g=1+\omega \tau$ is used instead. {\tt [adafViscosityOption]} may be set to ``{\tt fit}'', in which case the fitting function for $\alpha$ as a function of black hole 
 spin is used:
 \begin{eqnarray}
 \alpha(j)=0.015+0.02 j^4 & \hbox{ if  }& g=\exp(\omega\tau) \hbox{ and } E=E_{\rm ISCO}, \\
@@ -44,12 +44,23 @@ spin is used:
 
 \subsection{``Switched'' Disks}
 
-Selected with {\tt accretionDisksMethod}$=${\tt switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (ADAF) modes. Which mode is used is determine by the accretion rate onto the disk:
-\begin{itemize}
- \item Radiatively efficient accretion if $\dot{M}/\dot{M}_{\rm Eddington}>${\tt [accretionRateThinDiskMinimum]} and $\dot{M}/\dot{M}_{\rm Eddington}<${\tt [accretionRateThinDiskMaximum]};
- \item Radiatively inefficient accretion otherwise.
-\end{itemize}
-Both {\tt accretionRateThinDiskMinimum} and {\tt accretionRateThinDiskMaximum} are adjustable input parameters. If {\tt [accretionDiskSwitchedScaleAdafRadiativeEfficiency]} is set to {\tt true} then the radiative effiency of the ADAF component is reduced by a factor $\dot{M}/>${\tt [accretionRateThinDiskMinimum]}$\dot{M}_{\rm Eddington}$ when $\dot{M}/\dot{M}_{\rm Eddington}>${\tt [accretionRateThinDiskMinimum]}.
+Selected with {\tt accretionDisksMethod}$=${\tt switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (\gls{adaf}) modes. The properties of the switched disk (e.g. radiative efficiency, jet power), are a linear combination of those of the Shakura-Sunyaev and \gls{adaf} modes, with the \gls{adaf} fraction being given by:
+\begin{equation}
+f_{\rm ADAF} = [1+\exp(y_{\rm min})]^{-1} + [1+\exp(y_{\rm max})]^{-1},
+\label{eq:SwitchedDiskADAFFraction}
+\end{equation}
+where
+\begin{eqnarray}
+y_{\rm min} &=& +\log(x/x_{\rm min})/\Delta_{x}, \\
+y_{\rm max} &=& -\log(x/x_{\rm max})/\Delta_{x},
+\end{eqnarray}
+and,
+\begin{equation}
+x = \dot{M} / \dot{M}_{\rm Eddington}.
+\end{equation}
+Here, $x_{\rm min}=${\tt [accretionRateThinDiskMinimum]}, $x_{\rm max}=${\tt [accretionRateThinDiskMaximum]}, and $\Delta_{x}$={\tt [accretionRateTransitionWidth]}. If either {\tt [accretionRateThinDiskMinimum]} or {\tt [accretionRateThinDiskMaximum]} is set to ``{\tt none}'' then the corresponding term in eqn.~(\ref{eq:SwitchedDiskADAFFraction}) is excluded.
+
+Additionally, if {\tt [accretionDiskSwitchedScaleAdafRadiativeEfficiency]} is set to {\tt true} then the radiative efficiency of the \gls{adaf} component is reduced by a factor $x/x_{\rm min}$ when $x<x_{\rm min}$.
 
 \subsection{Eddington-limited Disks}
 
@@ -1876,19 +1887,19 @@ Selected by default and with {\tt blackHoleBinaryRecoilVelocityMethod}$=${\tt nu
 
 Selected with {\tt blackHoleBinaryRecoilVelocityMethod}$=${\tt Campanelli2007}, this method computes the recoil velocity during a black hole binary merger due to the emission of gravitational waves, following the formulae derived in \cite {campanelli_large_2007}
 \begin{equation}
-V_{recoil}=V_m\mathbf{\hat{e_1}}+V_\perp(cos\xi\mathbf{\hat{e_1}}+sin\xi\mathbf{\hat{e_2}})+V_\parallel\mathbf{\hat{e_2}} 
+V_{\rm recoil}=V_{\rm m}\mathbf{\hat{e_1}}+V_\perp(\cos\xi\mathbf{\hat{e_1}}+\sin\xi\mathbf{\hat{e_2}})+V_\parallel\mathbf{\hat{e_2}} 
 \end{equation}
 with:
 \begin{equation}
-V_m=A\frac{q^2(1-q)}{(1+q)^5}(1+B\frac{q}{(1+q)^2})
+V_{\rm m}=A\frac{q^2(1-q)}{(1+q)^5}(1+B\frac{q}{(1+q)^2})
 \end{equation}
 \begin{equation}
 V_\perp=H\frac{q^2}{(1+q)^5}(\alpha^\parallel_2-q\alpha^\parallel_1)
 \end{equation}
 \begin{equation}
-V_\parallel=Kcos(\theta-\theta_0)\frac{q^2}{(1+q)^5}(\alpha^\perp_2-q\alpha^\perp_1)
+V_\parallel=K\cos(\theta-\theta_0)\frac{q^2}{(1+q)^5}(\alpha^\perp_2-q\alpha^\perp_1)
 \end{equation}
-where $\theta$ is defined as the angle between the inplane \gls{component} of $\Delta$ and the infall direction at merger. $q$ is the mass ratio of the black holes as $q=\frac{M_{\bullet,1}}{M_{\bullet,2}}$ and $\alpha_i=\frac{\mathbf{S_i}}{M_{\bullet,i}}$ depends of the spin and mass of the black hole $\xi$ measures the angle between the unequal mass and the spin contribution to the recoil velocity in the orbital plane. $\mathbf{\hat{e_1}} , \mathbf{\hat{e_2}}$ are orthogonal unit vectors in the orbital plane. Our method assumes the spin of the second black hole is randomly generated, while that of the first is aligned with the angular momentum of the system. The constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K\cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
+where $\theta$ is defined as the angle between the inplane \gls{component} of $\Delta$ and the infall direction at merger. $q$ is the mass ratio of the black holes as $q=M_{\bullet,1}/M_{\bullet,2}$ and $\alpha_i=\mathbf{S_i}/M_{\bullet,i}$ depends of the spin and mass of the black hole $\xi$ measures the angle between the unequal mass and the spin contribution to the recoil velocity in the orbital plane. $\mathbf{\hat{e_1}} , \mathbf{\hat{e_2}}$ are orthogonal unit vectors in the orbital plane. Our method assumes the spin of the second black hole is randomly generated, while that of the first is aligned with the angular momentum of the system. The constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K\cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
 
 \section{Supermassive Black Hole Binaries: Mergers}\index{supermassive black holes!mergers}
 
