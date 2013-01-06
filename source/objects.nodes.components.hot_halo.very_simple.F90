@@ -48,7 +48,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#     <isVirtual>yes</isVirtual>
   !#   </method>
   !#   <method>
-  !#     <name>coolingMass</name>
+  !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
@@ -117,8 +117,8 @@ contains
           ! Remove mass from the hot component.
           call    thisHotHaloComponent%massRate       (-massRate                             )
           ! Pipe the mass rate to whatever component claimed it.         
-          if (thisHotHaloComponent%coolingMassRateIsAttached()) then
-             call thisHotHaloComponent%coolingMassRate(+massRate,interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingMassRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
              if (interrupt) return
           end if          
        end if

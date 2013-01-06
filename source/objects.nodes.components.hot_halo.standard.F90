@@ -133,21 +133,21 @@ module Node_Component_Hot_Halo_Standard
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </method>
   !#   <method>
-  !#     <name>coolingMass</name>
+  !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#   </method>
   !#   <method>
-  !#     <name>coolingAngularMomentum</name>
+  !#     <name>hotHaloCoolingAngularMomentum</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#   </method>
   !#   <method>
-  !#     <name>coolingAbundances</name>
+  !#     <name>hotHaloCoolingAbundances</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
@@ -633,8 +633,8 @@ contains
           ! Remove mass from the hot component.
           call    thisHotHaloComponent%massRate       (-massRate                             )
           ! Pipe the mass rate to whichever component claimed it.
-          if (thisHotHaloComponent%coolingMassRateIsAttached()) then
-             call thisHotHaloComponent%coolingMassRate(+massRate,interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingMassRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
              if (interrupt) return
           end if
        
@@ -662,8 +662,8 @@ contains
           end if
           call    thisHotHaloComponent%angularMomentumRate       (     -angularMomentumCoolingRate                                                                                  )   
           ! Pipe the cooling rate to which ever component claimed it.
-          if (thisHotHaloComponent%coolingAngularMomentumRateIsAttached()) then
-             call thisHotHaloComponent%coolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingAngularMomentumRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
              if (interrupt) return
           end if
           ! Get the rate of change of abundances.
@@ -672,8 +672,8 @@ contains
           abundancesCoolingRate=massRate*abundancesCoolingRate/coolingFromHotHaloComponent%mass()
           call    thisHotHaloComponent%abundancesRate       (-abundancesCoolingRate                             )
           ! Pipe the cooling rate to which ever component claimed it.
-          if (thisHotHaloComponent%coolingAbundancesRateIsAttached()) then
-             call thisHotHaloComponent%coolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingAbundancesRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
              if (interrupt) return
           end if
        end if
