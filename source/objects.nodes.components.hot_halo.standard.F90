@@ -835,7 +835,6 @@ contains
     type (treeNode            ), pointer, intent(inout) :: thisNode
     logical                    ,          intent(inout) :: interrupt
     procedure()                , pointer, intent(inout) :: interruptProcedure
-    procedure()                , pointer                :: interruptProcedurePassed
     class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
     class(nodeComponentBasic  ), pointer                :: thisBasicComponent
     double precision           , parameter              :: outerRadiusOverVirialRadiusMinimum=1.0d-3
@@ -867,7 +866,6 @@ contains
           return
        class is (nodeComponentHotHaloStandard)
           ! A standard hot halo component exists.
-          interruptProcedurePassed => interruptProcedure
           ! Get the basic component.
           thisBasicComponent => thisNode%basic()
           ! Apply accretion rates.
@@ -877,7 +875,7 @@ contains
           ! Next compute the cooling rate in this halo.
           call Node_Component_Hot_Halo_Standard_Cooling_Rate(thisNode)
           ! Pipe the cooling rate to which ever component claimed it.
-          call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedurePassed)
+          call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedure)
           ! Get the rate at which abundances are accreted onto this halo.
           call Halo_Baryonic_Accretion_Rate_Abundances(thisNode,accretionRateAbundances)
           call thisHotHaloComponent%abundancesRate(accretionRateAbundances)  
@@ -984,8 +982,6 @@ contains
              ! For isolated halos, the outer radius should grow with the virial radius.
              call thisHotHaloComponent%outerRadiusRate(Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode))
           end if
-          ! Return a copy of our local interrupt pointer.
-          interruptProcedure => interruptProcedurePassed
        end select
     end if
     return

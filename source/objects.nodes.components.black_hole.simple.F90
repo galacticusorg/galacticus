@@ -229,7 +229,6 @@ contains
     type     (treeNode              ), pointer, intent(inout) :: thisNode
     logical                          ,          intent(inout) :: interrupt
     procedure(                      ), pointer, intent(inout) :: interruptProcedure
-    procedure(                      ), pointer                :: interruptProcedurePassed
     class    (nodeComponentBlackHole), pointer                :: thisBlackHoleComponent
     class    (nodeComponentSpheroid ), pointer                :: thisSpheroidComponent
     class    (nodeComponentHotHalo  ), pointer                :: thisHotHaloComponent
@@ -239,9 +238,6 @@ contains
          &,heatingRate ,couplingEfficiency,coolingRadiusFractional,x
 
     if (defaultBlackHoleComponent%simpleIsActive()) then
-
-       ! Get a local copy of the interrupt procedure.
-       interruptProcedurePassed => interruptProcedure
 
        ! Get the spheroid component.
        thisSpheroidComponent => thisNode%spheroid()
@@ -298,8 +294,6 @@ contains
              call thisSpheroidComponent%energyGasInputRate(energyInputRate)
           end if
        end select
-       ! Return our local copy of the interrupt procedure.
-       interruptProcedure => interruptProcedurePassed
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Rate_Compute
