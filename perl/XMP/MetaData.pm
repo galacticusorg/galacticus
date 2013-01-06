@@ -105,7 +105,7 @@ sub Write {
 
     # Extract version information.
     my $versionGroup = $hdfFile->group("Version");
-    my @version      = $versionGroup->attrGet("versionMajor","versionMinor","versionRevision","mercurialRevision","runTime");
+    my @version      = $versionGroup->attrGet("versionMajor","versionMinor","versionRevision","hgRevision","runTime");
     $metaData{'Version'} =   
     {
 	version  => $version[0].".".$version[1].".".$version[2],
