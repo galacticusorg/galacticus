@@ -526,11 +526,18 @@ contains
     do while (associated(thisEvent))
        if (max(thisEvent%time,time) <= Evolve_To_Time) then
           if (present(lockNode)) lockNode => thisEvent%node
-          if (present(lockType)) lockType =  "event"
+          if (present(lockType)) then
+             lockType =  "event ("
+             lockType=lockType//thisEvent%ID//")"
+          end if
           Evolve_To_Time=max(thisEvent%time,time)
           End_Of_Timestep_Task => Perform_Node_Events
        end if
-       if (report) call Evolve_To_Time_Report("event: ",Evolve_To_Time,thisEvent%node%index())
+       if (report) then
+          message="event ("
+          message=message//thisEvent%ID//"): "
+          call Evolve_To_Time_Report(char(message),Evolve_To_Time,thisEvent%node%index())
+       end if
        thisEvent => thisEvent%next
     end do
 
@@ -596,6 +603,9 @@ contains
     type            (treeNode          ), pointer       :: parentNode
     logical                                             :: foundLockNode
     integer                                             :: treeUnit
+    integer         (kind=kind_int8    )                :: uniqueID
+    logical                                             :: inCycle
+    character       (len=20            )                :: color,style
 
     ! Begin tree.
     open(newUnit=treeUnit,file='galacticusDeadlockTree.gv',status='unknown',form='formatted')
@@ -624,7 +634,7 @@ contains
                 parentNode => parentNode%parent
              end do
              ! Set properties.
-             testNode%node      => thisNode%lockNode            
+             testNode%node      => thisNode%lockNode
              testNode%treeIndex =  parentNode%index()
              testNode%lockNode  => null()
              testNode%lockType  =  "unknown"
@@ -649,8 +659,27 @@ contains
     ! Iterate over all nodes visited.
     thisNode => deadlockHeadNode
     do while (associated(thisNode))
+       ! Detect cycles.
+       inCycle=.false.
+       uniqueID=thisNode%node%uniqueID()
+       testNode => thisNode%next
+       do while (associated(testNode))
+          if (testNode%node%uniqueID() == uniqueID) then
+             inCycle=.true.
+             exit
+          end if
+          testNode => testNode%next
+       end do
+       ! Output node.
        thisBasicComponent => thisNode%node%basic()
-       write (treeUnit,'(a,i16.16,a,i16.16,a,i16.16,a,f7.4,a,a,a)') '"',thisNode%node%index(),'" [shape=circle, label="',thisNode%node%index(),'\ntree: ',thisNode%treeIndex,'\ntime: ',thisBasicComponent%time(),'\n',char(thisNode%lockType),'"];'
+       if (inCycle) then
+          color="green"
+          style="filled"
+       else
+          color="black"
+          style="solid"
+       end if
+       write (treeUnit,'(a,i16.16,a,a,a,a,a,i16.16,a,i16.16,a,f7.4,a,a,a)') '"',thisNode%node%index(),'" [shape=circle, color=',trim(color),', style=',trim(style),' label="',thisNode%node%index(),'\ntree: ',thisNode%treeIndex,'\ntime: ',thisBasicComponent%time(),'\n',char(thisNode%lockType),'"];'
        if (associated(thisNode%lockNode)) write (treeUnit,'(a,i16.16,a,i16.16,a)') '"',thisNode%node%index(),'" -> "',thisNode%lockNode%index(),'"' ;
        thisNode => thisNode%next
     end do
@@ -670,6 +699,7 @@ contains
     type (nodeEvent         ),                pointer :: thisEvent,lastEvent,nextEvent
     class(nodeComponentBasic),                pointer :: thisBasicComponent
     double precision                                  :: nodeTime
+    logical                                           :: taskDone
 
     ! Get the current time.
     thisBasicComponent => thisNode          %basic()
@@ -681,16 +711,25 @@ contains
     do while (associated(thisEvent))
        ! Process the event if it occurs at the present time.
        if (thisEvent%time <= nodeTime .and. associated(thisEvent%task)) then
-          call thisEvent%task(thisNode,deadlockStatus)
-          if (associated(thisEvent,thisNode%event)) then
-             thisNode%event => thisEvent%next
-             lastEvent      => thisNode %event
+          taskDone=thisEvent%task(thisNode,deadlockStatus)
+          ! If the node is no longer associated, simply exit (as any events associated with it must have been processed already).
+          if (.not.associated(thisNode)) exit
+          ! Move to the next event.
+          if (taskDone) then
+             ! The task was performed successfully, so remove it and move to the next event.
+             if (associated(thisEvent,thisNode%event)) then
+                thisNode%event => thisEvent%next
+                lastEvent      => thisNode %event
+             else
+                lastEvent%next => thisEvent%next
+             end if
+             nextEvent => thisEvent%next
+             if (taskDone) deallocate(thisEvent)
+             thisEvent => nextEvent
           else
-             lastEvent%next => thisEvent%next
+             ! The task was not performed, so simply move to the next event.
+             thisEvent => thisEvent%next
           end if
-          nextEvent => thisEvent%next
-          deallocate(thisEvent)
-          thisEvent => nextEvent
        else
           lastEvent => thisEvent
           thisEvent => thisEvent%next
