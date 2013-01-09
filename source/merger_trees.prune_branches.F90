@@ -44,7 +44,7 @@ contains
     use Input_Parameters
     implicit none
     type (mergerTree        ), intent(in), target :: thisTree
-    type (treeNode          ), pointer            :: thisNode,nextNode,destroyNode,previousNode
+    type (treeNode          ), pointer            :: thisNode,nextNode,previousNode
     class(nodeComponentBasic), pointer            :: thisBasicComponent
     type (mergerTree        ), pointer            :: currentTree
     logical                                       :: didPruning
@@ -120,14 +120,7 @@ contains
                          end do
                          nextNode%sibling => thisNode%sibling
                       end if
-                      ! Should call the "destroyBranch" method on "currentTree" here, but seems to cause a compiler crash under gFortran
-                      ! v4.4. So, instead, do the branch destroy manually.
-                      nextNode => thisNode
-                      do while (associated(nextNode))
-                         destroyNode => nextNode
-                         call destroyNode%walkBranch(thisNode,nextNode)
-                         call destroyNode%destroy()
-                      end do
+                      call currentTree%destroyBranch(thisNode)
                       ! Return to parent node.
                       thisNode => previousNode
                    end if
