@@ -79,7 +79,14 @@ The ``read'' merger tree construction method (see \S\ref{sec:MergerTreeConstruct
  \label{fig:MergerTreeSimple}
 \end{figure}
 
-Once the tree has been read, \glc\ processes it according to the following rules. These are primarily intended to ensure that a node which becomes a subhalo is treated as being a subhalo at all later times. This is not necessarily a physically correct assumption (see, for example, \citealt{sales_cosmic_2007}), but is nevertheless what is enforced at present within \glc.
+The following should be noted when constructing merger tree files:
+\begin{itemize}
+\item Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
+\item It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such nodes will be created as satellites in the merger tree and, providing the selected node components (see \S\ref{sec:Components}) initialize their properties approrpiately, will be evolved correctly.
+\item It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does not affect the evolution of the tree.
+\item Normally, cases where a node's host node cannot be found in the \gls{forest} will cause \glc\ to exit with an error. Setting {\tt [mergerTreeReadMissingHostsAreFatal]}$=${\tt false} will instead circumvent this issue by making any such nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest} is not available.
+\item It is acceptable for nodes to jump between branches in a tree, or even to jump between branches in different trees. In the latter case, all trees linked by jumping nodes (a so-called ``\gls{forest}'' of connected trees) must be stored as a single tree (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously, allowing to nodes to move between their branches.
+\item It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see  \citealt{sales_cosmic_2007}). If {\tt [mergerTreeReadAllowSubhaloPromotions]}$=${\tt true} then such cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If {\tt [mergerTreeReadAllowSubhaloPromotions]}$=${\tt false} then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all such cases from the tree:\\
 
 \noindent\hspace{ 5mm} $\rightarrow$ \parbox[t]{150mm}{For any branch in a tree which at some point is a subhalo:}\\
 
@@ -106,14 +113,6 @@ Once the tree has been read, \glc\ processes it according to the following rules
 \noindent\hspace{20mm} $\rightarrow$ \parbox[t]{135mm}{Otherwise:}\\
 
 \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{The proposed host does not exists, which implies the end of a branch has been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it descended.}\\
-
-The following should be noted when constructing merger tree files:
-\begin{itemize}
-\item Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
-\item It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such nodes will be created as satellites in the merger tree and, providing the selected node components (see \S\ref{sec:Components}) initialize their properties approrpiately, will be evolved correctly.
-\item It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does not affect the evolution of the tree.
-\item It is acceptable for nodes to jump between branches in a tree, or even to jump between branches in different trees. In the latter case, all trees linked by jumping nodes (a so-called ``\gls{forest}'' of connected trees) must be stored as a single tree (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously, allowing to nodes to move between their branches.
-Normally, cases where a node's host node cannot be found in the \gls{forest} will cause \glc\ to exit with an error. Setting {\tt [mergerTreeReadMissingHostsAreFatal]}$=${\tt false} will instead circumvent this issue by making any such nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest} is not available.
 \end{itemize}
 
 \subsubsection{Requirements for \glc\ Input Parameters}

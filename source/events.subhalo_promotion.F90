@@ -15,60 +15,59 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles node branch jump events.
+!% Contains a module which handles node subhalo promotion events.
 
-module Node_Branch_Jumps
-  !% Handles satellite node branch jump events.
+module Node_Subhalo_Promotions
+  !% Handles subhalo promotion events.
   implicit none
   private
-  public :: Node_Branch_Jump
+  public :: Node_Subhalo_Promotion
   
 contains
 
-  logical function Node_Branch_Jump(thisEvent,thisNode,deadlockStatus)
-    !% Moves a satellite node to a different branch of the merger tree.
+  logical function Node_Subhalo_Promotion(thisEvent,thisNode,deadlockStatus)
+    !% Promotes a subhalo to be an isolated node.
     use Input_Parameters
     use Galacticus_Nodes
     use Galacticus_Error
-    use Galacticus_Display
+    use Merger_Trees
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String
     use String_Handling
+    use Galacticus_Display
     implicit none
     class  (nodeEvent     ),          intent(in   ) :: thisEvent
     type   (treeNode      ), pointer, intent(inout) :: thisNode
     integer                ,          intent(inout) :: deadlockStatus
-    type   (treeNode      ), pointer                :: newHost,lastSatellite
+    type   (treeNode      ), pointer                :: promotionNode
+    type   (mergerTree    )                         :: thisTree
     type   (varying_string)                         :: message
 
-    ! If the node is not yet a satellite, wait until it is before peforming this task.
-    if (.not.thisNode%isSatellite()) then
-       Node_Branch_Jump=.false.
+    ! Find the node to promote to.    
+    promotionNode => thisEvent%node
+    ! If the target node has a child, we must wait for that child to be processed before promoting. Note that this should only
+    ! happen in cases where the target node was cloned to be its own primary progenitor.
+    if (associated(promotionNode%firstChild)) then
+       Node_Subhalo_Promotion=.false.
        return
-    else
-       Node_Branch_Jump=.true.
     end if
     ! Report.
-    message='Node ['
-    message=message//thisNode%index()//'] jumping branch to ['//thisEvent%node%index()//']'
+    message='Satellite node ['
+    message=message//thisNode%index()//'] promoting to isolated node ['//thisEvent%node%index()//']'
     call Galacticus_Display_Message(message,verbosityInfo)
-    ! Remove the satellite from its current host.
+    ! Remove the subhalo from its host.
     call thisNode%removeFromHost()
-    ! Find the new host and insert the node as a satellite in that new host.
-    newHost          => thisEvent%node
-    thisNode%sibling => null()
-    thisNode%parent  => newHost
-    if (associated(newHost%firstSatellite)) then
-       lastSatellite                => newHost %lastSatellite()
-       lastSatellite%sibling        => thisNode
-    else
-       newHost      %firstSatellite => thisNode
-    end if
-    ! Locate the paired event in the host and remove it.
-    call newHost%removePairedEvent(thisEvent)
+    ! Make thisNode the primary progenitor of the target node.
+    thisNode%parent          => promotionNode
+    thisNode%sibling         => null()
+    promotionNode%firstChild => thisNode
+    ! Promote the halo.
+    call thisTree%promoteNode(thisNode)
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=isNotDeadlocked
+    ! Record that the task was performed.
+    Node_Subhalo_Promotion=.true.
     return
-  end function Node_Branch_Jump
+  end function Node_Subhalo_Promotion
   
-end module Node_Branch_Jumps
+end module Node_Subhalo_Promotions

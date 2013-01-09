@@ -1224,10 +1224,10 @@ sub Generate_Node_Event_Interface {
     # Insert interface.
     $buildData->{'content'} .= "  ! Interface for node event tasks.\n";
     $buildData->{'content'} .= "  abstract interface\n";
-    $buildData->{'content'} .= "    subroutine nodeEventTask(thisEvent,thisNode,deadlockStatus)\n";
+    $buildData->{'content'} .= "    logical function nodeEventTask(thisEvent,thisNode,deadlockStatus)\n";
     $buildData->{'content'} .= "      import nodeEvent,treeNode\n";
     $buildData->{'content'} .= &Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
-    $buildData->{'content'} .= "    end subroutine nodeEventTask\n";
+    $buildData->{'content'} .= "    end function nodeEventTask\n";
     $buildData->{'content'} .= "  end interface\n";
 }
 
@@ -1322,7 +1322,8 @@ sub Generate_Tree_Node_Object {
 	 {type => "procedure", name => "walkTree"                 , function => "Tree_Node_Walk_Tree"                     },
 	 {type => "procedure", name => "walkTreeUnderConstruction", function => "Tree_Node_Walk_Tree_Under_Construction"  },
 	 {type => "procedure", name => "walkTreeWithSatellites"   , function => "Tree_Node_Walk_Tree_With_Satellites"     },
-	 {type => "procedure", name => "createEvent"              , function => "Tree_Node_Create_Event"                  }
+	 {type => "procedure", name => "createEvent"              , function => "Tree_Node_Create_Event"                  },
+	 {type => "procedure", name => "removePairedEvent"        , function => "Tree_Node_Remove_Paired_Event"           }
 	);
     # Add data content.
     my @dataContent =
