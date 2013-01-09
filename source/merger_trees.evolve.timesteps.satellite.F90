@@ -156,13 +156,25 @@ contains
     use Merger_Trees
     use Galacticus_Nodes
     use Merger_Trees_Evolve_Deadlock_Status
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
     !# <include directive="satelliteMergerTask" type="moduleUse">
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
     implicit none
-    type(mergerTree), intent(in)             :: thisTree
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(inout)          :: deadlockStatus
+    type   (mergerTree    ), intent(in   )          :: thisTree
+    type   (treeNode      ), intent(inout), pointer :: thisNode
+    integer                , intent(inout)          :: deadlockStatus
+    type   (varying_string)                         :: message
+
+    ! Report if necessary.
+    ! Report if necessary.
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Satellite node ['
+       message=message//thisNode%index()//'] is being merged'
+       call Galacticus_Display_Message(message)
+    end if
 
     ! Allow arbitrary routines to process the merger.
     !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
