@@ -226,17 +226,20 @@ contains
     implicit none
     type (treeNode              ), pointer, intent(inout) :: thisNode
     class(nodeComponentSatellite), pointer                :: satelliteComponent
-    double precision,              parameter              :: timeScale=1.0d-3
+    class(nodeComponentBasic    ), pointer                :: thisBasicComponent
+    double precision,              parameter              :: timeScale=1.0d-3, massScaleFractional=1.0d-6
 
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the standard class.
     select type (satelliteComponent)
     class is (nodeComponentSatelliteStandard)
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
        ! Set scale for time.
-       call satelliteComponent%mergeTimeScale(timeScale                     )
+       call satelliteComponent%mergeTimeScale(timeScale                                    )
        ! Set scale for bound mass.
-       call satelliteComponent%boundMassScale(satelliteComponent%boundMass())
+       call satelliteComponent%boundMassScale(massScaleFractional*thisBasicComponent%mass())
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Scale_Set
