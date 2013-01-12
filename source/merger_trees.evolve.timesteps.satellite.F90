@@ -186,6 +186,7 @@ contains
     call thisNode%removeFromHost  ()
     call thisNode%removeFromMergee()
     call thisNode%destroy         ()
+    deallocate(thisNode)
     thisNode => null()
 
     ! The tree was changed, so mark that it is not deadlocked.
