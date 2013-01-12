@@ -1531,6 +1531,7 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
      class is (nodeComponentDiskExponential)
         starFormationHistory=thisDiskComponent%starFormationHistory()
         call Star_Formation_History_Output(thisNode,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'disk')
+        call thisDiskComponent%starFormationHistorySet(starFormationHistory)
      end select
      return
    end subroutine Node_Component_Disk_Exponential_Star_Formation_History_Output
