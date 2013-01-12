@@ -280,15 +280,15 @@ sub Extract_Star_Formation_History {
     my $end   = $start+$count-1;
   
     # Read in galaxy data.
-    my $nodeIndices         = $nodeDataGroup->dataset("nodeIndex"          )->get($start,$end);
-    my $diskScaleLength     = $nodeDataGroup->dataset("diskScaleLength"    )->get($start,$end);
-    my $spheroidScaleLength = $nodeDataGroup->dataset("spheroidScaleLength")->get($start,$end);
-    my $diskStellarMass     = $nodeDataGroup->dataset("diskStellarMass"    )->get($start,$end);
-    my $spheroidStellarMass = $nodeDataGroup->dataset("spheroidStellarMass")->get($start,$end);
-    my $diskGasMass         = $nodeDataGroup->dataset("diskGasMass"        )->get($start,$end);
-    my $spheroidGasMass     = $nodeDataGroup->dataset("spheroidGasMass"    )->get($start,$end);
-    my $diskGasMetals       = $nodeDataGroup->dataset("diskGasMetals"      )->get($start,$end);
-    my $spheroidGasMetals   = $nodeDataGroup->dataset("spheroidGasMetals"  )->get($start,$end);
+    my $nodeIndices         = $nodeDataGroup->dataset("nodeIndex"                  )->get($start,$end);
+    my $diskScaleLength     = $nodeDataGroup->dataset("diskRadius"                 )->get($start,$end);
+    my $spheroidScaleLength = $nodeDataGroup->dataset("spheroidRadius"             )->get($start,$end);
+    my $diskStellarMass     = $nodeDataGroup->dataset("diskMassStellar"            )->get($start,$end);
+    my $spheroidStellarMass = $nodeDataGroup->dataset("spheroidMassStellar"        )->get($start,$end);
+    my $diskGasMass         = $nodeDataGroup->dataset("diskMassGas"                )->get($start,$end);
+    my $spheroidGasMass     = $nodeDataGroup->dataset("spheroidMassGas"            )->get($start,$end);
+    my $diskGasMetals       = $nodeDataGroup->dataset("diskAbundancesGasMetals"    )->get($start,$end);
+    my $spheroidGasMetals   = $nodeDataGroup->dataset("spheroidAbundancesGasMetals")->get($start,$end);
 
     # Find the node in question.
     my $selected = which($nodeIndices == $nodeIndex);
@@ -639,7 +639,7 @@ sub Process_Through_Grasil {
 	} else {
 	    # Grasil did not complete.
 	    print "Galacticus::Grasil - Grasil appears to have failed for ".$galaxy->{'grasilFilesRoot'}."\n";
-	    system("mv `dirname ".$galaxy->{'grasilFilesRoot'}."` `dirname ".$galaxy->{'grasilFilesRoot'}."_".$galaxy->{'galaxyIndex'}."`");
+	    system("mv `dirname ".$galaxy->{'grasilFilesRoot'}."` ".$galaxy->{'grasilFilesRoot'}."_".$galaxy->{'galaxyIndex'});
 	}
     }
 }
