@@ -1474,9 +1474,10 @@ contains
     ! Output the star formation history if a spheroid exists for this component.
     thisSpheroidComponent => thisNode%spheroid()
     select type (thisSpheroidComponent)
-       class is (nodeComponentSpheroidStandard)
+    class is (nodeComponentSpheroidStandard)
        starFormationHistory=thisSpheroidComponent%starFormationHistory()
        call Star_Formation_History_Output(thisNode,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'spheroid')
+       call thisSpheroidComponent%starFormationHistorySet(starFormationHistory)
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output
