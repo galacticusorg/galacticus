@@ -569,6 +569,7 @@ contains
 
        ! Record the star formation history.
        stellarHistoryRate=thisSpheroidComponent%starFormationHistory()
+       call stellarHistoryRate%reset()
        call Star_Formation_History_Record(thisNode,stellarHistoryRate,fuelAbundances,starFormationRate)
        if (stellarHistoryRate%exists()) call thisSpheroidComponent%starFormationHistoryRate(stellarHistoryRate)
 

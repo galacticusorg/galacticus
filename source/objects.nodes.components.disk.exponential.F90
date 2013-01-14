@@ -513,6 +513,7 @@ contains
 
        ! Record the star formation history.
        stellarHistoryRate=thisDiskComponent%starFormationHistory()
+       call stellarHistoryRate%reset()
        call Star_Formation_History_Record(thisNode,stellarHistoryRate,fuelAbundances,starFormationRate)
        if (stellarHistoryRate%exists()) call thisDiskComponent%starFormationHistoryRate(stellarHistoryRate)
 
