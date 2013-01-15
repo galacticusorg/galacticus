@@ -415,22 +415,33 @@ contains
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    type (history          )                         :: stellarPopulationHistory,starFormationHistory
-    
+    type   (treeNode         ), intent(inout), pointer :: thisNode
+    class  (nodeComponentDisk),                pointer :: thisDiskComponent
+    type   (history          )                         :: stellarPropertiesHistory,starFormationHistory
+    logical                                            :: createStellarPropertiesHistory,createStarFormationHistory
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Exit if already initialized.
     if (thisDiskComponent%isInitialized()) return
-    ! Create stellar luminosities array.
-    call thisDiskComponent%luminositiesStellarSet(zeroLuminosities)
+    ! Determine which histories must be created.
+    starFormationHistory          =thisDiskComponent%starFormationHistory            ()
+    createStarFormationHistory    =.not.             starFormationHistory    %exists ()
+    call                                             starformationhistory    %destroy()
+    stellarPropertiesHistory      =thisDiskComponent%stellarPropertiesHistory        ()
+    createStellarPropertiesHistory=.not.             stellarPropertiesHistory%exists ()
+    call                                             stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
-    call Stellar_Population_Properties_History_Create (thisNode,stellarPopulationHistory)
-    call thisDiskComponent%stellarPropertiesHistorySet(         stellarPopulationHistory)
+    if (createStellarPropertiesHistory) then
+       ! Create the stellar properties history.
+       call Stellar_Population_Properties_History_Create (thisNode,stellarPropertiesHistory)
+       call thisDiskComponent%stellarPropertiesHistorySet(         stellarPropertiesHistory)
+    end if
     ! Create the star formation history.
-    call Star_Formation_History_Create                (thisNode,    starFormationHistory)
-    call thisDiskComponent%    starFormationHistorySet(             starFormationHistory)
+    if (createStarFormationHistory    ) then
+       call Star_Formation_History_Create                (thisNode,    starFormationHistory)
+       call thisDiskComponent%    starFormationHistorySet(             starFormationHistory)
+    end if
     ! Record that the disk has been initialized.
     call thisDiskComponent%isInitializedSet(.true.)
     return
