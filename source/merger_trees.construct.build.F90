@@ -27,8 +27,8 @@ module Merger_Tree_Build
 
   ! Variables giving the mass range and sampling frequency for mass function sampling.
   double precision     :: mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum,mergerTreeBuildTreesBaseRedshift &
-       &,mergerTreeBuildTreesBaseTime
-  integer              :: mergerTreeBuildTreesPerDecade,mergerTreeBuildTreesBeginAtTree
+       &,mergerTreeBuildTreesBaseTime,mergerTreeBuildTreesPerDecade
+  integer              :: mergerTreeBuildTreesBeginAtTree
   type(varying_string) :: mergerTreeBuildTreesHaloMassDistribution,mergerTreeBuildTreeMassesFile
 
   ! Direction in which to process trees.
@@ -128,7 +128,7 @@ contains
        !@   <type>integer</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesPerDecade'   ,mergerTreeBuildTreesPerDecade   ,defaultValue=10    )
+       call Get_Input_Parameter('mergerTreeBuildTreesPerDecade'   ,mergerTreeBuildTreesPerDecade   ,defaultValue=10.0d0)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesBaseRedshift</name>
        !@   <defaultValue>0</defaultValue>       
@@ -190,7 +190,7 @@ contains
        mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)       
 
        ! Generate a randomly sampled set of halo masses.
-       treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
+       treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
        call Alloc_Array(treeHaloMass,[treeCount])
        call Alloc_Array(treeWeight  ,[treeCount])
 
@@ -198,7 +198,7 @@ contains
        select case (char(mergerTreeBuildTreesHaloMassDistribution))
        case ("quasi","uniform")
           ! Generate a randomly sampled set of halo masses.
-          treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
+          treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
           call Alloc_Array(treeHaloMass,[treeCount])
           call Alloc_Array(treeWeight  ,[treeCount])
           
@@ -218,7 +218,7 @@ contains
              call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
           end select
           ! Create a cumulative probability for sampling halo masses.
-          massFunctionSampleCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(massFunctionSamplePerDecade)))
+          massFunctionSampleCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*massFunctionSamplePerDecade))
           call Alloc_Array(massFunctionSampleLogMass         ,[massFunctionSampleCount])
           call Alloc_Array(massFunctionSampleLogMassMonotonic,[massFunctionSampleCount])
           call Alloc_Array(massFunctionSampleProbability     ,[massFunctionSampleCount])
