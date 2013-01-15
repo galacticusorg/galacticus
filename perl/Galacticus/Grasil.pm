@@ -3,6 +3,15 @@
 package Grasil;
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V092"} = getcwd()."/";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use PDL::GSL::INTERP;
@@ -70,6 +79,7 @@ sub Get_Flux {
     my $radialGridCount         = 40;
     my $dustToMetalsRatio       = 0.61;
     my $recomputeSEDs           = 0;
+    my $cpuLimit                = 3600;
     if ( exists($dataSet->{'grasilOptions'}->{'includePAHs'}) ) {
     	if ( $dataSet->{'grasilOptions'}->{'includePAHs'} == 1 ) {
     	    $includePAHs = "1.0";
@@ -88,6 +98,7 @@ sub Get_Flux {
     $radialGridCount   = $dataSet->{'grasilOptions'}->{'radialGridCount'  } if ( exists($dataSet->{'grasilOptions'}->{'radialGridCount'  }) );
     $dustToMetalsRatio = $dataSet->{'grasilOptions'}->{'dustToMetalsRatio'} if ( exists($dataSet->{'grasilOptions'}->{'dustToMetalsRatio'}) );
     $recomputeSEDs     = $dataSet->{'grasilOptions'}->{'recomputeSEDs'    } if ( exists($dataSet->{'grasilOptions'}->{'recomputeSEDs'    }) );
+    $cpuLimit          = $dataSet->{'grasilOptions'}->{'cpuLimit'         } if ( exists($dataSet->{'grasilOptions'}->{'cpuLimit'         }) );
 
     # Determine the number of CPUs available.
     my $cpuCount = Sys::CPU::cpu_count();
@@ -180,7 +191,7 @@ sub Get_Flux {
 	    &Grasil::Extract_Star_Formation_History($dataSet,$outputIndex,$mergerTreeIndex,$nodeIndex,$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".dat");
 
 	    # Generate a parameter file for Grasil.
-	    open(iHndl,"data/grasil/grasilBaseParameters.txt");
+	    open(iHndl,$galacticusPath."/data/grasil/grasilBaseParameters.txt");
 	    open(oHndl,">".$dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber.".par");
 	    my $inInclinations = 0;
 	    $inclinations = pdl [];
@@ -207,12 +218,13 @@ sub Get_Flux {
 	    $grasilQueue[$queueNumber] = {
 		grasilFilesRoot => $dataSet->{'file'}.".grasilTmp".$$.".".$queueNumber."/grasil".$queueNumber,
 		galaxyIndex     => $i,
-		nodeGroup       => $nodeGroup
+		nodeGroup       => $nodeGroup,
+		cpuLimit        => $cpuLimit
 	    };
 
 	    # Process through Grasil if the queue is full.
 	    if ( $#grasilQueue >= $cpuCount-1 ) {
-		&Process_Through_Grasil(\@grasilQueue,$observedWavelength,$inclinations,$dataSet,$dataSets,$dataSetName);
+		&Process_Through_Grasil(\@grasilQueue,$observedWavelength,$inclinations,$dataSet,$dataSets,$dataSetName,$cpuLimit);
 		undef(@grasilQueue);
 	    }
 
@@ -236,7 +248,7 @@ sub Get_Flux {
     
     # Process through Grasil if any galaxies remain in the queue.
     if ( $#grasilQueue >= 0 ) {
-	&Process_Through_Grasil(\@grasilQueue,$observedWavelength,$inclinations,$dataSet,$dataSets,$dataSetName);
+	&Process_Through_Grasil(\@grasilQueue,$observedWavelength,$inclinations,$dataSet,$dataSets,$dataSetName,$cpuLimit);
 	undef(@grasilQueue);
     }
 
@@ -570,9 +582,10 @@ sub Process_Through_Grasil {
     my $dataSet            = shift;
     my $dataSets           = shift;
     my $dataSetName        = shift;
+    my $cpuLimit           = shift;
 
     # Generate command to the script that runs Grasil.
-    my $wrapperCommand = "scripts/aux/Grasil_Wrapper.pl";
+    my $wrapperCommand = $galacticusPath."/scripts/aux/Grasil_Wrapper.pl --cpuLimit ".$cpuLimit;
     foreach my $galaxy ( @{$grasilQueue} ) {
 	$wrapperCommand .= " ".$galaxy->{'grasilFilesRoot'};
     }
@@ -638,8 +651,13 @@ sub Process_Through_Grasil {
 
 	} else {
 	    # Grasil did not complete.
-	    print "Galacticus::Grasil - Grasil appears to have failed for ".$galaxy->{'grasilFilesRoot'}."\n";
-	    system("mv `dirname ".$galaxy->{'grasilFilesRoot'}."` ".$galaxy->{'grasilFilesRoot'}."_".$galaxy->{'galaxyIndex'});
+	    my $workDirectory = $galaxy->{'grasilFilesRoot'};
+	    $workDirectory =~ s/\/[^\/]+$//;
+	    my $baseDirectory = $workDirectory;
+	    $baseDirectory =~ s/\/[^\/]+$//;
+	    system("mv ".$workDirectory." ".$baseDirectory."/".$galaxy->{'galaxyIndex'});
+	    print "Galacticus::Grasil - Grasil appears to have FAILED for ".$baseDirectory."/".$galaxy->{'galaxyIndex'}."\n";
+	    exit;
 	}
     }
 }
