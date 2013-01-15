@@ -102,6 +102,7 @@ The {\tt runFile} is an XML file with the following structure:
  <modelRootDirectory>models.new</modelRootDirectory>
  <baseParameters>newBestParametersQuick.xml</baseParameters>
  <threadCount>maximum</threadCount>
+ <compressModels>no</compressModels>
  <condor>
    <useCondor>true</useCondor>
    <galacticusDirectory>/home/condor/Galacticus/v0.9.1</galacticusDirectory>
@@ -162,7 +163,7 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be. Optionally, the analysis script to run can be specified via the {\tt analysisScript} element (see \S\ref{sec:AnalysisScripts});
 \item[{\tt emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\tt galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.
 \item[{\tt threadCount}] Specifies the number of threads that should be launched (each running a separate \glc\ model) when running on the local machine. If set to ``maximum'' then the number of threads will be set to the available number of cores on the local machine. If not present, a single thread is used.
-
+\item[{\tt compressModels}] If ``no'' then models are not compressed after being run. Otherwise, the contents of the model output directory will be compressed using {\tt bzip2}.
 \item[{\tt condor}] This section, if present, specifies if and how jobs should be submitted to a {\tt Condor} cluster. The following options are available:
 \begin{description}
 \item[{\tt useCondor}] If set to ``true'' then jobs will be submitted to a {\sc Condor} cluster, otherwise they will be run on the local machine;
