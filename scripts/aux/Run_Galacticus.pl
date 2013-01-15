@@ -536,7 +536,8 @@ sub Model_Finalize {
     }
     
     # Compress all files in the output directory.
-    &Simple::Compress_Directory($galacticusOutputDirectory);
+    &Simple::Compress_Directory($galacticusOutputDirectory)
+	unless ( $modelsToRun->{'compressModels'} eq "no" );
     
 }
 
