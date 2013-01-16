@@ -1259,7 +1259,7 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
           ! Compute the actual density.
           positionCylindrical=Coordinates_Spherical_To_Cylindrical(positionSpherical)
           fractionalRadius=positionCylindrical(1)/                         thisDiskComponent%radius()
-          fractionalHeight=positionCylindrical(2)/(diskHeightToRadiusRatio*thisDiskComponent%radius())
+          fractionalHeight=positionCylindrical(3)/(diskHeightToRadiusRatio*thisDiskComponent%radius())
           componentDensity=componentDensity*exp(-fractionalRadius)/cosh(0.5d0*fractionalHeight)**2/4.0d0/Pi&
                &/thisDiskComponent%radius()**3/diskHeightToRadiusRatio
        end if
