@@ -401,9 +401,11 @@ sub Launch_Models {
 			open(oHndl,">".$pbsScript);
 			print oHndl "#!/bin/bash\n";
 			print oHndl "#PBS -N Galacticus_".$modelCounter."_".$$."\n";
-			if ( exists($config->{'contact'}->{'email'}) && $config->{'contact'}->{'email'} =~ m/\@/ && $modelsToRun->{'emailReport'} eq "yes" ) {
-			    print oHndl "#PBS -M ".$config->{'contact'}->{'email'}."\n";
-			    print oHndl "#PBS -m bea\n";
+			if ( exists($config->{'contact'}->{'email'}) ) {
+			    if ( $config->{'contact'}->{'email'} =~ m/\@/ && $modelsToRun->{'emailReport'} eq "yes" ) {
+				print oHndl "#PBS -M ".$config->{'contact'}->{'email'}."\n";
+				print oHndl "#PBS -m bea\n";
+			    }
 			}
 			print oHndl "#PBS -l walltime=".$modelsToRun->{'pbs'}->{'wallTime'}."\n"
 			    if ( exists($modelsToRun->{'pbs'}->{'wallTime'}) );
@@ -536,8 +538,13 @@ sub Model_Finalize {
     }
     
     # Compress all files in the output directory.
+    my $compress = 1;
+    if ( exists($modelsToRun->{'compressModels'}) ) {
+	$compress = 0
+	    if ( $modelsToRun->{'compressModels'} eq "no" );
+    }
     &Simple::Compress_Directory($galacticusOutputDirectory)
-	unless ( $modelsToRun->{'compressModels'} eq "no" );
+	unless ( $compress == 0 );
     
 }
 
