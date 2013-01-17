@@ -172,6 +172,13 @@ contains
           ! Scale values to the determined timestep.
           branchingProbability=branchingProbability*deltaW
           accretionFraction   =accretionFraction   *deltaW
+          ! Accretion fraction must be less than unity. Reduce timestep (and branching probability and accretion fraction) by
+          ! factors of two until this condition is satisfied.
+          do while (accretionFraction >= 1.0d0)
+             deltaW              =deltaW              *0.5d0
+             branchingProbability=branchingProbability*0.5d0
+             accretionFraction   =accretionFraction   *0.5d0
+          end do
 
           ! Decide if a branching occurs.
           if (branchingProbability > 0.0d0) then
