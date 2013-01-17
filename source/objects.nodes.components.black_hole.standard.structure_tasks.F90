@@ -123,12 +123,15 @@ contains
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
     ! Get the black hole component and check that it is of the standard class.
     thisBlackHoleComponent => thisNode%blackHole(instance=1)
-    if (Black_Hole_Gravitational_Radius(thisBlackHoleComponent) <=0.0d0) return
-    ! Computes the potential - limit the radius to the gravitational radius to avoid divergent potentials.
-    call Node_Component_Black_Hole_Standard_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull &
-         &,componentMass)
-    componentPotential=-gravitationalConstantGalacticus*componentMass/max(radius&
-         &,Black_Hole_Gravitational_Radius(thisBlackHoleComponent))
+    select type (thisBlackHoleComponent)
+    class is (nodeComponentBlackHoleStandard)
+       if (Black_Hole_Gravitational_Radius(thisBlackHoleComponent) <=0.0d0) return
+       ! Computes the potential - limit the radius to the gravitational radius to avoid divergent potentials.
+       call Node_Component_Black_Hole_Standard_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull &
+            &,componentMass)
+       componentPotential=-gravitationalConstantGalacticus*componentMass/max(radius&
+            &,Black_Hole_Gravitational_Radius(thisBlackHoleComponent))
+    end select
     return
   end subroutine Node_Component_Black_Hole_Standard_Potential
 
@@ -157,16 +160,21 @@ contains
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
     if (      radius        <=            0.0d0                                              ) return
-    call Node_Component_Black_Hole_Standard_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull&
-         &,componentMass)
-    if (componentMass == 0.0d0) return
-    if (radius > Black_Hole_Gravitational_Radius(thisBlackHoleComponent)) then
-       componentRotationCurveGradient=-gravitationalConstantGalacticus &
-            &                         *componentMass                   &
-            &                         /radius**2
-    else
-       componentRotationCurveGradient=0.0d0
-    end if
+    ! Get the black hole component and check that it is of the standard class.
+    thisBlackHoleComponent => thisNode%blackHole(instance=1)
+    select type (thisBlackHoleComponent)
+    class is (nodeComponentBlackHoleStandard)
+       call Node_Component_Black_Hole_Standard_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull&
+            &,componentMass)
+       if (componentMass == 0.0d0) return       
+       if (radius > Black_Hole_Gravitational_Radius(thisBlackHoleComponent)) then
+          componentRotationCurveGradient=-gravitationalConstantGalacticus &
+               &                         *componentMass                   &
+               &                         /radius**2
+       else
+          componentRotationCurveGradient=0.0d0
+       end if
+    end select
     return
   end subroutine Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient
   
