@@ -1234,7 +1234,8 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
     double precision        , intent(  out)          :: componentDensity
     class(nodeComponentDisk),                pointer :: thisDiskComponent
     double precision        , parameter              :: diskHeightToRadiusRatio=0.1d0
-    double precision                                 :: fractionalRadius,fractionalHeight,positionCylindrical(3)
+    double precision        , parameter              :: coshArgumentMaximum=50.0d0
+    double precision                                 :: fractionalRadius,fractionalHeight,positionCylindrical(3),coshTerm
 
     ! Return immediately if disk component is not requested.    
     componentDensity=0.0d0
@@ -1260,8 +1261,13 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
           positionCylindrical=Coordinates_Spherical_To_Cylindrical(positionSpherical)
           fractionalRadius=positionCylindrical(1)/                         thisDiskComponent%radius()
           fractionalHeight=positionCylindrical(3)/(diskHeightToRadiusRatio*thisDiskComponent%radius())
-          componentDensity=componentDensity*exp(-fractionalRadius)/cosh(0.5d0*fractionalHeight)**2/4.0d0/Pi&
-               &/thisDiskComponent%radius()**3/diskHeightToRadiusRatio
+          if (fractionalHeight > coshArgumentMaximum) then
+             coshTerm=(2.0d0*exp(-0.5d0*fractionalHeight)/(1.0d0+exp(-fractionalHeight)))**2
+          else
+             coshTerm=1.0d0/cosh(0.5d0*fractionalHeight)**2
+          end if
+          componentDensity=componentDensity*exp(-fractionalRadius)*coshTerm/4.0d0/Pi/thisDiskComponent%radius()**3&
+               &/diskHeightToRadiusRatio
        end if
     end select
     return
