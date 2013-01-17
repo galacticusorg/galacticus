@@ -118,11 +118,20 @@ contains
 
     integer                                                    :: iDatum,ioErr,iParameter,addCount,iExtrapolation&
          &,extrapolationMethod,versionNumber
-    double precision                                           :: datumValues(2),parameterValue
+    double precision                                           :: datumValues(2),parameterValue,omegaBaryonValue,omegaMatterValue&
+         &,omegaDarkEnergyValue,hubbleParameterValue,cmbTemperatureValue
     character(len=32)                                          :: limitType
 
     ! Read the file if this module has not been initialized.
     if (.not.transferFunctionInitialized) then
+
+       ! Get values of cosmological parameters in advance (avoids trying to retrieve them while in an OpenMP "FoX_DOM_Access"
+       ! critical section which can lead to deadlocks).
+       omegaBaryonValue    =Omega_b     ()
+       omegaMatterValue    =Omega_Matter()
+       omegaDarkEnergyValue=Omega_DE    ()
+       hubbleParameterValue=H_0         ()
+       cmbTemperatureValue =T_CMB       ()
        ! Open and parse the data file.
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(transferFunctionFile),iostat=ioErr)
@@ -140,19 +149,19 @@ contains
           call extractDataContent(valueElement,parameterValue)
           select case (getTextContent(nameElement))
           case ("Omega_b")
-             if (Values_Differ(parameterValue,Omega_b(),absTol=1.0d-3)) call Galacticus_Display_Message('Omega_b from transfer &
+             if (Values_Differ(parameterValue,omegaBaryonValue    ,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_b from transfer &
                   & function file does not match internal value')
           case ("Omega_Matter")
-             if (Values_Differ(parameterValue,Omega_Matter(),absTol=1.0d-3)) call Galacticus_Display_Message('Omega_Matter from transfer &
+             if (Values_Differ(parameterValue,omegaMatterValue    ,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_Matter from transfer &
                   & function file does not match internal value')
           case ("Omega_DE")
-             if (Values_Differ(parameterValue,Omega_DE(),absTol=1.0d-3)) call Galacticus_Display_Message('Omega_DE from transfer &
+             if (Values_Differ(parameterValue,omegaDarkEnergyValue,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_DE from transfer &
                   & function file does not match internal value')
           case ("H_0")
-             if (Values_Differ(parameterValue,H_0(),relTol=1.0d-3)) call Galacticus_Display_Message('H_0 from transfer &
+             if (Values_Differ(parameterValue,hubbleParameterValue,relTol=1.0d-3)) call Galacticus_Display_Message('H_0 from transfer &
                   & function file does not match internal value')
           case ("T_CMB")
-             if (Values_Differ(parameterValue,T_CMB(),relTol=1.0d-3)) call Galacticus_Display_Message('T_CMB from transfer &
+             if (Values_Differ(parameterValue,cmbTemperatureValue ,relTol=1.0d-3)) call Galacticus_Display_Message('T_CMB from transfer &
                   & function file does not match internal value')
           end select
        end do
