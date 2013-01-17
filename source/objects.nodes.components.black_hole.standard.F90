@@ -828,7 +828,7 @@ contains
        ! Set the position.
        position=[accretionRadius,0.0d0,0.0d0]
        ! Get density of gas at the galactic center.
-       gasDensity=Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemSpherical,massType&
+       gasDensity=Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemCylindrical,massType&
             &=massTypeGaseous,componentType=componentTypeSpheroid)
        ! Check if we have a non-negligible gas density.
        if (gasDensity > gasDensityMinimum) then
@@ -878,7 +878,7 @@ contains
           hotModeFraction=1.0d0
        end select             
        ! Get density of gas at the galactic center - scaled by the fraction in the hot accretion mode.
-       gasDensity=hotModeFraction*Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemSpherical&
+       gasDensity=hotModeFraction*Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemCylindrical&
             &,massType=massTypeGaseous,componentType=componentTypeHotHalo)
        ! Check if we have a non-zero gas density.
        if (gasDensity > gasDensityMinimum) then
