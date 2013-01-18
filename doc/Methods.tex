@@ -454,6 +454,7 @@ respectively.
 Currently defined accretion disk methods are:
 \begin{description}
  \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \gls{igm} (i.e. abundances are always zero) and chemicals are computed using the chemical state functions (see \S\ref{sec:ChemicalStateMethods}).
+ \item [{\tt null}] Assumes no accretion onto halos.
 \end{description}
 
 \subsubsection{Atomic Collisional Ionization Rates}
