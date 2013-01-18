@@ -3422,6 +3422,7 @@ Currently defined merger tree construction methods are:
  \item [{\tt read}] Reads merger tree data from an HDF5 file (see \S\ref{sec:MergerTreeFiles}). The file to read is specified by the {\tt [mergerTreeReadFileName]} parameter.
  \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). See \S\ref{sec:SmoothAccretion} for details.
  \item [{\tt stateRestore}] Intended primarily for debugging purposes, this method will restore a tree whose complete internal state was written to file. See \S\ref{sec:TreeConstructStateRestore} for details of how to use this method.
+ \item [{\tt fullySpecified}] Intended primarily for constructing test cases, this method allows the full state of the merger tree (and all components of nodes) to be specified via an XML document. See \S\ref{sec:TreeConstructFullySpecified} for details of how to use this method.
 \end{description}
 
 \subsubsection{Non-linear Matter Power Spectrum}\index{power spectrum!non-linear}

@@ -62,6 +62,12 @@ module Abundances_Structure
      procedure                 :: reset                  => Abundances_Reset
      !@ <objectMethod>
      !@   <object>abundances</object>
+     !@   <method>builder</method>
+     !@   <description>Build an abundances object from a provided XML description.</description>
+     !@ </objectMethod>
+     procedure                 :: builder                => Abundances_Builder
+     !@ <objectMethod>
+     !@   <object>abundances</object>
      !@   <method>dump</method>
      !@   <description>Dump an abundances object.</description>
      !@ </objectMethod>
@@ -266,6 +272,37 @@ contains
     if (allocated(self%elementalValue)) call Dealloc_Array(self%elementalValue)
     return
   end subroutine Abundances_Destroy
+
+  subroutine Abundances_Builder(self,abundancesDefinition)
+    !% Build a {\tt abundances} object from the given XML {\tt abundancesDefinition}.
+    use FoX_DOM
+    use Galacticus_Error
+    implicit none
+    class(abundances), intent(inout)          :: self
+    type (node      ), intent(in   ), pointer :: abundancesDefinition
+    type (node      ),                pointer :: abundance
+    type (nodeList  ),                pointer :: abundanceList
+    integer                                   :: i
+
+    ! Get the metallicity.
+    abundanceList => getElementsByTagName(abundancesDefinition,'metals')
+    if (getLength(abundanceList) >  1) call Galacticus_Error_Report('Abundances_Builder','multiple metallicity values specified')
+    if (getLength(abundanceList) == 1) then
+       abundance => item(abundanceList,0)
+       call extractDataContent(abundance,self%metallicityValue)
+    end if
+    if (elementsCount > 0) then
+       do i=1,elementsCount
+          abundanceList => getElementsByTagName(abundancesDefinition,trim(elementsToTrack(i)))
+          if (getLength(abundanceList) >  1) call Galacticus_Error_Report('Abundances_Builder','multiple '//trim(elementsToTrack(i))//' values specified')
+          if (getLength(abundanceList) == 1) then
+             abundance => item(abundanceList,0)
+             call extractDataContent(abundance,self%elementalValue(i))
+          end if
+       end do
+    end if
+    return
+  end subroutine Abundances_Builder
 
   subroutine Abundances_Dump(self)
     !% Reset an abundances object.
