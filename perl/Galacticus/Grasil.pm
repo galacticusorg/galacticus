@@ -3,6 +3,7 @@
 package Grasil;
 use strict;
 use warnings;
+use Cwd;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
