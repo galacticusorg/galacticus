@@ -99,6 +99,10 @@ module Chemical_Abundances_Structure
      !@     <description>Enforces all chemical values to be positive.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>builder</method>
+     !@     <description>Build a chemical abundances object from an XML definition.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>dump</method>
      !@     <description>Dump a chemical abundances object.</description>
      !@   </objectMethod>
@@ -106,11 +110,11 @@ module Chemical_Abundances_Structure
      !@     <method>dumpRaw</method>
      !@     <description>Dump a chemical abundances object in binary.</description>
      !@   </objectMethod>
-      !@   <objectMethod>
+     !@   <objectMethod>
      !@     <method>readRaw</method>
      !@     <description>Read a chemical abundances object in binary.</description>
      !@   </objectMethod>
-    !@ </objectMethods>
+     !@ </objectMethods>
      procedure                 :: abundance         => Chemicals_Abundances
      procedure                 :: abundanceSet      => Chemicals_Abundances_Set
      procedure                 :: reset             => Chemicals_Abundances_Reset
@@ -119,6 +123,7 @@ module Chemical_Abundances_Structure
      procedure                 :: numberToMass      => Chemicals_Number_To_Mass
      procedure                 :: massToNumber      => Chemicals_Mass_To_Number
      procedure                 :: enforcePositive   => Chemicals_Enforce_Positive
+     procedure                 :: builder           => Chemicals_Builder
      procedure                 :: dump              => Chemicals_Dump
      procedure                 :: dumpRaw           => Chemicals_Dump_Raw
      procedure                 :: readRaw           => Chemicals_Read_Raw
@@ -402,6 +407,18 @@ contains
     end if
     return
   end subroutine Chemicals_Enforce_Positive
+
+  subroutine Chemicals_Builder(self,chemicalsDefinition)
+    !% Build a {\tt chemicalAbundances} object from the given XML {\tt chemicalsDefinition}.
+    use FoX_DOM
+    use Galacticus_Error
+    implicit none
+    class(chemicalAbundances), intent(inout) :: self
+    type (node              ), pointer       :: chemicalsDefinition
+
+    call Galacticus_Error_Report('Chemicals_Builder','building of chemicalAbundances objects is not yet supported')
+    return
+  end subroutine Chemicals_Builder
 
   subroutine Chemicals_Dump(chemicals)
     !% Dump all chemical values.

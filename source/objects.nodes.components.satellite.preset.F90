@@ -55,7 +55,6 @@ module Node_Component_Satellite_Preset
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>selfBasicComponent%mass()</classDefault>
   !#     <getFunction>SatellitePresetMergeBoundMass</getFunction>
   !#     <output unitsInSI="massSolar" comment="Bound mass of the node."/>
   !#   </method>

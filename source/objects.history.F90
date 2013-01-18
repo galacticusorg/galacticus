@@ -44,6 +44,10 @@ module Histories
      !@     <description>Creates a history object with a specified range of times.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>builder</method>
+     !@     <description>Build a history object from an XML definition.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>dump</method>
      !@     <description>Dump a history object.</description>
      !@   </objectMethod>
@@ -100,6 +104,7 @@ module Histories
      !@     <description>Returns an array with the timesteps (i.e. the intervals between successive times) in the given history.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure :: builder    => History_Builder
      procedure :: dump       => History_Dump
      procedure :: dumpRaw    => History_Dump_Raw
      procedure :: readRaw    => History_Read_Raw
@@ -226,6 +231,18 @@ contains
     end if
     return
   end subroutine History_Destroy
+
+  subroutine History_Builder(self,historyDefinition)
+    !% Build a {\tt history} object from the given XML {\tt historyDefinition}.
+    use FoX_DOM
+    use Galacticus_Error
+    implicit none
+    class(history), intent(inout) :: self
+    type (node   ), pointer       :: historyDefinition
+
+    call Galacticus_Error_Report('History_Builder','building of history objects is not yet supported')
+    return
+  end subroutine History_Builder
 
   subroutine History_Dump(self)
     !% Dumps a history object.
