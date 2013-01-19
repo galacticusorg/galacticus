@@ -628,12 +628,22 @@ sub Process_Through_Grasil {
 		}
 		close(iHndl);
 	    }
-	    my $wavelengthDataset  = new PDL::IO::HDF5::Dataset( name => "wavelength",  parent => $galaxy->{'nodeGroup'}, 
-								 fileObj => $dataSet->{'hdf5File'});
-	    my $sedDataset         = new PDL::IO::HDF5::Dataset( name => "SED",         parent => $galaxy->{'nodeGroup'}, 
-								 fileObj => $dataSet->{'hdf5File'});
-	    my $inclinationDataset = new PDL::IO::HDF5::Dataset( name => "inclination", parent => $galaxy->{'nodeGroup'}, 
-								 fileObj => $dataSet->{'hdf5File'});
+	    # Check if the datasets already exist.
+	    my @existingDatasets = $galaxy->{'nodeGroup'}->datasets();
+	    if ( defined(first { $_ eq "wavelength" } @existingDatasets) ) {
+		# Determine size of stored wavelength dataset.
+		my $storedWavelength = $galaxy->{'nodeGroup'}->dataset('wavelength')->get();
+		if ( nelem($storedWavelength) != nelem($wavelength) ) {
+		    # New dataset differs in size from the previously stored on. We therefore need to unlink the stored datasets
+		    # so that we can make new ones.
+		    $galaxy->{'nodeGroup'}->unlink($_)
+			foreach ( 'wavelength', 'inclination', 'SED' );
+		}
+	    }
+	    # Write datasets.
+	    my $wavelengthDataset  = $galaxy->{'nodeGroup'}->dataset('wavelength' );
+	    my $sedDataset         = $galaxy->{'nodeGroup'}->dataset('SED'        );
+	    my $inclinationDataset = $galaxy->{'nodeGroup'}->dataset('inclination');
 	    $wavelengthDataset ->set($wavelength  );
 	    $sedDataset        ->set($SED         );
 	    $inclinationDataset->set($inclinations);
