@@ -309,3 +309,63 @@ Setting {\tt [stellarPopulationPropertiesMethod]}$=${\tt noninstantaneous} cause
   <value>13.8</value>
 </parameter>
 \end{verbatim}
+
+\section{Computing Dust Attenuation and Emission Using Galacticus+Grasil}\label{sec:TutorialGrasil}\index{dust!emission}\index{dust!attenutation}\index{Grasil@{\sc Grasil}}
+
+\glc\ can interface with the \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.html}{\sc Grasil} code to compute the attenutation of starlight by dust, along with the re-emission of absorbed energy by that dust. To do this, it is necessary to store the entire star formation history of galaxies in a \glc\ model, as {\sc Grasil} uses this information to determine the attenuation of stellar populations as a function of their age.
+
+Recording star formation histories is as simple as setting the {\tt [starFormationHistoriesMethod]} parameter to {\tt metallicitySplit}. This particular star formation history method stores the star formation in each galaxy as a function of time and metallicity, as required by {\sc Grasil}. The level of detail with which the star formation history is stored is controlled by several parameters:
+\begin{description}
+\item [{\tt starFormationHistoryTimeStep}] The timestep used in discretizing star formation histories.
+\item [{\tt starFormationHistoryFineTimeStep}] The timestep to use in discretizing star formation histories just prior to output times. This should typically be smaller than {\tt [starFormationHistoryTimeStep]} to give improved resolution in the star formation hsitory for recently formed stars.
+\item [{\tt starFormationHistoryFineTime}] The period before each output for which the {\tt [starFormationHistoryFineTimeStep]} should be used.
+\item [{\tt starFormationHistoryMetallicityCount}] The number of bins in metallicity to use when discretizing the star formation history.
+\item [{\tt starFormationHistoryMetallicityMinimum}] The upper limit to the metallicity in the lowest metallicity bin (i.e. the lowest metallicity bin will extend from zero to this value).
+\item [{\tt starFormationHistoryMetallicityMaximum}] The upper limit to the metallicity in the highest metallicity bin.
+\end{description}
+Default values set a timestep of 0.1~Gyr, with 0.01~Gyr timesteps for 0.1~Gyr before each output, along with 10 metallicity bins ranging from $10^{-4}Z_\odot$ to $10Z_\odot$. It is always recommended to check that these values result in a sufficiently well-resolved star formation history for your purposes.
+
+When run with these parameter settings \glc\ will output an additional group to the output file called {\tt starFormationHistories}. This contains a hierarchically arranged set of datasets describing the star formation histories. The hierarchy extends through output number, and merger tree index. For example {\tt starFormationHistories/Output5/mergerTree3/} will contain the star formation history for merger tree 3 at output 5. This group will, in general, contain many datasets, e.g.
+\begin{verbatim}
+diskSFH7819       Dataset {11, 34}
+diskTime7819      Dataset {34}
+spheroidSFH7819   Dataset {11, 34}
+spheroidTime7819  Dataset {34}
+\end{verbatim}
+In this case, datasets are present for both a disk and bulge component of node 7819. (If a node does not contain one of these components, the corresponding dataset will be missing.) The ``{\tt Time}'' datasets give the times at which the star formation history is stored, while the ``{\tt SFH}'' datasets give the mass of stars formed in each time/metallicity bin. (The metallicities themselves are available in the {\tt starFormationHistories/metallicities} dataset.)
+
+Properties of the {\sc Grasil} \gls{sed} can now be accessed using the {\tt Galacticus::Grasil} module (see \S\ref{sec:Grasil}). When such properties are requested, {\sc Grasil} will be automatically run on each selected galaxy, the \gls{sed} computed and stored to the \glc\ file\footnote{{\sc Grasil} \glspl{sed} are stored in the {\tt grasilSEDs} group in a hierarchy of output, merger tree, and node groups, as for the star formation histories. Within each node group three datasets are stored, giving the {\tt wavelength}, {\tt inclination}, and {\tt SED} of the galaxy.}, and the relevant fluxes computed. If necessary, {\sc Grasil} and its data files will be downloaded automatically. Multiple {\sc Grasil} models will be run simultaneously if multiple cores are available.
+
+For example:
+\begin{verbatim}
+# Specify model.                                                                                                                 
+my $galacticus;
+$galacticus->{'file' } = "/galacticus.hdf5";
+$galacticus->{'store'} = 0;
+$galacticus->{'tree' } = "all";
+
+# Specify Grasil options.                                                                                                        
+$galacticus->{'grasilOptions'}->{'includePAHs'            } = 1;
+$galacticus->{'grasilOptions'}->{'fluctuatingTemperatures'} = 1;
+$galacticus->{'grasilOptions'}->{'wavelengthCount'        } = 1000;
+$galacticus->{'grasilOptions'}->{'radialGridCount'        } = 30;
+$galacticus->{'grasilOptions'}->{'recomputeSEDs'          } = 0;
+
+# Read results from model.                                                                                                       
+&HDF5::Select_Output($galacticus,2.0);
+&HDF5::Get_Dataset  ($galacticus,
+                           [
+                            'grasilFlux850microns',
+                            'grasilFlux250microns',
+                            'grasilFlux350microns',
+                            'grasilFlux500microns',
+                            'grasilInfraredLuminosity'
+                           ]
+\end{verbatim}
+The {\tt grasilOptions} block in the above controls the behavior of {\sc Grasil}. Here we've chosen to include calculations of \gls{pah} features, have accounted for fluctuating tempertures in small grains (both of which slow down the calculation but make it more accurate), have specified the number of wavelengths and the size of the radial grid used to model each galaxy. We have also specified that the \gls{sed} should not be recomputed---if {\sc Grasil} fluxes are requested in future for galaxies in this model, they will be computed from the stored {\sc Grasil} \gls{sed}. If you want to change the parameters of the {\sc Grasil} calculation then set the {\tt recomputeSED} option to 1 instead\footnote{Exercise caution when using this option. Recomputing SEDs requires deleting the old SED group. The HDF5 library currently does not clean up the space occupied by the datasets in this deleted group, so the file size can grow rapidly if you repeatedly recompute {\sc Grasil} SEDs.}. Fluxes are returned in units of Janskys, while the total infrared luminosity ({\tt grasilInfraredLuminosity}) is returned in units of Solar luminosities.
+
+A simple plotting script is provided which illustrates how to access and use the {\sc Grasil} \glspl{sed} stored in \glc\ files. For example:
+\begin{verbatim}
+scripts/plotting/plotGrasilSpectrum.pl galacticus.hdf5 5 9 217 43.2 SED.pdf
+\end{verbatim}
+will plot the \gls{sed} of node 217, in merger tree 9, at output 5 from the {\tt galacticus.hdf5} file. The \gls{sed} will be shown for an inclination of $43.2^\circ$ and the plot will be written to {\tt SED.pdf}.
