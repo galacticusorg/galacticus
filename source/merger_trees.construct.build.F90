@@ -165,7 +165,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildTreesHaloMassDistribution',mergerTreeBuildTreesHaloMassDistribution,defaultValue="uniform")
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesProcessDescending</name>
-       !@   <defaultValue>false</defaultValue>       
+       !@   <defaultValue>true</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     If true, causes merger trees to be processed in order of decreasing mass.
@@ -173,7 +173,7 @@ contains
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.false.)
+       call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreeMassesFile</name>
        !@   <defaultValue>null</defaultValue>       

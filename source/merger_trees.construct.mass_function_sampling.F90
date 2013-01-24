@@ -55,7 +55,7 @@ contains
        ! Get the conditional stellar mass function method parameter.
        !@ <inputParameter>
        !@   <name>haloMassFunctionSamplingMethod</name>
-       !@   <defaultValue>powerLaw</defaultValue>
+       !@   <defaultValue>haloMassFunction</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the method to be used for sampling the halo mass function when constructing merger trees.
@@ -63,7 +63,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('haloMassFunctionSamplingMethod',haloMassFunctionSamplingMethod,defaultValue='powerLaw')
+       call Get_Input_Parameter('haloMassFunctionSamplingMethod',haloMassFunctionSamplingMethod,defaultValue='haloMassFunction')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="haloMassFunctionSamplingMethod" type="functionCall" functionType="void">
        !#  <functionArgs>haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get</functionArgs>
