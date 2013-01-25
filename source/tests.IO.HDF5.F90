@@ -598,6 +598,33 @@ program Tests_IO_HDF5
      call groupObject%readDatasetStatic("varStringDataset1dArray",varStringValueArrayRereadStatic)
      call Assert("re-read 1-D array varString dataset to static array",varStringValueArray,varStringValueArrayRereadStatic)
 
+     ! Write a scalar integer attribute to the group.
+     integerValue=2020
+     call groupObject%writeAttribute(integerValue,"integerShortAttribute")
+     ! Read the scalar integer attribute back into a long integer.
+     call groupObject%readAttribute("integerShortAttribute",integer8ValueReread)
+     call Assert("read scalar integer attribute to long integer",int(integerValue,kind=kind_int8),integer8ValueReread)
+
+     ! Write an integer 1-D array attribute to the group.
+     integerValueArray=7
+     call groupObject%writeAttribute(integerValueArray,"integerShortAttribute1dArray")
+     ! Read the long integer 1-D array attribute back.
+     call groupObject%readAttribute("integerShortAttribute1dArray",integer8ValueArrayReread)
+     call Assert("read 1-D array integer attribute to long integer array",int(integerValueArray,kind=kind_int8),integer8ValueArrayReread)
+     ! Read the long integer 1-D array attribute back to a static array.
+     call groupObject%readAttributeStatic("integerShortAttribute1dArray",integer8ValueArrayRereadStatic)
+     call Assert("read 1-D array integer attribute to static long integer array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
+
+     ! Write an integer 1-D array dataset.
+     integerValueArray=[0,11,22,33,44,55,66,77,88,99]
+     call groupObject%writeDataset(integerValueArray,"integerShortDataset1dArray","This is an example dataset")
+     ! Read the dataset back into a long integer 1-D array dataset.
+     call groupObject%readDataset("integerShortDataset1dArray",integer8ValueArrayReread)
+     call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayReread)
+     ! Read the dataset back into a long integer 1-D array dataset.
+     call groupObject%readDatasetStatic("integerShortDataset1dArray",integer8ValueArrayRereadStatic)
+     call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
+
      ! Close the group.
      call groupObject%close()
 
