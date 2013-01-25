@@ -3231,6 +3231,20 @@ sub Generate_Implementation_Output_Functions {
 		    # Increment the counters.
 		    switch ( $type ) {
 			case ( [ "real", "integer" ] ) {
+			    # Insert metadata for SimDB.
+			    $functionCode .= "       !@ <outputProperty>\n";
+			    $functionCode .= "       !@   <name>".$component->{'class'}.ucfirst($methodName)."</name>\n";
+			    $functionCode .= "       !@   <datatype>".$type."</datatype>\n";
+			    if ( $rank == 0 ) {
+				$functionCode .= "       !@   <cardinality>0..1</cardinality>\n";
+			    } else {
+				$functionCode .= "       !@   <cardinality>0..*</cardinality>\n";
+			    }
+			    $functionCode .= "       !@   <description>".$method->{'output'}->{'comment'}."</description>\n";
+			    $functionCode .= "       !@   <label>???</label>\n";
+			    $functionCode .= "       !@   <outputType>nodeData</outputType>\n";
+			    $functionCode .= "       !@   <group>".$component->{'class'}."</group>\n";
+			    $functionCode .= "       !@ </outputProperty>\n";
 			    if ( $rank == 0 ) {
 				if ( exists($method->{'output'}->{'condition'}) ) {
 				    my $condition = $method->{'output'}->{'condition'};

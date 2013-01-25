@@ -126,115 +126,122 @@ $writer->dataElement('version','0.9.0');
 # Write input parameters.    
 $writer->comment("InputParameter");
 
-# Open the source diretory, finding F90 and cpp files.
+# Open the source diretory, finding F90, cpp, and Inc files.
 my %parametersListed;
+my @filesToProcess;
 opendir(sDir,"source");
 while ( my $fileName = readdir(sDir) ) {
-    if ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) {
-	# Open the file and scan for parameters.
-	my $xmlBuffer;
-	open(sFile,"source/".$fileName);
-	while ( my $line = <sFile> ) {
-	    if ( $line =~ m/^\s*(\!|\/\/)@(.*)/ ) {
-		my $xmlLine = $2;
-		$xmlBuffer = "" if ( $xmlLine =~ m/^\s*<(inputParameter|outputProperty|outputType|outputPropertyGroup)>\s*$/ );
-		$xmlBuffer .= $xmlLine;
-		if ( $xmlLine =~ m/^\s*<\/inputParameter>\s*$/ ) {
-		    # Parse the XML.
-		    my $xml = new XML::Simple;
-		    my $inputParameter = $xml->XMLin($xmlBuffer);
-		    $inputParameter->{'description'} =~ s/^\s*//;
-		    $inputParameter->{'description'} =~ s/\s*$//;
-		    foreach my $cite ( keys(%cites) ) {
-			while ( $inputParameter->{'description'} =~ m/\\$cite\{([a-zA-Z0-9_\-]+)\}/ ) {
-			    my $key = $1;
-			    if ( exists($citations->{$key}) ) {
-				$inputParameter->{'description'} =~ s/\\$cite\{[a-zA-Z0-9_\-]+\}/$citations->{$key}->{$cites{$cite}}/g;
-			    } else {
-				$inputParameter->{'description'} =~ s/\\$cite\{[a-zA-Z0-9_\-]+\}/???/g;
-			    }
+    push(@filesToProcess,"source/".$fileName)
+	if ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ || $fileName =~ m/\.Inc/ );
+}
+closedir(sDir);
+# Add the component objects file.
+push(@filesToProcess,"work/build/objects.nodes.components.Inc");
+system("make work/build/objects.nodes.components.Inc");
+# Process files.
+foreach my $fileName ( @filesToProcess ) {
+    # Open the file and scan for parameters.
+    my $xmlBuffer;
+    open(sFile,$fileName);
+    while ( my $line = <sFile> ) {
+	if ( $line =~ m/^\s*(\!|\/\/)@(.*)/ ) {
+	    my $xmlLine = $2;
+	    $xmlBuffer = "" if ( $xmlLine =~ m/^\s*<(inputParameter|outputProperty|outputType|outputPropertyGroup)>\s*$/ );
+	    $xmlBuffer .= $xmlLine;
+	    if ( $xmlLine =~ m/^\s*<\/inputParameter>\s*$/ ) {
+		# Parse the XML.
+		my $xml = new XML::Simple;
+		my $inputParameter = $xml->XMLin($xmlBuffer);
+		$inputParameter->{'description'} =~ s/^\s*//;
+		$inputParameter->{'description'} =~ s/\s*$//;
+		foreach my $cite ( keys(%cites) ) {
+		    while ( $inputParameter->{'description'} =~ m/\\$cite\{([a-zA-Z0-9_\-]+)\}/ ) {
+			my $key = $1;
+			if ( exists($citations->{$key}) ) {
+			    $inputParameter->{'description'} =~ s/\\$cite\{[a-zA-Z0-9_\-]+\}/$citations->{$key}->{$cites{$cite}}/g;
+			} else {
+			    $inputParameter->{'description'} =~ s/\\$cite\{[a-zA-Z0-9_\-]+\}/???/g;
 			}
 		    }
-		    unless ( exists($parametersListed{$inputParameter->{'name'}}) ) {
-			$parametersListed{$inputParameter->{'name'}} = 1;
-			$writer->startTag("parameter");
-			$writer->emptyTag('identity','publisherDID' => "ivo://www.mpa-garching.mpg.de/galacticus#param/".$inputParameter->{'name'},'xmlId' => 'PAR_'.$inputParameter->{'name'});
-			$writer->dataElement('name'       ,$inputParameter->{'name'       });
-			$writer->dataElement('datatype'   ,$inputParameter->{'type'       });
-			$writer->dataElement('cardinality',$inputParameter->{'cardinality'});
-			$writer->dataElement('description',latex_decode($inputParameter->{'description'}));
-			if ( exists($directives->{$inputParameter->{'name'}}) ) {
-			    $writer->dataElement('isEnumerated','true');
-			    my @files;
-			    if ( UNIVERSAL::isa($directives->{$inputParameter->{'name'}}->{'file'},"ARRAY") ) {
-				@files = @{$directives->{$inputParameter->{'name'}}->{'file'}};
-			    } else {
-				@files = ( $directives->{$inputParameter->{'name'}}->{'file'} );
-			    }
-			    foreach my $file ( @files ) {
-				my $xmlBuffer = "";
-				open(iHndl,$file);
-				my $inModule = 0;
-				my $description = "";
-				while ( my $line = <iHndl> ) {
-				    $inModule = 1 if ( $line =~ m/^\s*module\s/ );
-				    $inModule = 0 if ( $line =~ m/^\s*end\+module\s/ || $line =~ m/^\s*contains\s*$/ );
-				    if ( $inModule == 1 && $line =~ m/^\s*\!\%/ ) {
-					my $text = $line;
-					$text =~ s/^\s*\!\%\s*//;
-					$text =~ s/\s*$//;
-					chomp($text);
-					$description .= $text." ";
-				    }
-				    if ( $line =~ m/$inputParameter->{'name'}\s*==\s*['"]([a-zA-Z0-9\_\-\+\s]+)['"]/ ) {
-					my $option = $1;
-					$writer->startTag("validValue");
-					$writer->dataElement('value',$option);
-					foreach my $cite ( keys(%cites) ) {
-					    while ( $description =~ m/\\$cite\{([a-zA-Z0-9_\-]+)\}/ ) {
-						my $key = $1;
-						if ( exists($citations->{$key}) ) {
-						    $description =~ s/\\$cite\{[a-zA-Z0-9_\-]+\}/$citations->{$key}->{$cites{$cite}}/g;
-						} else {
-						    $description =~ s/\\$cite\{[a-zA-Z0-9_\-]+\}/???/g;
-						}
+		}
+		unless ( exists($parametersListed{$inputParameter->{'name'}}) ) {
+		    $parametersListed{$inputParameter->{'name'}} = 1;
+		    $writer->startTag("parameter");
+		    $writer->emptyTag('identity','publisherDID' => "ivo://www.mpa-garching.mpg.de/galacticus#param/".$inputParameter->{'name'},'xmlId' => 'PAR_'.$inputParameter->{'name'});
+		    $writer->dataElement('name'       ,$inputParameter->{'name'       });
+		    $writer->dataElement('datatype'   ,$inputParameter->{'type'       });
+		    $writer->dataElement('cardinality',$inputParameter->{'cardinality'});
+		    $writer->dataElement('description',latex_decode($inputParameter->{'description'}));
+		    if ( exists($directives->{$inputParameter->{'name'}}) ) {
+			$writer->dataElement('isEnumerated','true');
+			my @files;
+			if ( UNIVERSAL::isa($directives->{$inputParameter->{'name'}}->{'file'},"ARRAY") ) {
+			    @files = @{$directives->{$inputParameter->{'name'}}->{'file'}};
+			} else {
+			    @files = ( $directives->{$inputParameter->{'name'}}->{'file'} );
+			}
+			foreach my $file ( @files ) {
+			    my $xmlBuffer = "";
+			    open(iHndl,$file);
+			    my $inModule = 0;
+			    my $description = "";
+			    while ( my $line = <iHndl> ) {
+				$inModule = 1 if ( $line =~ m/^\s*module\s/ );
+				$inModule = 0 if ( $line =~ m/^\s*end\+module\s/ || $line =~ m/^\s*contains\s*$/ );
+				if ( $inModule == 1 && $line =~ m/^\s*\!\%/ ) {
+				    my $text = $line;
+				    $text =~ s/^\s*\!\%\s*//;
+				    $text =~ s/\s*$//;
+				    chomp($text);
+				    $description .= $text." ";
+				}
+				if ( $line =~ m/$inputParameter->{'name'}\s*==\s*['"]([a-zA-Z0-9\_\-\+\s]+)['"]/ ) {
+				    my $option = $1;
+				    $writer->startTag("validValue");
+				    $writer->dataElement('value',$option);
+				    foreach my $cite ( keys(%cites) ) {
+					while ( $description =~ m/\\$cite\{([a-zA-Z0-9_\-]+)\}/ ) {
+					    my $key = $1;
+					    if ( exists($citations->{$key}) ) {
+						$description =~ s/\\$cite\{[a-zA-Z0-9_\-]+\}/$citations->{$key}->{$cites{$cite}}/g;
+					    } else {
+						$description =~ s/\\$cite\{[a-zA-Z0-9_\-]+\}/???/g;
 					    }
 					}
-					$writer->dataElement('description',$description);
-					$writer->dataElement('title',$option);
-					$writer->endTag("validValue");
 				    }
+				    $writer->dataElement('description',$description);
+				    $writer->dataElement('title',$option);
+				    $writer->endTag("validValue");
 				}
-				close(iHndl);			   
 			    }
+			    close(iHndl);			   
 			}
-			$writer->endTag("parameter");
-			# If the parameter belongs to a group, record this fact.
-			push(@{$groups->{$inputParameter->{'group'}}},$inputParameter->{'name'}) if ( exists($inputParameter->{'group'}) );
 		    }
-		} elsif ( $xmlLine =~ m/^\s*<\/outputProperty>\s*$/ ) {
-		    # Parse the XML.
-		    my $xml = new XML::Simple;
-		    my $outputProperty = $xml->XMLin($xmlBuffer);
-		    $outputTypes->{$outputProperty->{'outputType'}}->{'properties'}->{$outputProperty->{'name'}} = $outputProperty;
-		    $outputTypes->{$outputProperty->{'outputType'}}->{'groups'}->{$outputProperty->{'group'}}->{'members'}->{$outputProperty->{'name'}}= 1 if ( exists($outputProperty->{'group'}) );
-		} elsif ( $xmlLine =~ m/^\s*<\/outputType>\s*$/ ) {
-		    # Parse the XML.
-		    my $xml = new XML::Simple;		  
-		    my $outputType = $xml->XMLin($xmlBuffer);
-		    $outputTypes->{$outputType->{'name'}}->{'description'} = $outputType->{'description'};
-		} elsif ( $xmlLine =~ m/^\s*<\/outputPropertyGroup>\s*$/ ) {
-		    # Parse the XML.
-		    my $xml = new XML::Simple;		  
-		    my $outputPropertyGroup = $xml->XMLin($xmlBuffer);
-		    $outputTypes->{$outputPropertyGroup->{'outputType'}}->{'groups'}->{$outputPropertyGroup->{'name'}}->{'description'} = $outputPropertyGroup->{'description'};
+		    $writer->endTag("parameter");
+		    # If the parameter belongs to a group, record this fact.
+		    push(@{$groups->{$inputParameter->{'group'}}},$inputParameter->{'name'}) if ( exists($inputParameter->{'group'}) );
 		}
+	    } elsif ( $xmlLine =~ m/^\s*<\/outputProperty>\s*$/ ) {
+		# Parse the XML.
+		my $xml = new XML::Simple;
+		my $outputProperty = $xml->XMLin($xmlBuffer);
+		$outputTypes->{$outputProperty->{'outputType'}}->{'properties'}->{$outputProperty->{'name'}} = $outputProperty;
+		$outputTypes->{$outputProperty->{'outputType'}}->{'groups'}->{$outputProperty->{'group'}}->{'members'}->{$outputProperty->{'name'}}= 1 if ( exists($outputProperty->{'group'}) );
+	    } elsif ( $xmlLine =~ m/^\s*<\/outputType>\s*$/ ) {
+		# Parse the XML.
+		my $xml = new XML::Simple;		  
+		my $outputType = $xml->XMLin($xmlBuffer);
+		$outputTypes->{$outputType->{'name'}}->{'description'} = $outputType->{'description'};
+	    } elsif ( $xmlLine =~ m/^\s*<\/outputPropertyGroup>\s*$/ ) {
+		# Parse the XML.
+		my $xml = new XML::Simple;		  
+		my $outputPropertyGroup = $xml->XMLin($xmlBuffer);
+		$outputTypes->{$outputPropertyGroup->{'outputType'}}->{'groups'}->{$outputPropertyGroup->{'name'}}->{'description'} = $outputPropertyGroup->{'description'};
 	    }
 	}
-	close(sFile);
     }
+    close(sFile);
 }
-close(sDir);
 
 # Scan for component options.
 system("make work/build/objects.tree_node.create.definitions.Inc &> /dev/null");
