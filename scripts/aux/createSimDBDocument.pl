@@ -8,6 +8,7 @@ use DateTime;
 use Data::Dumper;
 use LaTeX::Decode;
 use LaTeX::BibTeX;
+use File::Which;
 $LaTeX::Decode::DefaultScheme = 'full';
 
 # Construct a SimDB XML document for Galacticus.
@@ -431,10 +432,11 @@ while ( my $line = <vHndl> ) {
 close(vHndl);
 print "\n\n\n";
 if ( $isOK == 1 ) {
-    print "The generated document is valid.\n";
+    print "SUCCESS: The generated document is valid.\n";
 } else {
-    print "The generated document is NOT valid.\n";
+    print "FAIL: The generated document is NOT valid.\n";
 }
-system("firefox file://`pwd`/validate.html") unless ( $isOK == 1 );
+system("firefox file://`pwd`/validate.html") 
+    unless ( $isOK == 1 || ! which('firefox') || ! -t STDIN || ! -t STDOUT );
 
 exit;

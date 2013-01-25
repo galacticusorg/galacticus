@@ -52,6 +52,8 @@ contains
        !@ <inputParameter>
        !@   <name>timePerTreeFitFileName</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@   <description>
        !@    The name of the file which contains fit coefficients for the time per tree fitting function.
        !@   </description>
