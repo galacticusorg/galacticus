@@ -47,6 +47,8 @@ contains
        !@   <name>excursionSetBarrierConstantCoefficient</name>
        !@   <defaultValue>1.67</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>real</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The constant term in the excursion set barrier.
        !@   </description>
@@ -56,6 +58,8 @@ contains
        !@   <name>excursionSetBarrierLinearCoefficient</name>
        !@   <defaultValue>0.0</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>real</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The coefficient of the linear term in the excursion set barrier.
        !@   </description>

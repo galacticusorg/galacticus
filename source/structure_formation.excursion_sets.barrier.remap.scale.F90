@@ -71,6 +71,8 @@ contains
           !@   <name>excursionSetBarrierRemapScalingFactor</name>
           !@   <defaultValue>$1$</defaultValue>
           !@   <attachedTo>module</attachedTo>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
           !@   <description>
           !@     The factor by which the excursion set barrier should be rescaled if the {\tt scale} remapping method is active.
           !@   </description>

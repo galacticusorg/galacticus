@@ -57,6 +57,8 @@ contains
        !@   <name>timePerTreeMethod</name>
        !@   <defaultValue>file</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>string</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The name of the method to be used for computing the time per tree.
        !@   </description>
