@@ -156,6 +156,7 @@ contains
           else
              ! Not exceeded by a significant factor (can happen due to approximation errors). Simply reset to actual time requested.
              call baseNodeBasicComponent%timeSet(endTime)
+             anyTreeExistsAtOutputTime=.true.
           end if
        else
           anyTreeExistsAtOutputTime=.true.
