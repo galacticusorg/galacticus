@@ -123,7 +123,7 @@ contains
 
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Formation_Time_Cole2000_Node_Promotion</unitName>
-  !#  <after>Node_Component_Hot_Halo_Standard_Promote</after>
+  !#  <after>re:Node_Component_Hot_Halo_.*_Promote</after>
   !# </nodePromotionTask>
   subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion(thisNode)
     implicit none
