@@ -28,9 +28,7 @@ module Node_Component_Hot_Halo_Standard
        &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
        &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merger , &
        &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation        , &
-       &    Node_Component_Hot_Halo_Standard_Output_Names, Node_Component_Hot_Halo_Standard_Output_Count     , &
-       &    Node_Component_Hot_Halo_Standard_Output      , Node_Component_Hot_Halo_Standard_Density          , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Density
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -186,9 +184,6 @@ module Node_Component_Hot_Halo_Standard
   logical                             :: gotCoolingRate=.false.,gotAngularMomentumCoolingRate=.false.
   double precision                    :: coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
-
-  ! Output controls.
-  logical                             :: hotHaloOutputCooling
 
   ! Radiation structure.
   type(radiationStructure          )  :: radiation
@@ -364,19 +359,6 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloAngularMomentumLossFraction',hotHaloAngularMomentumLossFraction,defaultValue=0.3d0)
-
-       ! Get options controlling output.
-       !@ <inputParameter>
-       !@   <name>hotHaloOutputCooling</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Determines whether or not cooling rates and radii are output.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutputCooling',hotHaloOutputCooling,defaultValue=.false.)
 
        ! Bind the outer radius get function.
        call hotHaloComponent%                  outerRadiusFunction(Node_Component_Hot_Halo_Standard_Outer_Radius              )
@@ -1491,128 +1473,5 @@ contains
     end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Density
-
-  !# <mergerTreeOutputNames>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Output_Names</unitName>
-  !#  <sortName>Node_Component_Hot_Halo_Standard_Output</sortName>
-  !# </mergerTreeOutputNames>
-  subroutine Node_Component_Hot_Halo_Standard_Output_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
-       &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
-    !% Set names of hot halo properties to be written to the \glc\ output file.
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Abundances_Structure
-    use ISO_Varying_String
-    implicit none
-    type (treeNode            ), intent(inout), pointer      :: thisNode
-    double precision           , intent(in   )               :: time
-    integer                    , intent(inout)               :: integerProperty,doubleProperty
-    character(len=*)           , intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision           , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    class(nodeComponentHotHalo),                pointer      :: thisHotHaloComponent
-    integer                                                  :: iAbundance
-    
-    if (defaultHotHaloComponent%standardIsActive()) then
-       !@ <outputPropertyGroup>
-       !@   <name>hotHalo</name>
-       !@   <description>Hot halo properities</description>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputPropertyGroup>
-       if (hotHaloOutputCooling) then
-          doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>hotHaloCoolingRate</name>
-          !@   <datatype>real</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Rate of mass cooling in the hot halo.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@   <group>hotHalo</group>
-          !@ </outputProperty>
-          doublePropertyNames   (doubleProperty)='hotHaloCoolingRate'
-          doublePropertyComments(doubleProperty)='Rate of mass cooling in the hot halo.'
-          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
-          doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>hotHaloCoolingRadius</name>
-          !@   <datatype>real</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Cooling radius in the hot halo.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@   <group>hotHalo</group>
-          !@ </outputProperty>
-          doublePropertyNames   (doubleProperty)='hotHaloCoolingRadius'
-          doublePropertyComments(doubleProperty)='Cooling radius in the hot halo.'
-          doublePropertyUnitsSI (doubleProperty)=megaParsec
-       end if
-    end if
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Output_Names
-
-  !# <mergerTreeOutputPropertyCount>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Output_Count</unitName>
-  !#  <sortName>Node_Component_Hot_Halo_Standard_Output</sortName>
-  !# </mergerTreeOutputPropertyCount>
-  subroutine Node_Component_Hot_Halo_Standard_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
-    !% Account for the number of hot halo properties to be written to the the \glc\ output file.
-    implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    double precision           , intent(in   )          :: time
-    integer                    , intent(inout)          :: integerPropertyCount,doublePropertyCount
-    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    integer                    , parameter              :: extraPropertyCount=2
-
-    if (defaultHotHaloComponent%standardIsActive()) then
-       if (hotHaloOutputCooling) doublePropertyCount=doublePropertyCount+extraPropertyCount
-    end if
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Output_Count
-
-  !# <mergerTreeOutputTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Output</unitName>
-  !#  <sortName>Node_Component_Hot_Halo_Standard_Output</sortName>
-  !# </mergerTreeOutputTask>
-  subroutine Node_Component_Hot_Halo_Standard_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
-    !% Store hot halo properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
-    use Cooling_Radii
-    use Kind_Numbers
-    use Abundances_Structure
-    implicit none
-    double precision             , intent(in   )              :: time
-    type   (treeNode            ), intent(inout), pointer     :: thisNode
-    integer                      , intent(inout)              :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer(kind=kind_int8      ), intent(inout)              :: integerBuffer(:,:)
-    double precision             , intent(inout)              :: doubleBuffer (:,:)
-    double precision             , dimension(abundancesCount) :: hotAbundanceMasses,outflowedAbundanceMasses
-    class  (nodeComponentHotHalo),                pointer     :: thisHotHaloComponent
-    type   (abundances          ), save                       :: hotHaloAbundances,outflowedAbundances
-    !$omp threadprivate(hotHaloAbundances,outflowedAbundances)
-
-    ! Check that the standard hot halo component is active.
-    if (defaultHotHaloComponent%standardIsActive()) then
-       ! Get the hot halo component.
-       thisHotHaloComponent => thisNode%hotHalo()
-       ! Ensure that it is of unspecified class.
-       select type (thisHotHaloComponent)
-       class is (nodeComponentHotHaloStandard)
-          if (hotHaloOutputCooling) then
-             ! Ensure that we reset so that cooling rate will be re-computed.
-             call Node_Component_Hot_Halo_Standard_Reset       (thisNode)
-             ! Get and store the cooling rate.
-             call Node_Component_Hot_Halo_Standard_Cooling_Rate(thisNode)
-             doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+2)=[                          &
-                  &                                                             coolingRate             , &
-                  &                                                             Cooling_Radius(thisNode)  &
-                  &                                                            ]
-             doubleProperty=doubleProperty+2
-          end if
-       end select
-    end if
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Output
 
 end module Node_Component_Hot_Halo_Standard
