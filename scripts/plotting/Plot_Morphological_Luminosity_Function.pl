@@ -106,6 +106,8 @@ $ratio  = where($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50 &
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00
 		);
+die("Plot_Morphological_Luminosity_Function.pl: no galaxies found in normalization magnitude range")
+    if ( nelem($ratio) == 0 );
 $indices          = $ratio->qsorti;
 $totalWeight      = $weight->sum;
 $orderedRatios    = $ratio->index($indices);
