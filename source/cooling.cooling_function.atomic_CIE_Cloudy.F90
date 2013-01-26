@@ -141,7 +141,7 @@ contains
     double precision,                  intent(out) :: coolingFunction
 
     ! Check if this cooling function has been selected.
-    if (functionSelected) then
+    if (functionSelected .and. numberDensityHydrogen > 0.0d0) then
        
        ! Create the cooling function.
        call Cooling_Function_Atomic_CIE_Cloudy_Create(gasAbundances)
@@ -177,7 +177,7 @@ contains
     double precision                                :: coolingFunction
 
     ! Check if this cooling function has been selected.
-    if (functionSelected) then
+    if (functionSelected .and. numberDensityHydrogen > 0.0d0) then
        
        ! Get the cooling function.
        call Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
@@ -214,7 +214,7 @@ contains
     double precision                               :: coolingFunction
 
     ! Check if this cooling function has been selected.
-    if (functionSelected) then
+    if (functionSelected .and. numberDensityHydrogen > 0.0d0) then
        
        ! Create the cooling function.
        call Cooling_Function_Atomic_CIE_Cloudy_Create(gasAbundances)
