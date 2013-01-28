@@ -17,7 +17,7 @@
 
 !% Contains a module which implements the CDM power spectrum.
 
-module CDM_Power_Spectrum
+module Power_Spectrum
   !% Implements the CDM power spectrum.
   use FGSL
   use, intrinsic :: ISO_C_Binding
@@ -25,8 +25,8 @@ module CDM_Power_Spectrum
   implicit none
   private
   public :: Power_Spectrum_CDM, Power_Spectrum_Logarithmic_Derivative, Power_Spectrum_Dimensionless, sigma_CDM, Mass_from_Sigma,&
-       & sigma_8, sigma_CDM_Logarithmic_Derivative, sigma_CDM_Plus_Logarithmic_Derivative, CDM_Power_Spectrum_State_Store,&
-       & CDM_Power_Spectrum_State_Retrieve
+       & sigma_8, sigma_CDM_Logarithmic_Derivative, sigma_CDM_Plus_Logarithmic_Derivative, Power_Spectrum_State_Store,&
+       & Power_Spectrum_State_Retrieve
 
   ! Flag to indicate if the power spectrum has been normalized.  
   logical                     :: sigmaInitialized   =.false.
@@ -60,8 +60,8 @@ contains
 
   double precision function Power_Spectrum_Logarithmic_Derivative(wavenumber)
     !% Return the logarithmic derivative of the power spectrum, ${\rm d}\ln P(k)/{\rm d}\ln k$, for $k=${\tt wavenumber} [Mpc$^{-1}$].
-    use CDM_Transfer_Function
-    use CDM_Primordial_Power_Spectrum
+    use Transfer_Function
+    use Primordial_Power_Spectrum
     implicit none
     double precision, intent(in) :: wavenumber
 
@@ -73,8 +73,8 @@ contains
 
   double precision function Power_Spectrum_CDM(wavenumber)
     !% Return the CDM power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
-    use CDM_Transfer_Function
-    use CDM_Primordial_Power_Spectrum
+    use Transfer_Function
+    use Primordial_Power_Spectrum
     use Numerical_Constants_Math
     use Cosmological_Parameters
     use Galacticus_Error
@@ -316,9 +316,9 @@ contains
   end function sigma_CDM_Integrand_TopHat
 
   !# <galacticusStateStoreTask>
-  !#  <unitName>CDM_Power_Spectrum_State_Store</unitName>
+  !#  <unitName>Power_Spectrum_State_Store</unitName>
   !# </galacticusStateStoreTask>
-  subroutine CDM_Power_Spectrum_State_Store(stateFile,fgslStateFile)
+  subroutine Power_Spectrum_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     implicit none
     integer,         intent(in) :: stateFile
@@ -326,12 +326,12 @@ contains
 
     write (stateFile) sigmaTableMassMinimum,sigmaTableMassMaximum
     return
-  end subroutine CDM_Power_Spectrum_State_Store
+  end subroutine Power_Spectrum_State_Store
   
   !# <galacticusStateRetrieveTask>
-  !#  <unitName>CDM_Power_Spectrum_State_Retrieve</unitName>
+  !#  <unitName>Power_Spectrum_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine CDM_Power_Spectrum_State_Retrieve(stateFile,fgslStateFile)
+  subroutine Power_Spectrum_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     implicit none
     integer,         intent(in) :: stateFile
@@ -343,6 +343,6 @@ contains
     sigmaInitialized=.false.
     call Initialize_Sigma(sqrt(sigmaTableMassMinimum*sigmaTableMassMaximum))
     return
-  end subroutine CDM_Power_Spectrum_State_Retrieve
+  end subroutine Power_Spectrum_State_Retrieve
     
-end module CDM_Power_Spectrum
+end module Power_Spectrum

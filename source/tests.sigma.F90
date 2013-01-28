@@ -21,7 +21,7 @@ program Tests_Sigma
   use Input_Parameters
   use ISO_Varying_String
   use Memory_Management
-  use CDM_Power_Spectrum
+  use Power_Spectrum
   use Numerical_Ranges
   use Cosmological_Parameters
   use Numerical_Constants_Math

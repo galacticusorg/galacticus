@@ -152,7 +152,7 @@ contains
 
   function Collapsing_Mass_Root(mass,parameterPointer) bind(c)
     !% Function used in finding the mass of halo just collapsing at a given cosmic epoch.
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     real(c_double)          :: Collapsing_Mass_Root
     real(c_double), value   :: mass
     type(c_ptr),    value   :: parameterPointer

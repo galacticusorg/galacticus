@@ -118,7 +118,7 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     use Input_Parameters
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Excursion_Sets_Barriers
     use Memory_Management
     use Galacticus_Display
@@ -274,7 +274,7 @@ contains
     !% Tabulate the excursion set crossing rate.
     use Numerical_Ranges
     use Numerical_Interpolation
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Excursion_Sets_Barriers
     use Memory_Management
     use Galacticus_Display

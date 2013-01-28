@@ -75,7 +75,7 @@ contains
     use Numerical_Ranges
     use Input_Parameters
     use Critical_Overdensity
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions
     use Linear_Growth

@@ -15,12 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-module CDM_Transfer_Function
+module Transfer_Function
   use ISO_Varying_String
   use FGSL
   implicit none
   private
-  public :: Transfer_Function_CDM, Transfer_Function_Logarithmic_Derivative, CDM_Transfer_Function_State_Retrieve
+  public :: Transfer_Function_CDM, Transfer_Function_Logarithmic_Derivative, Transfer_Function_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
   logical                                        :: transferFunctionInitialized=.false., tablesInitialized=.false.
@@ -159,9 +159,9 @@ contains
   end subroutine Transfer_Function_Initialize
 
   !# <galacticusStateRetrieveTask>
-  !#  <unitName>CDM_Transfer_Function_State_Retrieve</unitName>
+  !#  <unitName>Transfer_Function_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine CDM_Transfer_Function_State_Retrieve(stateFile,fgslStateFile)
+  subroutine Transfer_Function_State_Retrieve(stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
     use Memory_Management
     implicit none
@@ -173,6 +173,6 @@ contains
     if (allocated(transferFunctionLogT         )) call Dealloc_Array(transferFunctionLogT         )
     tablesInitialized=.false.
     return
-  end subroutine CDM_Transfer_Function_State_Retrieve
+  end subroutine Transfer_Function_State_Retrieve
   
-end module CDM_Transfer_Function
+end module Transfer_Function

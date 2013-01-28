@@ -185,7 +185,7 @@ contains
   double precision function Dark_Matter_Profile_Concentration_Prada2011(thisNode)
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{prada_halo_2011}.
     use Galacticus_Nodes
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Cosmology_Functions
     use Cosmological_Parameters
     use Linear_Growth

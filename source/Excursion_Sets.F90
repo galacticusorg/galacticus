@@ -30,7 +30,7 @@ program Tests_Excursion_Sets
   use Galacticus_Display
   use Galacticus_Error
   use Numerical_Ranges
-  use CDM_Power_Spectrum
+  use Power_Spectrum
   use Numerical_Constants_Math
   use IO_HDF5
   implicit none

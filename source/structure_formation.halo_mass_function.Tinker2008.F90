@@ -98,7 +98,7 @@ contains
   double precision function Halo_Mass_Function_Differential_Tinker2008(time,mass)
     !% Compute the \cite{tinker_towardhalo_2008} halo mass function.
     use Numerical_Constants_Math
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Virial_Density_Contrast
     use Cosmological_Parameters
     use Cosmology_Functions

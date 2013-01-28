@@ -15,13 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-module CDM_Primordial_Power_Spectrum
+module Primordial_Power_Spectrum
   use ISO_Varying_String
   use FGSL
   implicit none
   private
   public :: Primordial_Power_Spectrum_CDM, Primordial_Power_Spectrum_Logarithmic_Derivative,&
-       & CDM_Primordial_Power_Spectrum_State_Retrieve
+       & Primordial_Power_Spectrum_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
   logical                                        :: powerSpectrumInitialized=.false., tablesInitialized=.false.
@@ -157,9 +157,9 @@ contains
   end subroutine Power_Spectrum_Initialize
   
   !# <galacticusStateRetrieveTask>
-  !#  <unitName>CDM_Primordial_Power_Spectrum_State_Retrieve</unitName>
+  !#  <unitName>Primordial_Power_Spectrum_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine CDM_Primordial_Power_Spectrum_State_Retrieve(stateFile,fgslStateFile)
+  subroutine Primordial_Power_Spectrum_State_Retrieve(stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
     use Memory_Management
     implicit none
@@ -171,6 +171,6 @@ contains
     if (allocated(powerSpectrumLogP         )) call Dealloc_Array(powerSpectrumLogP         )
     tablesInitialized=.false.
     return
-  end subroutine CDM_Primordial_Power_Spectrum_State_Retrieve
+  end subroutine Primordial_Power_Spectrum_State_Retrieve
   
-end module CDM_Primordial_Power_Spectrum
+end module Primordial_Power_Spectrum

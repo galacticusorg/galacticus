@@ -58,7 +58,7 @@ contains
   double precision function Dark_Matter_Halo_Bias_Tinker2010(mass,time)
     !% Computes the bias for a dark matter halo using the method of \cite{tinker_large_2010}.
     use Critical_Overdensity
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Virial_Density_Contrast
     use Galacticus_Nodes
     implicit none
