@@ -48,7 +48,7 @@ contains
     !% \end{equation}
     !% where $\nu=\delta_{\rm c}(t)/\sigma(M)$ is the peak height of the halo.
     use Galacticus_Nodes
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode

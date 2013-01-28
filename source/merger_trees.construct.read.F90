@@ -167,7 +167,7 @@ contains
     use Galacticus_Output_Times
     use Numerical_Comparison
     use Cosmological_Parameters
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none

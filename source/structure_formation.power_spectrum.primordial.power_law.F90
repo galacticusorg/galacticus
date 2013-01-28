@@ -17,13 +17,13 @@
 
 !% Contains a module which generates a tabulated power-law primordial power spectrum.
 
-module CDM_Primordial_Power_Spectrum_Power_Law
+module Primordial_Power_Spectrum_Power_Law
   !% Implements generation of a tabulated power-law primordial power spectrum. The default power spectrum parameters are taken
   !% from \cite{komatsu_seven-year_2010}.
   implicit none
   private
-  public :: CDM_Primordial_Power_Spectrum_Power_Law_Initialize, CDM_Primordial_Power_Spectrum_Power_Law_State_Store,&
-       & CDM_Primordial_Power_Spectrum_Power_Law_State_Retrieve
+  public :: Primordial_Power_Spectrum_Power_Law_Initialize, Primordial_Power_Spectrum_Power_Law_State_Store,&
+       & Primordial_Power_Spectrum_Power_Law_State_Retrieve
   
   ! Parameters of the power-law.
   double precision            :: powerSpectrumIndex, powerSpectrumRunning, powerSpectrumReferenceWavenumber
@@ -35,9 +35,9 @@ module CDM_Primordial_Power_Spectrum_Power_Law
 contains
   
   !# <powerSpectrumMethod>
-  !#  <unitName>CDM_Primordial_Power_Spectrum_Power_Law_Initialize</unitName>
+  !#  <unitName>Primordial_Power_Spectrum_Power_Law_Initialize</unitName>
   !# </powerSpectrumMethod>
-  subroutine CDM_Primordial_Power_Spectrum_Power_Law_Initialize(powerSpectrumMethod,Power_Spectrum_Tabulate)
+  subroutine Primordial_Power_Spectrum_Power_Law_Initialize(powerSpectrumMethod,Power_Spectrum_Tabulate)
     !% Initializes the ``transfer function from CMBFast'' module.
     use Input_Parameters
     use ISO_Varying_String
@@ -82,7 +82,7 @@ contains
        call Get_Input_Parameter('powerSpectrumReferenceWavenumber',powerSpectrumReferenceWavenumber,defaultValue=1.0d0  )
     end if
     return
-  end subroutine CDM_Primordial_Power_Spectrum_Power_Law_Initialize
+  end subroutine Primordial_Power_Spectrum_Power_Law_Initialize
 
   subroutine Power_Spectrum_Power_Law_Tabulate(logWavenumber,powerSpectrumNumberPoints,powerSpectrumLogWavenumber&
        &,powerSpectrumLogP)
@@ -123,9 +123,9 @@ contains
   end subroutine Power_Spectrum_Power_Law_Tabulate
 
   !# <galacticusStateStoreTask>
-  !#  <unitName>CDM_Primordial_Power_Spectrum_Power_Law_State_Store</unitName>
+  !#  <unitName>Primordial_Power_Spectrum_Power_Law_State_Store</unitName>
   !# </galacticusStateStoreTask>
-  subroutine CDM_Primordial_Power_Spectrum_Power_Law_State_Store(stateFile,fgslStateFile)
+  subroutine Primordial_Power_Spectrum_Power_Law_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     use FGSL
     implicit none
@@ -134,12 +134,12 @@ contains
 
     write (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
-  end subroutine CDM_Primordial_Power_Spectrum_Power_Law_State_Store
+  end subroutine Primordial_Power_Spectrum_Power_Law_State_Store
   
   !# <galacticusStateRetrieveTask>
-  !#  <unitName>CDM_Primordial_Power_Spectrum_Power_Law_State_Retrieve</unitName>
+  !#  <unitName>Primordial_Power_Spectrum_Power_Law_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine CDM_Primordial_Power_Spectrum_Power_Law_State_Retrieve(stateFile,fgslStateFile)
+  subroutine Primordial_Power_Spectrum_Power_Law_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     use FGSL
     implicit none
@@ -149,6 +149,6 @@ contains
     ! Read the minimum and maximum tabulated times.
     read (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
-  end subroutine CDM_Primordial_Power_Spectrum_Power_Law_State_Retrieve
+  end subroutine Primordial_Power_Spectrum_Power_Law_State_Retrieve
     
-end module CDM_Primordial_Power_Spectrum_Power_Law
+end module Primordial_Power_Spectrum_Power_Law

@@ -78,7 +78,7 @@ contains
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{navarro_structure_1996}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Cosmology_Functions
     use Critical_Overdensity
     use Root_Finder

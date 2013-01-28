@@ -66,7 +66,7 @@ contains
     !% \cite{zhao_accurate_2009}.
     use ODE_Solver
     use Galacticus_Error
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
     type (treeNode          ), intent(inout), pointer :: baseNode
@@ -117,7 +117,7 @@ contains
 
   function growthRateODEs(mass,nowTime,dNowTimedMass,parameterPointer) bind(c)
     !% System of differential equations to solve for the growth rate.
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
     integer(c_int)                           :: growthRateODEs

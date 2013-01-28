@@ -46,7 +46,7 @@ contains
   double precision function Halo_Mass_Function_Sheth_Tormen_Differential(time,mass)
     !% Compute the Sheth-Tormen halo mass function.
     use Numerical_Constants_Math
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     use Cosmological_Parameters
     implicit none

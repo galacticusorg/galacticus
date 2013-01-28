@@ -20,7 +20,7 @@
 module Generalized_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in generalized Press-Schechter theory.
   use FGSL
-  use CDM_Power_Spectrum
+  use Power_Spectrum
   use Numerical_Constants_Math
   implicit none
   private

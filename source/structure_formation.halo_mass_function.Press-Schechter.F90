@@ -46,7 +46,7 @@ contains
  double precision function Halo_Mass_Function_Differential_Press_Schechter(time,mass)
     !% Compute the Press-Schechter halo mass function.
     use Numerical_Constants_Math
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     use Cosmological_Parameters
     use Excursion_Sets_First_Crossings

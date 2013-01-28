@@ -62,7 +62,7 @@ contains
     use Memory_Management
     use Numerical_Ranges
     use Input_Parameters
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Numerical_Constants_Math
     use Cosmological_Parameters
     implicit none

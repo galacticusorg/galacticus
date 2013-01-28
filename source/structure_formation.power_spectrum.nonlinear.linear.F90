@@ -42,7 +42,7 @@ contains
 
   double precision function Power_Spectrum_Nonlinear_Linear(waveNumber,time)
     !% Return a nonlinear power spectrum equal to the linear power spectrum. (Useful mostly for testing.)
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Linear_Growth
     implicit none
     double precision, intent(in) :: waveNumber,time
