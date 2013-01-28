@@ -33,15 +33,26 @@ public :: Sersic_Profile_Tabulate_State_Retrieve,Sersic_Profile_Tabulate_State_S
 
 ! Tabulation of the Sérsic profile.
 logical                                                        :: sersicProfileTabulated=.false.
+!$omp threadprivate(sersicProfileTabulated)
 double precision                                               :: sersicProfileIndex,sersicCoefficient,sersicRadiusStart
+!$omp threadprivate(sersicProfileIndex,sersicCoefficient,sersicRadiusStart)
 logical                                                        :: sersicTableInitialized=.false.
+!$omp threadprivate(sersicTableInitialized)
 integer                                                        :: sersicTableCount
+!$omp threadprivate(sersicTableCount)
 double precision                                               :: sersicTableRadiusMinimum   =1.0d-3, &
      &                                                            sersicTableRadiusMaximum   =1.0d+3
+!$omp threadprivate(sersicTableRadiusMinimum,sersicTableRadiusMaximum)
 double precision                                               :: sersicTable3dHalfMassRadius=1.0d+0
+!$omp threadprivate(sersicTable3dHalfMassRadius)
 double precision                                               :: sersicTable2dHalfMassRadius
+!$omp threadprivate(sersicTable2dHalfMassRadius)
 integer                            , parameter                 :: sersicTablePointsPerDecade=1000
 double precision                   , allocatable, dimension(:) :: sersicTableRadius,sersicTableDensity,sersicTableEnclosedMass,sersicTablePotential
+!$omp threadprivate(sersicTableRadius,sersicTableDensity,sersicTableEnclosedMass,sersicTablePotential)
 type            (fgsl_interp      )                            :: sersicTableInterpolationObject
+!$omp threadprivate(sersicTableInterpolationObject)
 type            (fgsl_interp_accel)                            :: sersicTableInterpolationAccelerator
+!$omp threadprivate(sersicTableInterpolationAccelerator)
 logical                                                        :: sersicTableInterpolationReset=.true.
+!$omp threadprivate(sersicTableInterpolationReset)
