@@ -26,7 +26,8 @@ module Cooling_Rates
   public :: Cooling_Rate, Cooling_Rate_Hot_Halo_Output_Names, Cooling_Rate_Hot_Halo_Output_Count, Cooling_Rate_Hot_Halo_Output
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: coolingRateInitialized=.false.
+  logical              :: coolingRateInitialized      =.false.
+  logical              :: coolingRateOutputInitialized=.false.
 
   ! Name of cooling rate available method used.
   type(varying_string) :: coolingRateMethod
@@ -77,6 +78,22 @@ contains
           !# </include>
           if (.not.associated(Cooling_Rate_Get)) call Galacticus_Error_Report('Cooling_Rate','method ' &
                &//char(coolingRateMethod)//' is unrecognized')
+          coolingRateInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Rate_Initialization)
+    end if
+    return
+  end subroutine Cooling_Rate_Initialize
+
+  subroutine Cooling_Rate_Output_Initialize()
+    !% Initialize output in the cooling rate module.
+    use Input_Parameters
+    implicit none
+
+    ! Initialize if necessary.
+    if (.not.coolingRateOutputInitialized) then
+       !$omp critical(Cooling_Rate_Output_Initialization) 
+       if (.not.coolingRateOutputInitialized) then
           ! Get options controlling output.
           !@ <inputParameter>
           !@   <name>outputHotHaloCoolingRates</name>
@@ -89,12 +106,12 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('outputHotHaloCoolingRates',outputHotHaloCoolingRates,defaultValue=.false.)
-          coolingRateInitialized=.true.
+          coolingRateOutputInitialized=.true.
        end if
-       !$omp end critical(Cooling_Rate_Initialization)
+       !$omp end critical(Cooling_Rate_Output_Initialization)
     end if
     return
-  end subroutine Cooling_Rate_Initialize
+  end subroutine Cooling_Rate_Output_Initialize
   
   double precision function Cooling_Rate(thisNode)
     !% Return the cooling rate for {\tt thisNode} (in units of $M_\odot$ Gyr$^{-1}$).
@@ -139,7 +156,7 @@ contains
     double precision           , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     
     ! Initialize the module.
-    call Cooling_Rate_Initialize()
+    call Cooling_Rate_Output_Initialize()
 
     if (outputHotHaloCoolingRates) then
        doubleProperty=doubleProperty+1
@@ -172,7 +189,7 @@ contains
     integer                    , parameter              :: propertyCount=1
 
     ! Initialize the module.
-    call Cooling_Rate_Initialize()
+    call Cooling_Rate_Output_Initialize()
 
     if (outputHotHaloCoolingRates) doublePropertyCount=doublePropertyCount+propertyCount
     return
@@ -196,7 +213,7 @@ contains
     double precision                , intent(inout)              :: doubleBuffer (:,:)
 
     ! Initialize the module.
-    call Cooling_Rate_Initialize()
+    call Cooling_Rate_Output_Initialize()
 
     if (outputHotHaloCoolingRates) then
        doubleProperty=doubleProperty+1

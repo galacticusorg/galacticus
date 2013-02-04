@@ -30,7 +30,8 @@ module Cooling_Radii
        & Cooling_Radius_Hot_Halo_Output_Count
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: coolingRadiusInitialized=.false.
+  logical              :: coolingRadiusInitialized      =.false.
+  logical              :: coolingRadiusOutputInitialized=.false.
 
   ! Name of cooling radius available method used.
   type(varying_string) :: coolingRadiusMethod
@@ -79,6 +80,24 @@ contains
           !# </include>
           if (.not.(associated(Cooling_Radius_Get).and.associated(Cooling_Radius_Growth_Rate_Get))) call&
                & Galacticus_Error_Report('Cooling_Radius','method ' //char(coolingRadiusMethod)//' is unrecognized')
+
+          coolingRadiusInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Radius_Initialization) 
+    end if
+    return
+  end subroutine Cooling_Radius_Initialize
+
+  subroutine Cooling_Radius_Output_Initialize()
+    !% Initialize output in the cooling radius module.
+    use Galacticus_Error
+    use Input_Parameters
+    implicit none
+
+    ! Initialize if necessary.
+    if (.not.coolingRadiusOutputInitialized) then
+       !$omp critical(Cooling_Radius_Output_Initialization) 
+       if (.not.coolingRadiusOutputInitialized) then
           ! Get options controlling output.
           !@ <inputParameter>
           !@   <name>outputHotHaloCoolingRadii</name>
@@ -92,12 +111,12 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('outputHotHaloCoolingRadii',outputHotHaloCoolingRadii,defaultValue=.false.)
 
-          coolingRadiusInitialized=.true.
+          coolingRadiusOutputInitialized=.true.
        end if
-       !$omp end critical(Cooling_Radius_Initialization) 
+       !$omp end critical(Cooling_Radius_Output_Initialization) 
     end if
     return
-  end subroutine Cooling_Radius_Initialize
+  end subroutine Cooling_Radius_Output_Initialize
 
   double precision function Cooling_Radius(thisNode)
     !% Return the cooling radius for {\tt thisNode} (in units of Mpc).
@@ -147,7 +166,7 @@ contains
     double precision           , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
     
     ! Initialize the module.
-    call Cooling_Radius_Initialize()
+    call Cooling_Radius_Output_Initialize()
 
     if (outputHotHaloCoolingRadii) then
        doubleProperty=doubleProperty+1
@@ -180,7 +199,7 @@ contains
     integer                    , parameter              :: propertyCount=1
 
     ! Initialize the module.
-    call Cooling_Radius_Initialize()
+    call Cooling_Radius_Output_Initialize()
 
     if (outputHotHaloCoolingRadii) doublePropertyCount=doublePropertyCount+propertyCount
     return
@@ -204,7 +223,7 @@ contains
     double precision                , intent(inout)              :: doubleBuffer (:,:)
 
     ! Initialize the module.
-    call Cooling_Radius_Initialize()
+    call Cooling_Radius_Output_Initialize()
 
     if (outputHotHaloCoolingRadii) then
        doubleProperty=doubleProperty+1
