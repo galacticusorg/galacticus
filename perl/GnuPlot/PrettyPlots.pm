@@ -246,8 +246,8 @@ sub Prepare_Dataset {
 
     # Create attribute for line type, assuming no specification if type option is not present.
     my %lineType;
-    $lineType{'lower'} = "";
-    $lineType{'upper'} = "";
+    $lineType{'lower'} = " lt 1";
+    $lineType{'upper'} = " lt 1";
     $lineType{'lower'} = " lt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
     $lineType{'upper'} = " lt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
 
