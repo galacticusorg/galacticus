@@ -90,8 +90,13 @@ foreach $srcdir ( @sourcedirs ) {
 				    ${$data}{'fileName'} = $fileName;
 				}
 				delete(${$data}{'content'});
-				${$includeDirectives{${$data}{'directive'}.".".${$data}{'type'}}}{'fileName'} = $fileName;
-				${$includeDirectives{${$data}{'directive'}.".".${$data}{'type'}}}{'xml'} = $xmlOutput->XMLout($data);
+
+				my $directive = ${$data}{'directive'};
+				$directive = ${$data}{'name'}
+				   if ( exists(${$data}{'name'}) );
+				$directive .= ".".${$data}{'type'};
+				${$includeDirectives{$directive}}{'fileName'} = $fileName;
+				${$includeDirectives{$directive}}{'xml'     } = $xmlOutput->XMLout($data);
 			    }
 			    else {
 				$otherDirectives->{$xmlTag}->{$srcdir."/".$fname} = 1;
