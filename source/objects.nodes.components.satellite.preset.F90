@@ -87,6 +87,8 @@ contains
     type (treeNode              ), pointer                :: parentNode
     class(nodeComponentSatellite), pointer                :: thisSatelliteComponent,parentSatelliteComponent
 
+    ! Return immediately if the preset satellite implementation is not active.
+    if (.not.defaultSatelliteComponent%presetIsActive()) return
     ! Get the satellite component and check if it is of preset class.
     thisSatelliteComponent   => thisNode  %satellite(autoCreate=.true.)
     ! Get the parent node of this node.
