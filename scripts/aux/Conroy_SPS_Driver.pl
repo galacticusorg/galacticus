@@ -9,8 +9,8 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
@@ -21,12 +21,33 @@ unshift(@INC,$galacticusPath."perl");
 # Andrew Benson (15-Apr-2011)
 
 # Get arguments.
-die "Usage: Conroy_SPS_Driver.pl <imfName> <stellarPopulationFile>" unless ( scalar(@ARGV) == 2 );
+die "Usage: Conroy_SPS_Driver.pl <imfName> <stellarPopulationFile> <fileFormatVersion>" unless ( scalar(@ARGV) == 3 );
 my $imfName               = $ARGV[0];
 my $stellarPopulationFile = $ARGV[1];
+my $fileFormat            = $ARGV[2];
+
+# Ensure the requested file format version is compatible.
+my $fileFormatCurrent = pdl long(1);
+die('Conroy_SPS_Driver.pl: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
+    unless ( $fileFormat == $fileFormatCurrent );
+
+# Determine if we need to make the file.
+my $makeFile = 0;
+if ( -e $stellarPopulationFile ) {
+    my $hdfFile = new PDL::IO::HDF5($stellarPopulationFile);
+    my @attributes = $hdfFile->attrs();
+    if ( grep {$_ eq "fileFormat"} @attributes  ) {
+	my @fileFormatCurrentFile = $hdfFile->attrGet('fileFormat');
+	$makeFile = 1 unless ( $fileFormatCurrentFile[0] == $fileFormatCurrent );
+    } else {
+	$makeFile = 1;
+    }
+} else {
+    $makeFile = 1;
+}
 
 # Check if the file exists.
-unless ( -e $stellarPopulationFile ) {
+if ( $makeFile == 1 ) {
     
     # Check out the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.3" ) {
@@ -45,7 +66,7 @@ unless ( -e $stellarPopulationFile ) {
     close(pHndl);
     open(pHndl,"svn info ".$galacticusPath."aux/FSPS_v2.3 |");
     while ( my $line = <pHndl> ) {
- 	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$currentRevision = $1};
+ 	if ( $line =~ m/Revision:\s*(\d+)/ ) {$currentRevision = $1};
     }
     close(pHndl);
     if ( $currentRevision < $availableRevision ) {
@@ -57,10 +78,13 @@ unless ( -e $stellarPopulationFile ) {
     
     # Patch the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.3/src/galacticus_IMF.f90" ) {
- 	foreach my $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch" ) {
- 	    copy($galacticusPath."aux/FSPS_v2.3_Galacticus_Modifications/".$file,$galacticusPath."aux/FSPS_v2.3/src/".$file);
+ 	foreach my $file ( "galacticus_IMF.f90", "imf.f90.patch", "Makefile.patch", "ssp_gen.f90.patch", "autosps.f90.patch", "qromb.f90.patch" ) {
+	    my $todir = $galacticusPath."aux/FSPS_v2.3/src/";
+	    $todir .= "nr/"
+		if ( $file eq "qromb.f90.patch" );
+ 	    copy($galacticusPath."aux/FSPS_v2.3_Galacticus_Modifications/".$file,$todir.$file);
  	    if ( $file =~ m/\.patch$/ ) {
-		system("cd ".$galacticusPath."aux/FSPS_v2.3/src; patch < $file");
+		system("cd ".$todir."; patch < $file");
 		die("Conroy_SPS_Driver.pl: unable to patch file: ".$file) unless ( $? == 0 );
 	    }
  	    print "$file\n";
@@ -99,7 +123,7 @@ unless ( -e $stellarPopulationFile ) {
 	timestamp     => $now,
 	fspsVersion   => "2.3_r".$availableRevision,
 	createdBy     => "Galacticus",
-	fileSignature => 1
+	fileFormat    => $fileFormatCurrent
 	);
 
     # Read the IMF file and store it to our output file.

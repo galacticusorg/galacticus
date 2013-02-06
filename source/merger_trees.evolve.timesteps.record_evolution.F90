@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements a time-stepping criterion for merger tree evolution which permits evolution of the main
 !% branch galaxy to be stored.
@@ -95,97 +51,106 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Record_Evolution</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Record_Evolution(thisNode,timeStep,End_Of_Timestep_Task)
+  subroutine Merger_Tree_Timestep_Record_Evolution(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
     use Numerical_Ranges
     use Numerical_Interpolation
     use Merger_Trees_Evolve_Timesteps_Template
+    use Evolve_To_Time_Reports
+    use ISO_Varying_String
     implicit none
-    type(treeNode),                           intent(inout), pointer :: thisNode
-    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
-    double precision,                         intent(inout)          :: timeStep
-    integer                                                          :: timeIndex
-    double precision                                                 :: time,ourTimeStep
+    type     (treeNode                     ), intent(inout), pointer           :: thisNode
+    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer           :: End_Of_Timestep_Task
+    double precision                        , intent(inout)                    :: timeStep
+    logical                                 , intent(in   )                    :: report
+    type     (treeNode                     ), intent(inout), pointer, optional :: lockNode
+    type     (varying_string               ), intent(inout),          optional :: lockType  
+    class    (nodeComponentBasic           ),                pointer           :: thisBasicComponent
+    integer                                                                    :: timeIndex
+    double precision                                                           :: time,ourTimeStep
     
-    !$omp critical (timestepRecordEvolutionInitialize)
     if (.not.timestepRecordEvolutionInitialized) then
-       ! Get module parameters.
-       !@ <inputParameter>
-       !@   <name>timestepRecordEvolution</name>
-       !@   <defaultValue>false</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not the evolution of the main branch galaxy should be recorded.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>timeStepping</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('timestepRecordEvolution',timestepRecordEvolution,defaultValue=.false.)
-       if (timestepRecordEvolution) then
-          ! Get time at present day.
-          time=Cosmology_Age(aExpansion=0.999d0)
+       !$omp critical (timestepRecordEvolutionInitialize)
+       if (.not.timestepRecordEvolutionInitialized) then
           ! Get module parameters.
           !@ <inputParameter>
-          !@   <name>timestepRecordEvolutionBegin</name>
-          !@   <defaultValue>5\% of the age of the Universe</defaultValue>       
+          !@   <name>timestepRecordEvolution</name>
+          !@   <defaultValue>false</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
+          !@     Specifies whether or not the evolution of the main branch galaxy should be recorded.
           !@   </description>
-          !@   <type>real</type>
+          !@   <type>boolean</type>
           !@   <cardinality>1</cardinality>
           !@   <group>timeStepping</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('timestepRecordEvolutionBegin',timestepRecordEvolutionBegin,defaultValue=0.05d0*time)
-          !@ <inputParameter>
-          !@   <name>timestepRecordEvolutionEnd</name>
-          !@   <defaultValue>The age of the Universe</defaultValue>       
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepRecordEvolutionEnd'  ,timestepRecordEvolutionEnd  ,defaultValue=       time)
-          !@ <inputParameter>
-          !@   <name>timestepRecordEvolutionSteps</name>
-          !@   <defaultValue>30</defaultValue>       
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepRecordEvolutionSteps',timestepRecordEvolutionSteps,defaultValue=100        )
-          ! Allocate storage arrays.
-          call Alloc_Array(evolutionTime       ,[timestepRecordEvolutionSteps])
-          call Alloc_Array(evolutionExpansion  ,[timestepRecordEvolutionSteps])
-          call Alloc_Array(evolutionStellarMass,[timestepRecordEvolutionSteps])
-          call Alloc_Array(evolutionTotalMass  ,[timestepRecordEvolutionSteps])
-          ! Initialize arrays.
-          evolutionTime=Make_Range(timestepRecordEvolutionBegin,timestepRecordEvolutionEnd,timestepRecordEvolutionSteps,rangeTypeLogarithmic)
-          do timeIndex=1,timestepRecordEvolutionSteps
-             evolutionExpansion(timeIndex)=Expansion_Factor(evolutionTime(timeIndex))
-          end do
-          call Reset_Records()
+          call Get_Input_Parameter('timestepRecordEvolution',timestepRecordEvolution,defaultValue=.false.)
+          if (timestepRecordEvolution) then
+             ! Get time at present day.
+             time=Cosmology_Age(aExpansion=0.999d0)
+             ! Get module parameters.
+             !@ <inputParameter>
+             !@   <name>timestepRecordEvolutionBegin</name>
+             !@   <defaultValue>5\% of the age of the Universe</defaultValue>       
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@   <group>timeStepping</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('timestepRecordEvolutionBegin',timestepRecordEvolutionBegin,defaultValue=0.05d0*time)
+             !@ <inputParameter>
+             !@   <name>timestepRecordEvolutionEnd</name>
+             !@   <defaultValue>The age of the Universe</defaultValue>       
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@   <group>timeStepping</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('timestepRecordEvolutionEnd'  ,timestepRecordEvolutionEnd  ,defaultValue=       time)
+             !@ <inputParameter>
+             !@   <name>timestepRecordEvolutionSteps</name>
+             !@   <defaultValue>30</defaultValue>       
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.
+             !@   </description>
+             !@   <type>integer</type>
+             !@   <cardinality>1</cardinality>
+             !@   <group>timeStepping</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('timestepRecordEvolutionSteps',timestepRecordEvolutionSteps,defaultValue=100        )
+             ! Allocate storage arrays.
+             call Alloc_Array(evolutionTime       ,[timestepRecordEvolutionSteps])
+             call Alloc_Array(evolutionExpansion  ,[timestepRecordEvolutionSteps])
+             call Alloc_Array(evolutionStellarMass,[timestepRecordEvolutionSteps])
+             call Alloc_Array(evolutionTotalMass  ,[timestepRecordEvolutionSteps])
+             ! Initialize arrays.
+             evolutionTime=Make_Range(timestepRecordEvolutionBegin,timestepRecordEvolutionEnd,timestepRecordEvolutionSteps,rangeTypeLogarithmic)
+             do timeIndex=1,timestepRecordEvolutionSteps
+                evolutionExpansion(timeIndex)=Expansion_Factor(evolutionTime(timeIndex))
+             end do
+             call Reset_Records()
+          end if
+          timestepRecordEvolutionInitialized=.true.
        end if
-       timestepRecordEvolutionInitialized=.true.
+       !$omp end critical (timestepRecordEvolutionInitialize)
     end if
-    !$omp end critical (timestepRecordEvolutionInitialize)
-       
+
     ! Adjust timestep if applicable.
     if (timestepRecordEvolution.and.thisNode%isOnMainBranch()) then
        ! Get current cosmic time.
-       time=Tree_Node_Time(thisNode)
+       thisBasicComponent => thisNode%basic()
+       time=thisBasicComponent%time()
        
        ! Determine how long until next available timestep.
        timeIndex=Interpolate_Locate(timestepRecordEvolutionSteps,evolutionTime,interpolationAccelerator,time)
@@ -195,29 +160,35 @@ contains
           
           ! Set return value if our timestep is smaller than current one.
           if (ourTimeStep <= timeStep) then
+             if (present(lockNode)) lockNode => thisNode
+             if (present(lockType)) lockType =  "record evolution"
              timeStep=ourTimeStep
              End_Of_Timestep_Task => Merger_Tree_Record_Evolution_Store
           end if
        end if
     end if
+    if (report) call Evolve_To_Time_Report("record evolution: ",timeStep)
     return
   end subroutine Merger_Tree_Timestep_Record_Evolution
 
-  subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode)
+  subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Interpolation
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type(mergerTree), intent(in)             :: thisTree
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer                                  :: timeIndex
-    double precision                         :: time
+    type (mergerTree        ), intent(in   )          :: thisTree
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    integer                  , intent(inout)          :: deadlockStatus
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    integer                                           :: timeIndex
+    double precision                                  :: time
 
     ! Get current cosmic time.
-    time=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    time=thisBasicComponent%time()
 
     ! Determine how long until next available timestep.
     if (time == evolutionTime(timestepRecordEvolutionSteps)) then
@@ -238,7 +209,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Merger_Tree_Record_Evolution_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use IO_HDF5
     use Galacticus_HDF5
     use Galacticus_Output_Times
@@ -258,7 +229,7 @@ contains
     if (nodePassesFilter.and.timestepRecordEvolution.and.iOutput == Galacticus_Output_Time_Count().and.thisNode%isOnMainBranch())&
          & then
        ! Create a group for the profile datasets.
-       outputGroup=IO_HDF5_Open_Group(galacticusOutputFile,"mainProgenitorEvolution","Evolution data of main progenitors.")
+       outputGroup=galacticusOutputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
 
        ! Write one time datasets if necessary.
        if (.not.oneTimeDatasetsWritten) then

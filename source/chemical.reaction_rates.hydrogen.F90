@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of chemical reaction rates for hydrogen using the fits from
 !% \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.
@@ -162,10 +118,10 @@ contains
     use Radiation_Structure
     use Galacticus_Error
     implicit none
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     double precision                                 :: creationTerm,destructionTerm
 
     ! Return if not selected.
@@ -227,25 +183,27 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex,electronChemicalIndex
     double precision                                 :: rateCoefficient,rate
 
     ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
     if (.not.reactionInitialized) then
-       ! Find the chemicals in this reaction.
-       atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
-       atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
-       electronChemicalIndex            =Chemicals_Index("Electron"            )
-       ! This reaction is active if all species were found.
-       reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0 .and. electronChemicalIndex > 0
-       ! Flag that the reaction is now initialized.
-       reactionInitialized=.true.
+       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
+       if (.not.reactionInitialized) then
+          ! Find the chemicals in this reaction.
+          atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
+          atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
+          electronChemicalIndex            =Chemicals_Index("Electron"            )
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0 .and. electronChemicalIndex > 0
+          ! Flag that the reaction is now initialized.
+          reactionInitialized=.true.
+       end if
+       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
     end if
-    !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
 
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -276,8 +234,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex,electronChemicalIndex
     double precision                                 :: rateCoefficient,rate
@@ -324,8 +282,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenAnionChemicalIndex,electronChemicalIndex
     double precision                                 :: rateCoefficient,rate
@@ -408,8 +366,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenChemicalIndex&
          &,electronChemicalIndex,atomicHydrogenAnionChemicalIndex
@@ -501,8 +459,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex&
          &,chemicalHydrogenCationChemicalIndex
@@ -561,8 +519,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex&
          &,chemicalHydrogenChemicalIndex,chemicalHydrogenCationChemicalIndex
@@ -619,8 +577,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: chemicalHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex&
          &,chemicalHydrogenCationChemicalIndex,atomicHydrogenChemicalIndex
@@ -693,8 +651,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenChemicalIndex,electronChemicalIndex
     double precision                                 :: rateCoefficient,rate
@@ -745,8 +703,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenChemicalIndex
     double precision                                 :: temperatureElectronVolts,log10Temperature,rateCoefficient,rate
@@ -804,8 +762,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenAnionChemicalIndex,electronChemicalIndex
     double precision                                 :: rateCoefficient,rate
@@ -886,8 +844,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenAnionChemicalIndex,electronChemicalIndex
     double precision                                 :: temperatureElectronVolts,logNaturalTemperatureElectronVolts&
@@ -958,8 +916,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenAnionChemicalIndex&
          &,atomicHydrogenCationChemicalIndex
@@ -1022,8 +980,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenCationChemicalIndex,atomicHydrogenAnionChemicalIndex&
          &,chemicalHydrogenCationChemicalIndex,electronChemicalIndex
@@ -1088,8 +1046,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenCationChemicalIndex,electronChemicalIndex
     double precision                                 :: rateCoefficient,rate
@@ -1143,8 +1101,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: chemicalHydrogenCationChemicalIndex,atomicHydrogenAnionChemicalIndex&
          &,chemicalHydrogenChemicalIndex,atomicHydrogenChemicalIndex
@@ -1204,8 +1162,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     ! Energy range for the cross-section.
     double precision,                  parameter     :: crossSectionEnergyLow     =0.755d0
     ! Wavelength range for the cross-section.
@@ -1235,10 +1193,7 @@ contains
 
        ! Compute rate coefficient.
        if (hydrogenNetworkCMBOnly) then
-          ! <gfortran 4.6> Would like to use the radiation%temperature() type-bound procedure form here, but type-bound procedures
-          ! with optional arguments are buggy under gfortran 4.4
-          rateCoefficient=0.144d0*(Radiation_Temperature(radiation,[radiationTypeCMB])**2.13d0)*dexp(-8650.0d0&
-               &/Radiation_Temperature(radiation,[radiationTypeCMB]))
+          rateCoefficient=0.144d0*(radiation%temperature([radiationTypeCMB])**2.13d0)*dexp(-8650.0d0/radiation%temperature([radiationTypeCMB]))
        else
           rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_Hminus_Gamma_to_H_Electron,[0.0d0&
                &,crossSectionWavelengthHigh])
@@ -1294,8 +1249,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     ! Energy range for the cross-section.
     double precision,                  parameter     :: crossSectionEnergyLow     = 2.65d0
     double precision,                  parameter     :: crossSectionEnergyHigh    =21.00d0
@@ -1328,9 +1283,7 @@ contains
 
        ! Compute rate coefficient.
        if (hydrogenNetworkCMBOnly) then
-          ! <gfortran 4.6> Would like to use the radiation%temperature() type-bound procedure form here, but type-bound procedures
-          ! with optional arguments are buggy under gfortran 4.4
-          rateCoefficient=6.36d5*dexp(-71600.0d0/Radiation_Temperature(radiation,[radiationTypeCMB]))
+          rateCoefficient=6.36d5*dexp(-71600.0d0/radiation%temperature([radiationTypeCMB]))
        else
           rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2plus_Gamma_to_H_Hplus,[crossSectionWavelengthLow&
                &,crossSectionWavelengthHigh])
@@ -1395,8 +1348,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     integer,                           save          :: chemicalHydrogenChemicalIndex,atomicHydrogenChemicalIndex
     ! Median energy of the Lyman band in chemical hydrogen (in eV).
@@ -1448,8 +1401,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     ! Energy of the edge in the cross-section.
     double precision,                  parameter     :: crossSectionEdgeEnergy    =15.42d0
@@ -1538,8 +1491,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     ! Energy range for the cross-section.
     double precision,                  parameter     :: crossSectionEnergyLow     =30.0d0
@@ -1629,8 +1582,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     ! Energy range for the cross-section.
     double precision,                  parameter     :: crossSectionEnergyLow     =14.159d0
@@ -1736,8 +1689,8 @@ contains
     implicit none
     double precision,                  intent(in)    :: temperature
     type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
     ! Energy range for the cross-section (in eV).
     double precision,                  parameter     :: crossSectionEnergyLow     =13.60d0

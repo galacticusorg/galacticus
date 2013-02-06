@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -15,11 +15,12 @@ use Data::Dumper;
 use Data::Compare;
 use File::Copy;
 use File::Slurp qw( slurp );
-require System::Redirect;
 use Sys::CPU;
 use MIME::Lite;
-require IO::Compress::Simple;
 use Switch;
+use Clone qw(clone);
+require IO::Compress::Simple;
+require System::Redirect;
 
 # Script to run sets of Galacticus models, looping through sets of parameters and performing analysis
 # on the results. Supports launching of multiple threads (each with a different model) on a single
@@ -83,6 +84,12 @@ $launchMethod    = "condor"
 	&& exists($modelsToRun->{'condor'}->{'useCondor'})
 	&&        $modelsToRun->{'condor'}->{'useCondor'} eq "true"
 	);
+$launchMethod    = "pbs"
+    if (
+	exists($modelsToRun->{'pbs'})
+	&& exists($modelsToRun->{'pbs'}->{'usePBS'})
+	&&        $modelsToRun->{'pbs'}->{'usePBS'} eq "true"
+    );
 
 # Record where we are running.
 my $pwd = `pwd`;
@@ -91,8 +98,11 @@ chomp($pwd);
 # Define a hash for Condor job IDs.
 my %condorJobs;
 
+# Define a hash for PBS job IDS.
+my %pbsJobs;
+
 # Launch threads.
-if ( $threadCount <= 1 || $launchMethod eq "condor" ) {
+if ( $threadCount <= 1 || $launchMethod eq "condor" || $launchMethod eq "pbs" ) {
     &Launch_Models($modelsToRun);
 } else {
     my @threads = ();
@@ -141,6 +151,61 @@ if ( $launchMethod eq "condor" ) {
     }
 }
 
+# Wait for PBS models to finish.
+if ( $launchMethod eq "pbs" ) {
+    print "Waiting for PBS jobs to finish...\n";
+    while ( scalar(keys %pbsJobs) > 0 || scalar(@{$modelsToRun->{'pbs'}->{'modelQueue'}}) > 0 ) {
+	# Report on number of jobs remaining.
+	# Find all PBS jobs that are running.
+	my %runningPBSJobs;
+	undef(%runningPBSJobs);
+	open(pHndl,"qstat -f|");
+	while ( my $line = <pHndl> ) {
+	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
+	}
+	close(pHndl);
+	foreach my $jobID ( keys(%pbsJobs) ) {
+	    unless ( exists($runningPBSJobs{$jobID}) ) {
+		print "PBS job ".$jobID." has finished. Post-processing....\n";
+		&Model_Finalize(
+		    $pbsJobs{$jobID}->{'directory'},
+		    $pbsJobs{$jobID}->{'directory'}."/galacticus.hdf5",
+		    0
+		    );
+		# Remove any temporary files associated with this job.
+		unlink(@{$pbsJobs{$jobID}->{'temporaryFiles'}});
+		# Remove the job ID from the list of active PBS jobs.
+		delete($pbsJobs{$jobID});
+	    }
+	}
+	# If there are jobs remaining to be submitted, and not too many are already queued, launch one.
+	my $maxJobsInQueue = -1;
+	$maxJobsInQueue = $modelsToRun->{'pbs'}->{'maxJobsInQueue'}
+	   if ( exists($modelsToRun->{'pbs'}->{'maxJobsInQueue'}) );
+	if ( scalar(@{$modelsToRun->{'pbs'}->{'modelQueue'}}) > 0 && ( scalar(keys %pbsJobs) < $maxJobsInQueue || $maxJobsInQueue < 0 ) ) {
+
+	    my $pbsJob = shift(@{$modelsToRun->{'pbs'}->{'modelQueue'}});
+	    my $pbsScript = $pbsJob->{'script'};
+	    my $galacticusOutputDirectory = $pbsJob->{'outputDirectory'};
+	    print "Submitting script: ".$pbsScript."\n";
+	    open(pHndl,"qsub ".$pbsScript."|");
+	    my $jobID = "";
+	    while ( my $line = <pHndl> ) {
+		if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
+	    }
+	    close(pHndl);	    
+	    # Add job number to active job hash
+	    unless ( $jobID eq "" ) {
+		$pbsJobs{$jobID}->{'directory'} = $galacticusOutputDirectory;
+		@{$pbsJobs{$jobID}->{'temporaryFiles'}} = [$pbsScript];
+	    }
+	    sleep 10;
+	} else {
+	    sleep 60;
+	}
+    }
+}
+
 exit;
 
 sub Launch_Models {
@@ -153,6 +218,9 @@ sub Launch_Models {
     # Initialize a model counter.
     my $modelCounter = -1;
 
+    # Create empty PBS model queue.
+    @{$modelsToRun->{'pbs'}->{'modelQueue'}} = ();
+
     # Loop through all model sets.
     my $iModelSet = -1;
     foreach my $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
@@ -161,7 +229,7 @@ sub Launch_Models {
 	
 	# Set base model name.
 	my $modelBaseName = "galacticus";
-	$modelBaseName = ${$parameterSet->{'label'}}[0] if ( exists($parameterSet->{'label'}) );
+	$modelBaseName = $parameterSet->{'label'} if ( exists($parameterSet->{'label'}) );
 	
 	# Create an array of hashes giving the parameters for this parameter set.
 	my @parameterHashes = &Create_Parameter_Hashes($parameterSet);
@@ -207,6 +275,13 @@ sub Launch_Models {
 		    case ( "condor" ) {
 			$parameters{'galacticusOutputFileName'} = "galacticus.hdf5";
 		    }
+		    case ( "pbs"    ) {
+			if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) ) {
+			    $parameters{'galacticusOutputFileName'} = $modelsToRun->{'pbs'}->{'scratchPath'}."/model_".$modelCounter."_".$$."/galacticus_".$modelCounter."_".$$.".hdf5";
+			} else {
+			    $parameters{'galacticusOutputFileName'} = $galacticusOutputFile;
+			}
+		    }
 		}
 
 		# Set the random seed.
@@ -214,7 +289,7 @@ sub Launch_Models {
 		
 		# Set a state restore file.
 		(my $stateFile = $parameters{'galacticusOutputFileName'}) =~ s/\.hdf5//;
-		$parameters{'stateFileRoot'}      = $stateFile;
+		$parameters{'stateFileRoot'} = $stateFile;
 		
 		# Transfer parameters for this model from the array of model parameter hashes to the active hash.
 		foreach my $parameter ( keys(%{$parameterData}) ) {
@@ -320,6 +395,86 @@ sub Launch_Models {
 			sleep 10;
 
 		    }
+		    case ( "pbs"    ) {
+			# Create the PBS submission script.
+			my $pbsScript = $galacticusOutputDirectory."/pbs_run_".$modelCounter."_".$$.".sh";
+			open(oHndl,">".$pbsScript);
+			print oHndl "#!/bin/bash\n";
+			print oHndl "#PBS -N Galacticus_".$modelCounter."_".$$."\n";
+			if ( exists($config->{'contact'}->{'email'}) ) {
+			    if ( $config->{'contact'}->{'email'} =~ m/\@/ && $modelsToRun->{'emailReport'} eq "yes" ) {
+				print oHndl "#PBS -M ".$config->{'contact'}->{'email'}."\n";
+				print oHndl "#PBS -m bea\n";
+			    }
+			}
+			print oHndl "#PBS -l walltime=".$modelsToRun->{'pbs'}->{'wallTime'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'wallTime'}) );
+			print oHndl "#PBS -l mem=".$modelsToRun->{'pbs'}->{'memory'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'memory'}) );
+			if ( exists($modelsToRun->{'pbs'}->{'ompThreads'}) ) {
+			    print oHndl "#PBS -l nodes=1:ppn=".$modelsToRun->{'pbs'}->{'ompThreads'}."\n";
+			} else {
+			    print oHndl "#PBS -l nodes=1:ppn=1\n";
+			}
+			print oHndl "#PBS -j oe\n";
+			my $pwd = "";
+			unless ( $galacticusOutputDirectory =~ m/^\// ) {
+			    $pwd = `pwd`;
+			    chomp($pwd);
+			}
+			print oHndl "#PBS -o ".$pwd."/".$galacticusOutputDirectory."/galacticus.log\n";
+			print oHndl "#PBS -q ".$modelsToRun->{'pbs'}->{'queue'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'queue'}) );
+			print oHndl "#PBS -V\n";
+			print oHndl "echo \$PBS_O_WORKDIR\n";
+			print oHndl "cd \$PBS_O_WORKDIR\n";
+			if ( exists($modelsToRun->{'pbs'}->{'environment'}) ) {
+			    foreach my $environment ( @{$modelsToRun->{'pbs'}->{'environment'}} ) {
+				print oHndl "export ".$environment."\n";
+			    }
+			}
+			print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
+			print oHndl "ulimit -t unlimited\n";
+			print oHndl "ulimit -c unlimited\n";
+			print oHndl "export OMP_NUM_THREADS=".$modelsToRun->{'pbs'}->{'ompThreads'}."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'ompThreads'}) );
+			my $scratchPath;
+			$scratchPath = $modelsToRun->{'pbs'}->{'scratchPath'}."/model_".$modelCounter."_".$$."/"
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "mkdir -p ".$scratchPath."\n"
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			if ( exists($modelsToRun->{'pbs'}->{'mpiRun'}) ) {
+			    print oHndl $modelsToRun->{'pbs'}->{'mpiRun'};
+			} else {
+			    print oHndl "mpirun";
+			}
+			print oHndl " --bynode -np 1 Galacticus.exe ".$galacticusOutputDirectory."/newParameters.xml\n";
+			print oHndl "mv ";
+			print oHndl $scratchPath
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "galacticus_".$modelCounter."_".$$.".hdf5 ".$galacticusOutputDirectory."/galacticus.hdf5\n";
+			print oHndl "mv ";
+			print oHndl $scratchPath
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "galacticus_".$modelCounter."_".$$.".state* ".$galacticusOutputDirectory."/\n";
+			print oHndl "mv ";
+			print oHndl $scratchPath
+			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			print oHndl "galacticus_".$modelCounter."_".$$.".fgsl.state* ".$galacticusOutputDirectory."/\n";
+			print oHndl "mv core* ".$galacticusOutputDirectory."/\n";
+			close(oHndl);
+			
+			# Enter the model in the queue to be run.
+			push(
+			     @{$modelsToRun->{'pbs'}->{'modelQueue'}},
+			     {
+				 script => $pbsScript,
+				 outputDirectory => $galacticusOutputDirectory
+				 }
+			     );
+
+		    }
+
 		}
 
 	    }
@@ -338,9 +493,14 @@ sub Model_Finalize {
 	# Model finished successfully.
 	# Generate plots.
 	unless ( $modelsToRun->{'doAnalysis'} eq "no" ) {
-	    my $analysisScript = $galacticusPath."data/Galacticus_Compute_Fit_Analyses.xml";
-	    $analysisScript = $modelsToRun->{'analysisScript'} if ( exists($modelsToRun->{'analysisScript'}) );
-	    system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory." ".$analysisScript);
+	    my $analysisScript = $galacticusPath."data/analyses/Galacticus_Compute_Fit_Analyses.xml";
+	    $analysisScript = $modelsToRun->{'analysisScript'}
+	       if ( exists($modelsToRun->{'analysisScript'}) );
+	    if ( $analysisScript =~ m/\.xml$/ ) {
+		system("./scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputFile." ".$galacticusOutputDirectory." ".$analysisScript);
+	    } else {
+		system($analysisScript." ".$galacticusOutputDirectory);
+	    }
 	}
     } else {
 	# The run failed for some reason.
@@ -378,7 +538,13 @@ sub Model_Finalize {
     }
     
     # Compress all files in the output directory.
-    &Simple::Compress_Directory($galacticusOutputDirectory);
+    my $compress = 1;
+    if ( exists($modelsToRun->{'compressModels'}) ) {
+	$compress = 0
+	    if ( $modelsToRun->{'compressModels'} eq "no" );
+    }
+    &Simple::Compress_Directory($galacticusOutputDirectory)
+	unless ( $compress == 0 );
     
 }
 
@@ -387,121 +553,93 @@ sub Create_Parameter_Hashes {
 
     # Get the input parameters structure.
     my $parameterSet = shift;
-
-    # Initalizes hash which record which parameter combinations have already been processed.
-    my %doneCases;
-
-    # Initalize array of hashes that we will return.
-    my @parameterHashes;
-
-    # Create a list of all parameters in the structure.
-    my @parameterPointer;
-    my $parameterID        = 0;
-    my $processedParameter = -1;
-
-    # Set the first parameter pointer to point to the input object.
-    $parameterPointer[0] = $parameterSet;
-    while ( $processedParameter < $#parameterPointer ) {
-	# Move to the next parameter to process.
-	++$processedParameter;
-	# Add the array of parameters to the list.
-	my @thisParameterArrays;
-	if ( exists($parameterPointer[$processedParameter]->{'parameter'}) ) {
-	    $thisParameterArrays[0] = $parameterPointer[$processedParameter]->{'parameter'};
-	} elsif ( exists($parameterPointer[$processedParameter]->{'value'}) ) {
-	    foreach my $valueElement ( @{$parameterPointer[$processedParameter]->{'value'}} ) {
-		$thisParameterArrays[++$#thisParameterArrays] = $valueElement->{'parameter'}
-		if ( UNIVERSAL::isa($valueElement,"HASH") && exists($valueElement->{'parameter'}) );
-	    }
-	}
-	if ( @thisParameterArrays ) {
-	    # Add any detected parameter arrays to the list.
-	    foreach my $thisParameterArray ( @thisParameterArrays ) {
-		# Loop over each parameter in the array.
-		foreach my $parameter ( @{$thisParameterArray} ) {
-		    # Store a pointer to the parameter.
-		    $parameterPointer[++$#parameterPointer] = $parameter;
-		    # Set an index counter (for its <value> elements) to zero.
-		    $parameter->{'index'} = 0;
-		    # Set a unique ID for this parameter.
-		    ++$parameterID;
-		    $parameter->{'ID'}    = $parameterID;
+    # Convert to a more convenient hash structure.
+    my $hash = &Parameters_To_Hash($parameterSet);
+    # Populate an array of hashes with this initial hash.
+    my @toProcessHashes = ( $hash );
+    my @processedHashes;
+    # Flatten the hash.
+    while ( scalar(@toProcessHashes) > 0 ) {
+	# Shift the first hash off the array.
+	my $hash = shift(@toProcessHashes);
+	# Record of whether this hash is flat. Assume it is initially.
+	my $isFlat = 1;
+	# Iterate over parameters.
+	foreach my $name ( keys(%{$hash}) ) {
+	    # Check for non-flat structure.
+	    if ( scalar(@{$hash->{$name}}) > 1 ) {
+		# Parameter has multiple values. Iterate over them, generating a new hash for each value, and
+		# push these new hashes back onto the stack.
+		foreach my $value ( @{$hash->{$name}} ) {
+		    my $newHash = clone($hash);
+		    @{$newHash->{$name}} = ( $value );
+		    push(
+			@toProcessHashes,
+			$newHash
+			);
 		}
+		$isFlat = 0;
+	    } elsif ( exists(${$hash->{$name}}[0]->{'subtree'}) ) {
+		# Parameter has only one value, but it has sub-structure. Promote that substructure and push
+		# the hash back onto the stack.
+		foreach my $subName ( keys(%{${$hash->{$name}}[0]->{'subtree'}}) ) {
+		    @{$hash->{$subName}} = @{${$hash->{$name}}[0]->{'subtree'}->{$subName}};
+		}
+		delete(${$hash->{$name}}[0]->{'subtree'});
+		push(
+		    @toProcessHashes,
+		    $hash
+		    );
+		$isFlat = 0;	
+	    }
+	    # Exit parameter iteration if the hash was found to be not flat.
+	    last if ( $isFlat == 0 );
+	}
+	# If the hash is flat, then push it onto the processed hashes array.
+	push(
+	    @processedHashes,
+	    $hash
+	    ) if ( $isFlat == 1 );
+    }
+    # Hashes are now flattened. Convert to simple form.
+    foreach my $hash ( @processedHashes ) {
+	foreach my $name ( keys(%{$hash}) ) {
+	    my $value = ${$hash->{$name}}[0]->{'value'};
+	    $value =~ s/^\s*//;
+	    $value =~ s/\s*$//;
+	    $hash->{$name} = $value;
+	}
+    }
+    # Return the result.
+    return @processedHashes;
+}
+
+sub Parameters_To_Hash {
+    # Convert an input parameter structure (as read from a Galacticus parameters XML file) into a more convenient internal hash.
+    my $parameters = shift;
+    my $hash;
+    foreach ( @{$parameters->{'parameter'}} ) {
+	my $name = $_->{'name'};
+	foreach my $value ( @{$_->{'value'}} ) {
+	    if ( UNIVERSAL::isa($value,"HASH") ) {
+		# This value of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
+		push(
+		    @{$hash->{$name}},
+		    {
+			value   => $value->{'content'},
+			subtree => &Parameters_To_Hash($value)
+		    }
+		    );
+	    } else {
+		# This value has no subtree, so just store the value.
+		push(
+		    @{$hash->{$name}},
+		    {
+			value   => $value
+		    }
+		    );
 	    }
 	}
     }
-
-    # Step through parameter combinations until all have been done.
-    my $done = 0;
-    until ( $done == 1 ) {
-	# Build parameter hash.
-	my @currentParameterPointer;
-	my $currentProcessedParameter = -1;
-
-	# Build a list of currently active parameters (i.e. those which are defined at the base level or within a currently used <value> element).
-	$currentParameterPointer[0] = $parameterSet;
-	while ( $currentProcessedParameter < $#currentParameterPointer ) {
-	    ++$currentProcessedParameter;
-	    # Add the array of parameters to the list.
-	    my $thisParameterArray;
-	    if ( exists($currentParameterPointer[$currentProcessedParameter]->{'parameter'}) ) {
-		$thisParameterArray = $currentParameterPointer[$currentProcessedParameter]->{'parameter'};
-	    } elsif ( exists($currentParameterPointer[$currentProcessedParameter]->{'value'}) ) {
-		my $valueElement = ${$currentParameterPointer[$currentProcessedParameter]->{'value'}}[$currentParameterPointer[$currentProcessedParameter]->{'index'}];
-		$thisParameterArray = $valueElement->{'parameter'} if ( UNIVERSAL::isa( $valueElement, "HASH" ) && exists($valueElement->{'parameter'}) );
-	    }
-	    if ( defined($thisParameterArray) ) {
-		my $iParameter = -1;
-		foreach my $parameter ( @{$thisParameterArray} ) {
-		    ++$iParameter;
-		    $currentParameterPointer[++$#currentParameterPointer] = $parameter;
-		}
-	    }
-	}
-
-	# Build a parameter hash including only active parameters.
-	my %parameters;
-	my $label  = "";
-	my $joiner = "";
-	foreach my $parameter ( @currentParameterPointer ) {
-	    if ( exists($parameter->{'name'}) ) {
-		my $value;
-		if ( UNIVERSAL::isa(${$parameter->{'value'}}[$parameter->{'index'}], "HASH" ) && exists(${$parameter->{'value'}}[$parameter->{'index'}]->{'content'}) ) {
-		    $value = ${$parameter->{'value'}}[$parameter->{'index'}]->{'content'};
-		    $value =~ s/^\s*//;
-		    $value =~ s/\s*$//;
-		} else {
-		    $value = ${$parameter->{'value'}}[$parameter->{'index'}];
-		}
-		$parameters{$parameter->{'name'}} = $value;
-		$label .= ":".$parameter->{'ID'}.".".$parameter->{'index'};
-		if ( exists($parameter->{'label'}) && ${$parameter->{'label'}}[0] eq "yes" ) {
-		    $parameters{'label'} .= $joiner.$parameter->{'name'}."=".$value;
-		    $joiner = ":";
-		}
-	    }
-	}
-
-	# If the parameter set with this label has not yet been added, add it now.
-	unless ( exists($doneCases{$label}) ) {	   
-	    %{$parameterHashes[++$#parameterHashes]} = %parameters;
-	    $doneCases{$label} = 1;
-	}
-
-	# See if we find a parameter to increment.
-	$done = 1;
-	for(my $iParameter=$#parameterPointer;$iParameter>0;--$iParameter) {
-	    if ( $parameterPointer[$iParameter]->{'index'} < $#{$parameterPointer[$iParameter]->{'value'}} ) {
-		++$parameterPointer[$iParameter]->{'index'};
-		for(my $jParameter=$iParameter+1;$jParameter<=$#parameterPointer;++$jParameter) {
-		    $parameterPointer[$jParameter]->{'index'} = 0;
-		}
-		$done = 0;
-		last;
-	    }
-	}
-    }
-
-    # Return the array of parameter hashes.
-    return @parameterHashes;
+    return $hash;
 }

@@ -10,7 +10,6 @@ use File::Slurp qw( slurp );
 use File::Find;
 use Switch;
 use Term::ReadKey;
-use Net::DBus;
 
 # Run a suite of tests on the Galacticus code.
 # Andrew Benson (19-Aug-2010).
@@ -39,6 +38,7 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
 	case ( "kdewallet" ) {
 	    $appName          = "Galacticus";
 	    $folderName       = "glc-test-all";
+	    require Net::DBus;
 	    my $bus           = Net::DBus->find;
 	    my $walletService = $bus->get_service("org.kde.kwalletd");
 	    my $walletObject  = $walletService->get_object("/modules/kwalletd");
@@ -72,6 +72,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 # necessary cause a crash).
 @executablesToRun = (
     {
+	name     => "tests.nodes.exe",                           # Tests of Galacticus nodes.
+	valgrind => 0
+    },
+    {
 	name     => "tests.IO.HDF5.exe",                         # Tests of HDF5 IO routines.
 	valgrind => 0
     },
@@ -81,6 +85,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     },
     {
 	name     => "tests.arrays.exe",                          # Tests of array functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.meshes.exe",                          # Tests of mesh functions.
 	valgrind => 0
     },
     {
@@ -100,7 +108,15 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.hashes.cryptographic.exe",            # Tests of cryptographic hashing utilities.
+	valgrind => 0
+    },
+    {
 	name     => "tests.integration.exe",                     # Tests of integration functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.tables.exe",                          # Tests of table functions.
 	valgrind => 0
     },
     {
@@ -113,6 +129,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     },
     {
 	name     => "tests.make_ranges.exe",                     # Tests of numerical range building functions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.mass_distributions.exe",              # Tests of mass distributions.
 	valgrind => 0
     },
     {
@@ -152,6 +172,14 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.spherical_collapse.open.exe",         # Tests of spherical collapse calculations.
+	valgrind => 0
+    },
+    {
+	name     => "tests.spherical_collapse.flat.exe",         # .
+	valgrind => 0
+    },
+    {
 	name     => "tests.linear_growth.dark_energy.exe",       # Tests of linear growth factor.
 	valgrind => 0
     },
@@ -161,6 +189,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     },
     {
 	name     => "tests.linear_growth.open.exe",              # .
+ 	valgrind => 0
+    },
+    {
+	name     => "tests.halo_mass_function.Tinker.exe",       # Tests of dark matter halo mass functions.
  	valgrind => 0
     },
     {
@@ -192,7 +224,15 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.Prada2011_concentration.exe",         # Tests of Prada et al. (2011) halo concentration algorithm.
+	valgrind => 0
+    },
+    {
 	name     => "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
+	valgrind => 0
+    },
+    {
+	name     => "tests.abundances.exe",                      # Abundances objects.
 	valgrind => 0
     },
     {

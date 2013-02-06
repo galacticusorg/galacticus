@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -12,6 +12,8 @@ use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
+use Carp 'verbose';
+$SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 require Stats::Means;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
@@ -55,11 +57,11 @@ $dataSet->{'store'} = 0;
 &HDF5::Count_Trees($dataSet);
 &HDF5::Select_Output($dataSet,0.0);
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','spheroidStellarMass','blackHoleMass']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','spheroidMassStellar','blackHoleMass']);
 $dataSets         = $dataSet->{'dataSets'};
-$volumeWeight     = where($dataSets->{'volumeWeight'}       ,$dataSets->{'spheroidStellarMass'} > 3.0e8);
-$spheroidMass     = where($dataSets->{'spheroidStellarMass'},$dataSets->{'spheroidStellarMass'} > 3.0e8);
-$blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidStellarMass'} > 3.0e8);
+$mergerTreeWeight     = where($dataSets->{'mergerTreeWeight'}       ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
+$spheroidMass     = where($dataSets->{'spheroidMassStellar'},$dataSets->{'spheroidMassStellar'} > 3.0e8);
+$blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
 unless (exists($dataSets->{'blackHoleMass'})) {
     if ( $showFit == 1 ) {
 	$fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";
@@ -69,12 +71,15 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	print $xmlOutput->XMLout(\%fitData);
     }
 } else {
-    $weight           = where($volumeWeight        ,$spheroidMass > 0.0 & $blackHoleMass > 0.0);
+    $weight           = where($mergerTreeWeight        ,$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     $logSpheroidMass  = where(log10($spheroidMass ),$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     $logBlackHoleMass = where(log10($blackHoleMass),$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     if ( nelem($logSpheroidMass) > 0 ) {
 	($logBlackHoleMassMeanGalacticus,$logBlackHoleMassMeanErrorGalacticus,$logBlackHoleMassSigmaGalacticus,$logBlackHoleMassSigmaErrorGalacticus)
 	    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weight);
+    } else {
+	$logBlackHoleMassMeanGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
+	$logBlackHoleMassMeanErrorGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
     }
 
     # Define constants.
@@ -86,7 +91,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $y      = pdl [];
     $yError = pdl [];
     $xml = new XML::Simple;
-    $data = $xml->XMLin($galacticusPath."data/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
+    $data = $xml->XMLin($galacticusPath."data/observations/blackHoles/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
     foreach $parameter ( @{$data->{'cosmology'}->{'parameter'}} ) {
 	$cosmology{$parameter->{'name'}} = $parameter->{'value'};
     }
@@ -110,12 +115,12 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $weights          = 1.0/$logError**2;
     ($logBlackHoleMassMean,$logBlackHoleMassMeanError,$logBlackHoleMassSigma,$logBlackHoleMassSigmaError)
 	= &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
-    
+
     # Compute chi^2.
     if ( nelem($logSpheroidMass) > 0 ) {
-	$degreesOfFreedom = 2*nelem($logBlackHoleMassMean);
-	$chiSquared = sum((($logBlackHoleMassMean-$logBlackHoleMassMeanGalacticus)**2)/($logBlackHoleMassMeanError**2+$logBlackHoleMassMeanErrorGalacticus**2))
-	    +sum((($logBlackHoleMassSigma-$logBlackHoleMassSigmaGalacticus)**2)/($logBlackHoleMassSigmaError**2+$logBlackHoleMassSigmaErrorGalacticus**2));
+	$nonzero = which($logBlackHoleMassMeanGalacticus > 0.0);
+	$degreesOfFreedom = nelem($nonzero);
+	$chiSquared = sum((($logBlackHoleMassMean->index($nonzero)-$logBlackHoleMassMeanGalacticus->index($nonzero))**2)/($logBlackHoleMassMeanError->index($nonzero)**2+$logBlackHoleMassMeanErrorGalacticus->index($nonzero)**2));
     } else {
 	$chiSquared = 0.0;
 	$degreesOfFreedom = 0;
@@ -135,7 +140,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     my $gnuPlot;
     my $plotFile = $outputFile;
     (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-    open($gnuPlot,"|gnuplot");
+    open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
     print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
     print $gnuPlot "set output '".$plotFileEPS."'\n";
     print $gnuPlot "set title 'Black Hole Mass vs. Bulge Stellar Mass \$z=0\$'\n";
@@ -189,7 +194,6 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     close($gnuPlot);
     &LaTeX::GnuPlot2PDF($plotFileEPS);
     &MetaData::Write($plotFile,$galacticusFile,$self);
-
 }
 
 exit;

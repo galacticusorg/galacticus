@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the \cite{covington_predicting_2008} algorithm for merger remnant sizes.
 
@@ -72,6 +28,9 @@ module Satellite_Merging_Remnant_Sizes_Covington2008
 
   ! Parameter controlling the radiative efficiency used in the calculation.
   double precision :: mergerRemnantRadiativeEfficiency
+
+  ! Record of whether we've already issued a warning about low specific angular momentum.
+  logical          :: warningGiven=.false.
 
 contains
 
@@ -116,7 +75,7 @@ contains
 
   subroutine Satellite_Merging_Remnant_Size_Covington2008(thisNode)
     !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{covington_predicting_2008} algorithm.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Numerical_Comparison
     use Satellite_Merging_Remnant_Sizes_Properties
@@ -125,28 +84,29 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     use Satellite_Merging_Remnant_Sizes_Progenitors
+    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode
     type(treeNode),                         pointer  :: hostNode
-    double precision,        parameter               :: bindingEnergyFormFactor=0.5d+0
-    double precision,        parameter               :: absoluteMassTolerance  =1.0d-6
-    double precision,        parameter               :: relativeMassTolerance  =1.0d-9
+    double precision,        parameter               :: bindingEnergyFormFactor             =0.5d+00
+    double precision,        parameter               :: absoluteMassTolerance               =1.0d-06
+    double precision,        parameter               :: relativeMassTolerance               =1.0d-09
+    double precision,        parameter               :: specificAngularMomentumFractionSmall=1.0d-12
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
          &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,angularMomentumFactor,remnantSpheroidGasMass&
-         &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy,finalEnergy
+         &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy,finalEnergy,radiusVirial,velocityVirial
     character(len= 2)                                :: joinString
     character(len=70)                                :: dataString
     type(varying_string)                             :: message
     logical                                          :: errorCondition
 
     ! Get the host node.
-    call thisNode%mergesWith(hostNode)
+    hostNode => thisNode%mergesWith()
 
     ! Get properties of the merging systems.
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
          &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
-
     if (satelliteMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
        remnantRadius                 =remnantNoChangeValue
        remnantCircularVelocity       =remnantNoChangeValue
@@ -246,6 +206,22 @@ contains
           ! Also compute the specific angular momentum at the half-mass radius.
           remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
           remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
+
+          ! Check that the specific angular momentum is reasonable.
+          if (.not.warningGiven.and.Galacticus_Verbosity_Level() >= verbosityWarn) then
+             radiusVirial  =Dark_Matter_Halo_Virial_Radius  (hostNode)
+             velocityVirial=Dark_Matter_Halo_Virial_Velocity(hostNode)
+             if (remnantSpecificAngularMomentum < specificAngularMomentumFractionSmall*radiusVirial*velocityVirial) then
+                message='WARNING: the specific angular momentum for node '
+                message=message//hostNode%index()//' has become very small'//char(10) 
+                message=message//' --> this will likely lead to a crash soon'
+                message=message//'NOTE: this can happen with the Covington2008 implementation of the satelliteMergingRemnantSizeMethod method'//char(10)
+                message=message//' --> an alternative choice (e.g. the Cole2000 implementation) may avoid this problem'
+                call Galacticus_Display_Message(message,verbosityWarn)
+                warningGiven=.true.
+             end if
+          end if
+
        else
           ! Remnant has zero mass - don't do anything.
           remnantRadius                 =remnantNoChangeValue

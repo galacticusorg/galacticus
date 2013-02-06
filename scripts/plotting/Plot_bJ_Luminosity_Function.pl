@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -50,7 +50,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/bJ_Luminosity_Function_2dFGRS.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/bJ_Luminosity_Function_2dFGRS_Norberg_2002.xml");
 $columns = $data->{'luminosityFunction'}->{'columns'};
 $xBins   = pdl @{$columns->{'magnitude'}->{'data'}};
 $x       = pdl @{$columns->{'magnitude'}->{'data'}};
@@ -69,11 +69,11 @@ $error = $error(-1:0);
 
 # Read galaxy data and construct luminosity function.
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:bJ:rest:z0.0000:vega','magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:bJ:rest:z0.0000:vega','magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega']);
 $dataSets      = $dataSet->{'dataSets'};
 $magnitude     = $dataSets->{'magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega'};
 $magnitudeFree = $dataSets->{'magnitudeTotal:bJ:rest:z0.0000:vega'};
-$weight        = $dataSets->{'volumeWeight'};
+$weight        = $dataSets->{'mergerTreeWeight'};
 delete($dataSet->{'dataSets'});
 ($yGalacticus    ,$errorGalacticus    ) = &Histograms::Histogram($xBins,$magnitude    ,$weight,differential => 1);
 ($yGalacticusFree,$errorGalacticusFree) = &Histograms::Histogram($xBins,$magnitudeFree,$weight,differential => 1);
@@ -95,7 +95,7 @@ my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot");
+open($gnuPlot,"|gnuplot"); # 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
 print $gnuPlot "set title 'b\$_{\\rm J}\$-band Luminosity Function at \$z=0\$'\n";

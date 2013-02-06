@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -52,12 +52,12 @@ $dataBlock->{'store'} = 0;
 &HDF5::Count_Trees($dataBlock);
 &HDF5::Select_Output($dataBlock,0.0);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosity:RGO_I:rest:z0.0000:dustAtlas']);
+&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight','diskRadius','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas']);
 $dataSets = $dataBlock->{'dataSets'};
-$scaleLength = $dataSets->{'diskScaleLength'};
+$scaleLength = $dataSets->{'diskRadius'};
 $magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
-$morphology = $dataSets->{'bulgeToTotalLuminosity:RGO_I:rest:z0.0000:dustAtlas'};
-$weight = $dataSets->{'volumeWeight'};
+$morphology = $dataSets->{'bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas'};
+$weight = $dataSets->{'mergerTreeWeight'};
 delete($dataBlock->{'dataSets'});
   
 # Initialize chi^2 accumulator.
@@ -67,7 +67,7 @@ $degreesOfFreedom = 0;
 # Read the XML data file.
 undef(@tmpFiles);
 $xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/Disk_Sizes_Dejong_2000.xml");
+$data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Disk_Sizes_Dejong_2000.xml");
 my $i = -1;
 my @leafFiles;
 my @plotFiles;
@@ -118,7 +118,7 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $gnuPlot;
     (my $plotFile = $outputFile) =~ s/\.pdf/_$i.pdf/;
     (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-    open($gnuPlot,"|gnuplot");
+    open($gnuPlot,"|gnuplot > /dev/null 2>&1");
     print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
     print $gnuPlot "set output '".$plotFileEPS."'\n";
     my $title = $dataSet->{'description'};

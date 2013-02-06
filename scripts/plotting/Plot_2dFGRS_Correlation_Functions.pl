@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -57,10 +57,10 @@ $dataSets         = $dataSet->{'dataSets'};
 
 # Read the file of observational data.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/Correlation_Functions_2dFGRS_Norberg_2002.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/largeScaleStructure/Correlation_Functions_2dFGRS_Norberg_2002.xml");
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot");
+open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 
@@ -84,8 +84,8 @@ foreach $correlationFunction ( @{$data->{'correlationFunction'}} ) {
 	$xiErrorData      = $xiData*$xiBootErrorData/$xiBootData;
 
 	# Select a matching subset of model galaxies.
-	$selected         = which($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} >= $magnitudeMinimum
-				  & $dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} < $magnitudeMaximum);
+	$selected         = which(($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} >= $magnitudeMinimum)
+				  & ($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} < $magnitudeMaximum));
 
 	# Skip empty selections.
 	unless ( nelem($selected) == 0 ) {

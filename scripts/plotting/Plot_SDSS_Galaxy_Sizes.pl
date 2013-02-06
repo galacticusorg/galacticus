@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -45,7 +45,7 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 
 # Read tabulation of half-radii vs. disk/spheroid properties and extract to PDLs.
 my $xml                 = new XML::Simple;
-my $halfRadiiData       = $xml->XMLin($galacticusPath."data/Half_Radii_Exponential_Hernquist.xml");
+my $halfRadiiData       = $xml->XMLin($galacticusPath."data/galacticStructure/Half_Radii_Exponential_Hernquist.xml");
 my $spheroidRadii       = pdl @{$halfRadiiData->{'spheroidRadius'}->{'data'}};
 my $spheroidMasses      = pdl @{$halfRadiiData->{'spheroidMass'}->{'data'}};
 my $spheroidRadiiIndex  = pdl 0..nelem($spheroidRadii )-1;
@@ -63,37 +63,37 @@ $dataBlock->{'store'} = 0;
 &HDF5::Count_Trees($dataBlock);
 &HDF5::Select_Output($dataBlock,0.1);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['volumeWeight'
-			      ,'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'
-			      ,'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'
+&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight'
+			      ,'diskLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'
+			      ,'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'
 			      ,'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'
-			      ,'diskScaleLength'
-			      ,'spheroidScaleLength'
+			      ,'diskRadius'
+			      ,'spheroidRadius'
 		   ]);
 my $dataSets = $dataBlock->{'dataSets'};
-my $spheroidScaleLength = $dataSets->{'spheroidScaleLength'}/$dataSets->{'diskScaleLength'};
-my $spheroidLuminosity  = $dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}/$dataSets->{'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'};
-my $indexScaleLength = interpol($spheroidScaleLength,$spheroidRadii,$spheroidRadiiIndex);
+my $spheroidRadius = $dataSets->{'spheroidRadius'}/$dataSets->{'diskRadius'};
+my $spheroidLuminosity  = $dataSets->{'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'}/$dataSets->{'diskLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'};
+my $indexRadius = interpol($spheroidRadius,$spheroidRadii,$spheroidRadiiIndex);
 my $indexLuminosity  = interpol($spheroidLuminosity ,$spheroidMasses,$spheroidMassesIndex);
-my $radius           = $halfRadiiTable->interpND(transpose(cat($indexScaleLength,$indexLuminosity)));
-$radius          *= 1000.0*$dataSets->{'diskScaleLength'};
-my $morphology       = $dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}/($dataSets->{'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}+$dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'});
+my $radius           = $halfRadiiTable->interpND(transpose(cat($indexRadius,$indexLuminosity)));
+$radius          *= 1000.0*$dataSets->{'diskRadius'};
+my $morphology       = $dataSets->{'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'}/($dataSets->{'diskLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'}+$dataSets->{'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'});
 my $magnitude        = $dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
-my $weight           = $dataSets->{'volumeWeight'};
+my $weight           = $dataSets->{'mergerTreeWeight'};
 
 # Initialize chi^2 accumulator.
 my $chiSquared = 0.0;
 my $degreesOfFreedom = 0;
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot");
+open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 
 # Read the XML data file.
 my @tmpFiles;
 undef(@tmpFiles);
-my $data = $xml->XMLin($galacticusPath."data/SDSS_Galaxy_Sizes_Shen_2003.xml");
+my $data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Galaxy_Sizes_SDSS_Shen_2003.xml");
 foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $columns = $dataSet->{'columns'};
     my $x = pdl @{$columns->{'radius'}->{'data'}};
@@ -105,16 +105,16 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
 
     # Select Galacticus galaxies and compute distribution.
     my $logRadiusSelected = where(log10($radius),
-			    $magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
-			    & $magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
-			    & $morphology >= $dataSet->{'morphologyRange'}->{'minimum'}
-			    & $morphology < $dataSet->{'morphologyRange'}->{'maximum'}
+			    ($magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'}))
+			    & ($magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'}))
+			    & ($morphology >= $dataSet->{'morphologyRange'}->{'minimum'})
+			    & ($morphology < $dataSet->{'morphologyRange'}->{'maximum'})
 	);
     my $weightSelected = where($weight,
-			    $magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
-			    & $magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'})
-			    & $morphology >= $dataSet->{'morphologyRange'}->{'minimum'}
-			    & $morphology < $dataSet->{'morphologyRange'}->{'maximum'}
+			    ($magnitude >= $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'}))
+			    & ($magnitude < $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'}))
+			    & ($morphology >= $dataSet->{'morphologyRange'}->{'minimum'})
+			    & ($morphology < $dataSet->{'morphologyRange'}->{'maximum'})
 	);
     
     my $xGalacticus;
@@ -128,7 +128,7 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
 	($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logRadiusSelected,$weightSelected
 								 ,normalized => 1, differential => 1);
 	# Compute chi^2.
-	my $chiSquaredList = where(($yGalacticus-$y)**2/($errorGalacticus**2+$yError**2),$y > 0.0 & $errorGalacticus > 0.0);
+	my $chiSquaredList = where(($yGalacticus-$y)**2/($errorGalacticus**2+$yError**2),($y > 0.0) & ($errorGalacticus > 0.0));
 	$chiSquaredRange = sum($chiSquaredList);
 	$degreesOfFreedomRange = nelem($chiSquaredList);
 	$chiSquared += $chiSquaredRange;

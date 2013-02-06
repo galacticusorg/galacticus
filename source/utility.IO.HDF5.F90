@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module that implements simple and convenient interfaces to a variety of HDF5 functionality.
 
@@ -72,9 +28,6 @@ module IO_HDF5
   implicit none
   private
   public :: hdf5Object, IO_HDF5_Set_Defaults
-  ! <gfortran 4.6> The following routines should ideally only be accessible as type-bound procedures, but this is buggy for
-  ! routines with optional arguments in gfortran 4.4.
-  public :: IO_HDF5_Open_Dataset, IO_HDF5_Open_Group
 
   ! Record of initialization of this module.
   logical :: hdf5IsInitalized=.false.
@@ -102,6 +55,7 @@ module IO_HDF5
   integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_DOUBLES
   integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_INTEGERS
   integer(kind=HID_T), public, dimension(3) :: H5T_NATIVE_INTEGER_8S
+  integer(kind=HID_T), public, dimension(8) :: H5T_NATIVE_INTEGER_8AS
 
   type hdf5Object
      !% A structure that holds properties of HDF5 objects.
@@ -231,6 +185,10 @@ module IO_HDF5
      !@     <method>readDatasetStatic</method>
      !@     <description>Read a dataset from an HDF5 group into a static array.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>size</method>
+     !@     <description>Return the size of a dataset.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: IO_HDF5_Read_Attribute_Integer_Scalar
      procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable
@@ -298,6 +256,7 @@ module IO_HDF5
           &                              IO_HDF5_Read_Dataset_Double_5D_Array_Static          , &
           &                              IO_HDF5_Read_Dataset_Character_1D_Array_Static       , &
           &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Static
+     procedure :: size                => IO_HDF5_Dataset_Size
      ! Check methods.
      !@ <objectMethods>
      !@   <object>hdf5Object</object>
@@ -424,9 +383,12 @@ contains
        if (errorCode < 0) call Galacticus_Error_Report('IO_HDF5_Initialize','failed to initialize HDF5 subsystem')
 
        ! Ensure native datatype arrays are initialized.
-       H5T_NATIVE_DOUBLES   =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
-       H5T_NATIVE_INTEGERS  =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
-       H5T_NATIVE_INTEGER_8S=[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
+       H5T_NATIVE_DOUBLES         =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
+       H5T_NATIVE_INTEGERS        =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
+       H5T_NATIVE_INTEGER_8S      =[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
+       H5T_NATIVE_INTEGER_8AS(1:5)=H5T_NATIVE_INTEGERS
+       H5T_NATIVE_INTEGER_8AS(6:8)=H5T_NATIVE_INTEGER_8S
+
 
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
@@ -470,13 +432,12 @@ contains
 
     !$omp critical(HDF5_Access)
     if (present(chunkSize)) then
-       if (chunkSize        ==  0                         ) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','zero chunksize is invalid'                )
-       if (chunkSize        <  -1                         ) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','chunksize less than -1 is invalid'        )
+       if (chunkSize        ==  0) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','zero chunksize is invalid'        )
+       if (chunkSize        <  -1) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','chunksize less than -1 is invalid')
        hdf5ChunkSize=chunkSize
     end if
     if (present(compressionLevel)) then
-       if (compressionLevel < -1                          ) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','compression level less than -1 is invalid')
-       if (compressionLevel <  1 .or. compressionLevel > 9) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','compression level less than -1 is invalid')
+       if (compressionLevel <  -1 .or. compressionLevel > 9) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','compression level must be in range -1 to 9')
        hdf5CompressionLevel=compressionLevel
     end if
     !$omp end critical(HDF5_Access)
@@ -518,10 +479,15 @@ contains
     !% Close an HDF5 object.
     use Galacticus_Display
     use Galacticus_Error
+    use String_Handling
     implicit none
-    class(hdf5Object),      intent(inout) :: thisObject
-    integer                               :: errorCode
-    type(varying_string)                  :: message
+    class(hdf5Object),   intent(inout)             :: thisObject
+    integer(hid_t)     , allocatable, dimension(:) :: openObjectIDs
+    integer(size_t)    , parameter                 :: objectNameSizeMaximum=1024
+    integer                                        :: errorCode
+    integer(size_t)                                :: openObjectCount,i,objectNameSize
+    type(varying_string)                           :: message
+    character(len=objectNameSizeMaximum)           :: objectName
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -536,6 +502,35 @@ contains
     ! Close the object.    
     select case (thisObject%hdf5ObjectType)
     case (hdf5ObjectTypeFile     )
+       ! Check for still-open objects.
+       call h5fget_obj_count_f(thisObject%objectID,H5F_OBJ_ALL_F,openObjectCount,errorCode)
+       if (errorCode /= 0) then
+          message="unable to count open objects in file object '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Close',message)
+       end if
+       if (openObjectCount > 1) then
+          message=""
+          message=message//openObjectCount//" open object(s) remain in file object '"//thisObject%objectName//"'"
+          call Galacticus_Display_Indent('Problem closing HDF5 file')
+          call Galacticus_Display_Message(message)
+          allocate(openObjectIDs(openObjectCount))
+          call h5fget_obj_ids_f(thisObject%objectID,H5F_OBJ_ALL_F,openObjectCount,openObjectIDs,errorCode)
+          if (errorCode /= 0) then
+             message="unable to get IDs of open objects in file object '"//thisObject%objectName//"'"
+             call Galacticus_Error_Report('IO_HDF5_Close',message)
+          end if
+          do i=1,openObjectCount
+             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode) 
+             if (errorCode /= 0) then
+                message="unable to get name of open object in file object '"//thisObject%objectName//"'"
+                call Galacticus_Error_Report('IO_HDF5_Close',message)
+             end if             
+             message="Object: "//trim(objectName)//" ["
+             message=message//openObjectIDs(i)//"]"
+             call Galacticus_Display_Message(message)
+          end do
+          call Galacticus_Display_Unindent('done')
+       end if
        call h5fclose_f(thisObject%objectID,errorCode)
        if (errorCode /= 0) then
           message="unable to close file object '"//thisObject%objectName//"'"
@@ -618,6 +613,7 @@ contains
     integer                                       :: errorCode,fileAccess
     logical                                       :: overWriteActual
     type(varying_string)                          :: message
+    integer(hid_t)                                :: accessList
 
     ! Initialize the HDF5 library.
     call IO_HDF5_Initialize
@@ -638,6 +634,18 @@ contains
        overWriteActual=.false.
     end if
 
+    ! Create an access list.
+    call h5pcreate_f(H5P_FILE_ACCESS_F,accessList,errorCode) 
+    if (errorCode /= 0) then
+       message="failed to create file access list HDF5 file '"//fileObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Open_File',message)
+    end if
+    call h5pset_fclose_degree_f(accessList,H5F_CLOSE_SEMI_F,errorCode) 
+    if (errorCode /= 0) then
+       message="failed to set close degree for HDF5 file '"//fileObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Open_File',message)
+    end if
+
     ! Check if the file exists.
     if (File_Exists(fileName).and..not.overWriteActual) then
        ! Determine access for file.
@@ -651,7 +659,7 @@ contains
           fileAccess=H5F_ACC_RDWR_F
        end if
        ! Attempt to open the file.
-       call h5fopen_f(fileName,fileAccess,fileObject%objectID,errorCode)
+       call h5fopen_f(fileName,fileAccess,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
           message="failed to open HDF5 file '"//fileObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Open_File',message)
@@ -665,7 +673,7 @@ contains
           end if
        end if
        ! Attempt to create the file.
-       call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,fileObject%objectID,errorCode)
+       call h5fcreate_f(fileName,H5F_ACC_TRUNC_F,fileObject%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
           message="failed to create HDF5 file '"//fileObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Open_File',message)
@@ -738,8 +746,7 @@ contains
        call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
     end if
     locationID  =inObject%objectID
-    ! <gfortran 4.6> seems to require the non-type-bound version below.
-    locationPath=IO_HDF5_Path_To(inObject)
+    locationPath=inObject%pathTo()
 
     ! Set the parent for the group.
     select type (inObject)
@@ -748,9 +755,7 @@ contains
     end select
 
     ! Check if the group exists.
-    ! <gfortran 4.6> Use the non-type-bound version here to avoid seg faults.
-    if (IO_HDF5_Has_Group(inObject,groupName)) then
-!    if (inObject%hasGroup(groupName)) then
+    if (inObject%hasGroup(groupName)) then
        ! Open the group.
        call h5gopen_f(locationID,trim(groupName),groupObject%objectID,errorCode)
        if (errorCode /= 0) then
@@ -1224,16 +1229,16 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    class(hdf5Object),       intent(inout), target                :: thisObject
-    character(len=*),        intent(in),    optional              :: attributeName
-    integer(kind=kind_int8), intent(in),             dimension(:) :: attributeValue
-    integer(kind=HSIZE_T),                           dimension(1) :: attributeDimensions
-    integer(kind=kind_int8), allocatable,   target,  dimension(:) :: attributeValueContiguous
-    integer                                                       :: errorCode
-    logical                                                       :: preExisted
-    type(hdf5Object)                                              :: attributeObject
-    type(varying_string)                                          :: message,attributeNameActual
-    type(c_ptr)                                                   :: dataBuffer
+    class(hdf5Object),       intent(inout), target                   :: thisObject
+    character(len=*),        intent(in   ), optional                 :: attributeName
+    integer(kind=kind_int8), intent(in   ),             dimension(:) :: attributeValue
+    integer(kind=HSIZE_T),                              dimension(1) :: attributeDimensions
+    integer(kind=kind_int8), allocatable,   target,     dimension(:) :: attributeValueContiguous
+    integer                                                          :: errorCode
+    logical                                                          :: preExisted
+    type(hdf5Object)                                                 :: attributeObject
+    type(varying_string)                                             :: message,attributeNameActual
+    type(c_ptr)                                                      :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -1289,10 +1294,8 @@ contains
     end if
 
     ! Write the attribute.
-    ! <gfortran 4.6> We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
-    ! since it may be non-contiguous if an array section was passed in and that is not C-interoperable. Under gfortran 4.6 the
-    ! F2008 "contiguous" attribute should be supported. If attributeValue is given the contiguous attribute I expect that this
-    ! work-around should no longer be needed.
+    ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
+    ! since it is of assumed shape.
     call Alloc_Array(attributeValueContiguous,shape(attributeValue))
     attributeValueContiguous=attributeValue
     dataBuffer=c_loc(attributeValueContiguous)
@@ -1362,8 +1365,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Double_Scalar',message)
        end if
        ! Record if attribute already exists.
-       ! <gfortran 4.6> The following should be called via the type-bound procedure, but seems to cause weird problems {gcc version 4.6.0 20100813} if we do that.
-       preExisted=IO_HDF5_Has_Attribute(thisObject,attributeName)
+       preExisted=thisObject%hasAttribute(attributeName)
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeDouble)
        ! Check that pre-existing object is a scalar double.
@@ -1533,8 +1535,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Attribute_Character_Scalar',message)
        end if
        ! Record if attribute already exists.
-       ! <gfortran 4.6> The following should be called via the type-bound procedure, but seems to cause weird problems {gcc version 4.6.0 20100813} if we do that.
-       preExisted=IO_HDF5_Has_Attribute(thisObject,attributeName)
+       preExisted=thisObject%hasAttribute(attributeName)
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeCharacter,useDataType=dataTypeID)
        ! Check that pre-existing object is a scalar character.
@@ -2060,7 +2061,7 @@ contains
     end if
 
     ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0,matches)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,0,matches)
     if (matches) then
        ! Read the attribute.
        dataBuffer=c_loc(attributeValue)
@@ -2071,7 +2072,7 @@ contains
        end if
     else if (allowPseudoScalarActual) then
        ! Attribute is not a scalar. Check if it is a pseudo-scalar.
-       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1,matches)
+       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1,matches)
        if (matches) then          
           ! Get the dimensions of the array.
           call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2166,7 +2167,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2264,7 +2265,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2290,10 +2291,8 @@ contains
     end if
 
     ! Read the attribute.
-    ! <gfortran 4.6> We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
-    ! since it may be non-contiguous if an array section was passed in and that is not C-interoperable. Under gfortran 4.6 the
-    ! F2008 "contiguous" attribute should be supported. If attributeValue is given the contiguous attribute I expect that this
-    ! work-around should no longer be needed.
+    ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
+    ! since it is of assumed shape.
     call Alloc_Array(attributeValueContiguous,shape(attributeValue))
     dataBuffer=c_loc(attributeValueContiguous)
     errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
@@ -3047,6 +3046,9 @@ contains
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
 
+    ! Close the attribute unless this was an attribute object.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
+
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_Scalar
 
@@ -3149,6 +3151,9 @@ contains
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
+
+    ! Close the attribute unless this was an attribute object.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
 
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable
@@ -3255,6 +3260,9 @@ contains
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
+
+    ! Close the attribute unless this was an attribute object.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
 
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static
@@ -3385,6 +3393,71 @@ contains
 
   !! Dataset routines.
 
+  function IO_HDF5_Dataset_Size(datasetObject,dim)
+    !% Return the size of the {\tt dim}$^{\rm th}$ dimension of dataset {\tt datasetObject}.
+    use Galacticus_Error
+    implicit none
+    integer(kind=HSIZE_T  )                            :: IO_HDF5_Dataset_Size
+    class  (hdf5Object    ), intent(in)                :: datasetObject
+    integer                , intent(in)                :: dim
+    integer(kind=HSIZE_T  ), allocatable, dimension(:) :: dimensions,maximumDimensions
+    integer                                            :: errorCode,datasetRank
+    integer(kind=HID_T    )                            :: datasetDataspaceID
+    type   (varying_string)                            :: message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Ensure that the object is a dataset.
+    if (datasetObject%hdf5ObjectType /= hdf5ObjectTypeDataset) then
+       message="object is not a dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+
+    ! Ensure that the dataset is open.    
+    if (.not.datasetObject%isOpenValue) then
+       message="attempt to get size of unopen dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+
+    ! Get the rank of the dataset
+    call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
+    if (errorCode /= 0) then
+       message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    call h5sget_simple_extent_ndims_f(datasetDataspaceID,datasetRank,errorCode) 
+    if (errorCode /= 0) then
+       message="unable to get rank of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    if (datasetRank < dim) then
+       message="dataset '"//datasetObject%objectName//"' has rank smaller than the dimension requested"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+
+    ! Get the dimensions of the dataspace.
+    allocate  (       dimensions(datasetRank))
+    allocate  (maximumDimensions(datasetRank))
+    call h5sget_simple_extent_dims_f(datasetDataspaceID,dimensions,maximumDimensions,errorCode) 
+    if (errorCode == -1) then
+       message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    IO_HDF5_Dataset_Size=dimensions(dim)
+    deallocate(       dimensions             )
+    deallocate(maximumDimensions             )
+
+    ! Close the dataspace
+    call h5sclose_f(datasetDataspaceID,errorCode)
+    if (errorCode /= 0) then
+       message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    
+    return
+  end function IO_HDF5_Dataset_Size
+
   function IO_HDF5_Open_Dataset(inObject,datasetName,commentText,datasetDataType,datasetDimensions,isOverwritable,appendTo&
        &,useDataType,chunkSize,compressionLevel) result(datasetObject)
     !% Open an dataset in {\tt inObject}.
@@ -3443,8 +3516,7 @@ contains
     end if
 
     ! Check if the dataset exists.
-    ! <gfortran 4.6> Object oriented version below does not work.
-    if (IO_HDF5_Has_Dataset(inObject,datasetName)) then
+    if (inObject%hasDataset(datasetName)) then
        ! Open the dataset.
        call h5dopen_f(locationID,trim(datasetName),datasetObject%objectID,errorCode)
        if (errorCode /= 0) then
@@ -4776,7 +4848,7 @@ contains
     end if
 
     ! Check that the object is a 1D integer8 array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -5065,7 +5137,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -5283,8 +5355,7 @@ contains
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_1D',message)
        end if
        ! Record if dataset already exists.
-       ! <gfortran 4.6> Object oriented version below does not work.
-       preExisted=IO_HDF5_Has_Dataset(thisObject,datasetName)
+       preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
        datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
@@ -5956,19 +6027,19 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_2D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_2D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 2-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
+    class(hdf5Object),     intent(inout), target         :: thisObject
     character(len=*),      intent(in),    optional       :: datasetName,commentText
     double precision,      intent(in),    dimension(:,:) :: datasetValue
     logical,               intent(in),    optional       :: appendTo
-    integer,               intent(in),    optional       :: chunkSize,compressionLevel
+    integer,               intent(in),    optional       :: appendDimension,chunkSize,compressionLevel
     type(hdf5Object),      intent(out),   optional       :: datasetReturned
     integer(kind=HSIZE_T),                dimension(2)   :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                              :: errorCode,datasetRank
+         &,hyperslabStart,hyperslabCount,newDatasetDimensionsFiltered
+    integer                                              :: errorCode,datasetRank,appendDimensionActual
     integer(kind=HID_T)                                  :: newDataspaceID,dataspaceID
     logical                                              :: preExisted,appendToActual
     type(hdf5Object)                                     :: datasetObject
@@ -6052,20 +6123,25 @@ contains
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
        end if
-       ! Ensure that all dimensions after the first are of the same size.
-       if (any(dataSetDimensions(2:2) /= newDatasetDimensions(2:2))) then
-          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions after first must be same as original dataset"
+       ! Determine the dimension for appending.
+       appendDimensionActual=1
+       if (present(appendDimension)) appendDimensionActual=appendDimension
+       ! Ensure that all dimensions other than the one being appended to are of the same size.
+       newDatasetDimensionsFiltered                       =newDatasetDimensions
+       newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
+       if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
+          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
        end if
        ! Set the hyperslab. 
-       hyperslabStart         =0
-       hyperslabStart      (1)=newDatasetDimensions(1)
-       hyperslabCount         =dataSetDimensions
-       newDatasetDimensions(1)=newDatasetDimensions(1)+datasetDimensions(1)
+       hyperslabStart                             =0
+       hyperslabStart      (appendDimensionActual)=newDatasetDimensions(appendDimensionActual)
+       hyperslabCount                             =dataSetDimensions
+       newDatasetDimensions(appendDimensionActual)=newDatasetDimensions(appendDimensionActual)+datasetDimensions(appendDimensionActual)
     else
-       newDatasetDimensions   =datasetDimensions
-       hyperslabStart         =0
-       hyperslabCount         =datasetDimensions
+       newDatasetDimensions                       =datasetDimensions
+       hyperslabStart                             =0
+       hyperslabCount                             =datasetDimensions
     end if
 
     ! Set extent of the dataset.
@@ -9785,6 +9861,9 @@ contains
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read(thisObject,datasetName,datasetValue,dataTypeSize)
 
+    ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
+
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable
 
@@ -9890,6 +9969,9 @@ contains
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read(thisObject,datasetName,datasetValue,dataTypeSize)
+
+    ! Close the dataset unless this was an dataset object and it wasn't requested to be returned.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
 
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static

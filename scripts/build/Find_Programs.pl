@@ -40,28 +40,32 @@ foreach $srcdir ( @sourcedirs ) {
 	    $oname =~ s/\.[fF](90)?t?$/\.o/;
 	    @incfiles = ();
 	    @modfiles = ();
+	    my $exclude = 0;
 	    while (my $line = <infile>) {
+		$exclude = 1
+		    if ( $line =~ m/^\s*!;\s+exclude/ );
 		if ( $line =~ m/^\s*program\s/i ) {
 		    $ename = $fname;
-		    $ename =~ s/\.[fF](90)?t?/\.exe/;
+		    $ename =~ s/\.[fF](90)?t?$/\.exe/;
 		    $do_entry = 0;
 		    if ( $ibase == 0 ) {
-			@exes[++$#exes] = $ename;
+			@exes[++$#exes] = $ename
+			    unless ( $exclude == 1 );
 			if ( ! -e $sourcedir."/Extensions/Sources/".$fname ) {$do_entry = 1};
 		    } else {
-			if ( ! -e $sourcedir."/$fname" ) {@exes[++$#exes] = $ename};
+			if ( ! -e $sourcedir."/$fname" && $exclude == 0 ) {@exes[++$#exes] = $ename};
 			$do_entry = 1;
 		    }
 		    if ( $do_entry == 1 ) {
 			$ofile = $fname;
-			$ofile =~ s/\.[fF](90)?t?/\.o/;
+			$ofile =~ s/\.[fF](90)?t?$/\.o/;
 			$dfile = $fname;
-			$dfile =~ s/\.[fF](90)?t?/\.d/;
+			$dfile =~ s/\.[fF](90)?t?$/\.d/;
 			$root = $fname;
-			$root =~ s/\.[fF](90)?t?//;
+			$root =~ s/\.[fF](90)?t?$//;
 			$eleaf = $root.".exe";
 			print outfile "$root.exe: .$workDir$base$ofile .$workDir$base$dfile \$(MAKE_DEPS)\n";
-			print outfile "\t\$(F03COMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(F03FLAGS) \$(LIBS)\n";
+			print outfile "\t\$(FCCOMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(FCFLAGS) `scripts/build/Library_Dependencies.pl $root.exe`\n";
 			print outfile "\t./scripts/build/Find_Executable_Size.pl $root.exe .$workDir$root.size\n";
 			print outfile "\t./scripts/build/Find_Parameter_Dependencies.pl $root.exe\n\n";
 		    }

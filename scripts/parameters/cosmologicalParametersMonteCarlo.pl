@@ -1,4 +1,12 @@
 #!/usr/bin/env perl
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
@@ -7,12 +15,12 @@ use PDL::MatrixOps;
 use UNIVERSAL 'isa';
 use Data::Dumper;
 
-# Generate sets of cosmological parameters drawn at random from the WMAP-7 constraints using the full covariance matrix.
+# Generate sets of cosmological parameters drawn at random from the WMAP-9 constraints using the full covariance matrix.
 # Andrew Benson (15-September-2010)
 
 # Read the parameters and their covariances.
 $xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/Cosmological_Parameters_WMAP-7.xml");
+$data = $xml->XMLin($galacticusPath."data/cosmology/Cosmological_Parameters_WMAP-9.xml");
 $parameterCount = 0;
 foreach $parameter ( @{$data->{'parameter'}} ) {
     $parameterMap{$parameter->{'label'}} = $parameterCount;

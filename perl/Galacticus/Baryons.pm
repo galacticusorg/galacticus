@@ -9,9 +9,6 @@ use Data::Dumper;
     "hotHalo(Fraction|Frac)" => \&Baryons::Get_hotHaloFraction
     );
 
-my $status = 1;
-$status;
-
 sub Get_hotHaloFraction {
     $dataSet = shift;
     $dataSetName = $_[0];
@@ -19,3 +16,5 @@ sub Get_hotHaloFraction {
     $dataSets = $dataSet->{'dataSets'};
     $dataSets->{$dataSetName} = $dataSets->{'hotHaloMass'}/$dataSets->{'nodeMass'};
 }
+
+1;
