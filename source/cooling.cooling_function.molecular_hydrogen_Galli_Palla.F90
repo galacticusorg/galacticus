@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which computes the contribution to the cooling function from molecular hydrogen using the cooling function of
 !% \cite{galli_chemistry_1998}.
@@ -136,7 +92,7 @@ contains
   !# <coolingFunctionCompute>
   !#   <unitName>Cooling_Function_Molecular_Hydrogen_GP</unitName>
   !# </coolingFunctionCompute>
-  subroutine Cooling_Function_Molecular_Hydrogen_GP(coolingFunction,temperature,numberDensityHydrogen,abundances&
+  subroutine Cooling_Function_Molecular_Hydrogen_GP(coolingFunction,temperature,numberDensityHydrogen,gasAbundances&
        &,chemicalDensities,radiation)
     !% Return the cooling function due to molecular hydrogen using the cooling function of \cite{galli_chemistry_1998} (which
     !% refers to the local thermodynamic equilibrium cooling function of \cite{hollenbach_molecule_1979}). Cooling functions
@@ -150,8 +106,8 @@ contains
     use Numerical_Constants_Units
     implicit none
     double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)  :: abundances
-    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(abundances),         intent(in)  :: gasAbundances
+    type(chemicalAbundances), intent(in)  :: chemicalDensities
     type(radiationStructure),          intent(in)  :: radiation
     double precision,                  intent(out) :: coolingFunction
 
@@ -181,7 +137,7 @@ contains
   !#   <unitName>Cooling_Function_Density_Slope_Molecular_Hydrogen_GP</unitName>
   !# </coolingFunctionDensitySlopeCompute>
   subroutine Cooling_Function_Density_Slope_Molecular_Hydrogen_GP(coolingFunctionDensitySlope,temperature,numberDensityHydrogen&
-       &,abundances,chemicalDensities ,radiation)
+       &,gasAbundances,chemicalDensities ,radiation)
     !% Return the gradient with respect to density of the cooling function due to molecular hydrogen using the cooling function
     !% of \cite{galli_chemistry_1998}.
     use Chemical_States
@@ -190,8 +146,8 @@ contains
     use Radiation_Structure
     implicit none
     double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)  :: abundances
-    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(abundances),         intent(in)  :: gasAbundances
+    type(chemicalAbundances), intent(in)  :: chemicalDensities
     type(radiationStructure),          intent(in)  :: radiation
     double precision,                  intent(out) :: coolingFunctionDensitySlope
     double precision                               :: coolingFunction,numberDensityCriticalOverNumberDensityHydrogen&
@@ -234,7 +190,7 @@ contains
   !#   <unitName>Cooling_Function_Temperature_Slope_Molecular_Hydrogen_GP</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
   subroutine Cooling_Function_Temperature_Slope_Molecular_Hydrogen_GP(coolingFunctionTemperatureSlope,temperature &
-       &,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+       &,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
     !% Return the gradient with respect to temperature of the cooling function due to molecular hydrogen using the cooling
     !% function of \cite{galli_chemistry_1998}.
     use Chemical_States
@@ -244,8 +200,8 @@ contains
     use Numerical_Constants_Prefixes
     implicit none
     double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)  :: abundances
-    type(chemicalAbundancesStructure), intent(in)  :: chemicalDensities
+    type(abundances),         intent(in)  :: gasAbundances
+    type(chemicalAbundances), intent(in)  :: chemicalDensities
     type(radiationStructure),          intent(in)  :: radiation
     double precision,                  intent(out) :: coolingFunctionTemperatureSlope
     double precision,                  save        :: temperaturePrevious1=-1,temperaturePrevious2=-1,temperaturePrevious3=-1&
@@ -364,7 +320,7 @@ contains
     use Chemical_Abundances_Structure
     implicit none
     double precision,                  intent(in) :: numberDensityHydrogen,temperature
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     double precision                              :: atomicHydrogenDensity,molecularHydrogenDensity&
          &,numberDensityCriticalOverNumberDensityHydrogen ,coolingFunctionLocalThermodynamicEquilibrium &
          &,coolingFunctionLowDensityLimit
@@ -451,7 +407,7 @@ contains
     use Chemical_Abundances_Structure
     implicit none
     double precision,                  intent(in) :: temperature
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     double precision,                  save       :: temperaturePrevious,coolingFunctionElectronMolecularHydrogenCation
     !$omp threadprivate(temperaturePrevious,coolingFunctionElectronMolecularHydrogenCation)
     double precision                              :: electronDensity,molecularHydrogenCationDensity ,logarithmic10Temperature
@@ -486,7 +442,7 @@ contains
     use Chemical_Abundances_Structure
     implicit none
     double precision,                  intent(in) :: temperature
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     double precision,                  save       :: temperaturePrevious,coolingFunctionAtomicHydrogenMolecularHydrogenCation
     !$omp threadprivate(temperaturePrevious,coolingFunctionAtomicHydrogenMolecularHydrogenCation)
     double precision                              :: atomicHydrogenDensity,molecularHydrogenCationDensity,logarithmic10Temperature

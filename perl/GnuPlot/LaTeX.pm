@@ -4,6 +4,7 @@ package LaTeX;
 use strict;
 use warnings;
 use File::Copy;
+use Digest::MD5  qw(md5_hex);
 require System::Redirect;
 
 sub GnuPlot2PNG {
@@ -77,6 +78,7 @@ sub GnuPlot2ODG {
 
     # Get the name of the GnuPlot-generated EPS file.
     my $gnuplotEpsFile = shift;
+    my (%options) = @_;
     
     # Get the root name.
     (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
@@ -110,7 +112,7 @@ sub GnuPlot2ODG {
     move($gnuplotRoot.".eps.swapped",$gnuplotRoot.".eps");
 
     # Convert to PDF.
-    &GnuPlot2PDF($gnuplotEpsFile);
+    &GnuPlot2PDF($gnuplotEpsFile,%options);
 
     # Convert to SVG.
     system("pdf2svg ".$gnuplotRoot.".pdf ".$gnuplotRoot."_percent.svg");
@@ -153,9 +155,10 @@ sub GnuPlot2ODG {
 sub GnuPlot2PDF {
     # Get the name of the GnuPlot-generated EPS file.
     my $gnuplotEpsFile = shift;
+
     # Extract any remaining options.
-    my (%options) = @_ if ( $#_ >= 1 );
-    
+    my (%options) = @_ if ( $#_ >= 0 );
+
     # Get the root name.
     (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
 
@@ -174,17 +177,26 @@ sub GnuPlot2PDF {
     # Construct the name of the corresponding pdf file.
     my $gnuplotPdfFile = $gnuplotRoot.".pdf";
 
-    # Remove duplicated labelling.
-    my $labelsFound = 0;
+    # Initialize hash that will store MD5s of previously seen labels.
+    my %labels;
+    # Populate with MD5s for empty front and back text labels.
+    $labels{'079019eb66826e1085e8f82634835781'} = 1;
+    $labels{'47add47b938f7b849abb82e200954083'} = 1;
+    # Process the file.
     open(iHndl,$gnuplotRoot.".tex");
     open(oHndl,">".$gnuplotRoot.".tex.swapped");
     while ( my $line = <iHndl> ) {
-	if ( $line =~ m/^\s*\\gplgaddtomacro\\gplbacktext\{\%\s*$/ ) {
-	    ++$labelsFound;
-	    if ( $labelsFound > 1 ) {
-		do {$line = <iHndl>} until ( $line =~ m/^\s*\}\%\s*$/ );
-		$line = "";
-	    }
+	if ( $line =~ m/^\s*\\gplgaddtomacro\\gpl(front|back)text\{\%\s*$/ ) {
+	    my $buffer = $line;
+	    do {
+		$line    = <iHndl>;
+		$buffer .= $line;
+	    } until ( $line =~ m/^\s*\}\%\s*$/ );
+	    my $md5 = md5_hex($buffer);
+	    $line = "";
+	    $line = $buffer
+		unless ( exists($labels{$md5}) );
+	    $labels{$md5} = 1;
 	}
 	$line =~ s/includegraphics\{$folderName/includegraphics\{/;
 	print oHndl $line;
@@ -194,25 +206,49 @@ sub GnuPlot2PDF {
     unlink($gnuplotRoot.".tex");
     move($gnuplotRoot.".tex.swapped",$gnuplotRoot.".tex");
 
+    # Convert the plot body from EPS to PDF.
+    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile,"/dev/null");
+
+    # Get the dimensions of the plot body.
+    my $width;
+    my $height;
+    open(pHndl,"pdfinfo ".$gnuplotPdfFile."|");
+    while ( my $line = <pHndl> ) {
+	if ( $line =~ m/Page size:\s*(\d+)\s*x\s*(\d+)/ ) {
+	    $width  = $1+100;
+	    $height = $2+100;
+	}
+    }
+    close(pHndl);
+
     # Create a wrapper file for the LaTeX.
     my $fontSize = "10";
     $fontSize = $options{'fontSize'}
         if ( exists($options{'fontSize'}) );
     my $wrapper = "gnuplotWrapper".$$;
     open(wHndl,">".$folderName.$wrapper.".tex");
-    print wHndl "\\documentclass[".$fontSize."pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
+    print wHndl "\\documentclass[".$fontSize."pt]{article}\n";
+    print wHndl "\\usepackage[margin=0pt";
+    print wHndl ",paperwidth=".$width."pt,paperheight=".$height."pt"
+	if ( defined($width) );
+    print wHndl "]{geometry}\n";
+    print wHndl "\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
     close(wHndl);
-    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile."; cd ".$folderName."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf","/dev/null");
+    my $command = "cd ".$folderName."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf";
+    $command .= " --margins ".$options{'margin'}
+       if ( exists($options{'margin'}) );
+    &SystemRedirect::tofile($command,"/dev/null");
     move($folderName.$wrapper."-crop.pdf",$gnuplotPdfFile);
     unlink(
-	   $folderName.$wrapper.".pdf",
-	   $folderName.$wrapper.".tex",
-	   $folderName.$wrapper.".log",
-	   $folderName.$wrapper.".aux",
-	   $gnuplotEpsFile,
-	   $gnuplotLatexFile,
-	   $gnuplotAuxFile
-	   );
+    	$folderName.$wrapper.".pdf",
+    	$folderName.$wrapper.".tex",
+    	$folderName.$wrapper.".log",
+    	$folderName.$wrapper.".aux",
+    	$gnuplotEpsFile,
+    	$gnuplotLatexFile,
+    	$gnuplotAuxFile
+    	)
+	unless ( exists($options{'cleanUp'}) && $options{'cleanUp'} == 0 );
 }
 
 1;

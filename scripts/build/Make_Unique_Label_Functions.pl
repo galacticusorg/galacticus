@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -10,7 +10,7 @@ unshift(@INC,$galacticusPath."perl");
 use strict;
 use warnings;
 use XML::Simple;
-use UNIVERSAL 'isa';
+use Scalar::Util 'reftype';
 use Data::Dumper;
 require Fortran::Utils;
 
@@ -51,9 +51,9 @@ while ( my $fileName = readdir(dHndl) ) {
 		    my $xml = new XML::Simple;
 		    my $uniqueLabel = $xml->XMLin($xmlBuffer);
 		    $labelFunction = $uniqueLabel->{'function'};
-		    if ( exists($uniqueLabel->{'ignore'}) ) {
+		    if ( exists($uniqueLabel->{'ignore'}) && reftype($uniqueLabel->{'ignore'}) ) {
 			my @ignores;
-			if ( UNIVERSAL::isa($uniqueLabel->{'ignore'},"ARRAY") ) {
+			if ( reftype($uniqueLabel->{'ignore'}) eq "ARRAY" ) {
 			    @ignores = @{$uniqueLabel->{'ignore'}};
 			} else {
 			    push(@ignores,$uniqueLabel->{'ignore'});

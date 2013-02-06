@@ -489,7 +489,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodSpheroid</name>
-    <value>Hernquist</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>spheroidMassDistribution</name>
+    <value>hernquist</value>
   </parameter>
   <parameter>
     <name>treeNodeMethodSpin</name>
