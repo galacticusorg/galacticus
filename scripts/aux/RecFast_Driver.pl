@@ -4,9 +4,10 @@ use warnings;
 use XML::Simple;
 use File::Copy;
 use Data::Dumper;
+use DateTime;
 my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
@@ -34,8 +35,7 @@ my $output;
 my @parameters = ( "Omega_b", "Omega_Matter", "Omega_DE", "H_0", "T_CMB", "Y_He" );
 foreach my $parameter ( @parameters ) {
     die("CMBFast_Driver.pl: FATAL - parameter ".$parameter." can not be found.") unless ( exists($data->{'parameter'}->{$parameter}) );
-$output->{'provenance'}->{'recFast'}->{'parameters'}->{$parameter} = $data->{'parameter'}->{$parameter};
-
+    $output->{'provenance'}->{'recFast'}->{'parameters'}->{$parameter} = $data->{'parameter'}->{$parameter};
 }
 
 # Extract variables.
@@ -45,6 +45,12 @@ my $OmegaL = $parameterHash->{'Omega_DE'     }->{'value'};
 my $H0     = $parameterHash->{'H_0'          }->{'value'};
 my $T0     = $parameterHash->{'T_CMB'        }->{'value'};
 my $Yp     = $parameterHash->{'Y_He'         }->{'value'};
+
+# Extract current file format version.
+my $fileFormat        = $parameterHash->{'fileFormat'}->{'value'};
+my $fileFormatCurrent = 1;
+die('RecFast_Driver.pl: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
+    unless ( $fileFormat == $fileFormatCurrent );
 
 # Compute derived quantities.
 my $OmegaDM = $OmegaM-$OmegaB;
@@ -75,7 +81,17 @@ unless ( -e $galacticusPath."aux/RecFast/recfast.exe" ) {
 }
 
 # Run the RecFast code.
-unless ( -e $outputFile ) {
+my $buildFile = 0;
+system("mkdir -p `dirname ".$outputFile."`");
+if ( -e $outputFile ) {
+    my $xmlFile         = new XML::Simple;
+    my $previousFile    = $xmlFile->XMLin($outputFile);
+    my $previousVersion = $previousFile->{'fileFormat'};
+    $buildFile = 1 if ( $previousVersion != $fileFormatCurrent );
+} else {
+    $buildFile = 1;
+}
+if ( $buildFile == 1 ) {
     my $recfastOutput = "recFastOutput.data";
     open(pHndl,"|".$galacticusPath."aux/RecFast/recfast.exe");
     print pHndl $recfastOutput."\n";
@@ -136,6 +152,15 @@ unless ( -e $outputFile ) {
 	"Includes all modifications for HeI recombination"
 	);
     
+    # Add file format.
+    $output->{'fileFormat'} = $fileFormatCurrent;
+
+    # Add timestamp.
+    my $dt = DateTime->now->set_time_zone('local');
+    (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
+    my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
+    $output->{'timeStamp'} = $now;
+
     # Output as XML.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"igm");
     open(outHndl,">".$outputFile);

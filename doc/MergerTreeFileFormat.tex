@@ -6,7 +6,7 @@ Merger trees are stored in HDF5 files for portability and convenience. Additiona
 
 All of the groups/datasets in the file except for the {\tt treeIndex} and {\tt haloTrees} groups are, in principle, optional. This does not mean that a file created without some of these optional groups/datasets will be useable by a given code. It is the responsibility of a given code to check that all data that it requires is present in the file. You are therefore encouraged to include as much information as possible when constructing merger tree files.
 
-Additionally, the file format is intended to be extensible. It is permissible to add additional datasets, for example to describe some other properties of nodes in each tree. Additional datasets should follow the structure of currently defined datasets, i.e. they should be stored as a single dataset combining all trees with nodes listed in the same order as for other datasets. For additional datasets which might be of general use you are encouraged to \href{mailto:abenson@caltech.edu}{contact us} and recommend them for inclusion in the standard---this allows their name to be standardized.
+Additionally, the file format is intended to be extensible. It is permissible to add additional datasets, for example to describe some other properties of nodes in each tree. Additional datasets should follow the structure of currently defined datasets, i.e. they should be stored as a single dataset combining all trees with nodes listed in the same order as for other datasets. For additional datasets which might be of general use you are encouraged to \href{mailto:abenson@obs.carnegiescience.edu}{contact us} and recommend them for inclusion in the standard---this allows their name to be standardized.
 
 \subsection{A Note on Scalar Attributes}
 
@@ -470,6 +470,11 @@ GROUP "haloTrees" {
       DATATYPE  H5T_IEEE_F64LE
       DATASPACE  SIMPLE { ( <nodeCount>, 3 ) / ( <nodeCount>, 3 ) }
    }
+   DATASET "scaleRadius" {
+   COMMENT "The scale radius of each node."
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SIMPLE { ( <nodeCount> ) / ( <nodeCount> ) }
+   }
    DATASET "redshift" {
    COMMENT "The redshift of each node."
       DATATYPE  H5T_IEEE_F64LE
@@ -514,11 +519,12 @@ The following are standard datasets in the {\tt haloTrees} group.
  \item [{\tt expansionFactor}] The expansion factor (normalized to unity at the present day) at which this node is identified (note that only one of the {\tt expansionFactor}, {\tt redshift} and {\tt time} datasets is required, since they are simply related, but multiple \emph{can} be present);
  \item [{\tt descendentIndex}] The {\tt nodeIndex} of the descendent of this node in the merger tree, or $-1$ if there is no descendent;
  \item [{\tt halfMassRadius}] The radius containing half the mass of the node;
- \item [{\tt hostIndex}] The {\tt nodeIndex} of the node which hosts this node;
+ \item [{\tt hostIndex}] The {\tt nodeIndex} of the node which hosts this node. For nodes that are self-hosting (i.e. that are not subhalos inside another halo), the value of {\tt hostIndex} should be set equal to the node's own {\tt nodeIndex};
  \item [{\tt nodeIndex}] An ID number for the node, unique at least within each tree. If nodes are able to move from one tree to another, the ID must be unique within all trees. No other constraints are placed on {\tt nodeIndex} (e.g. it \emph{does not} have to be monotonically increasing within the file for example);
  \item [{\tt nodeMass}] The mass of the node;
  \item [{\tt position}] The three dimensional position of this node;
  \item [{\tt redshift}] The redshift at which this node is identified (note that only one of the {\tt expansionFactor}, {\tt redshift} and {\tt time} datasets is required, since they are simply related, but multiple \emph{can} be present);
+ \item [{\tt scaleRadius}] The characteristic scale radius in the node (typically, but not necessarily, the NFW scale radius);
  \item [{\tt spin}] The spin parameter, $\lambda$, of the halo. This can be either the spin magnitude or a 3-D vector;
  \item [{\tt time}] The time at which this node is identified (note that only one of the {\tt expansionFactor}, {\tt redshift} and {\tt time} datasets is required, since they are simply related, but multiple \emph{can} be present);
  \item [{\tt velocity}] The three dimensional velocity of the node. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc;

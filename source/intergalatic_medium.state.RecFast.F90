@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
 
+!+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
 !% Contains a module that implements calculations of the intergalactic medium thermal and ionization state using RecFast.
 
@@ -79,16 +37,17 @@ contains
     use FoX_wxml
     use System_Command
     use Intergalactic_Medium_State_File
-    use Cosmology_Functions
     use Cosmological_Parameters
     use Numerical_Constants_Astronomical
     use Input_Parameters
+    use Galacticus_Input_Paths
     implicit none
-    type(varying_string),          intent(in)    :: intergalaticMediumStateMethod
-    procedure(),          pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get,Intergalactic_Medium_Temperature_Get
-    character(len=32)                            :: parameterLabel
-    type(varying_string)                         :: parameterFile,recfastFile,command
-    type(xmlf_t)                                 :: parameterDoc
+    type(varying_string),                 intent(in   ) :: intergalaticMediumStateMethod
+    procedure(double precision), pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get
+    procedure(double precision), pointer, intent(inout) :: Intergalactic_Medium_Temperature_Get
+    character(len=32)                                   :: parameterLabel
+    type(varying_string)                                :: parameterFile,recfastFile,command
+    type(xmlf_t)                                        :: parameterDoc
 
     ! Test if our method has been selected.    
     if (intergalaticMediumStateMethod == 'RecFast') then
@@ -99,8 +58,8 @@ contains
        ! Ensure that the RecFast data file has been generated.
        
        ! Generate the name of the data file and an XML input parameter file.
-       recfastFile=char(Galacticus_Input_Path())//'data/recFast'
-       parameterFile=char(Galacticus_Input_Path())//'data/recfast_parameters.xml'
+       recfastFile  =char(Galacticus_Input_Path())//'data/intergalacticMedium/recFast'
+       parameterFile=char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
        write (parameterLabel,'(f5.3)') Omega_Matter()
@@ -122,6 +81,8 @@ contains
        recfastFile=recfastFile//'_YHe'//trim(parameterLabel)
        call Write_Parameter(parameterDoc,"Y_He",parameterLabel)
        recfastFile=recfastFile//'.xml'
+       write (parameterLabel,'(i1)') Intergalactic_Medium_State_File_Current_File_Format_Version()
+       call Write_Parameter(parameterDoc,"fileFormat",parameterLabel)
        call xml_Close(parameterDoc)
        
        ! Run the RecFast driver script to generate the data.

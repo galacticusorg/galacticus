@@ -133,7 +133,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodSpheroid</name>
-    <value>Hernquist</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>spheroidMassDistribution</name>
+    <value>hernquist</value>
   </parameter>
   <parameter>
     <name>timestepSimpleRelative</name>
@@ -400,8 +404,8 @@
     <value>testSuite/outputs/regressions/test.hdf5</value>
   </parameter>
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
-    <value>simple</value>
+    <name>treeNodeMethodSatellite</name>
+    <value>standard</value>
   </parameter>
   <parameter>
     <name>stateFileRoot</name>
