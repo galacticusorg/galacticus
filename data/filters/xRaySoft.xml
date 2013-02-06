@@ -1,0 +1,16 @@
+<filter>
+  <description>Soft X-ray filter (0.5-2.0keV)</description>
+  <name>xRaySoft</name>
+  <origin>definition</origin>
+  <note>
+    This is a top-hat filter designed to count photons in the soft X-ray band.
+  </note>
+  <response>
+    <datum> 6.199 0.0</datum>
+    <datum> 6.200 1.0</datum>
+    <datum>24.796 1.0</datum>
+    <datum>24.797 0.0</datum>
+  </response>
+  <effectiveWavelength>15.498</effectiveWavelength>
+  <vegaOffset>-118.274660704809</vegaOffset>
+</filter>

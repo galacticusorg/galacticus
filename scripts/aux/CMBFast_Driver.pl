@@ -3,8 +3,8 @@ use XML::Simple;
 use Data::Dumper;
 use File::Copy;
 my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
@@ -15,10 +15,16 @@ unshift(@INC,$galacticusPath."perl");
 # Andrew Benson (27-Nov-2009)
 
 # Get arguments.
-if ( $#ARGV != 2 ) {die "Usage: CMBFast_Driver.pl <parameterFile> <transferFunctionFile> <kMax>"};
+if ( $#ARGV != 3 ) {die "Usage: CMBFast_Driver.pl <parameterFile> <transferFunctionFile> <kMax> <fileFormatVersion>"};
 $parameterFile        = $ARGV[0];
 $transferFunctionFile = $ARGV[1];
 $kMax                 = $ARGV[2];
+$fileFormat           = $ARGV[3];
+
+# Ensure the requested file format version is compatible.
+my $fileFormatCurrent = 1;
+die('CMBFast_Driver.pl: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
+    unless ( $fileFormat == $fileFormatCurrent );
 
 # Download the code.
 unless ( -e $galacticusPath."aux/cmbfast.tar.gz" ) {
@@ -72,7 +78,24 @@ foreach $parameter ( @parameters ) {
 $Omega_c = $parameterHash->{'Omega_Matter'}->{'value'}-$parameterHash->{'Omega_b'}->{'value'};
 $kMax = $kMax/($parameterHash->{'H_0'}->{'value'}/100.0);
 
-unless ( -e $transferFunctionFile ) {
+my $makeFile = 0;
+if ( -e $transferFunctionFile ) {
+    my $xmlDoc = new XML::Simple;
+    $transferFunction = $xmlDoc->XMLin($transferFunctionFile);
+    if ( exists($transferFunction->{'fileFormat'}) ) { 
+	$makeFile = 1 unless ( $transferFunction->{'fileFormat'} == $fileFormatCurrent );
+    } else {
+	$makeFile = 1;
+    }
+} else {
+    $makeFile = 1;
+}
+
+# Create the file if necessary.
+if ( $makeFile == 1 ) {
+   # Create the directory.
+   system("mkdir -p `dirname ".$transferFunctionFile."`");
+
    # Run CMBFast.
    open(cmbPipe,"|".$galacticusPath."aux/cmbfast4.5.1/cmb");
    print cmbPipe "1\n";
@@ -121,6 +144,10 @@ unless ( -e $transferFunctionFile ) {
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[0]->{'method'} = "power law";
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'limit' } = "high";
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'method'} = "power law";
+   # Add file format version.
+   $transferFunction{'fileFormat'} = $fileFormatCurrent;
+   # Add unique label.
+   $transferFunction{'uniqueLabel'} = $data->{'uniqueLabel'};
    # Output the transfer function.
    $transferFunction = \%transferFunction;
    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"data");

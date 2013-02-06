@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 program Tests_IO_HDF5
   !% Tests the HDF5 I/O module.
@@ -304,7 +260,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 1-D array integer dataset to allocatable array",integerValueArray(3:6),integerValueArrayReread)
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"integerDataset1dArray")
+     datasetObject=groupObject%openDataset("integerDataset1dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference1D(datasetObject,"myReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
      ! Close the dataset.
@@ -351,7 +307,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 1-D array long integer dataset to allocatable array",integer8ValueArray(3:6),integer8ValueArrayReread)
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"integer8Dataset1dArray")
+     datasetObject=groupObject%openDataset("integer8Dataset1dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference1D(datasetObject,"anotherReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
      ! Close the dataset.
@@ -398,7 +354,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 1-D array double dataset to allocatable array",doubleValueArray(3:6),doubleValueArrayReread)
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset1dArray")
+     datasetObject=groupObject%openDataset("doubleDataset1dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference1D(datasetObject,"doubleReference",int([3],kind=HSIZE_T),int([2],kind=HSIZE_T))
      ! Close the dataset.
@@ -458,7 +414,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 2-D array double dataset to allocatable array",doubleValueArray2d(3:6,6:8),doubleValueArray2dReread(1:4,1:3))
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset2dArray")
+     datasetObject=groupObject%openDataset("doubleDataset2dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference2D(datasetObject,"double2dReference",int([3,5],kind=HSIZE_T),int([2,3],kind=HSIZE_T))
      ! Close the dataset.
@@ -506,7 +462,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 3-D array double dataset to allocatable array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dReread(1:4,1:3,1:5))
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset3dArray")
+     datasetObject=groupObject%openDataset("doubleDataset3dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference3D(datasetObject,"double3dReference",int([3,5,2],kind=HSIZE_T),int([2,3,4],kind=HSIZE_T))
      ! Close the dataset.
@@ -551,9 +507,13 @@ program Tests_IO_HDF5
      ! Read part of a double 4-D array dataset from the group into a array.
      call groupObject%readDataset("doubleDataset4dArray",doubleValueArray4dReread,int([3,6,2,7],kind=HSIZE_T),int([4,3,5,2],kind=HSIZE_T))
      call Assert("re-read part of a 4-D array double dataset to allocatable array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dReread(1:4,1:3,1:5,1:2))
+     ! Check the dimensions of the dataset.
+     datasetObject=groupObject%openDataset("doubleDataset4dArray")
+     call Assert("get dimensions of a dataset",[10,10,10,10],[int(datasetObject%size(1)),int(datasetObject%size(2)),int(datasetObject%size(3)),int(datasetObject%size(4))])
+     call datasetObject%close()
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset4dArray")
+     datasetObject=groupObject%openDataset("doubleDataset4dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference4D(datasetObject,"double4dReference",int([3,5,2,6],kind=HSIZE_T),int([2,3,4,3],kind=HSIZE_T))
      ! Close the dataset.
@@ -600,7 +560,7 @@ program Tests_IO_HDF5
      call Assert("re-read part of a 5-D array double dataset to allocatable array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dReread(1:4,1:3,1:5,1:2,1:6))
 
      ! Open the dataset.
-     datasetObject=IO_HDF5_Open_Dataset(groupObject,"doubleDataset5dArray")
+     datasetObject=groupObject%openDataset("doubleDataset5dArray")
      ! Create a reference to the dataset object.
      call groupObject%createReference5D(datasetObject,"double5dReference",int([3,5,2,6,2],kind=HSIZE_T),int([2,3,4,3,8],kind=HSIZE_T))
      ! Close the dataset.
@@ -638,13 +598,40 @@ program Tests_IO_HDF5
      call groupObject%readDatasetStatic("varStringDataset1dArray",varStringValueArrayRereadStatic)
      call Assert("re-read 1-D array varString dataset to static array",varStringValueArray,varStringValueArrayRereadStatic)
 
+     ! Write a scalar integer attribute to the group.
+     integerValue=2020
+     call groupObject%writeAttribute(integerValue,"integerShortAttribute")
+     ! Read the scalar integer attribute back into a long integer.
+     call groupObject%readAttribute("integerShortAttribute",integer8ValueReread)
+     call Assert("read scalar integer attribute to long integer",int(integerValue,kind=kind_int8),integer8ValueReread)
+
+     ! Write an integer 1-D array attribute to the group.
+     integerValueArray=7
+     call groupObject%writeAttribute(integerValueArray,"integerShortAttribute1dArray")
+     ! Read the long integer 1-D array attribute back.
+     call groupObject%readAttribute("integerShortAttribute1dArray",integer8ValueArrayReread)
+     call Assert("read 1-D array integer attribute to long integer array",int(integerValueArray,kind=kind_int8),integer8ValueArrayReread)
+     ! Read the long integer 1-D array attribute back to a static array.
+     call groupObject%readAttributeStatic("integerShortAttribute1dArray",integer8ValueArrayRereadStatic)
+     call Assert("read 1-D array integer attribute to static long integer array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
+
+     ! Write an integer 1-D array dataset.
+     integerValueArray=[0,11,22,33,44,55,66,77,88,99]
+     call groupObject%writeDataset(integerValueArray,"integerShortDataset1dArray","This is an example dataset")
+     ! Read the dataset back into a long integer 1-D array dataset.
+     call groupObject%readDataset("integerShortDataset1dArray",integer8ValueArrayReread)
+     call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayReread)
+     ! Read the dataset back into a long integer 1-D array dataset.
+     call groupObject%readDatasetStatic("integerShortDataset1dArray",integer8ValueArrayRereadStatic)
+     call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
+
      ! Close the group.
      call groupObject%close()
 
      ! Close the file.
      call fileObject%close()
 
-     ! End the pass and destroiy objects.
+     ! End the pass and destroy objects.
      call Unit_Tests_End_Group()
      call fileObject   %destroy()
      call groupObject  %destroy()

@@ -1,0 +1,25 @@
+<filter>
+  <description>Galex FUV filter 1500Å</description>
+  <name>Galex FUV</name>
+  <origin>Peter Capak</origin>
+  <url>http://www.astro.caltech.edu/~capak/cosmos/filters/galex1500.res</url>
+  <reference>Morrissey et al. (2005; ApJ; 619; 7; http://adsabs.harvard.edu/abs/2005ApJ...619L...7M)</reference>
+  <response>
+    <datum>1340.6205       9.07e-07</datum>
+    <datum>1350.4851     0.11537571</datum>
+    <datum>1370.2143     0.17650714</datum>
+    <datum>1399.808     0.12312477</datum>
+    <datum>1449.131     0.33665425</datum>
+    <datum>1477.0806     0.36851147</datum>
+    <datum>1500.098     0.35043035</datum>
+    <datum>1519.8272     0.34698632</datum>
+    <datum>1549.4209     0.26174673</datum>
+    <datum>1608.6084     0.25485868</datum>
+    <datum>1648.0668     0.16014802</datum>
+    <datum>1705.6102     0.11881973</datum>
+    <datum>1750.0008     0.10504364</datum>
+    <datum>1810.8324     0.00000000</datum>
+  </response>
+  <effectiveWavelength>1516.13847610708</effectiveWavelength>
+  <vegaOffset>-2.62141075487359</vegaOffset>
+</filter>
