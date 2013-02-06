@@ -121,10 +121,18 @@ where {\tt metaDataType} is one of:
 
 \noindent \emph{Exporting the data:} Once the data has been read, units and properties specified and any metadata added, the trees can be exported to an HDF5 file using:
 \begin{verbatim}
-  call mergerTrees%export(outputFile,hdfChunkSize,hdfCompressionLevel)
+  call mergerTrees%export(outputFile,outputFormat,hdfChunkSize,hdfCompressionLevel)
 \end{verbatim}
-where {\tt outputFile} is the name of the file to which the trees should be exported, and {\tt hdfChunkSize} and {\tt hdfCompressionLevel} respectively give the chunk size and compression level to use when writing the file.
+where {\tt outputFile} is the name of the file to which the trees should be exported, {\tt outputFormat} specifies the format to use (see \S\ref{sec:mergerTreeBuilderFileFormats}), and {\tt hdfChunkSize} and {\tt hdfCompressionLevel} respectively give the chunk size and compression level to use when writing the file.
+
+\subsection{File Formats}\label{sec:mergerTreeBuilderFileFormats}\index{merger trees!file formats}
+
+The merger tree file builder engine can currently export in one of two formats. These formats can be specified on the command line to both \hyperlink{Millennium_Merger_Tree_File_Maker.F90}{{\tt Millennium\_Merger\_Tree\_File\_Maker.F90}}, and \hyperlink{Simple_Merger_Tree_File_Maker.F90}{{\tt Simple\_Merger\_Tree\_File\_Maker.F90}}:
+\begin{description}
+ \item [{\tt galacticus}] merger trees are exported in \glc's native format described in detail in \S\ref{sec:MergerTreeFormatDescription};
+ \item [{\tt irate}] merger trees are exported in the \href{https://bitbucket.org/eteq/irate-format}{\tt IRATE} format.
+\end{description}
 
 \subsection{Exporting Trees from \glc}\index{merger trees!exporting}
 
-By setting {\tt [mergerTreesWrite]}$=${\tt true}, \glc\ will export each merger tree generated to the file specified by {\tt [mergerTreeExportFileName]}. Currently, node indices, masses and redshifts are exported. Export happens after any merger tree pre-evolution tasks (see \S\ref{sec:MergerTreePreEvolveTask}).
+By setting {\tt [mergerTreesWrite]}$=${\tt true}, \glc\ will export each merger tree generated to the file specified by {\tt [mergerTreeExportFileName]} using the format specified by {\tt [mergerTreeExportOutputFormat]}. Currently, node indices (plus host indices, which are assumed identical to the node indices), descendent indices, masses and redshifts are exported. Positions and velocities are exported if available. If {\tt IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted from an N-body simulation, or if trees were re-gridded onto such a time grid; see \S\ref{sec:MergerTreeTimeRegrid}). Export happens after any merger tree pre-evolution tasks (see \S\ref{sec:MergerTreePreEvolveTask}).
