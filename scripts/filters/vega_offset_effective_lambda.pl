@@ -20,7 +20,7 @@ if ( $#ARGV == 1 ) {
     $vegaSpectrumFile = $ARGV[1];
 } else {
     # None given, so use the default.
-    $vegaSpectrumFile = "./data/vega/A0V_Castelli.xml";
+    $vegaSpectrumFile = "./data/stellarAstrophysics/vega/A0V_Castelli.xml";
     # Check that the file exists - if not, attempt to download data and create it.
     unless ( -e $vegaSpectrumFile ) {
 	print "Cannot find A0V_Castelli.xml file - will attempt to download data and create it....\n";

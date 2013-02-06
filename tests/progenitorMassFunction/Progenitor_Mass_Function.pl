@@ -44,7 +44,7 @@ $summedWeights = zeroes($rootBinCount,$outputCount-1);
 
 # Read data from the Millennium Simulation.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/progenitor_mass_function_Millennium_Simulation.xml");
+$data = $xml->XMLin("data/darkMatter/Progenitor_Mass_Function_Millennium_Simulation.xml");
 foreach $massFunction ( @{$data->{'massFunction'}} ) {
     $label = $massFunction->{'rootMass'}.":".$massFunction->{'redshift'};
     @{${$millenniumData{$label}}{'Mass'}} = @{$massFunction->{'massRatio'}};
@@ -71,7 +71,7 @@ for ($iTree=2082;$iTree<=$treesCount;$iTree+=1) {
     for ($iOutput=$outputCount;$iOutput>0;--$iOutput) {
 	$dataSet{'output'} = $iOutput;
 	# Read the node masses and which nodes are isolated.
-	&HDF5::Get_Dataset(\%dataSet,['nodeMass','nodeIsIsolated','volumeWeight']);
+	&HDF5::Get_Dataset(\%dataSet,['nodeMass','nodeIsIsolated','mergerTreeWeight']);
 	$dataSets = \%{$dataSet{'dataSets'}};
 	# Get a list of isolated node masses.
 	$isolatedNodeMass = where(${$dataSets->{'nodeMass'}},${$dataSets->{'nodeIsIsolated'}} == 1);
@@ -99,12 +99,12 @@ for ($iTree=2082;$iTree<=$treesCount;$iTree+=1) {
 		# Build a histogram.
 		($hist,$histErrors) = &Histograms::Histogram($lgMval,$isolatedNodeMass,$weight);
 		# Accumulate.
-		$vWeight = ${$dataSets->{'volumeWeight'}}->index(0);
+		$vWeight = ${$dataSets->{'mergerTreeWeight'}}->index(0);
 		$progenitorMF->(($rootBin),($iOutput-1),:) += $hist*$vWeight;
 		$summedWeights->(($rootBin),($iOutput-1)) += $vWeight;
 	    }
 	}
-	delete($dataSets->{'volumeWeight'});
+	delete($dataSets->{'mergerTreeWeight'});
     }
 }
 

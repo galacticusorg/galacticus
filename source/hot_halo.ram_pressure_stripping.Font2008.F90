@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements a model of ram pressure stripping of hot halos based on the methods of
 !% \cite{font_colours_2008}.
@@ -65,7 +21,7 @@
 module Hot_Halo_Ram_Pressure_Stripping_Font2008
   !% Implements a module which implements a model of ram pressure stripping of hot halos based on the methods of
   !% \cite{font_colours_2008}.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize
@@ -115,35 +71,39 @@ contains
   double precision function Hot_Halo_Ram_Pressure_Stripping_Font2008_Get(thisNode)
     !% Computes the hot halo ram pressure stripping radius, assuming a null calculation in which that radius always equals the
     !% virial radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     use Satellite_Orbits
     use Hot_Halo_Density_Profile
     use Root_Finder
     use FGSL
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    type(fgsl_function),     save                   :: rootFunction
-    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    type (treeNode              ), intent(inout), pointer :: thisNode
+    class(nodeComponentSatellite),                pointer :: thisSatelliteComponent
+    type (fgsl_function         ), save                   :: rootFunction
+    type (fgsl_root_fsolver     ), save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    double precision,        parameter              :: radiusSmallestOverRadiusVirial=1.0d-6
-    type(c_ptr)                                     :: parameterPointer
-    type(keplerOrbit)                               :: thisOrbit
-    double precision                                :: virialRadius,orbitalRadius,orbitalVelocity,densityHotHaloHost,radiusMinimum,radiusMaximum
+    double precision             , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    double precision             , parameter              :: radiusSmallestOverRadiusVirial=1.0d-6
+    type (c_ptr                 )                         :: parameterPointer
+    type (keplerOrbit           )                         :: thisOrbit
+    double precision                                      :: virialRadius,orbitalRadius,orbitalVelocity,densityHotHaloHost&
+         &,radiusMinimum,radiusMaximum
 
     ! Get the virial radius of the satellite.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
     ! Test whether thisNode is a satellite.
     if (thisNode%isSatellite()) then
        ! Find the host node.
-       hostNode      => thisNode%parentNode
+       hostNode      => thisNode%parent
        ! Set a pointer to the satellite node.
        satelliteNode => thisNode
+       ! Get the satellite component.
+       thisSatelliteComponent => thisNode%satellite() 
        ! Get the orbit for this node.
-       thisOrbit=Tree_Node_Satellite_Virial_Orbit(thisNode)
+       thisOrbit=thisSatelliteComponent%virialOrbit()
        ! Get the orbital radius and velocity at pericenter.
        call Satellite_Orbit_Pericenter_Phase_Space_Coordinates(hostNode,thisOrbit,orbitalRadius,orbitalVelocity)
        ! Find the density of the host node hot halo at the pericentric radius.
