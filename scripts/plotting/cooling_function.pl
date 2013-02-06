@@ -25,8 +25,8 @@ $plot1->gnuplot_set_xlabel("Temperature [K]");
 $plot1->gnuplot_set_ylabel("{/Symbol L}(T) [erg cm^3 s^{-1}]");
 $plot1->gnuplot_set_title("Atomic CIE Cooling Function (Cloudy 08.00), colored by log_{10}(Z/Z_{{/=12 O}&{/*-.66 O}{/=12 \267}})");
 $plot1->gnuplot_cmd("set logscale xy");
-$plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set format x \"10^{\%L}\"");
+$plot1->gnuplot_cmd("set format y '10^{\%L}'");
+$plot1->gnuplot_cmd("set format x '10^{\%L}'");
 $plot1->gnuplot_cmd("set palette rgbformulae 33,13,10");
 $plot1->gnuplot_cmd("set key off");
 
@@ -48,6 +48,7 @@ for ($iCoolingFunction=0;$iCoolingFunction<=$#coolingFunctionsArray;++$iCoolingF
 	if ( $metallicity < $lZMin ) {$lZMin=$metallicity};
     }
 }
+
 $plot1->gnuplot_set_plot_titles( @plotTitles );
 $plot1->gnuplot_cmd("set cbrange [".$lZMin.":".$lZMax."]");
 
@@ -55,18 +56,8 @@ $plot1->gnuplot_cmd("set cbrange [".$lZMin.":".$lZMax."]");
 for ($iCoolingFunction=0;$iCoolingFunction<=$#coolingFunctionsArray;++$iCoolingFunction) {
     
     # Get the data for this cooling function.
-    @dataArray = @{${$coolingFunctionsArray[$iCoolingFunction]}{'datum'}};
-    
-    # Extract the data.
-    $iTemperature = -1;
-    foreach $datum ( @dataArray ) {
-	@columns = split(/\s+/,$datum);
-	if ( $columns[1] > 0.0 ) {
-	    ++$iTemperature;
-	    ${$x[$iCoolingFunction]}[$iTemperature] = $columns[0];
-	    ${$y[$iCoolingFunction]}[$iTemperature] = $columns[1];
-	}
-    }
+    @{$x[$iCoolingFunction]} = @{$coolingFunctionsArray[$iCoolingFunction]->{'temperature'}->{'datum'}};
+    @{$y[$iCoolingFunction]} = @{$coolingFunctionsArray[$iCoolingFunction]->{'coolingRate'}->{'datum'}};
     ${$hashArray[$iCoolingFunction]}{'x_values'} = \@{$x[$iCoolingFunction]};
     ${$hashArray[$iCoolingFunction]}{'y_values'} = \@{$y[$iCoolingFunction]};
     $cFrac = $iCoolingFunction/$#coolingFunctionsArray;

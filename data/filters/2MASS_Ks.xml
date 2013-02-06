@@ -1,0 +1,85 @@
+<filter>
+  <description>2MASS Ks (total response)</description>
+  <name>2MASS Ks</name>
+  <origin>http://web.ipac.caltech.edu/staff/waw/2mass/opt_cal/krsr.tbl.html</origin>
+  <response>
+    <datum>19000 0.0000</datum>
+    <datum>19150 0.0000</datum>
+    <datum>19270 0.0000</datum>
+    <datum>19340 0.0002</datum>
+    <datum>19390 0.0005</datum>
+    <datum>19480 0.0054</datum>
+    <datum>19570 0.0119</datum>
+    <datum>19620 0.0197</datum>
+    <datum>19690 0.0422</datum>
+    <datum>19760 0.0873</datum>
+    <datum>19810 0.1528</datum>
+    <datum>19890 0.2482</datum>
+    <datum>19900 0.1902</datum>
+    <datum>19980 0.2339</datum>
+    <datum>20080 0.2946</datum>
+    <datum>20140 0.3982</datum>
+    <datum>20190 0.3366</datum>
+    <datum>20280 0.6207</datum>
+    <datum>20370 0.7650</datum>
+    <datum>20450 0.7464</datum>
+    <datum>20610 0.6251</datum>
+    <datum>20720 0.7255</datum>
+    <datum>20750 0.6895</datum>
+    <datum>20820 0.7879</datum>
+    <datum>20890 0.8181</datum>
+    <datum>20990 0.8228</datum>
+    <datum>21060 0.8633</datum>
+    <datum>21130 0.8778</datum>
+    <datum>21200 0.8549</datum>
+    <datum>21240 0.8953</datum>
+    <datum>21380 0.9189</datum>
+    <datum>21450 0.9268</datum>
+    <datum>21550 0.9267</datum>
+    <datum>21690 0.9009</datum>
+    <datum>21760 0.9228</datum>
+    <datum>21850 0.8428</datum>
+    <datum>21970 0.9459</datum>
+    <datum>22080 0.9804</datum>
+    <datum>22130 0.9879</datum>
+    <datum>22180 0.9848</datum>
+    <datum>22320 0.9647</datum>
+    <datum>22370 0.9816</datum>
+    <datum>22480 0.9834</datum>
+    <datum>22560 0.9613</datum>
+    <datum>22600 0.9792</datum>
+    <datum>22630 1.0000</datum>
+    <datum>22650 0.9632</datum>
+    <datum>22700 0.9812</datum>
+    <datum>22720 0.9681</datum>
+    <datum>22760 0.9109</datum>
+    <datum>22770 0.9821</datum>
+    <datum>22810 0.8896</datum>
+    <datum>22840 0.8918</datum>
+    <datum>22860 0.9424</datum>
+    <datum>22910 0.8404</datum>
+    <datum>22930 0.8042</datum>
+    <datum>22950 0.7077</datum>
+    <datum>22970 0.6576</datum>
+    <datum>22990 0.5607</datum>
+    <datum>23060 0.4437</datum>
+    <datum>23110 0.3482</datum>
+    <datum>23160 0.2302</datum>
+    <datum>23200 0.1626</datum>
+    <datum>23250 0.1360</datum>
+    <datum>23280 0.0921</datum>
+    <datum>23350 0.0624</datum>
+    <datum>23390 0.0431</datum>
+    <datum>23440 0.0340</datum>
+    <datum>23460 0.0310</datum>
+    <datum>23520 0.0118</datum>
+    <datum>23610 0.0068</datum>
+    <datum>23630 0.0007</datum>
+    <datum>23700 0.0030</datum>
+    <datum>23750 0.0021</datum>
+    <datum>23840 0.0004</datum>
+    <datum>23990 0.0000</datum>
+  </response>
+  <effectiveWavelength>21909.1659276395</effectiveWavelength>
+  <vegaOffset>-1.86372924886983</vegaOffset>
+</filter>

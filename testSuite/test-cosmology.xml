@@ -9,7 +9,7 @@
   <baseParameters>testSuite/test-cosmology-base.xml</baseParameters>
   <parameters>
     <parameter>
-      <name>Omega_0</name>
+      <name>Omega_Matter</name>
       <value>0.25</value>
     </parameter>
     <parameter>
@@ -20,7 +20,7 @@
   </parameters>
   <parameters>
     <parameter>
-      <name>Omega_0</name>
+      <name>Omega_Matter</name>
       <value>1.00</value>
       <value>1.25</value>
     </parameter>

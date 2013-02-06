@@ -1,0 +1,11 @@
+<!-- Parameter file used for testing the node object model. -->
+<parameters>
+  <parameter>
+    <name>treeNodeMethodBasic</name>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>treeNodeMethodSpheroid</name>
+    <value>standard</value>
+  </parameter>
+</parameters>
