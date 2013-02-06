@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -58,7 +58,7 @@ $typeBoundRegex = "^\\s*(procedure|generic)\\s*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z
 %intrinsicDeclarations = (
     integer   => { variables => 3, regEx => "^\\s*integer\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     real      => { variables => 3, regEx => "^\\s*real\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    double    => { variables => 3, regEx => "^\\s*double\\s+precision\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    double    => { variables => 3, regEx => "^\\s*double\\s+precision\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:=\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     logical   => { variables => 3, regEx => "^\\s*logical\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     character => { variables => 5, regEx => "^\\s*character\\s*(\\((\\s*(len|kind)\\s*=\\s*[a-z0-9_,\\+\\-\\*\\(\\)]+\\s*)+\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     procedure => { variables => 3, regEx => "^\\s*procedure\\s*(\\(\\s*[a-z0-9_]*\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)]+)\\s*\$" }
@@ -77,7 +77,7 @@ $typeBoundRegex = "^\\s*(procedure|generic)\\s*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z
     # Find interfaces.
     interface          => { unitName => 2, regEx => "^\\s*(abstract\\s+)??interface\\s+([a-z0-9_\\(\\)\\/\\+\\-\\*\\.=]*)"},
     # Find types.
-    type               => { unitName => 3, regEx => "^\\s*type\\s*(,\\s*public\\s*|,\\s*private\\s*)*(::)??\\s*([a-z0-9_]+)\\s*\$"}
+    type               => { unitName => 3, regEx => "^\\s*type\\s*(,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*)*(::)??\\s*([a-z0-9_]+)\\s*\$"}
     );
 
 # Specify unit closing regexs.
@@ -135,10 +135,10 @@ sub processFile {
 		# Open the file.
 		open($fileHandle,$fileNames[0]);
 		seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
-
+		
 		# Process until end of file is reached.
 	      LINE: until ( eof($fileHandle) ) {
-
+		  
 		  # Specify that line has yet to be processed.
 		  $lineProcessed = 0;
 

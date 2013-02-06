@@ -36,7 +36,7 @@
     <value>true</value>
   </parameter>
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
+    <name>treeNodeMethodSatellite</name>
     <value>preset</value>
   </parameter>
   <parameter>
@@ -50,6 +50,10 @@
   <parameter>
     <name>mergerTreeReadPresetSubhaloMasses</name>
     <value>true</value>
+  </parameter>
+  <parameter>
+    <name>satelliteMergingRemnantSizeMethod</name>
+    <value>Cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeReadPresetSpins</name>

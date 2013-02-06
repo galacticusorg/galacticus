@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,62 +14,22 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of various scales for dark matter halos.
 
 module Dark_Matter_Halo_Scales
   !% Implements calculations of various scales for dark matter halos.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Kind_Numbers
+  use Tables
   implicit none
   private
-  public :: Dark_Matter_Halo_Dynamical_Timescale, Dark_Matter_Halo_Virial_Velocity, Dark_Matter_Halo_Virial_Velocity_Growth_Rate,&
-       & Dark_Matter_Halo_Virial_Radius, Dark_Matter_Halo_Virial_Radius_Growth_Rate, Dark_Matter_Halo_Mean_Density,&
-       & Dark_Matter_Halo_Mean_Density_Growth_Rate, Dark_Matter_Halo_Virial_Temperature, Dark_Matter_Halo_Scales_Reset
+  public :: Dark_Matter_Halo_Dynamical_Timescale, Dark_Matter_Halo_Virial_Velocity,&
+       & Dark_Matter_Halo_Virial_Velocity_Growth_Rate, Dark_Matter_Halo_Virial_Radius,&
+       & Dark_Matter_Halo_Virial_Radius_Growth_Rate, Dark_Matter_Halo_Mean_Density,&
+       & Dark_Matter_Halo_Mean_Density_Growth_Rate,&
+       & Dark_Matter_Halo_Virial_Temperature, Dark_Matter_Halo_Scales_Reset, &
+       & Dark_Matter_Halo_Scales_State_Store,Dark_Matter_Halo_Scales_State_Retrieve
 
   ! Record of unique ID of node which we last computed results for.
   integer(kind=kind_int8) :: lastUniqueID=-1
@@ -82,6 +42,13 @@ module Dark_Matter_Halo_Scales
   ! Stored values of halo scales.
   double precision :: virialRadiusStored,virialTemperatureStored,virialVelocityStored,dynamicalTimescaleStored
   !$omp threadprivate(virialRadiusStored,virialTemperatureStored,virialVelocityStored,dynamicalTimescaleStored)
+
+  ! Table for fast lookup of the mean density of halos.
+  double precision               :: meanDensityTimeMinimum=-1.0d0,meanDensityTimeMaximum=-1.0d0
+  integer, parameter             :: meanDensityTablePointsPerDecade=100
+  type(table1DLogarithmicLinear) :: meanDensityTable
+  logical                        :: resetMeanDensityTable
+  !$omp threadprivate(meanDensityTable,meanDensityTimeMinimum,meanDensityTimeMaximum,resetMeanDensityTable)
 
 contains
 
@@ -127,16 +94,21 @@ contains
     !% Returns the virial velocity scale for {\tt thisNode}.
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
+    type(treeNode),            intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
 
     ! Check if virial velocity is already computed. Compute and store if not.
     if (.not.virialVelocityComputed) then
-       virialVelocityComputed=.true.
-       virialVelocityStored=dsqrt(gravitationalConstantGalacticus*Tree_Node_Mass(thisNode)&
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
+       ! Compute the virial velocity.
+       virialVelocityStored=dsqrt(gravitationalConstantGalacticus*thisBasicComponent%mass() &
             &/Dark_Matter_Halo_Virial_Radius(thisNode))
+       ! Record that virial velocity has now been computed.
+       virialVelocityComputed=.true.
     end if
     
     ! Return the stored virial velocity.
@@ -147,10 +119,13 @@ contains
   double precision function Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)
     !% Returns the growth rate of the virial velocity scale for {\tt thisNode}.
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
+    type(treeNode),            intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
-    Dark_Matter_Halo_Virial_Velocity_Growth_Rate=0.5d0*Dark_Matter_Halo_Virial_Velocity(thisNode)&
-         &*(Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)-Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)&
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
+    Dark_Matter_Halo_Virial_Velocity_Growth_Rate=0.5d0*Dark_Matter_Halo_Virial_Velocity(thisNode) &
+         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()-Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode) &
          &/Dark_Matter_Halo_Virial_Radius(thisNode))
     return
   end function Dark_Matter_Halo_Virial_Velocity_Growth_Rate
@@ -182,15 +157,20 @@ contains
     !% Returns the virial radius scale for {\tt thisNode}.
     use Numerical_Constants_Math
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
 
     ! Check if virial radius is already computed. Compute and store if not.
     if (.not.virialRadiusComputed) then
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
+       ! Compute the virial radius.
+       virialRadiusStored=(3.0d0*thisBasicComponent%mass()/4.0d0/Pi/Dark_Matter_Halo_Mean_Density(thisNode))**(1.0d0/3.0d0)
+       ! Record that the virial radius has been computed.
        virialRadiusComputed=.true.
-       virialRadiusStored=(3.0d0*Tree_Node_Mass(thisNode)/4.0d0/Pi/Dark_Matter_Halo_Mean_Density(thisNode))**(1.0d0/3.0d0)
     end if
 
     ! Return the stored value.
@@ -202,10 +182,13 @@ contains
     !% Returns the growth rate of the virial radius scale for {\tt thisNode}.
     use Numerical_Constants_Math
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
     Dark_Matter_Halo_Virial_Radius_Growth_Rate=(1.0d0/3.0d0)*Dark_Matter_Halo_Virial_Radius(thisNode)&
-         &*(Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)-Dark_Matter_Halo_Mean_Density_Growth_Rate(thisNode)&
+         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()-Dark_Matter_Halo_Mean_Density_Growth_Rate(thisNode)&
          &/Dark_Matter_Halo_Mean_Density(thisNode))
     return
   end function Dark_Matter_Halo_Virial_Radius_Growth_Rate
@@ -216,22 +199,35 @@ contains
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: time
-    double precision, save                   :: timePrevious=-1.0d0,densityPrevious
-    !$omp threadprivate(timePrevious,densityPrevious)
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    integer                                           :: i,meanDensityTablePoints
+    double precision                                  :: time
 
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
     ! Get the time at which this halo was last an isolated halo.
-    time=Tree_Node_Time_Last_Isolated(thisNode)
-    if (time <= 0.0d0) time=Tree_Node_Time(thisNode)
-    ! If time is not the same as the one previously used then compute its mean density based on mean cosmological density and
-    ! overdensity of a collapsing halo, and store it.
-    if (time /= timePrevious) then
-       timePrevious=time
-       densityPrevious=Halo_Virial_Density_Contrast(time)*Omega_Matter()*Critical_Density()/Expansion_Factor(time)**3
+    time=thisBasicComponent%timeLastIsolated()
+    if (time <= 0.0d0) time=thisBasicComponent%time()
+    ! Retabulate the mean density vs. time if necessary.
+    if (resetMeanDensityTable .or. time < meanDensityTimeMinimum .or. time > meanDensityTimeMaximum) then
+       resetMeanDensityTable=.false.
+       if (meanDensityTimeMinimum <= 0.0d0) then
+          meanDensityTimeMinimum=                           time/10.0d0
+          meanDensityTimeMaximum=                           time* 2.0d0
+       else
+          meanDensityTimeMinimum=min(meanDensityTimeMinimum,time/10.0d0)
+          meanDensityTimeMaximum=max(meanDensityTimeMaximum,time* 2.0d0)
+       end if
+       meanDensityTablePoints=int(log10(meanDensityTimeMaximum/meanDensityTimeMinimum)*dble(meanDensityTablePointsPerDecade))+1
+       call meanDensityTable%destroy()
+       call meanDensityTable%create(meanDensityTimeMinimum,meanDensityTimeMaximum,meanDensityTablePoints)
+       do i=1,meanDensityTablePoints
+          call meanDensityTable%populate(Halo_Virial_Density_Contrast(meanDensityTable%x(i))*Omega_Matter()*Critical_Density()/Expansion_Factor(meanDensityTable%x(i))**3,i)
+       end do
     end if
     ! Return the stored value.
-    Dark_Matter_Halo_Mean_Density=densityPrevious
+    Dark_Matter_Halo_Mean_Density=meanDensityTable%interpolate(time)
     return
   end function Dark_Matter_Halo_Mean_Density
 
@@ -241,17 +237,20 @@ contains
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: time,aExpansion
-    double precision, save                   :: timePrevious=-1.0d0,densityGrowthRatePrevious
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: time,aExpansion
+    double precision,          save                   :: timePrevious=-1.0d0,densityGrowthRatePrevious
     !$omp threadprivate(timePrevious,densityGrowthRatePrevious)
 
     if (thisNode%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.
        Dark_Matter_Halo_Mean_Density_Growth_Rate=0.0d0
     else
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
        ! Get the time at which this halo was last an isolated halo.
-       time=Tree_Node_Time_Last_Isolated(thisNode)
+       time=thisBasicComponent%timeLastIsolated()
        ! Check if the time is different from that one previously used.
        if (time /= timePrevious) then
           ! It is not, so recompute the density growth rate.
@@ -268,5 +267,35 @@ contains
     end if
     return
   end function Dark_Matter_Halo_Mean_Density_Growth_Rate
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Dark_Matter_Halo_Scales_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Dark_Matter_Halo_Scales_State_Store(stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use FGSL
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) meanDensityTimeMinimum,meanDensityTimeMaximum
+    return
+  end subroutine Dark_Matter_Halo_Scales_State_Store
+  
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Dark_Matter_Halo_Scales_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Dark_Matter_Halo_Scales_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    use FGSL
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    read (stateFile) meanDensityTimeMinimum,meanDensityTimeMaximum    
+    ! Ensure that interpolation objects will get reset.
+    resetMeanDensityTable=.true.
+    return
+  end subroutine Dark_Matter_Halo_Scales_State_Retrieve
 
 end module Dark_Matter_Halo_Scales
