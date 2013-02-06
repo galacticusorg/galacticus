@@ -8,7 +8,7 @@ require Galacticus::HDF5;
 require Galacticus::Inclination;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^(disk|spheroid)StellarLuminosity:.*:dustAtlas(\\[faceOn\\])?\$" => \&DustAttenuation::Get_Dust_Attenuated_Luminosity
+    "^(disk|spheroid)LuminositiesStellar:.*:dustAtlas(\\[faceOn\\])?\$" => \&DustAttenuation::Get_Dust_Attenuated_Luminosity
     );
 
 # Flag indicating whether dust data is loaded yet.
@@ -21,15 +21,20 @@ sub Get_Dust_Attenuated_Luminosity {
     # Check parameters.
     &HDF5::Get_Parameters($dataSet);
     die ("Get_Dust_Attenuated_Luminosity(): routine assumes exponential disks and Hernquist or Sersic spheroids")
-	unless ( $dataSet->{'parameters'}->{"treeNodeMethodDisk"} eq "exponential"
-		 && ( $dataSet->{'parameters'}->{"treeNodeMethodSpheroid"} eq "Hernquist" 
-		      || $dataSet->{'parameters'}->{"treeNodeMethodSpheroid"} eq "Sersic" ) );
+	unless
+	(
+	 $dataSet ->{'parameters'}->{"treeNodeMethodDisk"      } eq "exponential" &&
+	 (
+	  $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "hernquist" ||
+	  $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "sersic" 
+	 )
+	);
 
     # Get the name of the unattenuated luminosity dataset.
     ($luminosityDataSet = $dataSetName) =~ s/:dustAtlas(\[faceOn\])?//;
 
     # List of properties to read.
-    @propertyList = ("diskGasMetals","diskScaleLength","spheroidScaleLength",$luminosityDataSet);
+    @propertyList = ("diskAbundancesGasMetals","diskRadius","spheroidRadius",$luminosityDataSet);
 
     # Check if a face-on magnitude is required.
     if ( $dataSetName =~ m/\[faceOn\]/ ) {
@@ -65,7 +70,7 @@ sub Get_Dust_Attenuated_Luminosity {
     }
 
     # Extract filter data.
-    if ( $dataSetName =~ m/^(.*?)StellarLuminosity:([^:]+):([^:]+):z([\d\.]+)/ ) {
+    if ( $dataSetName =~ m/^(.*?)LuminositiesStellar:([^:]+):([^:]+):z([\d\.]+)/ ) {
 	# Extract the dataset name information.
 	$component = $1;
 	$filter    = $2;
@@ -119,10 +124,10 @@ sub Get_Dust_Attenuated_Luminosity {
     # Get interpolations of bulge sizes.
     if ( $component eq "spheroid" ) {
 	# Compute size as spheroid (assumed to be Hernquist profile) half-mass radius in units of disk scale length.
-	if ( $dataSet->{'parameters'}->{"treeNodeMethodSpheroid"} eq "Hernquist" ) {
+	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "Hernquist" ) {
 	    $sizes = (1.0+sqrt(2.0))*$dataSets->{"spheroidScaleLength"}/$dataSets->{"diskScaleLength"};
 	}
-	if ( $dataSet->{'parameters'}->{"treeNodeMethodSpheroid"} eq "Sersic" ) {
+	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "Sersic" ) {
 	    $sizes =                 $dataSets->{"spheroidScaleLength"}/$dataSets->{"diskScaleLength"};
 	}
 	if ( $extrapolateInSizes == 1 ) {

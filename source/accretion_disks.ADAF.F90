@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of properties of ADAFs based on the implementation of \cite{benson_maximum_2009}.
 
@@ -149,7 +105,7 @@ contains
        if (.not.adafInitialized) then
           !@ <inputParameter>
           !@   <name>adafRadiativeEfficiencyType</name>
-          !@   <defaultValue>pureADAF</defaultValue>
+          !@   <defaultValue>thinDisk</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
@@ -159,7 +115,7 @@ contains
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter("adafRadiativeEfficiencyType",adafRadiativeEfficiencyTypeText,defaultValue="fixed")
+          call Get_Input_Parameter("adafRadiativeEfficiencyType",adafRadiativeEfficiencyTypeText,defaultValue="thinDisk")
           select case (char(adafRadiativeEfficiencyTypeText))
           case ("fixed")
              adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeFixed
@@ -285,14 +241,14 @@ contains
     return
   end subroutine Accretion_Disks_ADAF_Get_Parameters
 
-  double precision function Accretion_Disk_Radiative_Efficiency_ADAF(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Radiative_Efficiency_ADAF(thisBlackHole,massAccretionRate)
     !% Computes the radiative efficiency for an ADAF.
     use Accretion_Disks_Shakura_Sunyaev
     use Black_Hole_Fundamentals
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
@@ -301,14 +257,14 @@ contains
     case (adafRadiativeEfficiencyTypeFixed   )
        Accretion_Disk_Radiative_Efficiency_ADAF=adafRadiativeEfficiency
     case (adafRadiativeEfficiencyTypeThinDisk)
-       Accretion_Disk_Radiative_Efficiency_ADAF=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate)
+       Accretion_Disk_Radiative_Efficiency_ADAF=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
     end select
     return
   end function Accretion_Disk_Radiative_Efficiency_ADAF
 
-  double precision function Accretion_Disk_Jet_Power_ADAF(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Jet_Power_ADAF(thisBlackHole,massAccretionRate)
     !% Computes the jet power for an ADAF in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Memory_Management
     use Black_Hole_Fundamentals
     use Numerical_Constants_Physical
@@ -316,55 +272,57 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision, parameter              :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
-    integer                                  :: iSpin
-    double precision                         :: radiusIsco,radiusStatic,blackHoleSpin,adafViscosityAlpha,blackHoleSpinParameter
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
+    integer                                                 :: iSpin
+    double precision                                        :: radiusIsco,radiusStatic,blackHoleSpin,adafViscosityAlpha,blackHoleSpinParameter
 
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
 
     ! Tabulate the jet power as a function of spin.
-    !$omp critical(ADAF_Jet_Power_Tabulate)
     if (.not.jetPowerFunctionTabulated) then
-       call Alloc_Array(jetPowerSpinParameterTable,[jetPowerTableCount])
-       call Alloc_Array(jetPowerTable             ,[jetPowerTableCount])
-       jetPowerSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,jetPowerTableCount,rangeType&
-            &=rangeTypeLogarithmic)
-       do iSpin=1,jetPowerTableCount
- 
-          ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
-          blackHoleSpin=1.0d0-jetPowerSpinParameterTable(iSpin)
-          
-          ! Determine the ADAF viscosity.
-          select case (adafViscosity)
-          case (adafViscosityFixed)
-             adafViscosityAlpha=adafViscosityFixedAlpha
-          case (adafViscosityFit)
-             adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
-          end select
-          
-          ! Compute jet launch radii.
-          radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
-          radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
-
-          ! Compute the jet power.
-          jetPowerTable(iSpin)= min(                                                                     &
-               &                    (                                                                    &
-               &                      ADAF_BH_Jet_Power  (radiusStatic,blackHoleSpin,adafViscosityAlpha) &
-               &                     +ADAF_Disk_Jet_Power(radiusIsco  ,blackHoleSpin,adafViscosityAlpha) &
-               &                    ),                                                                   &
-               &                    adafJetEfficiencyMaximum                                             &
-               &                   )                                                                     &
-               &               *(speedLight/kilo)**2
-       end do
-       jetPowerFunctionTabulated=.true.
+       !$omp critical(ADAF_Jet_Power_Interpolate)
+       if (.not.jetPowerFunctionTabulated) then
+          call Alloc_Array(jetPowerSpinParameterTable,[jetPowerTableCount])
+          call Alloc_Array(jetPowerTable             ,[jetPowerTableCount])
+          jetPowerSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,jetPowerTableCount,rangeType&
+               &=rangeTypeLogarithmic)
+          do iSpin=1,jetPowerTableCount
+             
+             ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
+             blackHoleSpin=1.0d0-jetPowerSpinParameterTable(iSpin)
+             
+             ! Determine the ADAF viscosity.
+             select case (adafViscosity)
+             case (adafViscosityFixed)
+                adafViscosityAlpha=adafViscosityFixedAlpha
+             case (adafViscosityFit)
+                adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
+             end select
+             
+             ! Compute jet launch radii.
+             radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
+             radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
+             
+             ! Compute the jet power.
+             jetPowerTable(iSpin)= min(                                                                     &
+                  &                    (                                                                    &
+                  &                      ADAF_BH_Jet_Power  (radiusStatic,blackHoleSpin,adafViscosityAlpha) &
+                  &                     +ADAF_Disk_Jet_Power(radiusIsco  ,blackHoleSpin,adafViscosityAlpha) &
+                  &                    ),                                                                   &
+                  &                    adafJetEfficiencyMaximum                                             &
+                  &                   )                                                                     &
+                  &               *(speedLight/kilo)**2
+          end do
+          jetPowerFunctionTabulated=.true.
+       end if
+       !$omp end critical(ADAF_Jet_Power_Interpolate)
     end if
-    !$omp end critical(ADAF_Jet_Power_Tabulate)
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     ! Get the "spin parameter".
     blackHoleSpinParameter=1.0d0-blackHoleSpin
@@ -379,68 +337,70 @@ contains
     return
   end function Accretion_Disk_Jet_Power_ADAF
 
-  double precision function Black_Hole_Spin_Up_Rate_ADAF(thisNode,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from an ADAF.
+  double precision function Black_Hole_Spin_Up_Rate_ADAF(thisBlackHole,massAccretionRate)
+    !% Computes the spin up rate of the black hole in {\tt thisBlackHole} due to accretion from an ADAF.
     !% disk.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     use Memory_Management
     use Numerical_Ranges
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision, parameter              :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
-    integer                                  :: iSpin
-    double precision                         :: radiusIsco,radiusStatic,blackHoleSpin,adafEnergyValue,adafViscosityAlpha&
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
+    integer                                                 :: iSpin
+    double precision                                        :: radiusIsco,radiusStatic,blackHoleSpin,adafEnergyValue,adafViscosityAlpha&
          &,spinToMassRateOfChangeRatio,blackHoleSpinParameter
 
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
     
     ! Tabulate the spin up rate as a function of spin parameter.
-    !$omp critical(spinUpFunctionTabulate)
     if (.not.spinUpFunctionTabulated) then
-       call Alloc_Array(spinUpSpinParameterTable,[spinUpTableCount])
-       call Alloc_Array(spinUpTable             ,[spinUpTableCount])
-       spinUpSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,spinUpTableCount,rangeType&
-            &=rangeTypeLogarithmic)
-       do iSpin=1,spinUpTableCount
- 
-          ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
-          blackHoleSpin=1.0d0-spinUpSpinParameterTable(iSpin)
-          
-          ! Determine the ADAF energy.
-          select case (adafEnergy)
-          case (adafEnergy1)
-             adafEnergyValue=1.0d0
-          case (adafEnergyIsco)
-             adafEnergyValue=Black_Hole_ISCO_Specific_Energy(blackHoleSpin,orbitPrograde)
-          end select
-          
-          ! Determine the ADAF viscosity.
-          select case (adafViscosity)
-          case (adafViscosityFixed)
-             adafViscosityAlpha=adafViscosityFixedAlpha
-          case (adafViscosityFit)
-             adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
-          end select
-          
-          ! Compute the spin up rate including braking term due to jets.
-          radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
-          radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
-
-          ! Compute the rate of spin up to mass rate of change ratio.
-          spinUpTable(iSpin)=ADAF_Angular_Momentum(radiusIsco,blackHoleSpin,adafViscosityAlpha)-2.0d0*blackHoleSpin&
-               &*adafEnergyValue-Black_Hole_Rotational_Energy_Spin_Down(blackHoleSpin)*(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin&
-               &,adafViscosityAlpha)+ADAF_Disk_Jet_Power_From_Black_Hole(radiusIsco,blackHoleSpin,adafViscosityAlpha))
-       end do
-       spinUpFunctionTabulated=.true.
+       !$omp critical(ADAF_Spin_Up_Rate_Interpolate)
+       if (.not.spinUpFunctionTabulated) then
+          call Alloc_Array(spinUpSpinParameterTable,[spinUpTableCount])
+          call Alloc_Array(spinUpTable             ,[spinUpTableCount])
+          spinUpSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,spinUpTableCount,rangeType&
+               &=rangeTypeLogarithmic)
+          do iSpin=1,spinUpTableCount
+             
+             ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
+             blackHoleSpin=1.0d0-spinUpSpinParameterTable(iSpin)
+             
+             ! Determine the ADAF energy.
+             select case (adafEnergy)
+             case (adafEnergy1)
+                adafEnergyValue=1.0d0
+             case (adafEnergyIsco)
+                adafEnergyValue=Black_Hole_ISCO_Specific_Energy(blackHoleSpin,orbitPrograde)
+             end select
+             
+             ! Determine the ADAF viscosity.
+             select case (adafViscosity)
+             case (adafViscosityFixed)
+                adafViscosityAlpha=adafViscosityFixedAlpha
+             case (adafViscosityFit)
+                adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
+             end select
+             
+             ! Compute the spin up rate including braking term due to jets.
+             radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
+             radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
+             
+             ! Compute the rate of spin up to mass rate of change ratio.
+             spinUpTable(iSpin)=ADAF_Angular_Momentum(radiusIsco,blackHoleSpin,adafViscosityAlpha)-2.0d0*blackHoleSpin&
+                  &*adafEnergyValue-Black_Hole_Rotational_Energy_Spin_Down(blackHoleSpin)*(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin&
+                  &,adafViscosityAlpha)+ADAF_Disk_Jet_Power_From_Black_Hole(radiusIsco,blackHoleSpin,adafViscosityAlpha))
+          end do
+          spinUpFunctionTabulated=.true.
+       end if
+       !$omp end critical(ADAF_Spin_Up_Rate_Interpolate)
     end if
-    !$omp end critical(spinUpFunctionTabulate)
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     ! Get the "spin parameter".
     blackHoleSpinParameter=1.0d0-blackHoleSpin
@@ -452,7 +412,7 @@ contains
     !$omp end critical(ADAF_Spin_Up_Rate_Interpolate)
 
     ! Scale to the mass rate of change.
-    Black_Hole_Spin_Up_Rate_ADAF=spinToMassRateOfChangeRatio*massAccretionRate/Tree_Node_Black_Hole_Mass(thisNode)
+    Black_Hole_Spin_Up_Rate_ADAF=spinToMassRateOfChangeRatio*massAccretionRate/thisBlackHole%mass()
     return
   end function Black_Hole_Spin_Up_Rate_ADAF
 
