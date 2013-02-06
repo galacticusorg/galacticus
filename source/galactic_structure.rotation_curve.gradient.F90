@@ -36,7 +36,7 @@ module Galactic_Structure_Rotation_Curve_Gradients
 
 contains
 
-  double precision function Galactic_Structure_Rotation_Curve_Gradient(thisNode,radius,massType,componentType)
+  double precision function Galactic_Structure_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,haloLoaded)
     !% Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
     use Galacticus_Error
     use Galactic_Structure_Rotation_Curves
@@ -50,6 +50,7 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in),    optional :: componentType,massType  
+    logical,          intent(in),    optional :: haloLoaded
     double precision, intent(in)              :: radius
     integer                                   :: massTypeActual,componentTypeActual  
     double precision                          :: componentRotationCurveGradient
@@ -71,8 +72,8 @@ contains
     
     ! Call routines to supply the gradient for all components' rotation curves. Specifically, the returned quantities are
     ! d(V^2)/dr so that they can be summed directly.
-    !# <include directive="rotationCurveGradientTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,radius,massTypeActual,componentTypeActual,componentRotationCurveGradient</functionArgs>
+    !# <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentRotationCurveGradient">
+    !#  <functionArgs>thisNode,radius,massTypeActual,componentTypeActual,haloLoaded</functionArgs>
     !#  <onReturn>Galactic_Structure_Rotation_Curve_Gradient=Galactic_Structure_Rotation_Curve_Gradient+componentRotationCurveGradient</onReturn>
     include 'galactic_structure.rotation_curve.gradient.tasks.inc'
     !# </include>

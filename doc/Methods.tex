@@ -2385,6 +2385,48 @@ Currently defined radius solver methods are:
  \item [\hyperlink{galactic_structure.radius_solver.fixed.F90:galactic_structure_radii_fixed:galactic_structure_radii_solve_fixed}{{\tt fixed}}] This solver assumes that radii equal the product of virial radius of the halo and its spin parameter (with an adjustable coefficient). It uses the ``radius solver'' (see \S\ref{sec:radius_solver}) task to interact with the node.
 \end{description}
 
+\subsubsection{Galactic Component Radius Solver Initial Radius}
+
+Additional methods for computing the initial radius in the dark matter profile when solving for adiabatic contraction of the halo can be added using the {\tt galacticStructureRadiusSolverInitialRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt adiabatic} method is described by a directive:
+\begin{verbatim}
+ !# <galacticStructureRadiusSolverInitialRadiusMethod>
+ !#  <unitName>Galactic_Structure_Initial_Radii_Adiabatic_Initialize</unitName>
+ !# </galacticStructureRadiusSolverInitialRadiusMethod>
+\end{verbatim}
+Here, {\tt Galactic\_Structure\_Initial\_Radii\_Adiabatic\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: galacticStructureRadiusSolverInitialRadiusMethod
+    procedure(),          pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get
+    
+    if (galacticStructureRadiusSolverInitialRadiusMethod == 'myMethod') Galactic_Structure_Radius_Initial_Get => My_Method_Do_Procedure
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt galacticStructureRadiusSolverInitialRadiusMethod} input parameter. The procedure pointer {\tt Galactic\_Structure\_Radius\_Initial\_Get} must be set to point to a function which computes the initial radius in the dark matter halo given the final radius as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The initial radius function must have the form:
+\begin{verbatim}
+ double precision function Radius_Initial_Get(thisNode,radius)
+    implicit none
+    type            (treeNode), intent(in   ), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+    .
+    .
+    .
+    return
+ end function Radius_Initial_Get
+\end{verbatim}
+The function must return the initial radius in the dark matter halo of {\tt thisNode} corresponding to the final {\tt radius} after accounting for the effects of adiabatic contraction.
+
+Currently defined initial radius methods are:
+\begin{description}
+ \item [\hyperlink{galactic_structure.radius_solver.initial_radius.static.F90:galactic_structure_initial_radii_static:galactic_structure_radius_initial_static}{{\tt static}}] This method assumes a static dark matter halo, and so the initial radius always equals the final radius.
+ \item [\hyperlink{galactic_structure.radius_solver.initial_radius.adiabatic.F90:galactic_structure_initial_radii_adiabatic:galactic_structure_radius_initial_adiabatic}{{\tt adiabatic}}] This method assumes adiabatic contraction follows the model of \cite{gnedin_response_2004}.
+\end{description}
+
+
 \subsubsection{Hot Halo Density Profile}
 
 Additional methods for the hot halo density profile can be added using the {\tt hotHaloDensityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt coredIsothermal} method is described by a directive:
@@ -5069,20 +5111,20 @@ The function {\tt Galactic\_Structure\_Density()} computes the density of materi
  !#  <unitName>Density_Procedure</unitName>
  !# </densityTask>
 \end{verbatim}
-where {\tt Density\_Procedure} is the name of a subroutine with the following template
+where {\tt Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- subroutine Density_Procedure(thisNode,position,coordinateSystem,massType,componentType,componentDensity)
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,coordinateSystem,componentType
-    double precision, intent(in)             :: radius
-    double precision, intent(out)            :: componentDensity
+ double precision function Density_Procedure(thisNode,position,coordinateSystem,massType,componentType)
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    integer,          intent(in)              :: massType,coordinateSystem,componentType
+    double precision, intent(in)              :: radius
+    logical         , intent(in),    optional :: haloLoaded
     .
     .
     .
     return
- end subroutine Density_Procedure
+ end function Density_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentDensity}, the density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If {\tt componentType} is a match to the component then the function should return the density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\tt haloLoaded}$=${\tt true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Enclosed Mass}
 
@@ -5092,25 +5134,26 @@ The function {\tt Galactic\_Structure\_Enclosed\_Mass()} computes the mass withi
  !#  <unitName>Enclosed_Mass_Procedure</unitName>
  !# </enclosedMassTask>
 \end{verbatim}
-where {\tt Enclosed\_Mass\_Procedure} is the name of a subroutine with the following template
+where {\tt Enclosed\_Mass\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- subroutine Enclosed_Mass_Procedure(thisNode,radius,massType,componentType,weightBy,weightIndex,componentMass)
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType,weightBy,weightIndex
-    double precision, intent(in)             :: radius
-    double precision, intent(out)            :: componentMass
+ double precision function Enclosed_Mass_Procedure(thisNode,radius,massType,componentType,weightBy,weightIndex,haloLoaded)
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    integer,          intent(in)              :: massType,componentType,weightBy,weightIndex
+    double precision, intent(in)              :: radius
+    logical         , intent(in),    optional :: haloLoaded
     .
     .
     .
     return
- end subroutine Enclosed_Mass_Procedure
+ end function Enclosed_Mass_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentMass}, the ``mass'' of the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}.  {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If {\tt componentType} is a match to the component then the function should return the ``mass'' of the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}.  {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 If {\tt radius} is equal to or greater than {\tt radiusLarge} the routine should the total ``mass'' (i.e. ``mass'' within infinite radius). In the above ``mass'' can actually refer to different quantities depending on the values of {\tt weightBy} (and {\tt weightIndex}):
 \begin{description}
 \item [{\tt weightByMass}] The actual mass should be returned (the value of {\tt weightIndex} is irrelevant);
 \item [{\tt weightByLuminosity}] The {\tt weightIndex}$^{\rm th}$ luminosity should be returned.
 \end{description}
+If {\tt haloLoaded}$=${\tt true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Rotation Curve}
 
@@ -5120,20 +5163,20 @@ The function {\tt Galactic\_Structure\_Rotation\_Curve()} computes the rotation 
  !#  <unitName>Rotation_Curve_Procedure</unitName>
  !# </rotationCurveTask>
 \end{verbatim}
-where {\tt Rotation\_Curve\_Procedure} is the name of a subroutine with the following template
+where {\tt Rotation\_Curve\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- subroutine Rotation_Curve_Procedure(thisNode,radius,massType,componentType,componentVelocity)
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType
-    double precision, intent(in)             :: radius
-    double precision, intent(out)            :: componentVelocity
+ double precision function Rotation_Curve_Procedure(thisNode,radius,massType,componentType,haloLoaded)
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    integer,          intent(in)              :: massType,componentType
+    double precision, intent(in)              :: radius
+    logical         , intent(in),    optional :: haloLoaded
     .
     .
     .
     return
- end subroutine Rotation_Curve_Procedure
+ end function Rotation_Curve_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentVelocity}, the contribution to the rotation curve due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If {\tt componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\tt haloLoaded}$=${\tt true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Rotation Curve Gradient}
 
@@ -5143,20 +5186,20 @@ The function {\tt Galactic\_Structure\_Rotation\_Curve\_Gradient()} computes the
  !#  <unitName>Rotation_Curve_Gradient_Procedure</unitName>
  !# </rotationCurveGradientTask>
 \end{verbatim}
-where {\tt Rotation\_Curve\_Gradient\_Procedure} is the name of a subroutine with the following template
+where {\tt Rotation\_Curve\_Gradient\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- subroutine Rotation_Curve_Gradient_Procedure(thisNode,radius,massType,componentType,componentGradient)
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,componentType
-    double precision, intent(in)             :: radius
-    double precision, intent(out)            :: componentGradient
+ double precision function Rotation_Curve_Gradient_Procedure(thisNode,radius,massType,componentType,haloLoaded)
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    integer,          intent(in)              :: massType,componentType
+    double precision, intent(in)              :: radius
+    logical         , intent(in),    optional :: haloLoaded
     .
     .
     .
     return
- end subroutine Rotation_Curve_Gradient_Procedure
+ end function Rotation_Curve_Gradient_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentGradient}, the contribution to the gradient of $V_{\rm c}^2(r)$ due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If {\tt componentType} is a match to the component then the function should return the contribution to the gradient of $V_{\rm c}^2(r)$ due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\tt haloLoaded}$=${\tt true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Potential}
 
@@ -5166,21 +5209,19 @@ The function {\tt Galactic\_Structure\_Potential()} computes the potential at a 
   !#  <unitName>Potential_Task</unitName>
   !# </potentialTask>
 \end{verbatim}
-where {\tt Potential\_Task} is the name of a subroutine with the following template
+where {\tt Potential\_Task} is the name of a function with the following template
 \begin{verbatim}
- subroutine Potential_Procedure(thisNode,radius,massType,componentType,componentVelocity)
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: componentType  
-    double precision, intent(in)              :: radius
-    integer                                   :: componentTypeActual  
-    double precision                          :: componentPotential
-    .
+ double precision function Potential_Procedure(thisNode,radius,massType,componentType,haloLoaded)
+    type(treeNode),   intent(inout), pointer   :: thisNode
+    integer,          intent(in),    optional  :: componentType  
+    double precision, intent(in)               :: radius
+    logical         , intent(in),    optional :: haloLoaded
     .
     .
     return
- end subroutine Potential_Procedure
+ end function Potential_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentPotential}, the contribution to the rotation curve due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If {\tt componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type {\tt massType} within {\tt radius} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\tt haloLoaded}$=${\tt true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Surface Density}
 
@@ -5190,26 +5231,27 @@ The function {\tt Galactic\_Structure\_Surface\_Density()} computes the surface 
  !#  <unitName>Surface_Density_Procedure</unitName>
  !# </surfaceDensityTask>
 \end{verbatim}
-where {\tt Surface\_Density\_Procedure} is the name of a subroutine with the following template
+where {\tt Surface\_Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- subroutine Surface_Density_Procedure(thisNode,position,coordinateSystem,massType,componentType,componentSurfaceDensity)
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer,          intent(in)             :: massType,coordinateSystem,componentType
-    double precision, intent(in)             :: radius
-    double precision, intent(out)            :: componentSurfaceDensity
+ double precision function Surface_Density_Procedure(thisNode,position,coordinateSystem,massType,componentType,haloLoaded)
+    type(treeNode),   intent(inout), pointer     :: thisNode
+    integer,          intent(in)                 :: massType,coordinateSystem,componentType
+    double precision, intent(in),    dimension(3):: position
+    logical         , intent(in),    optional    :: haloLoaded
     .
     .
     .
     return
- end subroutine Surface_Density_Procedure
+ end function Surface_Density_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the procedure should return, in {\tt componentSurfaceDensity}, the surface density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If {\tt componentType} is a match to the component then the function should return the surface density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 The coordinate system in which {\tt position} is specified is given by {\tt coordinateSystem} which can take on the following values:
 \begin{description}
  \item [{\tt coordinateSystemCartesian}] Cartesian $(x,y,z)$;
  \item [{\tt coordinateSystemSpherical}] Spherical $(r,\theta,\phi)$;
  \item [{\tt coordinateSystemCylindrical}] Cylindrical $(R,\phi,z)$.
 \end{description}
+If {\tt haloLoaded}$=${\tt true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Halo Formation Events}\label{sec:HaloFormationEvents}
 

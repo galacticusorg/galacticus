@@ -35,7 +35,7 @@ module Galactic_Structure_Enclosed_Masses
 
 contains
 
-  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex)
+  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex,haloLoaded)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
     use Galacticus_Error
@@ -47,6 +47,7 @@ contains
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in),    optional :: massType,componentType,weightBy,weightIndex
     double precision, intent(in),    optional :: radius
+    logical,          intent(in),    optional :: haloLoaded
     integer                                   :: massTypeActual,componentTypeActual,weightByActual,weightIndexActual
     double precision                          :: radiusActual,componentMass
 
@@ -87,8 +88,8 @@ contains
     Galactic_Structure_Enclosed_Mass=0.0d0
 
     ! Call routines to supply the masses for all components.
-    !# <include directive="enclosedMassTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,radiusActual,massTypeActual,componentTypeActual,weightByActual,weightIndexActual,componentMass</functionArgs>
+    !# <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
+    !#  <functionArgs>thisNode,radiusActual,massTypeActual,componentTypeActual,weightByActual,weightIndexActual,haloLoaded</functionArgs>
     !#  <onReturn>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</onReturn>
     include 'galactic_structure.enclosed_mass.tasks.inc'
     !# </include>

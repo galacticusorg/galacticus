@@ -33,7 +33,7 @@ module Galactic_Structure_Rotation_Curves
 
 contains
 
-  double precision function Galactic_Structure_Rotation_Curve(thisNode,radius,massType,componentType)
+  double precision function Galactic_Structure_Rotation_Curve(thisNode,radius,massType,componentType,haloLoaded)
     !% Solve for the rotation curve a given radius. Assumes that galacticus structure has already been solved for.,
     !# <include directive="rotationCurveTask" type="moduleUse">
     include 'galactic_structure.rotation_curve.tasks.modules.inc'
@@ -41,9 +41,10 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in),    optional :: massType,componentType
+    logical,          intent(in),    optional :: haloLoaded
     double precision, intent(in)              :: radius
     integer                                   :: massTypeActual,componentTypeActual
-    double precision                          :: componentVelocity
+    double precision                          :: componentVelocity,rotationCurveSquared
 
     ! Determine which mass type to use.
     if (present(massType)) then
@@ -60,17 +61,17 @@ contains
     end if
 
     ! Initialize to zero mass.
-    Galactic_Structure_Rotation_Curve=0.0d0
+    rotationCurveSquared=0.0d0
 
     ! Call routines to supply the velocities for all components.
-    !# <include directive="rotationCurveTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,radius,massTypeActual,componentTypeActual,componentVelocity</functionArgs>
-    !#  <onReturn>Galactic_Structure_Rotation_Curve=Galactic_Structure_Rotation_Curve+componentVelocity**2</onReturn>
+    !# <include directive="rotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
+    !#  <functionArgs>thisNode,radius,massTypeActual,componentTypeActual,haloLoaded</functionArgs>
+    !#  <onReturn>rotationCurveSquared=rotationCurveSquared+componentVelocity**2</onReturn>
     include 'galactic_structure.rotation_curve.tasks.inc'
     !# </include>
 
     ! We've added velocities in quadrature, so now take the square root.
-    Galactic_Structure_Rotation_Curve=dsqrt(Galactic_Structure_Rotation_Curve)
+    Galactic_Structure_Rotation_Curve=sqrt(rotationCurveSquared)
 
     return
   end function Galactic_Structure_Rotation_Curve

@@ -7,6 +7,8 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-outputs</modelRootDirectory>
   <baseParameters>testSuite/test-outputs-base.xml</baseParameters>
+
+  <!-- Density contrasts -->
   <parameters>
     <parameter>
       <name>outputDensityContrastData</name>
@@ -23,12 +25,16 @@
       <value>200 500</value>
     </parameter>
   </parameters>
+
+  <!-- Mass accretion histories -->
   <parameters>
     <parameter>
       <name>massAccretionHistoryOutput</name>
       <value>true</value>
     </parameter>
   </parameters>
+
+  <!-- Cooling rates and radii -->
   <parameters>
     <parameter>
       <name>outputHotHaloCoolingRates</name>
@@ -37,6 +43,239 @@
     <parameter>
       <name>outputHotHaloCoolingRadii</name>
       <value>true</value>
+    </parameter>
+  </parameters>
+
+  <!-- Rotation curves -->
+  <parameters>
+    <parameter>
+      <name>outputRotationCurveData</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>outputVirialData</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>outputRotationCurveRadii</name>
+      <value>
+	diskHalfMassRadius:all:all:loaded:0.1
+	diskHalfMassRadius:all:all:loaded:0.173
+	diskHalfMassRadius:all:all:loaded:0.3
+	diskHalfMassRadius:all:all:loaded:0.5477
+	diskHalfMassRadius:all:all:loaded:1.0
+	diskHalfMassRadius:all:all:loaded:1.73
+	diskHalfMassRadius:all:all:loaded:3.0
+	diskHalfMassRadius:all:all:loaded:5.477
+	diskHalfMassRadius:all:all:loaded:10.0
+	diskHalfMassRadius:all:baryonic:loaded:0.1
+	diskHalfMassRadius:all:baryonic:loaded:0.173
+	diskHalfMassRadius:all:baryonic:loaded:0.3
+	diskHalfMassRadius:all:baryonic:loaded:0.5477
+	diskHalfMassRadius:all:baryonic:loaded:1.0
+	diskHalfMassRadius:all:baryonic:loaded:1.73
+	diskHalfMassRadius:all:baryonic:loaded:3.0
+	diskHalfMassRadius:all:baryonic:loaded:5.477
+	diskHalfMassRadius:all:baryonic:loaded:10.0
+	diskHalfMassRadius:all:dark:loaded:0.1
+	diskHalfMassRadius:all:dark:loaded:0.173
+	diskHalfMassRadius:all:dark:loaded:0.3
+	diskHalfMassRadius:all:dark:loaded:0.5477
+	diskHalfMassRadius:all:dark:loaded:1.0
+	diskHalfMassRadius:all:dark:loaded:1.73
+	diskHalfMassRadius:all:dark:loaded:3.0
+	diskHalfMassRadius:all:dark:loaded:5.477
+	diskHalfMassRadius:all:dark:loaded:10.0
+	diskHalfMassRadius:all:dark:unloaded:0.1
+	diskHalfMassRadius:all:dark:unloaded:0.173
+	diskHalfMassRadius:all:dark:unloaded:0.3
+	diskHalfMassRadius:all:dark:unloaded:0.5477
+	diskHalfMassRadius:all:dark:unloaded:1.0
+	diskHalfMassRadius:all:dark:unloaded:1.73
+	diskHalfMassRadius:all:dark:unloaded:3.0
+	diskHalfMassRadius:all:dark:unloaded:5.477
+	diskHalfMassRadius:all:dark:unloaded:10.0
+	diskHalfMassRadius:disk:baryonic:loaded:0.1
+	diskHalfMassRadius:disk:baryonic:loaded:0.173
+	diskHalfMassRadius:disk:baryonic:loaded:0.3
+	diskHalfMassRadius:disk:baryonic:loaded:0.5477
+	diskHalfMassRadius:disk:baryonic:loaded:1.0
+	diskHalfMassRadius:disk:baryonic:loaded:1.73
+	diskHalfMassRadius:disk:baryonic:loaded:3.0
+	diskHalfMassRadius:disk:baryonic:loaded:5.477
+	diskHalfMassRadius:disk:baryonic:loaded:10.0
+	diskHalfMassRadius:spheroid:baryonic:loaded:0.1
+	diskHalfMassRadius:spheroid:baryonic:loaded:0.173
+	diskHalfMassRadius:spheroid:baryonic:loaded:0.3
+	diskHalfMassRadius:spheroid:baryonic:loaded:0.5477
+	diskHalfMassRadius:spheroid:baryonic:loaded:1.0
+	diskHalfMassRadius:spheroid:baryonic:loaded:1.73
+	diskHalfMassRadius:spheroid:baryonic:loaded:3.0
+	diskHalfMassRadius:spheroid:baryonic:loaded:5.477
+	diskHalfMassRadius:spheroid:baryonic:loaded:10.0
+	spheroidHalfMassRadius:all:all:loaded:0.1
+	spheroidHalfMassRadius:all:all:loaded:0.173
+	spheroidHalfMassRadius:all:all:loaded:0.3
+	spheroidHalfMassRadius:all:all:loaded:0.5477
+	spheroidHalfMassRadius:all:all:loaded:1.0
+	spheroidHalfMassRadius:all:all:loaded:1.73
+	spheroidHalfMassRadius:all:all:loaded:3.0
+	spheroidHalfMassRadius:all:all:loaded:5.477
+	spheroidHalfMassRadius:all:all:loaded:10.0
+	spheroidHalfMassRadius:all:baryonic:loaded:0.1
+	spheroidHalfMassRadius:all:baryonic:loaded:0.173
+	spheroidHalfMassRadius:all:baryonic:loaded:0.3
+	spheroidHalfMassRadius:all:baryonic:loaded:0.5477
+	spheroidHalfMassRadius:all:baryonic:loaded:1.0
+	spheroidHalfMassRadius:all:baryonic:loaded:1.73
+	spheroidHalfMassRadius:all:baryonic:loaded:3.0
+	spheroidHalfMassRadius:all:baryonic:loaded:5.477
+	spheroidHalfMassRadius:all:baryonic:loaded:10.0
+	spheroidHalfMassRadius:all:dark:loaded:0.1
+	spheroidHalfMassRadius:all:dark:loaded:0.173
+	spheroidHalfMassRadius:all:dark:loaded:0.3
+	spheroidHalfMassRadius:all:dark:loaded:0.5477
+	spheroidHalfMassRadius:all:dark:loaded:1.0
+	spheroidHalfMassRadius:all:dark:loaded:1.73
+	spheroidHalfMassRadius:all:dark:loaded:3.0
+	spheroidHalfMassRadius:all:dark:loaded:5.477
+	spheroidHalfMassRadius:all:dark:loaded:10.0
+	spheroidHalfMassRadius:all:dark:unloaded:0.1
+	spheroidHalfMassRadius:all:dark:unloaded:0.173
+	spheroidHalfMassRadius:all:dark:unloaded:0.3
+	spheroidHalfMassRadius:all:dark:unloaded:0.5477
+	spheroidHalfMassRadius:all:dark:unloaded:1.0
+	spheroidHalfMassRadius:all:dark:unloaded:1.73
+	spheroidHalfMassRadius:all:dark:unloaded:3.0
+	spheroidHalfMassRadius:all:dark:unloaded:5.477
+	spheroidHalfMassRadius:all:dark:unloaded:10.0
+	spheroidHalfMassRadius:disk:baryonic:loaded:0.1
+	spheroidHalfMassRadius:disk:baryonic:loaded:0.173
+	spheroidHalfMassRadius:disk:baryonic:loaded:0.3
+	spheroidHalfMassRadius:disk:baryonic:loaded:0.5477
+	spheroidHalfMassRadius:disk:baryonic:loaded:1.0
+	spheroidHalfMassRadius:disk:baryonic:loaded:1.73
+	spheroidHalfMassRadius:disk:baryonic:loaded:3.0
+	spheroidHalfMassRadius:disk:baryonic:loaded:5.477
+	spheroidHalfMassRadius:disk:baryonic:loaded:10.0
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:0.1
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:0.173
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:0.3
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:0.5477
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:1.0
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:1.73
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:3.0
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:5.477
+	spheroidHalfMassRadius:spheroid:baryonic:loaded:10.0
+	virialRadius:all:all:loaded:0.1
+	virialRadius:all:all:loaded:0.173
+	virialRadius:all:all:loaded:0.3
+	virialRadius:all:all:loaded:0.5477
+	virialRadius:all:all:loaded:1.0
+	virialRadius:all:all:loaded:1.73
+	virialRadius:all:all:loaded:3.0
+	virialRadius:all:all:loaded:5.477
+	virialRadius:all:all:loaded:10.0
+	virialRadius:all:baryonic:loaded:0.1
+	virialRadius:all:baryonic:loaded:0.173
+	virialRadius:all:baryonic:loaded:0.3
+	virialRadius:all:baryonic:loaded:0.5477
+	virialRadius:all:baryonic:loaded:1.0
+	virialRadius:all:baryonic:loaded:1.73
+	virialRadius:all:baryonic:loaded:3.0
+	virialRadius:all:baryonic:loaded:5.477
+	virialRadius:all:baryonic:loaded:10.0
+	virialRadius:all:dark:loaded:0.1
+	virialRadius:all:dark:loaded:0.173
+	virialRadius:all:dark:loaded:0.3
+	virialRadius:all:dark:loaded:0.5477
+	virialRadius:all:dark:loaded:1.0
+	virialRadius:all:dark:loaded:1.73
+	virialRadius:all:dark:loaded:3.0
+	virialRadius:all:dark:loaded:5.477
+	virialRadius:all:dark:loaded:10.0
+	virialRadius:all:dark:unloaded:0.1
+	virialRadius:all:dark:unloaded:0.173
+	virialRadius:all:dark:unloaded:0.3
+	virialRadius:all:dark:unloaded:0.5477
+	virialRadius:all:dark:unloaded:1.0
+	virialRadius:all:dark:unloaded:1.73
+	virialRadius:all:dark:unloaded:3.0
+	virialRadius:all:dark:unloaded:5.477
+	virialRadius:all:dark:unloaded:10.0
+	virialRadius:disk:baryonic:loaded:0.1
+	virialRadius:disk:baryonic:loaded:0.173
+	virialRadius:disk:baryonic:loaded:0.3
+	virialRadius:disk:baryonic:loaded:0.5477
+	virialRadius:disk:baryonic:loaded:1.0
+	virialRadius:disk:baryonic:loaded:1.73
+	virialRadius:disk:baryonic:loaded:3.0
+	virialRadius:disk:baryonic:loaded:5.477
+	virialRadius:disk:baryonic:loaded:10.0
+	virialRadius:spheroid:baryonic:loaded:0.1
+	virialRadius:spheroid:baryonic:loaded:0.173
+	virialRadius:spheroid:baryonic:loaded:0.3
+	virialRadius:spheroid:baryonic:loaded:0.5477
+	virialRadius:spheroid:baryonic:loaded:1.0
+	virialRadius:spheroid:baryonic:loaded:1.73
+	virialRadius:spheroid:baryonic:loaded:3.0
+	virialRadius:spheroid:baryonic:loaded:5.477
+	virialRadius:spheroid:baryonic:loaded:10.0
+	darkMatterScaleRadius:all:all:loaded:0.1
+	darkMatterScaleRadius:all:all:loaded:0.173
+	darkMatterScaleRadius:all:all:loaded:0.3
+	darkMatterScaleRadius:all:all:loaded:0.5477
+	darkMatterScaleRadius:all:all:loaded:1.0
+	darkMatterScaleRadius:all:all:loaded:1.73
+	darkMatterScaleRadius:all:all:loaded:3.0
+	darkMatterScaleRadius:all:all:loaded:5.477
+	darkMatterScaleRadius:all:all:loaded:10.0
+	darkMatterScaleRadius:all:baryonic:loaded:0.1
+	darkMatterScaleRadius:all:baryonic:loaded:0.173
+	darkMatterScaleRadius:all:baryonic:loaded:0.3
+	darkMatterScaleRadius:all:baryonic:loaded:0.5477
+	darkMatterScaleRadius:all:baryonic:loaded:1.0
+	darkMatterScaleRadius:all:baryonic:loaded:1.73
+	darkMatterScaleRadius:all:baryonic:loaded:3.0
+	darkMatterScaleRadius:all:baryonic:loaded:5.477
+	darkMatterScaleRadius:all:baryonic:loaded:10.0
+	darkMatterScaleRadius:all:dark:loaded:0.1
+	darkMatterScaleRadius:all:dark:loaded:0.173
+	darkMatterScaleRadius:all:dark:loaded:0.3
+	darkMatterScaleRadius:all:dark:loaded:0.5477
+	darkMatterScaleRadius:all:dark:loaded:1.0
+	darkMatterScaleRadius:all:dark:loaded:1.73
+	darkMatterScaleRadius:all:dark:loaded:3.0
+	darkMatterScaleRadius:all:dark:loaded:5.477
+	darkMatterScaleRadius:all:dark:loaded:10.0
+	darkMatterScaleRadius:all:dark:unloaded:0.1
+	darkMatterScaleRadius:all:dark:unloaded:0.173
+	darkMatterScaleRadius:all:dark:unloaded:0.3
+	darkMatterScaleRadius:all:dark:unloaded:0.5477
+	darkMatterScaleRadius:all:dark:unloaded:1.0
+	darkMatterScaleRadius:all:dark:unloaded:1.73
+	darkMatterScaleRadius:all:dark:unloaded:3.0
+	darkMatterScaleRadius:all:dark:unloaded:5.477
+	darkMatterScaleRadius:all:dark:unloaded:10.0
+	darkMatterScaleRadius:disk:baryonic:loaded:0.1
+	darkMatterScaleRadius:disk:baryonic:loaded:0.173
+	darkMatterScaleRadius:disk:baryonic:loaded:0.3
+	darkMatterScaleRadius:disk:baryonic:loaded:0.5477
+	darkMatterScaleRadius:disk:baryonic:loaded:1.0
+	darkMatterScaleRadius:disk:baryonic:loaded:1.73
+	darkMatterScaleRadius:disk:baryonic:loaded:3.0
+	darkMatterScaleRadius:disk:baryonic:loaded:5.477
+	darkMatterScaleRadius:disk:baryonic:loaded:10.0
+	darkMatterScaleRadius:spheroid:baryonic:loaded:0.1
+	darkMatterScaleRadius:spheroid:baryonic:loaded:0.173
+	darkMatterScaleRadius:spheroid:baryonic:loaded:0.3
+	darkMatterScaleRadius:spheroid:baryonic:loaded:0.5477
+	darkMatterScaleRadius:spheroid:baryonic:loaded:1.0
+	darkMatterScaleRadius:spheroid:baryonic:loaded:1.73
+	darkMatterScaleRadius:spheroid:baryonic:loaded:3.0
+	darkMatterScaleRadius:spheroid:baryonic:loaded:5.477
+	darkMatterScaleRadius:spheroid:baryonic:loaded:10.0
+      </value>
     </parameter>
   </parameters>
 </parameterGrid>

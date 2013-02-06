@@ -963,8 +963,29 @@ where $j$ is the specific angular momentum of the \gls{component} (at whatever p
 
 \subsection{Adiabatic}
 
-Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt adiabatic}, this method takes into account the baryonic self-gravity of all galactic components when solving for structure and additionally accounts for backreaction of the baryons on the dark matter density profile using the adiabatic contraction algorithm of \cite{gnedin_response_2004}. The parameter $A$ and $\omega$ of that model are specified via input parameters {\tt adiabaticContractionGnedinA} and {\tt adiabaticContractionGnedinOmega} respectively. Solution proceeds via an iterative procedure to find equilibrium radii for all galaxies in a consistently contracted halo. The method used follows that described by \cite{benson_galaxy_2010}. The parameter {\tt [adiabaticContractionUseFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present \gls{node} or those of its \gls{node} at the time of \gls{node} formation (which requires that ``node formation'' has been suitably defined and 
-implemented by a component).
+Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt adiabatic}, this method takes into account the baryonic self-gravity of all galactic components when solving for structure and additionally accounts for backreaction of the baryons on the dark matter density profile.  Solution proceeds via an iterative procedure to find equilibrium radii for all galaxies in a consistently contracted halo. To account for adiabatic contraction the mass of dark matter within a given radius $r_{\rm f}$ is taken to be equal to that originally within radius $r_{\rm i}$ in the uncontracted halo. This initial radius is computed using the selected galactic structure solver initial radius algorithm (see \S\ref{sec:GalacticStructureInitialRadius}). The parameter {\tt [adiabaticContractionUseFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present \gls{node} or those of its \gls{node} at the time of \gls{node} formation (which requires that ``node formation'' has been suitably defined and implemented by a component).
+
+\section{Galactic Structure Initial Radii}\label{sec:GalacticStructureInitialRadius}\index{galactic structure!initial radii}
+
+The algorithm to be used when solving for the initial radius in the dark matter halo when computing galactic structure is selected via the {\tt galacticStructureRadiusSolverInitialRadiusMethod} parameter.
+
+\subsection{Static}
+
+Selected with {\tt galacticStructureRadiusSolverInitialRadiusMethod}$=${\tt static} this method assumes that the dark matter halo is static and so sets the initial radius equal to the final radius. 
+
+\subsection{Adiabatic}
+
+Selected with {\tt galacticStructureRadiusSolverInitialRadiusMethod}$=${\tt adiabatic} this method assumes that adiabatic contraction follows the algorithm of \cite{gnedin_response_2004}. The parameters $A$ and $\omega$ of that model are specified via input parameters {\tt adiabaticContractionGnedinA} and {\tt adiabaticContractionGnedinOmega} respectively.
+
+Given the final radius, $r_{\rm f}$, the corresponding initial radius, $r_{\rm i}$, is found by solving:
+\begin{equation}
+f_{\rm i} M_{\rm total,0}(\bar{r}_{\rm i}) r_{\rm i} = f_{\rm f} M_{\rm total,0}(\bar{r}_{\rm i}) r_{\rm f} + V^2_{\rm b}(\bar{r}_{\rm f}) \bar{r}_{\rm f} r_{\rm f}/ {\rm G},
+\end{equation}
+where $M_{\rm total,0}(r)$ is the initial total matter profile, $V_{\rm b}(r)$ is the baryonic contribution to the rotation curve, $f_{\rm i}$, is the fraction of mass within the virial radius compared to the node mass\footnote{In \protect\glc\ the ``node mass'' refers to the total mass of the node, assuming it has the universal complement of baryons. Since some halos may contain less than the complete complement of baryons it is possible that $f_{\rm i}<1$.}, $f_{\rm f}=(\Omega_{\rm M}-\Omega_{\rm b})/\Omega_{\rm M}+M_{\rm satellite, baryonic}/M_{\rm total}$, $M_{\rm satellite, baryonic}$ is the baryonic mass in any satellite halos, $M_{\rm total}$ is the node mass, and
+\begin{equation}
+{\bar{r} \over r_{\rm vir}} = A \left({r \over r_{\rm vir}}\right)^\omega,
+\end{equation}
+where $r_{\rm vir}$ is the virial radius. Note that we explicitly assume that the initial, uncontracted total density profile has the same shape as the initial dark matter density profile, that contraction of the halo occurs with no shell crossing, and that satellite halos trace the dark matter profile of their host halo.
 
 \section{Galaxy Merging}\index{galaxy!merging}\index{merging!galaxy}
 
