@@ -38,282 +38,244 @@ This section describes the internal structure of node components, and how a comp
 
 \subsection{Component Structure}\index{components!structure}
 
-Each node in the merger tree consists of an arbitrary number of arrays of ``components''. A component may represent a dark matter halo, a galactic disk or a black hole etc. A component has the following structure:
+Each node in the merger tree consists of an arbitrary number of ``components'', each of which can actually be an array, allowing multiple components of a given class. Each component represents a specific class of object, which could be a dark matter halo, a galactic disk or a black hole etc. A component of each class may be of one or more differnt implementations of that component class. Component classes are extensions of the {\tt nodeComponent} base class, while each implementation is an extension of its component class (or, sometimes, of another implementation of that same class). Each component implementation type consists of a set of data\footnote{Data objects in components can be real, integer, boolean or of derived type. For derived types, currently {\tt history}, {\tt abundances}, {\tt chemicals}, and {\tt keplerOrbit} are supported. Adding additional derived types is possible, providing that the type supports the required methods for output, serialization, etc. Data objects can currently be scalar or rank-1 arrays.}, representing the properties (mass, size etc.) of the component, along with the rates of change (and ODE solver tolerances) for any properties which are evolvable. Additionally, each component contains a large number of methods (functions) which can be used to access its properties, query its interfaces and which are used internally to perform ODE evolution, output etc. The {\tt nodeComponent} base class and all classes derived from it are built automatically by {\tt Galacticus::Build::Components} at compile time (take a look in {\tt work/build/objects.nodes.components.Inc} if you want to see the generated code).
+
+\subsection{Implementing a New Component}\label{sec:ComponentImplement}\index{components!implementing}
+
+Implementing a new component involves writing a module which contains a definition of the component and, if necessary, handles initialization, creation, evolution, and responses to any events. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that a component module must perform are given below. Component definition itself takes the form of an embedded XML document. The following example illustrates such a document:
 \begin{verbatim}
- type component
-   double precision, allocatable, dimension(:,:) :: properties
-   double precision, allocatable, dimension(:)   :: data
-   type(history),    allocatable, dimension(:)   :: histories
- end type component
+  !# <component>
+  !#  <class>disk</class>
+  !#  <name>exponential</name>
+  !#  <isDefault>yes</isDefault>
+  !#  <methods>
+  !#   <method>
+  !#     <name>isInitialized</name>
+  !#     <type>logical</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#   </method>
+  !#   <method>
+  !#     <name>massStellar</name>
+  !#     <type>real</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <output unitsInSI="massSolar" comment="Mass of stars in the exponential disk."/>
+  !#   </method>
+  !#   <method>
+  !#     <name>abundancesStellar</name>
+  !#     <type>abundances</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the exponential disk."/>
+  !#   </method>
+  !#   <method>
+  !#     <name>massGas</name>
+  !#     <type>real</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+  !#     <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
+  !#   </method>
+  !#   <method>
+  !#     <name>coolingMass</name>
+  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
+  !#     <type>real</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>yes</isVirtual>
+  !#   </method>
+  !#   <method>
+  !#     <name>halfMassRadius</name>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <type>real</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>yes</isVirtual>
+  !#     <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
+  !#   </method>
+  !#   <method>
+  !#     <name>luminositiesStellar</name>
+  !#     <type>real</type>
+  !#     <rank>1</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
+  !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
+  !#   </method>
+  !#  <bindings>
+  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" bindsTo="component" />
+  !#  </bindings>
+  !#  <functions>objects.nodes.components.disk.exponential.custom_methods.inc</functions>
+  !# </component>
 \end{verbatim}
-The {\tt properties} array is a list of properties that define the component (e.g. mass, radius etc.) and which will be evolved by \glc's ODE solver. In fact, this array will contain both the values of these properties and their time derivatives as needed by the solver. The {\tt data} array contains any internal data needed for this component. Typically, these are things which do not change with time (or, at least, their change is not described by an ODE). The {\tt histories} array contains a set of time series (which can, in fact, be records of the history of the galaxy, records of future behavior or anything else). These are frequently used for holding, for example, the rate of mass recycling from stellar populations at future times in a component.
 
-\subsection{Implementing a New Component}\index{components!implementing}
-
-Implementing a new component involves writing a module which handles initialization of the component, creation and destruction, specifies how the component should evolve, sets up interaction with other components and handles output of component properties. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that a component module must perform are given below.
+The elements of this document have the following meaning:
+\begin{description}
+\item [{\tt class}] \emph{[Required]} Specifies the component class of which this is an implementation.
+\item [{\tt name}] \emph{[Required]} Specifies the name of this specific implementation.
+\item [{\tt isDefault}] \emph{[Required]} Specifies whether or not this should be the default implementation of this class. Note that only one implementation of each class can be declared to be the default. If no implementation of a given class is declared to be the default then the (automatically generated) {\tt null} implementation will be made the default.
+\item [{\tt methods}] \emph{[Optional]} Contains an array of {\tt method} elements which specify the properties of this implementation. Each member {\tt method} has the following structure:
+\begin{description}
+\item [{\tt name}] \emph{[Required]} The name of the property. 
+\item [{\tt type}] \emph{[Required]} The type (one of {\tt real}, {\tt integer}, {\tt logical}, {\tt history}, {\tt abundances}, {\tt chemicals}, or {\tt keplerOrbit} at present) of the property.
+\item [{\tt rank}] \emph{[Required]} The rank of this property (currently {\tt 0} for a scalar or {\tt 1} for a 1-D array).
+\item [{\tt attributes}] \emph{[Required]} Attributes of this property:
+\begin{description}
+\item [{\tt isSettable}] If {\tt true} then the value of this property can be set directory.
+\item [{\tt isGettable}] If {\tt true} then the value of this property can be got directory.
+\item [{\tt isEvolvable}] If {\tt true} this property evolves as part of the \glc\ \gls{ode} system.
+\item [{\tt createIfNeeded}] If {\tt true} then any attempt to get, set, or adjust the rate of this property will cause the component to be created if it does not already exist. This is useful if the component should be created in response to mass transfer from some other component for example.
+\item [{\tt makeGeneric}] If {\tt true} then any {\tt rate} method for this property will have a version created which binds to the base {\tt nodeComponent} class. This version is suitable for attaching to deferred rate functions of components of another class. For example, the disk gas mass rate function is made generic, and then attached to the deferred cooling rate of the hot halo using:
+\begin{verbatim}
+  call hotHalo%hotHaloCoolingMassRateFunction(DiskExponentialMassGasRateGeneric)
+\end{verbatim}
+\item [{\tt isDeferred}] Contains a ``{\tt :}'' separated list which can contain {\tt get}, {\tt set}, and {\tt rate}. The methods present in this list will not have functions bound to them at compile time. Instead a function will be created which allows a function to be bound to these methods at run time. For example:
+\begin{verbatim}
+  call myComponent%massFunction    (My_Component_Mass_Get_Function)
+  call myComponent%massSetFunction (My_Component_Mass_Set_Function)
+  call myComponent%massRateFunction(My_Component_Mass_Rate_Function)
+\end{verbatim}
+Additionally, a method is created which returns true or false depending on whether the method has been attached to a function yet, e.g.
+\begin{verbatim}
+ myComponent%massIsAttached    ()
+ myComponent%massSetIsAttached ()
+ myComponent%massRateIsAttached()
+\end{verbatim}
+\item [{\tt bindsTo}] Specifies to which level in the class hierarchy set, get and rate methods should be bound. Normally, these are bound to the component implementation itself. However, it can be useful to specify a binding of ``{\tt top}'' to bind to the base {\tt nodeComponent} class to make these methods interoperable with properties of other classes (see the discussion of the {\tt makeGeneric} element above).
+\end{description}
+\item [{\tt output}] \emph{[Optional]} If present, the property will be included in the \glc\ output file. The following attributes control the details of that output:
+\begin{description}
+\item [{\tt unitsInSI}] The units of the output quantity in the SI system.
+\item [{\tt comment}] A comment to be included with the HDF5 dataset for this property.
+\item [{\tt condition}] A statement which must evaluate to {\tt true} or {\tt false} and which will be used to determine if the property will be output. The present output time for is available as {\tt time}. In the case of an array property the construct ``{\tt \{i\}}'' can be used to pass the index of the element for which the condition should be evaluated.
+\item [{\tt modules}] A comma-separated list of any modules required to perform the output (e.g. modules which contain functions or values that are used).
+\end{description}
+Additional attributes are required for array properties:
+\begin{description}
+\item [{\tt labels}] This can be an array, declared as ``{\tt [$L_1$,\ldots,$L_N$]}'', specifying the suffix to be added to the property name for each component of the array in the output, or a function which returns the suffix. In the case of a function the construct ``{\tt \{i\}}'' can be used to pass the index of the element for which the suffix is required.
+\item [{\tt count}] A statement which evaluates the the number of elements to be output (i.e. the length of the array).
+\end{description}
+\item [{\tt isVirtual}] \emph{[Optional]} If present and set to ``{\tt yes}'', this property is a virtual property. A virtual property has no data associated with it and must supply its own functions for getting, setting and adjusting its rate of change (if allowed by the property's attributes). Virtual properties are used for quantities which are derived from actual properties of the component implementation (for example, a star formation rate could be a virtual property if it is derived from an actual gas mass property) or for adjusting the rates of several actual properties simultaneously.
+\item [{\tt getFunction}] \emph{[Optional]} Specifies the function to be used for getting the value of the property, overriding the default get function. The function must be included in the \hyperlink{objects.nodes.F90:galacticus_nodes}{\tt Galacticus\_Nodes} module by use of the {\tt functions} element described below. Note that this function, by virtue of its priveleged access to the itnernal structure of node components, can access the value of the data associated with the propery using:
+\begin{verbatim}
+myComponent%<property>Data%value
+\end{verbatim}
+\item [{\tt setFunction}] \emph{[Optional]} The same as {\tt getFunction} but defines a function to set the value of the property.
+\item [{\tt classDefault}] \emph{[Optional]} Specifies the default value for this property if the component class has not been created (i.e. has no specific implementation yet). The content of this element gives the default value (which can be a scalar, an array, a function, etc.). Additional, optional attributes control the use of this element:
+\begin{description}
+ \item [{\tt modules}] Specifies a comma-separated list of modules which are required to set the default values (e.g. modules which contain the value or function to be used).
+ \item [{\tt count}] For array properties whose size is not known at compile-time, it is possible to specify a function which will return the appropriate size of the array at run-time. The scalar default value given in the {\tt classDefault} element will then be replicated the appropriate number of times.
+\end{description}
+\end{description}
+\item [{\tt bindings}] \emph{[Optional]} Contains an array of {\tt binding} elements which specify functions to bind to this implementation. Each member {\tt binding} has the following structure:
+\begin{description}
+\item [{\tt method}] The name of the bound method, such that the function can be accessed using
+\begin{verbatim}
+ myComponent%<method>(...)
+\end{verbatim}
+\item [{\tt function}] The function to which the method should be bound. (This function must be included in the \hyperlink{objects.nodes.F90:galacticus_nodes}{\tt Galacticus\_Nodes} module by use of the {\tt functions} element described below.
+\item [{\tt type}] The type of function.
+\item [{\tt bindsTo}] Specifies where this method should be bound. ``{\tt component}'' specifies binding to the specific implementation of this component class, ``{\tt componentClass}'' specifies binding to the component class, while ``{\tt top}'' specifies binding to the base {\tt nodeComponent} class.
+\end{description}
+\item [{\tt functions}] \emph{[Optional]} Contains the name of a file which will be included into the \hyperlink{objects.nodes.F90:galacticus_nodes}{\tt Galacticus\_Nodes} module. This file can contain functions which will be bound to this implementation. By virtue of being included in the \hyperlink{objects.nodes.F90:galacticus_nodes}{\tt Galacticus\_Nodes} module these functions have privelged access to the internal structure of all node component objects.
+\end{description}
 
 \subsubsection{Component Initialization}\index{components!initialization}
 
-When \glc\ starts, it initializes all available components. To be included in this initialization call, a component must include a {\tt treeNodeCreateInitialize} directive. Minimally, the initialization routine must check whether it has been selected by comparing the {\tt comopnentOption} argument to its name and, if so, increment {\tt comopnentTypeCount}. Typically, components will want to keep a record of whether or not they were selected, the value of {\tt componentTypeCount} after incrementing (it is used to index the component later), determine how many properties/data/histories are required, set up pointers for property methods and grab any pipes that it wants to use. An example of an initialization subroutine (taken from the exponential disk component) is given below, with annotations (lines beginning with $\rightarrow$):
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-@$\rightarrow$ Give the directive to indicate that we have a component that we want to be initialized.@
-  !# <treeNodeCreateInitialize>
-@$\rightarrow$ Specify the name of the subroutine to call to initialize the component.@
-  !#  <unitName>Tree_Node_Methods_Exponential_Disk_Initialize</unitName>
-@$\rightarrow$ Declare that this component implementation is to be selected by the {\tt treeNodeMethodDisk} parameter, and that ``{\tt exponential}'' (i.e. this implementation) should be the default choice.@
-  !#  <optionName default="exponential">treeNodeMethodDisk</optionName>
-  !# </treeNodeCreateInitialize>
-@$\rightarrow$ Subroutine begins: must have two arguments.@
-  subroutine Tree_Node_Methods_Exponential_Disk_Initialize(componentOption,componentTypeCount)
-    use ISO_Varying_String
-    ...
-    implicit none
-    type(varying_string), intent(in)    :: componentOption
-    integer,              intent(inout) :: componentTypeCount
-    type(varying_string)                :: message
+Initialization of a component module (if necessary, for example, to read parameters or allocate workspace) can occur at a number of different points in the execution of \glc. Providing initialization occurs in advance of any calculations then any point is acceptable. One possibility is simply to call an initialization function at the head of all functions defined in the component module. This initialization function should return immediately if it has already been called (to avoid duplicate initialization). Another option is to use the {\tt mergerTreePreTreeConstructionTask} event (see \S\ref{sec:MergerTreePreConstructionTask}) to perform initialization just before merger trees are constructed (the initialization function must again return immediately if it has been previously called).
 
-@$\rightarrow$ First check if the selected implementation (i.e. the value of the {\tt treeNodeMethodDisk} parameter, passed in as {\tt componentOption} matches the name for this component.@
-    if (componentOption == 'exponential') then
-@$\rightarrow$ It does, record that our method has been selected and proceed to do other initialization.@
-       methodSelected=.true.
+Optionally, a component may include a {\tt mergerTreeEvolveThreadInitialize} directive, which gives the name of a subroutine in its {\tt unitName} element. The routine specified by {\tt mergerTreeEvolveThreadInitialize} is called by all threads prior to merger tree evolution, and can therefore be used to perform any ``per thread'' initialization. Note that this routine will be called many times during a given \glc\ run---it is the responsibility of the routine to ensure that it performs any initialization only once.
 
-@$\rightarrow$ Incremant the component count (required) and store this value for later reference.@
-       componentTypeCount=componentTypeCount+1
-       componentIndex=componentTypeCount
+\subsubsection{Component Access, Creation and Destruction}\index{components!creation}\index{components!destruction}
 
-@$\rightarrow$ Display a message saying that we've been selected (not required).@
-       message='Exponential disk method selected [component index '
-       message=message//componentIndex//']'
-       call Galacticus_Display_Message(message,verbosityInfo)
+When a node is created, it initially contains no components. A component must therefore create itself on the fly as needed. Typically, a component is first created when an attempt is made to set a property value, or to adjust the rate of change of a property value or in response to some event (e.g. a satellite component may be created in response to a node merging with a larger node). Requests for property values frequently \emph{do not} require that the component exist, as a zero value can often be returned instead\footnote{Or some other value if a {\tt classDefault} has been specified (see \S\ref{sec:ComponentImplement}).}.
 
-@$\rightarrow$ Figure out how many properties and data we will need. In this case, we need to have enough to hold abundances and stellar luminosities in addition to some basic properties of the disk.@
-       abundancesCount=Abundances_Property_Count()
-       luminositiesCount=Stellar_Population_Luminosities_Count()
-       propertyCount=propertyCountBase+2*abundancesCount+luminositiesCount
-       dataCount    =dataCountBase
+To access a component from a node, use:
+\begin{verbatim}
+ myComponent => thisNode%<class>([instance=<N>,autoCreate=<create>])
+\end{verbatim}
+where {\tt class} is the component class required, the optional {\tt instance} argument requests a specific instance of the component (relevant if the node contains more than one of a particular component, e.g. if it contains two supermassive black holes for example; if no {\tt instance} is specified the first instance will be returned), and the {\tt autoCreate} option specifies whether or not the component should be automatically created (assuming it does not already exist). {\tt autoCreate}$=${\tt true} should be used to create components initially.
 
-@$\rightarrow$ Now assign some indices for properties and data, so that we know where to find them in the component.@
-       gasAbundancesIndex         =propertyCountBase                          +1
-       gasAbundancesIndexEnd      =gasAbundancesIndex       +abundancesCount  -1
-       stellarAbundancesIndex     =gasAbundancesIndexEnd                      +1
-       stellarAbundancesIndexEnd  =stellarAbundancesIndex   +abundancesCount  -1
-       stellarLuminositiesIndex   =stellarAbundancesIndexEnd                  +1
-       stellarLuminositiesIndexEnd=stellarLuminositiesIndex +luminositiesCount-1
+A component of a node can be destroyed using:
+\begin{verbatim}
+call thisNode%<class>Destroy()
+\end{verbatim}
 
-@$\rightarrow$ Associated procedure pointers for all properties, methods etc. In each case we must assign pointers to get and set values, adjust the rate of change for a property and to compute the rate of change. In some cases, these can be set to null or dummy values. (Not all properties shown beloe for brevity.)@
-       Tree_Node_Disk_Radius                                  => Exponential_Disk_Radius
-       Tree_Node_Disk_Radius_Set                              => null()
-       Tree_Node_Disk_Radius_Rate_Adjust                      => null()
-       Tree_Node_Disk_Radius_Rate_Compute                     => Tree_Node_Rate_Rate_Compute_Dummy
+\subsubsection{Component Methods}\label{sec:ComponentMethods}\index{components!methods}
 
-       Tree_Node_Disk_Gas_Mass                                => Tree_Node_Disk_Gas_Mass_Exponential
-       Tree_Node_Disk_Gas_Mass_Set                            => Tree_Node_Disk_Gas_Mass_Set_Exponential
-       Tree_Node_Disk_Gas_Mass_Rate_Adjust                    => Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential
-       Tree_Node_Disk_Gas_Mass_Rate_Compute                   => Tree_Node_Disk_Gas_Mass_Rate_Compute_Exponential
-
-@$\rightarrow$  Grab pipes from other components. Here we want to grab the cooling pipe from the hot halo. Check it has not already been grabbed.@
-       if (.not.associated(Tree_Node_Hot_Halo_Cooling_Mass_To)) then
-          Tree_Node_Hot_Halo_Cooling_Mass_To => Tree_Node_Disk_Gas_Mass_Rate_Adjust_Exponential
-       else
-          call Galacticus_Error_Report('Tree_Node_Methods_Exponential_Disk_Initialize','expected to find unclaimed hot halo cooling pipe')
-       end if
-
-@$\rightarrow$ We're done initializing the component.@
-    end if
-    return
-  end subroutine Tree_Node_Methods_Exponential_Disk_Initialize
-\end{lstlisting}
-
-Optionally, a component may include a {\tt mergerTreeEvolveThreadInitialize} directive, which gives the name of a subroutine in its {\tt unitName} element. Unlike the routine specified by {\tt treeNodeCreateInitialize}, which is called only once even when \glc\ is running in parallel under OpenMP, the routine specified by {\tt mergerTreeEvolveThreadInitialize} is called by all threads, and can therefore be used to perform any ``per thread'' initialization. Note that this routine will be called many times during a given \glc\ run---it is the responsibility of the routine to ensure that it performs any initialization only once.
-
-\subsubsection{Component Creation and Destruction}\index{components!creation}\index{components!destruction}
-
-When a node is created, it initially contains no components. A component must therefore create itself on the fly as needed. Typically, a component is first created when an attempt is made to set a property value, or to adjust the rate of change of a property value or in response to some event (e.g. a satellite component may be created in response to a node merging with a larger node). Requests for property values frequently \emph{do not} require that the component exist, as a zero value can often be returned instead. In such cases, it is useful to be able to check whether or not a component exists in a given node. This is done using {\tt thisNode\%componentExists(componentIndex)} where {\tt componentIndex} is the index stored during initialization.
-
-Typically, we implement component creation within a function which returns the index of the current component within the {\tt components} array in the node. (This is not the same as {\tt componentIndex} and will vary from node to node depending on the order in which components were created for that node.) An example, taken from the exponential disk component, is given below, with annotations (lines beginning with $\rightarrow$):
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-@$\rightarrow$ Define a function that returns the index of the component in {\tt thisNode}.@
-  integer function Tree_Node_Exponential_Disk_Index(thisNode)
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    integer                                :: thisIndex
-    
-@$\rightarrow$ Check if the component already exists\ldots@
-    if (.not.thisNode%componentExists(componentIndex)) then
-@$\rightarrow$ \ldots it does not, all {\tt createComponent} with the number of data, properties and histories required for this component.@
-       call thisNode%createComponent(componentIndex,propertyCount,dataCount,historyCount)
-@$\rightarrow$ Get the index within the {\tt components} array at which the component was created.@
-       thisIndex=thisNode%componentIndex(componentIndex)
-@$\rightarrow$ For this disk method, we call a routine to create the history component which will be used to store stellar properties.@
-       call Stellar_Population_Properties_History_Create(thisNode,thisNode%components(thisIndex)%instance(1)%histories(stellarHistoryIndex))
-    else
-@$\rightarrow$ \ldots it does exist, simply get the index within the {\tt components} array at which the component is stored.@
-       thisIndex=thisNode%componentIndex(componentIndex)
-    end if
-@$\rightarrow$ Return the result.@
-    Tree_Node_Exponential_Disk_Index=thisIndex
-    return
-  end function Tree_Node_Exponential_Disk_Index
-\end{lstlisting}
-In this way, the rest of the module doesn't have to concern itself with creation---it simply requests the index of the component, knowing that it will be created as needed.
-
-If necessary, a component can be destroyed using:
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-       call thisNode%destroyComponent(componentIndex,propertyCount,dataCount,historyCount)
-\end{lstlisting}
-
-\subsubsection{Component Methods}\index{components!methods}
-
-Component methods provide a way for other components and functions within \glc\ to access the properties of a component, in a way that is independent of the specific component implementation chosen. To permit this, \glc\ will create a set of pointers which access methods for each property\footnote{Additionally, C wrappers are generated to the get methods for scalar properties. See \S\protect\ref{sec:MixedLanguageCoding} for a discussion of includeing C code within \protect\glc.}. For example, the exponential disk component has a ``stellar mass'' property. It informs \glc\ about this property using the directive:
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  !# <treeNodeMethodsPointer>
-  !#  <methodName>Tree_Node_Disk_Stellar_Mass</methodName>
-  !# </treeNodeMethodsPointer>
-\end{lstlisting}
-This causes \glc\ to define four procedure pointers. The first two (the second two will be discussed below) are get and set methods for the property. The component, if selected, must associate these pointers which actual implementations during initialization. In our example case, this would require:
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  Tree_Node_Disk_Stellar_Mass     => Tree_Node_Disk_Stellar_Mass_Exponential
-  Tree_Node_Disk_Stellar_Mass_Set => Tree_Node_Disk_Stellar_Mass_Set_Exponential
-\end{lstlisting}
-The {\tt Tree\_Node\_Disk\_Stellar\_Mass\_Exponential} function must return the value of the stellar mass property and might look like:
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  double precision function Tree_Node_Disk_Stellar_Mass_Exponential(thisNode,instance)
-    implicit none
-    type(treeNode), pointer,  intent(inout) :: thisNode
-    integer,        optional, intent(in)    :: instance
-    integer                                 :: thisIndex
-
-    if (thisNode%componentExists(componentIndex)) then
-       thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-       Tree_Node_Disk_Stellar_Mass_Exponential=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)
-    else
-       Tree_Node_Disk_Stellar_Mass_Exponential=0.0d0
-    end if
-    return
-  end function Tree_Node_Disk_Stellar_Mass_Exponential
-\end{lstlisting}
-This function first checks whether or not an exponential disk component exists in this node. If it does, it finds the index of that node and then returns the value of the stellar mass property. If the component does not exist, it returns zero without causing a disk to be created. The optional {\tt instance} argument specifies which instance of this component is to be used. In this example its value is ignored as the exponential disk only ever has one instance. In more general cases the function must return the property of the specific instance of the comopnent. If {\tt instance} is not present, the function should do whatever is sensible in the specific case (this might be to return the default instance, exit with an error, or return the instance for which rates are currently being computed\footnote{This approach is rather unsatisfactory. An improved framework for handling multiple instances will be implemented in v0.9.1 of \protect\glc.}).
-
-The {\tt Tree\_Node\_Disk\_Stellar\_Mass\_Set\_Exponential} subroutine must set the stellar mass to the specified value, and might look like:
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  subroutine Tree_Node_Disk_Stellar_Mass_Set_Exponential(thisNode,mass,instance)
-    implicit none
-    type(treeNode),   pointer,  intent(inout) :: thisNode
-    double precision,           intent(in)    :: mass
-    integer,          optional, intent(in)    :: instance
-    integer                                   :: thisIndex
-
-    thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyValue)=mass
-    return
-  end subroutine Tree_Node_Disk_Stellar_Mass_Set_Exponential
-\end{lstlisting}
-Here, we first get the index of our component in the node (which will cause the component to be created if it does not already exist as discussed above) and then set the stellar mass to the input value, {\tt mass}. Once again, the optional {\tt instance} argument (ignored here) specifies in which instance the value should be set.
-
-Note that both of these procedures can be left {\tt null()}. Any attempt to call them will then cause the code to crash. Alternatively, an unsettable property could simply refuse to honor a request to set its value, either ignoring it, or exiting with an error message.
+Component implementations optionally provide functions to get and set their properties (and to set the rate of change of evolvable properties) so that other components and functions within \glc\ to can interact with them in a way that is independent of the specific component implementation chosen. To permit this, \glc\ creates functions for each property to access it in all permitted ways\footnote{Additionally, C wrappers are generated to the get methods for real scalar properties. See \S\protect\ref{sec:MixedLanguageCoding} for a discussion of includeing C code within \protect\glc.}. For example, the {\tt exponential} implementation of the {\tt disk} component class has a ``{\tt massStellar}'' property defined by:
+\begin{verbatim}
+ <method>
+   <name>massStellar</name>
+   <type>real</type>
+   <rank>0</rank>
+   <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+ </method>
+\end{verbatim}
+This causes \glc\ to define several functions bound to the {\tt nodeComponentDisk} class:
+\begin{description}
+\item [{\tt massStellarIsSettable}] Returns {\tt true} if this property is settable;
+\item [{\tt massStellarIsGettable}] Returns {\tt true} if this property is gettable;
+\item [{\tt massStellarSet}] Sets the value of this property to the supplied argument;
+\item [{\tt massStellarGet}] Gets the value of this property;
+\item [{\tt massStellarRate}] Cumulates its argument to the rate of change of this property;
+\item [{\tt massStellarScale}] Sets the absolute scale for this property used in ODE error control;
+\end{description}
+along with several others used internally for output, serialization etc.
 
 \subsubsection{Component Evolution}\label{sec:ComponentEvolution}\index{evolution}\index{components!evolution}
 
-All component properties are included in \glc's ODE solver as the node is evolved forward in time. \glc\ will create two pointers that permit the rate of change of a property to be computed and adjusted. These pointers should be associated with actual implementations during component initialization. For example, in the exponential disk component the stellar mass property pointers are set using:
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-   Tree_Node_Disk_Stellar_Mass_Rate_Adjust  => Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential
-   Tree_Node_Disk_Stellar_Mass_Rate_Compute => Tree_Node_Disk_Stellar_Mass_Rate_Compute_Exponential
-\end{lstlisting}
+All component properties which have an {\tt isEvolvable} attribute set to {\tt true} are included in \glc's ODE solver as the node is evolved forward in time. As described in \S\ref{sec:ComponentMethods}, \glc\ will create two functions that permit the rate of change of a property adjusted and for the absolute scale used in ODE error control to be set.
 
-The ``rate adjust'' subroutine should look something like:
+A ``rate compute'' function should be defined to perform any calculations necessary to determine the rate of change of the property and adjust the rate appropriately. Below is an example of the rate compute subroutine for the stellar mass property of the exponential disk component, with only the basic structure shown:
 \begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,rateAdjustment,instance)
+  !# <rateComputeTask>
+  !#  <unitName>Node_Component_Disk_Exponential_Rate_Compute</unitName>
+  !# </rateComputeTask>
+  subroutine Node_Component_Disk_Exponential_Rate_Compute(thisNode,interrupt,interruptProcedure)
     implicit none
-    type(treeNode),   pointer,  intent(inout) :: thisNode
-    logical,                    intent(inout) :: interrupt
-    procedure(),      pointer,  intent(inout) :: interruptProcedure
-    double precision,           intent(in)    :: rateAdjustment
-    integer,          optional, intent(in)    :: instance
-    integer                                   :: thisIndex
-    
-    if (.not.thisNode%componentExists(componentIndex)) then
-       if (rateAdjustment /= 0.0d0) then
-          interrupt=.true.
-          interruptProcedure => Exponential_Disk_Create
-       end if
-       return
-    end if
-    thisIndex=Tree_Node_Exponential_Disk_Index(thisNode)
-    thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyDerivative)&
-         &=thisNode%components(thisIndex)%instance(1)%properties(stellarMassIndex,propertyDerivative)+rateAdjustment
-    return
-  end subroutine Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential
-\end{lstlisting}
-Here, we first check if an exponential disk component exists. If it does not, and the given {\tt rateAdjustment} is non-zero, then we need to create a disk component before we can adjust the rate. Since we are in the process of solving a set of ODEs which do not currently include the disk properties (since no disk exists) we need to interrupt the evolution and create a disk. This is done by setting {\tt interrupt-.true.} and setting {\tt interruptProcedure} to point to a procedure which will create a disk, and then returning. Interrupts will be discussed in more detail below. If the compoent does already exist, we simply find its index in the {\tt components} array and add {\tt rateAdjustment} to the current rate of change for the stellar mass property. If present, the {\tt instance} arugment specifies the instance of the component whose rate should be adjusted.
-
-The ``rate compute'' subroutine should simply perform any calculations necessary to determine the rate of change of the property and adjust the rate appropriately\footnote{Actually, a single rate compute subroutine can compute and adjust rates for multiple properties within a component. Often this is convenient as their rates are related. In that case, the rate compute subroutines for those other properties can be left empty, or the relevant pointer let unset (it will be set to point to a dummy rate compute subroutine by default).}. Below is an example of the rate compute subroutine for the stellar mass property of the exponential disk component, with only the basic structure shown:
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  subroutine Tree_Node_Disk_Stellar_Mass_Rate_Compute_Exponential(thisNode,interrupt,interruptProcedureReturn)
-    implicit none
-    type(treeNode),            pointer,  intent(inout)       :: thisNode
-    logical,                             intent(inout)       :: interrupt
-    procedure(),               pointer,  intent(inout)       :: interruptProcedureReturn
+    type     (treeNode             ), pointer, intent(inout) :: thisNode
+    logical                         ,          intent(inout) :: interrupt
+    procedure(                     ), pointer, intent(inout) :: interruptProcedure
+    class    (nodeComponentDisk    ), pointer                :: thisDiskComponent
  
-    if (thisNode%componentExists(componentIndex)) then
+    ! Get the disk and check that it is of our class.
+    thisDiskComponent => thisNode%disk()
+    select type (thisDiskComponent)
+    class is (nodeComponentDiskExponential)
       ...
-      call Tree_Node_Disk_Stellar_Mass_Rate_Adjust_Exponential(thisNode,interrupt,interruptProcedure,stellarMassRate)
+      call thisDiskComponent%massStellarRate(stellarMassRate)
       ...
-    end if
+    end select
     return
-  end subroutine Tree_Node_Disk_Stellar_Mass_Rate_Compute_Exponential
+  end subroutine Node_Component_Disk_Exponential_Rate_Comput
 \end{lstlisting}
-Here, we simply check that the component exists and, if it does, compute the rates of change for one or more properties and then adjust their rates appropriately. If multiple instances are present, this function should compute rates for all instances. To aid in doing this, it is possible to set an ``active instance'' for the component, using
-\begin{verbatim}
- call thisNode%components(thisIndex)%activeInstanceSet(iInstance)
-\end{verbatim}
- where {\tt iInstance} is the instance for which the rate is currently being computed. Other function (notably the {\tt get} methods above) can then use {\tt thisNode\%components(thisIndex)\%activeInstance()} to determine which instance they should work with if no specific {\tt instance} is passed to them as an argument. Once computation of rates is completed
-\begin{verbatim}
-  call thisNode%components(thisIndex)%activeInstanceNullify()
-\end{verbatim}
-will set the active instance to a null value (labelled {\tt instanceNull}) which indicates that no specific instance is active.
-
-\emph{Note: This method for handling multiple instances is very unsatisfactory for a number of reasons. An improved framework for handling multiple instances is planned for v0.9.1 of \glc.}
+Here, we get the disk component and check that it of the {\tt exponential} variety. If it is, we compute the rates of change for one or more properties and then adjust their rates appropriately. If multiple instances of a component are used then the rate compute function should loop over all instances and adjust rates appropriately.
 
 When evolving ODEs the ODE solver aims to keep the error on property $i$ below
 \begin{equation}
  D_i = \epsilon_{\rm abs} s_i + \epsilon_{\rm rel} |y_i|,
 \end{equation}
-where $epsilon_{\rm abs}=${\tt [odeToleranceAbsolute]}, $epsilon_{\rm rel}=${\tt [odeToleranceRelative]}, $y_i$ is the value of property $i$ and $s_i$ is a scaling factor which controls the absolute tolerance for this property. By default, $s_i=1$, but this can be changed by a component utilizing the {\tt scaleSetTask} directive. This allows a subroutine to be called in which the component sets suitable scale factors for each of its properties prior to any ODE evolution being carried out. This can be very useful, for example, in cases where two components are coupled. Consider a case where a disk is transferring material to a spheroid via a bar instability. If the disk is orders of magnitude more massive that the spheroid then the rate of mass transfer can be very high (i.e. $\dot{y}/y$ for the spheroid will be large). With just a relative tolerance (i.e. the $\epsilon_{\rm rel} |y_i|$ term) this would require very short timesteps for the spheroid. However, in such cases we don't care about such tiny 
-tolerances for the spheroid (since it will grow to be substantially more massive). Therefore, it may be appropriate to set $s_i$ to be equal to the sum of the disk and spheroid properties for example. The scale set directive and associated subroutine should follow this template:
+where $epsilon_{\rm abs}=${\tt [odeToleranceAbsolute]}, $epsilon_{\rm rel}=${\tt [odeToleranceRelative]}, $y_i$ is the value of property $i$ and $s_i$ is a scaling factor which controls the absolute tolerance for this property. By default, $s_i=1$, but this can be changed for a component utilizing the {\tt scaleSetTask} directive. This allows a function to be called in which the component sets suitable scale factors for each of its properties prior to any ODE evolution being carried out. This can be very useful, for example, in cases where two components are coupled. Consider a case where a disk is transferring material to a spheroid via a bar instability. If the disk is orders of magnitude more massive that the spheroid then the rate of mass transfer can be very high (i.e. $\dot{y}/y$ for the spheroid will be large). With just a relative tolerance (i.e. the $\epsilon_{\rm rel} |y_i|$ term) this would require very short timesteps for the spheroid. However, in such cases we don't care about such tiny tolerances for the spheroid (since it will grow to be substantially more massive). Therefore, it may be appropriate to set $s_i$ to be equal to the sum of the disk and spheroid properties for example. The scale set directive and associated subroutine should follow this template:
 \begin{verbatim}
   !# <scaleSetTask>
-  !#  <unitName>Component_Scale_Set</unitName>
+  !#  <unitName>Node_Component_Disk_Exponential_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Component_Disk_Scale_Set(thisNode)
+  subroutine Node_Component_Disk_Exponential_Scale_Set(thisNode)
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type (treeNode         ), pointer, intent(inout) :: thisNode
+    class(nodeComponentDisk), pointer                :: thisDiskComponent
 
-    ! Check that a component of this type is active, otherwise exit.
-
-    ! Set the scale factor for each property, e.g.:
-    thisNode%components(thisIndex)%instance(1)%properties(massIndex,propertyScale)=massScale
-
-    ! Set scale factors for history properties, e.g.:
-    thisHistory%scales(:,massIndex)=massScale
-
+    ! Get the disk component.
+    thisDiskComponent => thisNode%disk()
+    ! Check if an exponential disk component exists.
+    select type (thisDiskComponent)
+    class is (nodeComponentDiskExponential)
+      ...
+      call thisDiskComponent%massStellarScale(massScale)
+      ...
+    end select
     return
-  end subroutine Component_Disk_Scale_Set
+  end subroutine Node_Component_Disk_Exponential_Scale_Set
 \end{verbatim}
-where {\tt thisIndex} is the location of the component in the {\tt components()} array, {\tt massIndex} is the internal index in the this of properties refering to some mass property and {\tt massScale} is the value of $s_i$ for that property. The label {\tt propertyScale} is used to ensure that the scale factor is stored in the correct element of the {\tt properties()} array. Sensible choices for the $s_i$ factors can significantly speed-up execution of \glc.
-
-\subsubsection{Component Pipes}\index{pipes}\index{components!pipes}
-
-Pipes can be thought of as interfaces between components that allow information to flow from one to the other. For example, suppose that a component representing the hot halo computes a rate of mass drop out due to cooling. This mass should flow into a galaxy component (typically the disk). To facilitate this, the hot halo component can define a pipe such as:
-\begin{verbatim}
-  !# <treeNodePipePointer>
-  !#  <pipeName>Tree_Node_Hot_Halo_Cooling_To</pipeName>
-  !# </treeNodePipePointer>
-\end{verbatim}
-Here {\tt Tree\_Node\_Hot\_Halo\_Cooling\_To} is a pointer to a {\tt rate-adjust} subroutine. During initialization, some other component can claim this pointer, and make it point to the {\tt rate-adjust} subroutine of one of their properties (e.g. the disk component could point it to the {\tt rate-adjust} subroutine for its gas mass property). Then, the hot halo component, after determining the rate of mass drop out, simply calls {\tt Tree\_Node\_Hot\_Halo\_Cooling\_To} with the appropriate node and rate to cause this mass to flow into the disk. 
-
-This approach means that the hot halo component doesn't need to know in advance where the mass should be directed. This allows for the possibility that a different module is added to handle disks (for example), or that the cooling gas is to be directed to some other component.
-
-Pipes are initialized to point to {\tt null()}. The defining component can choose to leave them this way, in which case it should either check that they have been associated before calling them and, if they haven't, either decide to not care or to exit gracefully with an error. Alternatively, the defining component can, on finding an unassociated pipe, point it to {\tt Tree\_Node\_Rate\_Adjust\_Dummy} which acts as a sink function---any rate adjustment passed into it is simply ignored. This is useful if, for example, we don't care where the mass cooling out of the hot halo goes in some instances.
+Sensible choices for the $s_i$ factors can significantly speed-up execution of \glc.
 
 \subsubsection{Evolution Interrupts}\index{interrupts}\index{evolution!interrupt}
 
@@ -330,10 +292,6 @@ An interrupt procedure should have the form:
     return
   end subroutine My_Interrupt_Procedure
 \end{lstlisting}
-
-\subsubsection{Sterile Methods}
-
-A \emph{sterile} method is one which acts like a regular property but is not part of the {\tt properties()} array. For example, it may return a value from the {\tt data()} array, or some other function. Sterile methods can be created as a regular method, but with the {\tt set} and {\tt rate-adjust} subroutines left pointing to {\tt null()}. The {\tt rate-compute} method should be set to point to {\tt Tree\_Node\_Rate\_Rate\_Compute\_Dummy} which is a dummy {\tt rate-compute} procedure (i.e. it does nothing).
 
 \section{Existing Method Types}
 
@@ -411,9 +369,10 @@ Currently defined accretion disk methods are:
  \item [{\tt switched}] Select either {\tt Shakura-Sunyaev} or {\tt ADAF} accretion disks based on the accretion rate:
  \begin{eqnarray}
   \dot{m}_{\rm minimum} < \dot{M}_{\bullet, 0}/\dot{M}_{\rm Eddington} < \dot{m}_{\rm maximum} &\rightarrow& \hbox{ Shakura-Sunyaev} \nonumber \\
-  \hbox{otherwise } &\rightarrow& \hbox{ ADAG},
+  \hbox{otherwise } &\rightarrow& \hbox{ ADAF},
  \end{eqnarray}
  where $\dot{m}_{\rm minimum}$={\tt accretionRateThinDiskMinimum} and $\dot{m}_{\rm maximum}$={\tt accretionRateThinDiskMaximum} are input parameters.
+ \item [{\tt eddingtonLimited}] Assumes no specific disk structure, instead setting the radiative efficiency to a fixed number and the jet power to a fixed fraction of the Eddington luminosity.
 \end{description}
 
 \subsubsection{Accretion Onto Halos}
@@ -495,6 +454,7 @@ respectively.
 Currently defined accretion disk methods are:
 \begin{description}
  \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \gls{igm} (i.e. abundances are always zero) and chemicals are computed using the chemical state functions (see \S\ref{sec:ChemicalStateMethods}).
+ \item [{\tt null}] Assumes no accretion onto halos.
 \end{description}
 
 \subsubsection{Atomic Collisional Ionization Rates}
@@ -1223,6 +1183,7 @@ The function must return the cooling radius (in units of Mpc) for {\tt thisNode}
 Currently defined cooling radius methods are:
 \begin{description}
  \item [\hyperlink{cooling.cooling_radius.simple.F90:cooling_radii_simple:cooling_radius_simple}{{\tt simple}}] Computes the cooling radius by seeking the radius at which the time available for cooling equals the cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
+ \item [\hyperlink{cooling.cooling_radius.isothermal_profile.F90:cooling_radii_isothermal:cooling_radius_isothermal}{{\tt isothermal}}] Computes the cooling radius by assuming that the hot gas density profile is an isothermal profile ($\rho(r) \propto r^{-2}$), and that the cooling rate scales as density squared, $\dot{E}\propto \rho^2$, such that the cooling time scales as inverse density, $t_{\rm cool} \propto \rho^{-1}$. Consequently, the cooling radius grows as the square root of the time available for cooling.
 \end{description}
 
 \subsubsection{Cooling: Freefall Radius}
@@ -1349,6 +1310,7 @@ The function must return the specific angular momentum (in units of km/s Mpc) of
 Currently defined specific angular momentum of cooling gas methods are:
 \begin{description}
  \item [\hyperlink{cooling.specific_angular_momentum.constant_rotation.F90:cooling_specific_angular_momenta_constant_rotation:cooling_specific_angular_momentum_constant_rotation}{{\tt constantRotation}}] Computes the specific angular momentum of the cooling gas based on the cooling radius, mean specific angular momentum and the assumption of a constant mean rotation speed in the cooling gas as a function of radius.
+ \item [\hyperlink{cooling.specific_angular_momentum.mean.F90:cooling_specific_angular_momenta_mean:cooling_specific_angular_momentum_mean}{{\tt mean}}] Assumes that the specific angular momentum of the cooling gas always equals the mean specific angular momentum of the hot halo.
 \end{description}
 
 \subsubsection{Cooling Time Available}
@@ -1498,15 +1460,16 @@ Here, {\tt Cosmology\_Functions\_Matter\_Lambda\_Initialize} is the name of a su
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
        &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
        &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get &
-       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get)
+       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion)
     implicit none
     type(varying_string),          intent(in)    :: cosmologyMethod
-    procedure(),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
-       &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
-       &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
-       &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get &
-       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get
-    
+    procedure(),                 pointer, intent(inout) :: Early_Time_Density_Scaling_Get
+    procedure(logical),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get
+    procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get &
+         &,Omega_Matter_Total_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
+         &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get&
+         &,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion_Get
+
     if (cosmologyMethod == 'myMethod') then
        Procedure_Pointer_Get => My_Procedure
        .
@@ -1707,6 +1670,19 @@ Should return the comoving distance (in units of Mpc) to the given cosmic time (
 \end{verbatim}
 Should return the cosmic time (in units of Gyr) corresponding to the given comoving distance (in units of Mpc).
 
+\begin{verbatim}
+   double precision function My_Comoving_Distance_Conversion(output,distanceModulus,redshift)
+     implicit none
+     integer         , intent(in   ) :: output
+     double precision, intent(in   ) :: distanceModulus,redshift
+     .
+     .
+     .
+     return
+   end function My_Comoving_Distance_Conversion
+\end{verbatim}
+Should convert between different measures of the cosmological distance to an object. Currently, the only option for {\tt output} is {\tt distanceTypeComoving}, such that the returned value must always be the comoving distance (in units of Mpc). At least one of {\tt distanceModulus} and {\tt redshift} must be supplied---the function mus derive comoving distance from that supplied value.
+
 Currently defined cosmology methods are:
 \begin{description}
  \item [{\tt matter-lambda}] Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.
@@ -1756,6 +1732,7 @@ The subroutine must tabulate the critical overdensity in array {\tt deltaCritDel
 Currently defined critical overdensity methods are:
 \begin{description}
  \item [{\tt sphericalTopHat}] The critical overdensity is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
+ \item [{\tt Kitayama-Suto1996}] The critical overdensity is computed using the fitting formula of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.
 \end{description}
 
 \subsubsection{Critical Overdensity for Halo Collapse: Mass Scaling}
@@ -2405,6 +2382,7 @@ Currently defined radius solver methods are:
  \item [\hyperlink{galactic_structure.radius_solver.simple.F90:galactic_structure_radii_simple:galactic_structure_radii_solve_simple}{{\tt simple}}] This solver computes radii assuming that the gravitational potential is dominated by dark matter (i.e. no baryonic self-gravity is included) and that dark matter does not respond to the presence of baryons (i.e. no adiabatic contraction). It uses the ``radius solver'' (see \S\ref{sec:radius_solver}) task to interact with the node.
  \item [\hyperlink{galactic_structure.radius_solver.adiabatic.F90:galactic_structure_radii_adiabatic:galactic_structure_radii_solve_adiabatic}{{\tt adiabatic}}] This solver computes radii including the effects of self-gravity of the baryonic component and adiabatic contraction of the dark matter halo using the method of \cite{gnedin_response_2004}. It uses the ``radius solver'' (see \S\ref{sec:radius_solver}) task to interact with the node.
  \item [\hyperlink{galactic_structure.radius_solver.linear.F90:galactic_structure_radii_linear:galactic_structure_radii_solve_linear}{{\tt linear}}] This solver assumes that radii scale linearly with specific angular momentum, equalling the virial radius when the specific angular momentum equals the product of virial radii and velocities. It uses the ``radius solver'' (see \S\ref{sec:radius_solver}) task to interact with the node.
+ \item [\hyperlink{galactic_structure.radius_solver.fixed.F90:galactic_structure_radii_fixed:galactic_structure_radii_solve_fixed}{{\tt fixed}}] This solver assumes that radii equal the product of virial radius of the halo and its spin parameter (with an adjustable coefficient). It uses the ``radius solver'' (see \S\ref{sec:radius_solver}) task to interact with the node.
 \end{description}
 
 \subsubsection{Hot Halo Density Profile}
@@ -2427,11 +2405,12 @@ Here, {\tt Hot\_Halo\_Density\_Cored\_Isothermal} is the name of a subroutine wh
        Hot_Halo_Density_Log_Slope_Get              => My_Method_Log_Slope_Get
        Hot_Halo_Enclosed_Mass_Get                  => My_Method_Enclosed_Mass_Get
        Hot_Halo_Profile_Rotation_Normalization_Get => My_Method_Rotation_Normalization_Get
+       Hot_Halo_Profile_Radial_Moment_Get          => My_Method_Radial_Moment_Get
     end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt hotHaloDensityMethod} input parameter. The procedure pointer {\tt Hot\_Halo\_Density\_Get} must be set to point to a function which returns the hot halo density as described below while {\tt Hot\_Halo\_Density\_Log\_Slope\_Get} should be set to point to a function which returns the logarithmic slope of that profile. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt hotHaloDensityMethod} input parameter. The procedure pointer {\tt Hot\_Halo\_Density\_Get} must be set to point to a function which returns the hot halo density as described below while {\tt Hot\_Halo\_Density\_Log\_Slope\_Get} should be set to point to a function which returns the logarithmic slope of that profile. Similarly, {\tt Hot\_Halo\_Enclosed\_Mass\_Get}, {\tt Hot\_Halo\_Profile\_Rotation\_Normalization\_Get}, and {\tt Hot\_Halo\_Profile\_Radial\_Moment\_Get} should be set to point to functions which return the mass enclosed within a specified radius, the normalization of the rotation speed for the halo (see below), and the radial moments of the density profile respectively The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The density function must have the form:
 \begin{verbatim}
@@ -2459,6 +2438,24 @@ The rotation velocity normalization function must have the form:
   end function My_Rotation_Normalization
 \end{verbatim}
 and should compute and return the normalization between rotation speed and mean specific angular momentum (in units of Mpc$^{-1}$) of {\tt thisNode} assuming that the hot gas profile rotates at the same velocity at all radii.
+
+The radial moment function must have the form:
+\begin{verbatim}
+  double precision function My_Radial_Moment(thisNode,moment,radius)
+    implicit none
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: moment,radius
+    .
+    .
+    .
+    return
+  end function My_Radial_Moment
+\end{verbatim}
+and should compute and return the radial moment of the profile
+\begin{equation}
+\int_0^r \rho(r^\prime) r^{\prime n} {\rm d}r^\prime,
+\end{equation}
+where $n=${\tt moment} and $r=${\tt radius}.
 
 Currently defined hot halo density profile methods are:
 \begin{description}
@@ -2603,35 +2600,49 @@ Additional methods for the halo bias (i.e. the linear theory bias) can be added 
 \end{verbatim}
 Here, {\tt Dark\_Matter\_Halo\_Bias\_Press\_Schechter\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Get)
+  subroutine Method_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get)
     implicit none
     type(varying_string),          intent(in)    :: darkMatterHaloBiasMethod
     procedure(),          pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
     
-    if (darkMatterHaloBiasMethod == 'myMethod') Dark_Matter_Halo_Bias_Get => My_Method_Tabulate
+    if (darkMatterHaloBiasMethod == 'myMethod') then
+       Dark_Matter_Halo_Bias_Node_Get => My_Method_Node_Get
+       Dark_Matter_Halo_Bias_Get      => My_Method_Get
+    end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterHaloBiasMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Halo\_Bias\_Get} must be set to point to a subrouine which returns a tabulation of the halo mass function. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterHaloBiasMethod} input parameter. The procedure pointers {\tt Dark\_Matter\_Halo\_Bias\_Node\_Get} and {\tt Dark\_Matter\_Halo\_Bias\_Get} must be set to point to functions which return the bias of the specified halo. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The halo bias function must have the form:
+The halo bias functions must have the following forms.
 \begin{verbatim}
- double precision function Dark_Matter_Halo_Bias(thisNode)
+ double precision function Dark_Matter_Halo_Bias_Node(thisNode)
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     .
     .
     .
     return
+ end function Dark_Matter_Halo_Bias_Node
+\end{verbatim}
+The function should return the linear theory bias for {\tt thisNode}.
+\begin{verbatim}
+ double precision function Dark_Matter_Halo_Bias(mass,time)
+    implicit none
+    double precision, intent(in   ) :: mass,time
+    .
+    .
+    .
+    return
  end function Dark_Matter_Halo_Bias
 \end{verbatim}
-The function should return the linear theory bias for {\tt thisNode}
+The function should return the linear theory bias for the given {\tt mass} and {\tt time}. Two versions of these functions are provided because a common assumption is that the bias depends only on mass and time, while in reality it may depend on other properties of the halo (environment, formation time etc.). The first version of the function allows for arbitrary dependence on properties of the node.
 
 Currently defined halo bias methods are:
 \begin{description}
- \item [\hyperlink{structure_formation.CDM.halo_bias.Press-Schechter.F90:dark_matter_halo_biases_press_schechter:dark_matter_halo_bias_press_schechter}{{\tt Press-Schechter}}] Implements the bias resulting from the Press-Schechter \citep{press_formation_1974} mass function \citep{mo_analytic_1996}.
- \item [\hyperlink{structure_formation.CDM.halo_bias.SMT.F90:dark_matter_halo_biases_smt:dark_matter_halo_bias_smt}{{\tt SMT}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} bias.
- \item [\hyperlink{structure_formation.CDM.halo_bias.Tinker2010.F90:dark_matter_halo_biases_tinker2010:dark_matter_halo_bias_tinker2010}{{\tt Tinker2010}}] Implements the bias described by \cite{tinker_large_2010}.
+ \item [\hyperlink{structure_formation.halo_bias.Press-Schechter.F90:dark_matter_halo_biases_press_schechter:dark_matter_halo_bias_press_schechter}{{\tt Press-Schechter}}] Implements the bias resulting from the Press-Schechter \citep{press_formation_1974} mass function \citep{mo_analytic_1996}.
+ \item [\hyperlink{structure_formation.halo_bias.SMT.F90:dark_matter_halo_biases_smt:dark_matter_halo_bias_smt}{{\tt SMT}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} bias.
+ \item [\hyperlink{structure_formation.halo_bias.Tinker2010.F90:dark_matter_halo_biases_tinker2010:dark_matter_halo_bias_tinker2010}{{\tt Tinker2010}}] Implements the bias described by \cite{tinker_large_2010}.
 \end{description}
 
 \subsubsection{Halo Mass Functions}
@@ -2644,38 +2655,35 @@ Additional methods for the halo mass function can be added using the {\tt haloMa
 \end{verbatim}
 Here, {\tt Halo\_Mass\_Function\_Press\_Schechter\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Tabulate)
+  subroutine Method_Initialize(haloMassFunctionMethod,Halo_Mass_Function_Differential_Get)
     implicit none
     type(varying_string),          intent(in)    :: haloMassFunctionMethod
     procedure(),          pointer, intent(inout) :: Halo_Mass_Function_Tabulate
     
-    if (haloMassFunctionMethod == 'myMethod') Halo_Mass_Function_Tabulate => My_Method_Tabulate
+    if (haloMassFunctionMethod == 'myMethod') Halo_Mass_Function_Differential_Get => My_Method_Get
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt haloMassFunctionMethod} input parameter. The procedure pointer {\tt Halo\_Mass\_Function\_Tabulate} must be set to point to a subrouine which returns a tabulation of the halo mass function. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt haloMassFunctionMethod} input parameter. The procedure pointer {\tt Halo\_Mass\_Function\_Differential\_Get} must be set to point to a subrouine which returns the differential form of the halo mass function. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
-The halo mass function tabulating subroutine must have the form:
+The halo mass function function must have the form:
 \begin{verbatim}
- double precision function Halo_Mass_Function_Tabulate(time,logMass,haloMassFunctionNumberPoints,haloMassFunctionLog
-Mass,haloMassFunctionLogAbundance)
+ double precision function Halo_Mass_Function_Differential_Get(time,mass)
     implicit none
-    double precision,                            intent(in)    :: time,logMass
-    double precision, allocatable, dimension(:), intent(inout) :: haloMassFunctionLogMass,haloMassFunctionLogAbundance
-    integer,                                     intent(out)   :: haloMassFunctionNumberPoints
+    double precision, intent(in   ) :: time,mass
     .
     .
     .
     return
- end function Halo_Spin_Sample_Get
+ end function Halo_Mass_Function_Differential_Get
 \end{verbatim}
-The subroutine should create a tabulation of the halo mass function for time {\tt time}, $\d n/\d M$ (in units of Mpc$^{-3} M_\odot^-1$) in the arrays {\tt haloMassFunctionLogMass} and {\tt haloMassFunctionLogAbundance}. These should be allocated to whatever size the method deems appropriate (they may need to be deallocated first) and the number of tabulated points returned in {\tt haloMassFunctionNumberPoints}. The subroutine should ensure that {\tt logMass} is included in the range of the tabulation.
+The function should return the halo mass function, $\d n/\d M$ (in units of Mpc$^{-3} M_\odot^-1$) at mass {\tt mass} and time {\tt time}.
 
 Currently defined halo mass function methods are:
 \begin{description}
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Press-Schechter.F90:halo_mass_function_press_schechter:halo_mass_function_press_schechter_tabulate}{{\tt Press-Schechter}}] Implements the Press-Schechter \citep{press_formation_1974} mass function.
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Sheth-Tormen.F90:halo_mass_function_sheth_tormen:halo_mass_function_sheth_tormen_tabulate}{{\tt Sheth-Tormen}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} mass function.
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Tinker2008.F90:halo_mass_function_tinker2008:halo_mass_function_tinker2008_tabulate}{{\tt Tinker2008}}] Implements the mass function described by \cite{tinker_towardhalo_2008}.
+ \item [\hyperlink{structure_formation.halo_mass_function.Press-Schechter.F90:halo_mass_function_press_schechter:halo_mass_function_differential_press_schechter}{{\tt Press-Schechter}}] Implements the Press-Schechter \citep{press_formation_1974} mass function.
+ \item [\hyperlink{structure_formation.halo_mass_function.Sheth-Tormen.F90:halo_mass_function_sheth_tormen:halo_mass_function_sheth_tormen_differential}{{\tt Sheth-Tormen}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} mass function.
+ \item [\hyperlink{structure_formation.halo_mass_function.Tinker2008.F90:halo_mass_function_tinker2008:halo_mass_function_differential_tinker2008}{{\tt Tinker2008}}] Implements the mass function described by \cite{tinker_towardhalo_2008}.
 \end{description}
 
 \subsubsection{Halo Mass Sampling Density Functions}
@@ -2910,6 +2918,7 @@ Currently defined virial density contrast methods are:
  \item [{\tt sphericalTopHat}] The virial density contrast is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
  \item [{\tt Bryan-Norman1998}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_{\rm M}+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
  \item [{\tt fixed}] The virial density contrast is fixed at {\tt [virialDensityConstrastFixed]}, defined relative to {\tt criticalDensity} and {\tt meanDensity} as specified by {\tt [virialDensityConstrastFixedType]}.
+ \item [{\tt Kitayama-Suto1996}] The virial density constrast is computed using the fitting formula of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.
 \end{description}
 
 \subsubsection{Initial Mass Function Functions}\label{sec:IMF_functions}
@@ -3413,6 +3422,53 @@ Currently defined merger tree construction methods are:
  \item [{\tt read}] Reads merger tree data from an HDF5 file (see \S\ref{sec:MergerTreeFiles}). The file to read is specified by the {\tt [mergerTreeReadFileName]} parameter.
  \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). See \S\ref{sec:SmoothAccretion} for details.
  \item [{\tt stateRestore}] Intended primarily for debugging purposes, this method will restore a tree whose complete internal state was written to file. See \S\ref{sec:TreeConstructStateRestore} for details of how to use this method.
+ \item [{\tt fullySpecified}] Intended primarily for constructing test cases, this method allows the full state of the merger tree (and all components of nodes) to be specified via an XML document. See \S\ref{sec:TreeConstructFullySpecified} for details of how to use this method.
+\end{description}
+
+\subsubsection{Non-linear Matter Power Spectrum}\index{power spectrum!non-linear}
+
+Additional methods for the non-linear matter power spectrum can be added using the {\tt powerSpectrumNonlinearMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Peacock-Dodds1996} method is described by a directive:
+\begin{verbatim}
+  !# <powerSpectrumNonlinearMethod>
+  !#  <unitName>Nonlinear_Power_Spectrum_Power_Law_Initialize</unitName>
+  !# </powerSpectrumNonlinearMethod>
+\end{verbatim}
+Here, {\tt Power\_Spectrum\_Nonlinear\_PeacockDodds1996\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(powerSpectrumNonlinearMethod,Power_Spectrum_Nonlinear_Get)
+    implicit none
+    type     (varying_string  ),          intent(in   ) :: powerSpectrumNonlinearMethod
+    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Nonlinear_Get
+    
+    if (powerSpectrumNonlinearMethod == 'myMethod') then
+       Power_Spectrum_Nonlinear_Get => My_Get
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt powerSpectrumNonlinearMethod} input parameter. The procedure pointer {\tt Power\_Spectrum\_Nonlinear\_Get} must be set to point to a subroutine which computes the non-linear matter power spectrum as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The non-linear matter power spectrum function must have the form:
+\begin{verbatim}
+   double precision function Nonlinear_Power_Spectrum(wavenumber,time)
+    implicit none
+    double precision, intent(in   ) :: wavenumber,time
+    .
+    .
+    .
+    return
+   end subroutine Nonlinear_Power_Spectrum
+\end{verbatim}
+The function must return the non-linear matter power spectrum, $P_{\rm nl}(k)$, at the requested {\tt wavenumber} (in units of Mpc$^{-1}$) and {\tt time} (in units of Gyr).
+
+Currently defined non-linear matter power spectrum methods are:
+\begin{description}
+ \item [{\tt linear}] Simply returns the linear matter power spectrum. Intended primarily for testing purposes.
+ \item [{\tt Peacock-Dodds1996}] Uses the fitting function of \cite{peacock_non-linear_1996} to compute the non-linear matter power spectrum.
+ \item [{\tt CosmicEmu}] Utilizes the cosmic emulator (``CosmicEmu'') code of \cite{lawrence_coyote_2010} to compute the non-linear matter power spectrum.
 \end{description}
 
 \subsubsection{Chemical Reaction Rates}
@@ -4052,6 +4108,7 @@ Currently defined star formation feedback methods are:
  \dot{M}_{\rm outflow} = \left({V_{\rm outflow} \over V}\right)^{\alpha_{\rm outflow}} {\dot{E} \over E_{\rm canonical}},
 \end{equation}
 where $V_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} (in km/s) and $\alpha_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+ \item [\hyperlink{star_formation.feedback.disks.Creasey2012.F90:star_formation_feedback_disks_creasey2012}{{\tt Creasey2012}}] The outflow rate computed using the model of \cite{creasey_how_2012}.
 \end{description}
 
 \subsubsection{(Expulsive) Star Formation Feedback in Disks/Spheroids}\index{feedback!expulsive}
@@ -4099,6 +4156,49 @@ Currently defined star formation expulsive feedback methods are:
 where $V_{\rm superwind}=${\tt [disk|spheroid]SuperwindVelocity} (in km/s) and $\beta_{\rm superwind}=${\tt [disk|spheroid]SuperwindMassLoading} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
 \end{description}
 
+\subsubsection{Star Formation Rate Surface Density in Disks}
+
+Additional methods for computing the surface density of star formation rate in disks can be added using the {\tt starFormationRateSurfaceDensityDisksMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Blitz-Rosolowsky2006} method is described by a directive:
+\begin{verbatim}
+ !# <starFormationRateSurfaceDensityDisksMethod>
+ !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_BR_Initialize</unitName>
+ !# </starFormationRateSurfaceDensityDisksMethod>
+\end{verbatim}
+Here, {\tt Star\_Formation\_Rate\_Surface\_Density\_Disks\_BR\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(starFormationRateSurfaceDensityDisksMethod,Star_Formation_Rate_Surface_Density_Disk_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: starFormationRateSurfaceDensityDisksMethod
+    procedure(),          pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
+    
+    if (starFormationRateSurfaceDensityDisksMethod == 'myMethod') Star_Formation_Rate_Surface_Density_Disk_Get => My_Method_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt starFormationRateSurfaceDensityDisksMethod} input parameter. The procedure pointer {\tt Star\_Formation\_Rate\_Surface\_Density\_Disk\_Get} must be set to point to a function which returns the surface density of star formation rate at a specified radius as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The star formation rate surface density function must have the form:
+\begin{verbatim}
+ double precision function Star_Formation_Rate_Surface_Density_Get(thisNode,radius)
+    implicit none
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+    .
+    .
+    .
+    return
+ end function Star_Formation_Rate_Surface_Density_Get
+\end{verbatim}
+The function must return the surface density of star formation rate (in units of $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for {\tt thisNode}.
+
+Currently defined star formation rate surface density methods are:
+\begin{description}
+ \item [\hyperlink{star_formation.rate_surface_density.disks.Kennicutt-Schmidt.F90:star_formation_rate_surface_density_disks_ks:star_formation_rate_surface_density_disk_ks}{{\tt Kennicutt-Schmidt}}] The rate is given by the Kennicutt-Schmidt law (\citealt{schmidt_rate_1959,kennicutt_global_1998}; see \S\ref{sec:StarFormationKennicuttSchmidt}).
+ \item [\hyperlink{star_formation.rate_surface_density.disks.extended_Schmidt.F90:star_formation_rate_surface_density_disks_exschmidt:star_formation_rate_surface_density_disk_exschmidt}{{\tt extendedSchmidt}}] The rate is given by the extended Schmidt law (\citealt{shi_extended_2011}; see \S\ref{sec:StarFormationExtendedSchmidt}).
+ \item [\hyperlink{star_formation.rate_surface_density.disks.Blitz-Rosolowsky.F90:star_formation_rate_surface_density_disks_br:star_formation_rate_surface_density_disk_br}{{\tt Blitz-Rosolowsky2006}}] The rate is given by the Blitz-Rosolowsky rule (\citealt{blitz_role_2006}; see \S\ref{sec:StarFormationBlitzRosolowsky}).
+ \item [\hyperlink{star_formation.rate_surface_density.disks.KMT09.F90:star_formation_rate_surface_density_disks_kmt09:star_formation_rate_surface_density_disk_kmt09}{{\tt KMT09}}] The rate is given by the Krumholz-McKee-Tumlinson (\citealt{krumholz_star_2009}; see \S\ref{sec:StarFormationKMT09});
+\end{description}
+
 \subsubsection{Star Formation Timescale in Disks/Spheroids}
 
 Additional methods for computing star formation timescales in disks/spheroids can be added using the {\tt starFormationTimescale[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt dynamicalTime} method is described by a directive:
@@ -4141,12 +4241,9 @@ Currently defined star formation timescale methods are:
 \begin{equation}
  \tau_\star = \epsilon_\star^{-1} \tau_{\rm dynamical, [disk|spheroid]} \left( {V_{\rm [disk|spheroid]} \over 200\hbox{km/s}} \right)^{\alpha_\star},
 \end{equation}
-where $\epsilon_\star$(={\tt starFormation[Disk|Spheroid]Efficiency}) is a star formation efficiency and $\alpha_\star$(={\tt starFormation[Disk|Spheroid]VelocityExponent}) controls the scaling with velocity. Note that $\tau_{\rm dynamical,[disk|spheroid]}=R_{\rm [disk|spheroid]}/V_{\rm [disk|spheroid]}$ where the radius and velocity are whatever characteristic values returned by the disk/spheroid method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the half-mass radius and circular velocity at that radius.
- \item [\hyperlink{star_formation.timescales.disks.Kennicutt-Schmidt.F90:star_formation_timescale_disks_kennicutt_schmidt:star_formation_timescale_disk_kennicutt_schmidt}{{\tt Kennicutt-Schmidt}}] The timescale is given by the Kennicutt-Schmidt law (\citealt{schmidt_rate_1959,kennicutt_global_1998}; see \S\ref{sec:StarFormationKennicuttSchmidt}).
- \item [\hyperlink{star_formation.timescales.disks.extended_Schmidt.F90:star_formation_timescale_disks_extended_schmidt:star_formation_timescale_disk_extended_schmidt}{{\tt extendedSchmidt}}] The timescale is given by the extended Schmidt law (\citealt{shi_extended_2011}; see \S\ref{sec:StarFormationExtendedSchmidt}).
- \item [\hyperlink{star_formation.timescales.disks.Blitz-Rosolowsky.F90:star_formation_timescale_disks_blitz_rosolowsky:star_formation_timescale_disk_blitz_rosolowsky}{{\tt Blitz-Rosolowsky2006}}] The timescale is given by the Blitz-Rosolowsky rule (\citealt{blitz_role_2006}; see \S\ref{sec:StarFormationBlitzRosolowsky}).
- \item [\hyperlink{star_formation.timescales.disks.KMT09.F90:star_formation_timescale_disks_kmt09:star_formation_timescale_disk_kmt09}{{\tt KMT09}}] The timescale is given by the Krumholz-McKee-Tumlinson (\citealt{krumholz_star_2009}; see \S\ref{sec:StarFormationKMT09});
+where $\epsilon_\star$(={\tt starFormation[Disk|Spheroid]Efficiency}) is a star formation efficiency and $\alpha_\star$(={\tt starFormation[Disk|Spheroid]VelocityExponent}) controls the scaling with velocity. Note that $\tau_{\rm dynamical,[disk|spheroid]}=R_{\rm [disk|spheroid]}/V_{\rm [disk|spheroid]}$ where the radius and velocity are whatever characteristic values returned by the disk/spheroid method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but they specifically used the half-mass radius and circular velocity at that radius.
  \item {\tt Baugh2005}] The timescale is given by $\tau_0 (V_{\rm disk}/200\hbox{km/s})^\alpha a^\beta$.
+ \item {\tt integratedSurfaceDensity}] The timescale is given by $\tau_\star = M_{\rm cold}/\int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) {\rm d}r$ where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate (see \S\ref{sec:StarFormationRateSurfaceDensity})
 \end{description}
 
 \subsubsection{Stellar Astrophysics}
@@ -4897,7 +4994,7 @@ The subroutine should modify the {\tt coolingRate} as necessary.
 
 Currently defined cooling rate modifier tasks are:
 \begin{description}
-\item [\hyperlink{cooling.cooling_rate.modifier.cut_off.F90:cooling_rates_modifier_cut_off:cooling_rate_modifier_cut_off}{``cut-off''}] The cooling rate is set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below {\tt [coolingCutOffRedshift]}. In other halos the cooling rate is not modified.
+\item [\hyperlink{cooling.cooling_rate.modifier.cut_off.F90:cooling_rates_modifier_cut_off:cooling_rate_modifier_cut_off}{``cut-off''}] The cooling rate is set to zero in halos with virial velocities below {\tt [coolingCutOffVelocity]} at redshifts below/above {\tt [coolingCutOffRedshift]} for {\tt [coolingCutOffWhen]}$=${\tt after/before}. In other halos the cooling rate is not modified.
 \end{description}
 
 \subsubsection{Decode Property Identifier Tasks}\label{sec:DecodePropertyIndentifierTask}
@@ -4933,12 +5030,14 @@ Merger tree nodes are evolved over some fixed timestep before evolution is stopp
 \end{verbatim}
 Here, {\tt unitName} gives the name of the subroutine to be called to (possibly) adjust the timestep. It should have the following form:
 \begin{verbatim}
-  subroutine My_Timestep(thisNode,timeStep,End_Of_Timestep_Task,record)
+  subroutine My_Timestep(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    procedure(),      intent(inout), pointer :: End_Of_Timestep_Task
-    double precision, intent(inout)          :: timeStep
-    logical         , intent(in   )          :: record
+    type     (treeNode      ), intent(inout), pointer           :: thisNode
+    procedure(              ), intent(inout), pointer           :: End_Of_Timestep_Task
+    double precision         , intent(inout)                    :: timeStep
+    logical                  , intent(in   )                    :: report
+    type     (treeNode      ), intent(inout), pointer, optional :: lockNode
+    type     (varying_string), intent(inout),          optional :: lockType
     .
     .
     .
@@ -4947,16 +5046,20 @@ Here, {\tt unitName} gives the name of the subroutine to be called to (possibly)
 \end{verbatim}
 This subroutine should compute a suitable timestep for {\tt thisNode} and, if it is less than the currently defined value of {\tt timeStep} should set {\tt timeStep} to that value. Optionally, the procedure pointer {\tt End\_Of\_Timestep\_Task} can be set to point to a subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for this pointer to be null. Note that the {\tt End\_Of\_Timestep\_Task} will only be called for the task which provided the shortest timestep---other tasks can always request to be called again when the next timestep is determined. The subroutine to be called at the end of the timestep must have the form:
 \begin{verbatim}
-  subroutine My_End_Of_Timestep_Task(thisNode)
+  subroutine My_End_Of_Timestep_Task(thisTree,thisNode,deadlockStatus)
     implicit none
+    type(mergerTree), intent(in)             :: thisTree
     type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(inout)          :: deadlockStatus
     .
     .
     .
     return
   end subroutine My_End_Of_Timestep_Task
 \end{verbatim}
-If the {\tt record} argument is {\tt true} then the function should report the value of {\tt timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.) It is recommended that the report be made using the \hyperlink{merger_trees.evolve.timesteps.report.F90:evolve_to_time_reports:evolve_to_time_report}{\tt Evolve\_To\_Time\_Report()} function.
+The {\tt deadlockStatus} argument should be set to {\tt isNotDeadlocked} (provided by the \hyperlink{merger_trees.evolve.deadlock_options.F90:merger_trees_evolve_deadlock_status}{\tt Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to the state of the tree (e.g. merging a node), to indicate that the tree was not deadlocked in this pass (i.e. something actually changed in the tree).
+
+If the {\tt report} argument is {\tt true} then the function should report the value of {\tt timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.) It is recommended that the report be made using the \hyperlink{merger_trees.evolve.timesteps.report.F90:evolve_to_time_reports:evolve_to_time_report}{\tt Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\tt lockNode} and {\tt lockType} arguments are present then additional information can be supplied to aid in diagnosing deadlock conditions. If the current task is limiting the timestep then the {\tt lockNode} pointer should be set to point to whichever node is causing the limit (which may be {\tt thisNode} or some other node, e.g. a satellite of {\tt thisNode}, etc.), and {\tt lockType} should be set to a short description label identifying the type of limit.
 
 \subsubsection{Galactic Component Density}
 
@@ -5299,7 +5402,7 @@ Here, {\tt Merger\_Tree\_Mass\_Accretion\_History\_Output} is the name of a subr
     return
   end subroutine Merger_Tree_PreEvolution_Task
 \end{verbatim}
-where {\tt thisTree} is the tree to be processed. The subroutine will be called once for each tree, prior to the tree being evolved.
+where {\tt thisTree} is the tree to be processed. The function will be called once for each tree, prior to the tree being evolved. Note that {\tt thisTree} may link to other trees via its {\tt nextTree} pointer. The function may want to process each tree in this linked list.
 
 \subsubsection{Merger Tree Initialization Tasks}
 
@@ -5772,3 +5875,77 @@ This will cause all components to set their radiation fields using (if necessary
  \item[{\tt temperature(radiationTypes)}] Returns the temperature (in Kelvin) of the radiation object. The optional {\tt radiationTypes} array specifies which radiation types are to be queried.
  \item[{\tt flux(wavelength,radiationTypes)}] Returns the flux (in ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the radiation object at the given {\tt wavelength} (specified in units of \AA). The optional {\tt radiationTypes} array specifies which radiation types are to be queried.
 \end{description}
+
+\subsection{Mass Distributions}\label{sec:MassDistributions}
+
+The {\tt massDistribution} class, provided by the \hyperlink{objects.mass_distributions.F90:mass_distributions}{\tt Mass\_Distributions} module provides an object describing a distribution of mass in space, together with methods to query for the density, enclosed mass etc. of that mass distribution. Mass distribution objects make use of the {\tt coordinates} subsystem (see \S\ref{sec:Coordinates}) for specifying positions within mass distributions.
+
+The base class provides the following methods:
+\begin{description}
+\item [{\tt symmetry}] Returns one of the following labels to indicate the symmetry of the mass distribution:
+ \begin{description}
+  \item [{\tt massDistributionSymmetryNone}] Indicates that the mass distribution has no particular symmetry;
+  \item [{\tt massDistributionSymmetryCylindrical}] Indicates that the mass distribution has cylindrical symmetry (conventionally around the $z$-axis;
+  \item [{\tt massDistributionSymmetrySpherical}] Indicates that the mass distribution has spherical symmetry.
+ \end{description}
+\item [{\tt isDimensionless}] Returns a Boolean indicating whether this is a dimensionless or dimensionful mass distribution;
+\item [{\tt density}] Returns the density of the mass distribution at the supplied {\tt coordinates};
+\item [{\tt densityRadialMoment}] Returns the $n^{\rm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\bf x}) |x|^n {\rm d} {\bf x}$; 
+\item [{\tt massEnclosedBySphere}] Returns the mass enclosed by a sphere of given {\tt radius} (centered on the origin);
+\item [{\tt potential}] Returns the gravitational potential at the specified {\tt coordinates}.
+\end{description}
+
+The {\tt massDistributionSpherical} class extends the {\tt massDistribution} base class with an additional method:
+\begin{description}
+ \item [{\tt halfMassRadius}] Returns the radius enclosing half of the mass of the density distribution.
+\end{description}
+
+Mass distributions are created using:
+\begin{verbatim}
+ myMassDistribution => Mass_Distribution_Create(type)
+\end{verbatim}
+where {\tt type} is the name of the mass distribution (see below). After creation, the parameters of the profile must usually be initialized using:
+\begin{verbatim}
+ call myMassDistribution%initialize(....)
+\end{verbatim}
+Arguments for initialization vary for each mass distribution (see below).
+
+Currently implemented mass distributions include:
+\begin{description}
+ \item [{\tt nfw}] An \gls{nfw} \citep{navarro_universal_1997} density profile. Initialization is by
+\begin{verbatim}
+ call myNfwProfile%initialize(scaleLength,concentration,densityNormalization,mass, &
+     &                         virialRadius,isDimensionless)
+\end{verbatim}
+All arguments are optional, but the combination given must be sufficient to allow the scale length and density normalization to be determined. The profile will be assumed to be dimensionful unless the {\tt isDimensionless} argument specifies otherwise.
+ \item [{\tt betaProfile}] A $\beta$-profile, $\rho(r)=\rho_0/[1+(r/r_{\rm core})^2]^{3\beta/2}$. Initialization is by
+\begin{verbatim}
+ call myBetaProfile%initialize(beta,coreRadius,densityNormalization,mass, &
+     &                         outerRadius,isDimensionless)
+\end{verbatim}
+ {\tt beta}$=\beta$ and {\tt coreRadius}$=r_{\rm core}$ must always be specified. The density normalization must be specified either by the {\tt densityNormalization} argument, or by supplying both {\tt mass} and {\tt outerRadius}. The profile will be assumed to be dimensionful unless the {\tt isDimensionless} argument specifies otherwise.
+ \item [{\tt hernquist}] The Hernquist \citep{hernquist_analytical_1990} profile. Initialization is by
+\begin{verbatim}
+ call myHernquistProfile%initialize(scaleLength,densityNormalization,mass, &
+     &                               isDimensionless)
+\end{verbatim}
+All arguments are optional, but the combination given must be sufficient to allow the scale length and density normalization to be determined unless the profile is dimensionless (in which case scale length and total mass are set to unity). The profile will be assumed to be dimensionful unless the {\tt isDimensionless} argument specifies otherwise.
+ \item [{\tt sersic}] The S\'ersic \citep{sersic_influence_1963} profile. Initialization is by
+\begin{verbatim}
+ call mySersicProfile%initialize(index,halfMassRadius,densityNormalization,mass, &
+     &                             isDimensionless)
+\end{verbatim}
+The S\'ersic {\tt index} must be specified. All other arguments are optional, but the combination given must be sufficient to allow the scale length and density normalization to be determined unless the profile is dimensionless (in which case scale length and total mass are set to unity). The profile will be assumed to be dimensionful unless the {\tt isDimensionless} argument specifies otherwise.
+\end{description}
+
+\subsection{Coordinates}\label{sec:Coordinates}
+
+The {\tt coordinate} class, provided by the \hyperlink{objects.coordinates.F90:coordinates}{\tt Coordinates} module provides an object describing a position in three-dimensional space. Each extension of this class (currently, {\tt coordinateCartesian}, {\tt coordinateCylindrical}, and {\tt coordinateSpherical}) supply methods to convert to and from Cartesian coordinates. The assignment operator ({\tt =}) is overloaded such that coordinate objects of any class can be assigned to any other class and conversion to the appropriate coordinate system will happen automatically. A function accepting a {\tt class(coordinate)} object can therefore convert it to, for example, spherical coordinates simply using
+\begin{verbatim}
+ class(coordinate         ), intent(in) :: coordinates
+ type (coordinateSpherical)             :: coordinatesSpherical
+ coordinatesSpherical=coordinates
+\end{verbatim}
+and thereby allow a position to be passed to it in any coordinate system.
+
+Each extension of the base class also provides methods to get and set the values of each component of the relevant coordinate system (see \S\ref{sec:AutoMethodsCoordinate} for complete details).

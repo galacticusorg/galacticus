@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,54 +14,10 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which defines an orbit structure for use in \glc.
 
-module Kepler_Orbits_Structure
+module Kepler_Orbits
   !% Defines an orbit structure for use in \glc.
   implicit none
   private
@@ -98,8 +54,28 @@ module Kepler_Orbits_Structure
      !@ <objectMethods>
      !@   <object>orbit</object>
      !@   <objectMethod>
-     !@     <method>reset</method>
+     !@     <method>builder</method>
+     !@     <description>Build a Kepler orbit from an XML definition.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dump</method>
+     !@     <description>Dump an orbit.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dumpRaw</method>
+     !@     <description>Dump an orbit in binary.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readRaw</method>
+     !@     <description>Read an orbit in binary.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rese</method>
      !@     <description>Resets an orbit to a null state.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroys an orbit.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isDefined</method>
@@ -206,7 +182,12 @@ module Kepler_Orbits_Structure
      !@     <description>Returns the semi-major axis of an orbit.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure :: builder               => Kepler_Orbits_Builder
+     procedure :: dump                  => Kepler_Orbits_Dump
+     procedure :: dumpRaw               => Kepler_Orbits_Dump_Raw
+     procedure :: readRaw               => Kepler_Orbits_Read_Raw
      procedure :: reset                 => Kepler_Orbits_Reset
+     procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
      procedure :: assertIsDefined       => Kepler_Orbits_Assert_Is_Defined
      procedure :: isBound               => Kepler_Orbits_Is_Bound
@@ -236,6 +217,136 @@ module Kepler_Orbits_Structure
   end type keplerOrbit
 
 contains
+
+  subroutine Kepler_Orbits_Destroy(thisOrbit)
+    !% Destroy an orbit.
+    implicit none
+    class(keplerOrbit), intent(inout) :: thisOrbit
+
+    ! Nothing to do.
+    return
+  end subroutine Kepler_Orbits_Destroy
+
+  subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
+    !% Build a {\tt keplerOrbit} object from the given XML {\tt keplerOrbitDefinition}.
+    use FoX_DOM
+    use Galacticus_Error
+    implicit none
+    class(keplerOrbit), intent(inout) :: self
+    type (node       ), pointer       :: keplerOrbitDefinition
+
+    call Galacticus_Error_Report('Kepler_Orbit_Builder','building of keplerOrbit objects is not yet supported')
+    return
+  end subroutine Kepler_Orbits_Builder
+
+  subroutine Kepler_Orbits_Dump(self)
+    !% Reset an orbit to a null state.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class    (keplerOrbit   ), intent(in   ) :: self
+    character(len=12        )                :: label
+    type     (varying_string)                :: message
+
+    if (self%massesIsSet             ) then
+       write (label,'(e12.6)') self%hostMassValue
+       message='host mass:             '//label
+       call Galacticus_Display_Message(message)
+       write (label,'(e12.6)') self%specificReducedMassValue
+       message='specific reduced mass: '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%radiusIsSet             ) then
+       write (label,'(e12.6)') self%radiusValue
+       message='radius            :     '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%radiusPericenterIsSet   ) then
+       write (label,'(e12.6)') self%radiusPericenterValue
+       message='radius pericenter:      '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%radiusApocenterIsSet   ) then
+       write (label,'(e12.6)') self%radiusApocenterValue
+       message='radius apocenter:       '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%velocityRadialIsSet    ) then
+       write (label,'(e12.6)') self%velocityRadialValue
+       message='velocity radial:        '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%velocityTangentialIsSet) then
+       write (label,'(e12.6)') self%velocityTangentialValue
+       message='velocity tangential:    '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%angularMomentumIsSet   ) then
+       write (label,'(e12.6)') self%angularMomentumValue
+       message='angular momentum:       '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%energyIsSet            ) then
+       write (label,'(e12.6)') self%energyValue
+       message='energy:                 '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%eccentricityIsSet      ) then
+       write (label,'(e12.6)') self%eccentricityValue
+       message='eccentricity:           '//label
+       call Galacticus_Display_Message(message)
+    end if
+    if (self%semimajorAxisIsSet     ) then
+       write (label,'(e12.6)') self%semimajorAxisValue
+       message='semi-major axis:        '//label
+       call Galacticus_Display_Message(message)
+    end if
+    return
+  end subroutine Kepler_Orbits_Dump
+
+  subroutine Kepler_Orbits_Dump_Raw(self,fileHandle)
+    !% Dump a {\tt keplerOrbit} object in binary.
+    implicit none
+    class  (keplerOrbit), intent(in   ) :: self
+    integer             , intent(in   ) :: fileHandle 
+
+    write (fileHandle) self%massesIsSet,self%massesIsSet,self%radiusIsSet,self%radiusPericenterIsSet,self%radiusApocenterIsSet&
+         &,self%velocityRadialIsSet,self%velocityTangentialIsSet,self%angularMomentumIsSet,self%energyIsSet&
+         &,self%eccentricityIsSet,self%semimajorAxisIsSet
+    if (self%massesIsSet            ) write (fileHandle) self%hostMassValue,self%specificReducedMassValue
+    if (self%radiusIsSet            ) write (fileHandle) self%radiusValue
+    if (self%radiusPericenterIsSet  ) write (fileHandle) self%radiusPericenterValue
+    if (self%radiusApocenterIsSet   ) write (fileHandle) self%radiusApocenterValue
+    if (self%velocityRadialIsSet    ) write (fileHandle) self%velocityRadialValue
+    if (self%velocityTangentialIsSet) write (fileHandle) self%velocityTangentialValue
+    if (self%angularMomentumIsSet   ) write (fileHandle) self%angularMomentumValue
+    if (self%energyIsSet            ) write (fileHandle) self%energyValue
+    if (self%eccentricityIsSet      ) write (fileHandle) self%eccentricityValue
+    if (self%semimajorAxisIsSet     ) write (fileHandle) self%semimajorAxisValue
+    return
+  end subroutine Kepler_Orbits_Dump_Raw
+
+  subroutine Kepler_Orbits_Read_Raw(self,fileHandle)
+    !% Read a {\tt keplerOrbit} object in binary.
+    implicit none
+    class  (keplerOrbit), intent(inout) :: self
+    integer             , intent(in   ) :: fileHandle 
+
+    read (fileHandle) self%massesIsSet,self%massesIsSet,self%radiusIsSet,self%radiusPericenterIsSet,self%radiusApocenterIsSet&
+         &,self%velocityRadialIsSet,self%velocityTangentialIsSet,self%angularMomentumIsSet,self%energyIsSet&
+         &,self%eccentricityIsSet,self%semimajorAxisIsSet
+    if (self%massesIsSet            ) read (fileHandle) self%hostMassValue,self%specificReducedMassValue
+    if (self%radiusIsSet            ) read (fileHandle) self%radiusValue
+    if (self%radiusPericenterIsSet  ) read (fileHandle) self%radiusPericenterValue
+    if (self%radiusApocenterIsSet   ) read (fileHandle) self%radiusApocenterValue
+    if (self%velocityRadialIsSet    ) read (fileHandle) self%velocityRadialValue
+    if (self%velocityTangentialIsSet) read (fileHandle) self%velocityTangentialValue
+    if (self%angularMomentumIsSet   ) read (fileHandle) self%angularMomentumValue
+    if (self%energyIsSet            ) read (fileHandle) self%energyValue
+    if (self%eccentricityIsSet      ) read (fileHandle) self%eccentricityValue
+    if (self%semimajorAxisIsSet     ) read (fileHandle) self%semimajorAxisValue
+    return
+  end subroutine Kepler_Orbits_Read_Raw
 
   subroutine Kepler_Orbits_Reset(thisOrbit)
     !% Reset an orbit to a null state.
@@ -758,4 +869,4 @@ contains
     return
   end subroutine Kepler_Orbits_Propagate
 
-end module Kepler_Orbits_Structure
+end module Kepler_Orbits

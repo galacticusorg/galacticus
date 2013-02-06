@@ -70,10 +70,10 @@ $error = $error(-1:0);
 # Read galaxy data and construct mass function.
 $xGalacticus = $xBins;
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega']);
 $dataSets  = $dataSet->{'dataSets'};
 $magnitude = $dataSets->{'magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega'};
-$weight    = $dataSets->{'volumeWeight'};
+$weight    = $dataSets->{'mergerTreeWeight'};
 ($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xGalacticus,$magnitude,$weight,differential => 1);
 
 # Compute chi^2.
