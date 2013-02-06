@@ -3,8 +3,8 @@ use XML::Simple;
 use Data::Dumper;
 use File::Copy;
 my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V091'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V091'};
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
@@ -93,6 +93,9 @@ if ( -e $transferFunctionFile ) {
 
 # Create the file if necessary.
 if ( $makeFile == 1 ) {
+   # Create the directory.
+   system("mkdir -p `dirname ".$transferFunctionFile."`");
+
    # Run CMBFast.
    open(cmbPipe,"|".$galacticusPath."aux/cmbfast4.5.1/cmb");
    print cmbPipe "1\n";

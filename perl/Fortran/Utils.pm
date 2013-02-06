@@ -134,6 +134,7 @@ sub Get_Fortran_Line {
     my $rawLine           = "";
     my $processedLine     = "";
     my $bufferedComments  = "";
+    my $firstLine         = 1;
     while ( $processedFullLine == 0 ) {
 	# Get a line;
 	my $line = <$inHndl>;
@@ -174,9 +175,12 @@ sub Get_Fortran_Line {
 	$processedLine .= $tmpLine;
 	if ( $processedLine =~ m/&\s*$/ ) {
 	    $processedLine =~ s/\s*&\s*$//;
+	} elsif ( $firstLine == 0 && $line =~ m/^\#/ ) {
+	    # This is a preprocessor directive in the middle of continuation lines. Just concatenate it.
 	} else {
 	    $processedFullLine = 1;
 	}
+	$firstLine = 0;
     }
 
     # Return date.

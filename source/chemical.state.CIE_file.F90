@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which reads and interpolates a collisional ionization equilibrium chemical state from a file.
 
@@ -198,25 +154,25 @@ contains
     return
   end subroutine Chemical_State_CIE_Chemicals_Initialize
 
-  double precision function Electron_Density_CIE_File(temperature,numberDensityHydrogen,abundances,radiation)
+  double precision function Electron_Density_CIE_File(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Return the electron density by interpolating in tabulated CIE data read from a file.
     use Abundances_Structure
     use Radiation_Structure
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
+    type(abundances),          intent(in) :: gasAbundances
     type(radiationStructure),  intent(in) :: radiation
 
     ! Ensure file has been read in.
     call Chemical_State_CIE_File_Read_Initialize
 
     ! Call routine to interpolate in the tabulated function.
-    Electron_Density_CIE_File=Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
+    Electron_Density_CIE_File=Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
 
     return
   end function Electron_Density_CIE_File
 
-  double precision function Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
+  double precision function Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the chemical state by interpolation in the tabulated data.
     use Abundances_Structure
     use Radiation_Structure
@@ -224,7 +180,7 @@ contains
     use IO_XML
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
+    type(abundances),          intent(in) :: gasAbundances
     type(radiationStructure),  intent(in) :: radiation
     double precision,          save       :: temperaturePrevious=-1.0d0,metallicityPrevious=-1.0d0,electronDensityPrevious
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,electronDensityPrevious)
@@ -253,7 +209,7 @@ contains
     end if
 
     ! Handle out of range metallicities.
-    metallicityUse=Abundances_Get_Metallicity(abundances)/metallicitySolar
+    metallicityUse=Abundances_Get_Metallicity(gasAbundances)/metallicitySolar
 
     if (metallicityUse < metallicityMinimum) then
        select case (extrapolateMetallicityLow)
@@ -294,14 +250,14 @@ contains
     return
   end function Electron_Density_CIE_File_Interpolate
 
-  double precision function Electron_Density_Temperature_Log_Slope_CIE_File(temperature,numberDensityHydrogen,abundances,radiation)
+  double precision function Electron_Density_Temperature_Log_Slope_CIE_File(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Return the logarithmic slope of the electron density with respect to temperature by interpolating in tabulated CIE data
     !% read from a file.
     use Abundances_Structure
     use Radiation_Structure
     implicit none
     double precision,          intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in)  :: abundances
+    type(abundances),          intent(in)  :: gasAbundances
     type(radiationStructure),  intent(in)  :: radiation
 
     ! Ensure file has been read in.
@@ -309,12 +265,12 @@ contains
 
     ! Call routine to interpolate in the tabulated function.
     Electron_Density_Temperature_Log_Slope_CIE_File=Electron_Density_CIE_File_logTemperature_Interpolate(temperature &
-         &,numberDensityHydrogen,abundances,radiation)
+         &,numberDensityHydrogen,gasAbundances,radiation)
 
     return
   end function Electron_Density_Temperature_Log_Slope_CIE_File
 
-  double precision function Electron_Density_CIE_File_logTemperature_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
+  double precision function Electron_Density_CIE_File_logTemperature_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the logarithmic gradient of the electron density with respect to temperature by interpolation in the tabulated data.
     use Abundances_Structure
     use Radiation_Structure
@@ -322,7 +278,7 @@ contains
     use IO_XML
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
+    type(abundances),          intent(in) :: gasAbundances
     type(radiationStructure),  intent(in) :: radiation
     double precision,          save       :: temperaturePrevious=-1.0d0,metallicityPrevious=-1.0d0,electronDensitySlopePrevious
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,electronDensitySlopePrevious)
@@ -351,7 +307,7 @@ contains
     end if
 
     ! Handle out of range metallicities.
-    metallicityUse=Abundances_Get_Metallicity(abundances)/metallicitySolar
+    metallicityUse=Abundances_Get_Metallicity(gasAbundances)/metallicitySolar
     if (metallicityUse < metallicityMinimum) then
        select case (extrapolateMetallicityLow)
        case (extrapolateZero)
@@ -400,14 +356,14 @@ contains
     return
   end function Electron_Density_CIE_File_logTemperature_Interpolate
 
-  double precision function Electron_Density_Density_Log_Slope_CIE_File(temperature,numberDensityHydrogen,abundances&
+  double precision function Electron_Density_Density_Log_Slope_CIE_File(temperature,numberDensityHydrogen,gasAbundances&
        &,radiation)
     !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE as computed by {\sc Cloudy}.
     use Abundances_Structure
     use Radiation_Structure
     implicit none
     double precision,          intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in)  :: abundances
+    type(abundances),          intent(in)  :: gasAbundances
     type(radiationStructure),  intent(in)  :: radiation
 
     ! Electron density always scales as total density under CIE conditions.
@@ -675,28 +631,28 @@ contains
     return
   end function Do_Interpolation
 
-  subroutine Chemical_Densities_CIE_File(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+  subroutine Chemical_Densities_CIE_File(theseAbundances,temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
     !% and radiation field. Units of the returned electron density are cm$^-3$.
     use Abundances_Structure
     use Radiation_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type(chemicalAbundancesStructure), intent(inout) :: theseAbundances
+    type(chemicalAbundances), intent(inout) :: theseAbundances
     double precision,                  intent(in)    :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)    :: abundances
+    type(abundances),                  intent(in)    :: gasAbundances
     type(radiationStructure),          intent(in)    :: radiation
 
     ! Ensure file has been read in.
     call Chemical_State_CIE_File_Read_Initialize
 
     ! Call routine to interpolate in the tabulated function.
-    call Chemical_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    call Chemical_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,gasAbundances,radiation)
 
     return
   end subroutine Chemical_Densities_CIE_File
 
-  subroutine Chemical_Densities_CIE_File_Interpolate(theseChemicals,temperature,numberDensityHydrogen,abundances,radiation)
+  subroutine Chemical_Densities_CIE_File_Interpolate(theseChemicals,temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the chemical state by interpolation in the tabulated data.
     use Abundances_Structure
     use Radiation_Structure
@@ -704,12 +660,12 @@ contains
     use Numerical_Constants_Astronomical
     use IO_XML
     implicit none
-    type(chemicalAbundancesStructure), intent(inout) :: theseChemicals
+    type(chemicalAbundances), intent(inout) :: theseChemicals
     double precision,                  intent(in)    :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)    :: abundances
+    type(abundances),                  intent(in)    :: gasAbundances
     type(radiationStructure),          intent(in)    :: radiation
     double precision,                  save          :: temperaturePrevious=-1.0d0,metallicityPrevious=-1.0d0
-    type(chemicalAbundancesStructure), save          :: chemicalDensitiesPrevious
+    type(chemicalAbundances), save          :: chemicalDensitiesPrevious
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,chemicalDensitiesPrevious)
     integer                                          :: iTemperature,iMetallicity
     double precision                                 :: temperatureUse,metallicityUse,hTemperature,hMetallicity
@@ -739,7 +695,7 @@ contains
     end if
 
     ! Handle out of range metallicities.
-    metallicityUse=Abundances_Get_Metallicity(abundances)/metallicitySolar
+    metallicityUse=Abundances_Get_Metallicity(gasAbundances)/metallicitySolar
 
     if (metallicityUse < metallicityMinimum) then
        select case (extrapolateMetallicityLow)
@@ -783,8 +739,7 @@ contains
     end if
 
     ! Scale to the specified density assuming two-body processes, in which case densities scale with hydrogen density.
-    theseChemicals=chemicalDensitiesPrevious
-    call theseChemicals%multiply(numberDensityHydrogen)
+    theseChemicals=chemicalDensitiesPrevious*numberDensityHydrogen
 
     return
   end subroutine Chemical_Densities_CIE_File_Interpolate

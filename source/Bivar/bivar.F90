@@ -134,7 +134,7 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
     write ( *, '(a)' ) '  MD < 1 or 3 < MD.'
     write ( *, '(a)' ) ' '
     write ( *, '(a,i8)' ) '  MD  = ', md0
-    stop
+    call Abort()
   end if
 
   if ( ncp0 < 2 .or. ndp0 <= ncp0 ) then
@@ -145,7 +145,7 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
     write ( *, '(a)' ) ' '
     write ( *, '(a,i8)' ) '  NCP = ', ncp0
     write ( *, '(a,i8)' ) '  NDP = ', ndp0
-    stop
+    call Abort()
   end if
 
   if ( ndp0 < 4 ) then
@@ -155,7 +155,7 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
     write ( *, '(a)' ) '  NDP < 4.'
     write ( *, '(a)' ) ' '
     write ( *, '(a,i8)' ) '  NDP = ', ndp0
-    stop
+    call Abort()
   end if
 
   if ( nip0 < 1 ) then
@@ -164,7 +164,7 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
     write ( *, '(a)' ) '  NIP < 1.'
     write ( *, '(a)' ) ' '
     write ( *, '(a,i8)' ) '  NIP = ', nip0
-    stop
+    call Abort()
   end if
 
   if ( md0 < 2 ) then
@@ -184,7 +184,7 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
       write ( *, '(a)' ) ' '
       write ( *, '(a,i8)' ) '  NCP   = ', ncp0
       write ( *, '(a,i8)' ) '  NCPPV = ', ncppv
-      stop
+      call Abort()
     end if
 
     if ( ndp0 /= ndppv ) then
@@ -194,7 +194,7 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
       write ( *, '(a)' ) ' '
       write ( *, '(a,i8)' ) '  NDP   = ', ndp0
       write ( *, '(a,i8)' ) '  NDPPV = ', ndppv
-      stop
+      call Abort()
     end if
 
   end if
@@ -214,7 +214,7 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
       write ( *, '(a)' ) ' '
       write ( *, '(a,i8)' ) '  NIP   = ', nip0
       write ( *, '(a,i8)' ) '  NIPPV = ', nippv
-      stop
+      call Abort()
     end if
 
   end if

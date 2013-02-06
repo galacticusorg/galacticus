@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements a time-stepping criterion for merger tree evolution which permits global histories to be
 !% stored.
@@ -65,6 +21,7 @@
 module Merger_Tree_Timesteps_History
   !% Implements a simple time-stepping criterion for merger tree evolution.
   use FGSL
+  use Galacticus_Nodes
   implicit none
   private
   public :: Merger_Tree_Timestep_History, Merger_Tree_History_Write
@@ -91,9 +48,8 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_History</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_History(thisNode,timeStep,End_Of_Timestep_Task,report)
+  subroutine Merger_Tree_Timestep_History(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for global history storage.
-    use Tree_Nodes
     use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
@@ -101,20 +57,24 @@ contains
     use Numerical_Interpolation
     use Merger_Trees_Evolve_Timesteps_Template
     use Evolve_To_Time_Reports
+    use ISO_Varying_String
     implicit none
-    type(treeNode),                           intent(inout), pointer :: thisNode
-    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
-    double precision,                         intent(inout)          :: timeStep
-    logical,                                  intent(in)             :: report
-    integer                                                          :: timeIndex
-    double precision                                                 :: time,ourTimeStep
+    type     (treeNode                     ), intent(inout), pointer           :: thisNode
+    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer           :: End_Of_Timestep_Task
+    double precision                        , intent(inout)                    :: timeStep
+    logical                                 , intent(in   )                    :: report
+    type     (treeNode                     ), intent(inout), pointer, optional :: lockNode
+    type     (varying_string               ), intent(inout),          optional :: lockType  
+    class    (nodeComponentBasic           ),                pointer           :: thisBasicComponent
+    integer                                                                    :: timeIndex
+    double precision                                                           :: time,ourTimeStep
     
     if (.not.timestepHistoryInitialized) then
        !$omp critical (timestepHistoryInitialize)
        if (.not.timestepHistoryInitialized) then
           ! Determine if we have active components that can provide star formation rates.
-          diskActive           =associated(Tree_Node_Disk_SFR)
-          spheroidActive       =associated(Tree_Node_Spheroid_SFR)
+          diskActive           =    defaultDiskComponent%starFormationRateIsGettable()
+          spheroidActive       =defaultSpheroidComponent%starFormationRateIsGettable()
           ! Get time at present day.
           time=Cosmology_Age(aExpansion=0.999d0)
           ! Get module parameters.
@@ -187,7 +147,8 @@ contains
 
     ! Adjust timestep.
     ! Get current cosmic time.
-    time=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    time=thisBasicComponent%time()
     
     ! Determine how long until next available timestep.
     timeIndex=Interpolate_Locate(timestepHistorySteps,historyTime,interpolationAccelerator,time)
@@ -197,6 +158,8 @@ contains
        
        ! Set return value if our timestep is smaller than current one.
        if (ourTimeStep <= timeStep) then
+          if (present(lockNode)) lockNode => thisNode
+          if (present(lockType)) lockType =  "history"
           timeStep=ourTimeStep
           End_Of_Timestep_Task => Merger_Tree_History_Store
        end if
@@ -205,21 +168,29 @@ contains
     return
   end subroutine Merger_Tree_Timestep_History
 
-  subroutine Merger_Tree_History_Store(thisTree,thisNode)
+  subroutine Merger_Tree_History_Store(thisTree,thisNode,deadlockStatus)
     !% Store various properties in global arrays.
     use Merger_Trees
-    use Tree_Nodes
     use Numerical_Interpolation
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type(mergerTree), intent(in)             :: thisTree
-    type(treeNode),   intent(inout), pointer :: thisNode
-    integer                                  :: timeIndex
-    double precision                         :: time,diskStarFormationRate,spheroidStarFormationRate,hotGasMass
+    type (mergerTree           ), intent(in   )          :: thisTree
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    integer                     , intent(inout)          :: deadlockStatus
+    class(nodeComponentBasic   ),                pointer :: thisBasicComponent
+    class(nodeComponentDisk    ),                pointer :: thisDiskComponent
+    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent
+    integer                                              :: timeIndex
+    double precision                                     :: time,diskStarFormationRate,spheroidStarFormationRate,hotGasMass
+
+    ! Get components.
+    thisBasicComponent    => thisNode%basic   ()
+    thisDiskComponent     => thisNode%disk    ()
+    thisSpheroidComponent => thisNode%spheroid()
 
     ! Get current cosmic time.
-    time=Tree_Node_Time(thisNode)
+    time=thisBasicComponent%time()
 
     ! Determine how long until next available timestep.
     if (time == historyTime(timestepHistorySteps)) then
@@ -232,8 +203,8 @@ contains
     ! Star formation rate:
     diskStarFormationRate    =0.0d0
     spheroidStarFormationRate=0.0d0
-    if (diskActive)     diskStarFormationRate    =Tree_Node_Disk_SFR    (thisNode)
-    if (spheroidActive) spheroidStarFormationRate=Tree_Node_Spheroid_SFR(thisNode)
+    if (diskActive)     diskStarFormationRate    =thisDiskComponent    %starFormationRate()
+    if (spheroidActive) spheroidStarFormationRate=thisSpheroidComponent%starFormationRate()
     historyStarFormationRate        (timeIndex)= historyStarFormationRate        (timeIndex)                                                               &
          &                                      +(diskStarFormationRate+spheroidStarFormationRate)                                                         &
          &                                      *thisTree%volumeWeight
@@ -268,7 +239,7 @@ contains
     ! Node density
     if (.not.thisNode%isSatellite()) then
        historyNodeDensity           (timeIndex)= historyNodeDensity              (timeIndex)                                                               &
-            &                                   +  Tree_Node_Mass                  (thisNode                                                             ) &
+            &                                   +thisBasicComponent%mass()                                                                                 &
             &                                   *thisTree%volumeWeight
     end if
     return
