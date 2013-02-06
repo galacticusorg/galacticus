@@ -3,8 +3,6 @@
 package File_Changes;
 use File::Copy;
 use File::Compare;
-my $status = 1;
-$status;
 
 sub Update {
     # Checks if a file1 is different from file2 and, if it is, replaces file2 with file1. Otherwise, file1 is deleted.
@@ -23,3 +21,5 @@ sub Update {
     }
 
 }
+
+1;

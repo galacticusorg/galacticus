@@ -19,7 +19,7 @@ use Data::Dumper;
 	   );
 
 # Specify the list of properties to read from each model.
-@properties = ( "volumeWeight", "diskStellarMass", "spheroidStellarMass", "diskScaleLength", "spheroidScaleLength", "diskGasMass", "spheroidGasMass", "blackHoleMass", "diskStellarMetals", "spheroidStellarMetals", "diskGasMetals", "spheroidGasMetals", "nodeMass", "nodeIsIsolated", "timeToMerge" );
+@properties = ( "mergerTreeWeight", "diskStellarMass", "spheroidStellarMass", "diskScaleLength", "spheroidScaleLength", "diskGasMass", "spheroidGasMass", "blackHoleMass", "diskStellarMetals", "spheroidStellarMetals", "diskGasMetals", "spheroidGasMetals", "nodeMass", "nodeIsIsolated", "timeToMerge" );
 
 # Specify a list of plots to make.
 @plots = (
@@ -102,7 +102,7 @@ foreach $plot ( @plots ) {
 	    $x     = $modelValue->{$plot->{'x'}};
 	    $xBins = $bins;
 	}
-	$w = $modelValue->{'volumeWeight'};
+	$w = $modelValue->{'mergerTreeWeight'};
 	#$satellites = which($modelValue->{'nodeIsIsolated'} == 0);
 	#$w->index($satellites) .= 0.0;
 	($y,$error) = &Histograms::Histogram($bins,$x,$w,differential => 1,normalized => 1);

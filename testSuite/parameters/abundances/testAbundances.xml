@@ -1,0 +1,7 @@
+<!-- Parameter file used for testing abundances objects functions. -->
+<parameters>
+  <parameter>
+    <name>elementsToTrack</name>
+    <value>C N O Fe</value>
+  </parameter>
+</parameters>

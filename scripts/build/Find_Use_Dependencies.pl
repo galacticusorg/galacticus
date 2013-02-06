@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
+use Data::Dumper;
 
-# Locate Galform2 code files which have dependencies on modules
+# Locate source files which have dependencies on modules.
 
 # Define the source directory
 if ( $#ARGV != 0 && $#ARGV != 1 ) {die "Usage: Find_Use_Dependencies.pl sourcedir"};
@@ -25,11 +26,25 @@ $workDir = "/work/build/";
     "fgsl" => 1
     );
 
+# Modules that require a library to be linked.
+my %moduleLibararies = (
+    fftw3      => "fftw3",
+    fgsl       => "fgsl_gfortran",
+    fox_common => "FoX_common",
+    fox_dom    => "FoX_dom",
+    fox_wxml   => "FoX_wxml",
+    fox_utils  => "FoX_utils",
+    hdf5       => "hdf5_fortran"
+    );
+my %includeLibararies = (
+    crypt      => "crypt"
+    );
+
 # Open the compiler options file and find preprocessor flags.
 foreach $makefile ( "Makefile" ) {
     open(ophndl,$makefile);
     while ( $line = <ophndl> ) {
-        if ( $line =~ m/^\s*F03FLAGS\s*\+??=/ ) {
+        if ( $line =~ m/^\s*FCFLAGS\s*\+??=/ ) {
             while ( $line =~ s/\s\-D([0-9A-Z]+)\s// ) {
                 $preprocs[++$#preprocs] = $1;
             }
@@ -81,6 +96,7 @@ foreach $srcdir ( @sourcedirs ) {
 	     ( ( lc($fname) =~ m/\.f(90)??$/ ) && ! -e $srcdir."/".$fname."t" )
 	     || ( lc($fname) =~ m/\.f90t$/ )
 	     || ( lc($fname) =~ m/\.c(pp)??$/ )
+	     || ( lc($fname) =~ m/\.inc$/ )
 	    )
 	    && lc($fname) !~ m/^\.\#/ 
 	    ) {	    
@@ -99,6 +115,7 @@ foreach $srcdir ( @sourcedirs ) {
 	    @incfiles = ();
 	    @modfiles = ();
 	    @extra_includes = ();
+	    undef(%libraryDependencies);
 
 	    $scanfiles[++$#scanfiles] = $fullname;
 	    while ( $#scanfiles >= 0 ) {
@@ -114,9 +131,19 @@ foreach $srcdir ( @sourcedirs ) {
 		}
 		@preproc_stack_name = ();
 		@preproc_stack_state = ();
+		$libraryDependencies{"stdc++"} = 1
+		    if ( lc($fname) =~ m/\.cpp$/ );
 		$active = 1;
 		open(infile,$fullname) or die "Can't open input file: $fullname";
 		while (my $line = <infile>) {
+		    if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
+			$libraryDependencies{$1} = 1;	
+		    }
+		    if ( $line =~ m/^\s*\#include\s+<([a-zA-Z0-9_]+)\.h>/ ) {
+			my $includeFile = $1;
+			$libraryDependencies{$includeLibararies{lc($includeFile)}} = 1
+			    if ( exists($includeLibararies{lc($includeFile)}) );
+		    }
 		    if ( $line =~ m/^\#/ ) {
 			if ( $line =~ m/^\#ifdef\s+([0-9A-Z_]+)\s*$/ ) {
 			    $this_preproc = $1;
@@ -155,6 +182,8 @@ foreach $srcdir ( @sourcedirs ) {
 # Locate any lines which use the "use" statement and extract the name of the file they use. (We ignore the "hdf5" module as it is external.)
 			if ( $line =~ m/^\s*use\s+([a-zA-Z0-9_]+)/i ) {
 			    $incfile = $1;
+			    $libraryDependencies{$moduleLibararies{lc($incfile)}} = 1
+				if ( exists($moduleLibararies{lc($incfile)}) );
 			    unless ( $incfile =~ m/^hdf5$/i || exists($ignoreList{lc($incfile)}) ) {
 				$incfile .= ".mod ";
 				$incfile =~ s/\r//g;
@@ -174,15 +203,36 @@ foreach $srcdir ( @sourcedirs ) {
 			    my $incfile = substr($line,$startpos,$sublen).".mod ";
 			    @modfiles = ( @modfiles, lc($incfile));
 			}
-			if ( $line =~ m/^\s*include\s+\'([\w\.\-]+)\'/i ) {
-			    $ifile = $1;
-			    if ( -e $sourcedir."/work/build/".$ifile ) {$scanfiles[++$#scanfiles] = $sourcedir."/work/build/".$ifile};
+			if ( $line =~ m/^\s*include\s+(\'|\")([\w\.\-]+)(\'|\")/i ) {
+			    $ifile = $2;
+			    (my $Ifile = $ifile) =~ s/\.inc$/.Inc/;
+			    if ( -e $sourcedir."/source/".$Ifile ) {
+				$scanfiles[++$#scanfiles] = $sourcedir."/source/".$Ifile;
+			    } elsif ( -e $sourcedir."/work/build/".$ifile ) {
+				$scanfiles[++$#scanfiles] = $sourcedir."/work/build/".$ifile;
+			    }
 			}
 		    }
 		}
 		close(infile);
 	    }
 
+	    # Output library file rule.
+	    unless ( $oname =~ m/\.Inc$/ ) {
+		$lname = $oname;
+		$lname =~ s/.o$/.fl/;
+		print outfile ".".$workDir.$base.$lname,":\n";
+		if ( scalar(keys(%libraryDependencies)) > 0 ) {
+		    my $direct = ">";
+		    foreach my $library ( keys(%libraryDependencies) ) {
+			print outfile "\t\@echo ".$library." ".$direct." .$workDir$base$lname\n";
+			$direct = ">>";
+		    }
+		} else {
+		    print outfile "\t\@touch .$workDir$base$lname\n";
+		}
+	    }
+	    
 # Process output for files which had use statements
 	    if ( $hasuses == 1 ) {
 # Sort the list of used files
@@ -216,7 +266,7 @@ foreach $srcdir ( @sourcedirs ) {
 			}
 		    }
 		}
-		
+
                 # Output the dependencies
 		if ($#sortedinc >= 0 || $#extra_includes >= 0) {
 		    print outfile ".".$workDir.$base.$oname,": ";
@@ -231,6 +281,7 @@ foreach $srcdir ( @sourcedirs ) {
 		    }
 		    $dname = $oname;
 		    $dname =~ s/.o$/.d/;
+		    $dname =~ s/.Inc$/.d/;
 		    print outfile ".".$workDir.$base.$dname,": ";
 		    if ( $#sortedinc >= 0 ) {print outfile ".",join(".",@sortedinc)};
 		    foreach $extra_include ( @extra_includes ) {

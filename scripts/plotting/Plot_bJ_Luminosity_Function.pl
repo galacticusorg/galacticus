@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -10,15 +10,18 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Graphics::GnuplotIF;
-require Galacticus::HDF5;
-require Galacticus::Magnitudes;
 use Math::SigFigs;
 use Data::Dumper;
 require Stats::Histograms;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_bJ_Luminosity_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -47,7 +50,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/bJ_Luminosity_Function_2dFGRS.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/bJ_Luminosity_Function_2dFGRS_Norberg_2002.xml");
 $columns = $data->{'luminosityFunction'}->{'columns'};
 $xBins   = pdl @{$columns->{'magnitude'}->{'data'}};
 $x       = pdl @{$columns->{'magnitude'}->{'data'}};
@@ -66,11 +69,11 @@ $error = $error(-1:0);
 
 # Read galaxy data and construct luminosity function.
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:bJ:rest:z0.0000:vega','magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:bJ:rest:z0.0000:vega','magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega']);
 $dataSets      = $dataSet->{'dataSets'};
 $magnitude     = $dataSets->{'magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega'};
 $magnitudeFree = $dataSets->{'magnitudeTotal:bJ:rest:z0.0000:vega'};
-$weight        = $dataSets->{'volumeWeight'};
+$weight        = $dataSets->{'mergerTreeWeight'};
 delete($dataSet->{'dataSets'});
 ($yGalacticus    ,$errorGalacticus    ) = &Histograms::Histogram($xBins,$magnitude    ,$weight,differential => 1);
 ($yGalacticusFree,$errorGalacticusFree) = &Histograms::Histogram($xBins,$magnitudeFree,$weight,differential => 1);
@@ -87,33 +90,67 @@ if ( $showFit == 1 ) {
     print $xmlOutput->XMLout(\%fitData);
 }
 
-# Make the plot.
-$plot1  = Graphics::GnuplotIF->new();
-$plot1->gnuplot_hardcopy( '| ps2pdf - '.$outputFile, 
-			  'postscript enhanced', 
-			  'color lw 3 solid' );
-$plot1->gnuplot_set_xlabel("M_{b_J,vega}");
-$plot1->gnuplot_set_ylabel("dn/dlogM_{b_J,vega} [Mpc^{-3}]");
-$plot1->gnuplot_set_title("b_J Luminosity Function");
-$plot1->gnuplot_cmd("set label \"{/Symbol c}^2=".FormatSigFigs($chiSquared,4)." [".$degreesOfFreedom."]\" at screen 0.6, screen 0.2");
-$plot1->gnuplot_cmd("set key left");
-$plot1->gnuplot_cmd("set logscale y");
-$plot1->gnuplot_cmd("set mxtics 2");
-$plot1->gnuplot_cmd("set mytics 10");
-$plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set pointsize 1.0");
-$plot1->gnuplot_cmd("plot '-' with errorbars pt 6 title \"".$data->{'luminosityFunction'}->{'label'}."\", '-' with errorbars pt 4 title \"Galacticus\", '-' with errorbars pt 4 title \"Galacticus (no dust)\"");
-for ($i=0;$i<nelem($x);++$i) {
-   $plot1->gnuplot_cmd($x->index($i)." ".$y->index($i)." ".$error->index($i));
-}
-$plot1->gnuplot_cmd("e");
-for ($i=0;$i<nelem($x);++$i) {
-   $plot1->gnuplot_cmd($x->index($i)." ".$yGalacticus->index($i)." ".$errorGalacticus->index($i));
-}
-$plot1->gnuplot_cmd("e");
-for ($i=0;$i<nelem($x);++$i) {
-   $plot1->gnuplot_cmd($x->index($i)." ".$yGalacticusFree->index($i)." ".$errorGalacticusFree->index($i));
-}
-$plot1->gnuplot_cmd("e");
+# Make plot of stellar mass function.
+my $plot;
+my $gnuPlot;
+my $plotFile = $outputFile;
+(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+open($gnuPlot,"|gnuplot"); # 1>/dev/null 2>&1");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output '".$plotFileEPS."'\n";
+print $gnuPlot "set title 'b\$_{\\rm J}\$-band Luminosity Function at \$z=0\$'\n";
+print $gnuPlot "set xlabel 'b\$_{\\rm J}\$-band absolute magnitude; \$M_{\\rm b_J}\$'\n";
+print $gnuPlot "set ylabel 'Comoving number density; \${\\rm d}n/{\\rm d}M_{\\rm b_J}(M_{\\rm b_J}) [\\hbox{Mpc}^{-3}]\$'\n";
+print $gnuPlot "set lmargin screen 0.15\n";
+print $gnuPlot "set rmargin screen 0.95\n";
+print $gnuPlot "set bmargin screen 0.15\n";
+print $gnuPlot "set tmargin screen 0.95\n";
+print $gnuPlot "set key spacing 1.2\n";
+print $gnuPlot "set key at screen 0.275,0.16\n";
+print $gnuPlot "set key left\n";
+print $gnuPlot "set key bottom\n";
+print $gnuPlot "set logscale y\n";
+print $gnuPlot "set mytics 10\n";
+print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+print $gnuPlot "set xrange [-24.5:-14.5]\n";
+print $gnuPlot "set yrange [1.0e-8:3.0e-2]\n";
+print $gnuPlot "set pointsize 2.0\n";
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $x,$y,
+    errorUp    => $error,
+    errorDown  => $error,
+    style      => "point",
+    symbol     => [6,7],
+    weight     => [5,3],
+    color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+    title      => $data->{'luminosityFunction'}->{'label'}.' [observed]'
+    );
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $x,$yGalacticusFree,
+    errorUp    => $errorGalacticusFree,
+    errorDown  => $errorGalacticusFree,
+    style      => "point",
+    symbol     => [6,7],
+    weight     => [5,3],
+    color      => $PrettyPlots::colorPairs{'peachPuff'},
+    title      => 'Galacticus (no dust extinction)'
+    );
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $x,$yGalacticus,
+    errorUp    => $errorGalacticus,
+    errorDown  => $errorGalacticus,
+    style      => "point",
+    symbol     => [6,7],
+    weight     => [5,3],
+    color      => $PrettyPlots::colorPairs{'redYellow'},
+    title      => 'Galacticus'
+    );
+&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+close($gnuPlot);
+&LaTeX::GnuPlot2PDF($plotFileEPS);
+&MetaData::Write($plotFile,$galacticusFile,$self);
 
 exit;

@@ -24,7 +24,8 @@ The file {\tt galacticusConfig.xml}, is present, is used to configure \glc\ and 
   </email>
 </config>
 \end{verbatim}
-The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\tt email} section determines how e-mail will be sent. Within this section, you can place one or more {\tt host} elements, the {\tt name} element of which specifies the host name of the computer to which these rules apply (the {\tt default} host is used if no other match is found). For each host, the {\tt method} element specifies how e-mail should be sent, either by {\tt sendmail} or via {\tt smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\tt host} SMTP server, {\tt user} name. The {\tt passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\tt input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, setting {\tt passwordFrom} to {\tt kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
+The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\tt email} section determines how e-mail will be sent. Within this section, you can place one or more {\tt host} elements, the {\tt name} element of which specifies the host name of the computer to which these rules apply (the {\tt default} host is used if no other match is found). For each host, the {\tt method} element specifies how e-mail should be sent, either by {\tt sendmail} or via {\tt smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\tt host} SMTP server, {\tt user} name. The {\tt passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\tt input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
+setting {\tt passwordFrom} to {\tt kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
 
 \section{Parameter Files}
 
@@ -48,7 +49,7 @@ All parameter values (both those specified in this file and those set to default
 
 Some scripts are provided which assist in the generation of parameter files. These are located in the {\tt scripts/parameters/} folder and are detailed below:
 \begin{description}
-\item [{\tt cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-7 constraints \cite{komatsu_seven-year_2010}. It uses the covariance matrix (currently defined in {\tt data/Cosmological\_Parameters\_WMAP-7.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-7 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\item [{\tt cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \cite{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in {\tt data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
 \end{description}
 
 \section{Running Galacticus}
@@ -101,14 +102,27 @@ The {\tt runFile} is an XML file with the following structure:
  <modelRootDirectory>models.new</modelRootDirectory>
  <baseParameters>newBestParametersQuick.xml</baseParameters>
  <threadCount>maximum</threadCount>
+ <compressModels>no</compressModels>
  <condor>
    <useCondor>true</useCondor>
-   <galacticusDirectory>/home/condor/Galacticus/v0.9.0</galacticusDirectory>
+   <galacticusDirectory>/home/condor/Galacticus/v0.9.1</galacticusDirectory>
    <universe>vanilla</universe>
    <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
    <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
    <transferFile>{PWD}/myFile.data</transferFile>
+   <wholeMachine>true</wholeMachine>
  </condor>
+ <pbs>
+   <usePBS>true</usePBS>
+   <scratchPath>/scratch/me</scratchPath>
+   <wallTime>48:00:00</wallTime>
+   <memory>3gb</memory>
+   <ompThreads>8</ompThreads>
+   <queue>standard</queue>
+   <maxJobsInQueue>10</maxJobsInQueue>
+   <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
+   <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
+ </pbs>                                                                                                             
  <parameters>
   <label>modelLabel</label>
   <parameter>
@@ -149,6 +163,7 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be. Optionally, the analysis script to run can be specified via the {\tt analysisScript} element (see \S\ref{sec:AnalysisScripts});
 \item[{\tt emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\tt galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.
 \item[{\tt threadCount}] Specifies the number of threads that should be launched (each running a separate \glc\ model) when running on the local machine. If set to ``maximum'' then the number of threads will be set to the available number of cores on the local machine. If not present, a single thread is used.
+\item[{\tt compressModels}] If ``no'' then models are not compressed after being run. Otherwise, the contents of the model output directory will be compressed using {\tt bzip2}.
 \item[{\tt condor}] This section, if present, specifies if and how jobs should be submitted to a {\tt Condor} cluster. The following options are available:
 \begin{description}
 \item[{\tt useCondor}] If set to ``true'' then jobs will be submitted to a {\sc Condor} cluster, otherwise they will be run on the local machine;
@@ -157,6 +172,19 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt environment}] Any settings here are passed to {\sc Condor}'s {\tt environment} option in order to set appropriate environment variables on the machine where a job is executed;
 \item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
 \item[{\tt transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\tt \{PWD\}} will be automatically expanded to the present working directory. Multiple {\tt transferFile} entries can be given.
+\item [{\tt wholeFile}] Setting this option to {\tt true} will add {\tt +RequiresWholeMachine = True} to the Condor submit file. If Condor has been configured to allow jobs to take over a whole machine\footnote{As described \protect\href{https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml}{here} for example.}, this will cause jobs to do so. This is useful if you want to run OpenMP \glc\ on a Condor cluster.
+\end{description}
+\item[{\tt pbs}] This section, if present, specifies if and how jobs should be submitted to a {\tt PBS} batch queue system. The following options are available:
+\begin{description}
+\item[{\tt usePBS}] If set to ``true'' then jobs will be submitted to a {\sc PBS} batch queue system, otherwise they will be run on the local machine;
+\item[{\tt scratchPath}] An optional path to which the model output will be written at run time. At the completion of each run, the data will be transferred to the usual output location. This is useful to avoid network I/O during run time;
+\item[{\tt wallTime}] A limit on the wall time allowed for each model (optional);
+\item[{\tt memory}] A limit on the memory allowed for each model (optional);
+\item[{\tt ompThreads}] The number of OpenMP threads to use for each model (optional). This is used to request an appropriate number of processors per node;
+\item[{\tt queue}] The name of the queue to submit the jobs to (optional);
+\item[{\tt maxJobsInQueue}] The maximum number of jobs to place in the queue. Additional jobs will be held and submitted once the number of jobs in the queue drops below this value (optional);
+\item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
+\item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
 \end{description}
 \end{description}
 
@@ -201,6 +229,10 @@ where the {\tt showFit} argument can be 0 or 1 and, if set to 1, the script shou
 \end{verbatim}
 where {\tt chiSquared} and {\tt degreesOfFreedom} are the fitting results. All such data returned from fitting scripts will be collated by {\tt Galacticus\_Compute\_Fit.pl}, augmented with the weight value and the net goodness of fit determined. All of this information is then output to {\tt galacticusFits.xml} in the selected output directory.
 
+\subsubsection{Performing Other Analysis}
+
+If {\tt \textless doAnalysis \textgreater}$=${\tt yes} and {\tt \textless analysisFile\textgreater} is set to something other than an XML file it is assumed that this is an analysis script that should be run directly. The script will be executed with the output directory for the \glc\ model as the first and only argument.
+
 \subsection{Running Models in ``Embarrassingly Parallel'' Mode}
 
 While \glc\ is parallelized via OpenMP it is also possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:
@@ -226,9 +258,50 @@ Once all workers have finished, their outputs can (if required) be combined into
 \end{verbatim}
 where {\tt model1} etc. are the names of the various output files and {\tt modelOutput} is the file into which the combined results should be placed. The {\tt Merge\_Models.pl} script will combine all merger trees into the output file and will additionally cumulate any data in the {\tt globalHistory} groups in these files. The UUIDs of the merged files (see \S\ref{sec:UUID}) will be concatenated (with a ``:'' separator) and placed into the {\tt UUIDs} attribute of the new file. Additionally, a new UUID will be generated and stored in the {\tt UUID} attribute of the new file.
 
+\subsection{Limiting the Load Average}\index{load average}
+
+If {\tt [treeEvolveLimitLoadAverage]}$=${\tt true} then \glc\ will attempt to keep the load average of the system under {\tt [treeEvolveLoadAverageMaximum]} by waiting to run trees if the current load average exceeds this value. {\tt [treeEvolveLoadAverageMaximum]} can be set to the numerical maximum load average desired or, alternatively, can be set to {\tt processorCount} in which case the number of processor cores present on the system will be used for {\tt [treeEvolveLoadAverageMaximum]}.
+
 \section{Additional Codes}
 
 The \glc\ code base can be used for other calculations. Some examples of such usage (and which are sufficiently useful in their own right) are included and are detailed in this section.
+
+\subsection{{\tt Excursion\_Sets}}\index{excursion sets}
+
+The {\tt Excursion\_Sets} code will generate an HDF5 output file which contains a variety of measures related to excursion sets in the Press-Schechter formalism. The code is built and run as follows:
+\begin{verbatim}
+make Excursion_Sets.exe
+Excursion_Sets.exe <parameterFile> <outputFile>
+\end{verbatim}
+where {\tt parameterFile} is a file of parameters in \glc's usual XML format and {\tt outputFile} is the name of the file to which the excursion set data will be written. The output file has the following structure:
+\begin{verbatim}
++-> barrier                  [dataset]
+|
++-> firstCrossingProbability [dataset]
+|
++-> firstCrossingRate        [dataset]
+|
++-> haloMass                 [dataset]
+|
++-> haloMassFunction         [dataset]
+|
++-> powerSpectrum            [dataset]
+|
++-> variance                 [dataset]
+|
++-> wavenumber               [dataset]
+\end{verbatim}
+These datasets contain the following information:
+\begin{description}
+ \item [{\tt haloMass}] Halo mass [${\rm M}_\odot$];
+ \item [{\tt wavenumber}] Wavenumber corresponding to this halo mass [Mpc$^{-1}$];
+ \item [{\tt powerSpectrum}] Power spectrum at this wavenumber [Mpc$^3$];
+ \item [{\tt variance}] The variance, $S(M)\equiv\sigma^2(M)$, at this halo mass;
+ \item [{\tt barrier}] The excursion set barrier, $B(S)$;
+ \item [{\tt firstCrossingProbability}] The probability of first crossing this barrier between $S$ and $S+{\rm d}S$;
+ \item [{\tt firstCrossingRate}] The rate of first crossing of the barrier per unit time [Gyr$^{-1}$] for all pairs of halo mass;
+ \item [{\tt haloMassFunction}] The halo mass function [${\rm M}^{-1}_\odot$~Mpc$^{-3}$].
+\end{description}
 
 \subsection{{\tt Halo\_Mass\_Functions}}
 
