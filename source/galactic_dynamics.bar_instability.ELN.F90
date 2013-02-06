@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,56 +14,12 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of bar instability based on the \cite{efstathiou_stability_1982} criterion.
 
 module Galactic_Dynamics_Bar_Instabilities_ELN
   !% Implements calculations of bar instability based on the \cite{efstathiou_stability_1982} criterion.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
@@ -117,50 +73,54 @@ contains
   double precision function Bar_Instability_Timescale_ELN(thisNode)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: stabilityIsolatedDisk=0.6221297315d0
+    type (treeNode         ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk),                pointer :: thisDiskComponent
+    double precision        , parameter              :: stabilityIsolatedDisk=0.6221297315d0
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision, parameter              :: velocityBoostFactor          =1.180023758d0
+    double precision        , parameter              :: velocityBoostFactor          =1.180023758d0
     ! Maximum timescale (in dynamical times) allowed.
-    double precision, parameter              :: timescaleDimensionlessMaximum=1.0d10
-    double precision                         :: stabilityEstimator,stabilityThreshold,dynamicalTime,gasFraction,diskMass&
+    double precision        , parameter              :: timescaleDimensionlessMaximum=1.0d10
+    double precision                                 :: stabilityEstimator,stabilityThreshold,dynamicalTime,gasFraction,diskMass &
          &,timescaleDimensionless,stabilityIsolatedRelative,stabilityEstimatorRelative
 
     ! Assume infinite timescale (i.e. no instability) initially.
     Bar_Instability_Timescale_ELN=-1.0d0
 
+    ! Get the disk.
+    thisDiskComponent => thisNode%disk()
+
     ! Compute the disk mass.
-    diskMass=Tree_Node_Disk_Gas_Mass(thisNode)+Tree_Node_Disk_Stellar_Mass(thisNode)
+    diskMass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
     ! Return if there is no disk.
     if (diskMass <= 0.0d0) return
 
     ! Return if disk has unphysical angular momentum.
-    if (Tree_Node_Disk_Angular_Momentum(thisNode) <= 0.0d0) return
+    if (thisDiskComponent%angularMomentum() <= 0.0d0) return
 
     ! Return if disk has unphysical velocity or radius.
-    if (Tree_Node_Disk_Velocity(thisNode) <= 0.0d0 .or. Tree_Node_Disk_Radius(thisNode) <= 0.0d0) return
+    if (thisDiskComponent%velocity() <= 0.0d0 .or. thisDiskComponent%radius() <= 0.0d0) return
 
     ! Compute the gas fraction in the disk.
-    gasFraction=Tree_Node_Disk_Gas_Mass(thisNode)/diskMass
+    gasFraction=thisDiskComponent%massGas()/diskMass
 
     ! Compute the stability threshold.
     stabilityThreshold=stabilityThresholdStellar*(1.0d0-gasFraction)+stabilityThresholdGaseous*gasFraction
 
     ! Compute the stability estimator for this node.
-    stabilityEstimator=max(stabilityThreshold,velocityBoostFactor*Tree_Node_Disk_Velocity(thisNode)/dsqrt(gravitationalConstantGalacticus*diskMass&
-         &/Tree_Node_Disk_Radius(thisNode)))
-
+    stabilityEstimator=max(stabilityThreshold,velocityBoostFactor*thisDiskComponent%velocity()/dsqrt(gravitationalConstantGalacticus*diskMass&
+         &/thisDiskComponent%radius()))
+    
     ! Check if the disk is bar unstable.
     if (stabilityEstimator < stabilityThreshold) then
        ! Disk is unstable, compute a timescale for depletion.
        
        ! Begin by finding the disk dynamical time.
-       dynamicalTime=(megaParsec/kilo/gigaYear)*Tree_Node_Disk_Radius(thisNode)/Tree_Node_Disk_Velocity(thisNode)
+       dynamicalTime=(megaParsec/kilo/gigaYear)*thisDiskComponent%radius()/thisDiskComponent%velocity()
 
        ! Simple scaling which gives infinite timescale at the threshold, decreasing to dynamical time for a maximally unstable
        ! disk.

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements an object to store merger tree data for processing into \glc's preferred file format.
 
@@ -669,8 +625,8 @@ contains
             & .and..not.mergerTrees%hasPositionZ        &
             &) call Dealloc_Array(mergerTrees%position)
        mergerTrees%hasPositionX=.true.
-       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[size(property),3])
-       mergerTrees%position(:,1)=property
+       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[3,size(property)])
+       mergerTrees%position(1,:)=property
     case (propertyTypePositionY      )
        if (                                             &
             & allocated(mergerTrees%position)           &
@@ -679,8 +635,8 @@ contains
             & .and..not.mergerTrees%hasPositionZ        &
             &) call Dealloc_Array(mergerTrees%position)
        mergerTrees%hasPositionY=.true.
-       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[size(property),3])
-       mergerTrees%position(:,2)=property
+       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[3,size(property)])
+       mergerTrees%position(2,:)=property
     case (propertyTypePositionZ      )
        if (                                             &
             & allocated(mergerTrees%position)           &
@@ -689,8 +645,8 @@ contains
             & .and..not.mergerTrees%hasPositionZ        &
             &) call Dealloc_Array(mergerTrees%position)
        mergerTrees%hasPositionZ=.true.
-       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[size(property),3])
-       mergerTrees%position(:,3)=property
+       if (.not.allocated(mergerTrees%position)) call Alloc_Array(mergerTrees%position,[3,size(property)])
+       mergerTrees%position(3,:)=property
     case (propertyTypeVelocityX      )
        if (                                             &
             & allocated(mergerTrees%velocity)           &
@@ -699,8 +655,8 @@ contains
             & .and..not.mergerTrees%hasVelocityZ        &
             &) call Dealloc_Array(mergerTrees%velocity)
        mergerTrees%hasVelocityX=.true.
-       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[size(property),3])
-       mergerTrees%velocity(:,1)=property
+       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[3,size(property)])
+       mergerTrees%velocity(1,:)=property
     case (propertyTypeVelocityY      )
        if (                                             &
             & allocated(mergerTrees%velocity)           &
@@ -709,8 +665,8 @@ contains
             & .and..not.mergerTrees%hasVelocityZ        &
             &) call Dealloc_Array(mergerTrees%velocity)
        mergerTrees%hasVelocityY=.true.
-       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[size(property),3])
-       mergerTrees%velocity(:,2)=property
+       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[3,size(property)])
+       mergerTrees%velocity(2,:)=property
     case (propertyTypeVelocityZ      )
        if (                                             &
             & allocated(mergerTrees%velocity)           &
@@ -719,8 +675,8 @@ contains
             & .and..not.mergerTrees%hasVelocityZ        &
             &) call Dealloc_Array(mergerTrees%velocity)
        mergerTrees%hasVelocityZ=.true.
-       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[size(property),3])
-       mergerTrees%velocity(:,3)=property
+       if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[3,size(property)])
+       mergerTrees%velocity(3,:)=property
     case default
        call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','unrecognized double property')  
     end select
@@ -1310,12 +1266,10 @@ contains
        ! Set tree metadata.
        ! Determine if trees have subhalos.
        if (mergerTrees%hasHostIndex) then
-          ! A host index is included. If any node is not its own host, then it's a subhalo.
-          if (any(mergerTrees%nodeIndex /= mergerTrees%hostIndex)) then
-             integerAttribute=1
-          else
-             integerAttribute=0
-          end if
+          ! A host index is included, so potentially there could be subhalos. (A given tree may not actually
+          ! have any subhalos, but we take the presence of the host index to indicate that there could be
+          ! subhalos, in principle.)
+          integerAttribute=1
        else
           ! No host index is included - assume no nodes are subhalos.
           integerAttribute=0
@@ -1499,12 +1453,12 @@ contains
           call thisDataset%close()
        end if
        if (mergerTrees%hasPositionX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%position                ,thisSnapshotIndices,indexOn=1),"Center"         ,"The position of each halo center."      ,datasetReturned=thisDataset,appendTo=.true.)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,thisSnapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."      ,datasetReturned=thisDataset,appendTo=.true.,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
        if (mergerTrees%hasVelocityX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity                ,thisSnapshotIndices,indexOn=1),"Velocity"       ,"The velocity of each halo."             ,datasetReturned=thisDataset,appendTo=.true.)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,thisSnapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."             ,datasetReturned=thisDataset,appendTo=.true.,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
@@ -1512,7 +1466,7 @@ contains
           call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                             ,appendTo=.true.)
        end if
        if (mergerTrees%hasAngularMomentumX        ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo.",datasetReturned=thisDataset,appendTo=.true.)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo.",datasetReturned=thisDataset,appendTo=.true.,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
@@ -1646,8 +1600,8 @@ contains
 
     ! Create groups for attributes.
     if (.not.appendActual) then
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) cosmologyGroup  =outputFile%openGroup("Cosmology"            ,"Cosmological parameters."           )
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) simulationGroup =outputFile%openGroup("SimulationProperties" ,"Simulation parameters."             )
+       cosmologyGroup  =outputFile%openGroup("Cosmology"            ,"Cosmological parameters."           )
+       simulationGroup =outputFile%openGroup("SimulationProperties" ,"Simulation parameters."             )
        
        ! Write attributes.
        do iAttribute=1,mergerTrees%metaDataCount
@@ -1688,8 +1642,8 @@ contains
        end do
        
        ! Close attribute groups.
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) call cosmologyGroup  %close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) call simulationGroup %close()
+       call cosmologyGroup  %close()
+       call simulationGroup %close()
     end if
 
     ! Close the output file.
