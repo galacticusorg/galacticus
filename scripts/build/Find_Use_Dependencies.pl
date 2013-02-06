@@ -28,6 +28,7 @@ $workDir = "/work/build/";
 
 # Modules that require a library to be linked.
 my %moduleLibararies = (
+    fftw3      => "fftw3",
     fgsl       => "fgsl_gfortran",
     fox_common => "FoX_common",
     fox_dom    => "FoX_dom",
@@ -95,6 +96,7 @@ foreach $srcdir ( @sourcedirs ) {
 	     ( ( lc($fname) =~ m/\.f(90)??$/ ) && ! -e $srcdir."/".$fname."t" )
 	     || ( lc($fname) =~ m/\.f90t$/ )
 	     || ( lc($fname) =~ m/\.c(pp)??$/ )
+	     || ( lc($fname) =~ m/\.inc$/ )
 	    )
 	    && lc($fname) !~ m/^\.\#/ 
 	    ) {	    
@@ -134,6 +136,9 @@ foreach $srcdir ( @sourcedirs ) {
 		$active = 1;
 		open(infile,$fullname) or die "Can't open input file: $fullname";
 		while (my $line = <infile>) {
+		    if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
+			$libraryDependencies{$1} = 1;	
+		    }
 		    if ( $line =~ m/^\s*\#include\s+<([a-zA-Z0-9_]+)\.h>/ ) {
 			my $includeFile = $1;
 			$libraryDependencies{$includeLibararies{lc($includeFile)}} = 1
@@ -198,9 +203,14 @@ foreach $srcdir ( @sourcedirs ) {
 			    my $incfile = substr($line,$startpos,$sublen).".mod ";
 			    @modfiles = ( @modfiles, lc($incfile));
 			}
-			if ( $line =~ m/^\s*include\s+\'([\w\.\-]+)\'/i ) {
-			    $ifile = $1;
-			    if ( -e $sourcedir."/work/build/".$ifile ) {$scanfiles[++$#scanfiles] = $sourcedir."/work/build/".$ifile};
+			if ( $line =~ m/^\s*include\s+(\'|\")([\w\.\-]+)(\'|\")/i ) {
+			    $ifile = $2;
+			    (my $Ifile = $ifile) =~ s/\.inc$/.Inc/;
+			    if ( -e $sourcedir."/source/".$Ifile ) {
+				$scanfiles[++$#scanfiles] = $sourcedir."/source/".$Ifile;
+			    } elsif ( -e $sourcedir."/work/build/".$ifile ) {
+				$scanfiles[++$#scanfiles] = $sourcedir."/work/build/".$ifile;
+			    }
 			}
 		    }
 		}
@@ -208,17 +218,19 @@ foreach $srcdir ( @sourcedirs ) {
 	    }
 
 	    # Output library file rule.
-	    $lname = $oname;
-	    $lname =~ s/.o$/.fl/;
-	    print outfile ".".$workDir.$base.$lname,":\n";
-	    if ( scalar(keys(%libraryDependencies)) > 0 ) {
-		my $direct = ">";
-		foreach my $library ( keys(%libraryDependencies) ) {
-		    print outfile "\t\@echo ".$library." ".$direct." .$workDir$base$lname\n";
-		    $direct = ">>";
+	    unless ( $oname =~ m/\.Inc$/ ) {
+		$lname = $oname;
+		$lname =~ s/.o$/.fl/;
+		print outfile ".".$workDir.$base.$lname,":\n";
+		if ( scalar(keys(%libraryDependencies)) > 0 ) {
+		    my $direct = ">";
+		    foreach my $library ( keys(%libraryDependencies) ) {
+			print outfile "\t\@echo ".$library." ".$direct." .$workDir$base$lname\n";
+			$direct = ">>";
+		    }
+		} else {
+		    print outfile "\t\@touch .$workDir$base$lname\n";
 		}
-	    } else {
-		print outfile "\t\@touch .$workDir$base$lname\n";
 	    }
 	    
 # Process output for files which had use statements
@@ -253,7 +265,7 @@ foreach $srcdir ( @sourcedirs ) {
 			    last;
 			}
 		    }
-		}		
+		}
 
                 # Output the dependencies
 		if ($#sortedinc >= 0 || $#extra_includes >= 0) {
@@ -269,6 +281,7 @@ foreach $srcdir ( @sourcedirs ) {
 		    }
 		    $dname = $oname;
 		    $dname =~ s/.o$/.d/;
+		    $dname =~ s/.Inc$/.d/;
 		    print outfile ".".$workDir.$base.$dname,": ";
 		    if ( $#sortedinc >= 0 ) {print outfile ".",join(".",@sortedinc)};
 		    foreach $extra_include ( @extra_includes ) {
