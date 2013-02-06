@@ -4,7 +4,7 @@
 
 In designing \glc\ our main goal was to make the code flexible, modular and easily extensible. Much greater priority was placed on making the code easy to use and modify than on making it fast. We believe that a modular and extensible nature is crucial as galaxy formation is an evolving science. In particular, key design features are:
 \begin{description}
- \item [Extensible methods for all functions:] Essentially all functions within \glc\ are designed to be extensible, meaning that you can write your own version and insert it into \glc\ easily. For example, suppose you want to use an improved functional form for the \CDM\ halo mass function. You would simply write a subroutine conforming to a specified template that computes this mass function and add a short directive (see \S\ref{sec:CodeDirectives}) in your code which explains to the build system how to insert this function in \glc. A recompile of the code will then incorporate your new function.
+ \item [Extensible methods for all functions:] Essentially all functions within \glc\ are designed to be extensible, meaning that you can write your own version and insert it into \glc\ easily. For example, suppose you want to use an improved functional form for the \gls{cdm} halo mass function. You would simply write a subroutine conforming to a specified template that computes this mass function and add a short directive (see \S\ref{sec:CodeDirectives}) in your code which explains to the build system how to insert this function in \glc. A recompile of the code will then incorporate your new function.
 
  \item [Extensible components for tree nodes:] The basic structure in \glc\ is a merger tree, which consists of a linked tree of nodes which have various properties. \glc\ works by evolving the nodes forwards in time subject to a collection of differential equations and other rules. Each node can contains an arbitrary number of \emph{components}. A component may be a dark matter halo, a galactic disk, a black hole etc. Each component may have an arbitrary number of \emph{properties} (some of which may be evolving, others of which can be fixed). \glc\ makes it easy to add additional components. For example, suppose you wanted to add a ``stellar halo'' components (consisting of stars stripped from satellite galaxies). To do this, you would write a module which specifies the following for this component:
  \begin{itemize}
@@ -22,61 +22,17 @@ In designing \glc\ our main goal was to make the code flexible, modular and easi
 
 \subsection{License}
 
-Copyright 2009, 2010, Andrew Benson \href{mailto:abenson@caltech.edu}{\tt <abenson@caltech.edu>}\\
+Copyright 2009, 2010, 2011, 2012, 2013, Andrew Benson \href{mailto:abenson@obs.carnegiescience.edu}{\tt <abenson@obs.carnegiescience.edu>}\\
 
-\glc is free software: you can redistribute it and/or modify
+\glc\ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-\glc is distributed in the hope that it will be useful,
+\glc\ is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with \glc.  If not, see \href{http://www.gnu.org/licenses/}{\tt <http://www.gnu.org/licenses/>}.
-
-
-COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-
-The California Institute of Technology shall allow RECIPIENT to use and
-distribute this software subject to the terms of the included license
-agreement with the understanding that:
-
-THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED ``AS-IS'' TO
-THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-PURPOSE (AS SET FORTH IN UNITED STATES UCC \S2312-§2313) OR FOR ANY
-PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-USED.
-
-IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-
-RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-USE OF THE SOFTWARE.
-
-In addition, RECIPIENT also agrees that Caltech is under no obligation
-to provide technical support for the Software.
-
-Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-of Derivative Works, public display or redistribution of the Software
-other than those specified in the included license and the requirement
-that all copies of the Software released be marked with the language
-provided in this notice.
-
-This software is separately available under negotiable license terms
-from:\\
-California Institute of Technology\\
-Office of Technology Transfer\\
-1200 E. California Blvd.\\
-Pasadena, California 91125\\
-\href{http://www.ott.caltech.edu}{\tt http://www.ott.caltech.edu}\\
-

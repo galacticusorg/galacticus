@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,63 +14,20 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the \cite{benson_orbital_2005} orbital parameter distribution for merging subhalos.
 
 module Virial_Orbits_Benson2005
   !% Implements the \cite{benson_orbital_2005} orbital parameter distribution for merging subhalos.
   use FGSL
+  implicit none
   private
   public :: Virial_Orbital_Parameters_Benson2005_Initialize, Virial_Orbital_Parameters_Benson2005_Snapshot,&
        & Virial_Orbital_Parameters_Benson2005_State_Store, Virial_Orbital_Parameters_Benson2005_State_Retrieve
 
   type(fgsl_rng) :: pseudoSequenceObject,clonedPseudoSequenceObject
   logical        :: resetSequence=.true.,resetSequenceSnapshot
-  !$omp threadprivate(pseudoSequenceObject,resetSequence)
+  !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
   
 contains
 
@@ -80,39 +37,43 @@ contains
   subroutine Virial_Orbital_Parameters_Benson2005_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
+    use Kepler_Orbits
     implicit none
-    type(varying_string),          intent(in)    :: virialOrbitsMethod
-    procedure(),          pointer, intent(inout) :: Virial_Orbital_Parameters_Get
+    type(varying_string),                  intent(in)    :: virialOrbitsMethod
+    procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
     
-    if (virialOrbitsMethod.eq.'Benson2005') Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Benson2005
+    if (virialOrbitsMethod == 'Benson2005') Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Benson2005
     return
   end subroutine Virial_Orbital_Parameters_Benson2005_Initialize
 
-  subroutine Virial_Orbital_Parameters_Benson2005(thisNode,acceptUnboundOrbits,velocityRadial,velocityTangential,angularMomentum&
-       &,orbitalEnergy,eccentricity,semimajorAxis)
-    !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{benson_orbital_2005}.
+  function Virial_Orbital_Parameters_Benson2005(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
+    !% Return orbital parameters of a satellite selected at random from the fitting function found by \cite{benson_orbital_2005}.
     use Pseudo_Random
-    use Tree_Nodes
+    use Kepler_Orbits
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
     implicit none
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    logical,          intent(in)              :: acceptUnboundOrbits
-    double precision, intent(out),   optional :: velocityRadial,velocityTangential,angularMomentum,orbitalEnergy,eccentricity&
-         &,semimajorAxis
-    type(treeNode),                  pointer  :: hostNode
-    double precision, parameter               :: pMax=1.96797d0, velocityMax=3.0d0
-    double precision, parameter               :: a(9)=(/0.390052d+01,0.247973d+01,0.102373d+02,0.683922d+00,0.353953d+00&
+    type (keplerOrbit       )                         :: thisOrbit
+    type (treeNode          ), intent(inout), pointer :: thisNode,hostNode
+    logical,                   intent(in   )          :: acceptUnboundOrbits
+    class(nodeComponentBasic),                pointer :: thisBasicComponent,hostBasicComponent
+    double precision,          parameter              :: pMax=1.96797d0, velocityMax=3.0d0
+    double precision,          parameter              :: a(9)=(/0.390052d+01,0.247973d+01,0.102373d+02,0.683922d+00,0.353953d+00&
          &,0.107716d+01 ,0.509837d+00,0.206204d+00,0.314641d+00/)
-    double precision, parameter               :: EPS_BOUND=1.0d-4 ! Tolerence to ensure that orbits are sufficiently bound.
-    double precision                          :: orbitalA,orbitalB,b1,b2,distributionFunction,uniformRandom&
-         &,angularMomentumInternal ,energyInternal,velocityRadialInternal,velocityTangentialInternal,velocityScale,radialScale&
-         &,massFactor
-    logical                                   :: foundOrbit
+    double precision,          parameter              :: EPS_BOUND=1.0d-4 ! Tolerence to ensure that orbits are sufficiently bound.
+    double precision                                  :: b1,b2,distributionFunction,uniformRandom,velocityRadialInternal&
+         &,velocityTangentialInternal,velocityScale,energyInternal
+    logical                                           :: foundOrbit
 
-    ! Determine the mass parameter.
-    hostNode => thisNode%parentNode
-    massFactor=1.0d0+Tree_Node_Mass(thisNode)/Tree_Node_Mass(hostNode)
+    ! Reset the orbit.
+    call thisOrbit%reset()
+    ! Set masses and radius of the orbit.
+    thisBasicComponent => thisNode%basic()
+    hostBasicComponent => hostNode%basic()
+    call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
+    call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
+
     ! Select an orbit.
     foundOrbit=.false.
     do while(.not.foundOrbit)
@@ -132,27 +93,16 @@ contains
           ! If requested, check that the orbit is bound. We require it to have E<-EPS_BOUND to ensure that it is sufficiently
           ! bound that later rounding errors will not make it appear unbound.
           if (.not.acceptUnboundOrbits) then
-             angularMomentumInternal=velocityTangentialInternal/massFactor
-             energyInternal=-1.0d0+0.5d0*(velocityRadialInternal**2+velocityTangentialInternal**2)/massFactor
+             energyInternal=-1.0d0+0.5d0*(velocityRadialInternal**2+velocityTangentialInternal**2)*thisOrbit%specificReducedMass()
              foundOrbit=(energyInternal < -EPS_BOUND)
           end if
        end if
     end do
-    angularMomentumInternal=velocityTangentialInternal/massFactor
-    orbitalA=1.0d0-massFactor/(velocityTangentialInternal**2)
-    orbitalB=-velocityRadialInternal/velocityTangentialInternal
     velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
-    radialScale=Dark_Matter_Halo_Virial_Radius(hostNode)
-    if (present(velocityRadial))     velocityRadial    =velocityRadialInternal    *velocityScale
-    if (present(velocityTangential)) velocityTangential=velocityTangentialInternal*velocityScale
-    if (present(angularMomentum))    angularMomentum   =angularMomentumInternal*velocityScale*radialScale
-    if (present(orbitalEnergy  ))    orbitalEnergy     =(-1.0d0+0.5d0*(velocityRadialInternal**2+velocityTangentialInternal**2) &
-         &/massFactor)*velocityScale**2
-    if (present(eccentricity))       eccentricity      =dsqrt(orbitalA**2+orbitalB**2)*(velocityTangentialInternal**2)/massFactor
-    if (present(semimajorAxis))      semimajorAxis     =radialScale*massFactor/(2.0*massFactor-velocityRadialInternal**2 &
-         &-velocityTangentialInternal**2)
+    call thisOrbit%velocityRadialSet    (velocityRadialInternal    *velocityScale)
+    call thisOrbit%velocityTangentialSet(velocityTangentialInternal*velocityScale)
     return
-  end subroutine Virial_Orbital_Parameters_Benson2005
+  end function Virial_Orbital_Parameters_Benson2005
 
   !# <galacticusStateSnapshotTask>
   !#  <unitName>Virial_Orbital_Parameters_Benson2005_Snapshot</unitName>

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,59 +14,20 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module for storing and reporting memory usage by the code.
 
 module Memory_Management
   !% Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
   !% arrays with automatic error checking and deallocation at program termination and memory usage reporting.
+  use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
+  implicit none
   private
   public :: Memory_Usage_Report,Code_Memory_Usage,Alloc_Array,Dealloc_Array,Memory_Usage_Record
+#ifdef PROCPS
+  public :: Memory_Usage_Get
+#endif
 
   ! Count of number of successive decreases in memory usage.
   integer                 :: successiveDecreaseCount=0
@@ -103,6 +64,17 @@ module Memory_Management
 
   ! Overhead memory (in bytes) per allocation.
   integer(kind=kind_int8) :: allocationOverhead=8
+
+#ifdef PROCPS
+  interface
+     !: ./work/build/utility.memory_usage.o
+     function Memory_Usage_Get_C() bind(c,name='Memory_Usage_Get_C')
+       !% Template for a C function that returns the current memory usage.
+       import
+       integer(c_long) :: Memory_Usage_Get_C
+     end function Memory_Usage_Get_C
+  end interface
+#endif
 
   ! Include automatically generated inferfaces.
   include 'utility.memory_management.precontain.inc'
@@ -175,14 +147,15 @@ contains
     integer                             :: spaceCount
     character(len=20)                   :: formatString
     character(len=len(headerText)+40)   :: temporaryString
+    character(len=13)                   :: usageString
 
-    if (thisMemoryUsage%usage.gt.0) then
+    if (thisMemoryUsage%usage > 0) then
        spaceCount=max(0,11-len_trim(thisMemoryUsage%name))
        write (formatString,'(a,i1,a)') '(a,1x,a1,',spaceCount,'x,a)'
        write (temporaryString,formatString) trim(char(headerText)),join,trim(thisMemoryUsage%name)
        headerText=trim(temporaryString)
-       write (temporaryString,'(1x,a1,1x,f7.3,a3)') join,dble(thisMemoryUsage%usage)/dble(thisMemoryUsage%divisor),thisMemoryUsage%suffix
-       usageText=trim(usageText)//trim(temporaryString)
+       write (usageString,'(1x,a1,1x,f7.3,a3)') join,dble(thisMemoryUsage%usage)/dble(thisMemoryUsage%divisor),thisMemoryUsage%suffix
+       usageText=trim(usageText)//usageString
        join='+'
     end if
     return
@@ -190,6 +163,7 @@ contains
 
   subroutine Set_Memory_Prefix(thisMemoryUsage)
     !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
+    use ISO_Varying_String
     implicit none
     type(memoryUsage),       intent(inout) :: thisMemoryUsage
     integer(kind=kind_int8), parameter     :: kilo     =1024
@@ -201,7 +175,7 @@ contains
        select case (usageDecade)
        case (:0)
           thisMemoryUsage%divisor=1
-          thisMemoryUsage%suffix='b  '
+          thisMemoryUsage%suffix='  b'
        case (1)
           thisMemoryUsage%divisor=kilo
           thisMemoryUsage%suffix='kib'
@@ -214,7 +188,7 @@ contains
        end select
     else
        thisMemoryUsage%divisor=1
-       thisMemoryUsage%suffix='b '
+       thisMemoryUsage%suffix='  b'
     end if
     return
   end subroutine Set_Memory_Prefix
@@ -227,9 +201,9 @@ contains
     !%
     !% The {\tt $\langle$executable$\rangle$.size} file is made by running the Perl script {\tt Find\_Executable\_Size.pl} (which is done
     !% automatically when the executable is built by {\tt make}).
-    use File_Utilities
     use ISO_Varying_String
     use Galacticus_Display
+    use Galacticus_Input_Paths
     implicit none
     character(len=*),    intent(in) :: codeSizeFile
     integer                         :: ioError,unitNumber
@@ -238,9 +212,8 @@ contains
     type(varying_string)            :: codeSizeFileExtension
 
     usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
-    unitNumber=File_Units_Get()
-    codeSizeFileExtension='./work/build/'//trim(codeSizeFile)
-    open (unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
+    codeSizeFileExtension=char(Galacticus_Input_Path())//'work/build/'//trim(codeSizeFile)
+    open (newunit=unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
     read (unitNumber,'(a80)',iostat=ioError) line ! Read header line.
     if (ioError == 0) then
        read (unitNumber,*) dummy,dummy,dummy,usedMemory%memoryType(memoryTypeCode)%usage
@@ -276,13 +249,26 @@ contains
     else
        blockCountActual=1
     end if
-    !$omp atomic
+    !$omp critical(Memory_Management_Usage)
     usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+elementsUsed*addRemoveActual
-    !$omp atomic
     usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sign(blockCountActual,addRemoveActual)*allocationOverhead
+    !$omp end critical(Memory_Management_Usage)
     return
   end subroutine Memory_Usage_Record
 
   include 'utility.memory_management.postcontain.inc'
+
+#ifdef PROCPS
+  function Memory_Usage_Get()
+    implicit none
+    integer(kind_int8) :: Memory_Usage_Get(2)
+
+    usedMemory%memoryType(memoryTypeTotal)%usage=0
+    usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(:)%usage)
+    Memory_Usage_Get(1)=Memory_Usage_Get_C()*4096_kind_int8
+    Memory_Usage_Get(2)=usedMemory%memoryType(memoryTypeTotal)%usage
+    return
+  end function Memory_Usage_Get
+#endif
 
 end module Memory_Management
