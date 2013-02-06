@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,56 +14,13 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of merger tree branching probabilities.
 
 module Merger_Tree_Branching
   !% Implements calculations of merger tree branching probabilities.
   use ISO_Varying_String
+  implicit none
   private
   public :: Tree_Branching_Probability, Tree_Subresolution_Fraction, Tree_Branch_Mass, Tree_Maximum_Step
 
@@ -163,32 +120,36 @@ contains
     implicit none
  
     ! Initialize if necessary.
-    !$omp critical(Tree_Branching_Initialization) 
     if (.not.treeBranchingInitialized) then
-       ! Get the tree branching method parameter.
-       !@ <inputParameter>
-       !@   <name>treeBranchingMethod</name>
-       !@   <defaultValue>modified Press-Schechter</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing merger tree branching probabilities when building merger trees.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modified Press-Schechter')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="treeBranchingMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>treeBranchingMethod,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</subroutineArgs>
-       include 'merger_trees.branching_probability.inc'
-       !# </include>
-       if (       .not.associated(Tree_Branching_Probability_Function )  &
-            & .or..not.associated(Tree_Subresolution_Fraction_Function)  &
-            & .or..not.associated(Tree_Branch_Mass_Function           )  &
-            & .or..not.associated(Tree_Maximum_Step_Function          )) &
-            & call Galacticus_Error_Report('Tree_Branching_Initialize','method '//char(treeBranchingMethod)//' is unrecognized')
-       
-       treeBranchingInitialized=.true.
+       !$omp critical(Tree_Branching_Initialization) 
+       if (.not.treeBranchingInitialized) then
+          ! Get the tree branching method parameter.
+          !@ <inputParameter>
+          !@   <name>treeBranchingMethod</name>
+          !@   <defaultValue>modifiedPress-Schechter</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing merger tree branching probabilities when building merger trees.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modifiedPress-Schechter')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="treeBranchingMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>treeBranchingMethod,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</functionArgs>
+          include 'merger_trees.branching_probability.inc'
+          !# </include>
+          if (       .not.associated(Tree_Branching_Probability_Function )  &
+               & .or..not.associated(Tree_Subresolution_Fraction_Function)  &
+               & .or..not.associated(Tree_Branch_Mass_Function           )  &
+               & .or..not.associated(Tree_Maximum_Step_Function          )) &
+               & call Galacticus_Error_Report('Tree_Branching_Initialize','method '//char(treeBranchingMethod)//' is unrecognized')
+          
+          treeBranchingInitialized=.true.
+       end if
+       !$omp end critical(Tree_Branching_Initialization)
     end if
-    !$omp end critical(Tree_Branching_Initialization)
     return
   end subroutine Tree_Branching_Initialize
   

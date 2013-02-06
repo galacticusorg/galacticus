@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,57 +14,14 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements a \cite{white_galaxy_1991} cooling rate calculation.
 
 module Cooling_Rates_White_Frenk
   !% Implements a \cite{white_galaxy_1991} cooling rate calculation.
   use, intrinsic :: ISO_C_Binding
-  use Tree_Nodes
+  use Galacticus_Nodes
+  implicit none
   private
   public :: Cooling_Rate_White_Frenk_Initialize
 
@@ -77,41 +34,58 @@ contains
   !#  <unitName>Cooling_Rate_White_Frenk_Initialize</unitName>
   !# </coolingRateMethod>
   subroutine Cooling_Rate_White_Frenk_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    !% Initializes the ``White + Frenk'' cooling rate module.
+    !% Initializes the ``White-Frenk1991'' cooling rate module.
     use ISO_Varying_String
     use Input_Parameters
+    use Galacticus_Error
     implicit none
-    type(varying_string),          intent(in)    :: coolingRateMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Rate_Get
-    
-    if (coolingRateMethod == 'White + Frenk') then
+    type     (varying_string      ),          intent(in   ) :: coolingRateMethod
+    procedure(double precision    ), pointer, intent(inout) :: Cooling_Rate_Get
+
+    if (coolingRateMethod == 'White-Frenk1991') then
        Cooling_Rate_Get => Cooling_Rate_White_Frenk
 
        ! Get cooling rate parameters.
        !@ <inputParameter>
        !@   <name>zeroCoolingRateAboveVelocity</name>
-       !@   <defaultValue>1000</defaultValue>
+       !@   <defaultValue>10000</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White + Frenk} cooling rate model.
+       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White-Frenk1991} cooling rate model.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
-   end if
+
+       ! Check that the properties we need are gettable.
+       if (.not.defaultHotHaloComponent%massIsGettable())                                                  &
+            & call Galacticus_Error_Report(                                                                &
+            &                              'Cooling_Rate_White_Frenk_Initialize'                         , &
+            &                              'mass property of hot halo component must be gettable'          &
+            &                             )
+       if (.not.defaultHotHaloComponent%outerRadiusIsGettable())                                           &
+            & call Galacticus_Error_Report(                                                                &
+            &                              'Cooling_Rate_White_Frenk_Initialize'                         , &
+            &                              'outer radius property of hot halo component must be gettable'  &
+            &                             )
+    end if
     return
   end subroutine Cooling_Rate_White_Frenk_Initialize
 
   double precision function Cooling_Rate_White_Frenk(thisNode)
     !% Computes the mass cooling rate in a hot gas halo utilizing the \cite{white_galaxy_1991} method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
-    use Cooling_Radii
+    use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: coolingRadius,coolingDensity,virialRadius,coolingRadiusGrowthRate,virialVelocity
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                    :: infallRadius,coolingDensity,outerRadius,infallRadiusGrowthRate&
+         &,virialVelocity
 
     ! Get the virial velocity.
     virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
@@ -122,22 +96,23 @@ contains
        return
     end if
     
-    ! Get the virial radius.
-    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+    ! Get the outer radius of the hot halo.
+    thisHotHaloComponent => thisNode            %hotHalo    ()
+    outerRadius          =  thisHotHaloComponent%outerRadius()
 
     ! Get the cooling radius.
-    coolingRadius=Cooling_Radius(thisNode)
+    infallRadius=Infall_Radius(thisNode)
 
-    if (coolingRadius >= virialRadius) then
-       ! Cooling radius exceeds the virial radius. Limit infall to the dynamical timescale.
-       Cooling_Rate_White_Frenk=Tree_Node_Hot_Halo_Mass(thisNode)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+    if (infallRadius >= outerRadius) then
+       ! Cooling radius exceeds the outer radius. Limit infall to the dynamical timescale.
+       Cooling_Rate_White_Frenk=thisHotHaloComponent%mass()/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     else
        ! Find the density at the cooling radius.
-       coolingDensity=Hot_Halo_Density(thisNode,coolingRadius)
+       coolingDensity=Hot_Halo_Density(thisNode,infallRadius)
        ! Find cooling radius growth rate.
-       coolingRadiusGrowthRate=Cooling_Radius_Growth_Rate(thisNode)
+       infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode)
        ! Compute the cooling rate.
-       Cooling_Rate_White_Frenk=4.0d0*Pi*(coolingRadius**2)*coolingDensity*coolingRadiusGrowthRate
+       Cooling_Rate_White_Frenk=4.0d0*Pi*(infallRadius**2)*coolingDensity*infallRadiusGrowthRate
     end if
     return
   end function Cooling_Rate_White_Frenk

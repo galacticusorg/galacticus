@@ -118,8 +118,8 @@ File::Which - Portable implementation of the `which' utility
 
 =head1 SYNOPSIS
 
-  use File::Which;                  # exports which()
-  use File::Which qw(which where);  # exports which() and where()
+  require File::Which;                  # exports which()
+  require File::Which qw(which where);  # exports which() and where()
   
   my $exe_path = which('perldoc');
   
