@@ -1,20 +1,29 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
-use Galacticus::HaloModel;
 use Math::SigFigs;
 use Data::Dumper;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
+require Galacticus::HaloModel;
+require XMP::MetaData;
 
 # Compute and plot a 2-point correlation functions and compare to 2dFGRS observations.
 # Andrew Benson (30-Aug-2010)
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_2dFGRS_Correlation_Functions.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -35,22 +44,23 @@ if ( $outputTo =~ m/\.pdf$/ ) {
 ($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet{'file'}  = $galacticusFile;
-$dataSet{'store'} = 0;
-$dataSet{'tree'}  = "all";
-&HDF5::Get_Parameters(\%dataSet    );
-&HDF5::Count_Trees   (\%dataSet    );
-&HDF5::Get_Times     (\%dataSet    );
-&HDF5::Select_Output (\%dataSet,0.1);
-&HDF5::Get_Dataset   (\%dataSet,['magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega','nodeBias']);
-$dataSets         = \%{$dataSet{'dataSets'}};
+$dataSet->{'file'}  = $galacticusFile;
+$dataSet->{'store'} = 0;
+$dataSet->{'tree'}  = "all";
+&HDF5::Get_Parameters        ($dataSet    );
+&HDF5::Count_Trees           ($dataSet    );
+&HDF5::Get_Times             ($dataSet    );
+&HDF5::Select_Output         ($dataSet,0.1);
+&HDF5::Get_Datasets_Available($dataSet    );
+&HDF5::Get_Dataset   ($dataSet,['nodeBias','magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega']);
+$dataSets         = $dataSet->{'dataSets'};
 
 # Read the file of observational data.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin("data/Correlation_Functions_2dFGRS_Norberg_2002.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/largeScaleStructure/Correlation_Functions_2dFGRS_Norberg_2002.xml");
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot");
+open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 
@@ -60,28 +70,28 @@ foreach $correlationFunction ( @{$data->{'correlationFunction'}} ) {
     unless ( exists($correlationFunction->{'colorRange'}) || $correlationFunction->{'space'} ne "redshift" ) {
 	# Get magnitude ranges for this sample.
 	$magnitudeMinimum = $correlationFunction->{'magnitudeRange'}->{'minimum'}
-	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
 	$magnitudeMaximum = $correlationFunction->{'magnitudeRange'}->{'maximum'}
-	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
 	# Get separation, correlation function and errors.
 	$separationData   = pdl @{$correlationFunction->{'separation'                          }->{'datum'}};
 	$xiData           = pdl @{$correlationFunction->{'correlationFunction'                 }->{'datum'}};
 	$xiBootData       = pdl @{$correlationFunction->{'correlationFunctionBootstrapped'     }->{'datum'}};
 	$xiBootErrorData  = pdl @{$correlationFunction->{'correlationFunctionBootstrappedError'}->{'datum'}};
 	# Convert separation for Hubble constant.
-	$separationData  *= ($dataSet{'parameters'}->{'H_0'}/$correlationFunction->{'separation'}->{'hubble'})**$correlationFunction->{'separation'}->{'hubbleExponent'};
+	$separationData  *= ($dataSet->{'parameters'}->{'H_0'}/$correlationFunction->{'separation'}->{'hubble'})**$correlationFunction->{'separation'}->{'hubbleExponent'};
 	# Get error on actual correlation function.
 	$xiErrorData      = $xiData*$xiBootErrorData/$xiBootData;
 
 	# Select a matching subset of model galaxies.
-	$selected         = which(${$dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'}} >= $magnitudeMinimum
-				  & ${$dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'}} < $magnitudeMaximum);
+	$selected         = which(($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} >= $magnitudeMinimum)
+				  & ($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} < $magnitudeMaximum));
 
 	# Skip empty selections.
 	unless ( nelem($selected) == 0 ) {
 
 	    # Get the power spectrum for these galaxies.
-	    ($waveNumber,$linearPowerSpectrum,$galaxyPowerSpectrum) = &HaloModel::Compute_Power_Spectrum(\%dataSet
+	    ($waveNumber,$linearPowerSpectrum,$galaxyPowerSpectrum) = &HaloModel::Compute_Power_Spectrum($dataSet
 													 ,$selected
 													 ,space => "redshift");
 	    # Compute the two-point correlation functions.
@@ -133,6 +143,7 @@ close(gnuPlot);
 
 # Convert to PDF.
 system("ps2pdf tmp.ps ".$outputFile);
+&MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Clean up files.
 unlink("tmp.ps",@tmpFiles);

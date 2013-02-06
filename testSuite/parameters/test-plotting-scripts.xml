@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Defines a set of Galacticus models from which plots can be made. -->
+<!-- Andrew Benson                                                    -->
+<!-- 10-Oct-2012                                                      -->
+<parameterGrid>
+  <emailReport>no</emailReport>
+  <doAnalysis>no</doAnalysis>
+  <modelRootDirectory>testSuite/outputs/test-plotting-scripts</modelRootDirectory>
+  <baseParameters>testSuite/parameters/test-plotting-scripts-base.xml</baseParameters>
+  <parameters>
+    <parameter>
+      <name>outputRedshifts</name>
+      <value>0.0 0.07 0.1</value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeBuildTreesPerDecade</name>
+      <value>100</value>
+    </parameter>
+    <!-- Luminosities -->
+    <parameter>
+      <name>luminosityFilter</name>
+      <value>UKIRT_K bJ RGO_I SDSS_g SDSS_r SDSS_i SDSS_z 2MASS_Ks</value>
+    </parameter>
+    <parameter>
+      <name>luminosityRedshift</name>
+      <value>0.0 0.0 0.0 0.1 0.1 0.1 0.1 0.0</value>
+    </parameter>
+    <parameter>
+      <name>luminosityType</name>
+      <value>rest rest rest observed observed observed observed observed</value>
+   </parameter>
+  </parameters>
+</parameterGrid>

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the \cite{wetzel_orbits_2010} orbital parameter distribution for merging subhalos.
 
@@ -65,13 +21,14 @@ module Virial_Orbits_Wetzel2010
   !% Implements the \cite{wetzel_orbits_2010} orbital parameter distribution for merging subhalos.
   use FGSL
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: Virial_Orbital_Parameters_Wetzel2010_Initialize, Virial_Orbital_Parameters_Wetzel2010_Snapshot,&
        & Virial_Orbital_Parameters_Wetzel2010_State_Store, Virial_Orbital_Parameters_Wetzel2010_State_Retrieve
 
   type(fgsl_rng) :: pseudoSequenceObject,clonedPseudoSequenceObject
   logical        :: resetSequence=.true.,resetSequenceSnapshot
-  !$omp threadprivate(pseudoSequenceObject,resetSequence)
+  !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
 
   ! Table of the cumulative distribution for the pericentric radius.
   integer,          parameter                 :: pericentricRadiusPointsPerDecade=10
@@ -99,11 +56,12 @@ contains
     use Memory_Management
     use Numerical_Ranges
     use Hypergeometric_Functions
+    use Kepler_Orbits
     implicit none
-    type(varying_string),          intent(in)    :: virialOrbitsMethod
-    procedure(),          pointer, intent(inout) :: Virial_Orbital_Parameters_Get
-    integer                                      :: iRadius
-    double precision                             :: x,xGamma2
+    type(varying_string),                  intent(in)    :: virialOrbitsMethod
+    procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
+    integer                                              :: iRadius
+    double precision                                     :: x,xGamma2
     
     if (virialOrbitsMethod == 'Wetzel2010') then
        ! Set procedure pointer to our orbital parameter function.
@@ -132,50 +90,55 @@ contains
     return
   end subroutine Virial_Orbital_Parameters_Wetzel2010_Initialize
 
-  subroutine Virial_Orbital_Parameters_Wetzel2010(thisNode,acceptUnboundOrbits,velocityRadial,velocityTangential,angularMomentum&
-       &,orbitalEnergy,eccentricity,semimajorAxis)
+ function Virial_Orbital_Parameters_Wetzel2010(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
     !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{wetzel_orbits_2010}.
     use Pseudo_Random
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Galacticus_Error
     use Critical_Overdensity
     use Numerical_Interpolation
     use Root_Finder
     use Cosmology_Functions
-    use FGSL
+    use Kepler_Orbits
     implicit none
-    type(treeNode),          intent(inout), pointer  :: thisNode
-    logical,                 intent(in)              :: acceptUnboundOrbits
-    double precision,        intent(out),   optional :: velocityRadial,velocityTangential,angularMomentum,orbitalEnergy&
-         &,eccentricity ,semimajorAxis
-    type(treeNode),                         pointer  :: hostNode
-    double precision,        parameter               :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
-    double precision,        parameter               :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
-    type(fgsl_interp),       save                    :: interpolationObject
-    type(fgsl_interp_accel), save                    :: interpolationAccelerator
-    logical,                 save                    :: interpolationReset=.true.
+    type (keplerOrbit       )                         :: thisOrbit
+    type (treeNode          ), intent(inout), pointer :: thisNode,hostNode
+    logical,                   intent(in)             :: acceptUnboundOrbits
+    class(nodeComponentBasic),                pointer :: thisBasicComponent,hostBasicComponent
+    double precision,          parameter              :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
+    double precision,          parameter              :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
+    double precision,          parameter              :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
+    type(fgsl_interp),         save                   :: interpolationObject
+    type(fgsl_interp_accel),   save                   :: interpolationAccelerator
+    logical,                   save                   :: interpolationReset=.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,interpolationReset)
-    type(fgsl_function),     save                    :: rootFunction
-    type(fgsl_root_fsolver), save                    :: rootFunctionSolver
+    type(fgsl_function),       save                   :: rootFunction
+    type(fgsl_root_fsolver),   save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    type(c_ptr)                                      :: parameterPointer
-    double precision                                 :: massFactor,g1,R1,timeNode,massHost,massCharacteristic,expansionFactor&
-         &,pericentricRadius,probabilityTotal,circularity,eccentricityInternal ,semimajorAxisInternal,orbitalEnergyInternal&
-         &,angularMomentumInternal,velocityTangentialInternal,radialScale ,velocityScale,apocentricRadius
-    logical                                          :: requireEccentricity,requireSemimajorAxis,requireOrbitalEnergy&
-         &,requireAngularMomentum,requireVelocityTangential,foundOrbit
+    type(c_ptr)                                       :: parameterPointer
+    double precision                                  :: g1,R1,timeNode,massCharacteristic,expansionFactor&
+         &,pericentricRadius,apocentricRadius,probabilityTotal,circularity,eccentricityInternal,radialScale
+    logical                                           :: foundOrbit
 
-    ! Determine the mass parameter.
-    hostNode  => thisNode%parentNode
-    massHost  =  Tree_Node_Mass(hostNode)
-    massFactor=  1.0d0+Tree_Node_Mass(thisNode)/massHost
- 
+    ! Reset the orbit.
+    call thisOrbit%reset()
+    ! Set masses and radius of the orbit.
+    thisBasicComponent => thisNode%basic()
+    hostBasicComponent => hostNode%basic()
+    call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
+    call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
+
     ! Get the time at which this node exists.
-    timeNode=Tree_Node_Time(thisNode)
+    timeNode=thisBasicComponent%time()
 
     ! Get the expansion factor.
     expansionFactor=Expansion_Factor(timeNode)
+
+    ! Limit the expansion factor to the smallest value considered by Wetzel.
+    if (expansionFactor < expansionFactorMinimum) then
+       expansionFactor=              expansionFactorMinimum
+       timeNode       =Cosmology_Age(expansionFactorMinimum)
+    end if
 
     ! Get the characteristic mass, M*.
     massCharacteristic=Critical_Overdensity_Collapsing_Mass(timeNode)
@@ -183,7 +146,7 @@ contains
     ! Compute parameter of the circularity fitting function. We limit C1 to a given maximum - the fit is not explored in this
     ! regime and without the truncation we get problems evaluating hypergeometric functions.
     g1=(1.0d0/expansionFactor)**circularityP1
-    C1=min(circularityAlpha1*(1.0d0+circularityBeta1*(g1*massHost/massCharacteristic)**circularityGamma1),c1Maximum)
+    C1=min(circularityAlpha1*(1.0d0+circularityBeta1*(g1*thisOrbit%hostMass()/massCharacteristic)**circularityGamma1),c1Maximum)
     C0=1.0d0
     probabilityTotal=Circularity_Cumulative_Probability(circularityMaximum)
     C0=1.0d0/probabilityTotal
@@ -191,7 +154,7 @@ contains
     ! Compute parameter of the pericentric distance fitting function. Since the fit for R1 can lead to negative pericentric
     ! distances in some cases we force R1 to always be above a specified minimum.
     g1=(1.0d0/expansionFactor)**pericenterP1
-    R1=max(pericenterAlpha1*(1.0d0+pericenterBeta1*(g1*massHost/massCharacteristic)**pericenterGamma1),r1Minimum)
+    R1=max(pericenterAlpha1*(1.0d0+pericenterBeta1*(g1*thisOrbit%hostMass()/massCharacteristic)**pericenterGamma1),r1Minimum)
 
     ! Search for an orbit.
     foundOrbit=.false.
@@ -213,41 +176,23 @@ contains
        foundOrbit=apocentricRadius >= 1.0d0 .and. pericentricRadius <= 1.0d0
     end do
     
-    ! Get length and velocity scales for this orbit.
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
+    ! Get length scale for this orbit.
     radialScale  =Dark_Matter_Halo_Virial_Radius(hostNode)
     
-    ! Determine which orbital properties must be computed.
-    requireVelocityTangential=present(velocityTangential).or.present(velocityRadial)
-    requireAngularMomentum   =present(angularMomentum)   .or.requireVelocityTangential
-    requireOrbitalEnergy     =present(orbitalEnergy)     .or.present(velocityRadial)
-    requireSemimajorAxis     =present(semimajorAxis)     .or.present(orbitalEnergy)
-    requireEccentricity      =present(eccentricity)      .or.requireAngularMomentum.or.requireSemimajorAxis
-
-    ! Compute required orbital properties.
-    if (requireEccentricity      ) eccentricityInternal      =dsqrt(1.0-circularity**2)
-    if (requireSemimajorAxis     ) semimajorAxisInternal     =2.0d0*pericentricRadius/(1.0d0-eccentricityInternal)
-    if (requireOrbitalEnergy     ) orbitalEnergyInternal     =-0.5d0*massFactor/semimajorAxisInternal
-    if (requireAngularMomentum   ) angularMomentumInternal   =dsqrt(pericentricRadius*(1.0d0+eccentricityInternal)/massFactor)
-    if (requireVelocityTangential) velocityTangentialInternal=angularMomentumInternal*massFactor
-
-    ! Compute properties to be returned.
-    if (present(eccentricity      )) eccentricity      =eccentricityInternal
-    if (present(semimajorAxis     )) semimajorAxis     =semimajorAxisInternal                                                                         *radialScale
-    if (present(orbitalEnergy     )) orbitalEnergy     =orbitalEnergyInternal                                                                                     *velocityScale**2
-    if (present(angularMomentum   )) angularMomentum   =angularMomentumInternal                                                                       *radialScale*velocityScale
-    if (present(velocityTangential)) velocityTangential=velocityTangentialInternal                                                                                *velocityScale
-    if (present(velocityRadial    )) velocityRadial    =dsqrt(2.0d0*(massFactor*orbitalEnergyInternal+massFactor-0.5d0*velocityTangentialInternal**2))            *velocityScale
-
+    ! Set eccentricity and periapsis.
+    call thisOrbit%eccentricitySet    (dsqrt(1.0-circularity**2)    )
+    call thisOrbit%radiusPericenterSet(pericentricRadius*radialScale)
+    
     return
-  end subroutine Virial_Orbital_Parameters_Wetzel2010
+  end function Virial_Orbital_Parameters_Wetzel2010
 
   function Circularity_Root(circularity,parameterPointer) bind(c)
     !% Function used in finding the circularity corresponding to a given cumulative probability.
     real(c_double)          :: Circularity_Root
     real(c_double), value   :: circularity
     type(c_ptr),    value   :: parameterPointer
-    
+    real(c_double)          :: cumulativeProbability
+
     cumulativeProbability=Circularity_Cumulative_Probability(circularity)
     Circularity_Root=cumulativeProbability-uniformDeviate
     return
@@ -281,7 +226,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Virial_Orbital_Parameters_Wetzel2010_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
@@ -297,7 +241,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Virial_Orbital_Parameters_Wetzel2010_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
