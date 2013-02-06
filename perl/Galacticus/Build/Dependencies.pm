@@ -86,6 +86,36 @@ sub Dependency_Sort {
 	push(@{$sortNamesReverse{$tasks->{$key}->{'sortName'}}},$key);
     }
 
+    # Scan through dependency keys, searching for regular expressions.
+    foreach my $key ( keys(%dependencies) ) {
+	if ( $key =~ m/^re:/ ) {
+	    (my $regEx = $key) =~ s/^re://;
+	    # Iterate over dependency keys again, searching for matches.
+	    foreach my $matchKey ( keys(%dependencies) ) {
+		unless ( $key eq $matchKey ) {
+		    if ( $matchKey =~ m/$regEx/ ) {
+			push(@{$dependencies{$matchKey}},@{$dependencies{$key}});
+		    }
+		}
+	    }
+	    delete($dependencies{$key});
+	}
+    }
+    # Iterate over dependency keys. Look for dependencies in terms of regular expressions.
+    foreach my $key ( keys(%dependencies) ) {
+	foreach my $dependency ( @{$dependencies{$key}} ) {
+	    if ( $dependency =~ m/^re:/ ) {
+		(my $regEx = $dependency) =~ s/^re://;
+		# Iterate through dependency keys and find matches.
+		foreach my $matchKey ( keys(%dependencies) ) {
+		    push(@{$dependencies{$key}},$matchKey)
+			if ( $matchKey =~ m/$regEx/ );
+		}
+	    }
+	}
+	@{$dependencies{$key}} = grep(!/^re:/,@{$dependencies{$key}});
+    }
+
     # Create a list of names for sorting.
     my @unsortedUnits = keys(%dependencies);
    

@@ -6,12 +6,16 @@ The accretion rate of gas from the \gls{igm} into a dark matter halo is expected
 
 \subsection{Simple Method}
 
-Currently the only option, and selected using {\tt accretionHalosMethod}$=${\tt simple}, this method sets the accretion rate of baryons into a halo to be:
+Selected using {\tt accretionHalosMethod}$=${\tt simple}, this method sets the accretion rate of baryons into a halo to be:
 \begin{equation}
  \dot{M}_{\rm accretion} = \left\{ \begin{array}{ll} (\Omega_{\rm b}/\Omega_{\rm M}) \dot{M}_{\rm halo} & \hbox{ if } V_{\rm virial} > V_{\rm reionization} \hbox{ or } z > z_{\rm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
 \end{equation}
 where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\rm reionization}=${\tt [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\rm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the 
 ``failed'' reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine \gls{igm} and so has zero abundances. Chemical abundances are computed from the chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
+
+\subsection{Null Method}
+
+Selected using {\tt accretionHalosMethod}$=${\tt null}, this method sets the accretion rate of baryons into a halo to be zero always.
 
 \section{Background Cosmology}\index{cosmology}
 
@@ -32,8 +36,8 @@ Selected with {\tt accretionDisksMethod}$=${\tt Shakura-Sunyaev}, this implement
 
 \subsection{Advection Dominated, Geometrically Thick, Radiatively Inefficient Flows (ADAFs)}
 
-Selected with {\tt accretionDisksMethod}$=${\tt ADAF}, this implementation assumes that accretion is via an advection dominated accretion flow \citep{narayan_advection-dominated_1994} which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a pure ADAF, is controlled by {\tt [adafRadiativeEfficiencyType]}. If set to {\tt fixed}, then the radiative efficiency is set to the value of the input parameter {\tt [adafRadiativeEfficiency]}. Alternatively, if set to {\tt thinDisk} the radiative efficiency will be set to that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in units of the accretion power $\dot{M} {\rm c}^2$) is set by {\tt [adafJetEfficiencyMaximum]}---in the model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum 
-is important to avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected for a pure ADAF) or the energy at the \gls{isco} by use of the {\tt [adafEnergyOption]} parameter (set to {\tt pureADAF} or {\tt ISCO} respectively). The ADAF structure is controlled by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\tt [adafAdiabaticIndex]} and {\tt [adafViscosityOption]} input parameters respectively. The field-enhancing shear, $g$, is computed using $g=\exp(\omega \tau)$ if {\tt [adafFieldEnhanceType]} is set to ``exponential'' where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity timescales. If  {\tt [adafFieldEnhanceType]} is set to ``linear'' then the alternative version, $g=1+\omega \tau$ is used instead. {\tt [adafViscosityOption]} may be set to ``{\tt fit}'', in which case the fitting function for $\alpha$ as a function of black hole 
+Selected with {\tt accretionDisksMethod}$=${\tt ADAF}, this implementation assumes that accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994} which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a pure \gls{adaf}, is controlled by {\tt [adafRadiativeEfficiencyType]}. If set to {\tt fixed}, then the radiative efficiency is set to the value of the input parameter {\tt [adafRadiativeEfficiency]}. Alternatively, if set to {\tt thinDisk} the radiative efficiency will be set to that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in units of the accretion power $\dot{M} {\rm c}^2$) is set by {\tt [adafJetEfficiencyMaximum]}---in the model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum 
+is important to avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the {\tt [adafEnergyOption]} parameter (set to {\tt pureADAF} or {\tt ISCO} respectively). The \gls{adaf} structure is controlled by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\tt [adafAdiabaticIndex]} and {\tt [adafViscosityOption]} input parameters respectively. The field-enhancing shear, $g$, is computed using $g=\exp(\omega \tau)$ if {\tt [adafFieldEnhanceType]} is set to ``exponential'' where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity timescales. If  {\tt [adafFieldEnhanceType]} is set to ``linear'' then the alternative version, $g=1+\omega \tau$ is used instead. {\tt [adafViscosityOption]} may be set to ``{\tt fit}'', in which case the fitting function for $\alpha$ as a function of black hole 
 spin is used:
 \begin{eqnarray}
 \alpha(j)=0.015+0.02 j^4 & \hbox{ if  }& g=\exp(\omega\tau) \hbox{ and } E=E_{\rm ISCO}, \\
@@ -44,20 +48,31 @@ spin is used:
 
 \subsection{``Switched'' Disks}
 
-Selected with {\tt accretionDisksMethod}$=${\tt switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (ADAF) modes. Which mode is used is determine by the accretion rate onto the disk:
-\begin{itemize}
- \item Radiatively efficient accretion if $\dot{M}/\dot{M}_{\rm Eddington}>${\tt [accretionRateThinDiskMinimum]} and $\dot{M}/\dot{M}_{\rm Eddington}<${\tt [accretionRateThinDiskMaximum]};
- \item Radiatively inefficient accretion otherwise.
-\end{itemize}
-Both {\tt accretionRateThinDiskMinimum} and {\tt accretionRateThinDiskMaximum} are adjustable input parameters. If {\tt [accretionDiskSwitchedScaleAdafRadiativeEfficiency]} is set to {\tt true} then the radiative effiency of the ADAF component is reduced by a factor $\dot{M}/>${\tt [accretionRateThinDiskMinimum]}$\dot{M}_{\rm Eddington}$ when $\dot{M}/\dot{M}_{\rm Eddington}>${\tt [accretionRateThinDiskMinimum]}.
+Selected with {\tt accretionDisksMethod}$=${\tt switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (\gls{adaf}) modes. The properties of the switched disk (e.g. radiative efficiency, jet power), are a linear combination of those of the Shakura-Sunyaev and \gls{adaf} modes, with the \gls{adaf} fraction being given by:
+\begin{equation}
+f_{\rm ADAF} = [1+\exp(y_{\rm min})]^{-1} + [1+\exp(y_{\rm max})]^{-1},
+\label{eq:SwitchedDiskADAFFraction}
+\end{equation}
+where
+\begin{eqnarray}
+y_{\rm min} &=& +\log(x/x_{\rm min})/\Delta_{x}, \\
+y_{\rm max} &=& -\log(x/x_{\rm max})/\Delta_{x},
+\end{eqnarray}
+and,
+\begin{equation}
+x = \dot{M} / \dot{M}_{\rm Eddington}.
+\end{equation}
+Here, $x_{\rm min}=${\tt [accretionRateThinDiskMinimum]}, $x_{\rm max}=${\tt [accretionRateThinDiskMaximum]}, and $\Delta_{x}$={\tt [accretionRateTransitionWidth]}. If either {\tt [accretionRateThinDiskMinimum]} or {\tt [accretionRateThinDiskMaximum]} is set to ``{\tt none}'' then the corresponding term in eqn.~(\ref{eq:SwitchedDiskADAFFraction}) is excluded.
+
+Additionally, if {\tt [accretionDiskSwitchedScaleAdafRadiativeEfficiency]} is set to {\tt true} then the radiative efficiency of the \gls{adaf} component is reduced by a factor $x/x_{\rm min}$ when $x<x_{\rm min}$.
 
 \subsection{Eddington-limited Disks}
 
 Selected with {\tt accretionDisksMethod}$=${\tt eddingtonLimited}, this method does not assume any physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction {\tt [accretionDiskJetPowerEddington]} of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of {\tt [accretionDiskRadiativeEfficiencyEddington]}. Since no physical model for the disk is assumed, the black hole spin up rate is always set to zero.
 
-\section{Cold Dark Matter Structure Formation}\index{structure formation}\index{cold dark matter}
+\section{Dark Matter Structure Formation}\index{structure formation}\index{dark matter}
 
-A variety of functions are used to describe structure formation in \gls{cdm} dominated universes. These are described below.
+A variety of functions are used to describe structure formation in dark matter dominated universes. These are described below.
 
 \subsection{Primordial Power Spectrum}\label{sec:PrimordialPowerSpectrum}\index{power spectrum!primordial}
 
@@ -1307,6 +1322,74 @@ In the case of reading root halo masses from a file, the file should be an XML f
 \end{verbatim}
 where each {\tt treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to generate.
 
+\subsection{Fully Specified}\label{sec:TreeConstructFullySpecified}
+
+Selected with {\tt mergerTreeConstructMethod}$=${\tt fullySpecified}, this method will construct a merger tree, and set properties of components in each node, using a description read from an XML document. The document is specified via the {\tt [mergerTreeConstructFullySpecifiedFileName]} input parameter.
+
+The tree specification document looks as follows:
+\begin{verbatim}
+<!-- Simple initial conditions test case -->
+<initialConditions>
+
+  <node>
+    <index>2</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <timeLastIsolated>1.0</timeLastIsolated>
+      <mass>1.0e12</mass>
+      <accretionRate>7.9365079e9</accretionRate>
+    </basic>
+    <spin>
+      <spin>0.1</spin>
+    </spin>
+    <disk>
+      <massGas>1.0e10</massGas>
+      <angularMomentum>1.0e10</angularMomentum>
+      <abundancesGas>
+	<metals>1.0e9</metals>
+	<Fe>1.0e9</Fe>
+      </abundancesGas>
+    </disk>
+  </node>
+
+  <node>
+    <index>1</index>
+    <parent>-1</parent>
+    <firstChild>2</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.8</time>
+      <timeLastIsolated>13.8</timeLastIsolated>
+      <mass>1.1e12</mass>
+      <accretionRate>7.8125e9</accretionRate>
+    </basic>
+    <position>
+      <position>1.23</position>
+      <position>6.31</position>
+      <position>3.59</position>
+    </position>
+  </node>
+
+</initialConditions>
+\end{verbatim}
+The document consists of a set of {\tt node} elements, each of which defines a single node in the merger tree. Each {\tt node} element must specify the {\tt index} of the node, along with the index of the node's {\tt parent}, {\tt firstChild}, and {\tt sibling}. 
+
+Each {\tt node} element may contain elements which specify the properties of a component in the node. For example, a {\tt basic} element will specify properties of the ``basic'' component. If multiple elements for a given component type are present, then multiple instances of that component will be created in the node.
+
+Within a component definition element scalar properties are set using an element with the same name as that property (e.g. {\tt mass} in the {\tt basic} components in the above example). Rank-1 properties are set using a list of elements with the same name as the property (e.g. {\tt position} in the {\tt position} component in the above example).
+
+For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each property of the composite. Currently only the {\tt abundances} object supports specification in this way, as detailed below:
+\begin{description}
+ \item [{\tt abundances}] (See {\tt abundancesGas} in the above example.) The total metal content is specified via a {\tt metals} element. If other elements are being tracked, their content is specified via an element with the short-name of the element (e.g. {\tt Fe} for iron).
+\end{description}
+
+\subsection{Smooth Accretion}\label{sec:SmoothAccretion}
+
+Selected with {\tt mergerTreeConstructMethod}$=${\tt smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). The tree has a final mass of {\tt mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\tt mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\tt mergerTreeHaloMassDeclineFactor} at each new \gls{node} until a specified {\tt mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached.
+
 \subsection{State Restore}\label{sec:TreeConstructStateRestore}\index{debugging!restoring merger tree internal state}
 
 Selected with {\tt mergerTreeConstructMethod}$=${\tt stateRestore}, this method will restore a merger tree whose complete internal state was written to file. It is intended primarily for debugging purposes to allow a tree to begin processing just prior to the point of failure. To use this method, the following procedure should be followed:
@@ -1384,10 +1467,6 @@ Selected with {\tt mergerTreeBuildMethod}$=${\tt Cole2000}, this method uses the
  \item [{\tt mergerTreeBuildCole2000MassResolution}] The minimum halo mass (in $M_\odot$) that the algorithm will follow. Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
  \item [{\tt mergerTreeBuildCole2000HighestRedshift}] The highest redshift to which the tree should be built. Any branch reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
 \end{description}
-
-\subsection{Smooth Accretion}\label{sec:SmoothAccretion}
-
-Selected with {\tt mergerTreeConstructMethod}$=${\tt smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). The tree has a final mass of {\tt mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\tt mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\tt mergerTreeHaloMassDeclineFactor} at each new \gls{node} until a specified {\tt mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached.
 
 \section{Merger Tree Pre-evolution Processing}
 
@@ -1876,19 +1955,19 @@ Selected by default and with {\tt blackHoleBinaryRecoilVelocityMethod}$=${\tt nu
 
 Selected with {\tt blackHoleBinaryRecoilVelocityMethod}$=${\tt Campanelli2007}, this method computes the recoil velocity during a black hole binary merger due to the emission of gravitational waves, following the formulae derived in \cite {campanelli_large_2007}
 \begin{equation}
-V_{recoil}=V_m\mathbf{\hat{e_1}}+V_\perp(cos\xi\mathbf{\hat{e_1}}+sin\xi\mathbf{\hat{e_2}})+V_\parallel\mathbf{\hat{e_2}} 
+V_{\rm recoil}=V_{\rm m}\mathbf{\hat{e_1}}+V_\perp(\cos\xi\mathbf{\hat{e_1}}+\sin\xi\mathbf{\hat{e_2}})+V_\parallel\mathbf{\hat{e_2}} 
 \end{equation}
 with:
 \begin{equation}
-V_m=A\frac{q^2(1-q)}{(1+q)^5}(1+B\frac{q}{(1+q)^2})
+V_{\rm m}=A\frac{q^2(1-q)}{(1+q)^5}(1+B\frac{q}{(1+q)^2})
 \end{equation}
 \begin{equation}
 V_\perp=H\frac{q^2}{(1+q)^5}(\alpha^\parallel_2-q\alpha^\parallel_1)
 \end{equation}
 \begin{equation}
-V_\parallel=Kcos(\theta-\theta_0)\frac{q^2}{(1+q)^5}(\alpha^\perp_2-q\alpha^\perp_1)
+V_\parallel=K\cos(\theta-\theta_0)\frac{q^2}{(1+q)^5}(\alpha^\perp_2-q\alpha^\perp_1)
 \end{equation}
-where $\theta$ is defined as the angle between the inplane \gls{component} of $\Delta$ and the infall direction at merger. $q$ is the mass ratio of the black holes as $q=\frac{M_{\bullet,1}}{M_{\bullet,2}}$ and $\alpha_i=\frac{\mathbf{S_i}}{M_{\bullet,i}}$ depends of the spin and mass of the black hole $\xi$ measures the angle between the unequal mass and the spin contribution to the recoil velocity in the orbital plane. $\mathbf{\hat{e_1}} , \mathbf{\hat{e_2}}$ are orthogonal unit vectors in the orbital plane. Our method assumes the spin of the second black hole is randomly generated, while that of the first is aligned with the angular momentum of the system. The constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K\cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
+where $\theta$ is defined as the angle between the inplane \gls{component} of $\Delta$ and the infall direction at merger. $q$ is the mass ratio of the black holes as $q=M_{\bullet,1}/M_{\bullet,2}$ and $\alpha_i=\mathbf{S_i}/M_{\bullet,i}$ depends of the spin and mass of the black hole $\xi$ measures the angle between the unequal mass and the spin contribution to the recoil velocity in the orbital plane. $\mathbf{\hat{e_1}} , \mathbf{\hat{e_2}}$ are orthogonal unit vectors in the orbital plane. Our method assumes the spin of the second black hole is randomly generated, while that of the first is aligned with the angular momentum of the system. The constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K\cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
 
 \section{Supermassive Black Hole Binaries: Mergers}\index{supermassive black holes!mergers}
 

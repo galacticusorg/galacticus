@@ -39,7 +39,13 @@ sub ModuleUse_Parse_Directive {
     # Determine the type of file being processed.
     switch ( $buildData->{'codeType'} ) {
 	case ( "fortran" ) {
-	    $buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "use ".$buildData->{'moduleName'}."\n";	
+	    my $include = 1;
+	    if ( exists($buildData->{'exclude'}) ) {
+		$include = 0
+		    if ( $buildData->{'exclude'} eq $buildData->{'moduleName'} );
+	    }
+	    $buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "use ".$buildData->{'moduleName'}."\n"
+		if ( $include == 1 );
 	}
 	case ( "c" ) {
 	    (my $leafName = $buildData->{'currentFileName'}) =~ s/.*?([^\/]+)\.c(pp)??$/$1.o/;

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -96,6 +96,9 @@ module Merger_Tree_Read
   ! Flag indicating whether branch jumps are allowed.
   logical                                            :: mergerTreeReadAllowBranchJumps
 
+  ! Flag indicating whether subhalo promotions are allowed.
+  logical                                            :: mergerTreeReadAllowSubhaloPromotions
+
   ! Flags indicating whether or not to preset subhalo properties.
   logical                                            :: mergerTreeReadPresetMergerTimes
   logical                                            :: mergerTreeReadPresetMergerNodes
@@ -164,7 +167,7 @@ contains
     use Galacticus_Output_Times
     use Numerical_Comparison
     use Cosmological_Parameters
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none
@@ -379,6 +382,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadAllowBranchJumps',mergerTreeReadAllowBranchJumps,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadAllowSubhaloPromotions</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
+       !@   <description>
+       !@     Specifies whether subhalos are permitted to be promoted to being isolated halos.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadAllowSubhaloPromotions',mergerTreeReadAllowSubhaloPromotions,defaultValue=.true.)
 
        ! Get array of output times.
        outputTimesCount=Galacticus_Output_Time_Count()
@@ -793,7 +807,7 @@ contains
           ! Build pointers to descendent nodes.
           call Build_Descendent_Pointers(nodes)
 
-          ! Find cases where something that was a subhalo stops being a subhalo.
+          ! Find cases where something that was a subhalo stops being a subhalo and prevent them if necessary.
           call Enforce_Subhalo_Status(nodes)
 
           ! If necessary, add masses of subhalos to host halos.
@@ -861,6 +875,9 @@ contains
 
           ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
           call Assign_Mergers(nodes,thisNodeList)
+
+          ! Find cases where something that was a subhalo stops being a subhalo and add events to handle.
+          call Scan_for_Subhalo_Promotions(nodes,thisNodeList)
 
           ! Search for subhalos which move between branches/trees.
           call Scan_for_Branch_Jumps(nodes,thisNodeList)
@@ -1183,6 +1200,9 @@ contains
     integer                                              :: descendentIndex
     type(varying_string)                                 :: message
 
+    ! Return immediately if subhalo promotions are allowed.
+    if (mergerTreeReadAllowSubhaloPromotions) return
+    ! Subhalo promotions are not allowed, so enforce subhalo status.
     do iNode=1,size(nodes)
        if (nodes(iNode)%isSubhalo) then
           descendentNode => nodes(iNode)%descendent
@@ -1255,6 +1275,66 @@ contains
 
     return
   end subroutine Enforce_Subhalo_Status
+
+  subroutine Scan_for_Subhalo_Promotions(nodes,nodeList)
+    !% Scan for cases where a subhalo stops being a subhalo and so must be promoted.
+    use Galacticus_Error
+    use String_Handling
+    use Node_Subhalo_Promotions
+    implicit none
+    type   (nodeData      ), intent(inout), dimension(:), target  :: nodes
+    type   (treeNodeList  ), intent(inout), dimension(:)          :: nodeList
+    type   (nodeData      ),                              pointer :: descendentNode
+    type   (nodeEvent     ),                              pointer :: newEvent,pairEvent
+    type   (treeNode      ),                              pointer :: thisNode,promotionNode
+    integer(kind=kind_int8)                                       :: iNode,descendentLocation
+    logical                                                       :: isolatedProgenitorExists,descendentsFound
+    integer                                                       :: descendentIndex
+
+    ! Return immediately if subhalo promotion is not allowed.
+    if (.not.mergerTreeReadAllowSubhaloPromotions) return
+    ! Find subhalos to be promoted.
+    do iNode=1,size(nodes)
+       if (nodes(iNode)%isSubhalo.and.associated(nodes(iNode)%descendent)) then
+          descendentNode => nodes(iNode)%descendent
+          ! Is this node isolated?
+          if (.not.descendentNode%isSubhalo) then
+             ! Check if there is any isolated node which descends into this node.
+             descendentIndex=Descendent_Node_Sort_Index(descendentNode%nodeIndex)
+             if (descendentIndex > 0 .and. descendentIndex <= size(nodes)) then
+                descendentLocation=descendentLocations(descendentIndex)
+                descendentsFound=(nodes(descendentLocation)%descendentIndex == descendentNode%nodeIndex)
+             else
+                descendentsFound=.false.
+             end if
+             if (descendentsFound) then
+                isolatedProgenitorExists=.false.
+                do while (nodes(descendentLocation)%descendentIndex == descendentNode%nodeIndex .and. descendentIndex > 0 .and. .not.isolatedProgenitorExists)
+                   isolatedProgenitorExists=(nodes(descendentLocation)%nodeIndex == nodes(descendentLocation)%hostIndex) 
+                   descendentIndex   =descendentIndex-1
+                   descendentLocation=descendentLocations(descendentIndex)
+                end do
+             end if
+             if (.not.descendentsFound .or. .not.isolatedProgenitorExists) then
+                ! Node is isolated, has no isolated node that descends into it. Therefore, our subhalo must be promoted to
+                ! become an isolated halo again.
+                thisNode       => nodeList(nodes(inode)  %isolatedNodeIndex)%node
+                promotionNode  => nodeList(descendentNode%isolatedNodeIndex)%node
+                newEvent       => thisNode     %createEvent()
+                newEvent %time =  descendentNode%nodeTime
+                newEvent %node => promotionNode
+                newEvent %task => Node_Subhalo_Promotion
+                pairEvent      => promotionNode%createEvent()
+                pairEvent%time =  descendentNode%nodeTime
+                pairEvent%node => thisNode
+                pairEvent%task => null()
+                pairEvent%ID   =  newEvent%ID
+             end if
+          end if
+       end if
+    end do
+    return
+  end subroutine Scan_for_Subhalo_Promotions
 
   subroutine Build_Parent_Pointers(nodes)
     !% Build pointers to node parents.
@@ -1463,8 +1543,6 @@ contains
     integer                                                             :: iNode
     integer(kind=kind_int8)                                             :: iIsolatedNode
     logical                                                             :: descendsToSubhalo 
-call dump_tree(nodes,highlightnodes=[182722_kind_int8])
-
 
     childIsSubhalo=.false.
     do iNode=1,size(nodes)
@@ -1482,7 +1560,7 @@ call dump_tree(nodes,highlightnodes=[182722_kind_int8])
                    ! A child is already associated. Check if current node does not descend to a subhalo and is more massive.
                    nodeBasicComponent    => nodeList(iIsolatedNode)%node%basic()
                    primaryBasicComponent => nodeList(iIsolatedNode)%node%parent%firstChild%basic()
-                   if (.not.descendsToSubhalo                                              &
+                   if (.not.descendsToSubhalo                                             &
                         & .and. (                                                         &
                         &        childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)    &
                         &         .or.                                                    &
@@ -1743,7 +1821,7 @@ call dump_tree(nodes,highlightnodes=[182722_kind_int8])
     type   (keplerOrbit           )                                      :: thisOrbit
     integer                                                              :: iNode,descendentIndex
     integer(kind=kind_int8        )                                      :: historyCount,descendentLocation,iIsolatedNode
-    logical                                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge,descendentsFound
+    logical                                                              :: branchMerges,branchTipReached,endOfBranch,nodeWillMerge,descendentsFound,isolatedProgenitorExists
     double precision                                                     :: timeSubhaloMerges,radiusPericenter,radiusApocenter,radiusVirial
     type   (varying_string        )                                      :: message
 
@@ -1787,12 +1865,32 @@ call dump_tree(nodes,highlightnodes=[182722_kind_int8])
                       endOfBranch                 =.true.
                       historyCount                =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
                    else if (.not.thisNode%descendent%isSubhalo) then
-                      ! Descendent is not a subhalo, treat as a merging event.  
-                      branchMerges                =.true.
+                      ! Descendent is not a subhalo, treat as a merging event or a subhalo promotion.                        
                       endOfBranch                 =.true.
-                      nodes(iNode)%mergesWithIndex=thisNode%descendent%nodeIndex
                       historyCount                =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
-                      thisNode                    => thisNode%descendent
+                      ! Search for any isolated progenitors of the node's descendent.
+                      isolatedProgenitorExists=.false.
+                      descendentIndex=Descendent_Node_Sort_Index(thisNode%descendent%nodeIndex)
+                      if (descendentIndex > 0 .and. descendentIndex <= size(nodes)) then
+                         descendentLocation=descendentLocations(descendentIndex)
+                         descendentsFound=(nodes(descendentLocation)%descendentIndex == thisNode%descendent%nodeIndex)
+                      else
+                         descendentsFound=.false.
+                      end if
+                      if (descendentsFound) then
+                         do while (nodes(descendentLocation)%descendentIndex == thisNode%descendent%nodeIndex .and. descendentIndex > 0 .and. .not.isolatedProgenitorExists)
+                            isolatedProgenitorExists=(nodes(descendentLocation)%nodeIndex == nodes(descendentLocation)%hostIndex) 
+                            descendentIndex   =descendentIndex-1
+                            descendentLocation=descendentLocations(descendentIndex)
+                         end do
+                      end if
+                      ! If an isolated progenitor exists, this is a merger event. If not, it is a subhalo promotion (which will ba
+                      ! handled elsewhere).
+                      if (isolatedProgenitorExists) then
+                         branchMerges                =.true.
+                         nodes(iNode)%mergesWithIndex=thisNode%descendent%nodeIndex
+                         thisNode                    => thisNode%descendent
+                      end if
                    else
                       ! Merges with another subhalo.
                       descendentIndex=Descendent_Node_Sort_Index(thisNode%descendent%nodeIndex)
@@ -1837,8 +1935,15 @@ call dump_tree(nodes,highlightnodes=[182722_kind_int8])
                    ! Record the largest history.
                    historyCountMaximum=max(historyCountMaximum,historyCount)
                    ! Set an appropriate merging time for this subhalo.
-                   if (branchTipReached) timeSubhaloMerges=timeUntilMergingInfinite ! Subhalo never merges, so set merging time to effective infinity.
-                   if (branchMerges    ) timeSubhaloMerges=thisNode%nodeTime
+                   if      (branchTipReached) then
+                      timeSubhaloMerges=timeUntilMergingInfinite ! Subhalo never merges, so set merging time to effective infinity.
+                   else if (branchMerges    ) then
+                      timeSubhaloMerges=thisNode%nodeTime
+                   else
+                      ! Neither the branch tip was reached, not does this branch merge. Therefore, this must be a subhalo which is
+                      ! promoted to be an isolated halo. Simply set an infinite merging time as we do not wish this node to merge.
+                      timeSubhaloMerges=timeUntilMergingInfinite
+                   end if
                    ! Flag that this node will merge.
                    nodeWillMerge=.true.
                 end if

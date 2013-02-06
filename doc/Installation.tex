@@ -187,7 +187,7 @@ perl -MCPAN -e 'force("install","Astro::Cosmology")'
 In addition to the tools listed in \S\ref{sec:requirementsEssential} and \S\ref{sec:requirementsTypical} a full install (allowing you to run all scripts and programs included with \glc) requires the following tools to be installed:
 
 \begin{description}
-\item [\href{http://search.cpan.org/~andrewf/LaTeX-Encode-0.03/lib/LaTeX/Encode.pm}{{\tt LaTeX::Encode }}] This module formats text for output to a \LaTeX\ document. It can be installed using
+\item [\href{http://search.cpan.org/~andrewf/LaTeX-Encode-0.03/lib/LaTeX/Encode.pm}{{\tt LaTeX::Encode }}] This module formats text for output to a \LaTeX\ document. It can be installed using\footnote{On some systems, {\tt LaTeX::Encode} seems to have problems. Once installed, try executing: {\tt perl -e ``use LaTeX::Encode''}. If this issues any error messages, then you should locate the {\tt LaTeX\/Encode.pm} file on your system edit it to comment out (or remove) the ``{\tt use strict;}'' line.}
 \begin{verbatim}
 perl -MCPAN -e 'install LaTeX::Encode'
 \end{verbatim}
@@ -393,11 +393,14 @@ make
 make check
 make install
 
-! Install Bazaar:
+! Install Mercurial:
 
-wget "http://launchpad.net/bzr/2.4/2.4b5/+download/bzr-2.4b5.tar.gz"
-tar xvfz bzr-2.4b5.tar.gz
-python setup.py install --home /your/install/path
+wget "http://mercurial.selenic.com/release/mercurial-2.4.1.tar.gz"
+tar xvfz mercurial-2.4.1.tar.gz
+cd mercurial-2.4.1
+setenv PREFIX /your/install/path
+make
+make install
 
 ! Install Perl local::lib for local installs of modules:
 

@@ -1,5 +1,13 @@
 <parameters>
   <parameter>
+    <name>haloMassFunctionSamplingMethod</name>
+    <value>powerLaw</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildTreesProcessDescending</name>
+    <value>false</value>
+  </parameter>
+  <parameter>
     <name>stateRetrieveFileRoot</name>
     <value>testSuite/outputs/state</value>
   </parameter>

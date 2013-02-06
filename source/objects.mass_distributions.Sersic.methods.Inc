@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -86,9 +86,11 @@ double precision function Mass_Distribution_Sersic_Density(self,coordinates)
    ! Compute the density at this position.
    r=position%r()/self%radiusHalfMass
    call Sersic_Profile_Tabulate(r)
+  !$omp critical (Sersic_Profile_Tabulation)
    Mass_Distribution_Sersic_Density=(self%mass/self%radiusHalfMass**3)*Interpolate(sersicTableCount,sersicTableRadius&
         &,sersicTableDensity,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,r,reset &
         &=sersicTableInterpolationReset,extrapolationType=extrapolationTypeLinear)
+  !$omp end critical (Sersic_Profile_Tabulation)
   return
 end function Mass_Distribution_Sersic_Density
 
@@ -106,6 +108,7 @@ double precision function Mass_Distribution_Sersic_Density_Radial_Moment(self,mo
 
   isInfinite=.false.
   Mass_Distribution_Sersic_Density_Radial_Moment=0.0d0
+  !$omp critical (Sersic_Profile_Tabulation)
   do iRadius=1,sersicTableCount
      if (iRadius == 1) then
         deltaRadius      =sersicTableRadius(iRadius)
@@ -118,6 +121,7 @@ double precision function Mass_Distribution_Sersic_Density_Radial_Moment(self,mo
      Mass_Distribution_Sersic_Density_Radial_Moment=Mass_Distribution_Sersic_Density_Radial_Moment+0.5d0*(previousIntegrand&
           &+integrand)*deltaRadius
   end do
+  !$omp end critical (Sersic_Profile_Tabulation)
   Mass_Distribution_Sersic_Density_Radial_Moment=Mass_Distribution_Sersic_Density_Radial_Moment*self%mass&
        &*self%radiusHalfMass**(moment-3.0d0)
   return
@@ -135,9 +139,11 @@ double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radiu
   fractionalRadius=radius/self%radiusHalfMass
   call Sersic_Profile_Tabulate(fractionalRadius)
   if (fractionalRadius < sersicTableRadius(sersicTableCount)) then
+     !$omp critical (Sersic_Profile_Tabulation)
      Mass_Distribution_Sersic_Mass_Enc_By_Sphere=self%mass*Interpolate(sersicTableCount,sersicTableRadius,sersicTableEnclosedMass&
           & ,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,fractionalRadius,reset &
           &=sersicTableInterpolationReset)
+     !$omp end critical (Sersic_Profile_Tabulation)
   else
      Mass_Distribution_Sersic_Mass_Enc_By_Sphere=self%mass
   end if
@@ -161,9 +167,11 @@ double precision function Mass_Distribution_Sersic_Potential(self,coordinates)
   r=position%r()/self%radiusHalfMass
   call Sersic_Profile_Tabulate(r)
   if (r < sersicTableRadius(sersicTableCount)) then
+     !$omp critical (Sersic_Profile_Tabulation)
      Mass_Distribution_Sersic_Potential=(self%mass/self%radiusHalfMass)*Interpolate(sersicTableCount,sersicTableRadius&
           &,sersicTablePotential ,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,r,reset &
           &=sersicTableInterpolationReset)
+     !$omp end critical (Sersic_Profile_Tabulation)
   else
      Mass_Distribution_Sersic_Potential=0.0d0
   end if
@@ -177,7 +185,9 @@ double precision function Mass_Distribution_Sersic_Half_Mass_Radius(self)
   implicit none
   class(massDistributionSersic), intent(in   ) :: self
 
+  !$omp critical (Sersic_Profile_Tabulation)
   Mass_Distribution_Sersic_Half_Mass_Radius=self%radiusHalfMass
+  !$omp end critical (Sersic_Profile_Tabulation)
   return
 end function Mass_Distribution_Sersic_Half_Mass_Radius
 
@@ -186,7 +196,9 @@ double precision function Mass_Distribution_Sersic_Half_Mass_Radius_Projected(se
   implicit none
   class(massDistributionSersic), intent(in   ) :: self
 
+  !$omp critical (Sersic_Profile_Tabulation)
   Mass_Distribution_Sersic_Half_Mass_Radius_Projected=self%radiusHalfMass*sersicTable2dHalfMassRadius
+  !$omp end critical (Sersic_Profile_Tabulation)
   return
 end function Mass_Distribution_Sersic_Half_Mass_Radius_Projected
 

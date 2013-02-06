@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -415,22 +415,33 @@ contains
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    type (history          )                         :: stellarPopulationHistory,starFormationHistory
-    
+    type   (treeNode         ), intent(inout), pointer :: thisNode
+    class  (nodeComponentDisk),                pointer :: thisDiskComponent
+    type   (history          )                         :: stellarPropertiesHistory,starFormationHistory
+    logical                                            :: createStellarPropertiesHistory,createStarFormationHistory
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Exit if already initialized.
     if (thisDiskComponent%isInitialized()) return
-    ! Create stellar luminosities array.
-    call thisDiskComponent%luminositiesStellarSet(zeroLuminosities)
+    ! Determine which histories must be created.
+    starFormationHistory          =thisDiskComponent%starFormationHistory            ()
+    createStarFormationHistory    =.not.             starFormationHistory    %exists ()
+    call                                             starformationhistory    %destroy()
+    stellarPropertiesHistory      =thisDiskComponent%stellarPropertiesHistory        ()
+    createStellarPropertiesHistory=.not.             stellarPropertiesHistory%exists ()
+    call                                             stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
-    call Stellar_Population_Properties_History_Create (thisNode,stellarPopulationHistory)
-    call thisDiskComponent%stellarPropertiesHistorySet(         stellarPopulationHistory)
+    if (createStellarPropertiesHistory) then
+       ! Create the stellar properties history.
+       call Stellar_Population_Properties_History_Create (thisNode,stellarPropertiesHistory)
+       call thisDiskComponent%stellarPropertiesHistorySet(         stellarPropertiesHistory)
+    end if
     ! Create the star formation history.
-    call Star_Formation_History_Create                (thisNode,    starFormationHistory)
-    call thisDiskComponent%    starFormationHistorySet(             starFormationHistory)
+    if (createStarFormationHistory    ) then
+       call Star_Formation_History_Create                (thisNode,    starFormationHistory)
+       call thisDiskComponent%    starFormationHistorySet(             starFormationHistory)
+    end if
     ! Record that the disk has been initialized.
     call thisDiskComponent%isInitializedSet(.true.)
     return
@@ -513,6 +524,7 @@ contains
 
        ! Record the star formation history.
        stellarHistoryRate=thisDiskComponent%starFormationHistory()
+       call stellarHistoryRate%reset()
        call Star_Formation_History_Record(thisNode,stellarHistoryRate,fuelAbundances,starFormationRate)
        if (stellarHistoryRate%exists()) call thisDiskComponent%starFormationHistoryRate(stellarHistoryRate)
 
@@ -1222,7 +1234,8 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
     double precision        , intent(  out)          :: componentDensity
     class(nodeComponentDisk),                pointer :: thisDiskComponent
     double precision        , parameter              :: diskHeightToRadiusRatio=0.1d0
-    double precision                                 :: fractionalRadius,fractionalHeight,positionCylindrical(3)
+    double precision        , parameter              :: coshArgumentMaximum=50.0d0
+    double precision                                 :: fractionalRadius,fractionalHeight,positionCylindrical(3),coshTerm
 
     ! Return immediately if disk component is not requested.    
     componentDensity=0.0d0
@@ -1247,9 +1260,14 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
           ! Compute the actual density.
           positionCylindrical=Coordinates_Spherical_To_Cylindrical(positionSpherical)
           fractionalRadius=positionCylindrical(1)/                         thisDiskComponent%radius()
-          fractionalHeight=positionCylindrical(2)/(diskHeightToRadiusRatio*thisDiskComponent%radius())
-          componentDensity=componentDensity*exp(-fractionalRadius)/cosh(0.5d0*fractionalHeight)**2/4.0d0/Pi&
-               &/thisDiskComponent%radius()**3/diskHeightToRadiusRatio
+          fractionalHeight=positionCylindrical(3)/(diskHeightToRadiusRatio*thisDiskComponent%radius())
+          if (fractionalHeight > coshArgumentMaximum) then
+             coshTerm=(2.0d0*exp(-0.5d0*fractionalHeight)/(1.0d0+exp(-fractionalHeight)))**2
+          else
+             coshTerm=1.0d0/cosh(0.5d0*fractionalHeight)**2
+          end if
+          componentDensity=componentDensity*exp(-fractionalRadius)*coshTerm/4.0d0/Pi/thisDiskComponent%radius()**3&
+               &/diskHeightToRadiusRatio
        end if
     end select
     return
@@ -1531,6 +1549,7 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
      class is (nodeComponentDiskExponential)
         starFormationHistory=thisDiskComponent%starFormationHistory()
         call Star_Formation_History_Output(thisNode,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'disk')
+        call thisDiskComponent%starFormationHistorySet(starFormationHistory)
      end select
      return
    end subroutine Node_Component_Disk_Exponential_Star_Formation_History_Output

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -203,6 +203,41 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Create_Event
   
+  subroutine Tree_Node_Remove_Paired_Event(self,event)
+    !% Removed a paired event from {\tt self}. Matching is done on the basis of event ID.
+    implicit none
+    class  (treeNode ), intent(inout) :: self
+    type   (nodeEvent), intent(in   ) :: event
+    type   (nodeEvent), pointer       :: pairEvent,lastEvent,nextEvent
+    logical                           :: pairMatched
+
+    ! Locate the paired event in self and remove it.
+    pairEvent => self%event
+    lastEvent => self%event
+    ! Iterate over all events.
+    pairMatched=.false.
+    do while (associated(pairEvent).and..not.pairMatched)
+       ! Match the paired event ID with the current event ID.
+       if (pairEvent%ID == event%ID) then
+          pairMatched=.true.
+          if (associated(pairEvent,self%event)) then
+             self     %event => pairEvent%next
+             lastEvent       => self     %event
+          else
+             lastEvent%next  => pairEvent%next
+          end if
+          nextEvent => pairEvent%next
+          deallocate(pairEvent)
+          pairEvent => nextEvent
+       else
+          lastEvent => pairEvent
+          pairEvent => pairEvent%next
+       end if
+    end do
+    if (.not.pairMatched) call Galacticus_Error_Report('Tree_Node_Remove_Paired_Event','unable to find paired event')
+    return
+  end subroutine Tree_Node_Remove_Paired_Event
+
   logical function Tree_Node_Is_Primary_Progenitor(self)
     !% Returns true if {\tt self} is the primary progenitor of its parent node.
     implicit none

@@ -77,6 +77,9 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     if ( nelem($logSpheroidMass) > 0 ) {
 	($logBlackHoleMassMeanGalacticus,$logBlackHoleMassMeanErrorGalacticus,$logBlackHoleMassSigmaGalacticus,$logBlackHoleMassSigmaErrorGalacticus)
 	    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weight);
+    } else {
+	$logBlackHoleMassMeanGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
+	$logBlackHoleMassMeanErrorGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
     }
 
     # Define constants.
@@ -112,7 +115,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $weights          = 1.0/$logError**2;
     ($logBlackHoleMassMean,$logBlackHoleMassMeanError,$logBlackHoleMassSigma,$logBlackHoleMassSigmaError)
 	= &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
-    
+
     # Compute chi^2.
     if ( nelem($logSpheroidMass) > 0 ) {
 	$nonzero = which($logBlackHoleMassMeanGalacticus > 0.0);

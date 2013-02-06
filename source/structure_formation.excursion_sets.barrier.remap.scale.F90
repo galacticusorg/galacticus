@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -71,6 +71,8 @@ contains
           !@   <name>excursionSetBarrierRemapScalingFactor</name>
           !@   <defaultValue>$1$</defaultValue>
           !@   <attachedTo>module</attachedTo>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
           !@   <description>
           !@     The factor by which the excursion set barrier should be rescaled if the {\tt scale} remapping method is active.
           !@   </description>

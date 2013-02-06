@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -43,7 +43,7 @@ contains
   double precision function Power_Spectrum_Nonlinear_PeacockDodds1996(waveNumber,time)
     !% Return a nonlinear power spectrum equal using the algorithm of \cite{peacock_non-linear_1996}.
     use Numerical_Constants_Math
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Cosmology_Functions
     use Galacticus_Error
     use Linear_Growth

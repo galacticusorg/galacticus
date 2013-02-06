@@ -16,8 +16,8 @@ use Data::Dumper;
 my %sourceStruct = (
     STRUCT_NAME => "Source",
     NAMESPACE   => { "stSource"    => 'http://www.ctcp.caltech.edu/galacticus/ns/xmpext/1.0' },
-    bzrDiff     => { },
-    bzrMerge    => { }
+    hgDiff      => { },
+    hgBundle    => { }
     );
 my %versionStruct = (
     STRUCT_NAME => "Version",
@@ -105,7 +105,7 @@ sub Write {
 
     # Extract version information.
     my $versionGroup = $hdfFile->group("Version");
-    my @version      = $versionGroup->attrGet("versionMajor","versionMinor","versionRevision","bazaarRevision","runTime");
+    my @version      = $versionGroup->attrGet("versionMajor","versionMinor","versionRevision","hgRevision","runTime");
     $metaData{'Version'} =   
     {
 	version  => $version[0].".".$version[1].".".$version[2],
@@ -113,27 +113,26 @@ sub Write {
 	runTime  => $version[4]
     };
 
-    # Package any Bazaar changes.
+    # Package any Mercurial changes.
     $metaData{'Source'} = {
-	bzrDiff  => "",
-	bzrMerge => ""
+	hgDiff   => "",
+	hgBundle => ""
     };
 
-    my $bzr =&File::Which::which("bzr");
-    unless ( $bzr eq "" ) {
-	system("bzr info ".$galacticusPath." > /dev/null 2>&1");
-	my $isBazaarBranch = $?;
-	if ( $isBazaarBranch == 0 ) {
+    my $hg =&File::Which::which("hg");
+    unless ( $hg eq "" ) {
+	system("hg summary ".$galacticusPath." > /dev/null 2>&1");
+	my $isMercurialBranch = $?;
+	if ( $isMercurialBranch == 0 ) {
 	    my $cwd = `pwd`;
-	    chomp($cwd);
-	    system("cd ".$galacticusPath."; bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.2/ -o ".$cwd."/bzrSend.meta");
-	    my $bzrDiff = `bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.2/ $galacticusPath`;
-	    my $bzrMerge = read_file("bzrSend.meta");
+	    system("cd ".$galacticusPath."; hg bundle -t none ".$cwd."/hgBundle.meta https://abensonca\@bitbucket.org/abensonca/galacticus_v0.9.2");
+	    my $hgDiff   = `hg diff $galacticusPath`;
+	    my $hgBundle = read_file("hgBundle.meta");
 	    $metaData{'Source'} = {
-		bzrDiff  => $bzrDiff,
-		bzrMerge => $bzrMerge
+		hgDiff   => $hgDiff,
+		hgBundle => $hgBundle
 	    };
-	    unlink("bzrSend.meta");
+	    unlink("hgBundle.meta");
 	}
     }
 
@@ -239,22 +238,22 @@ sub Read {
 	# Get version info and report.
 	my $version = $exifTool->GetInfo('Version');
 	print "Galacticus Version:\n";
-	print "  Version        : ".$version->{'Version'}->{'Version' }."\n";
-	print "  Bazaar Revision: ".$version->{'Version'}->{'Revision'}."\n";
-	print "  Run Time       : ".$version->{'Version'}->{'RunTime' }."\n\n";
+	print "  Version           : ".$version->{'Version'}->{'Version' }."\n";
+	print "  Mercurial Revision: ".$version->{'Version'}->{'Revision'}."\n";
+	print "  Run Time          : ".$version->{'Version'}->{'RunTime' }."\n\n";
 	print "==> Use:\n";
-	print "         bzr branch -r ".$version->{'Version'}->{'Revision'}." lp:galacticus/v".$version->{'Version'}->{'Version' }."\n";
-	print "         bzr merge ".$mergeFile."\n";
+	print "         hg clone -r ".$version->{'Version'}->{'Revision'}." https://abensonca\@bitbucket.org/abensonca/galacticus_v".$version->{'Version'}->{'Version' }."\n";
+	print "         hg unbundle -u ".$mergeFile."\n";
 	print "         patch < ".$patchFile."\n\n";
 	print "    to obtain this version of Galacticus.\n\n";
 	
 	# Get source changeset.
 	my $changeSet = $exifTool->GetInfo('Source');
 	open(oHndl,">".$mergeFile);
-	print oHndl $changeSet->{'Source'}->{'BzrMerge'};
+	print oHndl $changeSet->{'Source'}->{'HgBundle'};
 	close(oHndl);
 	open(oHndl,">".$patchFile);
-	print oHndl $changeSet->{'Source'}->{'BzrDiff'};
+	print oHndl $changeSet->{'Source'}->{'HgDiff'};
 	close(oHndl);
 
 	# Get build info and report.

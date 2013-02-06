@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -203,7 +203,7 @@ contains
     ! Compute the stellar density, accounting for any loss.
     densityStellar= Galactic_Structure_Density(thisNode                                             , &
          &                                     [thisBlackHoleComponent%radialPosition(),0.0d0,0.0d0], &
-         &                                     coordinateSystem=coordinateSystemSpherical           , &
+         &                                     coordinateSystem=coordinateSystemCylindrical         , &
          &                                     massType        =massTypeStellar                     , &
          &                                     componentType   =componentTypeSpheroid                 &
          &                                    )                                                       &
@@ -224,12 +224,12 @@ contains
        ! Compute the total density, including dark matter.
        densitySpheroid  =Galactic_Structure_Density(thisNode                                             , &
             &                                       [thisBlackHoleComponent%radialPosition(),0.0d0,0.0d0], &
-            &                                       coordinateSystem=coordinateSystemSpherical           , &
+            &                                       coordinateSystem=coordinateSystemCylindrical         , &
             &                                       massType        =massTypeGalactic                      &
             &                                      )                                                              
        densityDarkMatter=Galactic_Structure_Density(thisNode                                             , &
             &                                       [thisBlackHoleComponent%radialPosition(),0.0d0,0.0d0], &
-            &                                       coordinateSystem=coordinateSystemSpherical           , &
+            &                                       coordinateSystem=coordinateSystemCylindrical         , &
             &                                       massType        =massTypeDark                          &
             &                                      )
        ! Compute the Coulomb logarithms for dynamical friction.
