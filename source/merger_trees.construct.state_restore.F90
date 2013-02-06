@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -26,11 +26,11 @@ module Merger_Trees_State_Store
   private
   public :: Merger_Tree_State_Store, Merger_Tree_State_Store_Initialize
 
-  ! Flag indicating if our tree has already been returned.
-  logical :: doneTree=.false.
-
   ! File name from which stored trees should be read.
   type(varying_string) :: mergerTreeStateStoreFile
+
+  ! File unit for the tree data file.
+  integer              :: treeDataUnit
 
 contains
 
@@ -60,6 +60,8 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeStateStoreFile',mergerTreeStateStoreFile,defaultValue='storedTree.dat')
+       ! Open the tree file.
+       open(newunit=treeDataUnit,file=char(mergerTreeStateStoreFile),status='old',form='unformatted')
     end if
     return
   end subroutine Merger_Tree_State_Store_Initialize
@@ -67,15 +69,15 @@ contains
   subroutine Merger_Tree_State_Store(thisTree,storeFile)
     !% Store the complete internal state of a merger tree to file.
     use Merger_Trees
-    use Tree_Nodes
-    use Components
+    use Galacticus_Nodes
     use Galacticus_State
     implicit none
     type(mergerTree),        intent(in)                :: thisTree
     character(len=*),        intent(in)                :: storeFile
-    type(treeNode),          pointer                   :: thisNode
+    type(treeNode),          pointer                   :: thisNode,currentNodeInTree
     integer(kind=kind_int8), allocatable, dimension(:) :: nodeIndices
-    integer                                            :: iComponent,iInstance,iHistory,nodeCount,fileUnit
+    type(varying_string),    save                      :: storeFilePrevious
+    integer                                            :: nodeCount,fileUnit
     
     ! Take a snapshot of the internal state and store it.
     call Galacticus_State_Snapshot
@@ -83,91 +85,55 @@ contains
 
     ! Count nodes in the tree.
     nodeCount=0
-    thisNode => thisTree%baseNode
+    thisNode          => thisTree%baseNode
+    currentNodeInTree => null()
     do while (associated(thisNode))
        nodeCount=nodeCount+1
-       call thisNode%walkTreeWithSatellites(thisNode)
+       call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
     end do
 
     ! Allocate and populate an array of node indices in the order in which the tree will be traversed.
     allocate(nodeIndices(nodeCount))
-    thisNode => thisTree%baseNode
+    thisNode          => thisTree%baseNode
+    currentNodeInTree => null()
     nodeCount=0
     do while (associated(thisNode))
        nodeCount=nodeCount+1
        nodeIndices(nodeCount)=thisNode%index()
-       call thisNode%walkTreeWithSatellites(thisNode)
-    end do
+       call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
+     end do
 
-    ! Open an output file.
-    open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted')
+    ! Open an output file. (Append to the old file if the file name has not changed.)
+    if (trim(storeFile) == storeFilePrevious) then
+       open(newunit=fileUnit,file=trim(storeFile),status='old'    ,form='unformatted',access='append')
+    else
+       storeFilePrevious=trim(storeFile)
+       open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted'                )
+    end if
     ! Write basic tree information.
     write (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,Node_Array_Position(thisTree%baseNode%index(),nodeIndices)
     ! Start at the base of the tree.
-    thisNode => thisTree%baseNode
+    thisNode          => thisTree%baseNode
+    currentNodeInTree => null()
     ! Loop over all nodes.
     do while (associated(thisNode))
        ! Write all node information.
        ! Indices.
        write (fileUnit) thisNode%index(),thisNode%uniqueID()
        ! Pointers to other nodes.
-       write (fileUnit) &
-            &  Node_Array_Position(thisNode%parentNode   %index(),nodeIndices) &
-            & ,Node_Array_Position(thisNode%childNode    %index(),nodeIndices) &
-            & ,Node_Array_Position(thisNode%siblingNode  %index(),nodeIndices) &
-            & ,Node_Array_Position(thisNode%satelliteNode%index(),nodeIndices) &
-            & ,Node_Array_Position(thisNode%mergeNode    %index(),nodeIndices) &
-            & ,Node_Array_Position(thisNode%mergeeNode   %index(),nodeIndices) &
-            & ,Node_Array_Position(thisNode%nextMergee   %index(),nodeIndices)
-       ! Component indices.
-       write (fileUnit) allocated(thisNode%componentIndex)
-       if (allocated(thisNode%componentIndex)) then
-          write (fileUnit) size(thisNode%componentIndex)
-          write (fileUnit) thisNode%componentIndex
-       end if
-       ! Components.
-       write (fileUnit) allocated(thisNode%components)
-       if (allocated(thisNode%components)) then
-          write (fileUnit) size(thisNode%components)
-          do iComponent=1,size(thisNode%components)
-             ! Instances.
-             write (fileUnit) allocated(thisNode%components(iComponent)%instance)
-             if (allocated(thisNode%components(iComponent)%instance)) then
-                write (fileUnit) size(thisNode%components(iComponent)%instance)
-                do iInstance=1,size(thisNode%components(iComponent)%instance)
-                   ! Properties.
-                   write (fileUnit) allocated(thisNode%components(iComponent)%instance(iInstance)%properties)
-                   if (allocated(thisNode%components(iComponent)%instance(iInstance)%properties)) then
-                      write (fileUnit) size(thisNode%components(iComponent)%instance(iInstance)%properties,dim=1)
-                      write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%properties(:,propertyValue)
-                   end if
-                   ! Data.
-                   write (fileUnit) allocated(thisNode%components(iComponent)%instance(iInstance)%data)
-                   if (allocated(thisNode%components(iComponent)%instance(iInstance)%data)) then
-                      write (fileUnit) size(thisNode%components(iComponent)%instance(iInstance)%data)
-                      write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%data(:)
-                   end if
-                   ! Histories.
-                   write (fileUnit) allocated(thisNode%components(iComponent)%instance(iInstance)%histories)
-                   if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories)) then
-                      write (fileUnit) size(thisNode%components(iComponent)%instance(iInstance)%histories)
-                      do iHistory=1,size(thisNode%components(iComponent)%instance(iInstance)%histories)
-                         write (fileUnit) allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)
-                         if (allocated(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)) then
-                            write (fileUnit) size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time)&
-                                 &,size(thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data,dim=2)
-                            write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%time
-                            write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%data
-                            write (fileUnit) thisNode%components(iComponent)%instance(iInstance)%histories(iHistory)%rangeType
-                         end if
-                      end do
-                   end if
-                end do
-             end if
-          end do
-       end if
-       ! Move to the next node in the tree.
-       call thisNode%walkTreeWithSatellites(thisNode)
+       write (fileUnit)                                                         &
+            & Node_Array_Position(thisNode%parent        %index(),nodeIndices), &
+            & Node_Array_Position(thisNode%firstChild    %index(),nodeIndices), &
+            & Node_Array_Position(thisNode%sibling       %index(),nodeIndices), &
+            & Node_Array_Position(thisNode%firstSatellite%index(),nodeIndices), &
+            & Node_Array_Position(thisNode%mergeTarget   %index(),nodeIndices), &
+            & Node_Array_Position(thisNode%firstMergee   %index(),nodeIndices), &
+            & Node_Array_Position(thisNode%siblingMergee %index(),nodeIndices), &
+            & Node_Array_Position(thisNode%formationNode %index(),nodeIndices)
+       ! Store the node.
+       call thisNode%dumpRaw(fileUnit)
+      ! Move to the next node in the tree.
+       call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
     end do
     close(fileUnit)
     ! Destroy the temporary array of indices.
@@ -195,30 +161,26 @@ contains
   subroutine Merger_Tree_State_Restore(thisTree,skipTree)
     !% Restores the state of a merger tree from file.
     use Merger_Trees
-    use Tree_Nodes
-    use Components
+    use Galacticus_Nodes
     use Galacticus_State
     use Galacticus_Error
     implicit none
     type(mergerTree),   intent(inout)             :: thisTree
     logical,            intent(in)                :: skipTree
     type(treeNodeList), allocatable, dimension(:) :: nodes
-    integer                                       :: iComponent,iInstance,iHistory,nodeCount,nodeArrayIndex,iNode,parentNodeIndex&
-         & ,childNodeIndex,siblingNodeIndex,satelliteNodeIndex,mergeNodeIndex,mergeeNodeIndex,nextMergeeIndex,arraySize&
-         &,arraySize2 ,fileUnit
+    integer                                       :: nodeCount,nodeArrayIndex,iNode,parentIndex ,firstChildIndex,siblingIndex&
+         &,firstSatelliteIndex,mergeTargetIndex,firstMergeeIndex,siblingMergeeIndex,formationNodeIndex,fileStatus
     integer(kind=kind_int8)                       :: nodeIndex,nodeUniqueID
-    logical                                       :: isAllocated
-
-    ! If the tree is to be skipped, or if we've already returned the tree, simply return.
-    if (skipTree.or.doneTree) return
 
     ! Retrieve stored internal state if possible.
     call Galacticus_State_Retrieve
 
-    ! Open an output file.
-    open(newunit=fileUnit,file=char(mergerTreeStateStoreFile),status='old',form='unformatted')
     ! Read basic tree information.
-    read (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,nodeArrayIndex
+    read (treeDataUnit,iostat=fileStatus) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,nodeArrayIndex
+    if (fileStatus < 0) then
+       close(treeDataUnit)
+       return
+    end if
     ! Allocate a list of nodes.
     allocate(nodes(nodeCount))
     ! Create nodes.
@@ -226,89 +188,41 @@ contains
         call thisTree%createNode(nodes(iNode)%node)
     end do
     ! Assign the tree base node.
-    thisTree%baseNode => nodes(nodeArrayIndex)%node
+    if (.not.skipTree) thisTree%baseNode => nodes(nodeArrayIndex)%node
     ! Loop over all nodes.
     do iNode=1,nodeCount
        ! Read all node information.
-       ! Indices/
-       read (fileUnit) nodeIndex,nodeUniqueID
-       call nodes(iNode)%node%indexSet(nodeIndex)
+       ! Indices.
+       read (treeDataUnit) nodeIndex,nodeUniqueID
+       call nodes(iNode)%node%indexSet   (nodeIndex   )
        call nodes(iNode)%node%uniqueIDSet(nodeUniqueID)
        ! Pointers to other nodes.
-       read (fileUnit) parentNodeIndex,childNodeIndex,siblingNodeIndex,satelliteNodeIndex,mergeNodeIndex,mergeeNodeIndex,nextMergeeIndex
-       nodes(iNode)%node%parentNode    => Pointed_At_Node(parentNodeIndex   ,nodes)
-       nodes(iNode)%node%childNode     => Pointed_At_Node(childNodeIndex    ,nodes)
-       nodes(iNode)%node%siblingNode   => Pointed_At_Node(siblingNodeIndex  ,nodes)
-       nodes(iNode)%node%satelliteNode => Pointed_At_Node(satelliteNodeIndex,nodes)
-       nodes(iNode)%node%mergeNode     => Pointed_At_Node(mergeNodeIndex    ,nodes)
-       nodes(iNode)%node%mergeeNode    => Pointed_At_Node(mergeeNodeIndex   ,nodes)
-       nodes(iNode)%node%nextMergee    => Pointed_At_Node(nextMergeeIndex   ,nodes)
-       ! Component index array.
-       read (fileUnit) isAllocated
-       if (isAllocated) then
-          read (fileUnit) arraySize
-          if (arraySize /= size(nodes(iNode)%node%componentIndex)) call Galacticus_Error_Report('Merger_Tree_State_Restore','number of components has changed')
-          read (fileUnit) nodes(iNode)%node%componentIndex
-       end if
-       ! Components.
-       read (fileUnit) isAllocated
-       if (isAllocated) then
-          read (fileUnit) arraySize
-          allocate(nodes(iNode)%node%components(arraySize))
-          do iComponent=1,size(nodes(iNode)%node%components)        
-             ! Instances.
-             read (fileUnit) isAllocated
-             if (isAllocated) then
-                read (fileUnit) arraySize
-                allocate(nodes(iNode)%node%components(iComponent)%instance(arraySize))
-                do iInstance=1,size(nodes(iNode)%node%components(iComponent)%instance)
-                   ! Properties.
-                   read (fileUnit) isAllocated
-                   if (isAllocated) then
-                      read (fileUnit) arraySize
-                      allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%properties(arraySize,2))
-                      read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%properties(:,propertyValue)
-                   end if
-                   ! Data.
-                   read (fileUnit) isAllocated
-                   if (isAllocated) then
-                      read (fileUnit) arraySize
-                      allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%data(arraySize))
-                      read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%data(:)
-                   end if
-                   ! Histories.
-                   read (fileUnit) isAllocated
-                   if (isAllocated) then
-                      read (fileUnit) arraySize
-                      allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(arraySize))
-                      do iHistory=1,size(nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories)
-                         read (fileUnit) isAllocated
-                         if (isAllocated) then
-                            read (fileUnit) arraySize,arraySize2
-                            allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%time(arraySize))
-                            allocate(nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%data(arraySize,arraySize2))
-                            read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%time
-                            read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%data
-                            read (fileUnit) nodes(iNode)%node%components(iComponent)%instance(iInstance)%histories(iHistory)%rangeType
-                         end if
-                      end do
-                   end if
-                end do
-             end if
-          end do
-       end if
+       read (treeDataUnit) parentIndex,firstChildIndex,siblingIndex,firstSatelliteIndex,mergeTargetIndex,firstMergeeIndex&
+            &,siblingMergeeIndex,formationNodeIndex
+       nodes(iNode)%node%parent         => Pointed_At_Node(parentIndex        ,nodes)
+       nodes(iNode)%node%firstChild     => Pointed_At_Node(firstChildIndex    ,nodes)
+       nodes(iNode)%node%sibling        => Pointed_At_Node(siblingIndex       ,nodes)
+       nodes(iNode)%node%firstSatellite => Pointed_At_Node(firstSatelliteIndex,nodes)
+       nodes(iNode)%node%mergeTarget    => Pointed_At_Node(mergeTargetIndex   ,nodes)
+       nodes(iNode)%node%firstMergee    => Pointed_At_Node(firstMergeeIndex   ,nodes)
+       nodes(iNode)%node%siblingMergee  => Pointed_At_Node(siblingMergeeIndex ,nodes)
+       nodes(iNode)%node%formationNode  => Pointed_At_Node(formationNodeIndex ,nodes)
+       ! Read the node.
+       call nodes(iNode)%node%readRaw(treeDataUnit)
     end do
-    close(fileUnit)
+    ! If the tree is to be skipped, destroy it.
+    if (skipTree) then
+       call thisTree%destroy()
+       thisTree%baseNode => null()
+    end if
     ! Destroy the list of nodes.
     deallocate(nodes)
-    ! Flag that the tree has been read and returned.
-    doneTree=.true.
     return
   end subroutine Merger_Tree_State_Restore
 
   function Pointed_At_Node(nodeArrayIndex,nodes)
     !% Return a pointer to a node, given its position in the array of nodes. Return a null pointer if the array index is $-1$.
-    use Tree_Nodes
+    use Galacticus_Nodes
     type(treeNode),     pointer                  :: Pointed_At_Node
     integer,            intent(in)               :: nodeArrayIndex
     type(treeNodeList), intent(in), dimension(:) :: nodes
@@ -320,5 +234,24 @@ contains
     end if
     return
   end function Pointed_At_Node
-  
+
+  subroutine Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
+    !% Walk a merger tree for the purposes of storing the full state to file. Includes walking of formation nodes.
+    use Galacticus_Nodes
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode,currentNodeInTree
+    
+    if (associated(thisNode%formationNode)) then
+       if (.not.associated(currentNodeInTree)) currentNodeInTree => thisNode
+       thisNode => thisNode%formationNode
+    else
+       if (associated(currentNodeInTree)) then
+          thisNode => currentNodeInTree
+          currentNodeInTree => null()
+       end if
+       call thisNode%walkTreeWithSatellites(thisNode)
+    end if
+    return
+  end subroutine Merger_Tree_State_Walk_Tree
+
 end module Merger_Trees_State_Store

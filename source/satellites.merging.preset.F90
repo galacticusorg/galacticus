@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -41,12 +41,14 @@ contains
 
   double precision function Satellite_Time_Until_Merging_Preset(thisNode)
     !% Return the timescale for merging satellites using the preset value.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type (treeNode              ), pointer, intent(inout) :: thisNode
+    class(nodeComponentSatellite), pointer                :: thisSatelliteComponent
 
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
-    Satellite_Time_Until_Merging_Preset=Tree_Node_Satellite_Merge_Time(thisNode)
+    thisSatelliteComponent => thisNode%satellite()
+    Satellite_Time_Until_Merging_Preset=thisSatelliteComponent%mergeTime()
     return
   end function Satellite_Time_Until_Merging_Preset
 

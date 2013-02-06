@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,7 @@
 
 module Events_Interrupts
   !% Specifies the template for interrupt procedures.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Interrupt_Procedure_Template

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -37,16 +37,16 @@ module Black_Hole_Binary_Separations
   
 contains
 
-  double precision function Black_Hole_Binary_Separation_Growth_Rate(thisNode)
+  double precision function Black_Hole_Binary_Separation_Growth_Rate(thisBlackHoleComponent)
     !% Computes the separation growth rate of a black hole binary in units of Mpc/Gyr.
     use Galacticus_Error
     use Input_Parameters
-    use Tree_Nodes
+    use Galacticus_Nodes
     !# <include directive="blackHoleBinarySeparationGrowthRateMethod" type="moduleUse">
     include 'black_holes.binary.separation_growth_rate.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    class(nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
 
     if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
        !$omp critical(blackHoleBinarySeparationGrowthRateInitialize)
@@ -64,8 +64,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('blackHoleBinarySeparationGrowthRateMethod',blackHoleBinarySeparationGrowthRateMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="blackHoleBinarySeparationGrowthRateMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get</subroutineArgs>
+          !# <include directive="blackHoleBinarySeparationGrowthRateMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get</functionArgs>
           include 'black_holes.binaries.separation_growth_rate.inc'
           !# </include>
           if (.not.associated(Black_Hole_Binary_Separation_Growth_Rate_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate','method ' &
@@ -77,7 +77,7 @@ contains
     end if
 
     ! Call the routine to do the calculation.
-    Black_Hole_Binary_Separation_Growth_Rate=Black_Hole_Binary_Separation_Growth_Rate_Get(thisNode)
+    Black_Hole_Binary_Separation_Growth_Rate=Black_Hole_Binary_Separation_Growth_Rate_Get(thisBlackHoleComponent)
 
     return
   end function Black_Hole_Binary_Separation_Growth_Rate

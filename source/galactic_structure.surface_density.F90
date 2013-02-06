@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Galactic_Structure_Surface_Densities
   !% Implements calculations of the surface density at a specific position.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
   private
@@ -79,9 +79,9 @@ contains
     Galactic_Structure_Surface_Density=0.0d0
 
     ! Call routines to supply the densities for all components.
-    !# <include directive="surfaceDensityTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,positionCylindrical,massTypeActual,componentTypeActual,componentDensity</subroutineArgs>
-    !#  <subroutineAction>Galactic_Structure_Surface_Density=Galactic_Structure_Surface_Density+componentDensity</subroutineAction>
+    !# <include directive="surfaceDensityTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,positionCylindrical,massTypeActual,componentTypeActual,componentDensity</functionArgs>
+    !#  <onReturn>Galactic_Structure_Surface_Density=Galactic_Structure_Surface_Density+componentDensity</onReturn>
     include 'galactic_structure.surface_density.tasks.inc'
     !# </include>
 

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -98,10 +98,11 @@ contains
   subroutine Meta_Tree_Timing_Pre_Evolve(thisTree)
     !% Record the CPU time prior to evolving {\tt thisTree}.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(mergerTree), intent(in) :: thisTree
-    type(treeNode),   pointer    :: thisNode
+    type (mergerTree        ), intent(in) :: thisTree
+    type (treeNode          ), pointer    :: thisNode
+    class(nodeComponentBasic), pointer    :: thisBasicComponent
 
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
@@ -110,8 +111,9 @@ contains
        ! Record the CPU time.
        call CPU_Time(timePreEvolution)
        ! Record the mass of the tree.
-       thisNode => thisTree%baseNode
-       treeMass=Tree_Node_Mass(thisNode)
+       thisNode           => thisTree          %baseNode
+       thisBasicComponent => thisNode          %basic()
+       treeMass           =  thisBasicComponent%mass ()
     end if
 
     return

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -68,8 +68,8 @@ contains
           call Get_Input_Parameter('atomicPhotoIonizationMethod',atomicPhotoIonizationMethod,defaultValue='Verner')
           
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="atomicPhotoIonizationMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>atomicPhotoIonizationMethod,Atomic_Cross_Section_Ionization_Photo_Get</subroutineArgs>
+          !# <include directive="atomicPhotoIonizationMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>atomicPhotoIonizationMethod,Atomic_Cross_Section_Ionization_Photo_Get</functionArgs>
           include 'atomic.cross_sections.ionization.photo.inc'
           !# </include>
           if (.not.associated(Atomic_Cross_Section_Ionization_Photo_Get)) call&

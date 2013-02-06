@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,6 @@
 
 module Dark_Matter_Profiles_Concentrations_Prada2011
   !% Implements the \cite{prada_halo_2011} halo concentration algorithm.
-  use Tree_Nodes
   implicit none
   private
   public :: Dark_Matter_Concentrations_Prada2011_Initialize
@@ -185,17 +184,19 @@ contains
 
   double precision function Dark_Matter_Profile_Concentration_Prada2011(thisNode)
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{prada_halo_2011}.
-    use Tree_Nodes
-    use CDM_Power_Spectrum
+    use Galacticus_Nodes
+    use Power_Spectrum
     use Cosmology_Functions
     use Cosmological_Parameters
     use Linear_Growth
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: massNode,timeNode,x,sigmaPrime
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: massNode,timeNode,x,sigmaPrime
 
-    massNode  =Tree_Node_Mass(thisNode)
-    timeNode  =Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    massNode  =thisBasicComponent%mass()
+    timeNode  =thisBasicComponent%time()
     x         =(Omega_DE()/Omega_Matter())**(1.0d0/3.0d0)*Expansion_Factor(timeNode)
     sigmaPrime=B1(x)*sigma_CDM(massNode)*Linear_Growth_Factor(timeNode)
     Dark_Matter_Profile_Concentration_Prada2011=B0(x)*C(sigmaPrime)

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -62,8 +62,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteMergingMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>satelliteMergingMethod,Satellite_Time_Until_Merging_Get</subroutineArgs>
+          !# <include directive="satelliteMergingMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>satelliteMergingMethod,Satellite_Time_Until_Merging_Get</functionArgs>
           include 'satellite.merging.timescale.inc'
           !# </include>
           if (.not.associated(Satellite_Time_Until_Merging_Get))                                           &
@@ -81,8 +81,8 @@ contains
 
   double precision function Satellite_Time_Until_Merging(thisNode,thisOrbit)
     !% Return the satellite merging timescale for {\tt thisNode} (in units of Gyr).
-    use Tree_Nodes
-    use Kepler_Orbits_Structure
+    use Galacticus_Nodes
+    use Kepler_Orbits
     implicit none
     type(treeNode   ), intent(inout), pointer :: thisNode
     type(keplerOrbit), intent(in   )          :: thisOrbit

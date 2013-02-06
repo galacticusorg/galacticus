@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -22,7 +22,7 @@
 
 module Galactic_Structure_Velocity_Dispersions
   !% Implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans equation.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Galactic_Structure_Velocity_Dispersion

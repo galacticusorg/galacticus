@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -54,7 +54,7 @@ contains
     !% Create the history required for storing star formation history.
     use Histories
     use Numerical_Ranges
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     type(history),    intent(inout)          :: thisHistory
@@ -67,16 +67,17 @@ contains
     !% Record the star formation history for {\tt thisNode}.
     use Histories
     use Numerical_Ranges
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Abundances_Structure
     use Arrays_Search
     implicit none
-    type(treeNode),            intent(inout), pointer :: thisNode
-    type(history),             intent(inout)          :: thisHistory
-    type(abundancesStructure), intent(in)             :: fuelAbundances
-    double precision,          intent(in)             :: starFormationRate
+    type            (treeNode  ), intent(inout), pointer :: thisNode
+    type            (history   ), intent(inout)          :: thisHistory
+    type            (abundances), intent(in   )          :: fuelAbundances
+    double precision            , intent(in   )          :: starFormationRate
 
-    ! Do nothing.
+    ! Ensure the history does not exist.
+    call thisHistory%destroy()
     return
   end subroutine Star_Formation_History_Record_Null
 
@@ -86,7 +87,7 @@ contains
     use ISO_Varying_String
     use Galacticus_HDF5
     use IO_HDF5
-    use Tree_Nodes
+    use Galacticus_Nodes
     use String_Handling
     use Kind_Numbers
     implicit none
@@ -109,7 +110,7 @@ contains
     use Memory_Management
     implicit none
     double precision,          intent(in)    :: stellarMass
-    type(abundancesStructure), intent(in)    :: stellarAbundances
+    type(abundances), intent(in)    :: stellarAbundances
     type(history),             intent(inout) :: thisHistory
 
     ! Do nothing.

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -27,30 +27,41 @@ contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
     !% Move {\tt satelliteNode} to be a satellite of {\tt newHostNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
     !# <include directive="satelliteHostChangeTask" type="moduleUse">
     include 'satellites.structures.host_change.moduleUse.inc'
     !# </include>
     implicit none
-    type(treeNode), pointer, intent(inout) :: satelliteNode,newHostNode
-    type(treeNode), pointer                :: lastSatelliteNode
+    type(treeNode      ), pointer, intent(inout) :: satelliteNode,newHostNode
+    type(treeNode      ), pointer                :: lastSatelliteNode
+    type(varying_string)                         :: message
+
+    ! Report if necessary.
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Satellite node ['
+       message=message//satelliteNode%index()//'] is being promoted to new host node ['//newHostNode%index()//']'
+       call Galacticus_Display_Message(message)
+    end if
 
     ! First remove from its current host.
     call satelliteNode%removeFromHost()
     ! Find attachment point for new host.
-    if (associated(newHostNode%satelliteNode)) then
-       call newHostNode%lastSatellite(lastSatelliteNode)
-       lastSatelliteNode%siblingNode => satelliteNode
+    if (associated(newHostNode%firstSatellite)) then
+       lastSatelliteNode          => newHostNode%lastSatellite()
+       lastSatelliteNode%sibling  => satelliteNode
     else
-       newHostNode%satelliteNode => satelliteNode
+       newHostNode%firstSatellite => satelliteNode
     end if
     ! Set parent and sibling pointers.
-    satelliteNode%parentNode  => newHostNode
-    satelliteNode%siblingNode => null()
+    satelliteNode%parent  => newHostNode
+    satelliteNode%sibling => null()
 
     ! Allow arbitrary routines to process the host change event.
-    !# <include directive="satelliteHostChangeTask" type="code" action="subroutine">
-    !#  <subroutineArgs>satelliteNode</subroutineArgs>
+    !# <include directive="satelliteHostChangeTask" type="functionCall" functionType="void">
+    !#  <functionArgs>satelliteNode</functionArgs>
     include 'satellites.structures.host_change.inc'
     !# </include>
 

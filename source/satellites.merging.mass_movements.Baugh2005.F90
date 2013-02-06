@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -105,7 +105,7 @@ contains
 
   subroutine Satellite_Merging_Mass_Movement_Baugh2005(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
     !% Determine how different mass components should be redistributed as the result of a merger according to the model of \cite{baugh_can_2005}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
@@ -117,7 +117,7 @@ contains
     double precision                        :: satelliteMass,hostMass,hostGasMass,hostSpheroidMass
 
     ! Find the node to merge with.
-    call thisNode%mergesWith(hostNode)
+   hostNode => thisNode%mergesWith()
 
     ! Find the baryonic masses of the two galaxies.
     satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)

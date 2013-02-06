@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -23,7 +23,7 @@ module Galactic_Structure_Potentials
   !% Implements calculations of the gravitational potential.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
   private
@@ -65,9 +65,9 @@ contains
     Galactic_Structure_Potential=0.0d0
     
     ! Call routines to supply the potential for all components.
-    !# <include directive="potentialTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,radius,componentTypeActual,massTypeActual,componentPotential</subroutineArgs>
-    !#  <subroutineAction>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</subroutineAction>
+    !# <include directive="potentialTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,radius,componentTypeActual,massTypeActual,componentPotential</functionArgs>
+    !#  <onReturn>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</onReturn>
     include 'galactic_structure.potential.tasks.inc'
     !# </include>
 

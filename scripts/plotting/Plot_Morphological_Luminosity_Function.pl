@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -57,9 +57,9 @@ $dataSet->{'store'} = 0;
 # Read galaxy data.
 $dataSet->{'tree'} = "all";
 &HDF5::Get_Dataset($dataSet,[
-		       'volumeWeight',
+		       'mergerTreeWeight',
 		       'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega',
-		       'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'
+		       'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'
 		   ]);
 $dataSets  = $dataSet->{'dataSets'};
 
@@ -98,15 +98,16 @@ foreach $class ( @classes ) {
 }
 
 # Compute cumulative fraction of model galaxies by bulge-to-total ratio.
-$weight = where($dataSets->{'volumeWeight'},
+$weight = where($dataSets->{'mergerTreeWeight'},
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50 &
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00
 		);
-$ratio  = where($dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'},
+$ratio  = where($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'},
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50 &
 		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00
 		);
-
+die("Plot_Morphological_Luminosity_Function.pl: no galaxies found in normalization magnitude range")
+    if ( nelem($ratio) == 0 );
 $indices          = $ratio->qsorti;
 $totalWeight      = $weight->sum;
 $orderedRatios    = $ratio->index($indices);
@@ -175,12 +176,12 @@ foreach $morphology ( @{$data->{'morphology'}} ) {
 print $morphology->{'class'}." ".$bulgeToTotalMinimum." ".$bulgeToTotalMaximum."\n";
 
 	$magnitude = where($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'},
-			     $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
-			   & $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
+			     $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
+			   & $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
 	    );
-	$weight    = where($dataSets->{'volumeWeight'},
-			     $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
-			   & $dataSets->{'bulgeToTotalLuminosity:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
+	$weight    = where($dataSets->{'mergerTreeWeight'},
+			     $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
+			   & $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
 	    );
 
 	($yGalacticus,$errorGalacticus) = &Histograms::Histogram($x,$magnitude,$weight,differential => 1);
@@ -256,7 +257,7 @@ unlink(@plotFiles);
 
 # Output fit data.
 if ( $showFit == 1 ) {
-    $fitData{'name'} = "Cole et al. (2001) K-band luminosity function";
+    $fitData{'name'} = "Devereuc et al. (2009) morphologically segregated K-band luminosity functions";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'} = $fileName;

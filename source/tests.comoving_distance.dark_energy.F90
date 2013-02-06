@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -22,6 +22,7 @@ program Tests_Comoving_Distance_Dark_Energy
   use Input_Parameters
   use ISO_Varying_String
   use Cosmology_Functions
+  use Cosmology_Functions_Options
   use Memory_Management
   implicit none
   double precision, parameter, dimension(8) :: redshift          =[0.1d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
@@ -29,7 +30,7 @@ program Tests_Comoving_Distance_Dark_Energy
   type(varying_string)                      :: parameterFile
   character(len=1024)                       :: message
   integer                                   :: iExpansion
-  double precision                          :: time,timeLookup,distance
+  double precision                          :: time,timeLookup,distance,distanceModulus
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.comoving_distance.dark_energy.size')
@@ -48,6 +49,13 @@ program Tests_Comoving_Distance_Dark_Energy
      timeLookup=Time_From_Comoving_Distance(distance)
      write (message,'(a,f6.1,a)') "cosmic time [distance=",distance," Mpc]"
      call Assert(trim(message),timeLookup,time,relTol=1.0d-3)
+     distance=Comoving_Distance_Conversion(distanceTypeComoving,redshift=redshift(iExpansion))
+     write (message,'(a,f6.1,a)') "comoving distance [direct; z=",redshift(iExpansion),"]"
+     call Assert(trim(message),distance,distanceDarkEnergy(iExpansion),relTol=1.0d-3)
+     distanceModulus=25.0d0+5.0d0*log10(distance*(1.0d0+redshift(iExpansion)))
+     distance=Comoving_Distance_Conversion(distanceTypeComoving,distanceModulus=distanceModulus)
+     write (message,'(a,f6.1,a)') "comoving distance [D=",distanceModulus,"]"
+     call Assert(trim(message),distance,distanceDarkEnergy(iExpansion),relTol=1.0d-3)
   end do
   call Input_Parameters_File_Close
 

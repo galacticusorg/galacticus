@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,7 @@
 
 module Galactic_Dynamics_Bar_Instabilities_ELN
   !% Implements calculations of bar instability based on the \cite{efstathiou_stability_1982} criterion.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
@@ -73,50 +73,54 @@ contains
   double precision function Bar_Instability_Timescale_ELN(thisNode)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: stabilityIsolatedDisk=0.6221297315d0
+    type (treeNode         ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk),                pointer :: thisDiskComponent
+    double precision        , parameter              :: stabilityIsolatedDisk=0.6221297315d0
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision, parameter              :: velocityBoostFactor          =1.180023758d0
+    double precision        , parameter              :: velocityBoostFactor          =1.180023758d0
     ! Maximum timescale (in dynamical times) allowed.
-    double precision, parameter              :: timescaleDimensionlessMaximum=1.0d10
-    double precision                         :: stabilityEstimator,stabilityThreshold,dynamicalTime,gasFraction,diskMass&
+    double precision        , parameter              :: timescaleDimensionlessMaximum=1.0d10
+    double precision                                 :: stabilityEstimator,stabilityThreshold,dynamicalTime,gasFraction,diskMass &
          &,timescaleDimensionless,stabilityIsolatedRelative,stabilityEstimatorRelative
 
     ! Assume infinite timescale (i.e. no instability) initially.
     Bar_Instability_Timescale_ELN=-1.0d0
 
+    ! Get the disk.
+    thisDiskComponent => thisNode%disk()
+
     ! Compute the disk mass.
-    diskMass=Tree_Node_Disk_Gas_Mass(thisNode)+Tree_Node_Disk_Stellar_Mass(thisNode)
+    diskMass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
     ! Return if there is no disk.
     if (diskMass <= 0.0d0) return
 
     ! Return if disk has unphysical angular momentum.
-    if (Tree_Node_Disk_Angular_Momentum(thisNode) <= 0.0d0) return
+    if (thisDiskComponent%angularMomentum() <= 0.0d0) return
 
     ! Return if disk has unphysical velocity or radius.
-    if (Tree_Node_Disk_Velocity(thisNode) <= 0.0d0 .or. Tree_Node_Disk_Radius(thisNode) <= 0.0d0) return
+    if (thisDiskComponent%velocity() <= 0.0d0 .or. thisDiskComponent%radius() <= 0.0d0) return
 
     ! Compute the gas fraction in the disk.
-    gasFraction=Tree_Node_Disk_Gas_Mass(thisNode)/diskMass
+    gasFraction=thisDiskComponent%massGas()/diskMass
 
     ! Compute the stability threshold.
     stabilityThreshold=stabilityThresholdStellar*(1.0d0-gasFraction)+stabilityThresholdGaseous*gasFraction
 
     ! Compute the stability estimator for this node.
-    stabilityEstimator=max(stabilityThreshold,velocityBoostFactor*Tree_Node_Disk_Velocity(thisNode)/dsqrt(gravitationalConstantGalacticus*diskMass&
-         &/Tree_Node_Disk_Radius(thisNode)))
-
+    stabilityEstimator=max(stabilityThreshold,velocityBoostFactor*thisDiskComponent%velocity()/dsqrt(gravitationalConstantGalacticus*diskMass&
+         &/thisDiskComponent%radius()))
+    
     ! Check if the disk is bar unstable.
     if (stabilityEstimator < stabilityThreshold) then
        ! Disk is unstable, compute a timescale for depletion.
        
        ! Begin by finding the disk dynamical time.
-       dynamicalTime=(megaParsec/kilo/gigaYear)*Tree_Node_Disk_Radius(thisNode)/Tree_Node_Disk_Velocity(thisNode)
+       dynamicalTime=(megaParsec/kilo/gigaYear)*thisDiskComponent%radius()/thisDiskComponent%velocity()
 
        ! Simple scaling which gives infinite timescale at the threshold, decreasing to dynamical time for a maximally unstable
        ! disk.

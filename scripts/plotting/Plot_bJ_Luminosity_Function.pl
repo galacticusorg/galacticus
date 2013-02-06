@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -69,11 +69,11 @@ $error = $error(-1:0);
 
 # Read galaxy data and construct luminosity function.
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:bJ:rest:z0.0000:vega','magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:bJ:rest:z0.0000:vega','magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega']);
 $dataSets      = $dataSet->{'dataSets'};
 $magnitude     = $dataSets->{'magnitudeTotal:bJ:rest:z0.0000:dustAtlas:vega'};
 $magnitudeFree = $dataSets->{'magnitudeTotal:bJ:rest:z0.0000:vega'};
-$weight        = $dataSets->{'volumeWeight'};
+$weight        = $dataSets->{'mergerTreeWeight'};
 delete($dataSet->{'dataSets'});
 ($yGalacticus    ,$errorGalacticus    ) = &Histograms::Histogram($xBins,$magnitude    ,$weight,differential => 1);
 ($yGalacticusFree,$errorGalacticusFree) = &Histograms::Histogram($xBins,$magnitudeFree,$weight,differential => 1);

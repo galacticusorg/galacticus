@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Galacticus_Output_Star_Formation_Histories
   !% Handles computation and output of star formation histories for galaxies.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Abundances_Structure
   use Histories
   use Kind_Numbers
@@ -49,9 +49,9 @@ module Galacticus_Output_Star_Formation_Histories
   procedure(Star_Formation_History_Scales_Template), pointer :: Star_Formation_History_Scales_Do => null()
   abstract interface
      subroutine Star_Formation_History_Scales_Template(thisHistory,stellarMass,stellarAbundances)
-       import abundancesStructure, history
+       import abundances, history
        double precision,          intent(in)                  :: stellarMass
-       type(abundancesStructure), intent(in)                  :: stellarAbundances
+       type(abundances), intent(in)                  :: stellarAbundances
        type(history),             intent(inout)               :: thisHistory
      end subroutine Star_Formation_History_Scales_Template
   end interface
@@ -60,10 +60,10 @@ module Galacticus_Output_Star_Formation_Histories
   procedure(Star_Formation_History_Record_Template), pointer :: Star_Formation_History_Record_Do => null()
   abstract interface
      subroutine Star_Formation_History_Record_Template(thisNode,thisHistory,fuelAbundances,starFormationRate)
-       import treeNode, history, abundancesStructure
+       import treeNode, history, abundances
        type(treeNode),            intent(inout), pointer :: thisNode
        type(history),             intent(inout)          :: thisHistory
-       type(abundancesStructure), intent(in)             :: fuelAbundances
+       type(abundances), intent(in)             :: fuelAbundances
        double precision,          intent(in)             :: starFormationRate
      end subroutine Star_Formation_History_Record_Template
   end interface
@@ -72,7 +72,7 @@ module Galacticus_Output_Star_Formation_Histories
   procedure(Star_Formation_History_Output_Template), pointer :: Star_Formation_History_Output_Do => null()
   abstract interface
      subroutine Star_Formation_History_Output_Template(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
-       import treeNode, history, abundancesStructure, kind_int8
+       import treeNode, history, abundances, kind_int8
        type(treeNode),          intent(inout), pointer :: thisNode
        logical,                 intent(in)             :: nodePassesFilter
        type(history),           intent(in)             :: thisHistory
@@ -111,8 +111,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('starFormationHistoriesMethod',starFormationHistoriesMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationHistoriesMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>starFormationHistoriesMethod,Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do,Star_Formation_History_Record_Do,Star_Formation_History_Output_Do</subroutineArgs>
+          !# <include directive="starFormationHistoriesMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>starFormationHistoriesMethod,Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do,Star_Formation_History_Record_Do,Star_Formation_History_Output_Do</functionArgs>
           include 'galacticus.output.merger_tree.star_formation.inc'
           !# </include>
           if (.not.(associated(Star_Formation_History_Create_Do).and.associated(Star_Formation_History_Scales_Do).and.associated(Star_Formation_History_Record_Do).and.associated(Star_Formation_History_Output_Do))) &
@@ -128,7 +128,7 @@ contains
   subroutine Star_Formation_History_Create(thisNode,thisHistory)
     !% Create any history required for storing the star formation history.
     use Histories
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(history),  intent(inout)          :: thisHistory
@@ -145,11 +145,11 @@ contains
   subroutine Star_Formation_History_Record(thisNode,thisHistory,fuelAbundances,starFormationRate)
     !% Record the star formation history for {\tt thisNode}.
     use Histories
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),            intent(inout), pointer :: thisNode
     type(history),             intent(inout)          :: thisHistory
-    type(abundancesStructure), intent(in)             :: fuelAbundances
+    type(abundances), intent(in)             :: fuelAbundances
     double precision,          intent(in)             :: starFormationRate
   
     ! Ensure module is initialized.
@@ -164,7 +164,7 @@ contains
   subroutine Star_Formation_History_Output(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
     !% Output the star formation history for {\tt thisNode}.
     use Histories
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),          intent(inout), pointer :: thisNode
     logical,                 intent(in)             :: nodePassesFilter
@@ -186,7 +186,7 @@ contains
     !% Set the scaling factors for error control on the absolute value of stellar population properties.
     implicit none
     double precision,          intent(in)    :: stellarMass
-    type(abundancesStructure), intent(in)    :: stellarAbundances
+    type(abundances), intent(in)    :: stellarAbundances
     type(history),             intent(inout) :: thisHistory
     
     ! Ensure module is initialized.

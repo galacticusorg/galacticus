@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,9 +19,10 @@
 
 module Dark_Matter_Profiles_NFW
   !% Implements NFW halo profiles.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use FGSL
   use Kind_Numbers
+  use Tables
   implicit none
   private
   public :: Dark_Matter_Profile_NFW_Initialize, Dark_Matter_Profiles_NFW_State_Store, Dark_Matter_Profiles_NFW_State_Retrieve,&
@@ -42,13 +43,14 @@ module Dark_Matter_Profiles_NFW
   ! Tables of NFW properties.
   logical                                     :: nfwTableInitialized=.false.,nfwInverseTableInitialized=.false.,nfwFreefallTableInitialized=.false.
   integer                                     :: nfwTableNumberPoints,nfwInverseTableNumberPoints,nfwFreefallTableNumberPoints
-  double precision, allocatable, dimension(:) :: nfwConcentration,nfwEnergy,nfwRotationNormalization,nfwRadius&
-       &,nfwSpecificAngularMomentum,nfwFreefallTime,nfwFreefallRadius
+  double precision, allocatable, dimension(:) :: nfwRadius ,nfwSpecificAngularMomentum,nfwFreefallTime,nfwFreefallRadius
+  integer                 , parameter         :: nfwConcentrationEnergyIndex=1,nfwConcetrationRotationNormalizationIndex=2
+  type(table1DLogarithmicLinear)                    :: nfwConcentrationTable
 
   ! Interpolator variables.
-  type(fgsl_interp)                           :: interpolationObject      ,interpolationInverseObject      ,interpolationFreefallObject
-  type(fgsl_interp_accel)                     :: interpolationAccelerator ,interpolationInverseAccelerator ,interpolationFreefallAccelerator
-  logical                                     :: interpolationReset=.true.,interpolationInverseReset=.true.,interpolationFreefallReset=.true.
+  type(fgsl_interp)                           :: interpolationInverseObject      ,interpolationFreefallObject
+  type(fgsl_interp_accel)                     :: interpolationInverseAccelerator ,interpolationFreefallAccelerator
+  logical                                     :: interpolationInverseReset=.true.,interpolationFreefallReset=.true.
 
   ! Module variables used in integrations.
   double precision                            :: concentrationParameter,radiusStart
@@ -101,9 +103,9 @@ contains
        Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW
         ! Ensure that the dark matter profile component supports a "scale" property. Since we've been called with a treeNode to
        ! process, it should have been initialized by now.
-       if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call&
+       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable()) call&
             & Galacticus_Error_Report('Dark_Matter_Profile_NFW_Initialize','NFW dark matter profile requires a dark matter&
-            & profile component that supports the "scale" property')
+            & profile component with a gettable "scale" property')
        ! Initialize the tabulations.
        call Dark_Matter_Profile_NFW_Tabulate
        call Dark_Matter_Profile_NFW_Inverse_Angular_Momentum
@@ -116,7 +118,7 @@ contains
   !# </calculationResetTask>
   subroutine Dark_Matter_Profile_NFW_Reset(thisNode)
     !% Reset the cooling radius calculation.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -127,13 +129,13 @@ contains
 
   subroutine Dark_Matter_Profile_NFW_Tabulate(concentration)
     !% Tabulate properties of the NFW halo profile which must be computed numerically.
-    use Numerical_Ranges
     use Memory_Management
     use Numerical_Interpolation
     implicit none
     double precision, intent(in), optional :: concentration
     integer                                :: iConcentration
     logical                                :: retabulate
+    double precision                       :: tableConcentration
 
     !$omp critical (NFW_Interpolation)
     retabulate=.not.nfwTableInitialized
@@ -150,25 +152,16 @@ contains
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
        nfwTableNumberPoints=int(dlog10(concentrationMaximum/concentrationMinimum)*dble(nfwTablePointsPerDecade))+1
-       if (allocated(nfwConcentration)) then
-          call Dealloc_Array(nfwConcentration        )
-          call Dealloc_Array(nfwEnergy               )
-          call Dealloc_Array(nfwRotationNormalization)
-       end if
-       call Alloc_Array(nfwConcentration        ,[nfwTableNumberPoints])
-       call Alloc_Array(nfwEnergy               ,[nfwTableNumberPoints])
-       call Alloc_Array(nfwRotationNormalization,[nfwTableNumberPoints])
-       ! Create a range of concentrations.
-       nfwConcentration=Make_Range(concentrationMinimum,concentrationMaximum,nfwTableNumberPoints,rangeType=rangeTypeLogarithmic)
+       call nfwConcentrationTable%destroy()
+       call nfwConcentrationTable%create(concentrationMinimum,concentrationMaximum,nfwTableNumberPoints,2)
        ! Loop over concentrations and populate tables.
        do iConcentration=1,nfwTableNumberPoints
-          nfwEnergy(iConcentration)               =NFW_Profile_Energy(nfwConcentration(iConcentration))
-          nfwRotationNormalization(iConcentration)=nfwConcentration(iConcentration)&
-               &/Angular_Momentum_NFW_Scale_Free(nfwConcentration(iConcentration))
+          tableConcentration=nfwConcentrationTable%x(iConcentration)
+          call nfwConcentrationTable%populate(NFW_Profile_Energy(tableConcentration),iConcentration,table&
+               &=nfwConcentrationEnergyIndex)
+          call nfwConcentrationTable%populate(tableConcentration /Angular_Momentum_NFW_Scale_Free(tableConcentration)&
+               &,iConcentration,table=nfwConcetrationRotationNormalizationIndex)
        end do
-       ! Ensure interpolations get reset.
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
-       interpolationReset=.true.
        ! Specify that tabulation has been made.
        nfwTableInitialized=.true.
     end if
@@ -234,52 +227,62 @@ contains
   double precision function Dark_Matter_Profile_Density_NFW(thisNode,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
     !% in units of Mpc).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: radius
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius
 
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    radiusOverScaleRadius      =radius                                  /scaleRadius
-    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =thisDarkMatterProfileComponent%scale()
+    radiusOverScaleRadius          =radius                                  /scaleRadius
+    virialRadiusOverScaleRadius    =Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
     Dark_Matter_Profile_Density_NFW=Density_NFW_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
-         &*Tree_Node_Mass(thisNode)/scaleRadius**3
+         &*thisBasicComponent%mass()/scaleRadius**3
     return
   end function Dark_Matter_Profile_Density_NFW
   
   double precision function Dark_Matter_Profile_Enclosed_Mass_NFW(thisNode,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius
+    type (treeNode)                      , intent(inout), pointer :: thisNode
+    double precision                     , intent(in    )         :: radius
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: scaleRadius,radiusOverScaleRadius,virialRadiusOverScaleRadius
 
-    scaleRadius                =Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    radiusOverScaleRadius      =radius                                  /scaleRadius
-    virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
-    Dark_Matter_Profile_Enclosed_Mass_NFW=Enclosed_Mass_NFW_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
-         &*Tree_Node_Mass(thisNode)
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =thisDarkMatterProfileComponent%scale()
+    radiusOverScaleRadius          =radius                                  /scaleRadius
+    virialRadiusOverScaleRadius    =Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
+    Dark_Matter_Profile_Enclosed_Mass_NFW=Enclosed_Mass_NFW_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
+         &*thisBasicComponent%mass()
     return
   end function Dark_Matter_Profile_Enclosed_Mass_NFW
 
   double precision function Dark_Matter_Profile_Potential_NFW(thisNode,radius)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision, parameter              :: radiusSmall=1.0d-10
-    double precision                         :: radiusOverScaleRadius,virialRadiusOverScaleRadius,radiusTerm
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: radius
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                     , parameter              :: radiusSmall=1.0d-10
+    double precision                                              :: radiusOverScaleRadius,virialRadiusOverScaleRadius,radiusTerm
 
-    radiusOverScaleRadius            =radius                                  /Tree_Node_Dark_Matter_Profile_Scale(thisNode)
-    virialRadiusOverScaleRadius      =Dark_Matter_Halo_Virial_Radius(thisNode)/Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    thisDarkMatterProfileComponent   => thisNode%darkMatterProfile(autoCreate=.true.)
+    radiusOverScaleRadius            =radius                                  /thisDarkMatterProfileComponent%scale()
+    virialRadiusOverScaleRadius      =Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        ! Use a series solution for very small radii.
        radiusTerm=1.0d0-0.5d0*radiusOverScaleRadius
@@ -296,7 +299,7 @@ contains
   double precision function Dark_Matter_Profile_Circular_Velocity_NFW(thisNode,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc). For an NFW halo this is independent of radius and therefore equal to the virial velocity.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
@@ -317,13 +320,14 @@ contains
     !% in units of km s$^{-1}$ Mpc). For an NFW halo, the circular velocity is constant (and therefore equal to the virial
     !% velocity). Therefore, $r = j/V_{\rm virial}$ where $j$(={\tt specificAngularMomentum}) is the specific angular momentum and
     !% $r$ the required radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: specificAngularMomentum
-    double precision                         :: specificAngularMomentumScaleFree
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in)             :: specificAngularMomentum
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                             :: specificAngularMomentumScaleFree
 
     ! Return immediately with zero radius for non-positive specific angular momenta.
     if (specificAngularMomentum <= 0.0d0) then
@@ -339,8 +343,11 @@ contains
        ! Flag that scale quantities are now computed.
        specificAngularMomentumScalingsComputed=.true.
       
+       ! Get the dark matter profile.
+       thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
        ! Get the scale radius.
-       specificAngularMomentumLengthScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+       specificAngularMomentumLengthScale=thisDarkMatterProfileComponent%scale()
 
        ! Get the specific angular momentum scale.
        specificAngularMomentumScale=specificAngularMomentumLengthScale*Dark_Matter_Profile_Circular_Velocity_NFW(thisNode&
@@ -356,8 +363,8 @@ contains
 
     ! Interpolate to get the dimensionless radius at which this specific angular momentum is found.
     !$omp critical(NFW_Inverse_Interpolation)
-    Radius_from_Specific_Angular_Momentum_NFW=Interpolate(nfwInverseTableNumberPoints,nfwSpecificAngularMomentum,nfwRadius&
-         &,interpolationInverseObject,interpolationInverseAccelerator,specificAngularMomentumScaleFree,reset&
+    Radius_from_Specific_Angular_Momentum_NFW=Interpolate(nfwInverseTableNumberPoints,nfwSpecificAngularMomentum,nfwRadius &
+         &,interpolationInverseObject,interpolationInverseAccelerator,specificAngularMomentumScaleFree,reset &
          &=interpolationInverseReset)
     !$omp end critical(NFW_Inverse_Interpolation)
 
@@ -369,80 +376,92 @@ contains
   
   double precision function Dark_Matter_Profile_Rotation_Normalization_NFW(thisNode)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: concentration
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: concentration
+
+    ! Get components.
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call Dark_Matter_Profile_NFW_Tabulate(concentration)
 
     ! Find the energy by interpolation.
     !$omp critical(NFW_Interpolation)
-    Dark_Matter_Profile_Rotation_Normalization_NFW=Interpolate(nfwTableNumberPoints,nfwConcentration,nfwRotationNormalization&
-         &,interpolationObject,interpolationAccelerator,concentration,reset=interpolationReset)&
-         &/Dark_Matter_Halo_Virial_Radius(thisNode)
+    Dark_Matter_Profile_Rotation_Normalization_NFW=nfwConcentrationTable%interpolate(concentration,table&
+         &=nfwConcentrationEnergyIndex)/Dark_Matter_Halo_Virial_Radius(thisNode)
     !$omp end critical(NFW_Interpolation)
     return
   end function Dark_Matter_Profile_Rotation_Normalization_NFW
   
   double precision function Dark_Matter_Profile_Energy_NFW(thisNode)
     !% Return the energy of an NFW halo density profile.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: concentration
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    double precision                                              :: concentration
+
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call Dark_Matter_Profile_NFW_Tabulate(concentration)
 
     ! Find the energy by interpolation.
     !$omp critical(NFW_Interpolation)
-    Dark_Matter_Profile_Energy_NFW=Interpolate(nfwTableNumberPoints,nfwConcentration,nfwEnergy,interpolationObject&
-         &,interpolationAccelerator,concentration,reset=interpolationReset)*Tree_Node_Mass(thisNode)&
-         &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+    Dark_Matter_Profile_Energy_NFW=nfwConcentrationTable%interpolate(concentration,table=nfwConcentrationEnergyIndex)&
+         &*thisBasicComponent%mass()*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
     !$omp end critical(NFW_Interpolation)
     return
   end function Dark_Matter_Profile_Energy_NFW
   
   double precision function Dark_Matter_Profile_Energy_Growth_Rate_NFW(thisNode)
     !% Return the rate of change of the energy of an NFW halo density profile.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: concentration,energy,energyGradient
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    double precision                                              :: concentration,energy,energyGradient
+
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            (                 )
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call Dark_Matter_Profile_NFW_Tabulate(concentration)
 
     ! Find the energy gradient by interpolation.
     !$omp critical(NFW_Interpolation)
-    energy=Interpolate                   (nfwTableNumberPoints,nfwConcentration,nfwEnergy,interpolationObject&
-         &,interpolationAccelerator,concentration,reset=interpolationReset)
-    energyGradient=Interpolate_Derivative(nfwTableNumberPoints,nfwConcentration,nfwEnergy,interpolationObject&
-         &,interpolationAccelerator,concentration,reset=interpolationReset)
+    energy        =nfwConcentrationTable%interpolate        (concentration,table=nfwConcentrationEnergyIndex)
+    energyGradient=nfwConcentrationTable%interpolateGradient(concentration,table=nfwConcentrationEnergyIndex)
     !$omp end critical(NFW_Interpolation)
 
     Dark_Matter_Profile_Energy_Growth_Rate_NFW=Dark_Matter_Profile_Energy_NFW(thisNode)&
-         &*(Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)+2.0d0 &
+         &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()+2.0d0 &
          &*Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)/Dark_Matter_Halo_Virial_Velocity(thisNode)+(energyGradient&
          &*concentration/energy)*(Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)&
-         &-Tree_Node_Dark_Matter_Profile_Scale_Growth_Rate(thisNode)/Tree_Node_Dark_Matter_Profile_Scale(thisNode)))
+         &-thisDarkMatterProfileComponent%scaleGrowthRate()/thisDarkMatterProfileComponent%scale()))
 
     return
   end function Dark_Matter_Profile_Energy_Growth_Rate_NFW
@@ -609,16 +628,20 @@ contains
   double precision function Dark_Matter_Profile_kSpace_NFW(thisNode,waveNumber)
     !% Returns the Fourier transform of the NFW density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$), using the
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Exponential_Integrals
-   implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: waveNumber
-    double precision                         :: radiusScale,waveNumberScaleFree,concentration
+    implicit none
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: waveNumber
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: radiusScale,waveNumberScaleFree,concentration
     
+    ! Get components.
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get the scale radius.
-    radiusScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    radiusScale=thisDarkMatterProfileComponent%scale()
 
     ! Compute the concentration parameter.
     concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale
@@ -638,14 +661,16 @@ contains
 
   double precision function Dark_Matter_Profile_Freefall_Radius_NFW(thisNode,time)
     !% Returns the freefall radius in the NFW density profile at the specified {\tt time} (given in Gyr).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Interpolation
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: time
-    double precision                         :: freefallTimeScaleFree,radiusScale,concentration,velocityScale,timeScale
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: time
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: freefallTimeScaleFree,radiusScale,concentration&
+         &,velocityScale,timeScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -653,8 +678,11 @@ contains
        return
     end if
 
+    ! Get components.
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get the scale radius.
-    radiusScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    radiusScale=thisDarkMatterProfileComponent%scale()
 
     ! Get the concentration.
     concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale
@@ -685,14 +713,16 @@ contains
   double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW(thisNode,time)
     !% Returns the rate of increase of the freefall radius in the NFW density profile at the specified {\tt time} (given in
     !% Gyr).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Interpolation
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: time
-    double precision                         :: freefallTimeScaleFree,radiusScale,concentration,velocityScale,timeScale
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                     , intent(in   )          :: time
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                                              :: freefallTimeScaleFree,radiusScale,concentration&
+         &,velocityScale,timeScale
 
     ! For non-positive freefall times, return the limiting value for small radii.
     if (time <= 0.0d0) then
@@ -700,8 +730,11 @@ contains
        return
     end if
 
+    ! Get components.
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+
     ! Get the scale radius.
-    radiusScale=Tree_Node_Dark_Matter_Profile_Scale(thisNode)
+    radiusScale=thisDarkMatterProfileComponent%scale()
 
     ! Get the concentration.
     concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale

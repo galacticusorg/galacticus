@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -62,7 +62,7 @@ contains
     use Memory_Management
     use Numerical_Ranges
     use Input_Parameters
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Numerical_Constants_Math
     use Cosmological_Parameters
     implicit none

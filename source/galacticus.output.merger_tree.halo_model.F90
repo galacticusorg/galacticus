@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -114,15 +114,17 @@ contains
   !#  <unitName>Galacticus_Output_Halo_Model_Names</unitName>
   !#  <sortName>Galacticus_Output_Halo_Model</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Halo_Model_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
+  subroutine Galacticus_Output_Halo_Model_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of halo model properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
-    double precision, intent(in)                  :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
+    type     (treeNode), intent(inout), pointer      :: thisNode
+    double precision   , intent(in   )               :: time
+    integer            , intent(inout)               :: integerProperty,doubleProperty
+    character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    double precision   , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
@@ -161,11 +163,13 @@ contains
   !#  <unitName>Galacticus_Output_Halo_Model_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Halo_Model</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Halo_Model_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Halo_Model_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of halo model properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer         , intent(inout)          :: integerPropertyCount,doublePropertyCount
     
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
@@ -185,7 +189,7 @@ contains
   subroutine Galacticus_Output_Halo_Model(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store halo model properties in the \glc\ output file buffers.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Biases
     use Kind_Numbers
     implicit none
@@ -203,7 +207,7 @@ contains
     if (outputHaloModelData) then
        isolatedNode => thisNode
        do while (isolatedNode%isSatellite())
-          isolatedNode => isolatedNode%parentNode
+          isolatedNode => isolatedNode%parent
        end do
        doubleProperty =doubleProperty +1
        doubleBuffer(doubleBufferCount  ,doubleProperty )=Dark_Matter_Halo_Bias(isolatedNode)
@@ -221,7 +225,7 @@ contains
     use Galacticus_HDF5
     use Numerical_Ranges
     use Memory_Management
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Numerical_Constants_Astronomical
     implicit none
     double precision, allocatable, dimension(:) :: powerSpectrum
@@ -323,7 +327,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_HDF5
     use ISO_Varying_String
     use String_Handling
@@ -332,15 +336,16 @@ contains
     use Cosmology_Functions
     use Kind_Numbers
     implicit none
-    type(treeNode),          intent(inout), pointer      :: thisNode
-    integer,                 intent(in)                  :: iOutput
-    integer(kind=kind_int8), intent(in)                  :: treeIndex
-    logical,                 intent(in)                  :: nodePassesFilter
-    double precision,        allocatable,   dimension(:) :: fourierProfile
-    integer                                              :: iWavenumber
-    double precision                                     :: expansionFactor
-    type(varying_string)                                 :: groupName
-    type(hdf5Object)                                     :: profilesGroup,treeGroup,outputGroup
+    type   (treeNode          ), intent(inout), pointer      :: thisNode
+    integer                    , intent(in   )               :: iOutput
+    integer(kind=kind_int8    ), intent(in   )               :: treeIndex
+    logical                    , intent(in   )               :: nodePassesFilter
+    class  (nodeComponentBasic),                pointer      :: thisBasicComponent
+    double precision           , allocatable,   dimension(:) :: fourierProfile
+    integer                                                  :: iWavenumber
+    double precision                                         :: expansionFactor
+    type   (varying_string    )                              :: groupName
+    type   (hdf5Object        )                              :: profilesGroup,treeGroup,outputGroup
  
     ! If halo model output was requested, output the Fourier-space halo profiles.
     if (nodePassesFilter.and.outputHaloModelData.and..not.thisNode%isSatellite()) then
@@ -356,8 +361,10 @@ contains
        !$omp end critical (HDF5_Access)
        ! Allocate array to store profile.
        call Alloc_Array(fourierProfile,[wavenumberCount])
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
        ! Get the expansion factor.
-       expansionFactor=Expansion_Factor(Tree_Node_Time(thisNode))
+       expansionFactor=Expansion_Factor(thisBasicComponent%time())
        ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physics
        ! coordinates before passing them to the dark matter profile k-space routine.)
        do iWavenumber=1,waveNumberCount

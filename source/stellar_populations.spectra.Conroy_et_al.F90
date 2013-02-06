@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -116,22 +116,22 @@ contains
     return
   end subroutine Stellar_Population_Spectra_Conroy_Initialize_IMF
 
-  double precision function Stellar_Population_Spectra_Conroy_Get(abundances,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectra_Conroy_Get(abundancesStellar,age,wavelength,imfIndex)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
     !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms). This is computed using the
     !% \cite{conroy_propagation_2009} package.
     use Stellar_Population_Spectra_File
     use Abundances_Structure
     implicit none
-    type(abundancesStructure), intent(in)                :: abundances
-    double precision,          intent(in)                :: age,wavelength
-    integer,                   intent(in)                :: imfIndex
+    type(abundances), intent(in) :: abundancesStellar
+    double precision, intent(in) :: age,wavelength
+    integer,          intent(in) :: imfIndex
  
     ! Ensure that IMF has been initialized. 
     call Stellar_Population_Spectra_Conroy_Initialize_IMF(imfIndex)
     
     ! Call routine to interpolate in the tabulated function.
-    Stellar_Population_Spectra_Conroy_Get=Stellar_Population_Spectra_File_Interpolate(abundances,age,wavelength,imfIndex)
+    Stellar_Population_Spectra_Conroy_Get=Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex)
 
     return
   end function Stellar_Population_Spectra_Conroy_Get

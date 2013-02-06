@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,7 @@ program Tests_Tree_Branch_Destroy
   use Unit_Tests
   use Memory_Management
   use Merger_Trees
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Kind_Numbers
   implicit none
   type(mergerTree),       pointer :: thisTree
@@ -49,24 +49,24 @@ program Tests_Tree_Branch_Destroy
   call nodes(5)%node%indexSet(5_kind_int8)
   
   ! Set child nodes.
-  nodes(1)%node%childNode => nodes(2)%node
-  nodes(3)%node%childNode => nodes(4)%node
+  nodes(1)%node%firstChild => nodes(2)%node
+  nodes(3)%node%firstChild => nodes(4)%node
   
   ! Set parent nodes.
-  nodes(2)%node%parentNode => nodes(1)%node
-  nodes(3)%node%parentNode => nodes(1)%node
-  nodes(4)%node%parentNode => nodes(3)%node
-  nodes(5)%node%parentNode => nodes(3)%node
+  nodes(2)%node%parent => nodes(1)%node
+  nodes(3)%node%parent => nodes(1)%node
+  nodes(4)%node%parent => nodes(3)%node
+  nodes(5)%node%parent => nodes(3)%node
 
   ! Set sibling nodes.
-  nodes(2)%node%siblingNode => nodes(3)%node
-  nodes(4)%node%siblingNode => nodes(5)%node
+  nodes(2)%node%sibling => nodes(3)%node
+  nodes(4)%node%sibling => nodes(5)%node
 
   ! Destroy the branch rooted at node 2.
   call thisTree%destroyBranch(nodes(2)%node)
   
   ! The child node of node 1 should have been shifted to point to node 3.
-  call Assert('Child node of node 1 updated',nodes(1)%node%childNode%index(),3_kind_int8)
+  call Assert('Child node of node 1 updated',nodes(1)%node%firstChild%index(),3_kind_int8)
 
   ! Destroy the tree. If danling pointers are not fixed during tree destruction, this will trigger errors when running inside
   ! Valgrind.

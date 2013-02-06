@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -77,8 +77,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('stellarAstrophysicsMethod',stellarAstrophysicsMethod,defaultValue='file')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarAstrophysicsMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>stellarAstrophysicsMethod,Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get,Star_Lifetime_Get</subroutineArgs>
+          !# <include directive="stellarAstrophysicsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarAstrophysicsMethod,Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get,Star_Lifetime_Get</functionArgs>
           include 'stellar_astrophysics.inc'
           !# </include>
           if (.not.(associated(Star_Ejected_Mass_Get).and.associated(Star_Initial_Mass_Get).and.associated(Star_Metal_Yield_Mass_Get).and.associated(Star_Lifetime_Get))) &

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -113,58 +113,72 @@ contains
 
   subroutine Merger_Tree_Build_Do_Cole2000(thisTree)
     !% Build a merger tree.
+    use Galacticus_Nodes
     use Halo_Mass_Function
-    use Tree_Nodes
     use Critical_Overdensity
     use Merger_Tree_Branching
     use Pseudo_Random
     use Kind_Numbers
     implicit none
-    type(mergerTree),       intent(inout) :: thisTree
-    type(treeNode),         pointer       :: thisNode,newNode1,newNode2
-    integer(kind=kind_int8)               :: nodeIndex
-    double precision                      :: branchingProbability,accretionFraction,deltaCritical,collapseTime,uniformRandom &
-         &,deltaW ,nodeMass1,nodeMass2,time,deltaCritical1,deltaCritical2,baseNodeTime
-    logical                               :: doBranch
+    type (mergerTree        ), intent(inout) :: thisTree
+    type (treeNode          ), pointer       :: thisNode,newNode1,newNode2
+    class(nodeComponentBasic), pointer       :: thisBasicComponent,newBasicComponent1,newBasicComponent2
+    integer(kind=kind_int8)                  :: nodeIndex
+    double precision                         :: branchingProbability,accretionFraction,deltaCritical&
+         &,collapseTime,uniformRandom ,deltaW ,nodeMass1,nodeMass2,time,deltaCritical1,deltaCritical2,baseNodeTime
+    logical                                  :: doBranch
 
-    nodeIndex=1                   ! Initialize the node index counter to unity.
-    thisNode => thisTree%baseNode ! Point to the base node.
+    nodeIndex          =  1                 ! Initialize the node index counter to unity.
+    thisNode           => thisTree%baseNode ! Point to the base node.
+    thisBasicComponent => thisNode%basic()  ! Get the basic component of the node.
+
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
-    baseNodeTime=Tree_Node_Time(thisNode)
-    deltaCritical=Critical_Overdensity_for_Collapse(time=Tree_Node_Time(thisNode),mass=Tree_Node_Mass(thisNode))
-    call Tree_Node_Time_Set(thisNode,deltaCritical)
+    baseNodeTime=thisBasicComponent%time()
+    deltaCritical=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())
+    call thisBasicComponent%timeSet(deltaCritical)
     ! Begin tree build loop.
     do while (associated(thisNode))
+       ! Get the basic component of the node.
+       thisBasicComponent => thisNode%basic()
 
        ! If halo is above the resolution limit, then evolve it.
-       if     (                                                                                                                                     &
-            &                                                                     Tree_Node_Mass(thisNode)  > mergerTreeBuildCole2000MassResolution &
-            &  .and.                                                                                                                                &
-            &   Time_of_Collapse(criticalOverdensity=Tree_Node_Time(thisNode),mass=Tree_Node_Mass(thisNode)) > mergerTreeBuildCole2000EarliestTime  &
+       if     (                                                                                                                                       &
+            &   thisBasicComponent%mass() > mergerTreeBuildCole2000MassResolution                                                                     &
+            &  .and.                                                                                                                                  &
+            &   Time_of_Collapse(criticalOverdensity=thisBasicComponent%time(),mass=thisBasicComponent%mass()) > mergerTreeBuildCole2000EarliestTime  &
             & ) then
 
           ! Find branching probability.
-          branchingProbability=Tree_Branching_Probability(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode)&
+          branchingProbability=Tree_Branching_Probability (thisBasicComponent%mass(),thisBasicComponent%time()&
                &,mergerTreeBuildCole2000MassResolution)
           ! Find accretion rate.
-          accretionFraction=Tree_Subresolution_Fraction(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode)&
+          accretionFraction   =Tree_Subresolution_Fraction(thisBasicComponent%mass(),thisBasicComponent%time()&
                &,mergerTreeBuildCole2000MassResolution)
           
           ! A negative accretion fraction indicates that the node is so close to the resolution limit that
           ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
           ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
           if (accretionFraction < 0.0d0) then
-             call thisNode%walkTreeConstruction(thisNode)
+             call thisNode%walkTreeUnderConstruction(thisNode)
              cycle
           end if
 
           ! Finding maximum allowed step in w.
-          deltaW=Tree_Maximum_Step(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode),mergerTreeBuildCole2000MassResolution)
+          deltaW=min(mergerTreeBuildCole2000AccretionLimit/accretionFraction,Tree_Maximum_Step(thisBasicComponent%mass()&
+               &,thisBasicComponent%time(),mergerTreeBuildCole2000MassResolution))
+          deltaW=Tree_Maximum_Step(thisBasicComponent%mass(),thisBasicComponent%time(),mergerTreeBuildCole2000MassResolution)
           if (accretionFraction    > 0.0d0) deltaW=min(deltaW,mergerTreeBuildCole2000AccretionLimit  /accretionFraction   )
           if (branchingProbability > 0.0d0) deltaW=min(deltaW,mergerTreeBuildCole2000MergeProbability/branchingProbability)
           ! Scale values to the determined timestep.
           branchingProbability=branchingProbability*deltaW
           accretionFraction   =accretionFraction   *deltaW
+          ! Accretion fraction must be less than unity. Reduce timestep (and branching probability and accretion fraction) by
+          ! factors of two until this condition is satisfied.
+          do while (accretionFraction >= 1.0d0)
+             deltaW              =deltaW              *0.5d0
+             branchingProbability=branchingProbability*0.5d0
+             accretionFraction   =accretionFraction   *0.5d0
+          end do
 
           ! Decide if a branching occurs.
           if (branchingProbability > 0.0d0) then
@@ -174,76 +188,83 @@ contains
              doBranch=.false.
           end if
           ! Determine the critical overdensity for collapse for the new halo(s).
-          deltaCritical=Tree_Node_Time(thisNode)+deltaW
+          deltaCritical=thisBasicComponent%time()+deltaW
           ! Create new nodes.
           select case (doBranch)
           case (.true.)
              ! Branching occurs - create two progenitors.
              nodeIndex=nodeIndex+1
              call thisTree%createNode(newNode1,nodeIndex)
+             newBasicComponent1 => newNode1%basic(autoCreate=.true.)
              ! Compute mass of one of the new nodes. First convert the realized probability back to a rate.
              branchingProbability=uniformRandom/deltaW
-             nodeMass1=Tree_Branch_Mass(Tree_Node_Mass(thisNode),Tree_Node_Time(thisNode),mergerTreeBuildCole2000MassResolution&
+             nodeMass1=Tree_Branch_Mass(thisBasicComponent%mass(),thisBasicComponent%time(),mergerTreeBuildCole2000MassResolution&
                   &,branchingProbability)
              
              ! Compute the time corresponding to this branching event.
-             time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=Tree_Node_Mass(thisNode))
+             time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=thisBasicComponent%mass())
              ! Set properties of first new node.
              deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
-             call Tree_Node_Mass_Set(newNode1,nodeMass1     )
-             call Tree_Node_Time_Set(newNode1,deltaCritical1)
+             call newBasicComponent1%massSet(nodeMass1     )
+             call newBasicComponent1%timeSet(deltaCritical1)
              ! Create second progenitor.
              nodeIndex=nodeIndex+1
              call thisTree%createNode(newNode2,nodeIndex)
+             newBasicComponent2 => newNode2%basic(autoCreate=.true.)
              ! Compute mass of second new node.
-             nodeMass2=Tree_Node_Mass(thisNode)*(1.0d0-accretionFraction)-nodeMass1
+             nodeMass2=thisBasicComponent%mass()*(1.0d0-accretionFraction)-nodeMass1
              ! Set properties of second new node.
              deltaCritical2=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass2)
-             call Tree_Node_Mass_Set(newNode2,nodeMass2     )
-             call Tree_Node_Time_Set(newNode2,deltaCritical2)
+             call newBasicComponent2%massSet(nodeMass2     )
+             call newBasicComponent2%timeSet(deltaCritical2)
              ! Create links from old to new nodes and vice-versa. (Ensure that child node is the more massive progenitor.)
              if (nodeMass2 > nodeMass1) then
-                thisNode%childNode   => newNode2
-                newNode2%siblingNode => newNode1
+                thisNode%firstChild => newNode2
+                newNode2%sibling    => newNode1
              else
-                thisNode%childNode   => newNode1
-                newNode1%siblingNode => newNode2
+                thisNode%firstChild => newNode1
+                newNode1%sibling    => newNode2
              end if
-             newNode1%parentNode  => thisNode
-             newNode2%parentNode  => thisNode
+             newNode1%parent        => thisNode
+             newNode2%parent        => thisNode
           case (.false.)
              ! No branching occurs - create one progenitor.
              nodeIndex=nodeIndex+1
              call thisTree%createNode(newNode1,nodeIndex)
+             newBasicComponent1 => newNode1%basic(autoCreate=.true.)
              ! Compute new mass accounting for sub-resolution accretion.
-             nodeMass1=Tree_Node_Mass(thisNode)*(1.0d0-accretionFraction)
+             nodeMass1=thisBasicComponent%mass()*(1.0d0-accretionFraction)
              ! Compute the time corresponding to this branching event.
-             time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=Tree_Node_Mass(thisNode))
+             time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=thisBasicComponent%mass())
              ! Set properties of the new node.
              deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
-             call Tree_Node_Mass_Set(newNode1,nodeMass1     )
-             call Tree_Node_Time_Set(newNode1,deltaCritical1)
+             call newBasicComponent1%massSet(nodeMass1     )
+             call newBasicComponent1%timeSet(deltaCritical1)
              ! Create links from old to new node and vice-versa.
-             thisNode%childNode  => newNode1
-             newNode1%parentNode => thisNode
+             thisNode%firstChild => newNode1
+             newNode1%parent     => thisNode
           end select
        end if
 
        ! Walk to the next node.
        ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
-       call thisNode%walkTreeConstruction(thisNode)
+       call thisNode%walkTreeUnderConstruction(thisNode)
 
     end do
 
     ! Walk the tree and convert w to time.
     thisNode => thisTree%baseNode
     do while (associated(thisNode))
-       collapseTime=Time_of_Collapse(criticalOverdensity=Tree_Node_Time(thisNode),mass=Tree_Node_Mass(thisNode))
-       call Tree_Node_Time_Set(thisNode,collapseTime)
+       ! Get the basic component of the node.
+       thisBasicComponent => thisNode%basic()
+       ! Compute the collapse time.
+       collapseTime=Time_of_Collapse(criticalOverdensity=thisBasicComponent%time(),mass=thisBasicComponent%mass())
+       call thisBasicComponent%timeSet(collapseTime)
        ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
        call thisNode%walkTree(thisNode)
     end do
-    call Tree_Node_Time_Set(thisTree%baseNode,baseNodeTime)
+    thisBasicComponent => thisTree%baseNode%basic()
+    call thisBasicComponent%timeSet(baseNodeTime)
 
     return
   end subroutine Merger_Tree_Build_Do_Cole2000

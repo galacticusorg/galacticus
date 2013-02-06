@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -21,7 +21,6 @@
 module Galactic_Structure_Radii_Fixed
   !% Implements a ``fixed'' galactic radii solver in which sizes are always equal to           
   !% the halo virial radius multiplied by its spin parameter and a multiplicative constant.
-  use Tree_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
   implicit none
   private
@@ -63,7 +62,7 @@ contains
   subroutine Galactic_Structure_Radii_Solve_Fixed(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``fixed'' method.
     use Galacticus_Error
-    use Tree_Nodes
+    use Galacticus_Nodes
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -91,14 +90,16 @@ contains
     double precision,                           intent(in)    :: specificAngularMomentum
     procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
     procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
+    class    (nodeComponentSpin     ), pointer                :: thisSpinComponent
     double precision                                          :: radius,velocity
 
     ! Return immediately if the specific angular momentum is zero.
     if (specificAngularMomentum <= 0.0d0) return
     
     ! Find the radius of the component, assuming radius scales fixedly with angular momentum.
+    thisSpinComponent => thisNode%spin()
     velocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
-    radius  =Dark_Matter_Halo_Virial_Radius  (thisNode)*Tree_Node_Spin(thisNode)*galacticStructureRadiiFixedFactor
+    radius  =Dark_Matter_Halo_Virial_Radius  (thisNode)*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
 
     ! Set the component size to new radius and velocity.
     call Radius_Set  (thisNode,radius  )

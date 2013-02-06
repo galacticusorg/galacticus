@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -42,15 +42,16 @@ contains
     !% Modify cooling rates by truncating them to zero below a given redshift and virial velocity.
     use Input_Parameters
     use Cosmology_Functions
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type(treeNode)      , intent(inout), pointer :: thisNode
-    double precision    , intent(inout)          :: coolingRate
-    double precision                             :: virialVelocity
-    type(varying_string)                         :: coolingCutOffWhenText
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    double precision         , intent(inout)          :: coolingRate
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: virialVelocity
+    type (varying_string    )                         :: coolingCutOffWhenText
     
     if (.not.moduleInitialized) then
        !$omp critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
@@ -124,14 +125,13 @@ contains
     case (.true. )
        virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode%formationNode)
     end select
-    if     (                                                                                                    &
-         &  (                                                                                                   &
-         &   (Tree_Node_Time(thisNode) >= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenAfter ) &
-         &    .or.                                                                                              &
-         &   (Tree_Node_Time(thisNode) <= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenBefore) &
-         &  )                                                                                                   &
-         &   .and.                                                                                              &
-         &  virialVelocity             <= coolingCutOffVelocity                                                 &
+    thisBasicComponent => thisNode%basic()
+    if     (                                                                                                     &
+         &   (thisBasicComponent%time() >= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenAfter ) &
+         &    .or.                                                                                               &
+         &   (thisBasicComponent%time() <= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenBefore) &
+         &   .and.                                                                                               &
+         &  virialVelocity            <= coolingCutOffVelocity                                                   &
          & ) coolingRate=0.0d0
     return
   end subroutine Cooling_Rate_Modifier_Cut_Off

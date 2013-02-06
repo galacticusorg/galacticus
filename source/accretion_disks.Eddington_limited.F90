@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -73,39 +73,39 @@ contains
     return
   end subroutine Accretion_Disks_Eddington_Initialize
 
-  double precision function Accretion_Disk_Radiative_Efficiency_Eddington(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Radiative_Efficiency_Eddington(thisBlackHole,massAccretionRate)
     !% Computes the radiative efficiency for an Eddington-limited accretion disk.
     use Black_Hole_Fundamentals
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
     Accretion_Disk_Radiative_Efficiency_Eddington=accretionDiskRadiativeEfficiencyEddington
     return
   end function Accretion_Disk_Radiative_Efficiency_Eddington
 
-  double precision function Accretion_Disk_Jet_Power_Eddington(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Jet_Power_Eddington(thisBlackHole,massAccretionRate)
     !% Computes the jet power for an Eddington-limited accretion disk.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
-    Accretion_Disk_Jet_Power_Eddington=accretionDiskJetPowerEddington*Black_Hole_Eddington_Accretion_Rate(thisNode)*(speedLight/kilo)**2
+    Accretion_Disk_Jet_Power_Eddington=accretionDiskJetPowerEddington*Black_Hole_Eddington_Accretion_Rate(thisBlackHole)*(speedLight/kilo)**2
     return
   end function Accretion_Disk_Jet_Power_Eddington
 
-  double precision function Black_Hole_Spin_Up_Rate_Eddington(thisNode,massAccretionRate)
+  double precision function Black_Hole_Spin_Up_Rate_Eddington(thisBlackHole,massAccretionRate)
     !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from an Eddington-limited accretion disk.
     !% disk. This is always zero, as no physical model is specified for this accretion disk method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
     Black_Hole_Spin_Up_Rate_Eddington=0.0d0
     return

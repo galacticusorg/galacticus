@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -42,7 +42,7 @@ contains
 
   subroutine Satellite_Merging_Remnant_Size_Null(thisNode)
     !% A null implementation of merger remnant size. Does nothing.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

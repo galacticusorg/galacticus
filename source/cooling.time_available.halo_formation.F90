@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,6 +20,7 @@
 
 module Cooling_Times_Available_Halo_Formation
   !% Implements the \cite{cole_hierarchical_2000} method for computing the time available for cooling in hot halos.
+  use Galacticus_Nodes
   implicit none
   private
   public :: Cooling_Time_Available_Halo_Formation_Initialize
@@ -35,9 +36,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
-    use Tree_Nodes
     implicit none
-    type(varying_string),                 intent(in)    :: coolingTimeAvailableMethod
+    type     (varying_string  ),          intent(in   ) :: coolingTimeAvailableMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get
     
     if (coolingTimeAvailableMethod == 'haloFormation') then
@@ -45,7 +45,7 @@ contains
        Cooling_Time_Available_Get               => Cooling_Time_Available_Halo_Formation
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_Halo_Formation
        ! Check that there is a gettable formation time property.
-       if (.not.associated(Tree_Node_Formation_Time)) call Galacticus_Error_Report('Cooling_Time_Available_Halo_Formation_Initialize',"'haloFormation' method for time available for cooling requires a component that supports getting of the Formation_Time property")
+       if (.not.defaultFormationTimeComponent%formationTimeIsGettable()) call Galacticus_Error_Report('Cooling_Time_Available_Halo_Formation_Initialize',"'haloFormation' method for time available for cooling requires a formationTime component that supports getting of the formationTime property")
     end if
     return
   end subroutine Cooling_Time_Available_Halo_Formation_Initialize
@@ -53,18 +53,21 @@ contains
   double precision function Cooling_Time_Available_Halo_Formation(thisNode)
     !% Compute the time available for cooling using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
     !% assumed to be the time since the halo formation event.
-    use Tree_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic        ),                pointer :: thisBasicComponent
+    class(nodeComponentFormationTime),                pointer :: thisFormationTimeComponent
 
-    Cooling_Time_Available_Halo_Formation=Tree_Node_Time(thisNode)-Tree_Node_Formation_Time(thisNode)
+    thisBasicComponent         => thisNode%basic        ()
+    thisFormationTimeComponent => thisNode%formationTime()
+
+    Cooling_Time_Available_Halo_Formation=thisBasicComponent%time()-thisFormationTimeComponent%formationTime()
     return
   end function Cooling_Time_Available_Halo_Formation
   
   double precision function Cooling_Time_Available_Increase_Rate_Halo_Formation(thisNode)
     !% Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
     !% of 1.
-    use Tree_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

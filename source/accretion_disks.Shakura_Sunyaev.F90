@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -47,36 +47,36 @@ contains
     return
   end subroutine Accretion_Disks_Shakura_Sunyaev_Initialize
 
-  double precision function Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
     !% Computes the radiative efficiency for a Shakura-Sunyaev (thin) accretion disk.
     use Black_Hole_Fundamentals
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
-    Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev=1.0d0-Black_Hole_ISCO_Specific_Energy(thisNode,units=unitsGravitational,orbit=orbitPrograde)
+    Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev=1.0d0-Black_Hole_ISCO_Specific_Energy(thisBlackHole,units=unitsGravitational,orbit=orbitPrograde)
     return
   end function Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev
 
-  double precision function Accretion_Disk_Jet_Power_Shakura_Sunyaev(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Jet_Power_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
     !% Computes the jet power for a Shakura-Sunyaev (thin) accretion disk, using the expressions from
     !% \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision, parameter              :: alphaViscosity                =0.01d0
-    double precision, parameter              :: alphaViscosityNormalized      =alphaViscosity/0.01d0
-    double precision, parameter              :: powerNormalizationKerr        =(10.0d0**42.7)*ergs*gigaYear/massSolar/kilo**2
-    double precision, parameter              :: powerNormalizationSchwarzchild=(10.0d0**41.7)*ergs*gigaYear/massSolar/kilo**2
-    double precision, parameter              :: meierMassNormalization        =1.0d9
-    double precision                         :: blackHoleSpin,accretionRateDimensionless,blackHoleMassDimensionless
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: alphaViscosity                =0.01d0
+    double precision                        , parameter     :: alphaViscosityNormalized      =alphaViscosity/0.01d0
+    double precision                        , parameter     :: powerNormalizationKerr        =(10.0d0**42.7)*ergs*gigaYear/massSolar/kilo**2
+    double precision                        , parameter     :: powerNormalizationSchwarzchild=(10.0d0**41.7)*ergs*gigaYear/massSolar/kilo**2
+    double precision                        , parameter     :: meierMassNormalization        =1.0d9
+    double precision                                        :: blackHoleSpin,accretionRateDimensionless,blackHoleMassDimensionless
 
     ! Return immediately for non-positive accretion rates.
     if (massAccretionRate <= 0.0d0) then
@@ -85,9 +85,9 @@ contains
     end if
 
     ! Get the black hole spin and dimensionless accretion rate and mass as defined by Meier (2001).
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
-    accretionRateDimensionless=massAccretionRate/Black_Hole_Eddington_Accretion_Rate(thisNode)
-    blackHoleMassDimensionless=Tree_Node_Black_Hole_Mass(thisNode)/meierMassNormalization
+    blackHoleSpin=thisBlackHole%spin()
+    accretionRateDimensionless=massAccretionRate/Black_Hole_Eddington_Accretion_Rate(thisBlackHole)
+    blackHoleMassDimensionless=thisBlackHole%mass()/meierMassNormalization
     if (blackHoleMassDimensionless > 0.0d0 .and. accretionRateDimensionless > 0.0d0) then
        if (blackHoleSpin > 0.8d0) then
           ! Use Meier's rapidly rotating (Kerr) solution for high spin black holes.
@@ -105,20 +105,20 @@ contains
     return
   end function Accretion_Disk_Jet_Power_Shakura_Sunyaev
 
-  double precision function Black_Hole_Spin_Up_Rate_Shakura_Sunyaev(thisNode,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from a Shakura-Sunyaev (thin) accretion
+  double precision function Black_Hole_Spin_Up_Rate_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
+    !% Computes the spin up rate of the black hole in {\tt thisBlackHole} due to accretion from a Shakura-Sunyaev (thin) accretion
     !% disk.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision                         :: spinToMassRateOfChangeRatio
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                                        :: spinToMassRateOfChangeRatio
 
-    spinToMassRateOfChangeRatio=Black_Hole_ISCO_Specific_Angular_Momentum(thisNode,units=unitsGravitational,orbit=orbitPrograde)&
-         &-2.0d0*Tree_Node_Black_Hole_Spin(thisNode)*Black_Hole_ISCO_Specific_Energy(thisNode,units=unitsGravitational,orbit&
+    spinToMassRateOfChangeRatio=Black_Hole_ISCO_Specific_Angular_Momentum(thisBlackHole,units=unitsGravitational,orbit=orbitPrograde)&
+         &-2.0d0*thisBlackHole%spin()*Black_Hole_ISCO_Specific_Energy(thisBlackHole,units=unitsGravitational,orbit&
          &=orbitPrograde)
-    Black_Hole_Spin_Up_Rate_Shakura_Sunyaev=spinToMassRateOfChangeRatio*massAccretionRate/Tree_Node_Black_Hole_Mass(thisNode)
+    Black_Hole_Spin_Up_Rate_Shakura_Sunyaev=spinToMassRateOfChangeRatio*massAccretionRate/thisBlackHole%mass()
     return
   end function Black_Hole_Spin_Up_Rate_Shakura_Sunyaev
 

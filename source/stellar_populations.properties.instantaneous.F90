@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -67,21 +67,22 @@ contains
   subroutine Stellar_Population_Properties_Rates_Instantaneous(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate&
        &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Abundances_Structure
     use Histories
     use Star_Formation_IMF
     use Stellar_Population_Properties_Luminosities
     use Stellar_Feedback
     implicit none
-    double precision,          intent(out)                 :: stellarMassRate,fuelMassRate,energyInputRate
-    type(abundancesStructure), intent(inout)               :: stellarAbundancesRates,fuelAbundancesRates
-    double precision,          intent(out),   dimension(:) :: stellarLuminositiesRates
-    double precision,          intent(in)                  :: starFormationRate
-    type(abundancesStructure), intent(in)                  :: fuelAbundances
-    integer,                   intent(in)                  :: component
-    type(treeNode),            intent(inout), pointer      :: thisNode
-    type(history),             intent(inout)               :: thisHistory
+    double precision,          intent(  out)               :: stellarMassRate,fuelMassRate,energyInputRate
+    type (abundances        ), intent(inout)               :: stellarAbundancesRates,fuelAbundancesRates
+    double precision,          intent(  out), dimension(:) :: stellarLuminositiesRates
+    double precision,          intent(in   )               :: starFormationRate
+    type (abundances        ), intent(in   )               :: fuelAbundances
+    integer                  , intent(in   )               :: component
+    type (treeNode          ), intent(inout), pointer      :: thisNode
+    type (history           ), intent(inout)               :: thisHistory
+    class(nodeComponentBasic),                pointer      :: thisBasicComponent
     integer                                                :: imfSelected
     double precision                                       :: recycledFractionInstantaneous,yieldInstantaneous,fuelMetallicity&
          &,stellarMetalsRateOfChange,fuelMetalsRateOfChange,time
@@ -112,7 +113,8 @@ contains
     imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     ! Get the current cosmological time for this node.
-    time=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    time=thisBasicComponent%time()
 
     ! Set luminosity rates of change.
     if (size(stellarLuminositiesRates) > 0) stellarLuminositiesRates=starFormationRate&
@@ -127,19 +129,18 @@ contains
     use Histories
     use Abundances_Structure
     implicit none
-    double precision,          intent(in)    :: stellarMass
-    type(abundancesStructure), intent(in)    :: stellarAbundances
-    type(history),             intent(inout) :: thisHistory
+    double precision, intent(in   ) :: stellarMass
+    type(abundances), intent(in   ) :: stellarAbundances
+    type(history   ), intent(inout) :: thisHistory
 
     ! No history is used in this case, so simply return.
-
     return
   end subroutine Stellar_Population_Properties_Scales_Instantaneous
 
   subroutine Stellar_Population_Properties_History_Create_Instantaneous(thisNode,thisHistory)
-    !% Create any history required for storing stellar population properties. The instantaneous method requires none, so just
-    !% return.
-    use Tree_Nodes
+    !% Create any history required for storing stellar population properties. The instantaneous method requires none, so don't
+    !% create one.
+    use Galacticus_Nodes
     use Histories
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

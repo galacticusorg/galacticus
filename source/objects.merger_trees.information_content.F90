@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -29,7 +29,7 @@ contains
     !% Compute the cladistic information content (CIC; \citealt{thorley_information_1998}) of a merger tree in bits.
     use Factorials
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(mergerTree), intent(in) :: thisTree
     type(treeNode),   pointer    :: thisNode,childNode

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Halo_Spin_Distributions_Delta_Function
   !% Implements a delta function halo spin distribution (i.e. all halos have the same spin).
   use FGSL
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Halo_Spin_Distribution_Delta_Function_Initialize
@@ -60,7 +60,7 @@ contains
 
   double precision function Halo_Spin_Distribution_Delta_Function(thisNode)
     !% Return a halo spin from a delta function distribution.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

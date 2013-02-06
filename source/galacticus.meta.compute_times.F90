@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -57,14 +57,16 @@ contains
        !@   <name>timePerTreeMethod</name>
        !@   <defaultValue>file</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>string</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The name of the method to be used for computing the time per tree.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('timePerTreeMethod',timePerTreeMethod,defaultValue='file')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="timePerTreeMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>timePerTreeMethod,Galacticus_Time_Per_Tree_Get</subroutineArgs>
+       !# <include directive="timePerTreeMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>timePerTreeMethod,Galacticus_Time_Per_Tree_Get</functionArgs>
        include 'galacticus.meta.compute_times.inc'
        !# </include>
        if (.not.associated(Galacticus_Time_Per_Tree_Get)) call Galacticus_Error_Report('Galacticus_Time_Per_Tree_Initialize'&

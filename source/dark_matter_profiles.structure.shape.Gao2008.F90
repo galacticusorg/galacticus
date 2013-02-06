@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -47,15 +47,19 @@ contains
     !% \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
     !% \end{equation}
     !% where $\nu=\delta_{\rm c}(t)/\sigma(M)$ is the peak height of the halo.
-    use Tree_Nodes
-    use CDM_Power_Spectrum
+    use Galacticus_Nodes
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: nuMaximum=3.907d0
-    double precision                         :: nu
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    double precision         , parameter              :: nuMaximum=3.907d0
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: nu
     
-    nu=Critical_Overdensity_for_Collapse(time=Tree_Node_Time(thisNode),mass=Tree_Node_Mass(thisNode))/sigma_CDM(Tree_Node_Mass(thisNode))
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
+    ! Compute the shape parameter.
+    nu=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())/sigma_CDM(thisBasicComponent%mass())
     if (nu < nuMaximum) then
        Dark_Matter_Profile_Shape_Gao2008=0.155d0+0.0095d0*nu**2
     else

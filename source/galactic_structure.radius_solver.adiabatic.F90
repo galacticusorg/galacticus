@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -21,7 +21,7 @@
 module Galactic_Structure_Radii_Adiabatic
   !% Implements an adiabatic contraction galactic radii solver (including self-gravity of baryons) using the adiabatic
   !% contraction algorithm of \cite{gnedin_response_2004}.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
   implicit none
   private
@@ -122,7 +122,7 @@ contains
 
   subroutine Galactic_Structure_Radii_Solve_Adiabatic(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``adiabatic'' method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmological_Parameters
     use Galacticus_Error
     use Galactic_Structure_Enclosed_Masses
@@ -132,9 +132,10 @@ contains
     implicit none
     type(treeNode),                    intent(inout), pointer :: thisNode
     integer,                           parameter              :: iterationMaximum=100
-    procedure(Structure_Get_Template), save,          pointer :: Radius_Get => null(), Velocity_Get => null()
-    procedure(Structure_Set_Template), save,          pointer :: Radius_Set => null(), Velocity_Set => null()
+    procedure(Structure_Get_Template),                pointer :: Radius_Get => null(), Velocity_Get => null()
+    procedure(Structure_Set_Template),                pointer :: Radius_Set => null(), Velocity_Set => null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+    class    (nodeComponentBasic     ),               pointer :: thisBasicComponent
     logical                                                   :: componentActive
     double precision                                          :: specificAngularMomentum
 
@@ -156,7 +157,8 @@ contains
 
        ! Compute fraction of mass distribution as the halo. Truncate this to zero: we can get negative values if the ODE solver is
        ! exploring regimes of high baryonic mass, and this would cause problems.
-       haloFraction=max(1.0d0-Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)/Tree_Node_Mass(haloNode),0.0d0)
+       thisBasicComponent => thisNode%basic()
+       haloFraction=max(1.0d0-Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)/thisBasicComponent%mass(),0.0d0)
        
        ! Begin iteration to find a converged solution.
        do while (iterationCount <= 2 .or. ( fitMeasure > adiabaticContractionSolutionTolerance .and. iterationCount < iterationMaximum ) )

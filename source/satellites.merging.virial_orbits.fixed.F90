@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -35,7 +35,7 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     use Input_Parameters
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     implicit none
     type(varying_string),                  intent(in)    :: virialOrbitsMethod
     procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
@@ -72,19 +72,22 @@ contains
 
   function Virial_Orbital_Parameters_Fixed(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
     !% Return fixed orbital parameters for a satellite.
-    use Kepler_Orbits_Structure
-    use Tree_Nodes
+    use Kepler_Orbits
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(keplerOrbit)                         :: thisOrbit
-    type(treeNode),   intent(inout), pointer  :: thisNode,hostNode
-    logical,          intent(in)              :: acceptUnboundOrbits
-    double precision                          :: velocityScale
+    type (keplerOrbit       )                         :: thisOrbit
+    type (treeNode          ), intent(inout), pointer :: thisNode,hostNode
+    logical,                   intent(in   )          :: acceptUnboundOrbits
+    class(nodeComponentBasic),                pointer :: thisBasicComponent,hostBasicComponent
+    double precision                                  :: velocityScale
 
     ! Reset the orbit.
     call thisOrbit%reset()
     ! Set masses and radius of the orbit.
-    call thisOrbit%massesSet(Tree_Node_Mass(thisNode),Tree_Node_Mass(hostNode))
+    thisBasicComponent => thisNode%basic()
+    hostBasicComponent => hostNode%basic()
+    call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
     call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
     velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
     call thisOrbit%velocityRadialSet    (virialOrbitsFixedRadialVelocity    *velocityScale)

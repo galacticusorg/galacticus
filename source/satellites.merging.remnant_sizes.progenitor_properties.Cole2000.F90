@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -21,7 +21,7 @@
 module Satellite_Merging_Remnant_Progenitors_Properties_Cole2000
   !% Implements calculations of progenitor properties for merger remnant calculations using the algorithm of
   !% \cite{cole_hierarchical_2000}.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init
@@ -41,18 +41,35 @@ contains
        &,Satellite_Merging_Remnant_Progenitor_Properties_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
+    use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: satelliteMergingRemnantProgenitorPropertiesMethod
     procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Progenitor_Properties_Get
     
-    if (satelliteMergingRemnantProgenitorPropertiesMethod == 'Cole2000') Satellite_Merging_Remnant_Progenitor_Properties_Get =>&
+    if (satelliteMergingRemnantProgenitorPropertiesMethod == 'Cole2000') then
+       Satellite_Merging_Remnant_Progenitor_Properties_Get =>&
          & Satellite_Merging_Remnant_Progenitor_Properties_Cole2000
+       ! Ensure that required methods are supported.
+       if     (                                                                &
+            &  .not.                                                           &
+            &       (                                                          &
+            &        defaultDiskComponent    %    massStellarIsGettable().and. &
+            &        defaultDiskComponent    %        massGasIsGettable().and. &
+            &        defaultDiskComponent    % halfMassRadiusIsGettable().and. &
+            &        defaultDiskComponent    %angularMomentumIsGettable().and. &
+            &        defaultSpheroidComponent%    massStellarIsGettable().and. &
+            &        defaultSpheroidComponent%        massGasIsGettable().and. &
+            &        defaultSpheroidComponent% halfMassRadiusIsGettable().and. &
+            &        defaultSpheroidComponent%angularMomentumIsGettable()      &
+            &  )                                                               &
+            & ) call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init','this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for both disk and spheroid')
+    end if
     return
   end subroutine Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init
 
-  subroutine Satellite_Merging_Remnant_Progenitor_Properties_Cole2000(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass&
-       &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
-         &,remnantSpheroidGasMass)
+  subroutine Satellite_Merging_Remnant_Progenitor_Properties_Cole2000(satelliteNode,hostNode,satelliteMass,hostMass&
+       &,satelliteSpheroidMass ,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor&
+       &,remnantSpheroidMass ,remnantSpheroidGasMass)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Radii
@@ -64,17 +81,25 @@ contains
     use Root_Finder
     use FGSL
     implicit none
-    type(treeNode),          intent(inout), pointer  :: satelliteNode,hostNode
-    double precision,        intent(out)             :: satelliteMass,hostMass,satelliteSpheroidMass,hostSpheroidMass,hostSpheroidMassPreMerger&
-         &,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass,remnantSpheroidGasMass
-    type(fgsl_function),     save                    :: rootFunction
-    type(fgsl_root_fsolver), save                    :: rootFunctionSolver
+    type (treeNode             ), intent(inout), pointer :: satelliteNode,hostNode
+    double precision            , intent(  out)          :: satelliteMass,hostMass,satelliteSpheroidMass,hostSpheroidMass&
+         &,hostSpheroidMassPreMerger ,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass,remnantSpheroidGasMass
+    class(nodeComponentDisk    ),                pointer :: hostDiskComponent    ,satelliteDiskComponent
+    class(nodeComponentSpheroid),                pointer :: hostSpheroidComponent,satelliteSpheroidComponent
+    type (fgsl_function        ), save                   :: rootFunction
+    type (fgsl_root_fsolver    ), save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                                 :: radiusMinimum,radiusMaximum,satelliteSpheroidHalfMassRadius&
-         &,hostSpheroidHalfMassRadius,satelliteDiskHalfMassRadius,hostDiskHalfMassRadius,satelliteSpheroidDarkMatterFactor&
+    double precision                                     :: radiusMinimum,radiusMaximum,satelliteSpheroidHalfMassRadius &
+         &,hostSpheroidHalfMassRadius,satelliteDiskHalfMassRadius,hostDiskHalfMassRadius,satelliteSpheroidDarkMatterFactor &
          &,hostSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor,hostDiskDarkMatterFactor,componentMass
-    type(c_ptr)                                      :: parameterPointer
+    type (c_ptr                )                         :: parameterPointer
 
+    ! Get the disk and spheroid components of host and satellite.
+    hostDiskComponent          =>      hostNode%disk    ()
+    hostSpheroidComponent      =>      hostNode%spheroid()
+    satelliteDiskComponent     => satelliteNode%disk    ()
+    satelliteSpheroidComponent => satelliteNode%spheroid()
+    
     ! Solve for the radii of the host and satellite nodes, to ensure they are computed and up to date.
     call Galactic_Structure_Radii_Solve(hostNode     )
     call Galactic_Structure_Radii_Solve(satelliteNode)
@@ -86,35 +111,43 @@ contains
     ! Compute dark matter factors. These are the specific angular momenta of components divided by sqrt(G M r) where M is the
     ! component mass and r its half-mass radius. We use a weighted average of these factors to infer the specific angular momentum
     ! of the remnant from its mass and radius.
-    componentMass=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
-    hostSpheroidHalfMassRadius=Tree_Node_Spheroid_Half_Mass_Radius(hostNode)
+    componentMass                  =          hostSpheroidComponent%massStellar   () &
+         &                          +         hostSpheroidComponent%massGas       ()
+    hostSpheroidHalfMassRadius     =          hostSpheroidComponent%halfMassRadius()
     if (hostSpheroidHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
-       hostSpheroidDarkMatterFactor=Tree_Node_Spheroid_Angular_Momentum(hostNode)/(componentMass**1.5d0) &
-            &/dsqrt(gravitationalConstantGalacticus*hostSpheroidHalfMassRadius)
+       hostSpheroidDarkMatterFactor=           hostSpheroidComponent%angularMomentum()                           &
+            &                       /(componentMass**1.5d0)                                                      &
+            &                       /dsqrt(gravitationalConstantGalacticus*          hostSpheroidHalfMassRadius)
     else
        hostSpheroidDarkMatterFactor=0.0d0
     end if
-    componentMass=Tree_Node_Disk_Stellar_Mass(hostNode) +Tree_Node_Disk_Gas_Mass(hostNode)
-    hostDiskHalfMassRadius=Tree_Node_Disk_Half_Mass_Radius(hostNode)
+    componentMass                  =          hostDiskComponent%massStellar   () &
+         &                          +         hostDiskComponent%massGas       ()
+    hostDiskHalfMassRadius         =          hostDiskComponent%halfMassRadius()
     if (hostDiskHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
-       hostDiskDarkMatterFactor=Tree_Node_Disk_Angular_Momentum(hostNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus*hostDiskHalfMassRadius)
+       hostDiskDarkMatterFactor         =          hostDiskComponent%angularMomentum()                           &
+            &                            /(componentMass**1.5d0)                                                 &
+            &                            /dsqrt(gravitationalConstantGalacticus*         hostDiskHalfMassRadius)
     else
        hostDiskDarkMatterFactor=0.0d0
     end if
-    componentMass=Tree_Node_Spheroid_Stellar_Mass(satelliteNode) +Tree_Node_Spheroid_Gas_Mass(satelliteNode)
-    satelliteSpheroidHalfMassRadius=Tree_Node_Spheroid_Half_Mass_Radius(satelliteNode)
+    componentMass                  = satelliteSpheroidComponent%massStellar   () &
+         &                          +satelliteSpheroidComponent%massGas       ()
+    satelliteSpheroidHalfMassRadius= satelliteSpheroidComponent%halfMassRadius()
     if (satelliteSpheroidHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
-       satelliteSpheroidDarkMatterFactor=Tree_Node_Spheroid_Angular_Momentum(satelliteNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus*satelliteSpheroidHalfMassRadius)
+       satelliteSpheroidDarkMatterFactor= satelliteSpheroidComponent%angularMomentum()                           &
+            &                            /(componentMass**1.5d0)                                                 &
+            &                            /dsqrt(gravitationalConstantGalacticus*satelliteSpheroidHalfMassRadius)
     else
        satelliteSpheroidDarkMatterFactor=0.0d0
     end if
-    componentMass=Tree_Node_Disk_Stellar_Mass(satelliteNode) +Tree_Node_Disk_Gas_Mass(satelliteNode)
-    satelliteDiskHalfMassRadius=Tree_Node_Disk_Half_Mass_Radius(satelliteNode)
+    componentMass                  =     satelliteDiskComponent%massStellar   () &
+        &                           +    satelliteDiskComponent%massGas       ()
+    satelliteDiskHalfMassRadius    =     satelliteDiskComponent%halfMassRadius()
     if (satelliteDiskHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
-       satelliteDiskDarkMatterFactor=Tree_Node_Disk_Angular_Momentum(satelliteNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus*satelliteDiskHalfMassRadius)
+       satelliteDiskDarkMatterFactor    =     satelliteDiskComponent%angularMomentum()                           &
+            &                            /(componentMass**1.5d0)                                                 &
+            &                            /dsqrt(gravitationalConstantGalacticus*    satelliteDiskHalfMassRadius)
     else
        satelliteDiskDarkMatterFactor=0.0d0
     end if
@@ -122,67 +155,67 @@ contains
     ! Find the masses of material that will end up in the spheroid component of the remnant.
     select case (thisHostGasMovesTo)
     case (movesToSpheroid)
-       hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)+Tree_Node_Disk_Gas_Mass(hostNode)
-       angularMomentumFactor =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskDarkMatterFactor
-       remnantSpheroidGasMass=Tree_Node_Spheroid_Gas_Mass(hostNode)+Tree_Node_Disk_Gas_Mass(hostNode)
-       remnantSpheroidMass   =Tree_Node_Spheroid_Gas_Mass(hostNode)+Tree_Node_Disk_Gas_Mass(hostNode)
+       hostSpheroidMass      =hostSpheroidComponent%massGas()                             +hostDiskComponent%massGas()
+       angularMomentumFactor =hostSpheroidComponent%massGas()*hostSpheroidDarkMatterFactor+hostDiskComponent%massGas()*hostDiskDarkMatterFactor
+       remnantSpheroidGasMass=hostSpheroidComponent%massGas()                             +hostDiskComponent%massGas()
+       remnantSpheroidMass   =hostSpheroidComponent%massGas()                             +hostDiskComponent%massGas()
     case (movesToDisk)
        hostSpheroidMass      =0.0d0
-       angularMomentumFactor      =0.0d0
+       angularMomentumFactor =0.0d0
        remnantSpheroidGasMass=0.0d0
        remnantSpheroidMass   =0.0d0
     case (doesNotMove)
-       hostSpheroidMass      =Tree_Node_Spheroid_Gas_Mass(hostNode)
-       angularMomentumFactor =Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor
-       remnantSpheroidGasMass=Tree_Node_Spheroid_Gas_Mass(hostNode)
-       remnantSpheroidMass   =Tree_Node_Spheroid_Gas_Mass(hostNode)
+       hostSpheroidMass      =hostSpheroidComponent%massGas()
+       angularMomentumFactor =hostSpheroidComponent%massGas()*hostSpheroidDarkMatterFactor
+       remnantSpheroidGasMass=hostSpheroidComponent%massGas()
+       remnantSpheroidMass   =hostSpheroidComponent%massGas()
     case default
        call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
     select case (thisHostStarsMoveTo)
     case (movesToSpheroid)
-       hostSpheroidMass     =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Disk_Stellar_Mass(hostNode)
-       angularMomentumFactor=angularMomentumFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskDarkMatterFactor
-      remnantSpheroidMass   =remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Disk_Stellar_Mass(hostNode)
+       hostSpheroidMass     =hostSpheroidMass     +hostSpheroidComponent%massStellar()                             +hostDiskComponent%massStellar()
+       angularMomentumFactor=angularMomentumFactor+hostSpheroidComponent%massStellar()*hostSpheroidDarkMatterFactor+hostDiskComponent%massStellar()*hostDiskDarkMatterFactor
+      remnantSpheroidMass   =remnantSpheroidMass  +hostSpheroidComponent%massStellar()                             +hostDiskComponent%massStellar()
     case (movesToDisk)
        hostSpheroidMass     =hostSpheroidMass
        angularMomentumFactor=angularMomentumFactor
     case (doesNotMove)
-       hostSpheroidMass     =hostSpheroidMass   +Tree_Node_Spheroid_Stellar_Mass(hostNode)
-       angularMomentumFactor=angularMomentumFactor   +Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor
-       remnantSpheroidMass  =remnantSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)
+       hostSpheroidMass     =hostSpheroidMass     +hostSpheroidComponent%massStellar()
+       angularMomentumFactor=angularMomentumFactor+hostSpheroidComponent%massStellar()*hostSpheroidDarkMatterFactor
+       remnantSpheroidMass  =remnantSpheroidMass  +hostSpheroidComponent%massStellar()
     case default
        call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
     select case (thisMergerGasMovesTo)
     case (movesToSpheroid)
-       satelliteSpheroidMass =                       Tree_Node_Spheroid_Gas_Mass(satelliteNode)+Tree_Node_Disk_Gas_Mass(satelliteNode)
-       angularMomentumFactor =angularMomentumFactor +Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(satelliteNode)*satelliteDiskDarkMatterFactor
-       remnantSpheroidGasMass=remnantSpheroidGasMass+Tree_Node_Spheroid_Gas_Mass(satelliteNode)+Tree_Node_Disk_Gas_Mass(satelliteNode)
-       remnantSpheroidMass   =remnantSpheroidMass   +Tree_Node_Spheroid_Gas_Mass(satelliteNode)+Tree_Node_Disk_Gas_Mass(satelliteNode)
+       satelliteSpheroidMass =                       satelliteSpheroidComponent%massGas()                                  +satelliteDiskComponent%massGas()
+       angularMomentumFactor =angularMomentumFactor +satelliteSpheroidComponent%massGas()*satelliteSpheroidDarkMatterFactor+satelliteDiskComponent%massGas()*satelliteDiskDarkMatterFactor
+       remnantSpheroidGasMass=remnantSpheroidGasMass+satelliteSpheroidComponent%massGas()                                  +satelliteDiskComponent%massGas()
+       remnantSpheroidMass   =remnantSpheroidMass   +satelliteSpheroidComponent%massGas()                                  +satelliteDiskComponent%massGas()
     case (movesToDisk)
        satelliteSpheroidMass =0.0d0
        angularMomentumFactor =angularMomentumFactor
     case (doesNotMove)
-       satelliteSpheroidMass=                        Tree_Node_Spheroid_Gas_Mass(satelliteNode)
-       angularMomentumFactor =angularMomentumFactor +Tree_Node_Spheroid_Gas_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor
-       remnantSpheroidGasMass=remnantSpheroidGasMass+Tree_Node_Spheroid_Gas_Mass(satelliteNode)
-       remnantSpheroidMass   =remnantSpheroidMass   +Tree_Node_Spheroid_Gas_Mass(satelliteNode)
+       satelliteSpheroidMass=                        satelliteSpheroidComponent%massGas()
+       angularMomentumFactor =angularMomentumFactor +satelliteSpheroidComponent%massGas()*satelliteSpheroidDarkMatterFactor
+       remnantSpheroidGasMass=remnantSpheroidGasMass+satelliteSpheroidComponent%massGas()
+       remnantSpheroidMass   =remnantSpheroidMass   +satelliteSpheroidComponent%massGas()
     case default
        call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
     select case (thisMergerStarsMoveTo)
     case (movesToSpheroid)
-       satelliteSpheroidMass=satelliteSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(satelliteNode)+Tree_Node_Disk_Stellar_Mass(satelliteNode)
-       angularMomentumFactor=angularMomentumFactor+Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(satelliteNode)*satelliteDiskDarkMatterFactor
-       remnantSpheroidMass  =remnantSpheroidMass  +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)+Tree_Node_Disk_Stellar_Mass(satelliteNode)
+       satelliteSpheroidMass=satelliteSpheroidMass+satelliteSpheroidComponent%massStellar()                                  +satelliteDiskComponent%massStellar()
+       angularMomentumFactor=angularMomentumFactor+satelliteSpheroidComponent%massStellar()*satelliteSpheroidDarkMatterFactor+satelliteDiskComponent%massStellar()*satelliteDiskDarkMatterFactor
+       remnantSpheroidMass  =remnantSpheroidMass  +satelliteSpheroidComponent%massStellar()                                  +satelliteDiskComponent%massStellar()
     case (movesToDisk)
        satelliteSpheroidMass=satelliteSpheroidMass
        angularMomentumFactor=angularMomentumFactor
     case (doesNotMove)
-       satelliteSpheroidMass=satelliteSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(satelliteNode)
-       remnantSpheroidMass  =remnantSpheroidMass  +Tree_Node_Spheroid_Stellar_Mass(satelliteNode)
-       angularMomentumFactor=angularMomentumFactor+Tree_Node_Spheroid_Stellar_Mass(satelliteNode)*satelliteSpheroidDarkMatterFactor
+       satelliteSpheroidMass=satelliteSpheroidMass+satelliteSpheroidComponent%massStellar()
+       remnantSpheroidMass  =remnantSpheroidMass  +satelliteSpheroidComponent%massStellar()
+       angularMomentumFactor=angularMomentumFactor+satelliteSpheroidComponent%massStellar()*satelliteSpheroidDarkMatterFactor
     case default
        call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
@@ -242,7 +275,7 @@ contains
     end if
 
     ! Compute the mass of the host spheroid before the merger.
-    hostSpheroidMassPreMerger=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
+    hostSpheroidMassPreMerger=hostSpheroidComponent%massStellar()+hostSpheroidComponent%massGas()
     return
   end subroutine Satellite_Merging_Remnant_Progenitor_Properties_Cole2000
 

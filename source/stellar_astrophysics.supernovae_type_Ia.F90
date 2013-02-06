@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -73,8 +73,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('supernovaeIaMethod',supernovaeIaMethod,defaultValue='Nagashima')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="supernovaeIaMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get</subroutineArgs>
+          !# <include directive="supernovaeIaMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get</functionArgs>
           include 'stellar_astrophysics.supernovae_type_Ia.inc'
           !# </include>
           if (.not.(associated(SNeIa_Cumulative_Number_Get).and.associated(SNeIa_Cumulative_Yield_Get))) call Galacticus_Error_Report('Supernovae_Type_Ia_Initialize'&

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -68,8 +68,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('stellarTracksMethod',stellarTracksMethod,defaultValue='file')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarTracksMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>stellarTracksMethod,Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get</subroutineArgs>
+          !# <include directive="stellarTracksMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarTracksMethod,Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get</functionArgs>
           include 'stellar_astrophysics.tracks.inc'
           !# </include>
           if (.not.(associated(Stellar_Luminosity_Get).and.associated(Stellar_Effective_Temperature_Get))) &

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -136,8 +136,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modifiedPress-Schechter')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="treeBranchingMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>treeBranchingMethod,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</subroutineArgs>
+          !# <include directive="treeBranchingMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>treeBranchingMethod,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</functionArgs>
           include 'merger_trees.branching_probability.inc'
           !# </include>
           if (       .not.associated(Tree_Branching_Probability_Function )  &

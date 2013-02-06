@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,7 @@
 
 module Hot_Halo_Temperature_Profile
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="hotHaloTemperatureMethod" type="moduleUse">
   include 'hot_halo.temperature_profile.modules.inc'
   !# </include>
@@ -69,8 +69,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('hotHaloTemperatureMethod',hotHaloTemperatureMethod,defaultValue='virial')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="hotHaloTemperatureMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>hotHaloTemperatureMethod,Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get</subroutineArgs>
+          !# <include directive="hotHaloTemperatureMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>hotHaloTemperatureMethod,Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get</functionArgs>
           include 'hot_halo.temperature_profile.inc'
           !# </include>
           if (.not.associated(Hot_Halo_Temperature_Get)) call Galacticus_Error_Report('Hot_Halo_Temperature','method '&

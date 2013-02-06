@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -159,17 +159,19 @@ contains
 
   subroutine Radiation_IGB_File_Set(thisNode,radiationProperties)
     !% Property setting routine for the radiation component from file method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Memory_Management
     implicit none
-    type(treeNode),   intent(inout), pointer                   :: thisNode
-    double precision, intent(inout), allocatable, dimension(:) :: radiationProperties
+    type (treeNode          ), intent(inout), pointer                   :: thisNode
+    double precision         , intent(inout), allocatable, dimension(:) :: radiationProperties
+    class(nodeComponentBasic),                pointer                   :: thisBasicComponent
 
     ! Ensure that the properties array is allocated.
     if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
 
     ! Store the time for the radiation field.
-    radiationProperties(1)=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    radiationProperties(1)=thisBasicComponent%time()
 
     return
   end subroutine Radiation_IGB_File_Set

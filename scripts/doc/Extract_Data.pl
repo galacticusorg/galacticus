@@ -181,7 +181,7 @@ foreach $parameterName ( @sortedParameters ) {
 
 # Write method descriptions.
 foreach $object ( sort(keys(%objects)) ) {
-    print methodHndl "\\subsubsection{{\\tt ".$object."}}\n\n";
+    print methodHndl "\\subsubsection{{\\tt ".$object."}}\\label{sec:AutoMethods".ucfirst($object)."}\n\n";
     print methodHndl "\\begin{description}\n";
     foreach $method ( sort(keys(%{$objects{$object}})) ) {
 	print methodHndl "\\item[{\\tt ".$method."}] ".$objects{$object}->{$method}."\n";

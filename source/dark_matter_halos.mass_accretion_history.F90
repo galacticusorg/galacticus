@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Dark_Matter_Halo_Mass_Accretion_Histories
   !% Implements calculations of dark matter halo mass accretion histories.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Halo_Mass_Accretion_Time
@@ -69,8 +69,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('darkMatterAccretionHistoryMethod',darkMatterAccretionHistoryMethod,defaultValue='Wechsler2002')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterAccretionHistoryMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get</subroutineArgs>
+          !# <include directive="darkMatterAccretionHistoryMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get</functionArgs>
           include 'dark_matter_halos.mass_accretion_history.inc'
           !# </include>
           if (.not.associated(Dark_Matter_Halo_Mass_Accretion_Time_Get)) &

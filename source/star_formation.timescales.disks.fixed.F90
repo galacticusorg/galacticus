@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -36,7 +36,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
     procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
@@ -62,7 +62,7 @@ contains
 
   double precision function Star_Formation_Timescale_Disk_Fixed(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}, assuming a fixed timecale.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

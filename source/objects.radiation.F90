@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -131,23 +131,25 @@ contains
     !# <include directive="radiationSet" type="moduleUse">
     include 'objects.radiation.set.modules.inc'
     !# </include>
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     class(radiationStructure), intent(inout)          :: radiation
-    type(treeNode),            intent(inout), pointer :: thisNode         
+    type (treeNode          ), intent(inout), pointer :: thisNode         
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
     integer                                           :: iComponent
 
     ! For an unallocated radiation object, return immediately.
     if (.not.allocated(radiation%radiationType)) return
 
     ! Set the time.
-    radiation%timeValue=Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    radiation%timeValue=thisBasicComponent%time()
 
     ! Loop over all radiation components.
     do iComponent=1,size(radiation%radiationType)
        ! Call the appropriate routine to set the component.
-       !# <include directive="radiationSet" type="code" action="subroutine">
-       !#  <subroutineArgs>radiation%radiationType(iComponent)==radiationType#label,thisNode,radiation%components(iComponent)%properties</subroutineArgs>
+       !# <include directive="radiationSet" type="functionCall" functionType="void">
+       !#  <functionArgs>radiation%radiationType(iComponent)==radiationType#label,thisNode,radiation%components(iComponent)%properties</functionArgs>
        include 'objects.radiation.set.inc'
        !# </include>
     end do
@@ -177,8 +179,8 @@ contains
     Radiation_Temperature=0.0d0
     do iComponent=1,size(radiation%radiationType)
        ! Call the appropriate routine to get the temperature.
-       !# <include directive="radiationTemperature" type="code" action="subroutine">
-       !#  <subroutineArgs>radiation%radiationType(iComponent),radiationType#label,radiation%components(iComponent)%properties,Radiation_Temperature,radiationType</subroutineArgs>
+       !# <include directive="radiationTemperature" type="functionCall" functionType="void">
+       !#  <functionArgs>radiation%radiationType(iComponent),radiationType#label,radiation%components(iComponent)%properties,Radiation_Temperature,radiationType</functionArgs>
        include 'objects.radiation.temperature.inc'
        !# </include>
     end do
@@ -201,8 +203,8 @@ contains
     Radiation_Flux=0.0d0
     do iComponent=1,size(radiation%radiationType)
        ! Call the appropriate routine to get the flux.
-       !# <include directive="radiationFlux" type="code" action="subroutine">
-       !#  <subroutineArgs>radiation%radiationType(iComponent),radiationType#label,radiation%components(iComponent)%properties,wavelength,Radiation_Flux,radiationType</subroutineArgs>
+       !# <include directive="radiationFlux" type="functionCall" functionType="void">
+       !#  <functionArgs>radiation%radiationType(iComponent),radiationType#label,radiation%components(iComponent)%properties,wavelength,Radiation_Flux,radiationType</functionArgs>
        include 'objects.radiation.flux.inc'
        !# </include>
     end do

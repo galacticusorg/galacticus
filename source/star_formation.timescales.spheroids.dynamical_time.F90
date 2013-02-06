@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -93,15 +93,17 @@ contains
     !% spheroid}/V_{\rm spheroid}$ where the radius and velocity are whatever characteristic values returned by the spheroid method. This
     !% scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the
     !% half-mass radius and circular velocity at that radius.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: velocityZeroPoint=200.0d0 ! (km/s)
-    double precision                         :: spheroidVelocity,dynamicalTime
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent
+    double precision            , parameter              :: velocityZeroPoint=200.0d0 ! (km/s)
+    double precision                                     :: spheroidVelocity,dynamicalTime
 
     ! Get spheroid circular velocity.
-    spheroidVelocity=Tree_Node_Spheroid_Velocity(thisNode)
+    thisSpheroidComponent => thisNode%spheroid()
+    spheroidVelocity=thisSpheroidComponent%velocity()
 
     ! Check for zero velocity spheroid.
     if (spheroidVelocity <= 0.0d0) then
@@ -111,7 +113,7 @@ contains
        Star_Formation_Timescale_Spheroid_Dynamical_Time=0.0d0
     else
        ! Get the dynamical time in Gyr.
-       dynamicalTime=Mpc_per_km_per_s_To_Gyr*Tree_Node_Spheroid_Radius(thisNode)/spheroidVelocity
+       dynamicalTime=Mpc_per_km_per_s_To_Gyr*thisSpheroidComponent%radius()/spheroidVelocity
        
        ! Compute the star formation timescale using a simple scaling factor.
        Star_Formation_Timescale_Spheroid_Dynamical_Time=max(dynamicalTime*(spheroidVelocity/velocityZeroPoint)&
