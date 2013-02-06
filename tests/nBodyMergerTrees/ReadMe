@@ -1,0 +1,16 @@
+Generates a set of models using both Monte Carlo (modified
+Press-Schechter) merger trees and N-body merger trees from the
+Millennium Simulation and creates plots comparing various properties
+from them. Note that you'll need a log-in for the Millennium database to
+be able to download the necessary data.
+
+To perform this test, do:
+
+tests/nBodyMergerTrees/getMillenniumTrees.pl
+make Galacticus.exe
+scripts/aux/Run_Galacticus.pl tests/nBodyMergerTrees/modelsToRun.xml
+tests/nBodyMergerTrees/comparisonPlots.pl
+
+The resulting plots should then exist in:
+
+tests/nBodyMergerTrees/plots

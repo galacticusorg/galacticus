@@ -1,0 +1,104 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements a null hot gas halo density profile.
+
+module Hot_Halo_Density_Profile_Null
+  !% Implements a null hot gas halo density profile..
+  implicit none
+  private
+  public :: Hot_Halo_Density_Null
+
+contains
+
+  !# <hotHaloDensityMethod>
+  !#  <unitName>Hot_Halo_Density_Null</unitName>
+  !# </hotHaloDensityMethod>
+  subroutine Hot_Halo_Density_Null(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
+       &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Density_Radial_Moment_Get)
+    !% Initialize the null hot halo density profile module.
+    use ISO_Varying_String
+    implicit none
+    type(varying_string),                 intent(in)    :: hotHaloDensityMethod
+    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
+         &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Density_Radial_Moment_Get
+    
+    if (hotHaloDensityMethod == 'null') then
+       Hot_Halo_Density_Get                        => Hot_Halo_Density_Null_Get
+       Hot_Halo_Density_Log_Slope_Get              => Hot_Halo_Density_Null_Log_Slope_Get
+       Hot_Halo_Enclosed_Mass_Get                  => Hot_Halo_Density_Null_Enclosed_Mass_Get
+       Hot_Halo_Profile_Rotation_Normalization_Get => Hot_Halo_Density_Null_Rotation_Normalization_Get
+       Hot_Halo_Density_Radial_Moment_Get          => Hot_Halo_Density_Null_Radial_Moment_Get
+    end if
+    return
+  end subroutine Hot_Halo_Density_Null
+
+  double precision function Hot_Halo_Density_Null_Get(thisNode,radius)
+    !% Compute the density at radius {\tt radius} in a null hot halo density profile for {\tt thisNode}.
+    use Galacticus_Nodes
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+
+    Hot_Halo_Density_Null_Get=0.0d0
+    return
+  end function Hot_Halo_Density_Null_Get
+  
+  double precision function Hot_Halo_Density_Null_Log_Slope_Get(thisNode,radius)
+    !% Compute the density at radius {\tt radius} in a null hot halo density profile for {\tt thisNode}.
+    use Galacticus_Nodes
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+
+    Hot_Halo_Density_Null_Log_Slope_Get=0.0d0
+    return
+  end function Hot_Halo_Density_Null_Log_Slope_Get
+  
+  double precision function Hot_Halo_Density_Null_Enclosed_Mass_Get(thisNode,radius)
+    !% Compute the mass enclosed within radius {\tt radius} in a null hot halo density profile for {\tt thisNode}.
+    use Galacticus_Nodes
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in)             :: radius
+
+    Hot_Halo_Density_Null_Enclosed_Mass_Get=0.0d0
+    return
+  end function Hot_Halo_Density_Null_Enclosed_Mass_Get
+
+  double precision function Hot_Halo_Density_Null_Rotation_Normalization_Get(thisNode)
+    !% Return the normalization of the rotation velocity vs. specific angular momentum relation in a null hot halo density profile for {\tt thisNode}.
+    use Galacticus_Nodes
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    Hot_Halo_Density_Null_Rotation_Normalization_Get=0.0d0
+    return
+  end function Hot_Halo_Density_Null_Rotation_Normalization_Get
+  
+  double precision function Hot_Halo_Density_Null_Radial_Moment_Get(thisNode,moment,radius)
+    !% Return a radial moment in a null hot halo density profile for {\tt thisNode}.
+    use Galacticus_Nodes
+    implicit none
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: moment,radius
+    
+    Hot_Halo_Density_Null_Radial_Moment_Get=0.0d0
+    return
+  end function Hot_Halo_Density_Null_Radial_Moment_Get
+  
+end module Hot_Halo_Density_Profile_Null

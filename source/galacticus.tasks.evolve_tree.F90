@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,67 +14,24 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the task of evolving merger trees.
 
 module Galacticus_Tasks_Evolve_Tree
   !% Implements the task of evolving merger trees.
+  implicit none
   private
   public :: Galacticus_Task_Evolve_Tree
 
   ! Flag to indicate if output times have been initialized.
-  logical :: outputsInitialized=.false.
-
-  ! Array of output times.
-  integer                                     :: outputCount
-  double precision, allocatable, dimension(:) :: outputTimes
+  logical          :: treeEvolveInitialized=.false.
 
   ! Parameters controlling which trees will be processed.
-  integer                                     :: treeEvolveWorkerCount,treeEvolveWorkerNumber
+  integer          :: treeEvolveWorkerCount,treeEvolveWorkerNumber
+
+  ! Parameters controlling load average.
+  logical          :: treeEvolveLimitLoadAverage
+  double precision :: treeEvolveLoadAverageMaximum
   
 contains
 
@@ -88,110 +45,143 @@ contains
     !% Evolves the complete set of merger trees as specified.
     use ISO_Varying_String
     use String_Handling
-    use Cosmology_Functions
     use Merger_Trees
-    use Merger_Tree_Construction
     use Merger_Trees_Evolve
-    use Tree_Nodes
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
+    use Galacticus_Nodes
     use Input_Parameters
-    use Sort
+    use Galacticus_Output_Times
+    use Merger_Tree_Active
     use Memory_Management
-    use Histories
-    ! Include modules needed for pre-evolution tasks.
+    use System_Load
+    !$ use omp_lib
+    ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
     !# </include>
+    !# <include directive="mergerTreePostEvolveTask" type="moduleUse">
+    include 'galacticus.tasks.evolve_tree.postEvolveTask.moduleUse.inc'
+    !# </include>
     implicit none
-    type(mergerTree),     save, pointer :: thisTree
-    logical,              save          :: finished,skipTree
-    integer,              save          :: iOutput,iTree
-    double precision,     save          :: outputTime
-    type(varying_string), save          :: message
-    character(len=20),    save          :: label
-    double precision                    :: aExpansion
-    !$omp threadprivate(thisTree,finished,skipTree,iOutput,iTree,outputTime,message,label)
+    type(mergerTree),     save, pointer      :: thisTree
+    logical,              save               :: finished,skipTree
+    integer,              save               :: iOutput
+    double precision,     save               :: outputTime
+    type(varying_string), save               :: message
+    character(len=20),    save               :: label
+    !$omp threadprivate(thisTree,finished,skipTree,iOutput,outputTime,message,label)
+    integer                                  :: iTree
+    integer             , save               :: activeTasks,totalTasks
+    double precision    , save, dimension(3) :: loadAverage
+    logical             , save               :: overloaded
+    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded)
+    character(len=32)                        :: treeEvolveLoadAverageMaximumText
 
     ! Initialize the task if necessary.
-    !$omp critical (Tasks_Evolve_Tree_Initialize)
-    if (.not.outputsInitialized) then
-
-       ! Get a list of output redshifts - stored temporarily in the outputTimes array.
-       outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
-       call Alloc_Array(outputTimes,[outputCount])
-       !@ <inputParameter>
-       !@   <name>outputRedshifts</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     A list of redshifts at which \glc\ results should be output.
-       !@   </description>
-       !@ </inputParameter>
-       if (outputCount == 1) then
-          ! If only one (or zero) output redshifts present, make redshift zero the default.
-          call Get_Input_Parameter('outputRedshifts',outputTimes,defaultValue=[0.0d0])
-       else
-          call Get_Input_Parameter('outputRedshifts',outputTimes)
+    if (.not.treeEvolveInitialized) then
+       !$omp critical (Tasks_Evolve_Tree_Initialize)
+       if (.not.treeEvolveInitialized) then
+          
+          ! Get parameters controlling which trees will be processed.
+          !@ <inputParameter>
+          !@   <name>treeEvolveWorkerCount</name>
+          !@   <defaultValue>1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The number of workers that will work on this calculation.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveWorkerCount',treeEvolveWorkerCount,defaultValue=1)
+          !@ <inputParameter>
+          !@   <name>treeEvolveWorkerNumber</name>
+          !@   <defaultValue>1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The number of this worker.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
+          !@ <inputParameter>
+          !@   <name>treeEvolveLimitLoadAverage</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to limit the load average
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveLimitLoadAverage',treeEvolveLimitLoadAverage,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>treeEvolveLoadAverageMaximum</name>
+          !@   <defaultValue>processorCount</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum load average for which new trees will be processed.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveLoadAverageMaximum',treeEvolveLoadAverageMaximumText,defaultValue="processorCount")
+          if (treeEvolveLoadAverageMaximumText == "processorCount" ) then
+             treeEvolveLoadAverageMaximum=dble(System_Processor_Count())
+          else
+             read (treeEvolveLoadAverageMaximumText,*) treeEvolveLoadAverageMaximum
+          end if
+          ! Flag that this task is now initialized.
+          treeEvolveInitialized=.true.
        end if
-
-       ! Convert redshifts to times.
-       do iOutput=1,outputCount
-          aExpansion=Expansion_Factor_from_Redshift(outputTimes(iOutput))
-          outputTimes(iOutput)=Cosmology_Age(aExpansion)
-       end do
-
-       ! Sort the times.
-       call Sort_Do(outputTimes)
-
-       ! Set history ranges to include these times.
-       call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
-
-       ! Get parameters controlling which trees will be processed.
-       !@ <inputParameter>
-       !@   <name>treeEvolveWorkerCount</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of workers that will work on this calculation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('treeEvolveWorkerCount',treeEvolveWorkerCount,defaultValue=1)
-       !@ <inputParameter>
-       !@   <name>treeEvolveWorkerNumber</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of this worker.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
-
-       ! Flag that this task is now initialized.
-       outputsInitialized=.true.
+       !$omp end critical (Tasks_Evolve_Tree_Initialize)
     end if
-    !$omp end critical (Tasks_Evolve_Tree_Initialize)
+
+    ! Ensure the nodes objects are initialized.
+    call Galacticus_Nodes_Initialize()
 
     ! Begin looping through available trees.
     finished=.false.
     iTree=0
+    
     !$omp parallel copyin(finished)
     do while (.not.finished)
+
        ! Increment the tree number.
-       iTree=iTree+1
-       ! Decide whether or not to skip this tree.
-       skipTree=.not.(modulo(iTree-1,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
-       ! Get a tree.
-       thisTree => Merger_Tree_Create(skipTree)
-       finished=finished.or..not.associated(thisTree)
+       if (treeEvolveWorkerCount == 1) then
+          call Get_Tree(iTree,skipTree,thisTree,finished)
+       else
+          !$omp critical(Tree_Sharing)
+          call Get_Tree(iTree,skipTree,thisTree,finished)
+          !$omp end critical(Tree_Sharing)
+       end if
+
        if (.not.finished) then
           
           ! Skip this tree if necessary.
           if (.not.skipTree) then
 
+             ! Spin while the system is overloaded.
+             overloaded=treeEvolveLimitLoadAverage
+             do while (overloaded)
+                ! Get the load average.
+                call System_Load_Get(loadAverage,activeTasks,totalTasks)
+                ! If load is above allowed tolerances, sleep for a while.
+                overloaded=(loadAverage(1) > treeEvolveLoadAverageMaximum)
+                if (overloaded)                         &
+                     & call Sleep( 5                    &
+                     !$ &         +omp_get_thread_num() &
+                     &           )
+             end do
+
+             ! Set this as the active tree.
+             activeTreeWeight=thisTree%volumeWeight
+
              ! Perform any pre-evolution tasks on the tree.
-             !# <include directive="mergerTreePreEvolveTask" type="code" action="subroutine">
-             !#  <subroutineArgs>thisTree</subroutineArgs>
+             !# <include directive="mergerTreePreEvolveTask" type="functionCall" functionType="void">
+             !#  <functionArgs>thisTree</functionArgs>
              include 'galacticus.tasks.evolve_tree.preEvolveTask.inc'
              !# </include>
              
@@ -201,10 +191,10 @@ contains
              call Galacticus_Display_Indent(message)
              
              ! Loop over output times.
-             outputTimeLoop : do iOutput=1,outputCount
+             outputTimeLoop : do iOutput=1,Galacticus_Output_Time_Count()
                 
                 ! Get the output time.
-                outputTime=outputTimes(iOutput)
+                outputTime=Galacticus_Output_Time(iOutput)
                 
                 ! Evolve the tree to the output time.
                 call Merger_Tree_Evolve_To(thisTree,outputTime)
@@ -223,14 +213,53 @@ contains
           end if
 
           ! Destroy the tree.
-          call thisTree%destroy()
+          if (associated(thisTree)) then
+             call thisTree%destroy()
+             ! Deallocate the tree.
+             call Memory_Usage_Record(sizeof(thisTree),addRemove=-1,memoryType=memoryTypeNodes)
+             deallocate(thisTree)
+          end if
 
+          ! Perform any post-evolution tasks on the tree.
+          !# <include directive="mergerTreePostEvolveTask" type="functionCall" functionType="void">
+          include 'galacticus.tasks.evolve_tree.postEvolveTask.inc'
+          !# </include>
+             
        end if
+
     end do
     !$omp end parallel
 
     Galacticus_Task_Evolve_Tree=.false.
     return
   end function Galacticus_Task_Evolve_Tree
+
+  subroutine Get_Tree(iTree,skipTree,thisTree,finished)
+    !% Get a tree to process.
+    use Merger_Trees
+    use Merger_Tree_Construction
+    !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
+    include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
+    !# </include>
+    implicit none
+    integer            , intent(inout)          :: iTree
+    logical            , intent(  out)          :: skipTree
+    logical            , intent(inout)          :: finished
+    type   (mergerTree), intent(  out), pointer :: thisTree
+    
+    ! Increment the tree counter.
+    iTree=iTree+1
+    ! Decide whether or not to skip this tree.
+    skipTree=.not.(modulo(iTree-1+(iTree-1)/treeEvolveWorkerCount,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
+    ! Perform any pre-tree construction tasks.
+    !# <include directive="mergerTreePreTreeConstructionTask" type="functionCall" functionType="void">
+    include 'galacticus.tasks.evolve_tree.preConstructionTask.inc'
+    !# </include>
+    
+    ! Get a tree.
+    thisTree => Merger_Tree_Create(skipTree)
+    finished=finished.or..not.associated(thisTree)
+    return
+  end subroutine Get_Tree
 
 end module Galacticus_Tasks_Evolve_Tree
