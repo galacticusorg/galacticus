@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements outputting of formatted, indented messages at various vebosity levels from \glc.
 
@@ -81,6 +37,10 @@ module Galacticus_Display
        &                                          verbosityWarn   =3, &
        &                                          verbosityInfo   =4, &
        &                                          verbosityDebug  =5
+
+  ! Progress bar state.
+  logical                                      :: barVisible=.false.
+  integer                                      :: barPercentage
 
   interface Galacticus_Display_Message
      module procedure Galacticus_Display_Message_Char
@@ -115,23 +75,25 @@ contains
     !% Initialize the module by determining the requested verbosity level.
     implicit none
 
-    !$omp critical (Initialize_Display)
     if (.not.displayInitialized) then
-       ! For OpenMP runs, create an array of indentation levels.
-       maxThreads=1
-       !$ maxThreads=omp_get_max_threads()
-       ! Do not use Alloc_Array() routines here as they may trigger recursive calls to this module which can lead to unbreakable
-       ! parallel locks.
-       allocate(indentationLevel          (maxThreads))
-       allocate(indentationFormat         (maxThreads))
-       allocate(indentationFormatNoNewLine(maxThreads))
-       indentationLevel=0
-       indentationFormat='(a)'
-       indentationFormatNoNewLine='(a,$)'
-
-       displayInitialized=.true.
+       !$omp critical (Initialize_Display)
+       if (.not.displayInitialized) then
+          ! For OpenMP runs, create an array of indentation levels.
+          maxThreads=1
+          !$ maxThreads=omp_get_max_threads()
+          ! Do not use Alloc_Array() routines here as they may trigger recursive calls to this module which can lead to unbreakable
+          ! parallel locks.
+          allocate(indentationLevel          (maxThreads))
+          allocate(indentationFormat         (maxThreads))
+          allocate(indentationFormatNoNewLine(maxThreads))
+          indentationLevel=0
+          indentationFormat='(a)'
+          indentationFormatNoNewLine='(a,$)'
+          
+          displayInitialized=.true.
+       end if
+       !$omp end critical (Initialize_Display)
     end if
-    !$omp end critical (Initialize_Display)
     return
   end subroutine Initialize_Display
 
@@ -237,6 +199,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
        !$ if (omp_in_parallel()) then
        !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
        !$ else
@@ -245,6 +208,7 @@ contains
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormat(threadNumber)) trim(message)
+       if (barVisible) call Galacticus_Display_Counter_Lockless(barPercentage,.true.)
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
@@ -266,6 +230,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
        !$ if (omp_in_parallel()) then
        !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
        !$ else
@@ -274,6 +239,7 @@ contains
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormat(threadNumber)) char(message)
+       if (barVisible) call Galacticus_Display_Counter_Lockless(barPercentage,.true.)
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
@@ -312,11 +278,23 @@ contains
     integer,          intent(in)           :: percentageComplete
     logical,          intent(in)           :: isNew
     integer,          intent(in), optional :: verbosity
+
+    !$omp critical(Galacticus_Message_Lock)
+    call Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
+    !$omp end critical(Galacticus_Message_Lock)
+    return
+  end subroutine Galacticus_Display_Counter
+
+  subroutine Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
+    !% Displays a percentage counter and bar to show progress.
+    implicit none
+    integer,          intent(in)           :: percentageComplete
+    logical,          intent(in)           :: isNew
+    integer,          intent(in), optional :: verbosity
     character(len=50)                      :: bar
     integer                                :: percentage,minorCount,majorCount
     logical                                :: showMessage
     
-    !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
        showMessage=(verbosity<=verbosityLevel)
@@ -324,25 +302,27 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (percentageComplete == barPercentage) return
        if (.not.isNew) call Galacticus_Display_Counter_Clear_Lockless()
        percentage=max(0,min(percentageComplete,100))
        majorCount=percentage/2
        minorCount=percentage-majorCount*2
        bar=repeat("=",majorCount)//repeat("-",minorCount)//repeat(" ",50-majorCount-minorCount)
        write (0,'(1x,i3,"% [",a50,"]",$)') percentage,bar
+       barVisible   =.true.
+       barPercentage=percentageComplete
     end if
-    !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Counter
+  end subroutine Galacticus_Display_Counter_Lockless
 
   subroutine Galacticus_Display_Counter_Clear(verbosity)
     !% Clears a percentage counter.
     implicit none
     integer, intent(in), optional :: verbosity
-    logical                       :: showMessage
     
     !$omp critical(Galacticus_Message_Lock)
     call Galacticus_Display_Counter_Clear_Lockless(verbosity)
+    barVisible=.false.
     !$omp end critical(Galacticus_Message_Lock)
     return
   end subroutine Galacticus_Display_Counter_Clear

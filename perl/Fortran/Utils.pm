@@ -2,8 +2,6 @@
 
 package Fortran_Utils;
 use File::Copy;
-my $status = 1;
-$status;
 
 sub Truncate_Fortran_Lines {
     # Scans a Fortran file and truncates source lines to be less than 132 characters in length as (still) required by some compilers.
@@ -136,6 +134,7 @@ sub Get_Fortran_Line {
     my $rawLine           = "";
     my $processedLine     = "";
     my $bufferedComments  = "";
+    my $firstLine         = 1;
     while ( $processedFullLine == 0 ) {
 	# Get a line;
 	my $line = <$inHndl>;
@@ -176,9 +175,12 @@ sub Get_Fortran_Line {
 	$processedLine .= $tmpLine;
 	if ( $processedLine =~ m/&\s*$/ ) {
 	    $processedLine =~ s/\s*&\s*$//;
+	} elsif ( $firstLine == 0 && $line =~ m/^\#/ ) {
+	    # This is a preprocessor directive in the middle of continuation lines. Just concatenate it.
 	} else {
 	    $processedFullLine = 1;
 	}
+	$firstLine = 0;
     }
 
     # Return date.
@@ -186,3 +188,5 @@ sub Get_Fortran_Line {
     $_[2] = $processedLine;
     $_[3] = $bufferedComments;
 }
+
+1;

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -58,12 +58,12 @@ $dataSet->{'store'} = 0;
 &HDF5::Count_Trees($dataSet);
 &HDF5::Select_Output($dataSet,0.1);
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas','diskCircularVelocity']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas','diskVelocity']);
 $dataSets     = $dataSet->{'dataSets'};
 $magnitude    = $dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'};
-$bulgeToTotal = $dataSets->{'bulgeToTotalLuminosity:SDSS_i:observed:z0.1000:dustAtlas'};
-$velocity     = $dataSets->{'diskCircularVelocity'};
-$weight       = $dataSets->{'volumeWeight'};
+$bulgeToTotal = $dataSets->{'bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas'};
+$velocity     = $dataSets->{'diskVelocity'};
+$weight       = $dataSets->{'mergerTreeWeight'};
 delete($dataSet->{'dataSets'});
 # Select galaxies which are disk-dominated.
 $selection         = which ($bulgeToTotal < 0.3);
@@ -76,7 +76,7 @@ $weightSelected    = $weight   ->index($selection);
 
 # Read the XML data file.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/SDSS_Tully_Fisher.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/tullyFisherRelation/Tully_Fisher_SDSS_Pizagno_2007.xml");
 $columns = $data->{'tullyFisher'}->{'columns'};
 $x       = pdl @{$columns->{'magnitude'}->{'data'}};
 $x       = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
@@ -109,7 +109,7 @@ my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot");
+open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
 print $gnuPlot "set title 'SDSS Tully-Fisher Relation'\n";

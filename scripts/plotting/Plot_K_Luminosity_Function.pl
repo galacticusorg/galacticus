@@ -50,7 +50,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/K_Luminosity_Function_Cole_2001.xml");
+$data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/K_Luminosity_Function_Cole_2001.xml");
 $columns = $data->{'luminosityFunction'}->{'columns'};
 $xBins   = pdl @{$columns->{'magnitude'}->{'data'}};
 $x       = pdl @{$columns->{'magnitude'}->{'data'}};
@@ -70,10 +70,10 @@ $error = $error(-1:0);
 # Read galaxy data and construct mass function.
 $xGalacticus = $xBins;
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega']);
 $dataSets  = $dataSet->{'dataSets'};
 $magnitude = $dataSets->{'magnitudeTotal:UKIRT_K:rest:z0.0000:dustAtlas:vega'};
-$weight    = $dataSets->{'volumeWeight'};
+$weight    = $dataSets->{'mergerTreeWeight'};
 ($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xGalacticus,$magnitude,$weight,differential => 1);
 
 # Compute chi^2.
@@ -93,7 +93,7 @@ my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot");
+open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
 print $gnuPlot "set title 'K-band Luminosity Function at \$z=0\$'\n";

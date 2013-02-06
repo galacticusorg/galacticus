@@ -22,15 +22,19 @@ my %propertyKnowledgeBase = (
 our @missingDatasets;
 our %parameterList;
 
-my $status = 1;
-$status;
-
 sub Open_File {
     my $dataBlock = shift;
     unless ( exists($dataBlock->{'hdf5File'}) ) {
 	$dataBlock->{'hdf5File'} = new PDL::IO::HDF5(">".$dataBlock->{'file'});
 	$dataBlock->{'hdf5File'};
     }
+}
+
+sub Get_UUID {
+    my $dataBlock = shift;
+    &Open_File($dataBlock);
+    my @uuid = $dataBlock->{'hdf5File'}->attrGet("UUID");
+    $dataBlock->{'uuid'} = $uuid[0];
 }
 
 sub Get_Times {
@@ -64,7 +68,8 @@ sub Select_Output {
     my $foundMatch = 0;
     for(my $i=0;$i<nelem($outputs->{'expansionFactor'});++$i) {
 	if ( abs($outputs->{'expansionFactor'}->index($i)-$expansionFactor) < $tolerance ) {
-	    $dataBlock->{'output'} = $outputs->{'outputNumber'}->index($i);
+	    $dataBlock->{'output'     } = $outputs->{'outputNumber'}->index($i);
+	    $dataBlock->{'outputIndex'} =                                   $i ;
 	    $foundMatch = 1;
 	}
     }
@@ -130,7 +135,8 @@ sub Get_Dataset {
     if ( $dataBlock->{'tree'} eq "all" ) {
 	&Count_Trees($dataBlock);
 	@mergerTrees = @{$dataBlock->{'mergerTreesAvailable'}};
-	my $treeCount = scalar(@mergerTrees);
+    } elsif ( defined(ref($dataBlock->{'tree'})) && ref($dataBlock->{'tree'}) eq "ARRAY" ) {
+	@mergerTrees = @{$dataBlock->{'tree'}};
     } else {
 	$mergerTrees[0] = $dataBlock->{'tree'};
     }
@@ -165,41 +171,63 @@ sub Get_Dataset {
 
     foreach my $dataSetName ( @dataNames ) {
     	unless ( exists($dataBlock->{'dataSets'}->{$dataSetName}) ) {
-     	    if ( exists($dataBlock->{'dataSetsAvailable'}->{$dataSetName}) || $dataSetName eq "volumeWeight" ) {
+    	    if ( exists($dataBlock->{'dataSetsAvailable'}->{$dataSetName}) || $dataSetName eq "mergerTreeWeight" ) {
      		# Dataset exists in the output file, so simply read it.
      		my $data     = pdl [];
      		my $dataTree = pdl [];
-                 # Get merger tree indexing information.
-     		my $mergerTreeIndex      = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex"     )->get;
-     		my $mergerTreeStartIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeStartIndex")->get;
-     		my $mergerTreeCount      = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount"     )->get;
-     		my $mergerTreeWeight     = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight"    )->get;
-     		foreach my $mergerTree ( @mergerTrees ) {
-     		    # Check that this tree contains some nodes at this output. If it does not, skip it.
-     		    my $treeIndex      = which($mergerTreeIndex == $mergerTree);
-		    if ( nelem($treeIndex) > 1 ) {
-			print "Galacticus::HDF5 - Warning: apparent repeated merger tree index - taking the first instance (** could be a PDL bug**)\n";
-			$treeIndex = $treeIndex(0:0);
+		# Read data.
+		if ( $dataBlock->{'tree'} eq "all" ) { 
+		    # All trees are to be read - grab the complete datasets.
+		    if ( $dataSetName eq "mergerTreeWeight" ) {
+			my $mergerTreeWeight = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight")->get;
+			my $mergerTreeCount  = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
+			for (my $i=0;$i<nelem($mergerTreeWeight);++$i) {
+			    $data = $data->append($mergerTreeWeight->(($i))*ones($mergerTreeCount->(($i))->list()));
+			}
+		    } else {
+			my $thisTreeData = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData")->dataset($dataSetName)->get();
+			$data = $data->append($thisTreeData);
 		    }
-     		    my $treeStartIndex = $mergerTreeStartIndex->index($treeIndex);
-     		    my $treeCount      = $mergerTreeCount     ->index($treeIndex)->squeeze;
-     		    my $treeWeight     = $mergerTreeWeight    ->index($treeIndex)->squeeze;
-     		    my $treeEndIndex   = $treeStartIndex+$treeCount-1;
-     		    if ( $treeCount > 0 ) {
-     			if ( $dataSetName eq "volumeWeight" ) {
-     			    $data = $data->append($treeWeight*ones($treeCount->list));
-     			} else {
-     			    # Read the dataset.
-     			    my $thisTreeData = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData")->dataset($dataSetName)->get($treeStartIndex,$treeEndIndex);
-     			    # Append the dataset.
-     			    $data = $data->append($thisTreeData);
-     			}
-     			# Append the merger tree index.
-     			unless ( exists($dataBlock->{'dataSets'}->{'mergerTreeIndex'}) ) {
-     			    $dataTree = $dataTree->append($mergerTree*ones($treeCount->list));	
-     			}
-     		    }
-     		}
+		    # Append the merger tree index.
+		    unless ( exists($dataBlock->{'dataSets'}->{'mergerTreeIndex'}) ) {
+			my $mergerTreeIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex")->get;
+			my $mergerTreeCount = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
+			for(my $i=0;$i<nelem($mergerTreeCount);++$i) {
+			    $dataTree = $dataTree->append($mergerTreeIndex->(($i))*ones($mergerTreeCount->(($i))->sclr()));
+			}
+		    }
+		} else {
+		    # Get merger tree indexing information.
+		    my $mergerTreeIndex      = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex"     )->get;
+		    my $mergerTreeStartIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeStartIndex")->get;
+		    my $mergerTreeCount      = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount"     )->get;
+		    my $mergerTreeWeight     = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight"    )->get;
+		    foreach my $mergerTree ( @mergerTrees ) {
+			# Check that this tree contains some nodes at this output. If it does not, skip it.
+			my $mergerTreePDL  = pdl $mergerTree;
+			my $treeIndex      = which($mergerTreeIndex == $mergerTreePDL);
+			die("Galacticus::HDF5 - Error: apparent repeated merger tree index")
+			    if ( nelem($treeIndex) > 1 );
+			my $treeStartIndex = $mergerTreeStartIndex->index($treeIndex);
+			my $treeCount      = $mergerTreeCount     ->index($treeIndex)->squeeze;
+			my $treeWeight     = $mergerTreeWeight    ->index($treeIndex)->squeeze;
+			my $treeEndIndex   = $treeStartIndex+$treeCount-1;
+			if ( $treeCount > 0 ) {
+			    if ( $dataSetName eq "mergerTreeWeight" ) {
+				$data = $data->append($treeWeight*ones($treeCount->list));
+			    } else {
+				# Read the dataset.
+				my $thisTreeData = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'}."/nodeData")->dataset($dataSetName)->get($treeStartIndex,$treeEndIndex);
+				# Append the dataset.
+				$data = $data->append($thisTreeData);
+			    }
+			    # Append the merger tree index.
+			    unless ( exists($dataBlock->{'dataSets'}->{'mergerTreeIndex'}) ) {
+				$dataTree = $dataTree->append($mergerTree*ones($treeCount->list));	
+			    }
+			}
+		    }
+		}
      		$dataBlock->{'dataSets'}->{$dataSetName} = $data;
      		undef($data);
      		unless ( exists($dataBlock->{'dataSets'}->{'mergerTreeIndex'}) ) {
@@ -309,3 +337,5 @@ sub Reset_Structure {
 	}
     }
 }
+
+1;

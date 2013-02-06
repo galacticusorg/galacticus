@@ -121,7 +121,7 @@ foreach $IMF ( keys(%IMFs) ) {
 	$fluxData *= $angstromsToMeters/$solarLuminosity/$speedOfLight;
 
 	# Create the HDF5 output file.
-	$HDFfile = new PDL::IO::HDF5(">".$galacticusPath."data/SSP_Spectra_Maraston_hbMorphology".$hbMorphology."_imf".$IMF.".hdf5");
+	$HDFfile = new PDL::IO::HDF5(">".$galacticusPath."data/stellarPopulations/SSP_Spectra_Maraston_hbMorphology".$hbMorphology."_imf".$IMF.".hdf5");
 	$HDFfile->dataset("ages"         )->set($ages           );
 	$HDFfile->dataset("wavelengths"  )->set($lambdas        );
 	$HDFfile->dataset("metallicities")->set($metallicityData);

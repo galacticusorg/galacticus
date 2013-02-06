@@ -10,9 +10,6 @@ require Galacticus::HDF5;
     "inclination" => \&Inclinations::Get_Inclination
     );
 
-my $status = 1;
-$status;
-
 sub Get_Inclination {
     my $dataSet = shift;
     my $dataSetName = $_[0];
@@ -20,3 +17,5 @@ sub Get_Inclination {
     my $dataSets = $dataSet->{'dataSets'};
     $dataSets->{"inclination"} = 180.0*acos(random(nelem($dataSets->{"nodeIndex"})))/3.1415927;
 }
+
+1;

@@ -11,9 +11,6 @@ use Galacticus::Grasil;
 			       "luminosityCII"   => \&SubMmLines::Get_CIIline,
     );
 
-my $status = 1;
-$status;
-
 sub Get_CIIline {
     # The [CII]157.7um line is computed using a fit to the mean relation and scatter in the results of Graciá-Carpio et al. (2011,
     # http://adsabs.harvard.edu/abs/2011ApJ...728L...7G) as shown in their Figure 1. The fit to the trend and scatter was provided
@@ -36,3 +33,5 @@ sub Get_CIIline {
     $dataSets->{$dataSetName} = 10.0**($logLuminosity-0.1738*$logLuminosity-0.7882+$scatter);
 
 }
+
+1;

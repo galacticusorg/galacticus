@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -48,7 +48,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 $xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/HI_Mass_Function_Zwaan_2005.xml");
+$data = $xml->XMLin($galacticusPath."data/observations/massFunctionsHI/HI_Mass_Function_Zwaan_2005.xml");
 $columns = $data->{'massFunction'}->{'columns'};
 $xBins = pdl @{$columns->{'mass'}->{'data'}};
 $x = pdl @{$columns->{'mass'}->{'data'}};
@@ -70,12 +70,12 @@ $binMax = $xBins->index(nelem($xBins)-1)+0.5*$binStep;
 # Factor to convert cold gas mass to HI mass from Power, Baugh & Lacey (2009; http://adsabs.harvard.edu/abs/2009arXiv0908.1396P).
 $gasMassToHIMassFactor = pdl 0.54;
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','diskGasMass','spheroidGasMass']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','diskMassGas','spheroidMassGas']);
 $dataSets           = $dataSet->{'dataSets'};
-$logarithmicGasMass = log10(($dataSets->{'diskGasMass'}+$dataSets->{'spheroidGasMass'})*$gasMassToHIMassFactor);
-$weight             = $dataSets->{'volumeWeight'};
+$logarithmicMassGas = log10(($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'})*$gasMassToHIMassFactor);
+$weight             = $dataSets->{'mergerTreeWeight'};
 delete($dataSet->{'dataSets'});
-($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicGasMass,$weight,differential => 1);
+($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logarithmicMassGas,$weight,differential => 1);
 
 # Compute chi^2.
 $chiSquared = sum(($yGalacticus-$y)**2/($errorGalacticus**2+(0.5*($errorUp-$errorDown))**2));
@@ -94,7 +94,7 @@ my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot");
+open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
 print $gnuPlot "set title 'HI Gas Mass Function at \$z=0\$'\n";
