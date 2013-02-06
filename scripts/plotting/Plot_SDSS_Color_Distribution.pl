@@ -83,11 +83,11 @@ $countGalacticus = PDL->zeroes($magnitudePoints,$colorPoints);
 $errorGalacticus = PDL->zeroes($magnitudePoints,$colorPoints);
 
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB','magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB','magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB']);
 $dataSets  = $dataSet->{'dataSets'};
 $magnitude = $dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
 $color     = $dataSets->{'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas:AB'}-$dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
-$weight    = $dataSets->{'volumeWeight'};
+$weight    = $dataSets->{'mergerTreeWeight'};
 
 for($iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
     $minimumMagnitude = $magnitudeBins->index($iMagnitude)-0.5*$magnitudeBin;

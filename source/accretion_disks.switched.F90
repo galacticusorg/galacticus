@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of properties of accretion disks which switch between thin and ADAF depening on
 !% the accretion rate.
@@ -160,74 +116,72 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("accretionDiskSwitchedScaleAdafRadiativeEfficiency",accretionDiskSwitchedScaleAdafRadiativeEfficiency,defaultValue=.false.)
+       call Get_Input_Parameter("accretionDiskSwitchedScaleAdafRadiativeEfficiency",accretionDiskSwitchedScaleAdafRadiativeEfficiency,defaultValue=.true.)
     end if
     return
   end subroutine Accretion_Disks_Switched_Initialize
 
-  double precision function Accretion_Disk_Radiative_Efficiency_Switched(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Radiative_Efficiency_Switched(thisBlackHole,massAccretionRate)
     !% Computes the radiative efficiency for a switching accretion disk.
-    use Black_Hole_Fundamentals
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision                         :: adafFraction,thinDiskRadiativeEfficiency,adafRadiativeEfficiency
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                                        :: adafFraction,thinDiskRadiativeEfficiency,adafRadiativeEfficiency
 
-    adafFraction               =Accretion_Disk_Switched_ADAF_Fraction              (thisNode,massAccretionRate)
-    thinDiskRadiativeEfficiency=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate)
-    adafRadiativeEfficiency    =Accretion_Disk_Radiative_Efficiency_ADAF           (thisNode,massAccretionRate)
+    adafFraction               =Accretion_Disk_Switched_ADAF_Fraction              (thisBlackHole,massAccretionRate)
+    thinDiskRadiativeEfficiency=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
+    adafRadiativeEfficiency    =Accretion_Disk_Radiative_Efficiency_ADAF           (thisBlackHole,massAccretionRate)
     if (accretionDiskSwitchedScaleAdafRadiativeEfficiency) adafRadiativeEfficiency=adafRadiativeEfficiency&
-         &*Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling(thisNode,massAccretionRate)
+         &*Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling(thisBlackHole,massAccretionRate)
     Accretion_Disk_Radiative_Efficiency_Switched= (1.0d0-adafFraction)*thinDiskRadiativeEfficiency &
          &                                       +       adafFraction *    adafRadiativeEfficiency
     return
   end function Accretion_Disk_Radiative_Efficiency_Switched
 
-  double precision function Accretion_Disk_Jet_Power_Switched(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Jet_Power_Switched(thisBlackHole,massAccretionRate)
     !% Computes the jet power for a switching accretion disk.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision                         :: adafFraction
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                                        :: adafFraction
 
-    adafFraction=Accretion_Disk_Switched_ADAF_Fraction(thisNode,massAccretionRate)
-    Accretion_Disk_Jet_Power_Switched= (1.0d0-adafFraction)*Accretion_Disk_Jet_Power_Shakura_Sunyaev(thisNode,massAccretionRate) &
-         &                            +       adafFraction *Accretion_Disk_Jet_Power_ADAF(thisNode,massAccretionRate)
+    adafFraction=Accretion_Disk_Switched_ADAF_Fraction(thisBlackHole,massAccretionRate)
+    Accretion_Disk_Jet_Power_Switched= (1.0d0-adafFraction)*Accretion_Disk_Jet_Power_Shakura_Sunyaev(thisBlackHole,massAccretionRate) &
+         &                            +       adafFraction *Accretion_Disk_Jet_Power_ADAF(thisBlackHole,massAccretionRate)
     return
   end function Accretion_Disk_Jet_Power_Switched
 
-  double precision function Black_Hole_Spin_Up_Rate_Switched(thisNode,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from a switching accretion disk.
+  double precision function Black_Hole_Spin_Up_Rate_Switched(thisBlackHole,massAccretionRate)
+    !% Computes the spin up rate of the black hole in {\tt thisBlackHole} due to accretion from a switching accretion disk.
     !% disk.
-    use Tree_Nodes
-    use Black_Hole_Fundamentals
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision                         :: adafFraction
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                                        :: adafFraction
 
-    adafFraction=Accretion_Disk_Switched_ADAF_Fraction(thisNode,massAccretionRate)
+    adafFraction=Accretion_Disk_Switched_ADAF_Fraction(thisBlackHole,massAccretionRate)
 
-    Black_Hole_Spin_Up_Rate_Switched= (1.0d0-adafFraction)*Black_Hole_Spin_Up_Rate_Shakura_Sunyaev(thisNode,massAccretionRate) &
-         &                           +       adafFraction* Black_Hole_Spin_Up_Rate_ADAF(thisNode,massAccretionRate)
+    Black_Hole_Spin_Up_Rate_Switched= (1.0d0-adafFraction)*Black_Hole_Spin_Up_Rate_Shakura_Sunyaev(thisBlackHole,massAccretionRate) &
+         &                           +       adafFraction* Black_Hole_Spin_Up_Rate_ADAF(thisBlackHole,massAccretionRate)
 
     return
   end function Black_Hole_Spin_Up_Rate_Switched
 
-  double precision function Accretion_Disk_Switched_ADAF_Fraction(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Switched_ADAF_Fraction(thisBlackHole,massAccretionRate)
     !% Decide which type of accretion disk to use.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision, parameter              :: exponentialArgumentMaximum=60.0d0
-    double precision                         :: eddingtonAccretionRate,massAccretionRateDimensionless,adafFraction,accretionRateLogarithmic,argument
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: exponentialArgumentMaximum=60.0d0
+    double precision                                        :: eddingtonAccretionRate,massAccretionRateDimensionless,adafFraction,accretionRateLogarithmic,argument
 
     ! Get the Eddington accretion rate.
-    eddingtonAccretionRate=Black_Hole_Eddington_Accretion_Rate(thisNode)
+    eddingtonAccretionRate=Black_Hole_Eddington_Accretion_Rate(thisBlackHole)
 
     ! Check that a black hole is present.
     if (eddingtonAccretionRate > 0.0d0 .and. massAccretionRate > 0.0d0) then
@@ -258,17 +212,17 @@ contains
     return
   end function Accretion_Disk_Switched_ADAF_Fraction
 
-  double precision function Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling(thisBlackHole,massAccretionRate)
     !% Determine the scaling of radiative efficiency of the ADAF component in a switched accretion disk.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision                         :: eddingtonAccretionRate,massAccretionRateDimensionless
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                                        :: eddingtonAccretionRate,massAccretionRateDimensionless
 
     ! Get the Eddington accretion rate.
-    eddingtonAccretionRate=Black_Hole_Eddington_Accretion_Rate(thisNode)
+    eddingtonAccretionRate=Black_Hole_Eddington_Accretion_Rate(thisBlackHole)
 
     ! Check that a black hole is present.
     if (eddingtonAccretionRate > 0.0d0 .and. massAccretionRate > 0.0d0) then
@@ -278,8 +232,8 @@ contains
 
        ! If below the critical accretion rate for transition to a thin disk, reduce the radiative efficiency by a factor
        ! proportional to the accretion rate.
-       if (accretionRateThinDiskMinimumExists.and.massAccretionRateDimensionless < accretionRateThinDiskMinimumLogarithmic) then
-          Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=massAccretionRateDimensionless/accretionRateThinDiskMinimumLogarithmic
+       if (accretionRateThinDiskMinimumExists.and.massAccretionRateDimensionless < accretionRateThinDiskMinimum) then
+          Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=massAccretionRateDimensionless/accretionRateThinDiskMinimum
        else
           Accretion_Disk_Switched_ADAF_Radiative_Efficiency_Scaling=1.0d0
        end if

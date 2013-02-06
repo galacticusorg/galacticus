@@ -23,6 +23,8 @@ MODULETYPE ?= GCC-f95-on-LINUX
 
 # Fortran compiler flags:
 FCFLAGS += -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules
+# Fortran77 compiler flags:
+F77FLAGS = -g
 # Error checking flags
 FCFLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
 # Add bounds checking.
@@ -44,11 +46,8 @@ CFLAGS += -g
 CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
-# Libraries:
-LIBS = -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys -lfgsl_gfortran -lgsl -lgslcblas -lm -lhdf5_fortran -lhdf5 -lz -lstdc++ -lcrypt
-
 # List of additional Makefiles which contain dependency information
-MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
+MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps ./work/build/Makefile_Component_Includes
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -60,7 +59,7 @@ CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 # Object (*.o) files are built by compiling Fortran 90 (*.F90) source files. Ensure that any modules they make are "touch"ed so
 # that their modification time is after that of the corresponding object file (to avoid circular remake problems).
 vpath %.F90 source
-./work/build/%.o : %.F90 ./work/build/%.m ./work/build/%.d Makefile
+./work/build/%.o : %.F90 ./work/build/%.m ./work/build/%.d ./work/build/%.fl Makefile
 	@mlist=`cat ./work/build/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
@@ -81,13 +80,17 @@ vpath %.F90 source
 
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
-./work/build/%.o : %.c ./work/build/%.d Makefile
+./work/build/%.o : %.c ./work/build/%.d ./work/build/%.fl Makefile
 	$(CCOMPILER) -c $< -o ./work/build/$*.o $(CFLAGS)
 
 # Object (*.o) can also be built from C++ source files.
 vpath %.cpp source
-./work/build/%.o : %.cpp ./work/build/%.d Makefile
+./work/build/%.o : %.cpp ./work/build/%.d ./work/build/%.fl Makefile
 	$(CPPCOMPILER) -c $< -o ./work/build/$*.o $(CPPFLAGS)
+
+# Object (*.o) files are built by compiling Fortran (*.f) source files.
+%.o : %.f %.d Makefile
+	$(FCCOMPILER) -c $< -o $*.o $(F77FLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
 # bivar.F90 doesn't like to be compiled with any optimization:
@@ -95,6 +98,8 @@ vpath %.cpp source
 	$(FCCOMPILER) -c $< -o ./work/build/Bivar/bivar.o $(FCFLAGS_NOOPT)
 
 # Rule for running *.Inc files through the preprocessor.
+./work/build/%.Inc : ./source/%.Inc
+	cp -f ./source/$*.Inc ./work/build/$*.Inc
 ./work/build/%.inc : ./work/build/%.Inc Makefile
 	$(PREPROCESSOR) -C $< -o ./work/build/$*.tmp
 	mv -f ./work/build/$*.tmp ./work/build/$*.inc
@@ -107,6 +112,21 @@ vpath %.cpp source
 	@echo ./work/build/$*.o > ./work/build/$*.d
 ./work/build/%.d : ./source/%.cpp
 	@echo ./work/build/$*.o > ./work/build/$*.d
+%.d : %.f
+	@echo $*.o > $*.d
+%.d :
+	@mkdir -p `dirname $*.d`
+	@touch $*.d
+
+
+# Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
+# Makefile_Use_Deps file, but this acts as a fallback rule.
+./work/build/%.fl : ./source/%.F90
+	@touch ./work/build/$*.fl
+./work/build/%.fl : ./source/%.c
+	@touch ./work/build/$*.fl
+./work/build/%.fl : ./source/%.cpp
+	@touch ./work/build/$*.fl
 
 # GraphViz files (*.gv) are created with just a node entry by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
@@ -133,12 +153,12 @@ vpath %.cpp source
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
 %.exe : ./work/build/%.o ./work/build/%.d `cat ./work/build/$*.d` $(MAKE_DEPS)
-	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) $(LIBS)
+	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) `scripts/build/Library_Dependencies.pl $*.exe`
 	 ./scripts/build/Find_Executable_Size.pl $*.exe $*.size
 	 ./scripts/build/Find_Parameter_Dependencies.pl $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: %.o %.d %.dd %.m %.make
+.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc
 
 # Include depenencies on "include" files.
 -include ./work/build/Makefile_Include_Deps 
@@ -152,6 +172,9 @@ vpath %.cpp source
 # Include rules to build include files generated from directives.
 -include ./work/build/Makefile_Directives
 
+# Include dependencies on component include files.
+-include ./work/build/Makefile_Component_Includes
+
 # Rules for memory management routines.
 ./work/build/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/Find_Allocatable_Arrays.pl `pwd`
@@ -164,7 +187,7 @@ vpath %.cpp source
 
 # Rules for version routines.
 ./work/build/galacticus.output.version.revision.inc: $(wildcard .bzr/branch/*)
-	@if [ -f .bzr/branch/last-revision ] ; then awk '{print "integer, parameter :: bazaarRevision="$$1}' .bzr/branch/last-revision > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: bazaarRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":"} {if ($$1 == "changeset") print "integer, parameter :: hgRevision="$$2}' > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: hgRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
 
 # Rules for build information routines.
 ./work/build/galacticus.output.build.environment.inc:
@@ -191,11 +214,11 @@ mfiles := $(patsubst source/%.F90,work/build/%.m,$(wildcard source/*.F90))
 	scripts/build/Make_Unique_Label_Functions.pl `pwd`
 
 # Rules for changeset creation.
-Galacticus.exe: ./work/build/galacticus.bzr.patch ./work/build/galacticus.bzr.merge
-./work/build/galacticus.bzr.patch:
-	bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ > ./work/build/galacticus.bzr.patch | true
-./work/build/galacticus.bzr.merge:
-	bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o ./work/build/galacticus.bzr.merge | true
+Galacticus.exe: ./work/build/galacticus.hg.patch ./work/build/galacticus.hg.bundle
+./work/build/galacticus.hg.patch:
+	hg diff > ./work/build/galacticus.hg.patch | true
+./work/build/galacticus.hg.bundle:
+	hg bundle -t none ./work/build/galacticus.hg.bundle https://abensonca@bitbucket.org/abensonca/galacticus_v0.9.2 | true
 
 # Rules for cleaning up.
 clean: tidy
@@ -210,18 +233,25 @@ all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
 ./work/build/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+	@mkdir -p work/build
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
 ./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+	@mkdir -p work/build
 	./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE)
 
 ./work/build/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Code_Directive_Parser.pl `pwd`
 
 ./work/build/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Find_Include_Dependencies.pl `pwd`
 
 ./work/build/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Find_Programs.pl `pwd`
+
+./work/build/Makefile_Component_Includes: ./work/build/objects.nodes.components.Inc
 
 deps: $(MAKE_DEPS) ./work/build/Makefile_All_Execs

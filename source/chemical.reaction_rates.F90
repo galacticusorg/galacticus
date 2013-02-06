@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module that implements calculations of chemical reaction rates.
 
@@ -88,33 +44,35 @@ contains
     implicit none
     integer :: chemicalReactionRatesCount
     
-    !$omp critical(Chemical_Reaction_Rates_Initialization) 
     ! Initialize if necessary.
     if (.not.chemicalReactionRateInitialized) then
-       ! Get the chemical reaction rates method parameter.
-       !@ <inputParameter>
-       !@   <name>chemicalReactionRateMethods</name>
-       !@   <defaultValue>hydrogenNetwork</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The names of the methods to be used for computing chemical reaction rates.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1..*</cardinality>
-       !@ </inputParameter>
-       chemicalReactionRatesCount=max(1,Get_Input_Parameter_Array_Size('chemicalReactionRatesMethods'))
-       allocate(chemicalReactionRateMethods(chemicalReactionRatesCount))
-       call Memory_Usage_Record(sizeof(chemicalReactionRateMethods))
-       call Get_Input_Parameter('chemicalReactionRateMethods',chemicalReactionRateMethods,defaultValue=['null'])
-
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="chemicalReactionRates" type="code" action="subroutine">
-       !#  <subroutineArgs>chemicalReactionRateMethods</subroutineArgs>
-       include 'chemical.reaction_rates.inc'
-       !# </include>
-       chemicalReactionRateInitialized=.true.
+       !$omp critical(Chemical_Reaction_Rates_Initialization) 
+       if (.not.chemicalReactionRateInitialized) then
+          ! Get the chemical reaction rates method parameter.
+          !@ <inputParameter>
+          !@   <name>chemicalReactionRateMethods</name>
+          !@   <defaultValue>hydrogenNetwork</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The names of the methods to be used for computing chemical reaction rates.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1..*</cardinality>
+          !@ </inputParameter>
+          chemicalReactionRatesCount=max(1,Get_Input_Parameter_Array_Size('chemicalReactionRatesMethods'))
+          allocate(chemicalReactionRateMethods(chemicalReactionRatesCount))
+          call Memory_Usage_Record(sizeof(chemicalReactionRateMethods))
+          call Get_Input_Parameter('chemicalReactionRateMethods',chemicalReactionRateMethods,defaultValue=['null'])
+          
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="chemicalReactionRates" type="functionCall" functionType="void">
+          !#  <functionArgs>chemicalReactionRateMethods</functionArgs>
+          include 'chemical.reaction_rates.inc'
+          !# </include>
+          chemicalReactionRateInitialized=.true.
+       end if
+       !$omp end critical(Chemical_Reaction_Rates_Initialization) 
     end if
-    !$omp end critical(Chemical_Reaction_Rates_Initialization) 
     return
   end subroutine Chemical_Reaction_Rates_Initialize
 
@@ -127,17 +85,17 @@ contains
     include 'chemical.reaction_rates.compute.modules.inc'
     !# </include>
     implicit none
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     double precision,                  intent(in)    :: temperature
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
     type(radiationStructure),          intent(in)    :: radiation
 
     ! Initialize the module.
     call Chemical_Reaction_Rates_Initialize
   
     call chemicalRates%reset()
-    !# <include directive="chemicalRatesCompute" type="code" action="subroutine">
-    !#  <subroutineArgs>temperature,chemicalDensity,radiation,chemicalRates</subroutineArgs>
+    !# <include directive="chemicalRatesCompute" type="functionCall" functionType="void">
+    !#  <functionArgs>temperature,chemicalDensity,radiation,chemicalRates</functionArgs>
     include 'chemical.reaction_rates.compute.inc'
     !# </include>
 

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,65 +14,20 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of branching probabilties in modified Press-Schechter theory.
 
 module Modified_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in modified Press-Schechter theory.
-  use FGSL
-  use CDM_Power_Spectrum
+  use Power_Spectrum
   use Numerical_Constants_Math
   implicit none
   private
   public :: Modified_Press_Schechter_Branching_Initialize
   
   ! Parent halo shared variables.
-  double precision :: parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor
-  !$omp threadprivate(parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor)
+  double precision :: parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor
+  !$omp threadprivate(parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor)
 
   ! Parameters of the merger rate modification function.
   double precision :: modifiedPressSchechterG0,modifiedPressSchechterGamma1,modifiedPressSchechterGamma2
@@ -82,6 +37,9 @@ module Modified_Press_Schechter_Branching
 
   ! Precomputed numerical factors.
   double precision, parameter  :: sqrtTwoOverPi=dsqrt(2.0d0/Pi)
+
+  ! Branching probability integrand integration tolerance.
+  double precision, parameter  :: branchingProbabilityIntegrandToleraceRelative=1.0d-3
 
 contains
   
@@ -94,7 +52,7 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: treeBranchingMethod
+    type(varying_string),                 intent(in)    :: treeBranchingMethod
     procedure(double precision), pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass&
          &,Tree_Maximum_Step
     
@@ -172,8 +130,13 @@ contains
     double precision,        parameter  :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
     type(c_ptr)                         :: parameterPointer
 
+    ! Initialize global variables.
+    parentHaloMass        =haloMass
+    parentSigma           =sigma_CDM(haloMass)
+    parentDelta           =deltaCritical
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
+    call Compute_Common_Factors
 
     ! Check the sign of the root function at half the halo mass.
     if (Modified_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass,parameterPointer) >= 0.0d0) then
@@ -198,9 +161,9 @@ contains
     type(fgsl_function)                    :: integrandFunction
     type(fgsl_integration_workspace)       :: integrationWorkspace
 
-    Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum&
+    Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-branchingProbabilityPreFactor*Integrate(probabilityMinimumMass,massMaximum&
          &,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
-         &,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)
+         &,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
   end function Modified_Press_Schechter_Branch_Mass_Root
@@ -208,7 +171,6 @@ contains
   double precision function Modified_Press_Schechter_Branching_Maximum_Step(haloMass,deltaCritical,massResolution)
     !% Return the maximum allowed step in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
     !% deltaCritical} should be allowed to take.
-    use Numerical_Integration
     implicit none
     double precision, intent(in) :: haloMass,deltaCritical,massResolution
     double precision, parameter  :: largeStep=1.0d10 ! Effectively infinitely large step in w(=delta_crit).
@@ -246,8 +208,8 @@ contains
        call Compute_Common_Factors
        massMinimum=massResolution
        massMaximum=0.5d0*parentHaloMass
-       Modified_Press_Schechter_Branching_Probability=Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
-            &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3&
+       Modified_Press_Schechter_Branching_Probability=branchingProbabilityPreFactor*Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
+            &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=branchingProbabilityIntegrandToleraceRelative&
             &,integrationRule=FGSL_Integ_Gauss15)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else
@@ -280,13 +242,12 @@ contains
     if (resolutionSigmaOverParentSigma > 1.0d0) then
        hyperGeometricFactor=Hypergeometric_2F1([1.5d0,0.5d0-0.5d0*modifiedPressSchechterGamma1],[1.5d0-0.5d0&
             &*modifiedPressSchechterGamma1],1.0d0/resolutionSigmaOverParentSigma**2)
-       
        Modified_Press_Schechter_Subresolution_Fraction=sqrtTwoOverPi*(modificationG0Gamma2Factor/parentSigma) &
             &*(resolutionSigmaOverParentSigma**(modifiedPressSchechterGamma1-1.0d0))/(1.0d0-modifiedPressSchechterGamma1)&
             &*hyperGeometricFactor
-       else
-          Modified_Press_Schechter_Subresolution_Fraction=-1.0d0
-       end if
+    else
+       Modified_Press_Schechter_Subresolution_Fraction=-1.0d0
+    end if
     return
   end function Modified_Press_Schechter_Subresolution_Fraction
 
@@ -304,52 +265,40 @@ contains
     return
   end function Branching_Probability_Integrand
   
-  function Subresolution_Fraction_Integrand(childHaloMass,parameterPointer) bind(c)
-    !% Integrand for the subresolution fraction.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    real(c_double)          :: Subresolution_Fraction_Integrand
-    real(c_double), value   :: childHaloMass
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: childSigma,childAlpha
-
-    if (childHaloMass>0.0d0) then
-       call sigma_CDM_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
-       Subresolution_Fraction_Integrand=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*(childHaloMass&
-            &/parentHaloMass)
-    else
-       Subresolution_Fraction_Integrand=0.0d0
-    end if
-    return
-  end function Subresolution_Fraction_Integrand
-  
   double precision function Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
-    !% Progenitor mass function from Press-Schechter.
+    !% Progenitor mass function from Press-Schechter. The constant factor of the parent halo
+    !% mass is not included here---instead it is included in a multiplicative prefactor by which
+    !% integrals over this function are multiplied.
     implicit none
     double precision, intent(in) :: childHaloMass,childSigma,childAlpha
 
-    Progenitor_Mass_Function=(parentHaloMass/childHaloMass**2)*Merging_Rate(childSigma,childAlpha)&
-         &*Modification_Function(childSigma)
+    Progenitor_Mass_Function=Merging_Rate(childSigma,childAlpha)*Modification_Function(childSigma)/(childHaloMass**2)
     return
   end function Progenitor_Mass_Function
   
   double precision function Merging_Rate(childSigma,childAlpha)
-    !% Merging rate from Press-Schechter.
+    !% Merging rate from Press-Schechter. The constant factor of sqrt(2/pi) not included
+    !% here---instead it is included in a multiplicative prefactor by which integrals over this
+    !% function are multiplied.
     implicit none
     double precision, intent(in) :: childSigma,childAlpha
     double precision             :: childSigmaSquared
 
     childSigmaSquared=childSigma**2
-    Merging_Rate=sqrtTwoOverPi*(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*dabs(childAlpha)
+    Merging_Rate=(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*dabs(childAlpha)
     return
   end function Merging_Rate
   
   double precision function Modification_Function(childSigma)
-    !% Empirical modification of the progenitor mass function from \cite{parkinson_generating_2008}.
+    !% Empirical modification of the progenitor mass function from
+    !% \cite{parkinson_generating_2008}. The constant factors of $G_0 (\delta_{\rm
+    !% p}/\sigma_{\rm p})^{\gamma_2}$ and $1/\sigma_{\rm p}^{\gamma_1}$ are not included
+    !% here---instead they are included in a multiplicative prefactor by which integrals over
+    !% this function are multiplied.
     implicit none
     double precision, intent(in) :: childSigma
 
-    Modification_Function=modificationG0Gamma2Factor*((childSigma/parentSigma)**modifiedPressSchechterGamma1)
+    Modification_Function=childSigma**modifiedPressSchechterGamma1
     return
   end function Modification_Function
   
@@ -357,8 +306,9 @@ contains
     !% Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
     implicit none
 
-    parentSigmaSquared        =parentSigma**2
-    modificationG0Gamma2Factor=modifiedPressSchechterG0*((parentDelta/parentSigma)**modifiedPressSchechterGamma2)
+    parentSigmaSquared           =parentSigma**2
+    modificationG0Gamma2Factor   =modifiedPressSchechterG0*((parentDelta/parentSigma)**modifiedPressSchechterGamma2)
+    branchingProbabilityPreFactor=sqrtTwoOverPi*parentHaloMass*modificationG0Gamma2Factor/parentSigma**modifiedPressSchechterGamma1
     return
   end subroutine Compute_Common_Factors
 
