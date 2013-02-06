@@ -1,0 +1,34 @@
+<filter>
+  <description>Galex NUV filter 2500Å</description>
+  <name>Galex NUV</name>
+  <origin>Peter Capak</origin>
+  <url>http://www.astro.caltech.edu/~capak/cosmos/filters/galex2500.res</url>
+  <reference>Morrissey et al. (2005; ApJ; 619; 7; http://adsabs.harvard.edu/abs/2005ApJ...619L...7M)</reference>
+  <response>
+    <datum>1687.5251       9.07e-07</datum>
+    <datum>1699.0338    0.024109075</datum>
+    <datum>1748.3567    0.031858129</datum>
+    <datum>1837.138     0.16100903</datum>
+    <datum>1899.6137     0.26519076</datum>
+    <datum>1948.9366      0.3289052</datum>
+    <datum>1998.2595     0.44858503</datum>
+    <datum>2050.8707      0.4718322</datum>
+    <datum>2151.1606     0.59495605</datum>
+    <datum>2200.4835      0.6164812</datum>
+    <datum>2253.0946     0.56223782</datum>
+    <datum>2300.7735      0.5303806</datum>
+    <datum>2348.4523     0.47785924</datum>
+    <datum>2445.4541     0.53468563</datum>
+    <datum>2553.9645     0.51488249</datum>
+    <datum>2595.0669     0.50024539</datum>
+    <datum>2646.0339     0.46236113</datum>
+    <datum>2697.001     0.38056556</datum>
+    <datum>2797.2909     0.11020967</datum>
+    <datum>2849.902    0.033580141</datum>
+    <datum>2897.5809    0.012054991</datum>
+    <datum>2999.5149    0.016360021</datum>
+    <datum>3007.7354       9.07e-07</datum>
+  </response>
+  <effectiveWavelength>2303.57277700403</effectiveWavelength>
+  <vegaOffset>-1.7560679705466</vegaOffset>
+</filter>

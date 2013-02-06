@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the \cite{cole_hierarchical_2000} algorithm for merger remnant sizes.
 
@@ -102,7 +58,7 @@ contains
 
   subroutine Satellite_Merging_Remnant_Size_Cole2000(thisNode)
     !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{cole_hierarchical_2000} algorithm.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Numerical_Comparison
     use Satellite_Merging_Remnant_Sizes_Properties
@@ -128,13 +84,12 @@ contains
     logical                                          :: errorCondition
 
     ! Find the node to merge with.
-    call thisNode%mergesWith(hostNode)
+    hostNode => thisNode%mergesWith()
 
     ! Get properties of the merging systems.
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
          &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
-
     if (satelliteSpheroidMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
        remnantRadius                 =remnantNoChangeValue
        remnantCircularVelocity       =remnantNoChangeValue
@@ -190,10 +145,18 @@ contains
        end if
        if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','error condition detected')
        ! Check if host has finite mass.
-       if (hostSpheroidMass > 0.0d0) then
+       if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
           ! Find the contribution of dark matter to the masses enclosed within the galaxy radii.
-          hostDarkMatterBoost     =1.0d0+Galactic_Structure_Enclosed_Mass(hostNode,hostRadius     ,massType=massTypeDark)/hostSpheroidMass
-          satelliteDarkMatterBoost=1.0d0+Galactic_Structure_Enclosed_Mass(thisNode,satelliteRadius,massType=massTypeDark)/satelliteSpheroidMass
+          if (hostSpheroidMass      > 0.0d0) then
+             hostDarkMatterBoost     =1.0d0+Galactic_Structure_Enclosed_Mass(hostNode,hostRadius     ,massType=massTypeDark)/hostSpheroidMass
+          else
+             hostDarkMatterBoost     =1.0d0
+          end if
+          if (satelliteSpheroidMass > 0.0d0) then
+             satelliteDarkMatterBoost=1.0d0+Galactic_Structure_Enclosed_Mass(thisNode,satelliteRadius,massType=massTypeDark)/satelliteSpheroidMass
+          else
+             satelliteDarkMatterBoost=1.0d0
+          end if
           ! Scale masses to account for dark matter.
           hostSpheroidMassTotal     =hostSpheroidMass     *hostDarkMatterBoost
           satelliteSpheroidMassTotal=satelliteSpheroidMass*satelliteDarkMatterBoost
@@ -207,13 +170,16 @@ contains
                & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal*hostSpheroidMassTotal   /(satelliteRadius+hostRadius) &
                &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
           remnantRadius=(satelliteSpheroidMassTotal+hostSpheroidMassTotal)**2/progenitorsEnergy
+          
+          ! Also compute the specific angular momentum at the half-mass radius.
+          remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
+          remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
        else
-          remnantRadius=satelliteRadius
-       end if
-       
-       ! Also compute the specific angular momentum at the half-mass radius.
-       remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
-       remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
+          ! Remnant has zero mass - don't do anything.
+          remnantRadius                 =remnantNoChangeValue
+          remnantCircularVelocity       =remnantNoChangeValue
+          remnantSpecificAngularMomentum=remnantNoChangeValue
+       end if       
     end if
     return
   end subroutine Satellite_Merging_Remnant_Size_Cole2000
